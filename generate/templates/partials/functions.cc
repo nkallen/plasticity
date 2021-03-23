@@ -1,26 +1,22 @@
-{% each functions as function %}
-  {% if not function.ignore %}
-    {% if function.isManual %}
-    {% else %}
-Napi::Value {{ cppClassName }}::{{ function.cppFunctionName }}(const Napi::CallbackInfo& info) {
-  Napi::Env env = info.Env();
-
-  {% if function.overloads %}
-    {% each function.overloads as overload %}
-        {% if i > 0%}} else {% endif %}if (info.Length() == {{ overload.args|jsArgsCount }} {% if overload.args.length != 0 %}&&{% endif %}
-        {%partial polymorphicArguments overload%}
-        ) {
-        {% partial syncFunction overload %}
-    {% endeach %}
-        } else {
-            Napi::Error::New(env, "No matching function").ThrowAsJavaScriptException();
-            return env.Undefined();
+<%_ for (const func of klass.functions) { _%>
+    <%_ if (!func.isManual) { _%>
+        Napi::Value <%- klass.cppClassName %>::<%- func.name %>(const Napi::CallbackInfo& info) {
+            Napi::Env env = info.Env();
+            <%_ if (func.overloads) { _%>
+                <%_ for (const overload of func.overloads) { _%>
+                    <%_ if (i > 0) { _%>} else <%_ } _%>if (info.Length() == <%- overload.args %> <%_ if (overload.args.length != 0) { _%>&&<%_ } _%>
+                    <%- include('polymorphic_arguments.cc', overload) %>
+                    ) {
+                    {%_ partial syncFunction overload _%}
+                <%_ } _%>
+                } else {
+                    Napi::Error::New(env, "No matching function").ThrowAsJavaScriptException();
+                    return env.Undefined();
+                }
+            <%_ } else { _%>
+                <%- include('guard_arguments.cc', func) %>
+                {%_ partial syncFunction function _%}
+            <%_ } _%>
         }
-  {% else %}
-    {%partial guardArguments function%}
-    {% partial syncFunction function %}
-  {% endif %}
-}
-    {% endif %}
-  {% endif %}
-{% endeach %}
+    <%_ } _%>
+<%_ } _%>
