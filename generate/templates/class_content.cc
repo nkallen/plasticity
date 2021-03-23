@@ -3,11 +3,11 @@
 Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "<%- klass.jsClassName %>", {
         <%_ for (const func of klass.functions) { _%>
-            {% if func.isStaticMethod %}
+            <%_ if (func.isStaticMethod) { _%>
         StaticMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),
-            {% else %}
+            <%_ } else { _%>
         InstanceMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),
-            {% endif %}
+            <%_ } _%>
         <%_ } _%>
         <%_ for (const field of klass.fields) { _%>
         InstanceAccessor<&<%- klass.cppClassName %>::GetValue_<%- field.name %>, &<%- klass.cppClassName %>::SetValue_<%- field.name %>>("<%- field.name %>"),
@@ -38,16 +38,14 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
 <%- klass.cppClassName %>::<%- klass.cppClassName %>(const Napi::CallbackInfo& info) : Napi::ObjectWrap<<%- klass.cppClassName %>>(info) {
     Napi::Env env = info.Env();
     if (info.Length() == 1 && info[0].IsString() && info[0].ToString().Utf8Value() == "__skip_js_init__") return;
-    {%if initializers %}
-        {% if initializers.length > 0 %}
-        {% each initializers as initializer i %}
+    <%_ if (klass.initializers.length > 0) { _%>
         <%_ for (const initializer of klass.initializers) { _%>
-        {% if i > 0%}} else {% endif %}if (info.Length() == {{ initializer.args.length }} {% if initializer.args.length != 0 %}&&{% endif %}
-        {%partial polymorphicArguments initializer%}
+        <%_ if (i > 0) { _%>} else <%_ } _%>if (info.Length() == <%- initializer.args.length %> <%_ if (initializer.args.length != 0) { _%>&&<%_ } _%>
+        {%_ partial polymorphicArguments initializer _%}
         ) {
-            {%each initializer.args | argsInfo as arg %}
-            {%partial convertFromJS arg %}
-            {%endeach%}
+            <%_ for (const arg of initializer.args) { _%>
+            {%_ partial convertFromJS arg _%}
+            <%_ } _%>
 
             <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(
                 <%- initializer.args.map((arg) => arg.name).join(',') %>
@@ -61,10 +59,9 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
             Napi::Error::New(env, "No matching constructor").ThrowAsJavaScriptException();
             return;
         }
-        {% endif %}
-    {% else %}
+    <%_ } else { _%>
         Napi::Error::New(env, "<%- klass.cppClassName %> cannot be instantiated directly").ThrowAsJavaScriptException();
-    {%endif%}
+    <%_ } _%>
 }
 
 Napi::Object <%- klass.cppClassName %>::NewInstance(Napi::Env env, <%- klass.rawClassName %> *underlying) {
@@ -87,18 +84,18 @@ Napi::Function <%- klass.cppClassName %>::GetConstructor(Napi::Env env) {
     return f;
 }
 
-{% partial functions . %}
+{%_ partial functions . _%}
 
 <%_ for (const field of klass.fields) { _%>
 Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     Napi::Value to;
     <%- field.rawType %> <%- field.name %> = _underlying-><%- field.name %>;
-    {%partial convertToJS field|set "parsedName" field.name %}
+    {%_ partial convertToJS field|set "parsedName" field.name _%}
 }
 void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {
     Napi::Env env = info.Env();
-    {%partial convertFromJS field|set "cArg" 0 %}
+    {%_ partial convertFromJS field|set "cArg" 0 _%}
     _underlying-><%- field.name %> = <%- field.name %>;
 }
 <%_ } _%>
