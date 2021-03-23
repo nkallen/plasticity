@@ -11,19 +11,10 @@ import beautify from 'js-beautify';
 import os from 'os';
 import fse from 'fs-extra';
 import util from './util.js';
+import { Klass } from './parser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-class Klass {
-    constructor(name, desc) {
-        this.name = name;
-        this.desc = desc;
-    }
-
-    get cppClassName() {
-        return this.name;
-    }
-}
 
 const classes = [];
 for (const klass in api.classes) {
