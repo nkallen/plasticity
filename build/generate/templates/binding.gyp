@@ -9,9 +9,9 @@
                 "./src/api/ItemAddon.cpp",
                 "./src/api/Error.cpp",
                 "./src/api/MeshAddon.cpp",
-                <% for (c of classes) { %>
+                <%_ for (c of classes) { _%>
                     "./src/api/<%- c.cppClassName %>.cpp",
-                <% } %>
+                <%_ } _%>
             ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",

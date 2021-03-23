@@ -7,6 +7,7 @@ import ejs from 'ejs';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import api from '../api.js';
+import beautify from 'js-beautify';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,4 +31,4 @@ for (const klass in api.classes) {
     classes.push(new Klass(klass, api.classes[klass]));
 }
 
-console.log(template({classes: classes}));
+console.log(beautify(template({classes: classes})));
