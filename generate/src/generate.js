@@ -14,10 +14,6 @@ import util from './util.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const str = fs.readFileSync(path.join(__dirname, "../templates/binding.gyp")).toString();
-const template = ejs.compile(str, {});
-
 class Klass {
     constructor(name, desc) {
         this.name = name;
@@ -44,7 +40,16 @@ const finalIncludeDirPath = path.join(__dirname, '../../../c3d/include');
 await fse.copy(path.resolve(__dirname, '../manual/include'), tempIncludeDirPath);
 await fse.copy(path.resolve(__dirname, '../manual/src'), tempSrcDirPath);
 
-util.writeLocalFile('../../binding.gyp', beautify(beautify(template({ classes: classes }))), 'binding.gyp');
+const templates = {
+    binding: util.readLocalFile('templates/templates/binding.gyp'),
+    index: util.readLocalFile('templates/templates/index.cc'),
+}
+for (const k in templates) {
+    templates[k] = ejs.compile(templates[k], {});
+}
+
+util.writeLocalFile('../../binding.gyp', beautify(templates.binding({ classes: classes })), 'binding.gyp');
+util.writeLocalFile('../../lib/c3d/index.cc', beautify(templates.index({ classes: classes })), 'index.cc');
 
 await util.syncDirs(tempSrcDirPath, finalSrcDirPath);
 await util.syncDirs(tempIncludeDirPath, finalIncludeDirPath);

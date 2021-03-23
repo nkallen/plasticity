@@ -5,12 +5,12 @@
             "cflags!": ["-fno-exceptions"],
             "cflags_cc!": ["-fno-exceptions"],
             "sources": [
-                "./src/index.cpp",
-                "./src/api/ItemAddon.cpp",
-                "./src/api/Error.cpp",
-                "./src/api/MeshAddon.cpp",
+                "./src/index.cc",
+                "./src/api/ItemAddon.cc",
+                "./src/api/Error.cc",
+                "./src/api/MeshAddon.cc",
                 <%_ for (c of classes) { _%>
-                    "./src/api/<%- c.cppClassName %>.cpp",
+                    "./src/api/<%- c.cppClassName %>.cc",
                 <%_ } _%>
             ],
             "include_dirs": [

@@ -11,7 +11,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts .",
-    "generate": "node --experimental-json-modules build/generate/src/generate.js"
+    "generate": "node --experimental-json-modules generate/src/generate.js"
   },
   "keywords": [],
   "author": {
@@ -82,6 +82,7 @@
     "fork-ts-checker-webpack-plugin": "^5.0.14",
     "fs-extra": "^9.1.0",
     "js-beautify": "^1.13.5",
+    "node-addon-api": "^3.1.0",
     "node-loader": "^1.0.1",
     "style-loader": "^1.2.1",
     "ts-loader": "^8.0.2",

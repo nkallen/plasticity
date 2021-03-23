@@ -92,12 +92,12 @@ out/
 /coverage/
 /dist/
 /include/
-/lib/enums.js
-/src/api
+/lib/c3d
 /generate/output
 /generate/**/*.json
 !/generate/input/*.json
 /binding.gyp
+/build
 
 # Unclear license
 /vendor/c3d
