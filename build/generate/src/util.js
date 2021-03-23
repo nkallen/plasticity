@@ -1,14 +1,17 @@
-const fse = require("fs-extra");
-const walk = require("walk");
-const _ = require('underscore');
+import fse from 'fs-extra';
+import walk from 'walk';
+import _ from 'underscore';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const fs = require("fs");
-const path = require("path");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Make a locally bound path joiner, (bound to generate).
 var local = path.join.bind(null, __dirname, "../");
 
-var util = {
+const util = {
   arrayTypeRegex: /\s\[\d+\]\s*/,
   pointerRegex: /\s*\*\s*/,
   doublePointerRegex: /\s*\*\*\s*/,
@@ -142,4 +145,4 @@ var util = {
   }
 };
 
-module.exports = util;
+export default util;
