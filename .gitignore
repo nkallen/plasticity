@@ -89,7 +89,6 @@ typings/
 out/
 
 # Generated related
-/build/
 /coverage/
 /dist/
 /include/
@@ -99,3 +98,6 @@ out/
 /generate/**/*.json
 !/generate/input/*.json
 /binding.gyp
+
+# Unclear license
+/vendor/c3d
