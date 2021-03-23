@@ -11,7 +11,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts .",
-    "generate": "node build/generate/src/generate.js"
+    "generate": "node --experimental-json-modules build/generate/src/generate.js"
   },
   "keywords": [],
   "author": {

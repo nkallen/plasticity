@@ -1,0 +1,2027 @@
+[
+    {
+        "type": "class",
+        "cppClassName": "Model",
+        "rawClassName": "MbModel",
+        "initializers": [
+            {
+                "args": []
+            }
+        ],
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "item",
+                        "rawType": "MbItem",
+                        "cppType": "Item",
+                        "jsType": "Item"
+                    },
+                    {
+                        "name": "name",
+                        "rawType": "SimpleName",
+                        "cppType": "SimpleName",
+                        "jsType": "Number",
+                        "isOptional": true,
+                        "isEnum": true
+                    }
+                ],
+                "return": {
+                    "rawType": "MbItem *",
+                    "cppType": "Item",
+                    "jsType": "Item"
+                },
+                "cppFunctionName": "AddItem",
+                "cppClassName": "Model"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "item",
+                        "rawType": "MbItem *",
+                        "cppType": "Item",
+                        "jsType": "Item"
+                    }
+                ],
+                "return": {
+                    "rawType": "bool",
+                    "cppType": "bool",
+                    "jsType": "Boolean"
+                },
+                "cppFunctionName": "DetachItem",
+                "cppClassName": "Model"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "n",
+                        "rawType": "SimpleName",
+                        "cppType": "SimpleName",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "path",
+                        "rawType": "MbPath",
+                        "cppType": "Path",
+                        "jsType": "Path",
+                        "isReturn": true,
+                        "shouldAlloc": true
+                    },
+                    {
+                        "name": "from",
+                        "rawType": "MbMatrix3D",
+                        "cppType": "Matrix3D",
+                        "jsType": "Matrix3D",
+                        "shouldAlloc": true,
+                        "isReturn": true
+                    }
+                ],
+                "return": {
+                    "rawType": "MbItem *",
+                    "cppType": "Item",
+                    "jsType": "Item",
+                    "name": "item",
+                    "constCast": true
+                },
+                "cppFunctionName": "GetItemByName",
+                "cppClassName": "Model"
+            }
+        ],
+        "rawDependencies": [
+            "model.h"
+        ],
+        "dependencies": [
+            "Item.h",
+            "Path.h",
+            "Matrix3D.h"
+        ]
+    },
+    {
+        "type": "class",
+        "cppClassName": "BooleanFlags",
+        "rawClassName": "MbBooleanFlags",
+        "initializers": [
+            {
+                "args": []
+            }
+        ],
+        "fields": [],
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "value",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "InitBoolean",
+                "cppClassName": "BooleanFlags"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "value",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "SetMergingFaces",
+                "cppClassName": "BooleanFlags"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "value",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "SetMergingEdges",
+                "cppClassName": "BooleanFlags"
+            }
+        ],
+        "rawDependencies": [
+            "op_boolean_flags.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "AttributeContainer",
+        "rawClassName": "MbAttributeContainer",
+        "fields": [],
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "id",
+                        "rawType": "int",
+                        "jsType": "Number"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "SetStyle",
+                "cppClassName": "AttributeContainer"
+            },
+            {
+                "type": "function",
+                "args": [],
+                "return": {
+                    "rawType": "int",
+                    "jsType": "Number"
+                },
+                "cppFunctionName": "GetStyle",
+                "cppClassName": "AttributeContainer"
+            }
+        ],
+        "rawDependencies": [
+            "attribute_container.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Item",
+        "inheritsFrom": "AttributeContainer",
+        "rawClassName": "MbItem",
+        "fields": [],
+        "functions": [
+            {
+                "type": "function",
+                "args": [],
+                "return": {
+                    "type": "int",
+                    "isErrorCode": false,
+                    "isEnum": true,
+                    "rawType": "MbeSpaceType",
+                    "jsType": "Number",
+                    "isReturn": true,
+                    "isSelf": false
+                },
+                "cppFunctionName": "IsA",
+                "cppClassName": "Item"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "stepData",
+                        "rawType": "MbStepData",
+                        "cppType": "StepData",
+                        "jsType": "StepData"
+                    },
+                    {
+                        "name": "note",
+                        "rawType": "MbFormNote",
+                        "cppType": "FormNote",
+                        "jsType": "FormNote"
+                    },
+                    {
+                        "name": "iReg",
+                        "rawType": "MbRegDuplicate *",
+                        "cppType": "RegDuplicate",
+                        "jsType": "RegDuplicate",
+                        "isOptional": true
+                    }
+                ],
+                "return": {
+                    "type": "int",
+                    "rawType": "MbItem *",
+                    "cppType": "Item",
+                    "cppClassName": "Item",
+                    "isReturn": true
+                },
+                "cppFunctionName": "CreateMesh",
+                "cppClassName": "Item"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "to",
+                        "rawType": "MbVector3D",
+                        "cppType": "Vector3D",
+                        "jsType": "Vector3D"
+                    },
+                    {
+                        "name": "iReg",
+                        "rawType": "MbRegTransform *",
+                        "cppType": "RegTransform",
+                        "jsType": "RegTransform",
+                        "isOptional": true
+                    }
+                ],
+                "cppFunctionName": "Move",
+                "cppClassName": "Item",
+                "return": {
+                    "rawType": "void"
+                }
+            },
+            {
+                "type": "function",
+                "args": [
+                ],
+                "cppFunctionName": "GetItemName",
+                "cppClassName": "Item",
+                "return": {
+                    "rawType": "SimpleName",
+                    "cppType": "SimpleName",
+                    "jsType": "Number",
+                    "isEnum": true
+                }
+            },
+            {
+                "type": "function",
+                "args": [],
+                "isManual": true,
+                "cppFunctionName": "Cast",
+                "cppClassName": "Item"
+            }
+        ],
+        "dependencies": [
+            "Solid.h",
+            "Mesh.h",
+            "StepData.h",
+            "FormNote.h",
+            "RegDuplicate.h",
+            "AttributeContainer.h",
+            "Vector3D.h",
+            "RegTransform.h"
+        ],
+        "rawDependencies": [
+            "model_item.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "SpaceItem",
+        "rawClassName": "MbSpaceItem",
+        "fields": [],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "space_item.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Surface",
+        "rawClassName": "MbSurface",
+        "fields": [],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "surface.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "RegTransform",
+        "rawClassName": "MbRegTransform",
+        "fields": [],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "item_registrator.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Curve3D",
+        "rawClassName": "MbCurve3D",
+        "fields": [],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "curve3d.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Plane",
+        "inheritsFrom": "Surface",
+        "rawClassName": "MbPlane",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "c0",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    },
+                    {
+                        "name": "c1",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    },
+                    {
+                        "name": "c2",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [
+            "CartPoint3D.h",
+            "Surface.h"
+        ],
+        "rawDependencies": [
+            "surf_plane.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "SphereSurface",
+        "inheritsFrom": "Surface",
+        "rawClassName": "MbSphereSurface",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "centre",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    },
+                    {
+                        "name": "r",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [
+            "CartPoint3D.h",
+            "Surface.h"
+        ],
+        "rawDependencies": [
+            "surf_sphere_surface.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "SpaceInstance",
+        "inheritsFrom": "Item",
+        "rawClassName": "MbSpaceInstance",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "c",
+                        "rawType": "MbCurve3D",
+                        "jsType": "Curve3D",
+                        "cppType": "Curve3D"
+                    }
+                ]
+            },
+            {
+                "args": [
+                    {
+                        "name": "s",
+                        "rawType": "MbSurface",
+                        "jsType": "Surface",
+                        "cppType": "Surface"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [
+            "Curve3D.h",
+            "Surface.h",
+            "StepData.h",
+            "FormNote.h",
+            "RegDuplicate.h",
+            "Item.h"
+        ],
+        "rawDependencies": [
+            "space_instance.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "CartPoint3D",
+        "rawClassName": "MbCartPoint3D",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "xx",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    },
+                    {
+                        "name": "yy",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    },
+                    {
+                        "name": "zz",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [
+            "Solid.h",
+            "Mesh.h"
+        ],
+        "rawDependencies": [
+            "mb_cart_point3d.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Direction",
+        "rawClassName": "MbDirection",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "a",
+                        "rawType": "double",
+                        "cppType": "double",
+                        "jsType": "Number"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [],
+        "rawDependencies": [
+            "mb_vector.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Line",
+        "rawClassName": "MbLine",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "p1",
+                        "rawType": "MbCartPoint",
+                        "cppType": "CartPoint",
+                        "jsType": "CartPoint"
+                    },
+                    {
+                        "name": "p2",
+                        "rawType": "MbCartPoint",
+                        "cppType": "CartPoint",
+                        "jsType": "CartPoint"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [
+            "CartPoint.h"
+        ],
+        "rawDependencies": [
+            "cur_line.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "LineSegment",
+        "rawClassName": "MbLineSegment",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "p1",
+                        "rawType": "MbCartPoint",
+                        "cppType": "CartPoint",
+                        "jsType": "CartPoint"
+                    },
+                    {
+                        "name": "p2",
+                        "rawType": "MbCartPoint",
+                        "cppType": "CartPoint",
+                        "jsType": "CartPoint"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [
+            "CartPoint.h"
+        ],
+        "rawDependencies": [
+            "cur_line_segment.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Line3D",
+        "inheritsFrom": "Curve3D",
+        "rawClassName": "MbLine3D",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "p1",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    },
+                    {
+                        "name": "p2",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [
+            "CartPoint3D.h",
+            "StepData.h",
+            "FormNote.h",
+            "RegDuplicate.h",
+            "Item.h",
+            "Curve3D.h"
+        ],
+        "rawDependencies": [
+            "cur_line3d.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "CartPoint",
+        "rawClassName": "MbCartPoint",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "xx",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    },
+                    {
+                        "name": "yy",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [],
+        "rawDependencies": [
+            "mb_cart_point.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Vector3D",
+        "rawClassName": "MbVector3D",
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "a",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    },
+                    {
+                        "name": "b",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    },
+                    {
+                        "name": "c",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    }
+                ]
+            },
+            {
+                "args": [
+                    {
+                        "name": "p1",
+                        "rawType": "MbCartPoint3D",
+                        "jsType": "CartPoint3D",
+                        "cppType": "CartPoint3D"
+                    },
+                    {
+                        "name": "p2",
+                        "rawType": "MbCartPoint3D",
+                        "jsType": "CartPoint3D",
+                        "cppType": "CartPoint3D"
+                    }
+                ]
+            }
+        ],
+        "fields": [],
+        "functions": [],
+        "dependencies": [
+            "CartPoint3D.h"
+        ],
+        "rawDependencies": [
+            "mb_vector3d.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Axis3D",
+        "rawClassName": "MbAxis3D",
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "axis",
+                        "rawType": "MbAxis3D",
+                        "cppType": "Axis3D",
+                        "jsType": "Axis3D"
+                    }
+                ]
+            },
+            {
+                "args": [
+                    {
+                        "name": "vector",
+                        "rawType": "MbVector3D",
+                        "cppType": "Vector3D",
+                        "jsType": "Vector3D"
+                    }
+                ]
+            }
+        ],
+        "fields": [],
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "c",
+                        "rawType": "MbAxis3D",
+                        "jsType": "Axis3D",
+                        "cppType": "Axis3D"
+                    },
+                    {
+                        "name": "angle",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "Rotate",
+                "cppClassName": "Axis3D"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "c",
+                        "rawType": "MbVector3D",
+                        "jsType": "Vector3D",
+                        "cppType": "Vector3D"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "Move",
+                "cppClassName": "Axis3D"
+            }
+        ],
+        "dependencies": [
+            "Placement3D.h"
+        ],
+        "rawDependencies": [
+            "mb_axis3d.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Placement3D",
+        "rawClassName": "MbPlacement3D",
+        "initializers": [
+            {
+                "args": []
+            }
+        ],
+        "fields": [],
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "c",
+                        "rawType": "MbAxis3D",
+                        "jsType": "Axis3D",
+                        "cppType": "Axis3D"
+                    },
+                    {
+                        "name": "angle",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "Rotate",
+                "cppClassName": "Placement3D"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "v",
+                        "rawType": "MbVector3D",
+                        "jsType": "Vector3D",
+                        "cppType": "Vector3D"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "Move",
+                "cppClassName": "Placement3D"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "a",
+                        "rawType": "MbVector3D",
+                        "jsType": "Vector3D",
+                        "cppType": "Vector3D"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "SetAxisY",
+                "cppClassName": "Placement3D"
+            }
+        ],
+        "dependencies": [
+            "Axis3D.h",
+            "Vector3D.h"
+        ],
+        "rawDependencies": [
+            "mb_placement3d.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "FormNote",
+        "rawClassName": "MbFormNote",
+        "fields": [],
+        "functions": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "wire",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    },
+                    {
+                        "name": "grid",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    },
+                    {
+                        "name": "seam",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    },
+                    {
+                        "name": "exact",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    },
+                    {
+                        "name": "quad",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    }
+                ]
+            }
+        ],
+        "dependencies": [],
+        "rawDependencies": [
+            "mb_data.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Mesh",
+        "rawClassName": "MbMesh",
+        "fields": [],
+        "functions": [
+            {
+                "type": "function",
+                "args": [],
+                "isManual": true,
+                "cppFunctionName": "GetBuffers",
+                "cppClassName": "Mesh"
+            },
+            {
+                "type": "function",
+                "args": [],
+                "isManual": true,
+                "cppFunctionName": "GetApexes",
+                "cppClassName": "Mesh"
+            },
+            {
+                "type": "function",
+                "args": [],
+                "isManual": true,
+                "cppFunctionName": "GetEdges",
+                "cppClassName": "Mesh"
+            },
+            {
+                "type": "function",
+                "args": [],
+                "cppFunctionName": "GetMeshType",
+                "cppClassName": "Mesh",
+                "return": {
+                    "rawType": "MbeSpaceType",
+                    "jsType": "Number",
+                    "isReturn": true,
+                    "isEnum": true
+                }
+            },
+            {
+                "type": "function",
+                "args": [],
+                "cppFunctionName": "IsClosed",
+                "cppClassName": "Mesh",
+                "return": {
+                    "rawType": "bool",
+                    "jsType": "Boolean",
+                    "isReturn": true
+                }
+            }
+        ],
+        "dependencies": [],
+        "rawDependencies": [
+            "mesh.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "RegDuplicate",
+        "rawClassName": "MbRegDuplicate",
+        "fields": [],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "item_registrator.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "SNameMaker",
+        "rawClassName": "MbSNameMaker",
+        "fields": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "mainName",
+                        "rawType": "SimpleName",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "sideAdd",
+                        "rawType": "MbSNameMaker::ESides",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "buttAdd",
+                        "rawType": "SimpleName",
+                        "jsType": "Number",
+                        "isEnum": true
+                    }
+                ]
+            }
+        ],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "name_item.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Name",
+        "rawClassName": "MbName",
+        "fields": [],
+        "initializers": [],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "name_item.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Path",
+        "rawClassName": "MbPath",
+        "fields": [],
+        "initializers": [],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "name_item.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Matrix3D",
+        "rawClassName": "MbMatrix3D",
+        "fields": [],
+        "initializers": [],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "mb_matrix3d.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "TopologyItem",
+        "inheritsFrom": "AttributeContainer",
+        "rawClassName": "MbTopologyItem",
+        "fields": [],
+        "initializers": [],
+        "functions": [
+            {
+                "args": [],
+                "return": {
+                    "rawType": "MbName",
+                    "cppType": "Name",
+                    "jsType": "Name",
+                    "isOnStack": true
+                },
+                "cppFunctionName": "GetName",
+                "cppClassName": "TopologyItem"
+            },
+            {
+                "args": [],
+                "return": {
+                    "rawType": "SimpleName",
+                    "cppType": "SimpleName",
+                    "jsType": "Number",
+                    "isEnum": true
+                },
+                "cppFunctionName": "GetMainName",
+                "cppClassName": "TopologyItem"
+            },
+            {
+                "args": [],
+                "return": {
+                    "rawType": "SimpleName",
+                    "cppType": "SimpleName",
+                    "jsType": "Number",
+                    "isEnum": true
+                },
+                "cppFunctionName": "GetFirstName",
+                "cppClassName": "TopologyItem"
+            },
+            {
+                "args": [],
+                "return": {
+                    "rawType": "SimpleName",
+                    "cppType": "SimpleName",
+                    "jsType": "Number",
+                    "isEnum": true
+                },
+                "cppFunctionName": "GetNameHash",
+                "cppClassName": "TopologyItem"
+            }
+        ],
+        "dependencies": [
+            "AttributeContainer.h",
+            "Name.h"
+        ],
+        "rawDependencies": [
+            "topology.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Edge",
+        "inheritsFrom": "TopologyItem",
+        "rawClassName": "MbEdge",
+        "fields": [],
+        "initializers": [],
+        "functions": [],
+        "dependencies": [
+            "TopologyItem.h"
+        ],
+        "rawDependencies": [
+            "topology.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "CurveEdge",
+        "inheritsFrom": "Edge",
+        "rawClassName": "MbCurveEdge",
+        "fields": [],
+        "initializers": [],
+        "functions": [],
+        "dependencies": [
+            "Edge.h"
+        ],
+        "rawDependencies": [
+            "topology.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Face",
+        "inheritsFrom": "TopologyItem",
+        "rawClassName": "MbFace",
+        "fields": [],
+        "initializers": [],
+        "functions": [],
+        "dependencies": [
+            "TopologyItem.h"
+        ],
+        "rawDependencies": [
+            "topology.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Vertex",
+        "inheritsFrom": "TopologyItem",
+        "rawClassName": "MbVertex",
+        "fields": [],
+        "initializers": [],
+        "functions": [],
+        "dependencies": [
+            "TopologyItem.h"
+        ],
+        "rawDependencies": [
+            "topology.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "_ModifyValues",
+        "jsClassName": "ModifyValues",
+        "rawClassName": "ModifyValues",
+        "initializers": [
+            {
+                "args": []
+            }
+        ],
+        "fields": [
+            {
+                "name": "way",
+                "rawType": "MbeModifyingType",
+                "isEnum": true,
+                "jsType": "Number"
+            },
+            {
+                "name": "direction",
+                "rawType": "MbVector3D",
+                "cppType": "Vector3D",
+                "jsType": "Vector3D",
+                "isOnStack": true
+            }
+        ],
+        "functions": [],
+        "dependencies": [
+            "Vector3D.h"
+        ],
+        "rawDependencies": [
+            "op_shell_parameter.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "_SmoothValues",
+        "initializers": [
+            {
+                "args": []
+            }
+        ],
+        "jsClassName": "SmoothValues",
+        "rawClassName": "SmoothValues",
+        "fields": [
+            {
+                "name": "distance1",
+                "rawType": "double",
+                "jsType": "Number"
+            },
+            {
+                "name": "distance2",
+                "rawType": "double",
+                "jsType": "Number"
+            },
+            {
+                "name": "conic",
+                "rawType": "double",
+                "jsType": "Number"
+            },
+            {
+                "name": "begLength",
+                "rawType": "double",
+                "jsType": "Number"
+            },
+            {
+                "name": "endLength",
+                "rawType": "double",
+                "jsType": "Number"
+            },
+            {
+                "name": "form",
+                "rawType": "MbeSmoothForm",
+                "jsType": "Number",
+                "isEnum": true
+            },
+            {
+                "name": "smoothCorner",
+                "rawType": "SmoothValues::CornerForm",
+                "jsType": "Number",
+                "isEnum": true
+            },
+            {
+                "name": "prolong",
+                "rawType": "bool",
+                "jsType": "Boolean"
+            },
+            {
+                "name": "keepCant",
+                "rawType": "ThreeStates",
+                "jsType": "Number",
+                "isEnum": true
+            },
+            {
+                "name": "strict",
+                "rawType": "bool",
+                "jsType": "Boolean"
+            },
+            {
+                "name": "equable",
+                "rawType": "bool",
+                "jsType": "Boolean"
+            }
+        ],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "op_shell_parameter.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Solid",
+        "inheritsFrom": "Item",
+        "rawClassName": "MbSolid",
+        "fields": [],
+        "functions": [
+            {
+                "args": [
+                    {
+                        "name": "edges",
+                        "isReturn": true,
+                        "shouldAlloc": true,
+                        "rawType": "RPArray<MbCurveEdge>",
+                        "jsType": "Array",
+                        "cppType": "RPArray<MbCurveEdge>",
+                        "elementType": "CurveEdge"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "GetEdges",
+                "cppClassName": "Solid"
+            },
+            {
+                "args": [
+                    {
+                        "name": "faces",
+                        "isReturn": true,
+                        "shouldAlloc": true,
+                        "rawType": "RPArray<MbFace>",
+                        "jsType": "Array",
+                        "cppType": "RPArray<MbFace>",
+                        "elementType": "Face"
+                    }
+                ],
+                "return": {
+                    "rawType": "void"
+                },
+                "cppFunctionName": "GetFaces",
+                "cppClassName": "Solid"
+            },
+            {
+                "args": [
+                    {
+                        "name": "name",
+                        "rawType": "MbName",
+                        "jsType": "Name",
+                        "cppType": "Name"
+                    }
+                ],
+                "return": {
+                    "rawType": "MbFace *",
+                    "cppType": "Face",
+                    "jsType": "Face"
+                },
+                "cppFunctionName": "FindFaceByName",
+                "cppClassName": "Solid"
+            },
+            {
+                "args": [
+                    {
+                        "name": "name",
+                        "rawType": "MbName",
+                        "jsType": "Name",
+                        "cppType": "Name"
+                    }
+                ],
+                "return": {
+                    "rawType": "MbCurveEdge *",
+                    "cppType": "CurveEdge",
+                    "jsType": "CurveEdge"
+                },
+                "cppFunctionName": "FindEdgeByName",
+                "cppClassName": "Solid"
+            }
+        ],
+        "dependencies": [
+            "StepData.h",
+            "FormNote.h",
+            "RegDuplicate.h",
+            "Item.h",
+            "CurveEdge.h",
+            "Face.h"
+        ],
+        "rawDependencies": [
+            "solid.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "StepData",
+        "rawClassName": "MbStepData",
+        "fields": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "stepType",
+                        "rawType": "MbeStepType",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "sag",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    }
+                ]
+            }
+        ],
+        "functions": [],
+        "dependencies": [],
+        "rawDependencies": [
+            "mb_data.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "Arc3D",
+        "inheritsFrom": "Curve3D",
+        "rawClassName": "MbArc3D",
+        "fields": [],
+        "initializers": [
+            {
+                "args": [
+                    {
+                        "name": "p0",
+                        "rawType": "MbCartPoint3D",
+                        "jsType": "CartPoint3D",
+                        "cppType": "CartPoint3D"
+                    },
+                    {
+                        "name": "p1",
+                        "rawType": "MbCartPoint3D",
+                        "jsType": "CartPoint3D",
+                        "cppType": "CartPoint3D"
+                    },
+                    {
+                        "name": "p2",
+                        "rawType": "MbCartPoint3D",
+                        "jsType": "CartPoint3D",
+                        "cppType": "CartPoint3D"
+                    },
+                    {
+                        "name": "n",
+                        "rawType": "int",
+                        "jsType": "Number"
+                    },
+                    {
+                        "name": "closed",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    }
+                ]
+            }
+        ],
+        "functions": [],
+        "dependencies": [
+            "CartPoint3D.h",
+            "Curve3D.h"
+        ],
+        "rawDependencies": [
+            "cur_arc3d.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "class",
+        "cppClassName": "PointFrame",
+        "rawClassName": "MbPointFrame",
+        "inheritsFrom": "Item",
+        "fields": [],
+        "initializers": [
+            {
+                "args": []
+            }
+        ],
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "point",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    }
+                ],
+                "return": {
+                    "rawType": "void",
+                    "cppType": "void"
+                },
+                "cppFunctionName": "AddVertex",
+                "cppClassName": "PointFrame"
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "w",
+                        "rawType": "int",
+                        "cppType": "int",
+                        "jsType": "Number"
+                    }
+                ],
+                "return": {
+                    "rawType": "void",
+                    "cppType": "void"
+                },
+                "cppFunctionName": "SetWidth",
+                "cppClassName": "PointFrame"
+            }
+        ],
+        "dependencies": [
+            "CartPoint3D.h",
+            "StepData.h",
+            "FormNote.h",
+            "RegDuplicate.h",
+            "Item.h"
+        ],
+        "rawDependencies": [
+            "point_frame.h"
+        ],
+        "freeFunctionName": "DeleteItem"
+    },
+    {
+        "type": "module",
+        "cppClassName": "Enabler",
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "name",
+                        "rawType": "const char *",
+                        "cppType": "std::string",
+                        "jsType": "String"
+                    },
+                    {
+                        "name": "key",
+                        "rawType": "const char *",
+                        "cppType": "std::string",
+                        "jsType": "String"
+                    }
+                ],
+                "return": {
+                    "rawType": "void",
+                    "cppType": "void",
+                    "cppClassName": "Undefined"
+                },
+                "cppFunctionName": "EnableMathModules",
+                "cppClassName": "Enabler",
+                "isStatic": true
+            }
+        ],
+        "dependencies": [],
+        "rawDependencies": [
+            "tool_enabler.h"
+        ]
+    },
+    {
+        "type": "module",
+        "cppClassName": "ActionSurface",
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "point0",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    },
+                    {
+                        "name": "point1",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    },
+                    {
+                        "name": "point2",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D"
+                    },
+                    {
+                        "name": "surfaceType",
+                        "rawType": "MbeSpaceType",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "result",
+                        "isReturn": true,
+                        "rawType": "MbSurface *",
+                        "cppType": "Surface",
+                        "jsType": "Surface"
+                    }
+                ],
+                "return": {
+                    "rawType": "MbResultType",
+                    "cppType": "MbResultType",
+                    "cppClassName": "Number",
+                    "isErrorCode": true
+                },
+                "cppFunctionName": "ElementarySurface",
+                "cppClassName": "ActionSurface",
+                "isStatic": true
+            }
+        ],
+        "dependencies": [
+            "CartPoint3D.h",
+            "Surface.h"
+        ],
+        "rawDependencies": [
+            "action_surface.h"
+        ]
+    },
+    {
+        "type": "module",
+        "cppClassName": "ActionSolid",
+        "functions": [
+            {
+                "type": "function",
+                "overloads": [
+                    {
+                        "args": [
+                            {
+                                "name": "surface",
+                                "rawType": "MbSurface",
+                                "cppType": "Surface",
+                                "jsType": "Surface"
+                            },
+                            {
+                                "name": "names",
+                                "rawType": "MbSNameMaker",
+                                "cppType": "SNameMaker",
+                                "jsType": "SNameMaker"
+                            },
+                            {
+                                "name": "solid",
+                                "rawType": "MbSolid *",
+                                "cppType": "Solid",
+                                "jsType": "Solid",
+                                "isReturn": true
+                            }
+                        ],
+                        "return": {
+                            "rawType": "MbResultType",
+                            "cppType": "MbResultType",
+                            "cppClassName": "Number",
+                            "isErrorCode": true
+                        },
+                        "cppFunctionName": "ElementarySolid",
+                        "cppClassName": "ActionSolid",
+                        "isStatic": true
+                    },
+                    {
+                        "args": [
+                            {
+                                "name": "points",
+                                "rawType": "SArray<MbCartPoint3D>",
+                                "jsType": "Array",
+                                "elementType": "CartPoint3D"
+                            },
+                            {
+                                "name": "solidType",
+                                "rawType": "ElementaryShellType",
+                                "jsType": "Number",
+                                "isEnum": true
+                            },
+                            {
+                                "name": "names",
+                                "rawType": "MbSNameMaker",
+                                "cppType": "SNameMaker",
+                                "jsType": "SNameMaker"
+                            },
+                            {
+                                "name": "solid",
+                                "rawType": "MbSolid *",
+                                "cppType": "Solid",
+                                "jsType": "Solid",
+                                "isReturn": true
+                            }
+                        ],
+                        "return": {
+                            "rawType": "MbResultType",
+                            "cppType": "MbResultType",
+                            "cppClassName": "Number",
+                            "isErrorCode": true
+                        },
+                        "cppFunctionName": "ElementarySolid",
+                        "cppClassName": "ActionSolid",
+                        "isStatic": true
+                    }
+                ],
+                "cppFunctionName": "ElementarySolid",
+                "cppClassName": "ActionSolid",
+                "isStatic": true
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "solid",
+                        "rawType": "MbSolid",
+                        "cppType": "Solid",
+                        "jsType": "Solid"
+                    },
+                    {
+                        "name": "sameShell",
+                        "rawType": "MbeCopyMode",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "initCurves",
+                        "rawType": "RPArray<MbCurveEdge>",
+                        "jsType": "Array",
+                        "elementType": "CurveEdge",
+                        "elementIsReference": true
+                    },
+                    {
+                        "name": "initBounds",
+                        "rawType": "RPArray<MbFace>",
+                        "jsType": "Array",
+                        "elementType": "Face",
+                        "elementIsReference": true
+                    },
+                    {
+                        "name": "params",
+                        "rawType": "SmoothValues",
+                        "cppType": "_SmoothValues",
+                        "jsType": "SmoothValues"
+                    },
+                    {
+                        "name": "operNames",
+                        "rawType": "MbSNameMaker",
+                        "cppType": "SNameMaker",
+                        "jsType": "SNameMaker"
+                    },
+                    {
+                        "name": "result",
+                        "rawType": "MbSolid *",
+                        "cppType": "Solid",
+                        "jsType": "Solid",
+                        "isReturn": true
+                    }
+                ],
+                "return": {
+                    "rawType": "MbResultType",
+                    "cppType": "MbResultType",
+                    "cppClassName": "Number",
+                    "isErrorCode": true
+                },
+                "cppFunctionName": "FilletSolid",
+                "cppClassName": "ActionSolid",
+                "isStatic": true
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "solid1",
+                        "rawType": "MbSolid",
+                        "cppType": "Solid",
+                        "jsType": "Solid"
+                    },
+                    {
+                        "name": "sameShell1",
+                        "rawType": "MbeCopyMode",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "solid2",
+                        "rawType": "MbSolid",
+                        "cppType": "Solid",
+                        "jsType": "Solid"
+                    },
+                    {
+                        "name": "sameShell2",
+                        "rawType": "MbeCopyMode",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "oType",
+                        "rawType": "OperationType",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "flags",
+                        "rawType": "MbBooleanFlags",
+                        "cppType": "BooleanFlags",
+                        "jsType": "BooleanFlags"
+                    },
+                    {
+                        "name": "operNames",
+                        "rawType": "MbSNameMaker",
+                        "cppType": "SNameMaker",
+                        "jsType": "SNameMaker"
+                    },
+                    {
+                        "name": "result",
+                        "rawType": "MbSolid *",
+                        "cppType": "Solid",
+                        "jsType": "Solid",
+                        "isReturn": true
+                    }
+                ],
+                "return": {
+                    "rawType": "MbResultType",
+                    "cppType": "MbResultType",
+                    "cppClassName": "Number",
+                    "isErrorCode": true
+                },
+                "cppFunctionName": "BooleanResult",
+                "cppClassName": "ActionSolid",
+                "isStatic": true
+            },
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "solid1",
+                        "rawType": "MbSolid",
+                        "cppType": "Solid",
+                        "jsType": "Solid"
+                    },
+                    {
+                        "name": "sameShell1",
+                        "rawType": "MbeCopyMode",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "place",
+                        "rawType": "MbPlacement3D",
+                        "cppType": "Placement3D",
+                        "jsType": "Placement3D"
+                    },
+                    {
+                        "name": "angle",
+                        "rawType": "double",
+                        "jsType": "Number"
+                    },
+                    {
+                        "name": "faces",
+                        "rawType": "RPArray<MbFace>",
+                        "cppType": "RPArray<MbFace>",
+                        "jsType": "Array",
+                        "elementType": "Face",
+                        "elementIsReference": true
+                    },
+                    {
+                        "name": "propagation",
+                        "rawType": "MbeFacePropagation",
+                        "cppType": "MbeFacePropagation",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "reverse",
+                        "rawType": "bool",
+                        "jsType": "Boolean"
+                    },
+                    {
+                        "name": "operNames",
+                        "rawType": "MbSNameMaker",
+                        "cppType": "SNameMaker",
+                        "jsType": "SNameMaker"
+                    },
+                    {
+                        "name": "result",
+                        "rawType": "MbSolid *",
+                        "cppType": "Solid",
+                        "jsType": "Solid",
+                        "isReturn": true
+                    }
+                ],
+                "return": {
+                    "rawType": "MbResultType",
+                    "cppType": "MbResultType",
+                    "cppClassName": "Number",
+                    "isErrorCode": true
+                },
+                "cppFunctionName": "DraftSolid",
+                "cppClassName": "ActionSolid",
+                "isStatic": true
+            }
+        ],
+        "dependencies": [
+            "CartPoint3D.h",
+            "Surface.h",
+            "SNameMaker.h",
+            "Solid.h",
+            "_SmoothValues.h",
+            "Face.h",
+            "CurveEdge.h",
+            "BooleanFlags.h",
+            "Placement3D.h"
+        ],
+        "rawDependencies": [
+            "action_solid.h"
+        ]
+    },
+    {
+        "type": "module",
+        "cppClassName": "ActionPoint",
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "line1",
+                        "rawType": "MbLine3D",
+                        "cppType": "Line3D",
+                        "jsType": "Line3D"
+                    },
+                    {
+                        "name": "line2",
+                        "rawType": "MbLine3D",
+                        "cppType": "Line3D",
+                        "jsType": "Line3D"
+                    },
+                    {
+                        "name": "p1",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D",
+                        "isReturn": true,
+                        "shouldAlloc": true
+                    },
+                    {
+                        "name": "p2",
+                        "rawType": "MbCartPoint3D",
+                        "cppType": "CartPoint3D",
+                        "jsType": "CartPoint3D",
+                        "isReturn": true,
+                        "shouldAlloc": true
+                    }
+                ],
+                "return": {
+                    "name": "distMin",
+                    "rawType": "double",
+                    "cppType": "double",
+                    "jsType": "Number",
+                    "isReturn": true
+                },
+                "cppFunctionName": "LineLineNearestPoints",
+                "cppClassName": "ActionPoint",
+                "isStatic": true
+            }
+        ],
+        "dependencies": [
+            "Line3D.h",
+            "CartPoint3D.h"
+        ],
+        "rawDependencies": [
+            "action_point.h"
+        ]
+    },
+    {
+        "type": "module",
+        "cppClassName": "ActionDirect",
+        "functions": [
+            {
+                "type": "function",
+                "args": [
+                    {
+                        "name": "solid",
+                        "rawType": "MbSolid",
+                        "cppType": "Solid",
+                        "jsType": "Solid"
+                    },
+                    {
+                        "name": "sameShell",
+                        "rawType": "MbeCopyMode",
+                        "jsType": "Number",
+                        "isEnum": true
+                    },
+                    {
+                        "name": "params",
+                        "rawType": "ModifyValues",
+                        "cppType": "_ModifyValues",
+                        "jsType": "_ModifyValues"
+                    },
+                    {
+                        "name": "faces",
+                        "rawType": "RPArray<MbFace>",
+                        "cppType": "RPArray<MbFace>",
+                        "jsType": "Array",
+                        "elementType": "Face",
+                        "elementIsReference": true
+                    },
+                    {
+                        "name": "operNames",
+                        "rawType": "MbSNameMaker",
+                        "cppType": "SNameMaker",
+                        "jsType": "SNameMaker"
+                    },
+                    {
+                        "name": "result",
+                        "rawType": "MbSolid *",
+                        "cppType": "Solid",
+                        "jsType": "Solid",
+                        "isReturn": true
+                    }
+                ],
+                "return": {
+                    "rawType": "MbResultType",
+                    "cppType": "MbResultType",
+                    "cppClassName": "Number",
+                    "isErrorCode": true
+                },
+                "cppFunctionName": "FaceModifiedSolid",
+                "cppClassName": "ActionDirect",
+                "isStatic": true
+            }
+        ],
+        "dependencies": [
+            "Solid.h",
+            "_ModifyValues.h",
+            "SNameMaker.h"
+        ],
+        "rawDependencies": [
+            "action_direct.h"
+        ]
+    }
+]
