@@ -1,4 +1,3 @@
-
 <%_ for (const arg of params) { _%>
     <%_ if (arg.isJsArg) { _%>
         if (info.Length() == <%-arg.jsArg%>

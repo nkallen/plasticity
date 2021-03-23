@@ -1,19 +1,19 @@
-{% if jsType == "Number" %}
-    to = Napi::Number::New(env, {{ parsedName }});
-{% elsif jsType == "Boolean" %}
-    to = Napi::Boolean::New(env, {{ parsedName }});
-{% elsif jsType == "Array" %}
+<%_ if (isNumber || isEnum) { _%>
+    to = Napi::Number::New(env, <%- parsedName %>);
+<%_ } else if (isBoolean) { _%>
+    to = Napi::Boolean::New(env, <%- parsedName %>);
+<%_ } else if (isArray) { _%>
     Napi::Array arr = Napi::Array::New(env);
-    for (size_t i = 0; i < {{ parsedName }}->size(); i++) {
-        arr[i] = {{ elementType }}::NewInstance(env, (*{{ parsedName }})[i]);
+    for (size_t i = 0; i < <%- parsedName %>->size(); i++) {
+        arr[i] = <%- elementType %>::NewInstance(env, (*<%- parsedName %>)[i]);
     }
     to = arr;
-{% elsif isOnStack %}
-    to = {{ cppType }}::NewInstance(env, new {{ rawType }}({{ parsedName }}));
-{% else %}
-    if ({{ parsedName }} != NULL) {
-        to = {{ cppType }}::NewInstance(env, {% if constCast %}({{ rawType }}){% endif %}{{ parsedName }});
+<%_ } else if (isOnStack) { _%>
+    to = <%- cppType %>::NewInstance(env, new <%- rawType %>(<%- parsedName %>));
+<%_ } else { _%>
+    if (<%- parsedName %> != NULL) {
+        to = <%- cppType %>::NewInstance(env, <%_ if (constCast) _%>(<%- rawType %>)<%_ endif _%><%- parsedName %>);
     } else {
         to = env.Null();
     }
-{% endif %}
+<%_ } _%>

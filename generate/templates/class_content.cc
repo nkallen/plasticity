@@ -41,7 +41,6 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
     <%_ if (klass.initializers.length > 0) { _%>
         <%_ for (const initializer of klass.initializers) { _%>
         <%_ if (i > 0) { _%>} else <%_ } _%>if (info.Length() == <%- initializer.args.length %> <%_ if (initializer.args.length != 0) { _%>&&<%_ } _%>
-        {%_ partial polymorphicArguments initializer _%}
         <%- include('polymorphic_arguments', initializer) %>
         ) {
             <%_ for (const arg of initializer.args) { _%>
@@ -96,7 +95,7 @@ Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::Ca
 }
 void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {
     Napi::Env env = info.Env();
-    <%- include('convert_from_js', field) %>
+    <%- include('convert_from_js', { arg: field }) %>
     _underlying-><%- field.name %> = <%- field.name %>;
 }
 <%_ } _%>
