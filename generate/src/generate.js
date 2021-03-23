@@ -32,7 +32,9 @@ const templates = {
     class_content: util.readLocalFile('templates/class_content.cc'),
 }
 for (const k in templates) {
-    templates[k] = ejs.compile(templates[k], {});
+    templates[k] = ejs.compile(templates[k], {
+        views: [path.join(__dirname, "../templates/partials")]
+    });
 }
 
 // We generate the code first into /tmp, then sync everything back to our project
@@ -60,17 +62,15 @@ util.writeLocalFile('../lib/c3d/index.cc', beautify(templates.index({ classes: c
 
 try {
     for (const klass of classes) {
-        for (const f of klass.functions) {
-            util.writeFile(
-                path.join(tempIncludeDirPath, klass.cppClassName + '.h'),
-                templates.class_header({ klass: klass }),
-                klass.cppClassName + '.h');
+        util.writeFile(
+            path.join(tempIncludeDirPath, klass.cppClassName + '.h'),
+            templates.class_header({ klass: klass }),
+            klass.cppClassName + '.h');
 
-            util.writeFile(
-                path.join(tempSrcDirPath, klass.cppClassName + '.cc'),
-                templates.class_content({ klass: klass }),
-                klass.cppClassName + '.cc');
-        }
+        util.writeFile(
+            path.join(tempSrcDirPath, klass.cppClassName + '.cc'),
+            templates.class_content({ klass: klass }),
+            klass.cppClassName + '.cc');
     }
 } catch (e) {
     console.log(e);

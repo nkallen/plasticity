@@ -42,10 +42,10 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
         <%_ for (const initializer of klass.initializers) { _%>
         <%_ if (i > 0) { _%>} else <%_ } _%>if (info.Length() == <%- initializer.args.length %> <%_ if (initializer.args.length != 0) { _%>&&<%_ } _%>
         {%_ partial polymorphicArguments initializer _%}
-        <%- include('partials/polymorphic_arguments', initializer) %>
+        <%- include('polymorphic_arguments', initializer) %>
         ) {
             <%_ for (const arg of initializer.args) { _%>
-            {%_ partial convertFromJS arg _%}
+            <%- include('convert_from_js', arg) %>
             <%_ } _%>
 
             <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(
@@ -85,18 +85,18 @@ Napi::Function <%- klass.cppClassName %>::GetConstructor(Napi::Env env) {
     return f;
 }
 
-{%_ partial functions . _%}
+<%- include('functions.cc', klass) %>
 
 <%_ for (const field of klass.fields) { _%>
 Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     Napi::Value to;
     <%- field.rawType %> <%- field.name %> = _underlying-><%- field.name %>;
-    {%_ partial convertToJS field|set "parsedName" field.name _%}
+    <%- include('convert_to_js', field) %>
 }
 void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {
     Napi::Env env = info.Env();
-    {%_ partial convertFromJS field|set "cArg" 0 _%}
+    <%- include('convert_from_js', field) %>
     _underlying-><%- field.name %> = <%- field.name %>;
 }
 <%_ } _%>

@@ -5,7 +5,6 @@ export class ClassDeclaration {
         this.name = name;
         this.extends = desc.extends;        
         this.rawHeader = desc.rawHeader;
-        this.dependencies = desc.dependencies;
     }
 
     get cppClassName() {
@@ -18,6 +17,10 @@ export class ClassDeclaration {
 
     get jsClassName() {
         return this.desc.jsClassName ?? this.cppClassName;
+    }
+
+    get dependencies() {
+        return this.desc.dependencies ?? [];
     }
 
     get functions() {
