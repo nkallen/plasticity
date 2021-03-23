@@ -6,11 +6,11 @@
             "cflags_cc!": ["-fno-exceptions"],
             "sources": [
                 "./lib/c3d/index.cc",
-                # "./lib/c3d/ItemAddon.cc",
-                # "./lib/c3d/Error.cc",
-                # "./lib/c3d/MeshAddon.cc",
+                # "./lib/c3d/src/ItemAddon.cc",
+                "./lib/c3d/src/Error.cc",
+                # "./lib/c3d/src/MeshAddon.cc",
                 <%_ for (c of classes) { _%>
-                    # "./lib/c3d/<%- c.cppClassName %>.cc",
+                    # "./lib/c3d/src/<%- c.cppClassName %>.cc",
                 <%_ } _%>
             ],
             "include_dirs": [
