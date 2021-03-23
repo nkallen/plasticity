@@ -50,6 +50,7 @@ const util = {
             }
 
             fse.ensureFileSync(filePath);
+            console.log(filePath);
             fse.writeFileSync(filePath, content);
             return true;
         }
