@@ -1,8 +1,9 @@
 import _ from 'underscore';
 export class ClassDeclaration {
     constructor(name, desc) {
-        this.name = name;
         this.desc = desc;
+        this.name = name;
+        this.extends = desc.extends;        
         this.rawHeader = desc.rawHeader;
         this.dependencies = desc.dependencies;
     }
@@ -16,7 +17,7 @@ export class ClassDeclaration {
     }
 
     get jsClassName() {
-        return this.desc.jsClassName ?? this.cppClassName();
+        return this.desc.jsClassName ?? this.cppClassName;
     }
 
     get functions() {
@@ -29,7 +30,11 @@ export class ClassDeclaration {
     }
 
     get fields() {
-        return []
+        return [];
+    }
+
+    get initializers() {
+        return [];
     }
 }
 

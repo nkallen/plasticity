@@ -29,6 +29,7 @@ const templates = {
     binding: util.readLocalFile('templates/binding.gyp'),
     index: util.readLocalFile('templates/index.cc'),
     class_header: util.readLocalFile('templates/class_header.h'),
+    class_content: util.readLocalFile('templates/class_content.cc'),
 }
 for (const k in templates) {
     templates[k] = ejs.compile(templates[k], {});
@@ -64,6 +65,11 @@ try {
                 path.join(tempIncludeDirPath, klass.cppClassName + '.h'),
                 templates.class_header({ klass: klass }),
                 klass.cppClassName + '.h');
+
+            util.writeFile(
+                path.join(tempSrcDirPath, klass.cppClassName + '.cc'),
+                templates.class_content({ klass: klass }),
+                klass.cppClassName + '.cc');
         }
     }
 } catch (e) {

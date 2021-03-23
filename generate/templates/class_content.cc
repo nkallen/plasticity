@@ -1,46 +1,47 @@
-#include "../../include/{{ cppClassName }}.h"
+#include "../include/<%- klass.cppClassName %>.h"
 
-Napi::Object {{ cppClassName }}::Init(const Napi::Env env, Napi::Object exports) {
-    Napi::Function func = DefineClass(env, "{{ jsClassName |or cppClassName }}", {
-        {% each functions as function %}
-            {% if function.isStaticMethod %}
-        StaticMethod<&{{ cppClassName }}::{{ function.cppFunctionName }}>("{{ function.cppFunctionName }}"),
+Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object exports) {
+    Napi::Function func = DefineClass(env, "<%- klass.jsClassName %>", {
+        <%_ for (const func of klass.functions) { _%>
+            {% if func.isStaticMethod %}
+        StaticMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),
             {% else %}
-        InstanceMethod<&{{ cppClassName }}::{{ function.cppFunctionName }}>("{{ function.cppFunctionName }}"),
+        InstanceMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),
             {% endif %}
-        {% endeach %}
-        {% each fields as field %}
-        InstanceAccessor<&{{ cppClassName }}::GetValue_{{ field.name }}, &{{ cppClassName }}::SetValue_{{ field.name }}>("{{ field.name }}"),
-        {% endeach %}
+        <%_ } _%>
+        <%_ for (const field of klass.fields) { _%>
+        InstanceAccessor<&<%- klass.cppClassName %>::GetValue_<%- field.name %>, &<%- klass.cppClassName %>::SetValue_<%- field.name %>>("<%- field.name %>"),
+        <%_ } _%>
     });
     Napi::FunctionReference* constructor = new Napi::FunctionReference();
     *constructor = Napi::Persistent(func);
-    exports.Set("{{ jsClassName |or cppClassName }}", func);
+    exports.Set("<%- klass.jsClassName %>", func);
 
-    {% if inheritsFrom %}
+    <%_ if (klass.extends) { _%>
     Napi::Object global = env.Global();
     Napi::Object Object = global.Get("Object").ToObject();
     Napi::Function setPrototypeOf = Napi::Function(env, Object.Get("setPrototypeOf"));
     Napi::Value prototype = func.Get("prototype");
 
-    Napi::Function superFunc = {{ inheritsFrom }}::GetConstructor(env);
+    Napi::Function superFunc = <%- klass.extends %>::GetConstructor(env);
     Napi::FunctionReference* superConstructor = new Napi::FunctionReference();
     *superConstructor = Napi::Persistent(superFunc);
 
     Napi::Value superPrototype = superFunc.Get("prototype");
     setPrototypeOf.Call({prototype, superPrototype});
     setPrototypeOf.Call({func, superFunc});
-    {% endif %}
+    <%_ } _%>
 
     return exports;
 }
 
-{{ cppClassName }}::{{ cppClassName }}(const Napi::CallbackInfo& info) : Napi::ObjectWrap<{{ cppClassName }}>(info) {
+<%- klass.cppClassName %>::<%- klass.cppClassName %>(const Napi::CallbackInfo& info) : Napi::ObjectWrap<<%- klass.cppClassName %>>(info) {
     Napi::Env env = info.Env();
     if (info.Length() == 1 && info[0].IsString() && info[0].ToString().Utf8Value() == "__skip_js_init__") return;
     {%if initializers %}
         {% if initializers.length > 0 %}
         {% each initializers as initializer i %}
+        <%_ for (const initializer of klass.initializers) { _%>
         {% if i > 0%}} else {% endif %}if (info.Length() == {{ initializer.args.length }} {% if initializer.args.length != 0 %}&&{% endif %}
         {%partial polymorphicArguments initializer%}
         ) {
@@ -48,58 +49,56 @@ Napi::Object {{ cppClassName }}::Init(const Napi::Env env, Napi::Object exports)
             {%partial convertFromJS arg %}
             {%endeach%}
 
-            {{ rawClassName }} *underlying = new {{ rawClassName }}(
-            {%each initializer.args | argsInfo as arg %}
-                {{ arg.name }}{%if not arg.lastArg %},{%endif%}
-            {%endeach%});
+            <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(
+                <%- initializer.args.map((arg) => arg.name).join(',') %>
             if (underlying == NULL) {
                 Napi::Error::New(env, "Invalid construction").ThrowAsJavaScriptException();
                 return;
             }
             this->_underlying = underlying;
-        {% endeach %}
+        <%_ } _%>
         } else {
             Napi::Error::New(env, "No matching constructor").ThrowAsJavaScriptException();
             return;
         }
         {% endif %}
     {% else %}
-        Napi::Error::New(env, "{{ cppClassName }} cannot be instantiated directly").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "<%- klass.cppClassName %> cannot be instantiated directly").ThrowAsJavaScriptException();
     {%endif%}
 }
 
-Napi::Object {{ cppClassName }}::NewInstance(Napi::Env env, {{ rawClassName }} *underlying) {
+Napi::Object <%- klass.cppClassName %>::NewInstance(Napi::Env env, <%- klass.rawClassName %> *underlying) {
     Napi::Object obj = env.GetInstanceData<Napi::ObjectReference>()->Value();
-    Napi::Value value = obj.Get("{{ cppClassName }}");
+    Napi::Value value = obj.Get("<%- klass.cppClassName %>");
     Napi::Function f = value.As<Napi::Function>();
     Napi::FunctionReference* constructor = new Napi::FunctionReference();
     *constructor = Napi::Weak(f);
     Napi::Object inst = constructor->New({Napi::String::New(env, "__skip_js_init__")});
-    {{ cppClassName }} *unwrapped = {{ cppClassName }}::Unwrap(inst);
+    <%- klass.cppClassName %> *unwrapped = <%- klass.cppClassName %>::Unwrap(inst);
     unwrapped->_underlying = underlying;
 
     return inst;
 }
 
-Napi::Function {{ cppClassName }}::GetConstructor(Napi::Env env) {
+Napi::Function <%- klass.cppClassName %>::GetConstructor(Napi::Env env) {
     Napi::Object obj = env.GetInstanceData<Napi::ObjectReference>()->Value();
-    Napi::Value value = obj.Get("{{ jsClassName |or cppClassName }}");
+    Napi::Value value = obj.Get("<%- klass.jsClassName %>");
     Napi::Function f = value.As<Napi::Function>();
     return f;
 }
 
 {% partial functions . %}
 
-{% each fields as field %}
-Napi::Value {{ cppClassName }}::GetValue_{{ field.name }}(const Napi::CallbackInfo &info) {
+<%_ for (const field of klass.fields) { _%>
+Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     Napi::Value to;
-    {{= field.rawType =}} {{ field.name }} = _underlying->{{ field.name }};
+    <%- field.rawType %> <%- field.name %> = _underlying-><%- field.name %>;
     {%partial convertToJS field|set "parsedName" field.name %}
 }
-void {{ cppClassName }}::SetValue_{{ field.name }}(const Napi::CallbackInfo &info, const Napi::Value &value) {
+void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {
     Napi::Env env = info.Env();
     {%partial convertFromJS field|set "cArg" 0 %}
-    _underlying->{{ field.name }} = {{ field.name }};
+    _underlying-><%- field.name %> = <%- field.name %>;
 }
-{% endeach %}
+<%_ } _%>
