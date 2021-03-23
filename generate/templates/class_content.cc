@@ -42,6 +42,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
         <%_ for (const initializer of klass.initializers) { _%>
         <%_ if (i > 0) { _%>} else <%_ } _%>if (info.Length() == <%- initializer.args.length %> <%_ if (initializer.args.length != 0) { _%>&&<%_ } _%>
         {%_ partial polymorphicArguments initializer _%}
+        <%- include('partials/polymorphic_arguments', initializer) %>
         ) {
             <%_ for (const arg of initializer.args) { _%>
             {%_ partial convertFromJS arg _%}
