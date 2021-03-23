@@ -7,7 +7,7 @@
                     <%_ if (i > 0) { _%>} else <%_ } _%>if (info.Length() == <%- overload.args %> <%_ if (overload.args.length != 0) { _%>&&<%_ } _%>
                     <%- include('polymorphic_arguments.cc', overload) %>
                     ) {
-                    {%_ partial syncFunction overload _%}
+                    <%- include('sync_function.cc', overload) %>
                 <%_ } _%>
                 } else {
                     Napi::Error::New(env, "No matching function").ThrowAsJavaScriptException();
@@ -15,7 +15,7 @@
                 }
             <%_ } else { _%>
                 <%- include('guard_arguments.cc', func) %>
-                {%_ partial syncFunction function _%}
+                <%- include('sync_function.cc', { func: func}) %>
             <%_ } _%>
         }
     <%_ } _%>

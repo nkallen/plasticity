@@ -44,7 +44,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
         <%- include('polymorphic_arguments', initializer) %>
         ) {
             <%_ for (const arg of initializer.args) { _%>
-            <%- include('convert_from_js', arg) %>
+            <%- include('convert_from_js', { arg: arg }) %>
             <%_ } _%>
 
             <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(

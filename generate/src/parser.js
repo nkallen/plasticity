@@ -61,6 +61,10 @@ class FunctionDeclaration {
             }
         }
     }
+
+    get returns() {
+        return [];
+    }
 }
 
 class ParamDeclaration {
