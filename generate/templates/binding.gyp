@@ -5,28 +5,28 @@
             "cflags!": ["-fno-exceptions"],
             "cflags_cc!": ["-fno-exceptions"],
             "sources": [
-                "./src/index.cc",
-                "./src/api/ItemAddon.cc",
-                "./src/api/Error.cc",
-                "./src/api/MeshAddon.cc",
+                "./lib/c3d/index.cc",
+                # "./lib/c3d/ItemAddon.cc",
+                # "./lib/c3d/Error.cc",
+                # "./lib/c3d/MeshAddon.cc",
                 <%_ for (c of classes) { _%>
-                    "./src/api/<%- c.cppClassName %>.cc",
+                    # "./lib/c3d/<%- c.cppClassName %>.cc",
                 <%_ } _%>
             ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",
-                '<(module_root_dir)/vendor/Include',
+                '<(module_root_dir)/vendor/c3d/Include',
                 '<(module_root_dir)/include'
             ],
             'link_settings': {
-                'library_dirs': ['<(module_root_dir)/vendor/Debug'],
+                'library_dirs': ['<(module_root_dir)/vendor/c3d/Debug'],
                 'libraries': [
                     'libc3d.dylib',
                 ]
             },
             'xcode_settings': {
                 'OTHER_LDFLAGS': [
-                    '-Wl,-rpath,\'@loader_path/../../vendor/Debug\''
+                    '-Wl,-rpath,\'@loader_path/../../vendor/c3d/Debug\''
                 ]
             },
             'defines': ['NAPI_DISABLE_CPP_EXCEPTIONS'],

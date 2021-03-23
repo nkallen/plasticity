@@ -1,5 +1,5 @@
-#include "../../include/Mesh.h"
-#include "../../include/Name.h"
+#include "../include/Mesh.h"
+#include "../include/Name.h"
 
 Napi::Object getBuffer(const Napi::CallbackInfo &info, const MbGrid *grid)
 {

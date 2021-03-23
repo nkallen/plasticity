@@ -34,22 +34,22 @@ const tempDirPath = path.join(os.tmpdir(), 'ispace');
 const tempSrcDirPath = path.join(tempDirPath, 'src');
 const tempIncludeDirPath = path.join(tempDirPath, 'include');
 
-const finalSrcDirPath = path.join(__dirname, '../../../lib/c3d/src');
-const finalIncludeDirPath = path.join(__dirname, '../../../c3d/include');
+const finalSrcDirPath = path.join(__dirname, '../../lib/c3d/src');
+const finalIncludeDirPath = path.join(__dirname, '../../lib/c3d/include');
 
 await fse.copy(path.resolve(__dirname, '../manual/include'), tempIncludeDirPath);
 await fse.copy(path.resolve(__dirname, '../manual/src'), tempSrcDirPath);
 
 const templates = {
-    binding: util.readLocalFile('templates/templates/binding.gyp'),
-    index: util.readLocalFile('templates/templates/index.cc'),
+    binding: util.readLocalFile('templates/binding.gyp'),
+    index: util.readLocalFile('templates/index.cc'),
 }
 for (const k in templates) {
     templates[k] = ejs.compile(templates[k], {});
 }
 
-util.writeLocalFile('../../binding.gyp', beautify(templates.binding({ classes: classes })), 'binding.gyp');
-util.writeLocalFile('../../lib/c3d/index.cc', beautify(templates.index({ classes: classes })), 'index.cc');
+util.writeLocalFile('../binding.gyp', beautify(templates.binding({ classes: classes })), 'binding.gyp');
+util.writeLocalFile('../lib/c3d/index.cc', beautify(templates.index({ classes: classes })), 'index.cc');
 
 await util.syncDirs(tempSrcDirPath, finalSrcDirPath);
 await util.syncDirs(tempIncludeDirPath, finalIncludeDirPath);

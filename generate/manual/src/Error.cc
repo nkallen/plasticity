@@ -1,4 +1,4 @@
-#include "../../include/Error.h"
+#include "../include/Error.h"
 #include "mb_operation_result.h"
 
 const char* Error::GetSolidErrorResId( uint solidError )

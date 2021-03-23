@@ -1,4 +1,4 @@
-#include "../../include/Item.h"
+#include "../include/Item.h"
 
 Napi::Value Item::Cast(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
