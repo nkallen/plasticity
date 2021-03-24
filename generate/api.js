@@ -65,6 +65,12 @@ export default {
                 "const MbCartPoint3D & c0, const MbCartPoint3D & c1, const MbCartPoint3D & c2"
             ]
         },
+        CartPoint: {
+            rawHeader: "mb_cart_point.h",
+            initializers: [
+                "double xx, double yy"
+            ]
+        },
         CartPoint3D: {
             rawHeader: "mb_cart_point3d.h",
             initializers: [
@@ -73,8 +79,79 @@ export default {
         },
         SphereSurface: {
             rawHeader: "surf_sphere_surface.h",
+            dependencies: ["CartPoint3D.h"],
             initializers: [
-                "MbCartPoint3D centre, double r"
+                "const MbCartPoint3D & centre, double r"
+            ]
+        },
+        SpaceInstance: {
+            rawHeader: "space_instance.h",
+            extends: "Item",
+            dependencies: ["Item.h", "Surface.h", "Curve3D.h"],
+            initializers: [
+                "MbSurface & surf",
+                "MbCurve3D & curve"
+            ]
+        },
+        Direction: {
+            rawHeader: "mb_vector.h",
+            initializers: [
+                "double a"
+            ]
+        },
+        Line: {
+            rawHeader: "cur_line.h",
+            dependencies: ["CartPoint.h"],
+            initializers: [
+                "const MbCartPoint & p1, const MbCartPoint & p2"
+            ]
+        },
+        LineSegment: {
+            rawHeader: "cur_line_segment.h",
+            dependencies: ["CartPoint.h"],
+            initializers: [
+                "const MbCartPoint & p1, const MbCartPoint & p2"
+            ]
+        },
+        Line3D: {
+            rawHeader: "cur_line3d.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h", "CartPoint3D.h"],
+            initializers: [
+                "const MbCartPoint3D & p1, const MbCartPoint3D & p2"
+            ]
+        },
+        Vector3D: {
+            rawHeader: "mb_vector3d.h",
+            dependencies: ["CartPoint3D.h"],
+            initializers: [
+                "double a, double b, double c",
+                "const MbCartPoint3D & p1, const MbCartPoint3D & p2"
+            ]
+        },
+        Axis3D: {
+            rawHeader: "mb_axis3d.h",
+            dependencies: ["Placement3D.h"],
+            initializers: [
+                "const MbAxis3D & axis",
+                "const MbVector3D & v",
+            ],
+            functions: [
+                "void Rotate(const MbAxis3D & axis, double angle)",
+                "void Move(const MbVector3D & to)",
+            ]
+        },
+        Placement3D: {
+            rawHeader: "mb_placement3d.h",
+            dependencies: ["Axis3D.h", "Vector3D.h"],
+            initializers: [""],// FIXME check for empty initis,
+            functions: [
+                "MbPlacement3D & Move(const MbVector3D & to)",
+                "MbPlacement3D & Rotate(const MbAxis3D & axis, double angle)",
+                "MbPlacement3D & Scale(double sx, double sy, double sz)",
+                "void SetAxisX(const MbVector3D & a)",
+                "void SetAxisY(const MbVector3D & a)",
+                "void SetAxisZ(const MbVector3D & a)",
             ]
         }
     }

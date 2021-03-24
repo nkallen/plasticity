@@ -36,20 +36,20 @@ if (_result == rt_Success) {
     return env.Undefined();
 <%_ } else { _%>
     <%_ if (func.returnsCount > 1) { _%>
-        Napi::Object toReturn = Napi::Object::New(env);
+        Napi::Object _toReturn = Napi::Object::New(env);
     <%_ } _%>
-    Napi::Value to;
+    Napi::Value _to;
 
     <%_ for (_return of func.returns) { _%>
         <%- include('convert_to_js.cc', { arg: _return }) %>
         <%_ if (func.returnsCount > 1) { _%>
-        toReturn.Set(Napi::String::New(env, "<%- _return.name %>"), to);
+        _toReturn.Set(Napi::String::New(env, "<%- _return.name %>"), _to);
         <%_ } _%>
     <%_ } _%>
     <% if (func.returnsCount == 1) { _%>
-        return to;
+        return _to;
     <%_ } else { _%>
-        return toReturn;
+        return _toReturn;
     <%_ } _%>
 <%_ } _%>
 

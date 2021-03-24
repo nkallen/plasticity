@@ -40,7 +40,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
     if (info.Length() == 1 && info[0].IsString() && info[0].ToString().Utf8Value() == "__skip_js_init__") return;
     <%_ if (klass.initializers.length > 0) { _%>
         <%_ for (const [i, initializer] of klass.initializers.entries()) { _%>
-        <%_ if (i > 0) { _%>} else <%_ } _%>if (info.Length() == <%- initializer.params.length %> <%_ if (initializer.params.length != 0) { _%>&&<%_ } _%>
+        <% if (i > 0) { %>} else <% } %>if (info.Length() == <%- initializer.params.length %> <%_ if (initializer.params.length != 0) { _%>&&<%_ } _%>
         <%- include('polymorphic_arguments.cc', { func: initializer }) %>
         ) {
             <%_ for (const arg of initializer.params) { _%>

@@ -221,6 +221,10 @@ class ReturnDeclaration extends TypeDeclaration {
     get name() {
         return "_result";
     }
+
+    get isOnStack() {
+        return this.ref != "*";
+    }
 }
 
 class InitializerDeclaration {
