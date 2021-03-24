@@ -35,6 +35,13 @@ export default {
         },
         Matrix3D: {
             rawHeader: "mb_matrix3d.h"
+        },
+        BooleanFlags: {
+            rawHeader: "op_boolean_flags.h",
+            initializers: [],
+            functions: [
+                
+            ]
         }
     }
 }
