@@ -300,6 +300,18 @@ export default {
             functions: [
                 "void EnableMathModules(const char * name, const char * key)"
             ]
+        },
+        ActionSurface: {
+            rawHeader: "action_surface.h"
+        },
+        ActionSolid: {
+            rawHeader: "action_solid.h"
+        },
+        ActionPoint: {
+            rawHeader: "action_point.h"
+        },
+        ActionDirect: {
+            rawHeader: "action_direct.h"
         }
     },
     enums: [
