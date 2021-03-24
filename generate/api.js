@@ -23,7 +23,7 @@ export default {
             extends: "AttributeContainer",
             functions: [
                 "MbeSpaceType IsA()",
-                // "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)",
+                "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)",
                 "void Move(const MbVector3D & v, MbRegTransform *iReg)",
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
@@ -181,7 +181,7 @@ export default {
         StepData: {
             rawHeader: "mb_data.h",
             initializers: [
-                
+                "MbeStepType t, double sag"
             ]
         }
     }

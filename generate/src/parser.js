@@ -25,6 +25,12 @@ class TypeRegistry {
                 cppType: "MbeSpaceType",
                 isEnum: true
             },
+            MbeStepType: {
+                jsType: "Number",
+                rawType: "MbeStepType",
+                cppType: "MbeStepType",
+                isEnum: true
+            },
             ESides: {
                 jsType: "Number",
                 cppType: "ESides",
