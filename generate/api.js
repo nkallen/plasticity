@@ -11,7 +11,8 @@ export default {
                     signature: "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)",
                     path: { isReturn: true }, from: { isReturn: true }
                 }
-            ]
+            ],
+            freeFunctionName: "DeleteItem"
         },
         AttributeContainer: {
             rawHeader: "attribute_container.h",
@@ -30,7 +31,8 @@ export default {
                 "void Move(const MbVector3D & v, MbRegTransform *iReg)",
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
-            ]
+            ],
+            freeFunctionName: "DeleteItem"
         },
         Path: {
             rawHeader: "name_item.h"

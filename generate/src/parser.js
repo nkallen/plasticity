@@ -29,7 +29,8 @@ class TypeRegistry {
                 isEnum: true
             }
         }
-        // There are a few cases like SmoothValues where we have name conflicts
+        // There are a few cases like SmoothValues & ModifyValues where we have name conflicts
+        // so we look up the mapping. In these cases, it's probably just an _ prefix.
         if (this.classes[rawType]) {
             const klass = this.classes[rawType];
             return {

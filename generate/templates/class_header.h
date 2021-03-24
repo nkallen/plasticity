@@ -24,6 +24,12 @@ class <%- klass.cppClassName -%> : public
 
     <%- klass.rawClassName %> * _underlying;
 
+  protected:
+    <%_ if (klass.freeFunctionName) { _%>
+    ~<%- klass.cppClassName -%>();
+    <%_ } _%>
+
+
   private:
     <%_ for (const field of klass.fields) { _%>
         Napi::Value GetValue_<%- field.name %>(const Napi::CallbackInfo &info);
