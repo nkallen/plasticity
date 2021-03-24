@@ -1,21 +1,19 @@
 #include <iostream>     // std::cout, std::ios
 #include <sstream>      // std::ostringstream
 
-#include "../../include/{{ cppClassName }}.h"
-#include "../../include/Error.h"
+#include "../include/<%- klass.cppClassName %>.h"
+#include "../include/Error.h"
 
-Napi::Object {{ cppClassName }}::Init(Napi::Env env, Napi::Object exports) {
+Napi::Object <%- klass.cppClassName %>::Init(Napi::Env env, Napi::Object exports) {
     Napi::Object object = Napi::Object::New(env);
 
-    {% each functions as function %}
-    {% if not function.ignore %}
-    object.Set("{{ function.cppFunctionName }}", Napi::Function::New<&{{ cppClassName }}::{{ function.cppFunctionName }}>(env));
-    {% endif %}
-    {% endeach %}
+    <%_ for (const func of klass.functions) { _%>
+    object.Set("<%- func.name %>", Napi::Function::New<&<%- klass.cppClassName %>::<%- func.name %>>(env));
+        <%_ } _%>
 
-    exports.Set("{{ cppClassName }}", object);
+    exports.Set("<%- klass.cppClassName %>", object);
 
     return exports;
 }
 
-{% partial functions . %}
+<%- include('functions.cc', klass) %>

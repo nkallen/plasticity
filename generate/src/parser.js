@@ -3,11 +3,14 @@ import _ from 'underscore';
 export default function Parse(api) {
     const typeRegistry = new TypeRegistry();
     typeRegistry.enums = api.enums;
-    const classes = [];
+    const declarations = [];
     for (const klass in api.classes) {
-        classes.push(new ClassDeclaration(klass, api.classes[klass], typeRegistry));
+        declarations.push(new ClassDeclaration(klass, api.classes[klass], typeRegistry));
     }
-    return classes;
+    for (const module in api.modules) {
+        declarations.push(new ModuleDeclaration(module, api.modules[module], typeRegistry));
+    }
+    return declarations;
 }
 class TypeRegistry {
     classes = {};
@@ -92,6 +95,27 @@ class ClassDeclaration {
         const fields = this.desc.fields ?? [];
         for (const f of fields) {
             result.push(new FieldDeclaration(f, this.typeRegistry));
+        }
+        return result;
+    }
+
+    get templatePrefix() {
+        return 'class';
+    }
+}
+
+class ModuleDeclaration extends ClassDeclaration {
+    get templatePrefix() {
+        return 'module';
+    }
+
+    get functions() {
+        const result = [];
+        const functions = this.desc.functions ?? [];
+        for (const f of functions) {
+            const fd = new FunctionDeclaration(f, this.typeRegistry);
+            fd.isStatic = true;
+            result.push(fd);
         }
         return result;
     }

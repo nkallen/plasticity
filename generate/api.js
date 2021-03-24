@@ -294,6 +294,14 @@ export default {
             ]
         },
     },
+    modules: {
+        Enabler: {
+            rawHeader: "tool_enabler.h",
+            functions: [
+                
+            ]
+        }
+    },
     enums: [
         "SimpleName", 
         "MbeSpaceType", 

@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 
 // Parse a description of the API.
 
-const classes = Parse(api);
+const declarations = Parse(api);
 
 // Load some templates.
 
@@ -28,6 +28,8 @@ const templates = {
     index: util.readLocalFile('templates/index.cc'),
     class_header: util.readLocalFile('templates/class_header.h'),
     class_content: util.readLocalFile('templates/class_content.cc'),
+    module_header: util.readLocalFile('templates/module_header.h'),
+    module_content: util.readLocalFile('templates/module_content.cc'),
 }
 for (const k in templates) {
     templates[k] = ejs.compile(templates[k], {
@@ -53,20 +55,20 @@ await fse.copy(path.resolve(__dirname, '../manual/src'), tempSrcDirPath);
 // First start with 'binding' and 'index'. They describe how to build the project,
 // cf node-gyp documentation for details.
 
-util.writeLocalFile('../binding.gyp', beautify(templates.binding({ classes: classes })), 'binding.gyp');
-util.writeLocalFile('../lib/c3d/index.cc', beautify(templates.index({ classes: classes })), 'index.cc');
+util.writeLocalFile('../binding.gyp', beautify(templates.binding({ classes: declarations })), 'binding.gyp');
+util.writeLocalFile('../lib/c3d/index.cc', beautify(templates.index({ classes: declarations })), 'index.cc');
 
 // Auto-generate the c++ files from the api description
 
-for (const klass of classes) {
+for (const klass of declarations) {
     util.writeFile(
         path.join(tempIncludeDirPath, klass.cppClassName + '.h'),
-        templates.class_header({ klass: klass }),
+        templates[klass.templatePrefix + '_header']({ klass: klass }),
         klass.cppClassName + '.h');
 
     util.writeFile(
         path.join(tempSrcDirPath, klass.cppClassName + '.cc'),
-        templates.class_content({ klass: klass }),
+        templates[klass.templatePrefix + '_content']({ klass: klass }),
         klass.cppClassName + '.cc');
 }
 

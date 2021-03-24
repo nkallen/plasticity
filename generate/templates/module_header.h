@@ -1,25 +1,24 @@
-#ifndef {{ cppClassName|upper }}_H
-#define {{ cppClassName|upper }}_H
+#ifndef <%- klass.cppClassName.toUpperCase() %>_H
+#define <%- klass.cppClassName.toUpperCase() %>_H
 
 #include <napi.h>
 
-{%each rawDependencies as dependency %}
-#include <{{ dependency }}>
-{%endeach%}
+#include <<%- klass.rawHeader %>>
 
-{%each dependencies as dependency%}
-#include "{{ dependency }}"
-{%endeach%}
+<%_ for (const dependency of klass.dependencies) { _%>
+#include "<%- dependency %>"
+<%_ } _%>
 
-class {{ cppClassName }} : public
-  Napi::ObjectWrap<{{ cppClassName }}>
+
+class <%- klass.cppClassName %> : public
+  Napi::ObjectWrap<<%- klass.cppClassName %>>
 {
   public:
         static Napi::Object Init(Napi::Env env, Napi::Object exports);
 
-    {% each functions as function %}
-        static Napi::Value {{ function.cppFunctionName }}(const Napi::CallbackInfo& info);
-    {% endeach %}
+    <%_ for (const func of klass.functions) { _%>
+        static Napi::Value <%- func.name %>(const Napi::CallbackInfo& info);
+    <%_ } _%>
 };
 
 #endif
