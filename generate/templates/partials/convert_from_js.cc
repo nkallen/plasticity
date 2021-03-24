@@ -11,7 +11,7 @@
         if (<%- arg.name %>_[i].IsNull() || <%- arg.name %>_[i].IsUndefined()) {
             std::cerr << __FILE__ << ":" << __LINE__ << " warning: Passed an array with a null element at [" << i << "]. This is probably a mistake, so skipping\n";
         } else {
-            <%- arg.name %>.Add(<%_ if (!arg.elementIsReference) { _%>*<%_ } _%><%- elementType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
+            <%- arg.name %>.Add(<%_ if (!arg.elementType.isReference) { _%>*<%_ } _%><%- arg.elementType.cppType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
         }
     }
 <%_ } else if (arg.isCppString2CString) { _%>

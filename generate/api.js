@@ -309,7 +309,15 @@ export default {
             ]
         },
         ActionSolid: {
-            rawHeader: "action_solid.h"
+            rawHeader: "action_solid.h",
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h"],
+            functions: [
+                // "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType FilletSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbCurveEdge> & initCurves, RPArray<MbFace> & initBounds, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType BooleanResult(MbSolid & solid1, MbeCopyMode sameShell1, MbSolid & solid2, MbeCopyMode sameShell2, OperationType oType, const MbBooleanFlags & flags, const MbSNameMaker & operNames, MbSolid *& result)",
+            ]
+
         },
         ActionPoint: {
             rawHeader: "action_point.h"
@@ -319,13 +327,16 @@ export default {
         }
     },
     enums: [
-        "SimpleName", 
-        "MbeSpaceType", 
-        "MbeStepType", 
-        "MbeModifyingType", 
-        "MbeSmoothForm", 
+        "SimpleName",
+        "MbeSpaceType",
+        "MbeStepType",
+        "MbeModifyingType",
+        "MbeCopyMode",
+        "MbeSmoothForm",
         "MbSNameMaker::ESides",
-        "SmoothValues::CornerForm", 
+        "SmoothValues::CornerForm",
         "ThreeStates",
+        "ElementaryShellType",
+        "OperationType"
     ]
 }

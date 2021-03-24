@@ -29,6 +29,16 @@ class TypeRegistry {
                 isEnum: true
             }
         }
+        // There are a few cases like SmoothValues where we have name conflicts
+        if (this.classes[rawType]) {
+            const klass = this.classes[rawType];
+            return {
+                rawType: rawType,
+                cppType: klass.cppClassName,
+                jsType: klass.jsClassName
+            }
+        }
+    
         const cppType = rawType.replace(/^Mb/, '');
         const jsType = cppType;
         return {
@@ -231,6 +241,7 @@ class ParamDeclaration extends TypeDeclaration {
         this.isReturn = this.ref == "*&";
         if (matchType.groups.elementType) {
             this.elementType = typeRegistry.resolveType(matchType.groups.elementType);
+            this.elementType.isReference = /RPArray/.test(this.rawType);
         }
         Object.assign(this, options[this.name]);
     }
