@@ -23,10 +23,10 @@ export default {
             dependencies: ["AttributeContainer.h"],
             extends: "AttributeContainer",
             functions: [
-                // "MbeSpaceType IsA()",
+                "MbeSpaceType IsA()",
                 // "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)",
                 // "void Move(const MbVector3D & v, MbRegTransform *iReg)",
-                // "SimpleName GetItemName()",
+                "SimpleName GetItemName()",
                 // "MbItem * Cast()"
             ]
         },
