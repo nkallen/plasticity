@@ -9,6 +9,8 @@ export default function Parse(api) {
     return classes;
 }
 class TypeRegistry {
+    classes = {};
+
     constructor(map) {
         this.map = {
             SimpleName: {
@@ -35,14 +37,29 @@ class TypeRegistry {
             rawType: rawType
         };
     }
+
+    register(classDeclaration) {
+        this.classes[classDeclaration.name] = classDeclaration;
+    }
+
+    resolveClass(className) {
+        return this.classes[className];
+    }
 }
 class ClassDeclaration {
     constructor(name, desc, typeRegistry) {
         this.name = name;
         this.desc = desc;
         this.typeRegistry = typeRegistry;
-        this.extends = desc.extends;
         this.rawHeader = desc.rawHeader;
+        typeRegistry.register(this);
+
+        this.extends = desc.extends;
+        const superclass = typeRegistry.resolveClass(this.extends);
+        if (superclass) {
+            this.desc.functions = this.desc.functions ?? [];
+            this.desc.functions = this.desc.functions.concat(superclass.desc.functions || []);
+        }
     }
 
     get cppClassName() {
@@ -90,8 +107,8 @@ class FunctionDeclaration {
     constructor(desc, typeRegistry) {
         this.desc = desc;
         this.typeRegistry = typeRegistry;
-        const matchMethod = FunctionDeclaration.declaration.exec(this.desc);
-        if (!matchMethod) throw "Parsing error: " + desc;
+        const matchMethod = FunctionDeclaration.declaration.exec(desc);
+        if (!matchMethod) throw new Error("Parsing error: " + desc);
 
         this.name = matchMethod.groups.name;
         this.returnType = new ReturnDeclaration(matchMethod.groups.return, this.typeRegistry);
@@ -162,7 +179,7 @@ class ParamDeclaration extends TypeDeclaration {
 
     constructor(cppIndex, jsIndex, desc, typeRegistry) {
         const matchType = ParamDeclaration.declaration.exec(desc);
-        if (!matchType) throw "Parsing error: " + desc;
+        if (!matchType) throw new Error("Parsing error: " + desc);
 
         super(matchType.groups.type, typeRegistry);
 
@@ -188,7 +205,7 @@ class ReturnDeclaration extends TypeDeclaration {
 
     constructor(desc, typeRegistry) {
         const matchType = ReturnDeclaration.declaration.exec(desc);
-        if (!matchType) throw "Parsing error: " + desc;
+        if (!matchType) throw new Error("Parsing error: " + desc);
 
         super(matchType.groups.type, typeRegistry);
 
@@ -213,7 +230,7 @@ class InitializerDeclaration {
         this.desc = desc;
         this.typeRegistry = typeRegistry;
         const matchMethod = InitializerDeclaration.declaration.exec(this.desc);
-        if (!matchMethod) throw "Parsing error: " + desc;
+        if (!matchMethod) throw new Error("Parsing error: " + desc);
 
         const paramDescs = matchMethod.groups.params.split(/,\s*/);
         this.params = [];

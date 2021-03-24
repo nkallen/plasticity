@@ -59,8 +59,8 @@ export default {
         },
         Plane: {
             rawHeader: "surf_plane.h",
-            // extends: "Surface",
-            dependencies: ["CartPoint3D.h"], //, "Surface.h"],
+            extends: "Surface",
+            dependencies: ["CartPoint3D.h", "Surface.h"],
             initializers: [
                 "const MbCartPoint3D & c0, const MbCartPoint3D & c1, const MbCartPoint3D & c2"
             ]
