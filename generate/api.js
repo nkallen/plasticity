@@ -70,6 +70,12 @@ export default {
             initializers: [
                 "double xx, double yy, double zz"
             ]
+        },
+        SphereSurface: {
+            rawHeader: "surf_sphere_surface.h",
+            initializers: [
+                "MbCartPoint3D centre, double r"
+            ]
         }
     }
 }
