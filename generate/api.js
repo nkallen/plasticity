@@ -178,7 +178,7 @@ export default {
         SNameMaker: {
             rawHeader: "name_item.h",
             initializers: [
-                "SimpleName _mainName, ESides _sideAdd, SimpleName _buttAdd"
+                "SimpleName _mainName, MbSNameMaker::ESides _sideAdd, SimpleName _buttAdd"
             ]
         },
         StepData: {
@@ -253,7 +253,7 @@ export default {
                 "double begLength",
                 "double endLength",
                 "MbeSmoothForm form",
-                "CornerForm smoothCorner",
+                "SmoothValues::CornerForm smoothCorner",
                 "bool prolong",
                 "ThreeStates keepCant",
                 "bool strict",
@@ -293,5 +293,15 @@ export default {
                 "void AddVertex(const MbCartPoint3D & point)",
             ]
         },
-    }
+    },
+    enums: [
+        "SimpleName", 
+        "MbeSpaceType", 
+        "MbeStepType", 
+        "MbeModifyingType", 
+        "MbeSmoothForm", 
+        "MbSNameMaker::ESides",
+        "SmoothValues::CornerForm", 
+        "ThreeStates",
+    ]
 }

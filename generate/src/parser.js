@@ -2,6 +2,7 @@ import _ from 'underscore';
 
 export default function Parse(api) {
     const typeRegistry = new TypeRegistry();
+    typeRegistry.enums = api.enums;
     const classes = [];
     for (const klass in api.classes) {
         classes.push(new ClassDeclaration(klass, api.classes[klass], typeRegistry));
@@ -10,70 +11,21 @@ export default function Parse(api) {
 }
 class TypeRegistry {
     classes = {};
-
-    constructor(map) {
-        this.map = {
-            SimpleName: {
-                jsType: "Number",
-                rawType: "SimpleName",
-                cppType: "SimpleName",
-                isEnum: true,
-            },
-            MbeSpaceType: {
-                jsType: "Number",
-                rawType: "MbeSpaceType",
-                cppType: "MbeSpaceType",
-                isEnum: true
-            },
-            MbeStepType: {
-                jsType: "Number",
-                rawType: "MbeStepType",
-                cppType: "MbeStepType",
-                isEnum: true
-            },
-            MbeModifyingType: {
-                jsType: "Number",
-                rawType: "MbeModifyingType",
-                cppType: "MbeModifyingType",
-                isEnum: true
-            },
-            MbeSmoothForm: {
-                jsType: "Number",
-                rawType: "MbeSmoothForm",
-                cppType: "MbeSmoothForm", 
-                isEnum: true
-            },
-            ESides: {
-                jsType: "Number",
-                cppType: "ESides",
-                rawType: "MbSNameMaker::ESides",
-                isEnum: true
-            },
-            CornerForm: {
-                jsType: "Number",
-                cppType: "CornerForm",
-                rawType: "SmoothValues::CornerForm",
-                isEnum: true
-            },
-            ThreeStates: {
-                jsType: "Number",
-                cppType: "ThreeState",
-                rawType: "ThreeStates",
-                isEnum: true
-            },
-        }
-    }
-
     resolveType(rawType) {
-        const e = this.map[rawType];
-        if (e) return e;
+        if (this.enums.includes(rawType)) {
+            return {
+                rawType: rawType,
+                jsType: rawType,
+                cppType: rawType,
+                isEnum: true
+            }
+        }
         const cppType = rawType.replace(/^Mb/, '');
         const jsType = cppType;
         return {
             rawType: rawType,
             jsType: jsType,
             cppType: cppType,
-            rawType: rawType
         };
     }
 
@@ -146,7 +98,7 @@ class ClassDeclaration {
 }
 
 class FunctionDeclaration {
-    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s<>,&*]*)\s*\)/
+    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s<>,&*:]*)\s*\)/
 
     constructor(desc, typeRegistry) {
         let options = {};
@@ -234,7 +186,7 @@ class TypeDeclaration {
     }
 }
 class ParamDeclaration extends TypeDeclaration {
-    static declaration = /((?<const>const)\s+)?(?<type>\w+(\<(?<elementType>\w+)\>)?)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;
+    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<(?<elementType>\w+)\>)?)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;
 
     constructor(cppIndex, jsIndex, desc, typeRegistry, options) {
         const matchType = ParamDeclaration.declaration.exec(desc);
@@ -291,7 +243,7 @@ class ReturnDeclaration extends TypeDeclaration {
 }
 
 class InitializerDeclaration {
-    static declaration = /(?<params>[\w\s,&*]*)/
+    static declaration = /(?<params>[\w\s,&*:]*)/
 
     constructor(desc, typeRegistry) {
         this.desc = desc;
