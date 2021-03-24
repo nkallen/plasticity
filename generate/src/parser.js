@@ -15,11 +15,16 @@ class TypeRegistry {
                 jsType: "Number",
                 cppType: "SimpleName",
                 isEnum: true,
+            },
+            MbeSpaceType: {
+                jsType: "Number",
+                cppType: "SimpleName",
+                isEnum: true
             }
         }
     }
 
-    rawType2cppType(rawType) {
+    resolveType(rawType) {
         const e = this.map[rawType];
         if (e) return e;
         const cppType = rawType.replace(/^Mb/, '');
@@ -107,6 +112,11 @@ class FunctionDeclaration {
     get returns() {
         const result = [];
         if (this.returnType.isReturn) result.push(this.returnType);
+        return result.concat(this.outParams);
+    }
+
+    get outParams() {
+        const result = [];
         for (const param of this.params) {
             if (param.isReturn) {
                 result.tpush(param);
@@ -119,7 +129,7 @@ class FunctionDeclaration {
 class TypeDeclaration {
     constructor(rawType, typeRegistry) {
         this.typeRegistry = typeRegistry;
-        const type = typeRegistry.rawType2cppType(rawType);
+        const type = typeRegistry.resolveType(rawType);
         this.rawType = rawType;
         this.isEnum = type.isEnum;
         this.cppType = type.cppType;
@@ -183,6 +193,10 @@ class ReturnDeclaration extends TypeDeclaration {
     }
 
     get isReturn() {
-        return this.isErrorCode && this.rawType != 'void'
+        return !this.isErrorCode && this.rawType != 'void'
+    }
+
+    get name() {
+        return "_result";
     }
 }

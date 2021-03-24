@@ -5,7 +5,7 @@ export default {
             dependencies: ["Item.h", "Path.h", "Matrix3D.h"],
             initializers: [],
             functions: [
-                "MbItem3 * AddItem(MbItem & item, SimpleName n)",
+                "MbItem * AddItem(MbItem & item, SimpleName n)",
                 "bool DetachItem(MbItem * item)",
                 "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)"
             ]

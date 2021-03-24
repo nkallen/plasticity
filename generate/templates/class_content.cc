@@ -91,7 +91,7 @@ Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::Ca
     Napi::Env env = info.Env();
     Napi::Value to;
     <%- field.rawType %> <%- field.name %> = _underlying-><%- field.name %>;
-    <%- include('convert_to_js', field) %>
+    <%- include('convert_to_js', { arg: field }) %>
 }
 void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {
     Napi::Env env = info.Env();

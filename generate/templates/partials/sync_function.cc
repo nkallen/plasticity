@@ -1,4 +1,4 @@
-<%_ for (const _return of func.returns) { _%>
+<%_ for (const _return of func.outParams) { _%>
     <% if (_return.shouldAlloc) { _%>
     <%- _return.rawType %> *<%- _return.name %> = new <%- _return.rawType %>;
     <% } else { _%>
@@ -13,7 +13,7 @@
 <%_ } _%>
 
 
-<% if (func.hasReturnType) { _%> <%_ if (returnType.constCast) { _%>const<%_ } _%><%- returnType.rawType %> _result = <%_ } _%>
+<% if (func.returnType.isReturn) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> _result = <% } _%>
 <%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- func.name %>(
 <%_ for (const arg of func.params) { _%>
     <% if (arg.isCppString2CString) { _%>
@@ -28,7 +28,7 @@
 );
 
 
-<%_ if (func.returnType?.isErrorCode) { _%>
+<%_ if (func.returnType.isErrorCode) { _%>
 if (_result == rt_Success) {
 <%_ } _%>
 
@@ -41,7 +41,7 @@ if (_result == rt_Success) {
     Napi::Value to;
 
     <%_ for (_return of func.returns) { _%>
-        <%- include('convert_to_js.cc', _return) %>
+        <%- include('convert_to_js.cc', { arg: _return }) %>
         <%_ if (func.returnsCount > 1) { _%>
         toReturn.Set(Napi::String::New(env, "<%- _return.name %>"), to);
         <%_ } _%>
