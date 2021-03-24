@@ -34,21 +34,23 @@ if (_result == rt_Success) {
 
 <%_ if (func.returnsCount == 0) { _%>
     return env.Undefined();
-<%_ } else if (func.returnsCount > 1) { _%>
-    Napi::Object toReturn = Napi::Object::New(env);
-<%_ } _%>
-Napi::Value to;
-
-<%_ for (_return of func.returns) { _%>
-    {%- include('convert_to_js.cc', _return) %}
-    <%_ if (func.returnsCount > 1) { _%>
-    toReturn.Set(Napi::String::New(env, "<%- _return.name %>"), to);
-    <%_ } _%>
-<%_ } _%>
-<% if (func.returnsCount == 1) { _%>
-return to;
 <%_ } else { _%>
-return toReturn;
+    <%_ if (func.returnsCount > 1) { _%>
+        Napi::Object toReturn = Napi::Object::New(env);
+    <%_ } _%>
+    Napi::Value to;
+
+    <%_ for (_return of func.returns) { _%>
+        {%- include('convert_to_js.cc', _return) %}
+        <%_ if (func.returnsCount > 1) { _%>
+        toReturn.Set(Napi::String::New(env, "<%- _return.name %>"), to);
+        <%_ } _%>
+    <%_ } _%>
+    <% if (func.returnsCount == 1) { _%>
+        return to;
+    <%_ } else { _%>
+        return toReturn;
+    <%_ } _%>
 <%_ } _%>
 
 <% if (func.returnType?.isErrorCode) { _%>

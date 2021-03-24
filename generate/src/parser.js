@@ -81,10 +81,8 @@ class FunctionDeclaration {
         this.desc = desc;
         this.typeRegistry = typeRegistry;
         const matchMethod = FunctionDeclaration.methodDeclaration.exec(this.desc);
-        if (!matchMethod) {
-            console.log(this.desc);
-            throw this.desc;
-        }
+        if (!matchMethod) throw "Parsing error: " + desc;
+
         this.name = matchMethod.groups.name;
         this.returnType = new ReturnDeclaration(matchMethod.groups.return, this.typeRegistry);
         const paramDescs = matchMethod.groups.params.split(/,\s*/);
@@ -101,6 +99,7 @@ class FunctionDeclaration {
             if (param.isReturn) returnsCount++;
         }
         this.returnsCount = returnsCount;
+        console.log(this.name, this.returnsCount);
     }
 
     get returns() {
@@ -127,7 +126,7 @@ class ParamDeclaration extends TypeDeclaration {
 
     constructor(index, desc, typeRegistry) {
         const matchType = ParamDeclaration.typeDeclaration.exec(desc);
-        if (!matchType) throw desc;
+        if (!matchType) throw "Parsing error: " + desc;
 
         super(matchType.groups.type, typeRegistry);
 
@@ -149,7 +148,7 @@ class ReturnDeclaration extends TypeDeclaration {
 
     constructor(desc, typeRegistry) {
         const matchType = ReturnDeclaration.typeDeclaration.exec(desc);
-        if (!matchType) throw desc;
+        if (!matchType) throw "Parsing error: " + desc;
 
         super(matchType.groups.type, typeRegistry);
 

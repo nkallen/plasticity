@@ -13,7 +13,7 @@ export default {
         AttributeContainer: {
             rawHeader: "attribute_container.h",
             functions: [
-                "void SetStyle(int)",
+                "void SetStyle(int s)",
                 "int GetStyle()",
             ]
         },
