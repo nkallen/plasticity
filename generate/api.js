@@ -235,6 +235,38 @@ export default {
                 "MbeModifyingType way",
                 "MbVector3D direction"
             ]
+        },
+        SmoothValues: {
+            cppClassName: "_SmoothValues",
+            rawClassName: "SmoothValues",
+            jsClassName: "SmoothValues",
+            rawHeader: "op_shell_parameter.h",
+            dependencies: ["Vector3D.h"],
+            intializers: [""],
+            fields: [
+                "double distance1",
+                "double distance2",
+                "double conic",
+                "double begLength",
+                "double endLength",
+                "MbeSmoothForm form",
+                "CornerForm smoothCorner",
+                "bool prolong",
+                "ThreeStates keepCant",
+                "bool strict",
+                "bool equable",
+            ]
+        },
+        Solid: {
+            rawHeader: "solid.h",
+            extends: "Item",
+            dependencies: ["StepData.h", "FormNote.h", "Item.h", "CurveEdge.h", "Face.h"],
+            functions: [
+                {
+                    signature: "void GetEdges(RPArray<MbCurveEdge> & edges)",
+                    edges: { isReturn: true }
+                }
+            ]
         }
     }
 }

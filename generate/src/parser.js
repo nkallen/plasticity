@@ -37,12 +37,30 @@ class TypeRegistry {
                 cppType: "MbeModifyingType",
                 isEnum: true
             },
+            MbeSmoothForm: {
+                jsType: "Number",
+                rawType: "MbeSmoothForm",
+                cppType: "MbeSmoothForm", 
+                isEnum: true
+            },
             ESides: {
                 jsType: "Number",
                 cppType: "ESides",
                 rawType: "MbSNameMaker::ESides",
                 isEnum: true
-            }
+            },
+            CornerForm: {
+                jsType: "Number",
+                cppType: "CornerForm",
+                rawType: "SmoothValues::CornerForm",
+                isEnum: true
+            },
+            ThreeStates: {
+                jsType: "Number",
+                cppType: "ThreeState",
+                rawType: "ThreeStates",
+                isEnum: true
+            },
         }
     }
 
@@ -128,11 +146,13 @@ class ClassDeclaration {
 }
 
 class FunctionDeclaration {
-    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s,&*]*)\s*\)/
+    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s<>,&*]*)\s*\)/
 
     constructor(desc, typeRegistry) {
+        let options = {};
         if (typeof desc === "object") {
-            this.isManual = desc.isManual;
+            options = desc;
+            Object.assign(this, options);
             desc = desc.signature;
         }
 
@@ -148,7 +168,7 @@ class FunctionDeclaration {
         let jsIndex = 0;
         for (const [cppIndex, paramDesc] of paramDescs.entries()) {
             if (paramDesc != "") {
-                const param = new ParamDeclaration(cppIndex, jsIndex, paramDesc, this.typeRegistry);
+                const param = new ParamDeclaration(cppIndex, jsIndex, paramDesc, this.typeRegistry, options);
                 this.params.push(param);
                 if (param.isJsArg) jsIndex++;
             }
@@ -172,7 +192,7 @@ class FunctionDeclaration {
         const result = [];
         for (const param of this.params) {
             if (param.isReturn) {
-                result.tpush(param);
+                result.push(param);
             }
         }
         return result;
@@ -206,9 +226,9 @@ class TypeDeclaration {
     }
 }
 class ParamDeclaration extends TypeDeclaration {
-    static declaration = /((?<const>const)\s+)?(?<type>\w+)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;
+    static declaration = /((?<const>const)\s+)?(?<type>\w+(\<(?<elementType>\w+)\>)?)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;
 
-    constructor(cppIndex, jsIndex, desc, typeRegistry) {
+    constructor(cppIndex, jsIndex, desc, typeRegistry, options) {
         const matchType = ParamDeclaration.declaration.exec(desc);
         if (!matchType) throw new Error("Parsing error: " + desc);
 
@@ -220,10 +240,8 @@ class ParamDeclaration extends TypeDeclaration {
         this.desc = desc;
         this.ref = matchType.groups.ref;
         this.name = matchType.groups.name;
-    }
-
-    get isReturn() {
-        return false;
+        this.elementType = matchType.groups.elementType;
+        Object.assign(this, options[this.name]);
     }
 
     get isJsArg() {
@@ -272,7 +290,7 @@ class InitializerDeclaration {
         let jsIndex = 0;
         for (const [cppIndex, paramDesc] of paramDescs.entries()) {
             if (paramDesc != "") {
-                const param = new ParamDeclaration(cppIndex, jsIndex, paramDesc, this.typeRegistry);
+                const param = new ParamDeclaration(cppIndex, jsIndex, paramDesc, this.typeRegistry, {});
                 this.params.push(param);
                 if (param.isJsArg) jsIndex++;
             }
@@ -282,7 +300,7 @@ class InitializerDeclaration {
 
 class FieldDeclaration extends ParamDeclaration {
     constructor(desc, typeRegistry) {
-        super(0, 0, desc, typeRegistry);
+        super(0, 0, desc, typeRegistry, {});
     }
 
     get isOnStack() {
