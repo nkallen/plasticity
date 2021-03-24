@@ -183,6 +183,46 @@ export default {
             initializers: [
                 "MbeStepType t, double sag"
             ]
-        }
+        },
+        Name: {
+            rawHeader: "name_item.h"
+        },
+        Path: {
+            rawHeader: "name_item.h"
+        },
+        Matrix3D: {
+            rawHeader: "mb_matrix3d.h"
+        },
+        TopologyItem: {
+            rawHeader: "topology_item.h",
+            dependencies: ["AttributeContainer.h", "Name.h"],
+            extends: "AttributeContainer",
+            functions: [
+                "const MbName & GetName()",
+                "SimpleName GetMainName()",
+                "SimpleName GetFirstName()",
+                "SimpleName GetNameHash()",
+            ]
+        },
+        Edge: {
+            rawHeader: "topology.h",
+            extends: "TopologyItem",
+            dependencies: ["TopologyItem.h"]
+        },
+        CurveEdge: {
+            rawHeader: "topology.h",
+            extends: "Edge",
+            dependencies: ["Edge.h"]
+        },
+        Face: {
+            rawHeader: "topology.h",
+            extends: "TopologyItem",
+            dependencies: ["TopologyItem.h"]
+        },
+        Vertex: {
+            rawHeader: "topology.h",
+            extends: "TopologyItem",
+            dependencies: ["TopologyItem.h"]
+        },
     }
 }
