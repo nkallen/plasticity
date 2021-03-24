@@ -87,9 +87,12 @@ class FunctionDeclaration {
         this.returnType = new ReturnDeclaration(matchMethod.groups.return, this.typeRegistry);
         const paramDescs = matchMethod.groups.params.split(/,\s*/);
         this.params = [];
-        for (const [index, paramDesc] of paramDescs.entries()) {
+        let jsIndex = 0;
+        for (const [cppIndex, paramDesc] of paramDescs.entries()) {
             if (paramDesc != "") {
-                this.params.push(new ParamDeclaration(index, paramDesc, this.typeRegistry));
+                const param = new ParamDeclaration(cppIndex, jsIndex, paramDesc, this.typeRegistry);
+                this.params.push(param);
+                if (param.isJsArg) jsIndex++;
             }
         }
 
@@ -99,11 +102,10 @@ class FunctionDeclaration {
             if (param.isReturn) returnsCount++;
         }
         this.returnsCount = returnsCount;
-        console.log(this.name, this.returnsCount);
     }
 
     get returns() {
-        return [];
+        return []; //////////////////////////////////
     }
 }
 
@@ -120,18 +122,27 @@ class TypeDeclaration {
     get isPointer() {
         return this.ref == '*';
     }
+
+    get isNumber() {
+        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float"
+    }
+
+    get isCppString2CString() {
+        return this.rawType == "const char *" && this.cppType == "std::string";
+    }
 }
 class ParamDeclaration extends TypeDeclaration {
     static typeDeclaration = /((?<const>const)\s+)?(?<type>\w+)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;
 
-    constructor(index, desc, typeRegistry) {
+    constructor(cppIndex, jsIndex, desc, typeRegistry) {
         const matchType = ParamDeclaration.typeDeclaration.exec(desc);
         if (!matchType) throw "Parsing error: " + desc;
 
         super(matchType.groups.type, typeRegistry);
 
         this.const = matchType.groups.const;
-        this.cppIndex = index;
+        this.cppIndex = cppIndex;
+        this.jsIndex = jsIndex;
         this.desc = desc;
         this.ref = matchType.groups.ref;
         this.name = matchType.groups.name;
@@ -141,6 +152,9 @@ class ParamDeclaration extends TypeDeclaration {
         return false;
     }
 
+    get isJsArg() {
+        return !this.isReturn;
+    }
 }
 
 class ReturnDeclaration extends TypeDeclaration {
