@@ -137,6 +137,10 @@ class TypeDeclaration {
     get isCppString2CString() {
         return this.rawType == "const char *" && this.cppType == "std::string";
     }
+
+    get isBoolean() {
+        return this.rawType == "bool"
+    }
 }
 class ParamDeclaration extends TypeDeclaration {
     static typeDeclaration = /((?<const>const)\s+)?(?<type>\w+)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;

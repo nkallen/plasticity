@@ -40,7 +40,9 @@ export default {
             rawHeader: "op_boolean_flags.h",
             initializers: [],
             functions: [
-                
+                "void InitBoolean(bool _closed, bool _allowNonIntersecting)",
+                "void SetMergingFaces(bool s)",
+                "void SetMergingEdges(bool s)",
             ]
         }
     }

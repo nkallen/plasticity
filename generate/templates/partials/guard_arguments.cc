@@ -1,5 +1,6 @@
 <%_ for (const arg of params) { _%>
     <%_ if (arg.isJsArg) { _%>
+    <%- arg.prototype %>
         if (info.Length() == <%- arg.jsIndex %>
         <%_ if (arg.isNumber || arg.isEnum) { _%>
             || !info[<%- arg.jsIndex %>].IsNumber()) {
