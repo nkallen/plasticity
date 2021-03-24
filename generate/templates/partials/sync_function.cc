@@ -41,7 +41,7 @@ if (_result == rt_Success) {
     Napi::Value to;
 
     <%_ for (_return of func.returns) { _%>
-        {%- include('convert_to_js.cc', _return) %}
+        <%- include('convert_to_js.cc', _return) %>
         <%_ if (func.returnsCount > 1) { _%>
         toReturn.Set(Napi::String::New(env, "<%- _return.name %>"), to);
         <%_ } _%>

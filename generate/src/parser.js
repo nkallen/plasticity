@@ -97,7 +97,7 @@ class FunctionDeclaration {
         }
 
         let returnsCount = 0;
-        if (!this.returnType.isErrorCode && this.returnType.rawType != 'void') returnsCount++; 
+        if (this.returnType.isReturn) returnsCount++; 
         for (const param in this.params) {
             if (param.isReturn) returnsCount++;
         }
@@ -105,7 +105,14 @@ class FunctionDeclaration {
     }
 
     get returns() {
-        return []; //////////////////////////////////
+        const result = [];
+        if (this.returnType.isReturn) result.push(this.returnType);
+        for (const param of this.params) {
+            if (param.isReturn) {
+                result.tpush(param);
+            }
+        }
+        return result;
     }
 }
 
@@ -169,5 +176,9 @@ class ReturnDeclaration extends TypeDeclaration {
         this.desc = desc;
         this.const = matchType.groups.const;
         this.ref = matchType.groups.ref;
+    }
+
+    get isReturn() {
+        return this.isErrorCode && this.rawType != 'void'
     }
 }
