@@ -39,16 +39,15 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
     Napi::Env env = info.Env();
     if (info.Length() == 1 && info[0].IsString() && info[0].ToString().Utf8Value() == "__skip_js_init__") return;
     <%_ if (klass.initializers.length > 0) { _%>
-        <%_ for (const initializer of klass.initializers) { _%>
-        <%_ if (i > 0) { _%>} else <%_ } _%>if (info.Length() == <%- initializer.args.length %> <%_ if (initializer.args.length != 0) { _%>&&<%_ } _%>
-        <%- include('polymorphic_arguments', initializer) %>
+        <%_ for (const [i, initializer] of klass.initializers.entries()) { _%>
+        <%_ if (i > 0) { _%>} else <%_ } _%>if (info.Length() == <%- initializer.params.length %> <%_ if (initializer.params.length != 0) { _%>&&<%_ } _%>
+        <%- include('polymorphic_arguments.cc', { func: initializer }) %>
         ) {
-            <%_ for (const arg of initializer.args) { _%>
-            <%- include('convert_from_js', { arg: arg }) %>
+            <%_ for (const arg of initializer.params) { _%>
+            <%- include('convert_from_js.cc', { arg: arg }) %>
             <%_ } _%>
 
-            <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(
-                <%- initializer.args.map((arg) => arg.name).join(',') %>
+            <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(<%- initializer.params.map((arg) => arg.name).join(',') %>);
             if (underlying == NULL) {
                 Napi::Error::New(env, "Invalid construction").ThrowAsJavaScriptException();
                 return;

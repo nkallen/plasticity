@@ -65,7 +65,16 @@ class ClassDeclaration {
         const result = [];
         const functions = this.desc.functions ?? [];
         for (const f of functions) {
-            result.push(new FunctionDeclaration(f, this.typeRegistry))
+            result.push(new FunctionDeclaration(f, this.typeRegistry));
+        }
+        return result;
+    }
+
+    get initializers() {
+        const result = [];
+        const initializers = this.desc.initializers ?? [];
+        for (const i of initializers) {
+            result.push(new InitializerDeclaration(i, this.typeRegistry));
         }
         return result;
     }
@@ -73,19 +82,15 @@ class ClassDeclaration {
     get fields() {
         return [];
     }
-
-    get initializers() {
-        return [];
-    }
 }
 
 class FunctionDeclaration {
-    static methodDeclaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s,&*]*)\s*\)/
+    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s,&*]*)\s*\)/
 
     constructor(desc, typeRegistry) {
         this.desc = desc;
         this.typeRegistry = typeRegistry;
-        const matchMethod = FunctionDeclaration.methodDeclaration.exec(this.desc);
+        const matchMethod = FunctionDeclaration.declaration.exec(this.desc);
         if (!matchMethod) throw "Parsing error: " + desc;
 
         this.name = matchMethod.groups.name;
@@ -153,10 +158,10 @@ class TypeDeclaration {
     }
 }
 class ParamDeclaration extends TypeDeclaration {
-    static typeDeclaration = /((?<const>const)\s+)?(?<type>\w+)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;
+    static declaration = /((?<const>const)\s+)?(?<type>\w+)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;
 
     constructor(cppIndex, jsIndex, desc, typeRegistry) {
-        const matchType = ParamDeclaration.typeDeclaration.exec(desc);
+        const matchType = ParamDeclaration.declaration.exec(desc);
         if (!matchType) throw "Parsing error: " + desc;
 
         super(matchType.groups.type, typeRegistry);
@@ -179,10 +184,10 @@ class ParamDeclaration extends TypeDeclaration {
 }
 
 class ReturnDeclaration extends TypeDeclaration {
-    static typeDeclaration = /((?<const>const)\s+)?(?<type>\w+)(\s+(?<ref>[*&]\s*))?/;
+    static declaration = /((?<const>const)\s+)?(?<type>\w+)(\s+(?<ref>[*&]\s*))?/;
 
     constructor(desc, typeRegistry) {
-        const matchType = ReturnDeclaration.typeDeclaration.exec(desc);
+        const matchType = ReturnDeclaration.declaration.exec(desc);
         if (!matchType) throw "Parsing error: " + desc;
 
         super(matchType.groups.type, typeRegistry);
@@ -198,5 +203,27 @@ class ReturnDeclaration extends TypeDeclaration {
 
     get name() {
         return "_result";
+    }
+}
+
+class InitializerDeclaration {
+    static declaration = /(?<params>[\w\s,&*]*)/
+
+    constructor(desc, typeRegistry) {
+        this.desc = desc;
+        this.typeRegistry = typeRegistry;
+        const matchMethod = InitializerDeclaration.declaration.exec(this.desc);
+        if (!matchMethod) throw "Parsing error: " + desc;
+
+        const paramDescs = matchMethod.groups.params.split(/,\s*/);
+        this.params = [];
+        let jsIndex = 0;
+        for (const [cppIndex, paramDesc] of paramDescs.entries()) {
+            if (paramDesc != "") {
+                const param = new ParamDeclaration(cppIndex, jsIndex, paramDesc, this.typeRegistry);
+                this.params.push(param);
+                if (param.isJsArg) jsIndex++;
+            }
+        }
     }
 }

@@ -44,6 +44,32 @@ export default {
                 "void SetMergingFaces(bool s)",
                 "void SetMergingEdges(bool s)",
             ]
+        },
+        SpaceItem: {
+            rawHeader: "space_item.h"
+        },
+        Surface: {
+            rawHeader: "surface.h"
+        },
+        RegTransform: {
+            rawHeader: "item_registrator.h"
+        },
+        Curve3D: {
+            rawHeader: "curve3d.h"
+        },
+        Plane: {
+            rawHeader: "surf_plane.h",
+            // extends: "Surface",
+            dependencies: ["CartPoint3D.h"], //, "Surface.h"],
+            initializers: [
+                "const MbCartPoint3D & c0, const MbCartPoint3D & c1, const MbCartPoint3D & c2"
+            ]
+        },
+        CartPoint3D: {
+            rawHeader: "mb_cart_point3d.h",
+            initializers: [
+                "double xx, double yy, double zz"
+            ]
         }
     }
 }

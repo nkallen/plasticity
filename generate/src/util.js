@@ -30,7 +30,6 @@ const util = {
     },
 
     writeLocalFile: function (filePath, content, header) {
-        console.log(local(filePath));
         return util.writeFile(local(filePath), content, header);
     },
 
@@ -50,7 +49,6 @@ const util = {
             }
 
             fse.ensureFileSync(filePath);
-            console.log(filePath);
             fse.writeFileSync(filePath, content);
             return true;
         }
