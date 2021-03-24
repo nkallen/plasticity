@@ -224,5 +224,13 @@ export default {
             extends: "TopologyItem",
             dependencies: ["TopologyItem.h"]
         },
+        ModifyValues: {
+            rawHeader: "op_shell_parameter.h",
+            dependencies: ["Vector3D.h"],
+            intializers: [""],
+            fields: [
+                
+            ]
+        }
     }
 }
