@@ -289,6 +289,11 @@ export default {
             functions: [
                 "void AddVertex(const MbCartPoint3D & point)",
             ]
+        },
+        Enabler: {
+            rawHeader: "tool_enabler.h",
+            functions: [
+            ]
         }
     }
 }
