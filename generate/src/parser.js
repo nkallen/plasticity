@@ -198,7 +198,7 @@ class TypeDeclaration {
     }
 
     get isCppString2CString() {
-        return this.rawType == "const char *" && this.cppType == "std::string";
+        return this.rawType == "char" && this.const && this.ref == "*";
     }
 
     get isBoolean() {

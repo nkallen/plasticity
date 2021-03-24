@@ -14,7 +14,7 @@
             <%- arg.name %>.Add(<%_ if (!arg.elementIsReference) { _%>*<%_ } _%><%- elementType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
         }
     }
-<%_ } else if (arg.rawType == "const char *") { _%>
+<%_ } else if (arg.isCppString2CString) { _%>
     const std::string <%- arg.name %> = info[<%- arg.cppIndex %>].ToString().Utf8Value();
 <%_ } else if (arg.isEnum) { _%>
     const <%- arg.rawType %> <%- arg.name %> = static_cast<<%- arg.rawType %>>(info[<%- arg.cppIndex %>].ToNumber().Uint32Value());

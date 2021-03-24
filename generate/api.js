@@ -298,7 +298,7 @@ export default {
         Enabler: {
             rawHeader: "tool_enabler.h",
             functions: [
-                
+                "void EnableMathModules(const char * name, const char * key)"
             ]
         }
     },
