@@ -15,12 +15,20 @@ class TypeRegistry {
         this.map = {
             SimpleName: {
                 jsType: "Number",
+                rawType: "SimpleName",
                 cppType: "SimpleName",
                 isEnum: true,
             },
             MbeSpaceType: {
                 jsType: "Number",
-                cppType: "SimpleName",
+                rawType: "MbeSpaceType",
+                cppType: "MbeSpaceType",
+                isEnum: true
+            },
+            ESides: {
+                jsType: "Number",
+                cppType: "ESides",
+                rawType: "MbSNameMaker::ESides",
                 isEnum: true
             }
         }
@@ -32,6 +40,7 @@ class TypeRegistry {
         const cppType = rawType.replace(/^Mb/, '');
         const jsType = cppType;
         return {
+            rawType: rawType,
             jsType: jsType,
             cppType: cppType,
             rawType: rawType
@@ -105,6 +114,11 @@ class FunctionDeclaration {
     static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s,&*]*)\s*\)/
 
     constructor(desc, typeRegistry) {
+        if (typeof desc === "object") {
+            this.isManual = desc.isManual;
+            desc = desc.signature;
+        }
+
         this.desc = desc;
         this.typeRegistry = typeRegistry;
         const matchMethod = FunctionDeclaration.declaration.exec(desc);
@@ -152,7 +166,7 @@ class TypeDeclaration {
     constructor(rawType, typeRegistry) {
         this.typeRegistry = typeRegistry;
         const type = typeRegistry.resolveType(rawType);
-        this.rawType = rawType;
+        this.rawType = type.rawType;
         this.isEnum = type.isEnum;
         this.cppType = type.cppType;
         this.jsType = type.jsType;

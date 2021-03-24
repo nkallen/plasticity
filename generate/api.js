@@ -27,7 +27,7 @@ export default {
                 // "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)",
                 // "void Move(const MbVector3D & v, MbRegTransform *iReg)",
                 "SimpleName GetItemName()",
-                // "MbItem * Cast()"
+                { signature: "MbItem * Cast()", isManual: true },
             ]
         },
         Path: {
@@ -152,6 +152,31 @@ export default {
                 "void SetAxisX(const MbVector3D & a)",
                 "void SetAxisY(const MbVector3D & a)",
                 "void SetAxisZ(const MbVector3D & a)",
+            ]
+        },
+        FormNote: {
+            rawHeader: "mb_data.h",
+            initializers: [
+                "bool wire, bool grid, bool seam, bool exact, bool quad"
+            ]
+        },
+        Mesh: {
+            rawHeader: "mesh.h",
+            functions: [
+                { signature: "void GetBuffers()", isManual: true },
+                { signature: "void GetApexes()", isManual: true },
+                { signature: "void GetEdges()", isManual: true },
+                "MbeSpaceType GetMeshType()",
+                "bool IsClosed()",
+            ]
+        },
+        RegDuplicate: {
+            rawHeader: "item_registrator.h"
+        },
+        SNameMaker: {
+            rawHeader: "name_item.h",
+            initializers: [
+                "SimpleName _mainName, ESides _sideAdd, SimpleName _buttAdd"
             ]
         }
     }
