@@ -316,14 +316,23 @@ export default {
                 "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType FilletSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbCurveEdge> & initCurves, RPArray<MbFace> & initBounds, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType BooleanResult(MbSolid & solid1, MbeCopyMode sameShell1, MbSolid & solid2, MbeCopyMode sameShell2, OperationType oType, const MbBooleanFlags & flags, const MbSNameMaker & operNames, MbSolid *& result)",
+                "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
             ]
 
         },
         ActionPoint: {
-            rawHeader: "action_point.h"
+            rawHeader: "action_point.h",
+            dependencies: ["Line3D.h", "CartPoint3D.h"],
+            functions: [
+                "double LineLineNearestPoints(const MbLine3D & line1, const MbLine3D & line2, MbCartPoint3D & p1, MbCartPoint3D & p2)",
+            ]
         },
         ActionDirect: {
-            rawHeader: "action_direct.h"
+            rawHeader: "action_direct.h",
+            dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h"],
+            functions: [
+                "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
+            ]
         }
     },
     enums: [
@@ -337,6 +346,7 @@ export default {
         "SmoothValues::CornerForm",
         "ThreeStates",
         "ElementaryShellType",
-        "OperationType"
+        "OperationType",
+        "MbeFacePropagation",
     ]
 }
