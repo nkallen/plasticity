@@ -60,16 +60,32 @@ class TypeRegistry {
 class ClassDeclaration {
     constructor(name, desc, typeRegistry) {
         this.name = name;
+        this.ignore = desc.ignore;
         this.desc = desc;
         this.typeRegistry = typeRegistry;
         this.rawHeader = desc.rawHeader;
         typeRegistry.register(this);
 
-        this.extends = desc.extends;
-        const superclass = typeRegistry.resolveClass(this.extends);
-        if (superclass) {
-            this.desc.functions = this.desc.functions ?? [];
-            this.desc.functions = this.desc.functions.concat(superclass.desc.functions || []);
+        this.desc.functions = this.desc.functions ?? [];
+        if (Array.isArray(desc.extends)) {
+            this.extends = desc.extends;
+        } else if (desc.extends) {
+            this.extends = [desc.extends];
+        } else {
+            this.extends = [];
+        }
+
+        this.dependencies = this.desc.dependencies ?? [];
+        for (const e of this.extends) {
+            const superclass = typeRegistry.resolveClass(e);
+            if (!superclass) throw "no superclass found: " + e + " -- note that the ordering of the api file is important.";
+            this.desc.functions = this.desc.functions.concat(superclass.desc.functions);
+            if (superclass.freeFunctionName) {
+                this.freeFunctionName = superclass.freeFunctionName;
+            }
+        }
+        if (desc.freeFunctionName) {
+            this.freeFunctionName = desc.freeFunctionName;
         }
     }
 
@@ -83,10 +99,6 @@ class ClassDeclaration {
 
     get jsClassName() {
         return this.desc.jsClassName ?? this.cppClassName;
-    }
-
-    get dependencies() {
-        return this.desc.dependencies ?? [];
     }
 
     get functions() {

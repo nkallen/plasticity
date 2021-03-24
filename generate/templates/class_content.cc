@@ -17,13 +17,13 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
     *constructor = Napi::Persistent(func);
     exports.Set("<%- klass.jsClassName %>", func);
 
-    <%_ if (klass.extends) { _%>
+    <%_ if (klass.extends.length > 0) { _%>
     Napi::Object global = env.Global();
     Napi::Object Object = global.Get("Object").ToObject();
     Napi::Function setPrototypeOf = Napi::Function(env, Object.Get("setPrototypeOf"));
     Napi::Value prototype = func.Get("prototype");
 
-    Napi::Function superFunc = <%- klass.extends %>::GetConstructor(env);
+    Napi::Function superFunc = <%- klass.extends[0] %>::GetConstructor(env);
     Napi::FunctionReference* superConstructor = new Napi::FunctionReference();
     *superConstructor = Napi::Persistent(superFunc);
 
@@ -98,5 +98,10 @@ void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackI
     <%- include('convert_from_js.cc', { arg: field }) %>
     _underlying-><%- field.name %> = <%- field.name %>;
 }
+<%_ } _%>
 
+<%_ if (klass.freeFunctionName) { _%>
+<%- klass.cppClassName %>::~<%- klass.cppClassName %>() {
+    <%- klass.freeFunctionName %>(this->_underlying);
+}
 <%_ } _%>

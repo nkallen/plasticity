@@ -1,6 +1,6 @@
 #include <napi.h>
 <%_ for (c of classes) { _%>
-//include "./include/<%- c.cppClassName %>.h"
+// include "./include/<%- c.cppClassName %>.h"
 <%_ } _%>
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {

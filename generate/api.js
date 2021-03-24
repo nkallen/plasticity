@@ -1,5 +1,10 @@
 export default {
     classes: {
+        RefItem: {
+            rawHeader: "reference_item.h",
+            freeFunctionName: "DeleteItem",
+            ignore: true,
+        },
         Model: {
             rawHeader: "model.h",
             dependencies: ["Item.h", "Path.h", "Matrix3D.h"],
@@ -12,7 +17,6 @@ export default {
                     path: { isReturn: true }, from: { isReturn: true }
                 }
             ],
-            freeFunctionName: "DeleteItem"
         },
         AttributeContainer: {
             rawHeader: "attribute_container.h",
@@ -21,10 +25,15 @@ export default {
                 "int GetStyle()",
             ]
         },
+        SpaceItem: {
+            rawHeader: "space_item.h",
+            extends: "RefItem",
+            dependencies: ["RefItem.h"],
+        },
         Item: {
             rawHeader: "model_item.h",
             dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h"],
-            extends: "AttributeContainer",
+            extends: ["AttributeContainer", "SpaceItem"],
             functions: [
                 "MbeSpaceType IsA()",
                 "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)",
@@ -32,7 +41,6 @@ export default {
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
             ],
-            freeFunctionName: "DeleteItem"
         },
         Path: {
             rawHeader: "name_item.h"
@@ -49,17 +57,18 @@ export default {
                 "void SetMergingEdges(bool s)",
             ]
         },
-        SpaceItem: {
-            rawHeader: "space_item.h"
-        },
         Surface: {
-            rawHeader: "surface.h"
+            rawHeader: "surface.h",
+            extends: "SpaceItem",
+            dependencies: ["SpaceItem.h"],
         },
         RegTransform: {
             rawHeader: "item_registrator.h"
         },
         Curve3D: {
-            rawHeader: "curve3d.h"
+            rawHeader: "curve3d.h",
+            extends: "SpaceItem",
+            dependencies: ["SpaceItem.h"],
         },
         Plane: {
             rawHeader: "surf_plane.h",
@@ -81,9 +90,15 @@ export default {
                 "double xx, double yy, double zz"
             ]
         },
+        ElementarySurface: {
+            rawHeader: "surf_elementary_surface.h",
+            extends: "Surface",
+            dependencies: ["Surface.h"]
+        },
         SphereSurface: {
             rawHeader: "surf_sphere_surface.h",
-            dependencies: ["CartPoint3D.h"],
+            extends: "ElementarySurface",
+            dependencies: ["ElementarySurface.h", "CartPoint3D.h"],
             initializers: [
                 "const MbCartPoint3D & centre, double r"
             ]
@@ -112,7 +127,8 @@ export default {
         },
         LineSegment: {
             rawHeader: "cur_line_segment.h",
-            dependencies: ["CartPoint.h"],
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h", "CartPoint.h"],
             initializers: [
                 "const MbCartPoint & p1, const MbCartPoint & p2"
             ]
@@ -166,6 +182,8 @@ export default {
         },
         Mesh: {
             rawHeader: "mesh.h",
+            extends: "Item",
+            dependencies: ["Item.h"],
             functions: [
                 { signature: "void GetBuffers()", isManual: true },
                 { signature: "void GetApexes()", isManual: true },
@@ -176,6 +194,11 @@ export default {
         },
         RegDuplicate: {
             rawHeader: "item_registrator.h"
+        },
+        NameMaker: {
+            rawHeader: "name_item.h",
+            extends: "RefItem",
+            dependencies: ["RefItem.h"]
         },
         SNameMaker: {
             rawHeader: "name_item.h",
@@ -197,6 +220,11 @@ export default {
         },
         Matrix3D: {
             rawHeader: "mb_matrix3d.h"
+        },
+        TopItem: {
+            rawHeader: "topology_item.h",
+            extends: "RefItem",
+            dependencies: ["RefItem.h"]
         },
         TopologyItem: {
             rawHeader: "topology_item.h",
@@ -281,6 +309,7 @@ export default {
         },
         Arc3D: {
             rawHeader: "cur_arc3d.h",
+            extends: "Curve3D",
             dependencies: ["CartPoint3D.h", "Curve3D.h"],
             initializers: [
                 "const MbCartPoint3D & p0, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int n, bool closed"

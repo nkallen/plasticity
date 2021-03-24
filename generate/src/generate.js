@@ -61,6 +61,8 @@ util.writeLocalFile('../lib/c3d/index.cc', beautify(templates.index({ classes: d
 // Auto-generate the c++ files from the api description
 
 for (const klass of declarations) {
+    if (klass.ignore) continue;
+
     util.writeFile(
         path.join(tempIncludeDirPath, klass.cppClassName + '.h'),
         templates[klass.templatePrefix + '_header']({ klass: klass }),
