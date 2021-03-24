@@ -2,7 +2,7 @@
     <% if (_return.shouldAlloc) { _%>
     <%- _return.rawType %> *<%- _return.name %> = new <%- _return.rawType %>;
     <% } else { _%>
-    <%- _return.rawType %> <%- _return.name %> = NULL;
+    <%- _return.rawType %> <%- _return.isPointer ? '*' : '' %> <%- _return.name %> = NULL;
     <%_ } _%>
 <%_ } _%>
 
@@ -13,7 +13,7 @@
 <%_ } _%>
 
 
-<% if (func.returnType.isReturn) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> _result = <% } _%>
+<% if (func.returnType.isReturn || func.returnType.isErrorCode) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> _result = <% } _%>
 <%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- func.name %>(
 <%_ for (const arg of func.params) { _%>
     <% if (arg.isCppString2CString) { _%>
@@ -56,7 +56,7 @@ if (_result == rt_Success) {
 <% if (func.returnType.isErrorCode) { _%>
 } else {
     std::ostringstream msg;
-    msg << "Operation <%- cppFunctionName %> failed with error: " << Error::GetSolidErrorResId(_result);
+    msg << "Operation <%- func.name %> failed with error: " << Error::GetSolidErrorResId(_result);
     Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
     return env.Undefined();
 }

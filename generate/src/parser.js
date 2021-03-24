@@ -15,6 +15,12 @@ export default function Parse(api) {
 class TypeRegistry {
     classes = {};
     resolveType(rawType) {
+        if (rawType == "MbResultType") {
+            return {
+                rawType: "MbResultType",
+                isErrorCode: true
+            }
+        }
         if (this.enums.includes(rawType)) {
             return {
                 rawType: rawType,
@@ -179,9 +185,7 @@ class TypeDeclaration {
     constructor(rawType, typeRegistry) {
         this.typeRegistry = typeRegistry;
         const type = typeRegistry.resolveType(rawType);
-        this.rawType = type.rawType;
-        this.isEnum = type.isEnum;
-        this.cppType = type.cppType;
+        Object.assign(this, type);
         if (/Array/.exec(this.rawType)) {
             this.jsType = "Array";
         } else {
@@ -190,7 +194,7 @@ class TypeDeclaration {
     }
 
     get isPointer() {
-        return this.ref == '*';
+        return /\*/.test(this.ref);
     }
 
     get isNumber() {
@@ -210,7 +214,7 @@ class TypeDeclaration {
     }
 }
 class ParamDeclaration extends TypeDeclaration {
-    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<(?<elementType>\w+)\>)?)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;
+    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<(?<elementType>\w+)\>)?)\s+((?<ref>[*&]*)\s*)?(?<name>\w+)/;
 
     constructor(cppIndex, jsIndex, desc, typeRegistry, options) {
         const matchType = ParamDeclaration.declaration.exec(desc);
@@ -224,6 +228,7 @@ class ParamDeclaration extends TypeDeclaration {
         this.desc = desc;
         this.ref = matchType.groups.ref;
         this.name = matchType.groups.name;
+        this.isReturn = this.ref == "*&";
         if (matchType.groups.elementType) {
             this.elementType = typeRegistry.resolveType(matchType.groups.elementType);
         }

@@ -302,7 +302,11 @@ export default {
             ]
         },
         ActionSurface: {
-            rawHeader: "action_surface.h"
+            rawHeader: "action_surface.h",
+            dependencies: ["CartPoint3D.h", "Surface.h"],
+            functions: [
+                "MbResultType ElementarySurface(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbeSpaceType surfaceType, MbSurface *& result)"
+            ]
         },
         ActionSolid: {
             rawHeader: "action_solid.h"
