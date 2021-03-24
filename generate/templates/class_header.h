@@ -10,7 +10,7 @@
 <%_ } _%>
 
 class <%- klass.cppClassName -%> : public
-  Napi::ObjectWrap<%- klass.cppClassName -%>
+  Napi::ObjectWrap<<%- klass.cppClassName -%>>
 {
   public:
         static Napi::Object Init(const Napi::Env env, Napi::Object exports);

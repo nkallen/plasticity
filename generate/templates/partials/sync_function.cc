@@ -14,7 +14,7 @@
 
 
 <% if (func.hasReturnType) { _%> <%_ if (returnType.constCast) { _%>const<%_ } _%><%- returnType.rawType %> _result = <%_ } _%>
-<%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- klass.cppFunctionName %>(
+<%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- func.name %>(
 <%_ for (const arg of func.params) { _%>
     <% if (arg.isCppString2CString) { _%>
     <%- arg.name %>.c_str(), <%- arg.name %>.length()
@@ -23,7 +23,7 @@
     <%_ } else { _%>
     <%- arg.name %>
     <%_ } _%>
-    <% if (!arg.lastArg) { _%>,<%_ } _%>
+    <%_ if (arg.cppIndex < func.params.length - 1) { _%>,<%_ } _%>
 <%_ } _%>
 );
 

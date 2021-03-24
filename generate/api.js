@@ -10,16 +10,23 @@ export default {
                 "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)"
             ]
         },
+        AttributeContainer: {
+            rawHeader: "attribute_container.h",
+            functions: [
+                "int GetStyle()",
+            ]
+        },
         Item: {
-            rawHeader: "space_item.h",
-            dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h"],
+            rawHeader: "model_item.h",
+            // dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h"],
+            dependencies: ["AttributeContainer.h"],
             extends: "AttributeContainer",
             functions: [
-                "MbeSpaceType IsA()",
-                "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)",
-                "void Move(const MbVector3D & v, MbRegTransform *iReg)",
-                "SimpleName GetItemName()",
-                "MbItem * Cast()"
+                // "MbeSpaceType IsA()",
+                // "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)",
+                // "void Move(const MbVector3D & v, MbRegTransform *iReg)",
+                // "SimpleName GetItemName()",
+                // "MbItem * Cast()"
             ]
         },
         Path: {

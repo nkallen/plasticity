@@ -10,7 +10,7 @@
                 "./lib/c3d/src/Error.cc",
                 # "./lib/c3d/src/MeshAddon.cc",
                 <%_ for (c of classes) { _%>
-                    # "./lib/c3d/src/<%- c.cppClassName %>.cc",
+                    "./lib/c3d/src/<%- c.cppClassName %>.cc",
                 <%_ } _%>
             ],
             "include_dirs": [

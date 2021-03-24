@@ -11,7 +11,7 @@
             || !info[<%-arg.jsArg%>].IsArray()) {
         <%_ } else { _%>
             || !info[<%-arg.jsArg%>].IsObject()
-            || !info[<%-arg.cArg %>].ToObject().InstanceOf(<%- arg.cppType %>::GetConstructor(env))) {
+            || !info[<%-arg.cppIndex %>].ToObject().InstanceOf(<%- arg.cppType %>::GetConstructor(env))) {
         <%_ } _%>
             Napi::Error::New(env, "<%-arg.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
             return env.Undefined();

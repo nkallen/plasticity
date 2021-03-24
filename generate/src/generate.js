@@ -10,18 +10,16 @@ import beautify from 'js-beautify';
 import os from 'os';
 import fse from 'fs-extra';
 import util from './util.js';
-import { ClassDeclaration } from './parser.js';
+import Parse from './parser.js';
 import _ from 'underscore';
+import cp from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Parse a description of the API.
 
-const classes = [];
-for (const klass in api.classes) {
-    classes.push(new ClassDeclaration(klass, api.classes[klass]));
-}
+const classes = Parse(api);
 
 // Load some templates.
 
@@ -60,21 +58,29 @@ util.writeLocalFile('../lib/c3d/index.cc', beautify(templates.index({ classes: c
 
 // Auto-generate the c++ files from the api description
 
-try {
-    for (const klass of classes) {
-        util.writeFile(
-            path.join(tempIncludeDirPath, klass.cppClassName + '.h'),
-            templates.class_header({ klass: klass }),
-            klass.cppClassName + '.h');
+for (const klass of classes) {
+    util.writeFile(
+        path.join(tempIncludeDirPath, klass.cppClassName + '.h'),
+        templates.class_header({ klass: klass }),
+        klass.cppClassName + '.h');
 
-        util.writeFile(
-            path.join(tempSrcDirPath, klass.cppClassName + '.cc'),
-            templates.class_content({ klass: klass }),
-            klass.cppClassName + '.cc');
-    }
-} catch (e) {
-    console.log(e);
-    throw e;
+    util.writeFile(
+        path.join(tempSrcDirPath, klass.cppClassName + '.cc'),
+        templates.class_content({ klass: klass }),
+        klass.cppClassName + '.cc');
+}
+
+// Pretty-print the c++ just so we can debug more easily (optional)
+
+const astyle = cp.execSync('command -v astyle');
+if (astyle) {
+    cp.execSync(
+        'astyle --options=".astylerc" ' + tempSrcDirPath + '/*.cc ' +
+        tempIncludeDirPath + '/*.h');
+
+    cp.execSync(
+        'rm ' + tempSrcDirPath + '/*.cc.orig ' + tempIncludeDirPath +
+        '/*.h.orig');
 }
 
 // Sync from /tmp into lib/c3d
@@ -82,4 +88,4 @@ try {
 await util.syncDirs(tempSrcDirPath, finalSrcDirPath);
 await util.syncDirs(tempIncludeDirPath, finalIncludeDirPath);
 
-await fse.remove(tempDirPath);
+// await fse.remove(tempDirPath);
