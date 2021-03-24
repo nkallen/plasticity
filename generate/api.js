@@ -265,7 +265,29 @@ export default {
                 {
                     signature: "void GetEdges(RPArray<MbCurveEdge> & edges)",
                     edges: { isReturn: true }
-                }
+                },
+                {
+                    signature: "void GetFaces(RPArray<MbFace> & faces)",
+                    faces: { isReturn: true }
+                },
+                "const MbFace * FindFaceByName(const MbName & name)",
+                "MbCurveEdge * FindEdgeByName(const MbName & name)",
+            ]
+        },
+        Arc3D: {
+            rawHeader: "cur_arc3d.h",
+            dependencies: ["CartPoint3D.h", "Curve3D.h"],
+            initializers: [
+                "const MbCartPoint3D & p0, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int n, bool closed"
+            ]
+        },
+        PointFrame: {
+            rawHeader: "point_frame.h",
+            extends: "Item",
+            dependencies: ["Item.h", "CartPoint3D.h"],
+            initializers: [""],
+            functions: [
+                "void AddVertex(const MbCartPoint3D & point)",
             ]
         }
     }
