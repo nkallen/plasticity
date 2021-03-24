@@ -53,7 +53,7 @@ if (_result == rt_Success) {
     <%_ } _%>
 <%_ } _%>
 
-<% if (func.returnType?.isErrorCode) { _%>
+<% if (func.returnType.isErrorCode) { _%>
 } else {
     std::ostringstream msg;
     msg << "Operation <%- cppFunctionName %> failed with error: " << Error::GetSolidErrorResId(_result);

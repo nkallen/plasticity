@@ -176,7 +176,7 @@ class FunctionDeclaration {
 
         let returnsCount = 0;
         if (this.returnType.isReturn) returnsCount++;
-        for (const param in this.params) {
+        for (const param of this.params) {
             if (param.isReturn) returnsCount++;
         }
         this.returnsCount = returnsCount;
@@ -206,7 +206,11 @@ class TypeDeclaration {
         this.rawType = type.rawType;
         this.isEnum = type.isEnum;
         this.cppType = type.cppType;
-        this.jsType = type.jsType;
+        if (/Array/.exec(this.rawType)) {
+            this.jsType = "Array";
+        } else {
+            this.jsType = type.jsType;
+        }
     }
 
     get isPointer() {
@@ -224,6 +228,10 @@ class TypeDeclaration {
     get isBoolean() {
         return this.rawType == "bool"
     }
+
+    get isArray() {
+        return /Array/.test(this.rawType);
+    }
 }
 class ParamDeclaration extends TypeDeclaration {
     static declaration = /((?<const>const)\s+)?(?<type>\w+(\<(?<elementType>\w+)\>)?)\s+((?<ref>[*&])\s*)?(?<name>\w+)/;
@@ -240,12 +248,18 @@ class ParamDeclaration extends TypeDeclaration {
         this.desc = desc;
         this.ref = matchType.groups.ref;
         this.name = matchType.groups.name;
-        this.elementType = matchType.groups.elementType;
+        if (matchType.groups.elementType) {
+            this.elementType = typeRegistry.resolveType(matchType.groups.elementType);
+        }
         Object.assign(this, options[this.name]);
     }
 
     get isJsArg() {
         return !this.isReturn;
+    }
+
+    get shouldAlloc() {
+        return this.isReturn && this.ref == "&"
     }
 }
 

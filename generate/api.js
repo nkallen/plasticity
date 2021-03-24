@@ -3,11 +3,14 @@ export default {
         Model: {
             rawHeader: "model.h",
             dependencies: ["Item.h", "Path.h", "Matrix3D.h"],
-            initializers: [],
+            initializers: [""],
             functions: [
                 "MbItem * AddItem(MbItem & item, SimpleName n)",
                 "bool DetachItem(MbItem * item)",
-                "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)"
+                {
+                    signature: "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)",
+                    path: { isReturn: true }, from: { isReturn: true }
+                }
             ]
         },
         AttributeContainer: {
@@ -37,7 +40,7 @@ export default {
         },
         BooleanFlags: {
             rawHeader: "op_boolean_flags.h",
-            initializers: [],
+            initializers: [""],
             functions: [
                 "void InitBoolean(bool _closed, bool _allowNonIntersecting)",
                 "void SetMergingFaces(bool s)",
@@ -143,7 +146,7 @@ export default {
         Placement3D: {
             rawHeader: "mb_placement3d.h",
             dependencies: ["Axis3D.h", "Vector3D.h"],
-            initializers: [""],// FIXME check for empty initis,
+            initializers: [""],
             functions: [
                 "MbPlacement3D & Move(const MbVector3D & to)",
                 "MbPlacement3D & Rotate(const MbAxis3D & axis, double angle)",
@@ -290,10 +293,5 @@ export default {
                 "void AddVertex(const MbCartPoint3D & point)",
             ]
         },
-        Enabler: {
-            rawHeader: "tool_enabler.h",
-            functions: [
-            ]
-        }
     }
 }

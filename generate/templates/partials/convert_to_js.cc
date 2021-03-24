@@ -5,7 +5,7 @@
 <%_ } else if (arg.isArray) { _%>
     Napi::Array arr = Napi::Array::New(env);
     for (size_t i = 0; i < <%- arg.name %>->size(); i++) {
-        arr[i] = <%- elementType %>::NewInstance(env, (*<%- arg.name %>)[i]);
+        arr[i] = <%- arg.elementType.cppType %>::NewInstance(env, (*<%- arg.name %>)[i]);
     }
     _to = arr;
 <%_ } else if (arg.isOnStack) { _%>
