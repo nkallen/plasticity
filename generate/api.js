@@ -19,13 +19,12 @@ export default {
         },
         Item: {
             rawHeader: "model_item.h",
-            // dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h"],
-            dependencies: ["AttributeContainer.h"],
+            dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h"],
             extends: "AttributeContainer",
             functions: [
                 "MbeSpaceType IsA()",
                 // "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)",
-                // "void Move(const MbVector3D & v, MbRegTransform *iReg)",
+                "void Move(const MbVector3D & v, MbRegTransform *iReg)",
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
             ]
@@ -177,6 +176,12 @@ export default {
             rawHeader: "name_item.h",
             initializers: [
                 "SimpleName _mainName, ESides _sideAdd, SimpleName _buttAdd"
+            ]
+        },
+        StepData: {
+            rawHeader: "mb_data.h",
+            initializers: [
+                
             ]
         }
     }
