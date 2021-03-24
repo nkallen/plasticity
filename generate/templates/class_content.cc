@@ -88,13 +88,15 @@ Napi::Function <%- klass.cppClassName %>::GetConstructor(Napi::Env env) {
 <%_ for (const field of klass.fields) { _%>
 Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
-    Napi::Value to;
+    Napi::Value _to;
     <%- field.rawType %> <%- field.name %> = _underlying-><%- field.name %>;
-    <%- include('convert_to_js', { arg: field }) %>
+    <%- include('convert_to_js.cc', { arg: field }) %>
 }
+
 void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {
     Napi::Env env = info.Env();
-    <%- include('convert_from_js', { arg: field }) %>
+    <%- include('convert_from_js.cc', { arg: field }) %>
     _underlying-><%- field.name %> = <%- field.name %>;
 }
+
 <%_ } _%>

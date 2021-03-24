@@ -225,11 +225,15 @@ export default {
             dependencies: ["TopologyItem.h"]
         },
         ModifyValues: {
+            cppClassName: "_ModifyValues",
+            rawClassName: "ModifyValues",
+            jsClassName: "ModifyValues",
             rawHeader: "op_shell_parameter.h",
             dependencies: ["Vector3D.h"],
             intializers: [""],
             fields: [
-                
+                "MbeModifyingType way",
+                "MbVector3D direction"
             ]
         }
     }

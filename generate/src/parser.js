@@ -31,6 +31,12 @@ class TypeRegistry {
                 cppType: "MbeStepType",
                 isEnum: true
             },
+            MbeModifyingType: {
+                jsType: "Number",
+                rawType: "MbeModifyingType",
+                cppType: "MbeModifyingType",
+                isEnum: true
+            },
             ESides: {
                 jsType: "Number",
                 cppType: "ESides",
@@ -112,7 +118,12 @@ class ClassDeclaration {
     }
 
     get fields() {
-        return [];
+        const result = [];
+        const fields = this.desc.fields ?? [];
+        for (const f of fields) {
+            result.push(new FieldDeclaration(f, this.typeRegistry));
+        }
+        return result;
     }
 }
 
@@ -144,7 +155,7 @@ class FunctionDeclaration {
         }
 
         let returnsCount = 0;
-        if (this.returnType.isReturn) returnsCount++; 
+        if (this.returnType.isReturn) returnsCount++;
         for (const param in this.params) {
             if (param.isReturn) returnsCount++;
         }
@@ -266,5 +277,15 @@ class InitializerDeclaration {
                 if (param.isJsArg) jsIndex++;
             }
         }
+    }
+}
+
+class FieldDeclaration extends ParamDeclaration {
+    constructor(desc, typeRegistry) {
+        super(0, 0, desc, typeRegistry);
+    }
+
+    get isOnStack() {
+        return true;
     }
 }
