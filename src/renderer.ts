@@ -1,31 +1,40 @@
-/**
- * This file will automatically be loaded by webpack and run in the "renderer" context.
- * To learn more about the differences between the "main" and the "renderer" context in
- * Electron, visit:
- *
- * https://electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes
- *
- * By default, Node.js integration in this file is disabled. When enabling Node.js integration
- * in a renderer process, please be aware of potential security implications. You can read
- * more about security risks here:
- *
- * https://electronjs.org/docs/tutorial/security
- *
- * To enable Node.js integration in this file, open up `main.js` and enable the `nodeIntegration`
- * flag:
- *
- * ```
- *  // Create the browser window.
- *  mainWindow = new BrowserWindow({
- *    width: 800,
- *    height: 600,
- *    webPreferences: {
- *      nodeIntegration: true
- *    }
- *  });
- * ```
- */
+import './css/index.css';
 
-import './index.css';
+// import { Editor } from './editor';
+import './Pane';
+// import Toolbar from './atom-toolbar';
+// import Viewport from './atom-viewport';
+// import registerDefaultCommands from './register-default-commands';
+// const editor = new Editor();
+// import CommandRegistry from './CommandRegistry';
 
-console.log('👋 This message is being logged by "renderer.js", included via webpack');
+// const commandRegistry = new CommandRegistry();
+// commandRegistry.attach(window);
+// registerDefaultCommands(commandRegistry);
+
+// Toolbar(editor);
+// Viewport(editor);
+
+// function requireDynamically(path: String)
+// {
+//     path = path.split('\\').join('/'); // Normalize windows slashes
+//     return eval(`require('${path}');`); // Ensure Webpack does not analyze the require statement
+// }
+
+// const KeymapManager = requireDynamically('atom-keymap');
+// console.log(KeymapManager);
+
+// const keymaps = new KeymapManager();
+
+// keymaps.defaultTarget = document.body
+// document.addEventListener('keydown', function (event) {
+//     keymaps.handleKeyboardEvent(event);
+// });
+// keymaps.add('/key/for/these/keymaps', {
+//     "body": {
+//         "up": "command:add-sphere",
+//         "down": "core:move-down"
+//     }
+// });
+// window.addEventListener('core:move-up', (event) => console.log('up', event));
+// window.addEventListener('core:move-down', (event) => console.log('down', event));

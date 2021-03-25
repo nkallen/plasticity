@@ -1,4 +1,8 @@
 module.exports = {
+    target: 'electron-main',
+    'node': {
+      __dirname: false,
+    },
   /**
    * This is the main entry point for your application, it's the first file
    * that runs in the main process.
@@ -9,6 +13,6 @@ module.exports = {
     rules: require('./webpack.rules'),
   },
   resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json']
+    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json', '.scss', '.sass']
   },
 };

@@ -4,14 +4,13 @@
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".webpack/main",
-  "type": "module",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts .",
-    "generate": "node --experimental-json-modules generate/src/generate.js",
+    "generate": "node generate/src/generate.js",
     "test": "jest"
   },
   "keywords": [],
@@ -94,6 +93,9 @@
     "walk": "^2.3.14"
   },
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-squirrel-startup": "^1.0.0",
+    "event-kit": "^2.5.3",
+    "preact": "^10.5.13",
+    "three": "^0.126.1"
   }
 }

@@ -1,12 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="UTF-8">
     <title>Hello World!</title>
 
-  </head>
-  <body>
-    <h1>💖 Hello World!</h1>
-    <p>Welcome to your Electron application.</p>
-  </body>
+</head>
+
+<body>
+    <ispace-workspace>
+        <ispace-workspace-axis class="horizontal">
+            <ispace-pane-container>
+                <ispace-pane-axis class="horizontal">
+                    <ispace-pane-resize-handle></ispace-pane-resize-handle>
+                    <ispace-pane>
+                        <ispace-viewport />
+                    </ispace-pane>
+                    <ispace-pane-resize-handle></ispace-pane-resize-handle>
+                    <ispace-pane>
+                        <ispace-toolbar />
+                    </ispace-pane>
+                </ispace-pane-axis>
+            </ispace-pane-container>
+        </ispace-workspace-axis>
+    </ispace-workspace>
+</body>
+
 </html>

@@ -1,0 +1,118 @@
+@import "ui-variables";
+/* Pane-items are things that go inside a pane. Like the UI-Demo, the
+settings-view, the archive-view, the image-view. Etc. Basically a non-
+editor resource with a tab. */
+
+ispace-pane-container {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+}
+
+ispace-pane-container ispace-pane-axis {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+}
+
+ispace-pane-container ispace-pane-axis>ispace-pane-resize-handle {
+    position: relative;
+}
+
+ispace-pane-container ispace-pane-axis>ispace-pane-resize-handle:before {
+    content: "";
+    position: absolute;
+    z-index: 11;
+}
+
+ispace-pane-container ispace-pane-axis.vertical {
+    flex-direction: column;
+}
+
+ispace-pane-container ispace-pane-axis.vertical>ispace-pane-resize-handle {
+    border-bottom: none;
+}
+
+ispace-pane-container ispace-pane-axis.vertical>ispace-pane-resize-handle:before {
+    height: 8px;
+    top: -4px;
+    left: 0;
+    right: 0;
+    cursor: row-resize;
+}
+
+ispace-pane-container ispace-pane-axis.horizontal {
+    flex-direction: row;
+}
+
+ispace-pane-container ispace-pane-axis.horizontal>ispace-pane-resize-handle {
+    border-right: none;
+}
+
+ispace-pane-container ispace-pane-axis.horizontal>ispace-pane-resize-handle:before {
+    width: 8px;
+    left: -4px;
+    top: 0;
+    bottom: 0;
+    cursor: col-resize;
+}
+
+ispace-pane-container ispace-pane {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow: visible;
+    min-width: 0;
+    min-height: 0;
+}
+
+ispace-pane-container ispace-pane .item-views {
+    flex: 1;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    position: relative;
+}
+
+ispace-pane-container ispace-pane .item-views .pane-item {
+    color: var(--text-color);
+    background-color: var(--pane-item-background-color);
+}
+
+ispace-pane-container ispace-pane .item-views>*, ispace-pane-container ispace-pane .item-views>ispace-text-editor.react>* {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.platform-win32 ispace-pane-container ispace-pane-axis.vertical>ispace-pane-resize-handle {
+    cursor: ns-resize;
+}
+
+.platform-win32 ispace-pane-container ispace-pane-axis.horizontal>ispace-pane-resize-handle {
+    cursor: ew-resize;
+}
+
+.ispace-pane-cursor-overlay {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 4;
+}
+
+.ispace-pane-cursor-overlay.horizontal {
+    cursor: col-resize;
+}
+
+.ispace-pane-cursor-overlay.vertical {
+    cursor: row-resize;
+}

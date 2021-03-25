@@ -93,9 +93,6 @@ out/
 /dist/
 /include/
 /lib/c3d
-/generate/output
-/generate/**/*.json
-!/generate/input/*.json
 /binding.gyp
 /build
 
