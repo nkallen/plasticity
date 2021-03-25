@@ -2,7 +2,6 @@
 @import "panes";
 @import "workspace";
 
-# FIXME move into viewport.css
 ispace-viewport {
     flex: 1;
     display: flex;

@@ -10,7 +10,7 @@ export default (editor: Editor) => {
 
         constructor() {
             super();
-            this.attachShadow({ mode: 'open' }); // sets and returns 'this.shadowRoot'
+            this.attachShadow({ mode: 'open' });
 
             const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
             camera.position.set(0, 5, 10);
@@ -27,7 +27,6 @@ export default (editor: Editor) => {
             scene.background = new THREE.Color(0x424242);
 
             this.renderer.setPixelRatio(window.devicePixelRatio);
-            this.renderer.setSize(this.offsetWidth, this.offsetHeight);
 
             editor.signals.windowLoaded.add(this.resize);
             editor.signals.windowResized.add(this.resize);
@@ -58,6 +57,7 @@ export default (editor: Editor) => {
         }
 
         resize() {
+            console.log("resizing", this.offsetWidth, this.offsetHeight);
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
             this.camera.aspect = this.offsetWidth / this.offsetHeight;
             this.camera.updateProjectionMatrix();

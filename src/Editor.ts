@@ -1,7 +1,5 @@
 import * as THREE from "three";
 import signals from "signals";
-
-import path from "path";
 import * as url from "url";
 
 export abstract class GeometryFactory {
