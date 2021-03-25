@@ -19,8 +19,8 @@
 <%_ } else if (arg.isEnum) { _%>
     const <%- arg.rawType %> <%- arg.name %> = static_cast<<%- arg.rawType %>>(info[<%- arg.cppIndex %>].ToNumber().Uint32Value());
 <%_ } else { _%>
-    <%_ if (arg.isOptional) { _%>asdf
-        <%- arg.rawType %> <%- arg.name %> = NULL;
+    <%_ if (arg.isOptional) { _%>
+        <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = NULL;
         if (!(info[<%- arg.cppIndex %>].IsNull() || info[<%- arg.cppIndex %>].IsUndefined())) {
             const <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.cppIndex %>].ToObject());
             <%- arg.name %> = <%- arg.name %>_->_underlying;

@@ -10,7 +10,7 @@ export default {
             dependencies: ["Item.h", "Path.h", "Matrix3D.h"],
             initializers: [""],
             functions: [
-                "MbItem * AddItem(MbItem & item, SimpleName n)",
+                { signature: "MbItem * AddItem(MbItem & item, SimpleName n)", n: { isOptional: true }},
                 "bool DetachItem(MbItem * item)",
                 {
                     signature: "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)",
@@ -32,11 +32,11 @@ export default {
         },
         Item: {
             rawHeader: "model_item.h",
-            dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h"],
-            extends: ["AttributeContainer", "SpaceItem"],
+            dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h", "SpaceItem.h"],
+            extends: [ "SpaceItem", "AttributeContainer"],
             functions: [
                 "MbeSpaceType IsA()",
-                "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)",
+                { signature: "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)", iReg: { isOptional: true } },
                 "void Move(const MbVector3D & v, MbRegTransform *iReg)",
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },

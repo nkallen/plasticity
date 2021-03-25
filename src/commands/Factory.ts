@@ -38,16 +38,13 @@ export class SphereFactory extends GeometryFactory {
     commit() {
         this.editor.select(this.mesh);
         const points = [
-            new c3d.CartPoint3D(0, 0, 0),
-            new c3d.CartPoint3D(0, 0, 0),
-            new c3d.CartPoint3D(0, 1, 0)
+            new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z),
+            new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z + 1),
+            new c3d.CartPoint3D(this.center.x + this.radius, this.center.y, this.center.z),
         ];
         const names = new c3d.SNameMaker(1, 0, 0);
-        const sphereCreator = new c3d.ElementarySolid(points, 0, names);
-        const shell = sphereCreator.CreateShell(0);
-        console.log(shell);
-        const solid = new c3d.Solid(shell, sphereCreator);
-        console.log(solid);
+        const sphere = c3d.ActionSolid.ElementarySolid(points, 0, names);
+        this.editor.addObject(sphere);
     }
 
     cancel() {
