@@ -1,5 +1,9 @@
 import _ from 'underscore';
 
+/*
+ * Parse a description of the API (api.js), create an object model that
+ * maps types from javascript to c++/node-addon-api to the raw c3d library
+ */
 export default function Parse(api) {
     const typeRegistry = new TypeRegistry();
     typeRegistry.enums = api.enums;
@@ -66,6 +70,7 @@ class ClassDeclaration {
         this.rawHeader = desc.rawHeader;
         typeRegistry.register(this);
 
+        // For "extends", we inherit functions as well as the free function name.
         this.desc.functions = this.desc.functions ?? [];
         if (Array.isArray(desc.extends)) {
             this.extends = desc.extends;
@@ -133,6 +138,7 @@ class ClassDeclaration {
     }
 }
 
+// A class with only static methods
 class ModuleDeclaration extends ClassDeclaration {
     get templatePrefix() {
         return 'module';
@@ -169,6 +175,8 @@ class FunctionDeclaration {
         this.name = matchMethod.groups.name;
         this.returnType = new ReturnDeclaration(matchMethod.groups.return, this.typeRegistry);
         const paramDescs = matchMethod.groups.params.split(/,\s*/);
+
+        // Note that c++ has "out" params which are simply return parameters in js
         this.params = [];
         let jsIndex = 0;
         for (const [cppIndex, paramDesc] of paramDescs.entries()) {

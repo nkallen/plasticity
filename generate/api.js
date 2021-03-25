@@ -23,7 +23,7 @@ export default {
             functions: [
                 "void SetStyle(int s)",
                 "int GetStyle()",
-            ]
+            ],
         },
         SpaceItem: {
             rawHeader: "space_item.h",
