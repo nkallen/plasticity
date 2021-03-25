@@ -57,7 +57,6 @@ export default (editor: Editor) => {
         }
 
         resize() {
-            console.log("resizing", this.offsetWidth, this.offsetHeight);
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
             this.camera.aspect = this.offsetWidth / this.offsetHeight;
             this.camera.updateProjectionMatrix();
