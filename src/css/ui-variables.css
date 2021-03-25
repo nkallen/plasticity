@@ -3,7 +3,7 @@ must implement. */
 
 /* Colors */
 
-:root {
+::root {
     --text-color: #333;
     --text-color-subtle: #777;
     --text-color-highlight: #111;
