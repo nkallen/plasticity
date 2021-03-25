@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Editor } from './Editor';
+import { Editor } from './editor';
 import { Pane } from './Pane';
 
 export default (editor: Editor) => {
@@ -10,7 +10,7 @@ export default (editor: Editor) => {
 
         constructor() {
             super();
-            this.attachShadow({ mode: 'open' });
+            this.attachShadow({ mode: 'open' }); // sets and returns 'this.shadowRoot'
 
             const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
             camera.position.set(0, 5, 10);
@@ -29,10 +29,10 @@ export default (editor: Editor) => {
             this.renderer.setPixelRatio(window.devicePixelRatio);
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
 
-            // editor.signals.windowLoaded.add(this.resize);
-            // editor.signals.windowResized.add(this.resize);
+            editor.signals.windowLoaded.add(this.resize);
+            editor.signals.windowResized.add(this.resize);
             const pane = this.parentElement as Pane;
-            // pane.signals.flexScaleChanged.add(this.resize);
+            pane.signals.flexScaleChanged.add(this.resize);
             editor.viewports.push(this);
 
             const controls = new OrbitControls(this.camera, this.renderer.domElement);

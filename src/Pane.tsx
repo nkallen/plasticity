@@ -1,25 +1,14 @@
 import { render } from 'preact';
-// import signals from 'signals';
+import signals from 'signals';
 
-declare global {
-    namespace preact.createElement.JSX {
-        interface IntrinsicElements {
-            'ispace-pane-container': { children: JSX.Element };
-            'ispace-pane': { children: JSX.Element };
-            'ispace-toolbar': {};
-        }
-    }
-
+interface PaneSignals {
+    flexScaleChanged: signals.Signal<number>;
 }
 
-// interface PaneSignals {
-//     flexScaleChanged: signals.Signal<number>;
-// }
-
 export class Pane extends HTMLElement {
-    // signals: PaneSignals = {
-    //     flexScaleChanged: new signals.Signal()
-    // }
+    signals: PaneSignals = {
+        flexScaleChanged: new signals.Signal()
+    }
 
     constructor() {
         super();
@@ -28,7 +17,7 @@ export class Pane extends HTMLElement {
 
     set flexGrow(fg: number) {
         this.style.flexGrow = String(fg);
-        // this.signals.flexScaleChanged.dispatch(fg);
+        this.signals.flexScaleChanged.dispatch(fg);
     }
 
     get flexGrow() {
@@ -40,7 +29,6 @@ customElements.define('ispace-pane', Pane);
 export class PaneResizeHandle extends HTMLElement {
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
 
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);

@@ -95,6 +95,7 @@ out/
 /lib/c3d
 /binding.gyp
 /build
+/bin
 
 # Unclear license
 /vendor/c3d

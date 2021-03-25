@@ -1,5 +1,5 @@
 import * as THREE from "three";
-// import signals from "signals";
+import signals from "signals";
 
 import path from "path";
 import * as url from "url";
@@ -23,7 +23,7 @@ export class SphereFactory extends GeometryFactory {
         const material = new THREE.MeshMatcapMaterial();
         // material.color = new THREE.Color(0x454545);
 
-        const image = url.resolve(window.location.origin, "/img/matcap-porcelain-white.jpg");
+        const image = url.resolve(window.location.origin, "/static/matcap-porcelain-white.jpg");
 
         const matcapTexture = new THREE.TextureLoader().load(image);
         console.log(matcapTexture);
@@ -156,13 +156,13 @@ class PointPicker {
     }
 }
 
-// interface EditorSignals {
-//     objectAdded: signals.Signal<THREE.Object3D>;
-//     sceneGraphChanged: signals.Signal;
-//     windowResized: signals.Signal;
-//     windowLoaded: signals.Signal;
-//     rendererAdded: signals.Signal<THREE.Renderer>;
-// }
+interface EditorSignals {
+    objectAdded: signals.Signal<THREE.Object3D>;
+    sceneGraphChanged: signals.Signal;
+    windowResized: signals.Signal;
+    windowLoaded: signals.Signal;
+    rendererAdded: signals.Signal<THREE.Renderer>;
+}
 
 interface V {
     renderer: THREE.Renderer;
@@ -172,13 +172,13 @@ export class Editor {
     viewports: V[] = [];
     scene: THREE.Scene;
     selected?: THREE.Object3D;
-    // signals: EditorSignals = {
-    //     objectAdded: new signals.Signal(),
-    //     sceneGraphChanged: new signals.Signal(),
-    //     windowResized: new signals.Signal(),
-    //     windowLoaded: new signals.Signal(),
-    //     rendererAdded: new signals.Signal()
-    // }
+    signals: EditorSignals = {
+        objectAdded: new signals.Signal(),
+        sceneGraphChanged: new signals.Signal(),
+        windowResized: new signals.Signal(),
+        windowLoaded: new signals.Signal(),
+        rendererAdded: new signals.Signal()
+    }
 
     constructor() {
         this.scene = new THREE.Scene();
@@ -196,16 +196,16 @@ export class Editor {
 
     select(object: THREE.Object3D) {
         this.selected = object;
-        // this.signals.objectAdded.dispatch(object);
-        // this.signals.sceneGraphChanged.dispatch(object);
+        this.signals.objectAdded.dispatch(object);
+        this.signals.sceneGraphChanged.dispatch(object);
     }
 
     onWindowResize() {
-        // this.signals.windowResized.dispatch();
+        this.signals.windowResized.dispatch();
     }
 
     onWindowLoad() {
-        // this.signals.windowLoaded.dispatch();
+        this.signals.windowLoaded.dispatch();
     }
 
 }
