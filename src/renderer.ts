@@ -2,7 +2,7 @@ import './css/index.css';
 
 import { Editor } from './Editor';
 import './Pane';
-// import Toolbar from './atom-toolbar';
+import Toolbar from './Toolbar';
 import Viewport from './Viewport';
 // import registerDefaultCommands from './register-default-commands';
 const editor = new Editor();
@@ -12,7 +12,7 @@ const editor = new Editor();
 // commandRegistry.attach(window);
 // registerDefaultCommands(commandRegistry);
 
-// Toolbar(editor);
+Toolbar(editor);
 Viewport(editor);
 
 // function requireDynamically(path: String)

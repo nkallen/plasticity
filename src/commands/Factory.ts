@@ -1,7 +1,6 @@
-import { Editor } from './../Editor.ts'
-import { PointPicker } from './../PointPicker.ts'
+import { Editor } from './../Editor'
 import * as THREE from "three";
-
+import porcelain from '../img/matcap-porcelain-white.jpg';
 export abstract class GeometryFactory {
     editor: Editor;
 
@@ -19,13 +18,10 @@ export class SphereFactory extends GeometryFactory {
         super(editor);
         const geometry = new THREE.SphereGeometry(0, 8, 6, 0, Math.PI * 2, 0, Math.PI);
         const material = new THREE.MeshMatcapMaterial();
-        // material.color = new THREE.Color(0x454545);
+        material.color = new THREE.Color(0x454545);
 
-        // const image = url.resolve(window.location.origin, "/static/matcap-porcelain-white.jpg");
-
-        // const matcapTexture = new THREE.TextureLoader().load(image);
-        // console.log(matcapTexture);
-        // material.matcap = matcapTexture;
+        const matcapTexture = new THREE.TextureLoader().load(porcelain);
+        material.matcap = matcapTexture;
         this.mesh = new THREE.Mesh(geometry, material);
         this.editor.addObject(this.mesh);
     }

@@ -14,6 +14,7 @@ interface V {
     renderer: THREE.Renderer;
     camera: THREE.Camera;
 }
+
 export class Editor {
     viewports: V[] = [];
     scene: THREE.Scene;

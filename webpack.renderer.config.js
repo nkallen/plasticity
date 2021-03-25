@@ -13,6 +13,18 @@ rules.push({
     ],
 });
 
+rules.push({
+    test: /\.(png|svg|jpg|jpeg|gif)$/i,
+    use: [
+        {
+            loader: 'file-loader',
+            options: {
+                name: 'img/[name].[ext]'
+            }
+        },
+    ],
+});
+
 module.exports = {
     module: {
         rules,
