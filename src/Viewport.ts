@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Editor } from './editor';
+import { Editor } from './Editor';
 import { Pane } from './Pane';
 
 export default (editor: Editor) => {
@@ -29,10 +29,10 @@ export default (editor: Editor) => {
             this.renderer.setPixelRatio(window.devicePixelRatio);
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
 
-            editor.signals.windowLoaded.add(this.resize);
-            editor.signals.windowResized.add(this.resize);
+            // editor.signals.windowLoaded.add(this.resize);
+            // editor.signals.windowResized.add(this.resize);
             const pane = this.parentElement as Pane;
-            pane.signals.flexScaleChanged.add(this.resize);
+            // pane.signals.flexScaleChanged.add(this.resize);
             editor.viewports.push(this);
 
             const controls = new OrbitControls(this.camera, this.renderer.domElement);

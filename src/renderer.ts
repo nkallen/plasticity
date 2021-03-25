@@ -1,11 +1,11 @@
 import './css/index.css';
 
-// import { Editor } from './editor';
+import { Editor } from './Editor';
 import './Pane';
 // import Toolbar from './atom-toolbar';
-// import Viewport from './atom-viewport';
+import Viewport from './Viewport';
 // import registerDefaultCommands from './register-default-commands';
-// const editor = new Editor();
+const editor = new Editor();
 // import CommandRegistry from './CommandRegistry';
 
 // const commandRegistry = new CommandRegistry();
@@ -13,7 +13,7 @@ import './Pane';
 // registerDefaultCommands(commandRegistry);
 
 // Toolbar(editor);
-// Viewport(editor);
+Viewport(editor);
 
 // function requireDynamically(path: String)
 // {

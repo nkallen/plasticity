@@ -72,6 +72,8 @@
     "@electron-forge/maker-zip": "^6.0.0-beta.54",
     "@electron-forge/plugin-webpack": "6.0.0-beta.54",
     "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
+    "@types/atom-keymap": "^8.0.3",
+    "@types/three": "^0.126.2",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "child_process": "^1.0.2",
@@ -93,6 +95,7 @@
     "walk": "^2.3.14"
   },
   "dependencies": {
+    "atom-keymap": "^8.2.14",
     "electron-squirrel-startup": "^1.0.0",
     "event-kit": "^2.5.3",
     "preact": "^10.5.13",

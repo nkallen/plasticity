@@ -90,7 +90,6 @@ export class PaneResizeHandle extends HTMLElement {
 
             previousSibling.flexGrow = prevFlexGrow;
             nextSibling.flexGrow = nextFlexGrow;
-
         }
     }
 }
