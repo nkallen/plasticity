@@ -24,7 +24,7 @@ class <%- klass.cppClassName -%> : public
 
     <%- klass.rawClassName %> * _underlying;
 
-    <%_ if (klass.freeFunctionName) { _%>
+    <%_ if (klass.freeFunctionName && !klass.protectedDestructor) { _%>
     ~<%- klass.cppClassName -%>();
     <%_ } _%>
 

@@ -10,7 +10,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts .",
-    "generate": "node generate/src/generate.js",
+    "generate": "node generate/src/generate.mjs",
     "test": "jest"
   },
   "keywords": [],
@@ -70,8 +70,8 @@
     "@electron-forge/maker-rpm": "^6.0.0-beta.54",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
     "@electron-forge/maker-zip": "^6.0.0-beta.54",
+    "@electron-forge/plugin-auto-unpack-natives": "^6.0.0-beta.54",
     "@electron-forge/plugin-webpack": "6.0.0-beta.54",
-    "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
     "@types/atom-keymap": "^8.0.3",
     "@types/signals": "^1.0.1",
     "@types/three": "^0.126.2",
@@ -94,9 +94,12 @@
     "ts-loader": "^8.0.2",
     "typescript": "^4.0.2",
     "underscore": "^1.12.1",
-    "walk": "^2.3.14"
+    "walk": "^2.3.14",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
     "atom-keymap": "^8.2.14",
     "electron-squirrel-startup": "^1.0.0",
     "event-kit": "^2.5.3",

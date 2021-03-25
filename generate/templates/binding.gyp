@@ -1,7 +1,7 @@
 {
     "targets": [
         {
-            "target_name": "ispace",
+            "target_name": "c3d",
             "cflags!": ["-fno-exceptions"],
             "cflags_cc!": ["-fno-exceptions"],
             "sources": [

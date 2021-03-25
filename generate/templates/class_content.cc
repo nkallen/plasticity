@@ -100,7 +100,7 @@ void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackI
 }
 <%_ } _%>
 
-<%_ if (klass.freeFunctionName) { _%>
+<%_ if (klass.freeFunctionName && !klass.protectedDestructor) { _%>
 <%- klass.cppClassName %>::~<%- klass.cppClassName %>() {
     <%- klass.freeFunctionName %>(this->_underlying);
 }
