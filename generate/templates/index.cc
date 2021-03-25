@@ -1,6 +1,6 @@
 #include <napi.h>
 <%_ for (c of classes) { _%>
-// include "./include/<%- c.cppClassName %>.h"
+#include "./include/<%- c.cppClassName %>.h"
 <%_ } _%>
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
@@ -9,7 +9,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     env.SetInstanceData<Napi::ObjectReference>(ref);
     
     <%_ for (c of classes) { _%>
-    // <%- c.cppClassName %>::Init(env, exports);
+    <%- c.cppClassName %>::Init(env, exports);
     <%_ } _%>
 
     return exports;
