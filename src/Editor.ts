@@ -2,7 +2,6 @@ import * as THREE from "three";
 import signals from "signals";
 import { Command } from './commands/Command';
 import c3d from '../build/Release/c3d.node';
-console.log(new c3d.Model());
 
 interface EditorSignals {
     objectAdded: signals.Signal<THREE.Object3D>;

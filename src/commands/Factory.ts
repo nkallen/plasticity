@@ -1,6 +1,8 @@
 import { Editor } from './../Editor'
 import * as THREE from "three";
 import porcelain from '../img/matcap-porcelain-white.jpg';
+import c3d from '../../build/Release/c3d.node';
+
 export abstract class GeometryFactory {
     editor: Editor;
 
@@ -35,6 +37,17 @@ export class SphereFactory extends GeometryFactory {
 
     commit() {
         this.editor.select(this.mesh);
+        const points = [
+            new c3d.CartPoint3D(0, 0, 0),
+            new c3d.CartPoint3D(0, 0, 0),
+            new c3d.CartPoint3D(0, 1, 0)
+        ];
+        const names = new c3d.SNameMaker(1, 0, 0);
+        const sphereCreator = new c3d.ElementarySolid(points, 0, names);
+        const shell = sphereCreator.CreateShell(0);
+        console.log(shell);
+        const solid = new c3d.Solid(shell, sphereCreator);
+        console.log(solid);
     }
 
     cancel() {

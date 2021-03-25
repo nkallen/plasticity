@@ -30,6 +30,7 @@ export class SphereCommand extends Command {
             const radius = p1.distanceTo(p2);
             this.factory.radius = radius;
             this.factory.update();
-        })
+        });
+        this.factory.commit();
     }
 }

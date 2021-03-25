@@ -38,6 +38,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
 <%- klass.cppClassName %>::<%- klass.cppClassName %>(const Napi::CallbackInfo& info) : Napi::ObjectWrap<<%- klass.cppClassName %>>(info) {
     Napi::Env env = info.Env();
     if (info.Length() == 1 && info[0].IsString() && info[0].ToString().Utf8Value() == "__skip_js_init__") return;
+
     <%_ if (klass.initializers.length > 0) { _%>
         <%_ for (const [i, initializer] of klass.initializers.entries()) { _%>
         <% if (i > 0) { %>} else <% } %>if (info.Length() == <%- initializer.params.length %> <%_ if (initializer.params.length != 0) { _%>&&<%_ } _%>
