@@ -3,17 +3,40 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Editor } from './editor';
 import { Pane } from './Pane';
 
+const near = 0.01;
+const far = 1000;
+
 export default (editor: Editor) => {
     class Viewport extends HTMLElement {
-        camera: THREE.PerspectiveCamera;
+        camera: THREE.Camera;
         renderer = new THREE.WebGLRenderer({ antialias: true });
+        controls?: OrbitControls;
 
         constructor() {
             super();
             this.attachShadow({ mode: 'open' });
 
-            const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
-            camera.position.set(0, 5, 10);
+            const view = this.getAttribute("view");
+            let camera: THREE.Camera;
+            switch (view) {
+                case "3d":
+                    camera = new THREE.PerspectiveCamera(50, 1, near, far);
+                    camera.position.set(0, 5, 10);
+                    this.controls = new OrbitControls(camera, this.renderer.domElement);
+                    break;
+                case "top":
+                    camera = new THREE.OrthographicCamera(-10, 10, -10, 10, near, far);
+                    camera.position.set(0, 0, 10);
+                    break;
+                case "front":
+                    camera = new THREE.OrthographicCamera(-10, 10, -10, 10, near, far);
+                    camera.position.set(0, 10, 0);
+                    break;
+                case "right":
+                    camera = new THREE.OrthographicCamera(-10, 10, -10, 10, near, far);
+                    camera.position.set(10, 0, 0);
+                    break;
+            }
             camera.lookAt(new THREE.Vector3());
             this.camera = camera;
 
@@ -34,7 +57,6 @@ export default (editor: Editor) => {
             pane.signals.flexScaleChanged.add(this.resize);
             editor.viewports.push(this);
 
-            const controls = new OrbitControls(this.camera, this.renderer.domElement);
 
             const grid = new THREE.GridHelper(300, 300, 0x666666);
             const material1 = grid.material as THREE.LineBasicMaterial;
@@ -45,12 +67,12 @@ export default (editor: Editor) => {
 
             scene.add(grid);
 
-            const r = this.renderer;
+            const renderer = this.renderer;
             const camera = this.camera;
             function animate() {
                 requestAnimationFrame(animate);
-                controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
-                r.render(scene, camera);
+                // this.controls?.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+                renderer.render(scene, camera);
             }
 
             animate();
@@ -58,8 +80,10 @@ export default (editor: Editor) => {
 
         resize() {
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
-            this.camera.aspect = this.offsetWidth / this.offsetHeight;
-            this.camera.updateProjectionMatrix();
+            if (this.camera instanceof THREE.PerspectiveCamera) {
+                this.camera.aspect = this.offsetWidth / this.offsetHeight;
+                this.camera.updateProjectionMatrix();
+            }
         }
     }
 
