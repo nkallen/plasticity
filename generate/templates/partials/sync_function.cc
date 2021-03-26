@@ -20,6 +20,8 @@
     <%- arg.name %>.c_str(), <%- arg.name %>.length()
     <%_ } else if (arg.shouldAlloc) { _%>
     *<%- arg.name %>
+    <%_ } else if (arg.isOptional) { _%>
+    info.Length() == <%- arg.cppIndex %> || info[<%- arg.cppIndex %>].IsNull() ? <%- arg.default %> : <%- arg.name %>
     <%_ } else { _%>
     <%- arg.name %>
     <%_ } _%>

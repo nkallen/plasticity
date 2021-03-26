@@ -11,6 +11,7 @@ Napi::Value Item::Cast(const Napi::CallbackInfo& info) {
         return env.Undefined();
     }
 
+    _underlying->AddRef();
     switch (info[0].ToNumber().Uint32Value()) {
         // case st_Assembly:
         //     return Item::NewInstance(env, dynamic_cast<MbAssembly *>(_underlying));

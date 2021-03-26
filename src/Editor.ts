@@ -63,7 +63,7 @@ export class Editor {
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         const group = new THREE.Group();
         switch (mesh.GetMeshType()) {
-            case 201:
+            case c3d.SpaceType.Curve3D:
                 const edges = mesh.GetEdges();
                 for (const edge of edges) {
                     const geometry = new THREE.BufferGeometry();
@@ -72,7 +72,7 @@ export class Editor {
                     group.add(line);
                 }
                 return group;
-            case 101:
+            case c3d.SpaceType.Point3D:
                 const apexes = mesh.GetApexes();
                 const geometry = new THREE.BufferGeometry();
                 geometry.setAttribute('position', new THREE.Float32BufferAttribute(apexes, 3));

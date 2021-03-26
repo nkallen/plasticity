@@ -31,7 +31,7 @@ export class SphereFactory extends GeometryFactory {
     }
 
     commit() {
-        this.editor.select(this.mesh);
+        this.editor.scene.remove(this.mesh);
         const points = [
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z),
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z + 1),
@@ -39,6 +39,7 @@ export class SphereFactory extends GeometryFactory {
         ];
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, 0, names);
+        console.log(sphere);
         this.editor.addObject(sphere);
     }
 
