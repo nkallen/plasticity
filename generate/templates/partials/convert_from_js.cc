@@ -10,6 +10,9 @@
     for (size_t i = 0; i < <%- arg.name %>_.Length(); i++) {
         if (<%- arg.name %>_[i].IsNull() || <%- arg.name %>_[i].IsUndefined()) {
             std::cerr << __FILE__ << ":" << __LINE__ << " warning: Passed an array with a null element at [" << i << "]. This is probably a mistake, so skipping\n";
+        } else if (!<%- arg.name %>_[i].IsObject() || !<%- arg.name %>_[i].ToObject().InstanceOf(<%- arg.elementType.cppType %>::GetConstructor(env))) {
+            Napi::Error::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
+            return env.Undefined();
         } else {
             <%- arg.name %>.Add(<%_ if (!arg.elementType.isReference) { _%>*<%_ } _%><%- arg.elementType.cppType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
         }
@@ -30,7 +33,7 @@
     <%_ } else { _%>
         if (info[<%- arg.cppIndex %>].IsNull() || info[<%- arg.cppIndex %>].IsUndefined()) {
             Napi::Error::New(env, "Passed null for non-optional parameter '<%- arg.name %>'").ThrowAsJavaScriptException();
-            return;
+            return env.Undefined();
         }
         const <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.cppIndex %>].ToObject());
         <%_ if (arg.isPointer) { _%>

@@ -15,6 +15,22 @@ export enum StepType {
     MipStep = 0x20,
 }
 
+enum ElementaryShellType {
+    Sphere = 0, ///< \ru Шар (3 точки). \en Sphere (3 points).
+    Torus = 1, ///< \ru Тор (3 точки). \en Torus (3 points).
+    Cylinder = 2, ///< \ru Цилиндр (3 точки). \en Cylinder (3 points).
+    Cone = 3, ///< \ru Конус (3 точки). \en Cone (3 points).
+    Block = 4, ///< \ru Блок (4 точки). \en Block (4 points).
+    Wedge = 5, ///< \ru Клин (4 точки). \en Wedge (4 points).
+    Prism = 6, ///< \ru Призма (n + 1 точек, n > 2). \en Prism (n + 1 points, n > 2).
+    Pyramid = 7, ///< \ru Пирамида (n + 1 точек, n > 2). \en Pyramid (n + 1 points, n > 2).
+    Plate = 8, ///< \ru Плита (4 точки). \en Plate (4 points).
+    Icosahedron = 9, ///< \ru Икосаэдр (3 точки). \en Icosahedron (3 points).
+    Polyhedron = 10, ///< \ru Многогранник (3 точки). \en Polyhedron (3 points).
+    Tetrapipe = 11, ///< \ru Тетратруба (3 точки). \en Tetrapipe (3 points).
+    Octapipe = 12, ///< \ru Октатруба (3 точки). \en Octapipe (3 points).
+}
+
 export enum SpaceType {
     Undefined = 0,  ///< \ru Неизвестный объект. \en Unknown object.
     SpaceItem = 1,  ///< \ru Геометрический объект. \en Geometric object. \n 
@@ -136,4 +152,4 @@ export enum SpaceType {
     FreeItem = 600,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
 }
 
-Object.assign(c3d, { ESides: ESides, StepType: StepType, SpaceType: SpaceType });
+Object.assign(c3d, { ESides: ESides, StepType: StepType, SpaceType: SpaceType, ElementaryShellType: ElementaryShellType });

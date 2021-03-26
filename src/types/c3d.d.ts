@@ -5,7 +5,7 @@ declare module "*c3d.node" {
     }
 
     declare class SpaceItem {
-
+        private _useNominal: undefined;
     }
 
     declare class Item extends SpaceItem implements AttributeContainer {
@@ -16,18 +16,22 @@ declare module "*c3d.node" {
         SetStyle(number): void;
         IsA(): SpaceType;
         Cast<T extends Item>(SpaceType): T;
+        private _useNominal: undefined;
     }
 
     declare class Model {
         AddItem(item: Item): Item;
+        private _useNominal: undefined;
     }
 
     declare class FormNote {
         constructor(boolean, boolean, boolean, boolean, boolean);
+        private _useNominal: undefined;
     }
 
     declare class StepData {
         constructor(StepType, number);
+        private _useNominal: undefined;
     }
 
     var Enabler: {
@@ -36,18 +40,20 @@ declare module "*c3d.node" {
 
     declare class CartPoint3D {
         constructor(number, number, number);
+        private _useNominal: undefined;
     }
 
     declare class NameMaker {
-
+        private _useNominal: undefined;
     }
 
     declare class SNameMaker extends NameMaker {
         constructor(number, ESides, number);
+        private _useNominal: undefined;
     }
 
     declare class Name {
-
+        private _useNominal: undefined;
     }
 
     declare interface MeshBuffer {
@@ -60,7 +66,7 @@ declare module "*c3d.node" {
     }
 
     declare class Mesh extends Item {
-        GetMeshType(): number;
+        GetMeshType(): SpaceType;
         GetApexes(): Float32Array;
         GetEdges(): [Float32Array];
         GetBuffers(): [MeshBuffer];
@@ -69,7 +75,7 @@ declare module "*c3d.node" {
     }
 
     var ActionSolid: {
-        ElementarySolid(points: CartPoint3D[], number, NameMaker);
+        ElementarySolid(points: CartPoint3D[], ElementaryShellType, NameMaker);
     }
 
     declare class SpaceInstance extends Item {
@@ -78,7 +84,7 @@ declare module "*c3d.node" {
     }
 
     declare class Curve3D {
-
+        private _useNominal: undefined;
     }
 
     var ActionCurve3D: {
@@ -91,6 +97,10 @@ declare module "*c3d.node" {
 
     declare enum StepType {
         SpaceStep, DeviationStep, MetricStep, ParamStep, CollisionStep, MipStep
+    }
+
+    declare enum ElementaryShellType {
+        Sphere, Torus, Cylinder, Cone, Block, Wedge, Prism, Pyramid, Plate, Isocahedron, Polyhedron, Tetrapipe, Octapipe
     }
 
     declare enum SpaceType {
