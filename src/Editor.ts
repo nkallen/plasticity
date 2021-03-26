@@ -4,6 +4,8 @@ import { Command } from './commands/Command';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "./MaterialDatabase";
 
+THREE.Object3D.DefaultUp = new THREE.Vector3(0,0,1);
+
 interface EditorSignals {
     objectAdded: signals.Signal<THREE.Object3D>;
     sceneGraphChanged: signals.Signal;
@@ -15,6 +17,7 @@ interface EditorSignals {
 interface V {
     renderer: THREE.Renderer;
     camera: THREE.Camera;
+    constructionPlane: THREE.Mesh;
 }
 
 export class Editor {
@@ -30,13 +33,15 @@ export class Editor {
 
     geometryModel = new c3d.Model();
     materialDatabase = new MaterialDatabase();
-    scene: THREE.Scene;
+    scene = new THREE.Scene();
     selected?: THREE.Object3D;
 
     constructor() {
-        this.scene = new THREE.Scene();
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
         window.addEventListener('load', this.onWindowLoad.bind(this), false);
+
+        const axis = new THREE.AxesHelper(300);
+        this.scene.add(axis);
     }
 
     execute(command: Command) {
