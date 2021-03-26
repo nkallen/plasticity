@@ -390,6 +390,14 @@ export default {
             functions: [
                 "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
             ]
+        },
+        ActionCurve3D: {
+            rawHeader: "action_curve3d.h",
+            dependencies: ["CartPoint3D.h", "Curve3D.h"],
+            functions: [
+                // FIXME: technical a & b are inout, but that's not supported yet
+                "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)"
+            ]
         }
     },
     enums: [

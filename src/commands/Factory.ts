@@ -55,7 +55,6 @@ export class CircleFactory extends GeometryFactory {
     constructor(editor: Editor) {
         super(editor);
         const geometry = new THREE.CircleGeometry(0, 32);
-        // geometry.vertices.shift();
 
         this.mesh = new THREE.Line(geometry, this.editor.materialDatabase.line());
         this.editor.addObject(this.mesh);
@@ -79,15 +78,12 @@ export class CircleFactory extends GeometryFactory {
     }
 
     commit() {
-        // this.editor.scene.remove(this.mesh);
-        // const points = [
-        //     new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z),
-        //     new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z + 1),
-        //     new c3d.CartPoint3D(this.center.x + this.radius, this.center.y, this.center.z),
-        // ];
-        // const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
-        // const sphere = c3d.ActionSolid.ElementarySolid(points, 0, names);
-        // this.editor.addObject(sphere);
+        this.editor.scene.remove(this.mesh);
+        const points = [new c3d.CartPoint3D(this.center.x + this.radius, this.center.y, this.center.z)];
+        const center = new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z);
+        const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
+        const circle = c3d.ActionCurve3D.Arc(center, [], true, 0, this.radius, this.radius);
+        this.editor.addObject(new c3d.SpaceInstance(circle));
     }
 
     cancel() {

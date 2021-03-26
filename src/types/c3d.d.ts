@@ -72,6 +72,19 @@ declare module "*c3d.node" {
         ElementarySolid(points: CartPoint3D[], number, NameMaker);
     }
 
+    declare class SpaceInstance extends Item {
+        constructor(Surface);
+        constructor(Curve3D);
+    }
+
+    declare class Curve3D {
+
+    }
+
+    var ActionCurve3D: {
+        Arc(CartPoint3D, points: CartPoint3D[], bool, double, double, double): Curve3D;
+    }
+
     declare enum ESides {
         SideNone, SidePlus, SideMinus
     }

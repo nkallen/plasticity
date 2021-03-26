@@ -1,9 +1,9 @@
 <%_ if (arg.rawType == "double") { _%>
-    const double <%- arg.name %> = info[<%- arg.cppIndex %>].ToNumber().DoubleValue();
+    <%- arg.const %> double <%- arg.name %> = info[<%- arg.cppIndex %>].ToNumber().DoubleValue();
 <%_ } else if (arg.rawType == "int") { _%>
-    const int <%- arg.name %> = info[<%- arg.cppIndex %>].ToNumber().Int64Value();
+    <%- arg.const %> int <%- arg.name %> = info[<%- arg.cppIndex %>].ToNumber().Int64Value();
 <%_ } else if (arg.rawType == "bool") { _%>
-    const bool <%- arg.name %> = info[<%- arg.cppIndex %>].ToBoolean();
+    <%- arg.const %> bool <%- arg.name %> = info[<%- arg.cppIndex %>].ToBoolean();
 <%_ } else if (arg.jsType == "Array") { _%>
     const Napi::Array <%- arg.name %>_ = Napi::Array(env, info[<%- arg.cppIndex %>]);
     <%- arg.rawType %> <%- arg.name %> = <%- arg.rawType %>(<%- arg.name %>_.Length(), 1);
