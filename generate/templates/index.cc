@@ -16,4 +16,4 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 }
 
 // Register and initialize native add-on
-NODE_API_MODULE(greet, Init)
+NODE_API_MODULE(c3d, Init)

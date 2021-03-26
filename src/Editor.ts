@@ -2,20 +2,7 @@ import * as THREE from "three";
 import signals from "signals";
 import { Command } from './commands/Command';
 import c3d from '../build/Release/c3d.node';
-
-function hash(str: string) {
-    for (var i = 0, h = 9; i < str.length;)
-        h = Math.imul(h ^ str.charCodeAt(i++), 9 ** 9);
-    return h ^ h >>> 9
-};
-
-const materials = new Map<number, THREE.Material>();
-materials.set(hash("line"), new THREE.LineBasicMaterial({ color: 0xff0000 }));
-materials.set(hash("lineBlue"), new THREE.LineBasicMaterial({ color: 0x0000ff }));
-materials.set(hash("lineGreen"), new THREE.LineBasicMaterial({ color: 0x00ff00 }));
-materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
-materials.set(hash("mesh"), new THREE.MeshLambertMaterial({ color: 0xffcc00 }));
-materials.set(hash("meshKhaki"), new THREE.MeshLambertMaterial({ color: 0x000c0a6 }));
+import MaterialDatabase from "./MaterialDatabase";
 
 interface EditorSignals {
     objectAdded: signals.Signal<THREE.Object3D>;
@@ -32,8 +19,7 @@ interface V {
 
 export class Editor {
     viewports: V[] = [];
-    scene: THREE.Scene;
-    selected?: THREE.Object3D;
+
     signals: EditorSignals = {
         objectAdded: new signals.Signal(),
         sceneGraphChanged: new signals.Signal(),
@@ -43,6 +29,9 @@ export class Editor {
     }
 
     geometryModel = new c3d.Model();
+    materialDatabase = new MaterialDatabase();
+    scene: THREE.Scene;
+    selected?: THREE.Object3D;
 
     constructor() {
         this.scene = new THREE.Scene();
@@ -54,7 +43,7 @@ export class Editor {
         command.execute();
     }
 
-    addObject(object: THREE.Object3D | c3d.SpaceItem) {
+    addObject(object: THREE.Object3D | c3d.Item) {
         console.log(object.constructor);
         if (object instanceof THREE.Object3D) {
             this.scene.add(object);
@@ -69,14 +58,12 @@ export class Editor {
         }
     }
 
-    object2mesh(o: c3d.SpaceItem) {
+    object2mesh(obj: c3d.Item) {
         const stepData = new c3d.StepData(0x01, 0.005);
         const note = new c3d.FormNote(false, true, true, false, false);
-        const item = o.CreateMesh(stepData, note, null);
+        const item = obj.CreateMesh(stepData, note, null);
         if (item.IsA() != 508) throw "Unexpected return type";
-        const mesh = item.Cast(508);
-        const st = o.GetStyle() as number;
-        const material = materials.get(st);
+        const mesh = item.Cast<c3d.Mesh>(508);
         const group = new THREE.Group();
         switch (mesh.GetMeshType()) {
             case 201:
@@ -84,7 +71,7 @@ export class Editor {
                 for (const edge of edges) {
                     const geometry = new THREE.BufferGeometry();
                     geometry.setAttribute('position', new THREE.Float32BufferAttribute(edge, 3));
-                    const line = new THREE.Line(geometry, material ?? materials.get(hash("line")));
+                    const line = new THREE.Line(geometry, this.materialDatabase.line(obj));
                     group.add(line);
                 }
                 return group;
@@ -92,15 +79,12 @@ export class Editor {
                 const apexes = mesh.GetApexes();
                 const geometry = new THREE.BufferGeometry();
                 geometry.setAttribute('position', new THREE.Float32BufferAttribute(apexes, 3));
-                const points = new THREE.Points(geometry, material ?? materials.get(hash("point")));
+                const points = new THREE.Points(geometry, this.materialDatabase.point(obj));
                 return points;
             default:
                 const grids = mesh.GetBuffers();
-                const meshMaterial = material ?? materials.get(hash("mesh"));
                 for (const grid of grids) {
-                    let gridMaterial = grid.style == 0 ? meshMaterial : materials.get(grid.style);
-                    gridMaterial = gridMaterial.clone();
-                    gridMaterial.side = mesh.IsClosed() ? THREE.FrontSide : THREE.DoubleSide;
+                    const gridMaterial = this.materialDatabase.mesh(grid, mesh.IsClosed());
                     const geometry = new THREE.BufferGeometry();
                     geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
                     geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));

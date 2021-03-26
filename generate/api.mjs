@@ -248,6 +248,8 @@ export default {
         },
         SNameMaker: {
             rawHeader: "name_item.h",
+            extends: "NameMaker",
+            dependencies: ["NameMaker.h"],
             initializers: [
                 "SimpleName _mainName, MbSNameMaker::ESides _sideAdd, SimpleName _buttAdd"
             ]
