@@ -96,12 +96,10 @@ export default (editor: Editor) => {
 
         resize() {
             const aspect = this.offsetWidth / this.offsetHeight;
-            console.log(aspect);
             if (this.camera instanceof THREE.PerspectiveCamera) {
                 this.camera.aspect = aspect;
                 this.camera.updateProjectionMatrix();
             } else if (this.camera instanceof THREE.OrthographicCamera) {
-                console.log("here");
                 this.camera.left = frustumSize * aspect / - 2;
                 this.camera.right = frustumSize * aspect / 2;
 
