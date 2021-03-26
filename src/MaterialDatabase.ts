@@ -27,12 +27,13 @@ export default class MaterialDatabase {
     }
 
     line(o?: c3d.Item): THREE.Material {
+        if (!o) return this.materials.get(hash("line"));
         return this.get(o) ?? this.materials.get(hash("line"));
     }
 
     point(o?: c3d.Item): THREE.Material {
+        if (!o) return this.materials.get(hash("point"));
         return this.get(o) ?? this.materials.get(hash("point"));
-
     }
 
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material {

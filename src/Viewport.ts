@@ -16,7 +16,7 @@ export default (editor: Editor) => {
         camera: THREE.Camera;
         renderer = new THREE.WebGLRenderer({ antialias: true });
         controls?: OrbitControls;
-        constructionPlane = new THREE.Mesh(planeGeo, planeMat)
+        constructionPlane = new THREE.Mesh(planeGeo, planeMat);
 
         constructor() {
             super();
@@ -33,7 +33,7 @@ export default (editor: Editor) => {
                     camera = perspectiveCamera;
                     camera.position.set(0, 5, 10);
                     this.controls = new OrbitControls(camera, this.renderer.domElement);
-                    this.constructionPlane.lookAt(0, 1, 0);
+                    this.constructionPlane.lookAt(0, 0, 1);
                     break;
                 case "top":
                     camera = orthographicCamera;
