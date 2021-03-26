@@ -23,7 +23,6 @@ export default class MaterialDatabase {
     }
 
     get(o: c3d.Item): THREE.Material | undefined {
-        console.log(o);
         const st = o.GetStyle();
         return this.materials.get(st);
     }

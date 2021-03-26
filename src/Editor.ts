@@ -44,17 +44,14 @@ export class Editor {
     }
 
     addObject(object: THREE.Object3D | c3d.Item) {
-        console.log(object.constructor);
         if (object instanceof THREE.Object3D) {
             this.scene.add(object);
-            console.log("a");
         } else if (object instanceof c3d.SpaceItem) {
             const mesh = this.object2mesh(object);
             const o = this.geometryModel.AddItem(object);
             mesh.userData.simpleName = o.GetItemName();
             // mesh.traverse(sub => hitTestModel[sub.userData.simpleName] = sub);
             this.scene.add(mesh);
-            console.log("b");
         }
     }
 
