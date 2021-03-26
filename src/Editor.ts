@@ -59,11 +59,11 @@ export class Editor {
     }
 
     object2mesh(obj: c3d.Item) {
-        const stepData = new c3d.StepData(0x01, 0.005);
+        const stepData = new c3d.StepData(c3d.StepType.SpaceStep, 0.005);
         const note = new c3d.FormNote(false, true, true, false, false);
         const item = obj.CreateMesh(stepData, note, null);
-        if (item.IsA() != 508) throw "Unexpected return type";
-        const mesh = item.Cast<c3d.Mesh>(508);
+        if (item.IsA() != c3d.SpaceType.Mesh) throw "Unexpected return type";
+        const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         const group = new THREE.Group();
         switch (mesh.GetMeshType()) {
             case 201:

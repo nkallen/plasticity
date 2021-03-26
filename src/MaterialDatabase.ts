@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
+import porcelain from './img/matcap-porcelain-white.jpg';
 
 function hash(str: string) {
     for (var i = 0, h = 9; i < str.length;)
@@ -13,10 +14,15 @@ export default class MaterialDatabase {
     constructor() {
         this.materials.set(hash("line"), new THREE.LineBasicMaterial({ color: 0xff0000 }));
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
-        this.materials.set(hash("mesh"), new THREE.MeshLambertMaterial({ color: 0xffcc00 }));
+
+        const material = new THREE.MeshMatcapMaterial();
+        material.color = new THREE.Color(0x454545);
+        const matcapTexture = new THREE.TextureLoader().load(porcelain);
+        material.matcap = matcapTexture;
+        this.materials.set(hash("mesh"), material);
     }
 
-    get(o: c3d.Item): THREE.Material {
+    get(o: c3d.Item): THREE.Material | undefined {
         console.log(o);
         const st = o.GetStyle();
         return this.materials.get(st);
@@ -35,7 +41,7 @@ export default class MaterialDatabase {
         let material: THREE.Material;
         if (o instanceof c3d.Item) {
             material = this.get(o);
-        } else {
+        } else if (o) {
             material = this.materials.get(o.style);
         }
         material = material ?? this.materials.get(hash("mesh"));
