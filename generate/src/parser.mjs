@@ -158,7 +158,7 @@ class ModuleDeclaration extends ClassDeclaration {
 }
 
 class FunctionDeclaration {
-    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s<>,&*:]*)\s*\)/
+    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s<>,&*:=]*)\s*\)/
 
     constructor(desc, typeRegistry) {
         let options = {};
@@ -246,7 +246,7 @@ class TypeDeclaration {
     }
 }
 class ParamDeclaration extends TypeDeclaration {
-    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<(?<elementType>\w+)\>)?)\s+((?<ref>[*&]*)\s*)?(?<name>\w+)/;
+    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<(?<elementType>\w+)\>)?)\s+((?<ref>[*&]*)\s*)?(?<name>\w+)(\s+=\s*(?<default>[\w:]+))?/;
 
     constructor(cppIndex, jsIndex, desc, typeRegistry, options) {
         const matchType = ParamDeclaration.declaration.exec(desc);
@@ -261,11 +261,16 @@ class ParamDeclaration extends TypeDeclaration {
         this.ref = matchType.groups.ref;
         this.name = matchType.groups.name;
         this.isReturn = this.ref == "*&";
+        this.default = matchType.groups.default;
         if (matchType.groups.elementType) {
             this.elementType = typeRegistry.resolveType(matchType.groups.elementType);
             this.elementType.isReference = /RPArray/.test(this.rawType);
         }
         Object.assign(this, options[this.name]);
+    }
+
+    get isOptional() {
+        return this.default != null;
     }
 
     get isJsArg() {

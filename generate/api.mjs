@@ -10,7 +10,7 @@ export default {
             dependencies: ["Item.h", "Path.h", "Matrix3D.h"],
             initializers: [""],
             functions: [
-                { signature: "MbItem * AddItem(MbItem & item, SimpleName n)", n: { isOptional: true }},
+                "MbItem * AddItem(MbItem & item, SimpleName n = c3d::UNDEFINED_SNAME)",
                 "bool DetachItem(MbItem * item)",
                 {
                     signature: "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)",
@@ -36,7 +36,7 @@ export default {
             extends: [ "SpaceItem", "AttributeContainer"],
             functions: [
                 "MbeSpaceType IsA()",
-                { signature: "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg)", iReg: { isOptional: true } },
+                "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg = NULL)",
                 "void Move(const MbVector3D & v, MbRegTransform *iReg)",
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
