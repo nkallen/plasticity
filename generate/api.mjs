@@ -341,6 +341,19 @@ export default {
                 "const MbCartPoint3D & p0, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int n, bool closed"
             ]
         },
+        PolyCurve3D: {
+            rawHeader: "cur_polycurve3d.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h"],            
+        },
+        Polyline3D: {
+            rawHeader: "cur_polyline3d.h",
+            extends: "PolyCurve3D",
+            dependencies: ["PolyCurve3D.h", "CartPoint3D.h"],
+            initializers: [
+                "const SArray<MbCartPoint3D> & initList, bool closed"
+            ]
+        },
         PointFrame: {
             rawHeader: "point_frame.h",
             extends: "Item",
@@ -398,6 +411,7 @@ export default {
                 // FIXME: technical a & b are inout, but that's not supported yet
                 "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)",
                 "MbResultType Segment(const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbCurve3D *& result)",
+                // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
             ]
         }
     },

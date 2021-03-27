@@ -87,6 +87,13 @@ declare module "*c3d.node" {
         private _useNominal: undefined;
     }
 
+    declare class PolyCurve3D extends Curve3D {
+    }
+
+    declare class Polyline3D extends PolyCurve3D {
+        constructor(points: CartPoint3D[], closed: bool)
+    }
+
     var ActionCurve3D: {
         Arc(CartPoint3D, points: CartPoint3D[], bool, double, double, double): Curve3D;
         Segment(CartPoint3D, CartPoint3D): Curve3D;
