@@ -70,7 +70,8 @@ export class CylinderCommand extends Command {
         const p1 = await pointPicker.execute();
         this.factory.base = p1;
 
-        await pointPicker.execute((p2: THREE.Vector3) => {
+        pointPicker.restrictToPlaneThroughPoint(p1);
+        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             this.factory.radius = p2;
             this.factory.update();
         });

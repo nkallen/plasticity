@@ -26,7 +26,10 @@ export class PointPicker {
             for (const viewport of this.editor.viewports) {
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
-                const constructionPlane = viewport.constructionPlane;
+                const constructionPlane = viewport.constructionPlane.clone();
+                if (this.restrictionPoint != null) {
+                    constructionPlane.position.copy(this.restrictionPoint)
+                }
                 const domElement = renderer.domElement;
 
                 scene.add(constructionPlane);
@@ -35,6 +38,7 @@ export class PointPicker {
                 domElement.addEventListener('pointerdown', onPointerDown);
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
+                disposables.add(new Disposable(() => scene.remove(constructionPlane)));
                 function onPointerMove(e: PointerEvent) {
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
@@ -70,11 +74,17 @@ export class PointPicker {
 
                 function onPointerDown(e: PointerEvent) {
                     scene.remove(mesh);
-                    scene.remove(constructionPlane);
                     resolve(mesh.position.clone());
+                    console.log("disposing");
                     disposables.dispose();
                 }
             }
         });
+    }
+
+    restrictionPoint?: THREE.Vector3;
+
+    restrictToPlaneThroughPoint(point: THREE.Vector3) {
+        this.restrictionPoint = point;
     }
 }

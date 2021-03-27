@@ -102,6 +102,7 @@ export class CylinderFactory extends GeometryFactory {
         const geometry = new THREE.CylinderGeometry(0, 0, 0, 32);
 
         this.mesh = new THREE.Mesh(geometry, this.editor.materialDatabase.mesh());
+        this.mesh.up = new THREE.Vector3(0, 1, 0);
         this.editor.addObject(this.mesh);
     }
 
@@ -112,7 +113,7 @@ export class CylinderFactory extends GeometryFactory {
             const segmentCount = 32;
             const vertices = new Float32Array(segmentCount * 3);
             const radius = this.base.distanceTo(this.radius);
-    
+
             for (let i = 0; i <= segmentCount; i++) {
                 var theta = (i / segmentCount) * Math.PI * 2;
                 vertices[i * 3] = Math.cos(theta) * radius;
@@ -121,12 +122,16 @@ export class CylinderFactory extends GeometryFactory {
             }
             geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            this.mesh.position.copy(this.base);
         } else {
-            geometry = new THREE.CylinderGeometry(this.base.distanceTo(this.radius), this.base.distanceTo(this.radius), this.base.distanceTo(this.height), 32);
-            geometry.lookAt(this.height.sub(this.base));
+            const radiusLength = this.base.distanceTo(this.radius);
+            const heightLength = this.base.distanceTo(this.height);
+            geometry = new THREE.CylinderGeometry(radiusLength, radiusLength, heightLength, 32);
+            const direction = this.height.clone().sub(this.base);
+            this.mesh.position.copy(this.base.clone().add(direction));
+            this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
         }
         this.mesh.geometry = geometry;
-        this.mesh.position.copy(this.base);
     }
 
     commit() {

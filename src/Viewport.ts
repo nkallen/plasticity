@@ -8,15 +8,15 @@ const near = 0.01;
 const far = 1000;
 const frustumSize = 20;
 
-const planeGeo = new THREE.PlaneGeometry(10000, 10000, 2, 2);
-const planeMat = new THREE.MeshBasicMaterial({ visible: false, wireframe: true, side: THREE.DoubleSide, transparent: true, opacity: 0.1, toneMapped: false });
+const planeGeo = new THREE.PlaneGeometry(10, 10, 2, 2);
 
 export default (editor: Editor) => {
     class Viewport extends HTMLElement {
         camera: THREE.Camera;
         renderer = new THREE.WebGLRenderer({ antialias: true });
         controls?: OrbitControls;
-        constructionPlane = new THREE.Mesh(planeGeo, planeMat);
+        planeMat = new THREE.MeshBasicMaterial({ visible: true, side: THREE.DoubleSide, transparent: true, opacity: 0.1, toneMapped: false });
+        constructionPlane = new THREE.Mesh(planeGeo, this.planeMat);
 
         constructor() {
             super();
@@ -31,23 +31,27 @@ export default (editor: Editor) => {
             switch (view) {
                 case "3d":
                     camera = perspectiveCamera;
-                    camera.position.set(0, 5, 10);
+                    camera.position.set(0, 20, 5);
                     this.controls = new OrbitControls(camera, this.renderer.domElement);
+                    this.constructionPlane.material.color = new THREE.Color("red");
                     this.constructionPlane.lookAt(0, 0, 1);
                     break;
                 case "top":
                     camera = orthographicCamera;
                     camera.position.set(0, 0, 10);
+                    this.constructionPlane.material.color = new THREE.Color("red");
                     this.constructionPlane.lookAt(0, 0, 1);
                     break;
                 case "front":
                     camera = orthographicCamera;
                     camera.position.set(0, 10, 0);
+                    this.constructionPlane.material.color = new THREE.Color("green");
                     this.constructionPlane.lookAt(0, 1, 0);
                     break;
                 case "right":
                     camera = orthographicCamera;
                     camera.position.set(10, 0, 0);
+                    this.constructionPlane.material.color = new THREE.Color("blue");
                     this.constructionPlane.lookAt(1, 0, 0);
                     break;
             }
