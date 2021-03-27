@@ -1,7 +1,7 @@
 import { Editor } from '../Editor'
 import { PointPicker } from '../PointPicker'
 import * as THREE from "three";
-import { SphereFactory, CircleFactory, CylinderFactory, LineFactory, RectFactory } from './Factory'
+import { SphereFactory, CircleFactory, CylinderFactory, LineFactory, RectFactory, BoxFactory } from './Factory'
 
 export abstract class Command {
     editor: Editor;
@@ -123,6 +123,34 @@ export class RectCommand extends Command {
         });
         await pointPicker.execute((p3: THREE.Vector3) => {
             this.factory.p3 = p3;
+            this.factory.update();
+        });
+        this.factory.commit();
+    }
+}
+
+export class BoxCommand extends Command {
+    factory: BoxFactory;
+
+    constructor(editor: Editor) {
+        super(editor)
+        this.factory = new BoxFactory(editor);
+    }
+
+    async execute() {
+        const pointPicker = new PointPicker(this.editor);
+        const p1 = await pointPicker.execute();
+        this.factory.p1 = p1;
+        await pointPicker.execute((p2: THREE.Vector3) => {
+            this.factory.p2 = p2;
+            this.factory.update();
+        });
+        await pointPicker.execute((p3: THREE.Vector3) => {
+            this.factory.p3 = p3;
+            this.factory.update();
+        });
+        await pointPicker.execute((p4: THREE.Vector3) => {
+            this.factory.p4 = p4;
             this.factory.update();
         });
         this.factory.commit();

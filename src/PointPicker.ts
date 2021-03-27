@@ -75,7 +75,6 @@ export class PointPicker {
                 function onPointerDown(e: PointerEvent) {
                     scene.remove(mesh);
                     resolve(mesh.position.clone());
-                    console.log("disposing");
                     disposables.dispose();
                 }
             }
