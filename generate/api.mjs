@@ -396,7 +396,8 @@ export default {
             dependencies: ["CartPoint3D.h", "Curve3D.h"],
             functions: [
                 // FIXME: technical a & b are inout, but that's not supported yet
-                "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)"
+                "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)",
+                "MbResultType Segment(const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbCurve3D *& result)",
             ]
         }
     },

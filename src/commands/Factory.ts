@@ -79,9 +79,7 @@ export class CircleFactory extends GeometryFactory {
 
     commit() {
         this.editor.scene.remove(this.mesh);
-        const points = [new c3d.CartPoint3D(this.center.x + this.radius, this.center.y, this.center.z)];
         const center = new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z);
-        const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const circle = c3d.ActionCurve3D.Arc(center, [], true, 0, this.radius, this.radius);
         this.editor.addObject(new c3d.SpaceInstance(circle));
     }
@@ -147,6 +145,48 @@ export class CylinderFactory extends GeometryFactory {
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Cylinder, names);
         this.editor.addObject(sphere);
+    }
+
+    cancel() {
+        this.editor.scene.remove(this.mesh);
+    }
+}
+
+export class LineFactory extends GeometryFactory {
+    p1!: THREE.Vector3;
+    p2!: THREE.Vector3;
+    mesh: THREE.Line;
+
+    constructor(editor: Editor) {
+        super(editor);
+        const geometry = new THREE.BufferGeometry();
+
+        this.mesh = new THREE.Line(geometry, this.editor.materialDatabase.line());
+        this.editor.addObject(this.mesh);
+    }
+
+    update() {
+        this.mesh.geometry.dispose();
+        const vertices = new Float32Array(2 * 3);
+        vertices[0] = this.p1.x;
+        vertices[1] = this.p1.y;
+        vertices[2] = this.p1.z;
+
+        vertices[3] = this.p2.x;
+        vertices[4] = this.p2.y;
+        vertices[5] = this.p2.z;
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        this.mesh.geometry = geometry;
+    }
+
+    commit() {
+        this.editor.scene.remove(this.mesh);
+        const point1 = new c3d.CartPoint3D(this.p1.x, this.p1.y, this.p1.z);
+        const point2 = new c3d.CartPoint3D(this.p2.x, this.p2.y, this.p2.z);
+        const line = c3d.ActionCurve3D.Segment(point1, point2);
+        this.editor.addObject(new c3d.SpaceInstance(line));
     }
 
     cancel() {

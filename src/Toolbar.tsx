@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { Editor } from './editor';
-import { SphereCommand, CircleCommand, CylinderCommand } from './commands/Command';
+import { SphereCommand, CircleCommand, CylinderCommand, LineCommand } from './commands/Command';
 
 export default (editor: Editor) => {
     class Toolbar extends HTMLElement {
@@ -8,19 +8,24 @@ export default (editor: Editor) => {
             super();
             this.attachShadow({ mode: 'open' });
 
-            const addSphere = (e: Event) => {
-                editor.execute(new SphereCommand(editor));
+            const addLine = (e: Event) => {
+                editor.execute(new LineCommand(editor));
             };
             const addCircle = (e: Event) => {
                 editor.execute(new CircleCommand(editor));
+            };
+            const addSphere = (e: Event) => {
+                editor.execute(new SphereCommand(editor));
             };
             const addCylinder = (e: Event) => {
                 editor.execute(new CylinderCommand(editor));
             };
             const result = (
                 <>
-                    <button icon="icons/SphereIcon.png" name="sphere" onClick={addSphere}>Add Sphere</button>
+                    <button icon="icons/LineIcon.png" name="circle" onClick={addLine}>Add Line</button>
                     <button icon="icons/CircleIcon.png" name="circle" onClick={addCircle}>Add Circle</button>
+                    <br />
+                    <button icon="icons/SphereIcon.png" name="sphere" onClick={addSphere}>Add Sphere</button>
                     <button icon="icons/CylinderIcon.png" name="cylinder" onClick={addCylinder}>Add Cylinder</button>
                 </>
             );

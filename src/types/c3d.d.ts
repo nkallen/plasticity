@@ -89,6 +89,7 @@ declare module "*c3d.node" {
 
     var ActionCurve3D: {
         Arc(CartPoint3D, points: CartPoint3D[], bool, double, double, double): Curve3D;
+        Segment(CartPoint3D, CartPoint3D): Curve3D;
     }
 
     declare enum ESides {
