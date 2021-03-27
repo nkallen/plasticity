@@ -95,13 +95,13 @@ export class CylinderFactory extends GeometryFactory {
     base!: THREE.Vector3;
     radius!: THREE.Vector3;
     height?: THREE.Vector3;
-    mesh: THREE.Mesh;
+    mesh: THREE.Line | THREE.Mesh;
 
     constructor(editor: Editor) {
         super(editor);
         const geometry = new THREE.CylinderGeometry(0, 0, 0, 32);
 
-        this.mesh = new THREE.Mesh(geometry, this.editor.materialDatabase.mesh());
+        this.mesh = new THREE.Line(geometry, this.editor.materialDatabase.line());
         this.mesh.up = new THREE.Vector3(0, 1, 0);
         this.editor.addObject(this.mesh);
     }
@@ -128,7 +128,10 @@ export class CylinderFactory extends GeometryFactory {
             const heightLength = this.base.distanceTo(this.height);
             geometry = new THREE.CylinderGeometry(radiusLength, radiusLength, heightLength, 32);
             const direction = this.height.clone().sub(this.base);
-            this.mesh.position.copy(this.base.clone().add(direction));
+            this.editor.scene.remove(this.mesh);
+            this.mesh = new THREE.Mesh(this.mesh.geometry, this.editor.materialDatabase.mesh());
+            this.editor.scene.add(this.mesh);
+            this.mesh.position.copy(this.base.clone().add(direction.multiplyScalar(0.5)));
             this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
         }
         this.mesh.geometry = geometry;
@@ -136,7 +139,6 @@ export class CylinderFactory extends GeometryFactory {
 
     commit() {
         this.editor.scene.remove(this.mesh);
-        console.log(this.base, this.radius, this.height);
         const points = [
             new c3d.CartPoint3D(this.base.x, this.base.y, this.base.z),
             new c3d.CartPoint3D(this.height.x, this.height.y, this.height.z),
