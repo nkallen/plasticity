@@ -299,6 +299,12 @@ export class BoxFactory extends GeometryFactory {
             geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         } else if (this.p1 && this.p2 && this.p3 && !this.p4) {
+            const p1 = this.p1, p2 = this.p2, p3 = this.p3;
+
+            const e1 = p2.clone().sub(p1);
+            const n = p3.clone().sub(p2).cross(e1);
+            const e2 = e1.clone().cross(n).divideScalar(e1.length()*e1.length()).add(p2);
+
             const vertices = new Float32Array(5 * 3);
             vertices[0] = this.p1.x;
             vertices[1] = this.p1.y;
@@ -308,11 +314,11 @@ export class BoxFactory extends GeometryFactory {
             vertices[4] = this.p2.y;
             vertices[5] = this.p2.z;
 
-            vertices[6] = this.p3.x;
-            vertices[7] = this.p3.y;
-            vertices[8] = this.p3.z;
+            vertices[6] = e2.x;
+            vertices[7] = e2.y;
+            vertices[8] = e2.z;
 
-            const p4 = this.p3.clone().sub(this.p2).add(this.p1);
+            const p4 = e2.clone().sub(e1);
             vertices[9] = p4.x;
             vertices[10] = p4.y;
             vertices[11] = p4.z;
@@ -324,11 +330,23 @@ export class BoxFactory extends GeometryFactory {
             geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         } else if (this.p1 && this.p2 && this.p3 && this.p4) {
+            const p1 = this.p1, p2 = this.p2, p3 = this.p3;
+
+            const e1 = p2.clone().sub(p1);
+            const n = p3.clone().sub(p2).cross(e1);
+            const e2 = e1.clone().cross(n).divideScalar(e1.length()*e1.length()).add(p2);
+            
             this.editor.scene.remove(this.mesh);
             this.mesh = new THREE.Mesh(this.mesh.geometry, this.editor.materialDatabase.mesh());
             this.editor.scene.add(this.mesh);
-            const height = this.p4.distanceTo(this.p3);
-            geometry = new THREE.BoxGeometry(this.p1.distanceTo(this.p2), this.p2.distanceTo(this.p3), height);
+            const height = this.p4.clone().sub(p3).dot(n.clone().normalize());
+            geometry = new THREE.BoxGeometry(p1.distanceTo(p2), e2.clone().sub(p2).length(), height);
+            const direction = p2.clone().sub(p1);
+            this.mesh.position.copy(p1.clone()
+                .add(direction.clone().multiplyScalar(0.5))
+                .add(n.clone().normalize().multiplyScalar(height*0.5))
+                .add(e2.clone().sub(p2).multiplyScalar(0.5)));
+            this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0), direction.normalize());
         } else {
             throw "wtf";
         }
