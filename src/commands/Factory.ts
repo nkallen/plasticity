@@ -1,6 +1,7 @@
 import { Editor } from './../Editor'
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { Vector3 } from 'three';
 
 export abstract class GeometryFactory {
     editor: Editor;
@@ -137,10 +138,13 @@ export class CylinderFactory extends GeometryFactory {
 
     commit() {
         this.editor.scene.remove(this.mesh);
+        const n = this.height.clone().sub(this.base);
+        const z = -(n.x + n.y) / n.z
+        const radius = this.base.clone().add(new Vector3(1,1,z).normalize().multiplyScalar(this.radius.distanceTo(this.base)));
         const points = [
             new c3d.CartPoint3D(this.base.x, this.base.y, this.base.z),
             new c3d.CartPoint3D(this.height.x, this.height.y, this.height.z),
-            new c3d.CartPoint3D(this.radius.x, this.radius.y, this.radius.z),
+            new c3d.CartPoint3D(radius.x, radius.y, radius.z),
         ];
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Cylinder, names);

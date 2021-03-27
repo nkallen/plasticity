@@ -79,7 +79,7 @@ export default (editor: Editor) => {
             material1.color.setHex(0x888888);
             material1.vertexColors = false;
 
-            scene.fog = new THREE.Fog(0x424242, 1, 75);
+            scene.fog = new THREE.Fog(0x424242, 1, 150);
 
             scene.add(grid);
 
