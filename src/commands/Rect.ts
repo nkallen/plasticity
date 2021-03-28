@@ -20,44 +20,31 @@ export default class RectFactory extends GeometryFactory {
     update() {
         this.mesh.geometry.dispose();
         let geometry: THREE.BufferGeometry;
-        if (this.p3 == null) {
-            const vertices = new Float32Array(2 * 3);
-            vertices[0] = this.p1.x;
-            vertices[1] = this.p1.y;
-            vertices[2] = this.p1.z;
 
-            vertices[3] = this.p2.x;
-            vertices[4] = this.p2.y;
-            vertices[5] = this.p2.z;
+        const vertices = new Float32Array(5 * 3);
+        vertices[0] = this.p1.x;
+        vertices[1] = this.p1.y;
+        vertices[2] = this.p1.z;
 
-            geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-        } else {
-            const vertices = new Float32Array(5 * 3);
-            vertices[0] = this.p1.x;
-            vertices[1] = this.p1.y;
-            vertices[2] = this.p1.z;
+        vertices[3] = this.p2.x;
+        vertices[4] = this.p2.y;
+        vertices[5] = this.p2.z;
 
-            vertices[3] = this.p2.x;
-            vertices[4] = this.p2.y;
-            vertices[5] = this.p2.z;
+        vertices[6] = this.p3.x;
+        vertices[7] = this.p3.y;
+        vertices[8] = this.p3.z;
 
-            vertices[6] = this.p3.x;
-            vertices[7] = this.p3.y;
-            vertices[8] = this.p3.z;
+        const p4 = this.p3.clone().sub(this.p2).add(this.p1);
+        vertices[9] = p4.x;
+        vertices[10] = p4.y;
+        vertices[11] = p4.z;
 
-            const p4 = this.p3.clone().sub(this.p2).add(this.p1);
-            vertices[9] = p4.x;
-            vertices[10] = p4.y;
-            vertices[11] = p4.z;
+        vertices[12] = this.p1.x;
+        vertices[13] = this.p1.y;
+        vertices[14] = this.p1.z;
 
-            vertices[12] = this.p1.x;
-            vertices[13] = this.p1.y;
-            vertices[14] = this.p1.z;
-
-            geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-        }
+        geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         this.mesh.geometry = geometry;
     }
 

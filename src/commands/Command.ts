@@ -138,29 +138,40 @@ export class RectCommand extends Command {
 }
 
 export class BoxCommand extends Command {
-    factory: BoxFactory;
-
     constructor(editor: Editor) {
         super(editor)
-        this.factory = new BoxFactory(editor);
     }
 
     async execute() {
         const pointPicker = new PointPicker(this.editor);
+
+        const line = new LineFactory(this.editor);
         const p1 = await pointPicker.execute();
-        this.factory.p1 = p1;
-        await pointPicker.execute((p2: THREE.Vector3) => {
-            this.factory.p2 = p2;
-            this.factory.update();
+        line.p1 = p1;
+        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+            line.p2 = p2;
+            line.update();
         });
-        await pointPicker.execute((p3: THREE.Vector3) => {
-            this.factory.p3 = p3;
-            this.factory.update();
+        line.cancel();
+
+
+        const rect = new RectFactory(this.editor);
+        rect.p1 = p1;
+        rect.p2 = p2;
+        const p3 = await pointPicker.execute((p3: THREE.Vector3) => {
+            rect.p3 = p3;
+            rect.update();
         });
+        rect.cancel();
+
+        const box = new BoxFactory(this.editor);
+        box.p1 = p1;
+        box.p2 = p2;
+        box.p3 = p3;
         await pointPicker.execute((p4: THREE.Vector3) => {
-            this.factory.p4 = p4;
-            this.factory.update();
+            box.p4 = p4;
+            box.update();
         });
-        this.factory.commit();
+        box.commit();
     }
 }
