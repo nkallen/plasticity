@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import signals from "signals";
-import { Command } from './commands/Command';
+import Command from './commands/Command';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "./MaterialDatabase";
 

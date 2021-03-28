@@ -1,9 +1,15 @@
 import { Editor } from '../Editor'
 import { PointPicker } from '../PointPicker'
 import * as THREE from "three";
-import { SphereFactory, CircleFactory, CylinderFactory, LineFactory, RectFactory, BoxFactory } from './Factory'
+import SphereFactory from './Sphere';
+import CircleFactory from './Circle';
+import CylinderFactory from './Cylinder';
+import LineFactory from './Line';
+import RectFactory from './Rect';
+import BoxFactory from './Box';
 
-export abstract class Command {
+
+export default abstract class Command {
     editor: Editor;
 
     constructor(editor: Editor) {
