@@ -156,6 +156,7 @@ export class MoveCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
         const object = this.editor.selected;
+        if (object == null) throw "foo";
 
         const line = new LineFactory(this.editor);
         const p1 = await pointPicker.execute();

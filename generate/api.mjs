@@ -417,7 +417,7 @@ export default {
             rawHeader: "action_curve3d.h",
             dependencies: ["CartPoint3D.h", "Curve3D.h"],
             functions: [
-                // FIXME: technical a & b are inout, but that's not supported yet
+                // FIXME: technically a & b are inout, but that's not supported yet
                 "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)",
                 "MbResultType Segment(const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbCurve3D *& result)",
                 // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
