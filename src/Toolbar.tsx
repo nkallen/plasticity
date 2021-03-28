@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { Editor } from './editor';
-import { SphereCommand, CircleCommand, CylinderCommand, LineCommand, RectCommand, BoxCommand } from './commands/Command';
+import { SphereCommand, CircleCommand, CylinderCommand, LineCommand, RectCommand, BoxCommand, MoveCommand } from './commands/Command';
 
 export default (editor: Editor) => {
     class Toolbar extends HTMLElement {
@@ -26,6 +26,9 @@ export default (editor: Editor) => {
             const addBox = (e: Event) => {
                 editor.execute(new BoxCommand(editor));
             };
+            const move = (e: Event) => {
+                editor.execute(new MoveCommand(editor));
+            };
             const result = (
                 <>
                     <button icon="icons/LineIcon.png" name="circle" onClick={addLine}>Add Line</button>
@@ -35,6 +38,8 @@ export default (editor: Editor) => {
                     <button icon="icons/SphereIcon.png" name="sphere" onClick={addSphere}>Add Sphere</button>
                     <button icon="icons/CylinderIcon.png" name="cylinder" onClick={addCylinder}>Add Cylinder</button>
                     <button icon="icons/BoxIcon.png" name="cylinder" onClick={addBox}>Add Box</button>
+                    <br />
+                    <button icon="icons/MoveIcon.png" name="move" onClick={move}>Move</button>
                 </>
             );
             render(result, this.shadowRoot!);

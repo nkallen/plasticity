@@ -7,7 +7,7 @@ import CylinderFactory from './Cylinder';
 import LineFactory from './Line';
 import RectFactory from './Rect';
 import BoxFactory from './Box';
-
+import MoveFactory from './Move';
 
 export default abstract class Command {
     editor: Editor;
@@ -20,10 +20,6 @@ export default abstract class Command {
 }
 
 export class SphereCommand extends Command {
-    constructor(editor: Editor) {
-        super(editor);
-    }
-
     async execute() {
         const sphere = new SphereFactory(this.editor);
 
@@ -41,10 +37,6 @@ export class SphereCommand extends Command {
 }
 
 export class CircleCommand extends Command {
-    constructor(editor: Editor) {
-        super(editor);
-    }
-    
     async execute() {
         const circle = new CircleFactory(this.editor);
         const pointPicker = new PointPicker(this.editor);
@@ -61,10 +53,6 @@ export class CircleCommand extends Command {
 }
 
 export class CylinderCommand extends Command {
-    constructor(editor: Editor) {
-        super(editor);
-    }
-
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
@@ -91,10 +79,6 @@ export class CylinderCommand extends Command {
 }
 
 export class LineCommand extends Command {
-    constructor(editor: Editor) {
-        super(editor)
-    }
-
     async execute() {
         const line = new LineFactory(this.editor);
 
@@ -110,10 +94,6 @@ export class LineCommand extends Command {
 }
 
 export class RectCommand extends Command {
-    constructor(editor: Editor) {
-        super(editor)
-    }
-
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
@@ -138,10 +118,6 @@ export class RectCommand extends Command {
 }
 
 export class BoxCommand extends Command {
-    constructor(editor: Editor) {
-        super(editor)
-    }
-
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
@@ -173,5 +149,28 @@ export class BoxCommand extends Command {
             box.update();
         });
         box.commit();
+    }
+}
+
+export class MoveCommand extends Command {
+    async execute() {
+        const pointPicker = new PointPicker(this.editor);
+        const object = this.editor.selected;
+
+        const line = new LineFactory(this.editor);
+        const p1 = await pointPicker.execute();
+        line.p1 = p1;
+
+        const move = new MoveFactory(this.editor);
+        move.p1 = p1;
+        move.object = object;
+        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+            line.p2 = p2;
+            move.p2 = p2;
+            line.update();
+            move.update();
+        });
+        line.cancel();
+        move.commit();
     }
 }
