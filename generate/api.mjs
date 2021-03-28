@@ -312,6 +312,14 @@ export default {
                 "MbVector3D direction"
             ]
         },
+        TransformValues: {
+            cppClassName: "_TransformValues",
+            rawClassName: "TransformValues",
+            jsClassName: "TransformValues",
+            rawHeader: "op_shell_parameter.h",
+            dependencies: ["Matrix3D.h", "CartPoint3D.h"],
+            initializers: ["MbMatrix3D matrix"],
+        },
         SmoothValues: {
             cppClassName: "_SmoothValues",
             rawClassName: "SmoothValues",
@@ -387,7 +395,6 @@ export default {
                 "MbResultType FilletSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbCurveEdge> & initCurves, RPArray<MbFace> & initBounds, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType BooleanResult(MbSolid & solid1, MbeCopyMode sameShell1, MbSolid & solid2, MbeCopyMode sameShell2, OperationType oType, const MbBooleanFlags & flags, const MbSNameMaker & operNames, MbSolid *& result)",
                 "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
-                "MbResultType TransformedSolid (MbSolid & solid, MbeCopyMode sameShell, const TransformValues & params, const MbSNameMaker & names, MbSolid *& result)",
             ]
 
         },
@@ -400,9 +407,10 @@ export default {
         },
         ActionDirect: {
             rawHeader: "action_direct.h",
-            dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h"],
+            dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h", "_TransformValues.h"],
             functions: [
                 "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType TransformedSolid(MbSolid & solid, MbeCopyMode sameShell, const TransformValues & params, const MbSNameMaker & names, MbSolid *& result)",
             ]
         },
         ActionCurve3D: {
