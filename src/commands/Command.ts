@@ -64,30 +64,33 @@ export class CircleCommand extends Command {
 }
 
 export class CylinderCommand extends Command {
-    factory: CylinderFactory;
 
     constructor(editor: Editor) {
         super(editor);
-        this.factory = new CylinderFactory(editor);
     }
 
     async execute() {
         const pointPicker = new PointPicker(this.editor);
+
+        const circle = new CircleFactory(this.editor);
         const p1 = await pointPicker.execute();
-        this.factory.base = p1;
+        circle.center = p1;
 
         pointPicker.restrictToPlaneThroughPoint(p1);
-        await pointPicker.execute((p2: THREE.Vector3) => {
-            this.factory.radius = p2;
-            this.factory.update();
+        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+            circle.radius = p1.distanceTo(p2);
+            circle.update();
         });
+        circle.cancel();
 
+        const cylinder = new CylinderFactory(this.editor);
+        cylinder.base = p1;
+        cylinder.radius = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
-            this.factory.height = p3;
-            this.factory.update();
+            cylinder.height = p3;
+            cylinder.update();
         });
-
-        this.factory.commit();
+        cylinder.commit();
     }
 }
 

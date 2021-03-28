@@ -14,14 +14,14 @@ interface EditorSignals {
     rendererAdded: signals.Signal<THREE.Renderer>;
 }
 
-interface V {
+interface Viewport {
     renderer: THREE.Renderer;
     camera: THREE.Camera;
     constructionPlane: THREE.Mesh;
 }
 
 export class Editor {
-    viewports: V[] = [];
+    viewports: Viewport[] = [];
 
     signals: EditorSignals = {
         objectAdded: new signals.Signal(),
