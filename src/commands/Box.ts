@@ -20,34 +20,27 @@ export default class BoxFactory extends GeometryFactory {
 
     update() {
         this.mesh.geometry.dispose();
-        let geometry: THREE.BufferGeometry;
-        const p1 = this.p1, p2 = this.p2, p3 = this.p3;
+        const [p1, p2, p3] = this.clockwise(), p4 = this.p4;
 
-        const e1 = p2.clone().sub(p1);
-        const n = p3.clone().sub(p2).cross(e1);
-        const e2 = e1.clone().cross(n).divideScalar(e1.length() * e1.length()).add(p2);
+        let AB = p2.clone().sub(p1), BC = p3.clone().sub(p2);
+        const cross = BC.cross(AB);
+        const CD = AB.clone().cross(cross).divideScalar(Math.pow(AB.length(), 2)).add(p2);
+        const normal = cross.clone().normalize();
 
-        const height = this.p4.clone().sub(p3).dot(n.clone().normalize());
-        geometry = new THREE.BoxGeometry(p1.distanceTo(p2), e2.clone().sub(p2).length(), height);
-        const direction = p2.clone().sub(p1);
+        const height = p4.clone().sub(p3).dot(normal);
+        const geometry = new THREE.BoxGeometry(AB.length(), CD.clone().sub(p2).length(), height);
+        // Box is centered, so uncenter it xyz:
         this.mesh.position.copy(p1.clone()
-            .add(direction.clone().multiplyScalar(0.5))
-            .add(n.clone().normalize().multiplyScalar(height * 0.5))
-            .add(e2.clone().sub(p2).multiplyScalar(0.5)));
-        this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), direction.normalize());
+            .add(AB.clone().multiplyScalar(0.5))
+            .add(normal.multiplyScalar(height * 0.5))
+            .add(CD.clone().sub(p2).multiplyScalar(0.5)));
+        this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), AB.clone().normalize());
         this.mesh.geometry = geometry;
     }
 
     commit() {
         this.editor.scene.remove(this.mesh);
-        let p1 = this.p1, p2 = this.p2, p3 = this.p3;
-        const p4 = this.p4;
-
-        const AB = p2.clone().sub(p1), BC = p3.clone().sub(p2);
-        const cross = AB.cross(BC);
-        if (cross.dot(p4) < 0) { 
-            [p1, p2, p3] = [p3, p2, p1];
-        }
+        const [p1, p2, p3] = this.clockwise(), p4 = this.p4;
 
         const points = [
             new c3d.CartPoint3D(p1.x, p1.y, p1.z),
@@ -58,6 +51,18 @@ export default class BoxFactory extends GeometryFactory {
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
         this.editor.addObject(box);
+    }
+
+    clockwise(): Array<THREE.Vector3> {
+        let p1 = this.p1, p2 = this.p2, p3 = this.p3;
+        const p4 = this.p4;
+
+        let AB = p2.clone().sub(p1), BC = p3.clone().sub(p2);
+        const normal = AB.cross(BC);
+        if (normal.dot(p4) < 0) { 
+            [p1, p2, p3] = [p3, p2, p1];
+        }
+        return [p1, p2, p3];
     }
 
     cancel() {
