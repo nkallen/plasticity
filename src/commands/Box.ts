@@ -40,11 +40,21 @@ export default class BoxFactory extends GeometryFactory {
 
     commit() {
         this.editor.scene.remove(this.mesh);
-        const point1 = new c3d.CartPoint3D(this.p1.x, this.p1.y, this.p1.z);
-        const point2 = new c3d.CartPoint3D(this.p2.x, this.p2.y, this.p2.z);
-        const point3 = new c3d.CartPoint3D(this.p3.x, this.p3.y, this.p3.z);
-        const point4 = new c3d.CartPoint3D(this.p4.x, this.p4.y, this.p4.z);
-        const points = [point1, point2, point3, point4];
+        let p1 = this.p1, p2 = this.p2, p3 = this.p3;
+        const p4 = this.p4;
+
+        const AB = p2.clone().sub(p1), BC = p3.clone().sub(p2);
+        const cross = AB.cross(BC);
+        if (cross.dot(p4) < 0) { 
+            [p1, p2, p3] = [p3, p2, p1];
+        }
+
+        const points = [
+            new c3d.CartPoint3D(p1.x, p1.y, p1.z),
+            new c3d.CartPoint3D(p2.x, p2.y, p2.z),
+            new c3d.CartPoint3D(p3.x, p3.y, p3.z),
+            new c3d.CartPoint3D(p4.x, p4.y, p4.z)
+        ]
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
         this.editor.addObject(box);

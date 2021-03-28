@@ -50,12 +50,16 @@ export default class RectFactory extends GeometryFactory {
 
     commit() {
         this.editor.scene.remove(this.mesh);
-        const point1 = new c3d.CartPoint3D(this.p1.x, this.p1.y, this.p1.z);
-        const point2 = new c3d.CartPoint3D(this.p2.x, this.p2.y, this.p2.z);
-        const point3 = new c3d.CartPoint3D(this.p3.x, this.p3.y, this.p3.z);
-        const p4 = this.p3.clone().sub(this.p2).add(this.p1);
-        const point4 = new c3d.CartPoint3D(p4.x, p4.y, p4.z);
-        const line = new c3d.Polyline3D([point1, point2, point3, point4], true);
+        const p1 = this.p1, p2 = this.p2, p3 = this.p3;
+        const p4 = p3.clone().sub(p2).add(p1);
+
+        const points = [
+            new c3d.CartPoint3D(p1.x, p1.y, p1.z),
+            new c3d.CartPoint3D(p2.x, p2.y, p2.z),
+            new c3d.CartPoint3D(p3.x, p3.y, p3.z),
+            new c3d.CartPoint3D(p4.x, p4.y, p4.z)
+        ]
+        const line = new c3d.Polyline3D(points, true);
         this.editor.addObject(new c3d.SpaceInstance(line));
     }
 
