@@ -20,51 +20,47 @@ export default abstract class Command {
 }
 
 export class SphereCommand extends Command {
-    factory: SphereFactory;
-
     constructor(editor: Editor) {
         super(editor);
-        this.factory = new SphereFactory(editor);
     }
 
     async execute() {
+        const sphere = new SphereFactory(this.editor);
+
         const pointPicker = new PointPicker(this.editor);
         const p1 = await pointPicker.execute();
-        this.factory.center = p1;
+        sphere.center = p1;
 
         await pointPicker.execute((p2: THREE.Vector3) => {
             const radius = p1.distanceTo(p2);
-            this.factory.radius = radius;
-            this.factory.update();
+            sphere.radius = radius;
+            sphere.update();
         });
-        this.factory.commit();
+        sphere.commit();
     }
 }
 
 export class CircleCommand extends Command {
-    factory: CircleFactory;
-
     constructor(editor: Editor) {
         super(editor);
-        this.factory = new CircleFactory(editor);
     }
-
+    
     async execute() {
+        const circle = new CircleFactory(this.editor);
         const pointPicker = new PointPicker(this.editor);
         const p1 = await pointPicker.execute();
-        this.factory.center = p1;
+        circle.center = p1;
 
         await pointPicker.execute((p2: THREE.Vector3) => {
             const radius = p1.distanceTo(p2);
-            this.factory.radius = radius;
-            this.factory.update();
+            circle.radius = radius;
+            circle.update();
         });
-        this.factory.commit();
+        circle.commit();
     }
 }
 
 export class CylinderCommand extends Command {
-
     constructor(editor: Editor) {
         super(editor);
     }
@@ -95,46 +91,49 @@ export class CylinderCommand extends Command {
 }
 
 export class LineCommand extends Command {
-    factory: LineFactory;
-
     constructor(editor: Editor) {
         super(editor)
-        this.factory = new LineFactory(editor);
     }
 
     async execute() {
+        const line = new LineFactory(this.editor);
+
         const pointPicker = new PointPicker(this.editor);
         const p1 = await pointPicker.execute();
-        this.factory.p1 = p1;
+        line.p1 = p1;
         await pointPicker.execute((p2: THREE.Vector3) => {
-            this.factory.p2 = p2;
-            this.factory.update();
+            line.p2 = p2;
+            line.update();
         });
-        this.factory.commit();
+        line.commit();
     }
 }
 
 export class RectCommand extends Command {
-    factory: RectFactory;
-
     constructor(editor: Editor) {
         super(editor)
-        this.factory = new RectFactory(editor);
     }
 
     async execute() {
         const pointPicker = new PointPicker(this.editor);
+
+        const line = new LineFactory(this.editor);
         const p1 = await pointPicker.execute();
-        this.factory.p1 = p1;
-        await pointPicker.execute((p2: THREE.Vector3) => {
-            this.factory.p2 = p2;
-            this.factory.update();
+        line.p1 = p1;
+        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+            line.p2 = p2;
+            line.update();
         });
+        line.cancel();
+
+        const rect = new RectFactory(this.editor);
+        rect.p1 = p1;
+        rect.p2 = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
-            this.factory.p3 = p3;
-            this.factory.update();
+            rect.p3 = p3;
+            rect.update();
         });
-        this.factory.commit();
+        rect.commit();
     }
 }
 
