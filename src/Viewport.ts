@@ -141,8 +141,16 @@ export default (editor: Editor) => {
         }
 
         outline(o: THREE.Object3D) {
-            if (o == null) this.outlinePass.selectedObjects = [];
-            else this.outlinePass.selectedObjects = [...editor.selected];
+            if (o == null) {
+                this.outlinePass.selectedObjects = [];
+                return;
+            }
+            const toOutline = [];
+            for (const selection of editor.selected) {
+                if (selection.userData.modelType == 'object')
+                    toOutline.push(selection);
+            }
+            this.outlinePass.selectedObjects = toOutline;
         }
 
         resize() {

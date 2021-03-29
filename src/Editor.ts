@@ -109,10 +109,10 @@ export class Editor {
                 return points;
             }
             default: {
-                const lineMaterial = this.materialDatabase.line();
-
+                group.userData.modelType = 'object';
                 const edges = new THREE.Group();
                 edges.name = 'edges';
+                const lineMaterial = this.materialDatabase.line();
                 const polygons =  mesh.GetEdges(true);
                 for (const edge of polygons) {
                     const geometry = new LineGeometry();
