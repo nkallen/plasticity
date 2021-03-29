@@ -4,6 +4,13 @@ import { Editor } from './Editor';
 import { Pane } from './Pane';
 import { Selector } from './Selector';
 
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+
 const near = 0.01;
 const far = 1000;
 const frustumSize = 20;
@@ -14,13 +21,17 @@ const planeMat = new THREE.MeshBasicMaterial({ visible: false, side: THREE.Doubl
 export default (editor: Editor) => {
     class Viewport extends HTMLElement {
         readonly camera: THREE.Camera;
-        readonly renderer = new THREE.WebGLRenderer({ antialias: true });
+        readonly renderer = new THREE.WebGLRenderer({ antialias: false });
         readonly controls?: OrbitControls;
         readonly selector: Selector;
         readonly constructionPlane = new THREE.Mesh(planeGeo, planeMat);
+        composer: EffectComposer;
+
+        outlinePass: OutlinePass;
 
         constructor() {
             super();
+
             this.attachShadow({ mode: 'open' });
 
             let camera: THREE.Camera;
@@ -58,8 +69,30 @@ export default (editor: Editor) => {
             this.camera = camera;
             this.selector = new Selector(editor.drawModel, camera, this.renderer.domElement);
 
+            this.renderer.setPixelRatio(window.devicePixelRatio);
+            const size = this.renderer.getSize(new THREE.Vector2());
+            const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { format: THREE.RGBFormat });
+            renderTarget.samples = 8;
+
+            this.composer = new EffectComposer(this.renderer, renderTarget);
+            this.composer.setPixelRatio(window.devicePixelRatio);
+
+            const renderPass = new RenderPass(editor.scene, this.camera);
+            const copyPass = new ShaderPass(CopyShader);
+
+            const outlinePass = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
+            outlinePass.edgeStrength = 3;
+            outlinePass.edgeGlow = 1;
+            outlinePass.edgeThickness = 1.0;
+            this.outlinePass = outlinePass;
+
+            this.composer.addPass(renderPass);
+            this.composer.addPass(this.outlinePass);
+            this.composer.addPass(copyPass);
+
             this.shadowRoot!.append(domElement);
 
+            this.outline = this.outline.bind(this);
             this.resize = this.resize.bind(this);
             this.render = this.render.bind(this);
         }
@@ -70,14 +103,14 @@ export default (editor: Editor) => {
             const scene = editor.scene;
             scene.background = new THREE.Color(0x424242);
 
-            this.renderer.setPixelRatio(window.devicePixelRatio);
-
             const pane = this.parentElement as Pane;
             pane.signals.flexScaleChanged.add(this.resize);
 
             editor.signals.windowLoaded.add(this.resize);
             editor.signals.windowResized.add(this.resize);
+            editor.signals.objectSelected.add(this.outline);
             editor.signals.objectSelected.add(this.render);
+            editor.signals.objectDeselected.add(this.outline);
             editor.signals.objectDeselected.add(this.render);
             editor.signals.sceneGraphChanged.add(this.render);
             editor.signals.commandUpdated.add(this.render);
@@ -101,7 +134,12 @@ export default (editor: Editor) => {
         }
 
         render() {
-            this.renderer.render(editor.scene, this.camera);
+            this.composer.render();
+        }
+
+        outline(o: THREE.Object3D) {
+            if (o == null) this.outlinePass.selectedObjects = [];
+            else this.outlinePass.selectedObjects = [o];
         }
 
         resize() {
@@ -115,7 +153,9 @@ export default (editor: Editor) => {
 
                 this.camera.updateProjectionMatrix();
             }
+
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
+            this.composer.setSize(this.offsetWidth, this.offsetHeight);
             this.render();
         }
     }

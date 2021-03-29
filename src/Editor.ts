@@ -6,6 +6,8 @@ import MaterialDatabase from "./MaterialDatabase";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
+type SelectableObject3D = THREE.Object3D & { material: THREE.Material }
+
 interface EditorSignals {
     objectAdded: signals.Signal<THREE.Object3D>;
     objectSelected: signals.Signal<THREE.Object3D>;
@@ -80,7 +82,7 @@ export class Editor {
     }
 
     lookup(object: THREE.Object3D): c3d.Item {
-        const { item } =  this.geometryModel.GetItemByName(object.userData.simpleName);
+        const { item } = this.geometryModel.GetItemByName(object.userData.simpleName);
         return item;
     }
 
@@ -133,19 +135,10 @@ export class Editor {
         this.signals.objectSelected.dispatch(object);
     }
 
-    objectSelected(object: THREE.Object3D) {
-        if (object != null) {
-            const material = object.material;
-            if (material.hasOwnProperty('color')) {
-                material.color.setHex(0xff0000);
-            }
-        }
+    objectSelected(object?: THREE.Object3D) {
     }
 
     objectDeselected(object: THREE.Object3D) {
-        if (object != null) {
-            object.material.color.setHex(0xffffff);
-        }
     }
 
     onWindowResize() {
