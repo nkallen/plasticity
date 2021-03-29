@@ -8,30 +8,54 @@ declare module "*c3d.node" {
         private _useNominal: undefined;
     }
 
+    declare class Vector3D {
+        private _useNominal: undefined;
+        constructor(number, number, number);
+        constructor(CartPoint3D, CartPoint3D);
+    }
+
+    declare class Axis3D {
+        private _useNominal: undefined;
+        constructor(Axis3D);
+        constructor(Vector3D);
+
+        Rotate(Axis3D, number);
+        Move(Vector3D);
+    }
+
     declare class Item extends SpaceItem implements AttributeContainer {
+        private _useNominal: undefined;
         GetItemName(): number;
         CreateMesh(StepData, FormNote, RegDuplicate?): Item;
+
+        Transform(Matrix3D, RegTransform?)
+        Move(Vector3D, RegTransform?)
+        Rotate(Axis3D, number, RegTransform?)
 
         GetStyle(): number;
         SetStyle(number): void;
         IsA(): SpaceType;
         Cast<T extends Item>(SpaceType): T;
+    }
+
+    declare class Path {
         private _useNominal: undefined;
     }
 
     declare class Model {
-        AddItem(item: Item): Item;
         private _useNominal: undefined;
+        AddItem(Item): Item;
+        GetItemByName(SimpeName): { item: Item };
     }
 
     declare class FormNote {
-        constructor(boolean, boolean, boolean, boolean, boolean);
         private _useNominal: undefined;
+        constructor(boolean, boolean, boolean, boolean, boolean);
     }
 
     declare class StepData {
-        constructor(StepType, number);
         private _useNominal: undefined;
+        constructor(StepType, number);
     }
 
     var Enabler: {
@@ -39,8 +63,8 @@ declare module "*c3d.node" {
     };
 
     declare class CartPoint3D {
-        constructor(number, number, number);
         private _useNominal: undefined;
+        constructor(number, number, number);
     }
 
     declare class NameMaker {
@@ -48,8 +72,8 @@ declare module "*c3d.node" {
     }
 
     declare class SNameMaker extends NameMaker {
-        constructor(number, ESides, number);
         private _useNominal: undefined;
+        constructor(number, ESides, number);
     }
 
     declare class Name {
@@ -74,8 +98,12 @@ declare module "*c3d.node" {
         IsClosed(): boolean;
     }
 
+    declare class Solid extends Item {
+
+    }
+
     var ActionSolid: {
-        ElementarySolid(points: CartPoint3D[], ElementaryShellType, NameMaker);
+        ElementarySolid(points: CartPoint3D[], ElementaryShellType, NameMaker): Solid;
     }
 
     declare class SpaceInstance extends Item {
@@ -97,6 +125,19 @@ declare module "*c3d.node" {
     var ActionCurve3D: {
         Arc(CartPoint3D, points: CartPoint3D[], bool, double, double, double): Curve3D;
         Segment(CartPoint3D, CartPoint3D): Curve3D;
+    }
+
+    declare class Matrix3D {
+        private _useNominal: undefined;
+    }
+
+    declare class TransformValues {
+        private _useNominal: undefined;
+        constructor(Matrix3D)
+    }
+
+    var ActionDirect: {
+        TransformedSolid(Solid, CopyMode, TransformValues, NameMaker): Solid
     }
 
     declare enum ESides {
@@ -230,5 +271,9 @@ declare module "*c3d.node" {
         Collection = 511,  ///< \ru Коллекция элементов. \en Collection of elements. \n
 
         FreeItem = 600,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
+    }
+
+    declare enum CopyMode {
+        Same, KeepHistory, KeepSurface, Copy
     }
 }

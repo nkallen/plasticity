@@ -174,7 +174,7 @@ class FunctionDeclaration {
         if (!matchMethod) throw new Error("Parsing error: " + desc);
 
         this.name = matchMethod.groups.name;
-        this.returnType = new ReturnDeclaration(matchMethod.groups.return, this.typeRegistry);
+        this.returnType = new ReturnDeclaration(matchMethod.groups.return, this.typeRegistry, options.return);
         const paramDescs = matchMethod.groups.params.split(/,\s*/);
 
         // Note that c++ has "out" params which are simply return parameters in js
@@ -285,13 +285,14 @@ class ParamDeclaration extends TypeDeclaration {
 class ReturnDeclaration extends TypeDeclaration {
     static declaration = /((?<const>const)\s+)?(?<type>\w+)(\s+(?<ref>[*&]\s*))?/;
 
-    constructor(desc, typeRegistry) {
+    constructor(desc, typeRegistry, options) {
         const matchType = ReturnDeclaration.declaration.exec(desc);
         if (!matchType) throw new Error("Parsing error: " + desc);
 
         super(matchType.groups.type, typeRegistry);
 
         this.desc = desc;
+        this.options = options;
         this.const = matchType.groups.const;
         this.ref = matchType.groups.ref;
     }
@@ -301,7 +302,7 @@ class ReturnDeclaration extends TypeDeclaration {
     }
 
     get name() {
-        return "_result";
+        return this.options?.name ?? "_result";
     }
 
     get isOnStack() {

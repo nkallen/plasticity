@@ -61,17 +61,23 @@ export class Editor {
         if (object instanceof THREE.Object3D) {
             // FIXME since these are temporary objects, consider moving this to another function
             this.scene.add(object);
-        } else if (object instanceof c3d.SpaceItem) {
+        } else if (object instanceof c3d.Item) {
             const mesh = this.object2mesh(object);
             const o = this.geometryModel.AddItem(object);
             mesh.userData.simpleName = o.GetItemName();
-            // mesh.traverse(sub => hitTestModel[sub.userData.simpleName] = sub);
+            mesh.userData.modelType = 'item';
+
             this.scene.add(mesh);
             this.drawModel.push(mesh);
 
-            this.signals.objectAdded.dispatch(object);
+            this.signals.objectAdded.dispatch(mesh);
             this.signals.sceneGraphChanged.dispatch();
         }
+    }
+
+    lookup(object: THREE.Object3D): c3d.Item {
+        const { item } =  this.geometryModel.GetItemByName(object.userData.simpleName);
+        return item;
     }
 
     object2mesh(obj: c3d.Item) {
@@ -108,6 +114,7 @@ export class Editor {
                     const gridMesh = new THREE.Mesh(geometry, gridMaterial);
                     gridMesh.userData.name = grid.name;
                     gridMesh.userData.simpleName = grid.simpleName;
+                    gridMesh.userData.modelType = 'grid';
                     group.add(gridMesh);
                 }
                 return group;

@@ -1,7 +1,6 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
-import { Editor } from './../Editor'
 
 export default class MoveFactory extends GeometryFactory {
     _object!: THREE.Object3D;
@@ -25,6 +24,13 @@ export default class MoveFactory extends GeometryFactory {
     }
 
     commit() {
+        this.editor.scene.remove(this.object);
+        const model = this.editor.lookup(this.object);
+
+        const delta = this.p2.clone().sub(this.p1);
+        const vec = new c3d.Vector3D(delta.x, delta.y, delta.z);
+        model.Move(vec);
+        this.editor.addObject(model);
     }
 
     cancel() {

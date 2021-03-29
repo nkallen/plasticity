@@ -155,8 +155,11 @@ export class BoxCommand extends Command {
 export class MoveCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
-        const object = this.editor.selected;
-        if (object == null) throw "foo";
+        let object = this.editor.selected;
+        if (object == null) throw "No object selected"; // FIXME
+        if (object.userData.modelType == 'grid') {
+            object = object.parent;
+        }
 
         const line = new LineFactory(this.editor);
         const p1 = await pointPicker.execute();

@@ -152,4 +152,16 @@ export enum SpaceType {
     FreeItem = 600,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
 }
 
-Object.assign(c3d, { ESides: ESides, StepType: StepType, SpaceType: SpaceType, ElementaryShellType: ElementaryShellType });
+export enum CopyMode {
+    Same = 0,
+    KeepHistory,
+    KeepSurface,
+    Copy
+}
+
+Object.assign(c3d, {
+    ESides: ESides,
+    StepType: StepType,
+    SpaceType: SpaceType,
+    ElementaryShellType: ElementaryShellType,
+    CopyMode: CopyMode });
