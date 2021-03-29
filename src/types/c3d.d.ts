@@ -99,11 +99,18 @@ declare module "*c3d.node" {
     }
 
     declare class Solid extends Item {
+    }
 
+    declare class BooleanFlags {
+        private _useNominal: undefined;
+        InitBoolean(boolean, boolean?);
+        SetMergingFaces(boolean);
+        SetMergingEdges(boolean);
     }
 
     var ActionSolid: {
         ElementarySolid(points: CartPoint3D[], ElementaryShellType, NameMaker): Solid;
+        BooleanResult(Solid, CopyMode, Solid, CopyMode, OperationType, BooleanFlags, SNameMaker): Solid;
     }
 
     declare class SpaceInstance extends Item {
@@ -275,5 +282,9 @@ declare module "*c3d.node" {
 
     declare enum CopyMode {
         Same, KeepHistory, KeepSurface, Copy
+    }
+
+    declare enum OperationType {
+        Internal, External, Intersect, Difference, Unknown, Union, Base, Variety
     }
 }

@@ -8,6 +8,7 @@ import LineFactory from './Line';
 import RectFactory from './Rect';
 import BoxFactory from './Box';
 import MoveFactory from './Move';
+import UnionFactory from './Union';
 
 export default abstract class Command {
     editor: Editor;
@@ -176,5 +177,26 @@ export class MoveCommand extends Command {
         });
         line.cancel();
         move.commit();
+    }
+}
+
+export class UnionCommand extends Command {
+    async execute() {
+        const pointPicker = new PointPicker(this.editor);
+        let object1 = this.editor.selected;
+        let object2 = this.editor.selected;
+
+        if (object1.userData.modelType == 'grid') {
+            object1 = object1.parent;
+        }
+
+        if (object2.userData.modelType == 'grid') {
+            object2 = object2.parent;
+        }
+
+        const union = new UnionFactory(this.editor);
+        union.object1 = object1;
+        union.object2 = object2;
+        union.commit();
     }
 }

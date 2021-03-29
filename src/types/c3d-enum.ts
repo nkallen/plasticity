@@ -159,9 +159,22 @@ export enum CopyMode {
     Copy
 }
 
+export enum OperationType {
+    Internal   = -4, ///< \ru Пересечение оболочек. \en Shells intersection. 
+    External   = -3, ///< \ru Вычитание   оболочек. \en Shells subtraction. 
+    Intersect  = -2, ///< \ru Пересечение тел. \en Solids intersection. 
+    Difference = -1, ///< \ru Вычитание   тел. \en Solids subtraction. 
+    Unknown    =  0, ///< \ru Неопределённая операция. \en Undefined operation. 
+    Union      =  1, ///< \ru Объединение тел. \en Solids union. 
+    Base       =  2, ///< \ru Исходное состояние. \en Initial state. 
+    Variety    =  3, ///< \ru Объединение оболочек. \en Shells union. 
+}
+
 Object.assign(c3d, {
     ESides: ESides,
     StepType: StepType,
     SpaceType: SpaceType,
     ElementaryShellType: ElementaryShellType,
-    CopyMode: CopyMode });
+    CopyMode: CopyMode,
+    OperationType: OperationType,
+});
