@@ -30,6 +30,8 @@ export default class LineFactory extends GeometryFactory {
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         this.mesh.geometry = geometry;
+
+        return super.update();
     }
 
     commit() {

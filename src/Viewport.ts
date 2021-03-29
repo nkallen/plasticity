@@ -11,17 +11,88 @@ const planeGeo = new THREE.PlaneGeometry(1000, 1000, 2, 2);
 const planeMat = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide, transparent: true, opacity: 0.1, toneMapped: false });
 
 export default (editor: Editor) => {
+    class Selector extends THREE.EventDispatcher {
+        camera: THREE.Camera;
+        domElement: HTMLElement;
+
+        changeEvent = { type: 'change' };
+
+        constructor(camera: THREE.Camera, domElement: HTMLElement) {
+            super();
+
+            this.camera = camera;
+            this.domElement = domElement;
+
+            this.onPointerDown = this.onPointerDown.bind(this);
+            this.onPointerUp = this.onPointerUp.bind(this);
+
+            domElement.addEventListener('pointerdown', this.onPointerDown, false);
+        }
+
+        onDownPosition = new THREE.Vector2();
+        onPointerDown(event: PointerEvent) {
+            const domElement = this.domElement;
+            var array = this.getMousePosition(domElement, event.clientX, event.clientY);
+            this.onDownPosition.fromArray(array);
+
+            document.addEventListener('pointerup', this.onPointerUp, false);
+        }
+
+        onUpPosition = new THREE.Vector2();
+        onPointerUp(event: PointerEvent) {
+            const domElement = this.domElement;
+            var array = this.getMousePosition(domElement, event.clientX, event.clientY);
+            this.onUpPosition.fromArray(array);
+
+            this.handleClick();
+
+            document.removeEventListener('pointerup', this.onPointerUp, false);
+        }
+
+        getMousePosition(dom: HTMLElement, x: number, y: number) {
+            var rect = dom.getBoundingClientRect();
+            return [(x - rect.left) / rect.width, (y - rect.top) / rect.height];
+        }
+
+        handleClick() {
+            if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
+                var intersects = this.getIntersects(this.onUpPosition, editor.drawModel);
+
+                if (intersects.length > 0) {
+                    var object = intersects[0].object;
+
+                    if (object != null) {
+                        editor.select(object as THREE.Mesh);
+                    }
+                } else {
+                    editor.select(null);
+                }
+
+                this.dispatchEvent(this.changeEvent);
+            }
+        }
+
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        getIntersects(point: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
+            this.mouse.set((point.x * 2) - 1, - (point.y * 2) + 1);
+
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+
+            return this.raycaster.intersectObjects(objects, true);
+        }
+    }
+
     class Viewport extends HTMLElement {
         camera: THREE.Camera;
         renderer = new THREE.WebGLRenderer({ antialias: true });
         controls?: OrbitControls;
+        selector: Selector;
         constructionPlane = new THREE.Mesh(planeGeo, planeMat);
 
         constructor() {
             super();
-            this.onPointerDown = this.onPointerDown.bind(this);
-            this.onPointerUp = this.onPointerUp.bind(this);
-
             this.attachShadow({ mode: 'open' });
 
             let camera: THREE.Camera;
@@ -57,80 +128,32 @@ export default (editor: Editor) => {
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());
             this.camera = camera;
+            this.selector = new Selector(camera, this.renderer.domElement);
 
             this.shadowRoot!.append(domElement);
 
-            domElement.addEventListener('pointerdown', this.onPointerDown, false);
-
             this.resize = this.resize.bind(this);
-        }
-
-        onDownPosition = new THREE.Vector2();
-        onPointerDown(event: PointerEvent) {
-            const domElement = this.renderer.domElement;
-            var array = this.getMousePosition(domElement, event.clientX, event.clientY);
-            this.onDownPosition.fromArray(array);
-
-            document.addEventListener('pointerup', this.onPointerUp, false);
-        }
-
-        onUpPosition = new THREE.Vector2();
-        onPointerUp(event: PointerEvent) {
-            const domElement = this.renderer.domElement;
-            var array = this.getMousePosition(domElement, event.clientX, event.clientY);
-            this.onUpPosition.fromArray(array);
-
-            this.handleClick();
-
-            document.removeEventListener('pointerup', this.onPointerUp, false);
-        }
-
-        getMousePosition(dom: HTMLElement, x: number, y: number) {
-            var rect = dom.getBoundingClientRect();
-            return [(x - rect.left) / rect.width, (y - rect.top) / rect.height];
-        }
-
-        handleClick() {
-            if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
-                var intersects = this.getIntersects(this.onUpPosition, editor.drawModel);
-
-                if (intersects.length > 0) {
-                    var object = intersects[0].object;
-
-                    if (object != null) {
-                        editor.select(object as THREE.Mesh);
-                    }
-                } else {
-                    editor.select(null);
-                }
-
-                this.renderer.render(editor.scene, this.camera);
-            }
-        }
-
-        raycaster = new THREE.Raycaster();
-        mouse = new THREE.Vector2();
-
-        getIntersects(point: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
-            this.mouse.set((point.x * 2) - 1, - (point.y * 2) + 1);
-
-            this.raycaster.setFromCamera(this.mouse, this.camera);
-
-            return this.raycaster.intersectObjects(objects, true);
+            this.render = this.render.bind(this);
         }
 
         connectedCallback() {
+            editor.viewports.push(this);
+
             const scene = editor.scene;
             scene.background = new THREE.Color(0x424242);
 
             this.renderer.setPixelRatio(window.devicePixelRatio);
 
-            editor.signals.windowLoaded.add(this.resize);
-            editor.signals.windowResized.add(this.resize);
             const pane = this.parentElement as Pane;
             pane.signals.flexScaleChanged.add(this.resize);
-            editor.viewports.push(this);
 
+            editor.signals.windowLoaded.add(this.resize);
+            editor.signals.windowResized.add(this.resize);
+            editor.signals.objectSelected.add(this.render);
+            editor.signals.objectDeselected.add(this.render);
+            editor.signals.sceneGraphChanged.add(this.render);
+            editor.signals.commandUpdated.add(this.render);
+            editor.signals.pointPickerChanged.add(this.render);
 
             const grid = new THREE.GridHelper(300, 300, 0x666666);
             grid.rotateX(Math.PI / 2);
@@ -142,15 +165,11 @@ export default (editor: Editor) => {
 
             scene.add(grid);
 
-            const renderer = this.renderer;
-            const camera = this.camera;
-            function animate() { // FIXME shouldn't be animating
-                requestAnimationFrame(animate);
-                // this.controls?.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
-                renderer.render(scene, camera);
-            }
+            this.controls?.addEventListener('change', this.render);
+        }
 
-            animate();
+        render() {
+            this.renderer.render(editor.scene, this.camera);
         }
 
         resize() {
@@ -165,6 +184,7 @@ export default (editor: Editor) => {
                 this.camera.updateProjectionMatrix();
             }
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
+            this.render();
         }
     }
 

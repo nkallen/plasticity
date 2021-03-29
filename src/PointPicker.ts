@@ -48,6 +48,7 @@ export class PointPicker {
                             cb(planeIntersect.point);
                         }
                         mesh.position.copy(planeIntersect.point);
+                        editor.signals.pointPickerChanged.dispatch();
                     }
                 }
 
@@ -76,6 +77,7 @@ export class PointPicker {
                     scene.remove(mesh);
                     resolve(mesh.position.clone());
                     disposables.dispose();
+                    editor.signals.pointPickerChanged.dispatch();
                 }
             }
         });

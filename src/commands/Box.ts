@@ -36,6 +36,8 @@ export default class BoxFactory extends GeometryFactory {
             .add(CD.clone().sub(p2).multiplyScalar(0.5)));
         this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), AB.clone().normalize());
         this.mesh.geometry = geometry;
+
+        return super.update();
     }
 
     commit() {

@@ -11,6 +11,8 @@ interface EditorSignals {
     objectSelected: signals.Signal<THREE.Object3D>;
     objectDeselected: signals.Signal<THREE.Object3D>;
     sceneGraphChanged: signals.Signal;
+    commandUpdated: signals.Signal;
+    pointPickerChanged: signals.Signal;
     windowResized: signals.Signal;
     windowLoaded: signals.Signal;
     rendererAdded: signals.Signal<THREE.Renderer>;
@@ -30,6 +32,8 @@ export class Editor {
         objectSelected: new signals.Signal(),
         objectDeselected: new signals.Signal(),
         sceneGraphChanged: new signals.Signal(),
+        commandUpdated: new signals.Signal(),
+        pointPickerChanged: new signals.Signal(),
         windowResized: new signals.Signal(),
         windowLoaded: new signals.Signal(),
         rendererAdded: new signals.Signal()

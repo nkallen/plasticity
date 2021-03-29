@@ -46,6 +46,8 @@ export default class RectFactory extends GeometryFactory {
         geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         this.mesh.geometry = geometry;
+
+        return super.update();
     }
 
     commit() {

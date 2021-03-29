@@ -31,6 +31,8 @@ export default class CircleFactory extends GeometryFactory {
         geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
         this.mesh.geometry = geometry;
         this.mesh.position.copy(this.center);
+
+        return super.update();
     }
 
     commit() {

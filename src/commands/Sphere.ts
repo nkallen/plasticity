@@ -21,6 +21,8 @@ export default class SphereFactory extends GeometryFactory {
         this.mesh.geometry.dispose();
         this.mesh.geometry = geometry;
         this.mesh.position.copy(this.center);
+
+        return super.update();
     }
 
     commit() {

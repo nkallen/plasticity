@@ -26,6 +26,8 @@ export default class CylinderFactory extends GeometryFactory {
         const direction = this.height.clone().sub(this.base);
         this.mesh.position.copy(this.base.clone().add(direction.multiplyScalar(0.5)));
         this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+
+        return super.update();
     }
 
     commit() {
