@@ -78,6 +78,10 @@ Napi::Value Mesh::GetApexes(const Napi::CallbackInfo &info)
 Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
+    bool outlinesOnly = false;
+    if (info.Length() == 1 && info[0].IsBoolean())
+        outlinesOnly = info[0].ToBoolean();
+
     MbMesh *mesh = _underlying;
     size_t count = mesh->PolygonsCount();
     Napi::Array result = Napi::Array::New(env);
@@ -92,6 +96,12 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
                 continue;
             if (!polygon->IsVisible())
                 continue;
+
+            if (outlinesOnly) {
+                const MbTopItem * item = polygon->TopItem();
+                if ( (item == NULL) || (item->IsA() != tt_CurveEdge) )
+                    continue;
+            }
 
             size_t pointsCnt = polygon->Count();
             Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, 4 * 3 * pointsCnt);

@@ -3,6 +3,9 @@ import signals from "signals";
 import Command from './commands/Command';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "./MaterialDatabase";
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -83,13 +86,13 @@ export class Editor {
 
     object2mesh(obj: c3d.Item) {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, 0.005);
-        const note = new c3d.FormNote(false, true, true, false, false);
+        const note = new c3d.FormNote(true, true, true, false, false);
         const item = obj.CreateMesh(stepData, note, null);
         if (item.IsA() != c3d.SpaceType.Mesh) throw "Unexpected return type";
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         const group = new THREE.Group();
         switch (mesh.GetMeshType()) {
-            case c3d.SpaceType.Curve3D:
+            case c3d.SpaceType.Curve3D: {
                 const edges = mesh.GetEdges();
                 for (const edge of edges) {
                     const geometry = new THREE.BufferGeometry();
@@ -98,13 +101,30 @@ export class Editor {
                     group.add(line);
                 }
                 return group;
-            case c3d.SpaceType.Point3D:
+            }
+            case c3d.SpaceType.Point3D: {
                 const apexes = mesh.GetApexes();
                 const geometry = new THREE.BufferGeometry();
                 geometry.setAttribute('position', new THREE.Float32BufferAttribute(apexes, 3));
                 const points = new THREE.Points(geometry, this.materialDatabase.point(obj));
                 return points;
-            default:
+            }
+            default: {
+                const lineMaterial = this.materialDatabase.line();
+
+                const edges = new THREE.Group();
+                edges.name = 'edges';
+                const polygons =  mesh.GetEdges(true);
+                for (const edge of polygons) {
+                    const geometry = new LineGeometry();
+                    geometry.setPositions(edge);
+                    const line = new Line2(geometry, lineMaterial);
+                    edges.add(line);
+                }
+                group.add(edges);
+
+                const faces = new THREE.Group();
+                faces.name = 'faces';
                 const grids = mesh.GetBuffers();
                 for (const grid of grids) {
                     const gridMaterial = this.materialDatabase.mesh(grid, mesh.IsClosed());
@@ -116,14 +136,15 @@ export class Editor {
                     gridMesh.userData.name = grid.name;
                     gridMesh.userData.simpleName = grid.simpleName;
                     gridMesh.userData.modelType = 'grid';
-                    group.add(gridMesh);
+                    faces.add(gridMesh);
                 }
+                group.add(faces);
                 return group;
+            }
         }
     }
 
     select(object: THREE.Object3D) {
-        console.log(object);
         if (object.userData.modelType == 'grid') {
             object = object.parent;
         }
@@ -135,7 +156,6 @@ export class Editor {
             this.selected.add(object);
             this.signals.objectSelected.dispatch(object);
         }
-        console.log(this.selected);
     }
 
     deselectAll() {

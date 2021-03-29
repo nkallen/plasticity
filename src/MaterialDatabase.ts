@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import porcelain from './img/matcap-porcelain-white.jpg';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 function hash(str: string) {
     for (var i = 0, h = 9; i < str.length;)
@@ -10,14 +11,18 @@ function hash(str: string) {
 
 export default class MaterialDatabase {
     materials = new Map<number, THREE.Material>();
+    lineMaterials = new Map<number, LineMaterial>();
 
     constructor() {
-        this.materials.set(hash("line"), new THREE.LineBasicMaterial({ color: 0xff0000 }));
+        this.lineMaterials.set(hash("line"), new LineMaterial({ color: 0x000000, linewidth: 4 }));
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
 
         const material = new THREE.MeshMatcapMaterial();
         const matcapTexture = new THREE.TextureLoader().load(porcelain);
         material.matcap = matcapTexture;
+        material.polygonOffset = true;
+        material.polygonOffsetFactor = 0.1;
+        material.polygonOffsetUnits = 1;
         this.materials.set(hash("mesh"), material);
     }
 
@@ -26,9 +31,22 @@ export default class MaterialDatabase {
         return this.materials.get(st);
     }
 
-    line(o?: c3d.Item): THREE.Material {
-        if (!o) return this.materials.get(hash("line"));
-        return this.get(o) ?? this.materials.get(hash("line"));
+    getLine(l: c3d.SpaceInstance): LineMaterial | undefined {
+        const st = l.GetStyle();
+        return this.lineMaterials.get(st);
+    }
+
+    line(o?: c3d.SpaceInstance): LineMaterial {
+        if (!o) return this.lineMaterials.get(hash("line"));
+        else return this.getLine(o) ?? this.lineMaterials.get(hash("line"));
+    }
+
+    // A quirk of three.js is that to render lines with any thickness, you need to use
+    // a LineMaterial whose resolution must be set before each render
+    setResolution(width: number, height: number) {
+        for (const material of this.lineMaterials.values()) {
+            material.resolution.set(width, height);
+        }
     }
 
     point(o?: c3d.Item): THREE.Material {

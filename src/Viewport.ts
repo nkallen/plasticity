@@ -122,7 +122,7 @@ export default (editor: Editor) => {
             material1.color.setHex(0x888888);
             material1.vertexColors = false;
 
-            scene.fog = new THREE.Fog(0x424242, 1, 150);
+            scene.fog = new THREE.Fog(0x424242, 1, 250);
 
             scene.add(grid);
 
@@ -135,6 +135,7 @@ export default (editor: Editor) => {
         }
 
         render() {
+            editor.materialDatabase.setResolution(this.offsetWidth, this.offsetHeight);
             this.composer.render();
         }
 

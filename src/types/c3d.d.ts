@@ -92,13 +92,27 @@ declare module "*c3d.node" {
     declare class Mesh extends Item {
         GetMeshType(): SpaceType;
         GetApexes(): Float32Array;
-        GetEdges(): [Float32Array];
+        GetEdges(boolean?): [Float32Array];
         GetBuffers(): [MeshBuffer];
 
         IsClosed(): boolean;
     }
 
+    declare class TopologyItem extends AttributeContainer {
+
+    }
+
+    declare class Face extends TopologyItem {
+
+    }
+
+    declare class Edge extends TopologyItem {
+
+    }
+
     declare class Solid extends Item {
+        GetFaces(): [Face];
+        GetEdges(): [Edge];
     }
 
     declare class BooleanFlags {
