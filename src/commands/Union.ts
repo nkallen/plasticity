@@ -7,8 +7,17 @@ export default class UnionFactory extends GeometryFactory {
     object2!: THREE.Object3D;
 
     commit() {
-        const model1 = this.editor.lookup(this.object1);
-        const model2 = this.editor.lookup(this.object2);
+        this.editor.scene.remove(this.object1);
+        this.editor.scene.remove(this.object2);
+
+        let model1 = this.editor.lookup(this.object1);
+        let model2 = this.editor.lookup(this.object2);
+
+        if (model1.IsA() != c3d.SpaceType.Solid) throw "Unexpected return type";
+        if (model2.IsA() != c3d.SpaceType.Solid) throw "Unexpected return type";
+
+        model1 = model1.Cast<c3d.Solid>(c3d.SpaceType.Solid);
+        model2 = model2.Cast<c3d.Solid>(c3d.SpaceType.Solid);
 
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
 

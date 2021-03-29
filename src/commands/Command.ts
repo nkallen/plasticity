@@ -156,7 +156,7 @@ export class BoxCommand extends Command {
 export class MoveCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
-        let object = this.editor.selected;
+        let object = [...this.editor.selected][0]!;
         if (object == null) throw "No object selected"; // FIXME
         if (object.userData.modelType == 'grid') {
             object = object.parent;
@@ -182,9 +182,9 @@ export class MoveCommand extends Command {
 
 export class UnionCommand extends Command {
     async execute() {
-        const pointPicker = new PointPicker(this.editor);
-        let object1 = this.editor.selected;
-        let object2 = this.editor.selected;
+        const foo = [...this.editor.selected];
+        let object1 = foo[0]!;
+        let object2 = foo[1]!;
 
         if (object1.userData.modelType == 'grid') {
             object1 = object1.parent;

@@ -129,7 +129,8 @@ export default (editor: Editor) => {
             this.controls?.addEventListener('change', this.render);
             this.selector.addEventListener('change', (event) => { // FIXME reconsider whether to use a signal
                 const selection = event.value;
-                editor.select(selection);
+                if (selection != null) editor.select(selection);
+                else editor.deselectAll();
             });
         }
 
@@ -139,7 +140,7 @@ export default (editor: Editor) => {
 
         outline(o: THREE.Object3D) {
             if (o == null) this.outlinePass.selectedObjects = [];
-            else this.outlinePass.selectedObjects = [o];
+            else this.outlinePass.selectedObjects = [...editor.selected];
         }
 
         resize() {

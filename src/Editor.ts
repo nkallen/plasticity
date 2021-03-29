@@ -6,8 +6,6 @@ import MaterialDatabase from "./MaterialDatabase";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
-type SelectableObject3D = THREE.Object3D & { material: THREE.Material }
-
 interface EditorSignals {
     objectAdded: signals.Signal<THREE.Object3D>;
     objectSelected: signals.Signal<THREE.Object3D>;
@@ -45,7 +43,7 @@ export class Editor {
     readonly drawModel = new Set<THREE.Object3D>();
     readonly materialDatabase = new MaterialDatabase();
     readonly scene = new THREE.Scene();
-    selected?: THREE.Object3D; // FIXME readonly
+    readonly selected = new Set<THREE.Object3D>();
 
     constructor() {
         // FIXME dispose of these:
@@ -54,9 +52,6 @@ export class Editor {
 
         const axis = new THREE.AxesHelper(300);
         this.scene.add(axis);
-
-        this.signals.objectSelected.add(this.objectSelected);
-        this.signals.objectDeselected.add(this.objectDeselected);
     }
 
     execute(command: Command) {
@@ -128,17 +123,20 @@ export class Editor {
     }
 
     select(object: THREE.Mesh) {
-        if (this.selected === object) return;
-
-        this.signals.objectDeselected.dispatch(this.selected);
-        this.selected = object;
-        this.signals.objectSelected.dispatch(object);
+        if (this.selected.has(object)) {
+            this.selected.delete(object);
+            this.signals.objectDeselected.dispatch(object);
+        } else {
+            this.selected.add(object);
+            this.signals.objectSelected.dispatch(object);
+        }
     }
 
-    objectSelected(object?: THREE.Object3D) {
-    }
-
-    objectDeselected(object: THREE.Object3D) {
+    deselectAll() {
+        for (const object of this.selected) {
+            this.selected.delete(object);
+            this.signals.objectDeselected.dispatch(object);
+        }
     }
 
     onWindowResize() {
