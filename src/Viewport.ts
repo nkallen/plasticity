@@ -81,9 +81,10 @@ export default (editor: Editor) => {
             const copyPass = new ShaderPass(CopyShader);
 
             const outlinePass = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
-            outlinePass.edgeStrength = 3;
-            outlinePass.edgeGlow = 1;
-            outlinePass.edgeThickness = 1.0;
+            outlinePass.edgeStrength = 10;
+            outlinePass.edgeGlow = 0;
+            outlinePass.edgeThickness = 2.0;
+            outlinePass.visibleEdgeColor.setHex(0xfaed27)
             this.outlinePass = outlinePass;
 
             this.composer.addPass(renderPass);

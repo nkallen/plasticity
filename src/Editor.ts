@@ -4,7 +4,6 @@ import Command from './commands/Command';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "./MaterialDatabase";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
@@ -95,9 +94,9 @@ export class Editor {
             case c3d.SpaceType.Curve3D: {
                 const edges = mesh.GetEdges();
                 for (const edge of edges) {
-                    const geometry = new THREE.BufferGeometry();
-                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(edge, 3));
-                    const line = new THREE.Line(geometry, this.materialDatabase.line(obj));
+                    const geometry = new LineGeometry();
+                    geometry.setPositions(edge);
+                    const line = new Line2(geometry, this.materialDatabase.line());
                     group.add(line);
                 }
                 return group;
@@ -119,6 +118,7 @@ export class Editor {
                     const geometry = new LineGeometry();
                     geometry.setPositions(edge);
                     const line = new Line2(geometry, lineMaterial);
+                    line.userData.modelType = 'edge';
                     edges.add(line);
                 }
                 group.add(edges);

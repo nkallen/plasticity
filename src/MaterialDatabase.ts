@@ -10,8 +10,8 @@ function hash(str: string) {
 };
 
 export default class MaterialDatabase {
-    materials = new Map<number, THREE.Material>();
-    lineMaterials = new Map<number, LineMaterial>();
+    private readonly materials = new Map<number, THREE.Material>();
+    private readonly lineMaterials = new Map<number, LineMaterial>();
 
     constructor() {
         this.lineMaterials.set(hash("line"), new LineMaterial({ color: 0x000000, linewidth: 4 }));
