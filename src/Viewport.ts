@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Editor } from './editor';
+import { Editor } from './Editor';
 import { Pane } from './Pane';
+import { Selector } from './Selector';
 
 const near = 0.01;
 const far = 1000;
@@ -11,85 +12,12 @@ const planeGeo = new THREE.PlaneGeometry(1000, 1000, 2, 2);
 const planeMat = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide, transparent: true, opacity: 0.1, toneMapped: false });
 
 export default (editor: Editor) => {
-    class Selector extends THREE.EventDispatcher {
-        camera: THREE.Camera;
-        domElement: HTMLElement;
-
-        changeEvent = { type: 'change' };
-
-        constructor(camera: THREE.Camera, domElement: HTMLElement) {
-            super();
-
-            this.camera = camera;
-            this.domElement = domElement;
-
-            this.onPointerDown = this.onPointerDown.bind(this);
-            this.onPointerUp = this.onPointerUp.bind(this);
-
-            domElement.addEventListener('pointerdown', this.onPointerDown, false);
-        }
-
-        onDownPosition = new THREE.Vector2();
-        onPointerDown(event: PointerEvent) {
-            const domElement = this.domElement;
-            var array = this.getMousePosition(domElement, event.clientX, event.clientY);
-            this.onDownPosition.fromArray(array);
-
-            document.addEventListener('pointerup', this.onPointerUp, false);
-        }
-
-        onUpPosition = new THREE.Vector2();
-        onPointerUp(event: PointerEvent) {
-            const domElement = this.domElement;
-            var array = this.getMousePosition(domElement, event.clientX, event.clientY);
-            this.onUpPosition.fromArray(array);
-
-            this.handleClick();
-
-            document.removeEventListener('pointerup', this.onPointerUp, false);
-        }
-
-        getMousePosition(dom: HTMLElement, x: number, y: number) {
-            var rect = dom.getBoundingClientRect();
-            return [(x - rect.left) / rect.width, (y - rect.top) / rect.height];
-        }
-
-        handleClick() {
-            if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
-                var intersects = this.getIntersects(this.onUpPosition, editor.drawModel);
-
-                if (intersects.length > 0) {
-                    var object = intersects[0].object;
-
-                    if (object != null) {
-                        editor.select(object as THREE.Mesh);
-                    }
-                } else {
-                    editor.select(null);
-                }
-
-                this.dispatchEvent(this.changeEvent);
-            }
-        }
-
-        raycaster = new THREE.Raycaster();
-        mouse = new THREE.Vector2();
-
-        getIntersects(point: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
-            this.mouse.set((point.x * 2) - 1, - (point.y * 2) + 1);
-
-            this.raycaster.setFromCamera(this.mouse, this.camera);
-
-            return this.raycaster.intersectObjects(objects, true);
-        }
-    }
-
     class Viewport extends HTMLElement {
-        camera: THREE.Camera;
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        controls?: OrbitControls;
-        selector: Selector;
-        constructionPlane = new THREE.Mesh(planeGeo, planeMat);
+        readonly camera: THREE.Camera;
+        readonly renderer = new THREE.WebGLRenderer({ antialias: true });
+        readonly controls?: OrbitControls;
+        readonly selector: Selector;
+        readonly constructionPlane = new THREE.Mesh(planeGeo, planeMat);
 
         constructor() {
             super();
@@ -128,7 +56,7 @@ export default (editor: Editor) => {
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());
             this.camera = camera;
-            this.selector = new Selector(camera, this.renderer.domElement);
+            this.selector = new Selector(editor.drawModel, camera, this.renderer.domElement);
 
             this.shadowRoot!.append(domElement);
 
@@ -166,6 +94,10 @@ export default (editor: Editor) => {
             scene.add(grid);
 
             this.controls?.addEventListener('change', this.render);
+            this.selector.addEventListener('change', (event) => { // FIXME reconsider whether to use a signal
+                const selection = event.value;
+                editor.select(selection);
+            });
         }
 
         render() {

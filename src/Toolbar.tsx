@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import { Editor } from './editor';
+import { Editor } from './Editor';
 import { SphereCommand, CircleCommand, CylinderCommand, LineCommand, RectCommand, BoxCommand, MoveCommand } from './commands/Command';
 
 export default (editor: Editor) => {

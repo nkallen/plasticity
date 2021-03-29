@@ -25,9 +25,9 @@ interface Viewport {
 }
 
 export class Editor {
-    viewports: Viewport[] = [];
+    readonly viewports: Viewport[] = [];
 
-    signals: EditorSignals = {
+    readonly signals: EditorSignals = {
         objectAdded: new signals.Signal(),
         objectSelected: new signals.Signal(),
         objectDeselected: new signals.Signal(),
@@ -39,11 +39,11 @@ export class Editor {
         rendererAdded: new signals.Signal()
     }
 
-    geometryModel = new c3d.Model();
-    drawModel = new Array<THREE.Object3D>();
-    materialDatabase = new MaterialDatabase();
-    scene = new THREE.Scene();
-    selected?: THREE.Object3D;
+    readonly geometryModel = new c3d.Model();
+    readonly drawModel = new Set<THREE.Object3D>();
+    readonly materialDatabase = new MaterialDatabase();
+    readonly scene = new THREE.Scene();
+    selected?: THREE.Object3D; // FIXME readonly
 
     constructor() {
         // FIXME dispose of these:
@@ -72,7 +72,7 @@ export class Editor {
             mesh.userData.modelType = 'item';
 
             this.scene.add(mesh);
-            this.drawModel.push(mesh);
+            this.drawModel.add(mesh);
 
             this.signals.objectAdded.dispatch(mesh);
             this.signals.sceneGraphChanged.dispatch();
