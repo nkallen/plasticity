@@ -58,22 +58,22 @@ export class Editor {
         command.execute();
     }
 
-    addObject(object: THREE.Object3D | c3d.Item) {
-        if (object instanceof THREE.Object3D) {
-            // FIXME since these are temporary objects, consider moving this to another function
-            this.scene.add(object);
-        } else if (object instanceof c3d.Item) {
-            const mesh = this.object2mesh(object);
-            const o = this.geometryModel.AddItem(object);
-            mesh.userData.simpleName = o.GetItemName();
-            mesh.userData.modelType = 'item';
+    addObject(object: c3d.Item) {
+        const mesh = this.object2mesh(object);
+        const o = this.geometryModel.AddItem(object);
+        mesh.userData.simpleName = o.GetItemName();
+        mesh.userData.modelType = 'item';
 
-            this.scene.add(mesh);
-            this.drawModel.add(mesh);
+        this.scene.add(mesh);
+        this.drawModel.add(mesh);
 
-            this.signals.objectAdded.dispatch(mesh);
-            this.signals.sceneGraphChanged.dispatch();
-        }
+        this.signals.objectAdded.dispatch(mesh);
+        this.signals.sceneGraphChanged.dispatch();
+    }
+
+    removeObject(object: THREE.Object3D) {
+        this.scene.remove(object);
+        this.drawModel.delete(object);
     }
 
     lookup(object: THREE.Object3D): c3d.Item {
@@ -122,7 +122,12 @@ export class Editor {
         }
     }
 
-    select(object: THREE.Mesh) {
+    select(object: THREE.Object3D) {
+        console.log(object);
+        if (object.userData.modelType == 'grid') {
+            object = object.parent;
+        }
+
         if (this.selected.has(object)) {
             this.selected.delete(object);
             this.signals.objectDeselected.dispatch(object);
@@ -130,6 +135,7 @@ export class Editor {
             this.selected.add(object);
             this.signals.objectSelected.dispatch(object);
         }
+        console.log(this.selected);
     }
 
     deselectAll() {

@@ -14,7 +14,7 @@ export default class RectFactory extends GeometryFactory {
         const geometry = new THREE.BufferGeometry();
 
         this.mesh = new THREE.Line(geometry, this.editor.materialDatabase.line());
-        this.editor.addObject(this.mesh);
+        this.editor.scene.add(this.mesh);
     }
 
     update() {

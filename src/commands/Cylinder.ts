@@ -15,7 +15,7 @@ export default class CylinderFactory extends GeometryFactory {
         const geometry = new THREE.CylinderGeometry(0, 0, 0, 32);
         this.mesh = new THREE.Mesh(geometry, this.editor.materialDatabase.mesh());
         this.mesh.up = new THREE.Vector3(0, 1, 0);
-        this.editor.addObject(this.mesh);
+        this.editor.scene.add(this.mesh);
     }
 
     update() {

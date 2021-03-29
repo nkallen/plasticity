@@ -13,7 +13,7 @@ export default class SphereFactory extends GeometryFactory {
         const geometry = new THREE.SphereGeometry(0, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
         this.mesh = new THREE.Mesh(geometry, this.editor.materialDatabase.mesh());
-        this.editor.addObject(this.mesh);
+        this.editor.scene.add(this.mesh);
     }
 
     update() {

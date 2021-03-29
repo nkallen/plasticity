@@ -7,8 +7,8 @@ export default class UnionFactory extends GeometryFactory {
     object2!: THREE.Object3D;
 
     commit() {
-        this.editor.scene.remove(this.object1);
-        this.editor.scene.remove(this.object2);
+        this.editor.removeObject(this.object1);
+        this.editor.removeObject(this.object2);
 
         let model1 = this.editor.lookup(this.object1);
         let model2 = this.editor.lookup(this.object2);

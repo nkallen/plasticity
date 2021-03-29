@@ -13,7 +13,7 @@ export default class CircleFactory extends GeometryFactory {
         const geometry = new THREE.CircleGeometry(0, 32);
 
         this.mesh = new THREE.Line(geometry, this.editor.materialDatabase.line());
-        this.editor.addObject(this.mesh);
+        this.editor.scene.add(this.mesh);
     }
 
     update() {

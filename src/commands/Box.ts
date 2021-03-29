@@ -15,7 +15,7 @@ export default class BoxFactory extends GeometryFactory {
         const geometry = new THREE.BufferGeometry();
 
         this.mesh = new THREE.Mesh(geometry, this.editor.materialDatabase.mesh());
-        this.editor.addObject(this.mesh);
+        this.editor.scene.add(this.mesh);
     }
 
     update() {
