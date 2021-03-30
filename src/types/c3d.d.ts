@@ -118,7 +118,7 @@ declare module "*c3d.node" {
     }
 
     declare class CurveEdge extends Edge {
-        
+
     }
 
     declare class Solid extends Item {
@@ -136,9 +136,25 @@ declare module "*c3d.node" {
         SetMergingEdges(boolean);
     }
 
+    declare class SmoothValues {
+        private _useNominal: undefined;
+        distance1: number;
+        distance2: number;
+        conic: number;
+        begLength: number;
+        endLength: number;
+        form: SmoothForm;
+        smoothCorner: CornerForm;
+        prolong: boolean;
+        keepCant: ThreeStates;
+        strict: boolean;
+        equable: boolean;
+    }
+
     var ActionSolid: {
-        ElementarySolid(points: CartPoint3D[], ElementaryShellType, NameMaker): Solid;
+        ElementarySolid([CartPoint3D], ElementaryShellType, NameMaker): Solid;
         BooleanResult(Solid, CopyMode, Solid, CopyMode, OperationType, BooleanFlags, SNameMaker): Solid;
+        FilletSolid(Solid, CopyMode, [CurveEdge], [Face], SmoothValues, SNameMaker);
     }
 
     declare class SpaceInstance extends Item {
@@ -314,5 +330,17 @@ declare module "*c3d.node" {
 
     declare enum OperationType {
         Internal, External, Intersect, Difference, Unknown, Union, Base, Variety
+    }
+
+    declare enum SmoothForm {
+        Span, Fillet, Chamfer, Slant1, Slant2
+    }
+
+    declare enum ThreeStates {
+        negative, neutral, positive
+    }
+
+    declare enum CornerForm {
+        pointed, either, uniform, sharp
     }
 }

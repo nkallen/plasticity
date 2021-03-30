@@ -160,14 +160,35 @@ export enum CopyMode {
 }
 
 export enum OperationType {
-    Internal   = -4, ///< \ru Пересечение оболочек. \en Shells intersection. 
-    External   = -3, ///< \ru Вычитание   оболочек. \en Shells subtraction. 
-    Intersect  = -2, ///< \ru Пересечение тел. \en Solids intersection. 
+    Internal = -4, ///< \ru Пересечение оболочек. \en Shells intersection. 
+    External = -3, ///< \ru Вычитание   оболочек. \en Shells subtraction. 
+    Intersect = -2, ///< \ru Пересечение тел. \en Solids intersection. 
     Difference = -1, ///< \ru Вычитание   тел. \en Solids subtraction. 
-    Unknown    =  0, ///< \ru Неопределённая операция. \en Undefined operation. 
-    Union      =  1, ///< \ru Объединение тел. \en Solids union. 
-    Base       =  2, ///< \ru Исходное состояние. \en Initial state. 
-    Variety    =  3, ///< \ru Объединение оболочек. \en Shells union. 
+    Unknown = 0, ///< \ru Неопределённая операция. \en Undefined operation. 
+    Union = 1, ///< \ru Объединение тел. \en Solids union. 
+    Base = 2, ///< \ru Исходное состояние. \en Initial state. 
+    Variety = 3, ///< \ru Объединение оболочек. \en Shells union. 
+}
+
+export enum SmoothForm {
+    Span = -1,  ///< \ru Скругление с заданной хордой. \en Fillet with a given chord. 
+    Fillet = 0,  ///< \ru Скругление с заданными радиусами. \en Fillet with given radii. 
+    Chamfer = 1,  ///< \ru Фаска с заданными катетами. \en Chamfer with given cathetuses. 
+    Slant1 = 2,  ///< \ru Фаска по катету и углу (катет distance2 рассчитан для прямого угла между гранями и определяет прилегающий к катету distance1 угол). \en Chamfer by cathetus and angle (distance2 cathetus is calculated for right angle between faces and defines angle adjacent to the distance1 cathetus). 
+    Slant2 = 3,  ///< \ru Фаска по углу и катету (катет distance1 рассчитан для прямого угла между гранями и определяет прилегающий к катету distance2 угол). \en Chamfer by angle and cathetus (distance1 cathetus is calculated for right angle between faces and defines angle adjacent to the distance2 cathetus). 
+}
+
+export enum ThreeStates {
+    negative = -1, ///< \ru Состояние НЕТ. \en The state NO. 
+    neutral  =  0, ///< \ru Состояние НЕ ИЗВЕСТНО. \en The state UNKNOWN. 
+    positive =  1  ///< \ru Состояние ДА. \en The state YES. 
+}
+
+export enum CornerForm {
+    pointed = 0, ///< \ru Обработка угла отсутствует. \en Processing of corner is missing.
+    either  = 1, ///< \ru Стыкующиеся в одной точке три ребра обрабатываются в порядке внутренней нумерации ребер без учета выпуклости и вогнутости. \en Mating at one point of three edges are processed in the order of internal indexation of edges without convexity and concavity.
+    uniform = 2, ///< \ru Если в точке стыкуются два выпуклых (вогнутых) и одно вогнутое (выпуклое) ребро, то первым  обрабатывается вогнутое (выпуклое) ребро. \en If two convex (concave) and one concave (convex) edge are mated at the point, then concave (convex) edge is processed at the first.
+    sharp   = 3, ///< \ru Если в точке стыкуются два выпуклых (вогнутых) и одно вогнутое (выпуклое) ребро, то первыми обрабатываются выпуклые (вогнутые) ребра. \en If two convex (concave) and one concave (convex) edge are mated at the point, then concave (convex) edges are processed at the first.
 }
 
 Object.assign(c3d, {
@@ -177,4 +198,7 @@ Object.assign(c3d, {
     ElementaryShellType: ElementaryShellType,
     CopyMode: CopyMode,
     OperationType: OperationType,
+    SmoothForm: SmoothForm,
+    ThreeStates: ThreeStates,
+    CornerForm: CornerForm,
 });
