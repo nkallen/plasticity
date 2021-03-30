@@ -309,7 +309,7 @@ export default {
             jsClassName: "ModifyValues",
             rawHeader: "op_shell_parameter.h",
             dependencies: ["Vector3D.h"],
-            intializers: [""],
+            initializers: [""],
             fields: [
                 "MbeModifyingType way",
                 "MbVector3D direction"
@@ -329,7 +329,7 @@ export default {
             jsClassName: "SmoothValues",
             rawHeader: "op_shell_parameter.h",
             dependencies: ["Vector3D.h"],
-            intializers: [""],
+            initializers: [""],
             fields: [
                 "double distance1",
                 "double distance2",

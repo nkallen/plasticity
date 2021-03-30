@@ -9,6 +9,7 @@ import RectFactory from './Rect';
 import BoxFactory from './Box';
 import MoveFactory from './Move';
 import UnionFactory from './Union';
+import FilletFactory from './Fillet';
 import { Item } from '../VisualModel';
 
 export default abstract class Command {
@@ -187,5 +188,17 @@ export class UnionCommand extends Command {
         union.object1 = object1;
         union.object2 = object2;
         union.commit();
+    }
+}
+
+export class FilletCommand extends Command {
+    async execute() {
+        let edges = [...this.editor.selectionManager.selectedEdges];
+        const item = edges[0].parentObject
+
+        const fillet = new FilletFactory(this.editor);
+        fillet.item = item;
+        fillet.edges = edges;
+        fillet.commit();
     }
 }
