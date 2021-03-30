@@ -1,9 +1,10 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
+import { Item } from '../VisualModel';
 
 export default class MoveFactory extends GeometryFactory {
-    _object!: THREE.Object3D;
+    _object!: Item;
     originalPosition = new THREE.Vector3();
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
@@ -12,7 +13,7 @@ export default class MoveFactory extends GeometryFactory {
         return this._object;
     }
 
-    set object(obj: THREE.Object3D) {
+    set object(obj: Item) {
         this._object = obj;
         this.originalPosition.copy(obj.position);
     }
@@ -27,7 +28,7 @@ export default class MoveFactory extends GeometryFactory {
 
     commit() {
         this.editor.scene.remove(this.object);
-        const model = this.editor.lookup(this.object);
+        const model = this.editor.lookupItem(this.object);
 
         const delta = this.p2.clone().sub(this.p1);
         const vec = new c3d.Vector3D(delta.x, delta.y, delta.z);

@@ -11,6 +11,8 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
+import { Item } from './VisualModel';
+
 const near = 0.01;
 const far = 1000;
 const frustumSize = 20;
@@ -130,8 +132,8 @@ export default (editor: Editor) => {
             this.controls?.addEventListener('change', this.render);
             this.selector.addEventListener('change', (event) => { // FIXME reconsider whether to use a signal
                 const selection = event.value;
-                if (selection != null) editor.select(selection);
-                else editor.deselectAll();
+                if (selection != null) editor.selectionManager.select(selection);
+                else editor.selectionManager.deselectAll();
             });
         }
 
@@ -146,8 +148,8 @@ export default (editor: Editor) => {
                 return;
             }
             const toOutline = [];
-            for (const selection of editor.selected) {
-                if (selection.userData.modelType == 'object')
+            for (const selection of editor.selectionManager.selected) {
+                if (selection instanceof Item)
                     toOutline.push(selection);
             }
             this.outlinePass.selectedObjects = toOutline;

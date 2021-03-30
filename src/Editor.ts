@@ -3,8 +3,9 @@ import signals from "signals";
 import Command from './commands/Command';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "./MaterialDatabase";
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { SelectionManager } from './SelectionManager';
+import { Face, CurveEdge, Item, Edge, Curve3D } from './VisualModel';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -45,7 +46,7 @@ export class Editor {
     readonly drawModel = new Set<THREE.Object3D>();
     readonly materialDatabase = new MaterialDatabase();
     readonly scene = new THREE.Scene();
-    readonly selected = new Set<THREE.Object3D>();
+    readonly selectionManager = new SelectionManager(this);
 
     constructor() {
         // FIXME dispose of these:
@@ -64,7 +65,6 @@ export class Editor {
         const mesh = this.object2mesh(object);
         const o = this.geometryModel.AddItem(object);
         mesh.userData.simpleName = o.GetItemName();
-        mesh.userData.modelType = 'item';
 
         this.scene.add(mesh);
         this.drawModel.add(mesh);
@@ -78,9 +78,18 @@ export class Editor {
         this.drawModel.delete(object);
     }
 
-    lookup(object: THREE.Object3D): c3d.Item {
+    lookupItem(object: Item): c3d.Item {
         const { item } = this.geometryModel.GetItemByName(object.userData.simpleName);
         return item;
+    }
+
+    lookupTopologyItem(object: CurveEdge): c3d.TopologyItem {
+        const parent = object.parentObject;
+        const parentModel = this.lookupItem(parent);
+        if (parentModel.IsA() != c3d.SpaceType.Solid) throw "Unexpected return type";
+        const solid = parentModel.Cast<c3d.Solid>(c3d.SpaceType.Solid);
+
+        return solid.FindEdgeByName(object.userData.name);
     }
 
     object2mesh(obj: c3d.Item) {
@@ -89,17 +98,17 @@ export class Editor {
         const item = obj.CreateMesh(stepData, note, null);
         if (item.IsA() != c3d.SpaceType.Mesh) throw "Unexpected return type";
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
-        const group = new THREE.Group();
         switch (mesh.GetMeshType()) {
             case c3d.SpaceType.Curve3D: {
+                const curve3D = new Curve3D();
                 const edges = mesh.GetEdges();
                 for (const edge of edges) {
                     const geometry = new LineGeometry();
-                    geometry.setPositions(edge);
-                    const line = new Line2(geometry, this.materialDatabase.line());
-                    group.add(line);
+                    geometry.setPositions(edge.position);
+                    const line = new Edge(edge.name, edge.simpleName, geometry, this.materialDatabase.line());
+                    curve3D.add(line);
                 }
-                return group;
+                return curve3D;
             }
             case c3d.SpaceType.Point3D: {
                 const apexes = mesh.GetApexes();
@@ -109,19 +118,18 @@ export class Editor {
                 return points;
             }
             default: {
-                group.userData.modelType = 'object';
+                const item = new Item();
                 const edges = new THREE.Group();
                 edges.name = 'edges';
                 const lineMaterial = this.materialDatabase.line();
-                const polygons =  mesh.GetEdges(true);
+                const polygons = mesh.GetEdges(true);
                 for (const edge of polygons) {
                     const geometry = new LineGeometry();
-                    geometry.setPositions(edge);
-                    const line = new Line2(geometry, lineMaterial);
-                    line.userData.modelType = 'edge';
+                    geometry.setPositions(edge.position);
+                    const line = new CurveEdge(edge.name, edge.simpleName, geometry, lineMaterial);
                     edges.add(line);
                 }
-                group.add(edges);
+                item.add(edges);
 
                 const faces = new THREE.Group();
                 faces.name = 'faces';
@@ -132,36 +140,12 @@ export class Editor {
                     geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
                     geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
                     geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
-                    const gridMesh = new THREE.Mesh(geometry, gridMaterial);
-                    gridMesh.userData.name = grid.name;
-                    gridMesh.userData.simpleName = grid.simpleName;
-                    gridMesh.userData.modelType = 'grid';
-                    faces.add(gridMesh);
+                    const face = new Face(grid.name, grid.simpleName, geometry, gridMaterial);
+                    faces.add(face);
                 }
-                group.add(faces);
-                return group;
+                item.add(faces);
+                return item;
             }
-        }
-    }
-
-    select(object: THREE.Object3D) {
-        if (object.userData.modelType == 'grid') {
-            object = object.parent;
-        }
-
-        if (this.selected.has(object)) {
-            this.selected.delete(object);
-            this.signals.objectDeselected.dispatch(object);
-        } else {
-            this.selected.add(object);
-            this.signals.objectSelected.dispatch(object);
-        }
-    }
-
-    deselectAll() {
-        for (const object of this.selected) {
-            this.selected.delete(object);
-            this.signals.objectDeselected.dispatch(object);
         }
     }
 
@@ -172,5 +156,4 @@ export class Editor {
     onWindowLoad() {
         this.signals.windowLoaded.dispatch();
     }
-
 }

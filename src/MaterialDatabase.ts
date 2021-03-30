@@ -15,6 +15,7 @@ export default class MaterialDatabase {
 
     constructor() {
         this.lineMaterials.set(hash("line"), new LineMaterial({ color: 0x000000, linewidth: 4 }));
+        this.lineMaterials.set(hash("line-highlighted"), new LineMaterial({ color: 0xfaed27, linewidth: 4 }));
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
 
         const material = new THREE.MeshMatcapMaterial();
@@ -65,5 +66,13 @@ export default class MaterialDatabase {
         material = material.clone();
         material.side = doubleSided ? THREE.FrontSide : THREE.DoubleSide;
         return material;
+    }
+
+    highlight(o: c3d.TopologyItem): LineMaterial {
+        return this.lineMaterials.get(hash("line-highlighted"));
+    }
+
+    lookup(o: c3d.TopologyItem): LineMaterial {
+        return this.lineMaterials.get(hash("line"));
     }
 }

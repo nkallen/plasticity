@@ -9,6 +9,7 @@ import RectFactory from './Rect';
 import BoxFactory from './Box';
 import MoveFactory from './Move';
 import UnionFactory from './Union';
+import { Item } from '../VisualModel';
 
 export default abstract class Command {
     editor: Editor;
@@ -156,11 +157,7 @@ export class BoxCommand extends Command {
 export class MoveCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
-        let object = [...this.editor.selected][0]!;
-        if (object == null) throw "No object selected"; // FIXME
-        if (object.userData.modelType == 'grid') {
-            object = object.parent;
-        }
+        let object = [...this.editor.selectionManager.selected][0]! as Item;
 
         const line = new LineFactory(this.editor);
         const p1 = await pointPicker.execute();
@@ -182,17 +179,9 @@ export class MoveCommand extends Command {
 
 export class UnionCommand extends Command {
     async execute() {
-        const foo = [...this.editor.selected];
-        let object1 = foo[0]!;
-        let object2 = foo[1]!;
-
-        if (object1.userData.modelType == 'grid') {
-            object1 = object1.parent;
-        }
-
-        if (object2.userData.modelType == 'grid') {
-            object2 = object2.parent;
-        }
+        const foo = [...this.editor.selectionManager.selected];
+        let object1 = foo[0]! as Item;
+        let object2 = foo[1]! as Item;
 
         const union = new UnionFactory(this.editor);
         union.object1 = object1;

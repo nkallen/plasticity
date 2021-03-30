@@ -91,17 +91,25 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
         size_t j = 0;
         for (size_t k = 0; k < count; k++)
         {
+            Napi::Object jsInfo = Napi::Object::New(env);
+
             const MbPolygon3D *polygon = mesh->GetPolygon(k);
             if (polygon == NULL)
                 continue;
             if (!polygon->IsVisible())
                 continue;
 
-            if (outlinesOnly) {
-                const MbTopItem * item = polygon->TopItem();
-                if ( (item == NULL) || (item->IsA() != tt_CurveEdge) )
-                    continue;
-            }
+            const MbTopItem *item = polygon->TopItem();
+            if (item == NULL)
+                continue;
+
+            if (outlinesOnly && item->IsA() != tt_CurveEdge)
+                continue;
+
+            const MbEdge *edge = (MbEdge *)item;
+            jsInfo.Set(Napi::String::New(env, "style"), Napi::Number::New(env, edge->GetStyle()));
+            jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
+            jsInfo.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(edge->GetName())));
 
             size_t pointsCnt = polygon->Count();
             Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, 4 * 3 * pointsCnt);
@@ -113,8 +121,9 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
                 line[i++] = (float)p.x;
                 line[i++] = (float)p.y;
                 line[i++] = (float)p.z;
-           }
-            result[j++] = line;
+            }
+            jsInfo.Set(Napi::String::New(env, "position"), line);
+            result[j++] = jsInfo;
         }
     }
     return result;

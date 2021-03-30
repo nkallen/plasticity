@@ -89,10 +89,17 @@ declare module "*c3d.node" {
         name: Name;
     }
 
+    declare interface EdgeBuffer {
+        position: Float32Array;
+        style: number;
+        simpleName: number;
+        name: Name;
+    }
+
     declare class Mesh extends Item {
         GetMeshType(): SpaceType;
         GetApexes(): Float32Array;
-        GetEdges(boolean?): [Float32Array];
+        GetEdges(boolean?): [EdgeBuffer];
         GetBuffers(): [MeshBuffer];
 
         IsClosed(): boolean;
@@ -110,9 +117,16 @@ declare module "*c3d.node" {
 
     }
 
+    declare class CurveEdge extends Edge {
+        
+    }
+
     declare class Solid extends Item {
         GetFaces(): [Face];
         GetEdges(): [Edge];
+
+        FindFaceByName(Name): Face;
+        FindEdgeByName(Name): CurveEdge;
     }
 
     declare class BooleanFlags {
