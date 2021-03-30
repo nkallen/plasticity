@@ -7,18 +7,6 @@ import c3d from '../build/Release/c3d.node';
 // This class hierarchy mirrors the c3d hierarchy into the THREE.js
 // Object3D hierarchy
 
-export class CurveEdge extends Line2 {
-    constructor(name: c3d.Name, simpleName: number, geometry?: LineGeometry, material?: LineMaterial) {
-        super(geometry, material);
-        this.userData.name = name;
-        this.userData.simpleName = simpleName;
-    }
-    
-    get parentObject(): Item {
-        return this.parent.parent as Item;
-    }
-}
-
 export class Item extends THREE.Group {
 
 }
@@ -36,6 +24,12 @@ export class Edge extends Line2 {
         super(geometry, material);
         this.userData.name = name;
         this.userData.simpleName = simpleName;
+    }
+}
+
+export class CurveEdge extends Edge {
+    get parentObject(): Item {
+        return this.parent.parent as Item;
     }
 }
 

@@ -147,11 +147,7 @@ export default (editor: Editor) => {
                 this.outlinePass.selectedObjects = [];
                 return;
             }
-            const toOutline = [];
-            for (const selection of editor.selectionManager.selected) {
-                if (selection instanceof Item)
-                    toOutline.push(selection);
-            }
+            const toOutline = [...editor.selectionManager.selectedItems];
             this.outlinePass.selectedObjects = toOutline;
         }
 

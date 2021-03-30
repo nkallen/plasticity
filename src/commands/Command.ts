@@ -157,7 +157,7 @@ export class BoxCommand extends Command {
 export class MoveCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
-        let object = [...this.editor.selectionManager.selected][0]! as Item;
+        let object = [...this.editor.selectionManager.selectedItems][0]!;
 
         const line = new LineFactory(this.editor);
         const p1 = await pointPicker.execute();
@@ -179,9 +179,9 @@ export class MoveCommand extends Command {
 
 export class UnionCommand extends Command {
     async execute() {
-        const foo = [...this.editor.selectionManager.selected];
-        let object1 = foo[0]! as Item;
-        let object2 = foo[1]! as Item;
+        const items = [...this.editor.selectionManager.selectedItems];
+        let object1 = items[0]!;
+        let object2 = items[1]!;
 
         const union = new UnionFactory(this.editor);
         union.object1 = object1;
