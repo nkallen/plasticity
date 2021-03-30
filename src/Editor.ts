@@ -6,6 +6,7 @@ import MaterialDatabase from "./MaterialDatabase";
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { SelectionManager } from './SelectionManager';
 import { Face, CurveEdge, Item, Edge, Curve3D } from './VisualModel';
+import { FilletGizmo } from './commands/FilletGizmo';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -25,6 +26,13 @@ interface Viewport {
     renderer: THREE.Renderer;
     camera: THREE.Camera;
     constructionPlane: THREE.Mesh;
+    enableControls(): void;
+    disableControls(): void;
+}
+
+export interface TemporaryObject {
+    cancel(): void;
+    commit(): void;
 }
 
 export class Editor {
@@ -61,8 +69,8 @@ export class Editor {
         command.execute();
     }
 
-    addObject(object: c3d.Item) {
-        const mesh = this.object2mesh(object);
+    addObject(object: c3d.Item, mesh?: THREE.Object3D) {
+        mesh = mesh ?? this.object2mesh(object);
         const o = this.geometryModel.AddItem(object);
         mesh.userData.simpleName = o.GetItemName();
 
@@ -73,6 +81,20 @@ export class Editor {
         this.signals.sceneGraphChanged.dispatch();
     }
 
+    addTemporaryObject(object: c3d.Item): TemporaryObject {
+        const mesh = this.object2mesh(object);
+        this.scene.add(mesh);
+        return {
+            cancel: () => {
+                this.scene.remove(mesh);
+            },
+            commit: () => {
+                this.addObject(object, mesh);
+            }
+        }
+    }
+
+    // FIXME review why this method exists and who calls it
     removeObject(object: THREE.Object3D) {
         this.scene.remove(object);
         this.drawModel.delete(object);
@@ -92,7 +114,7 @@ export class Editor {
         return solid.FindEdgeByName(object.userData.name);
     }
 
-    object2mesh(obj: c3d.Item) {
+    object2mesh(obj: c3d.Item): THREE.Object3D {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, 0.005);
         const note = new c3d.FormNote(true, true, true, false, false);
         const item = obj.CreateMesh(stepData, note, null);

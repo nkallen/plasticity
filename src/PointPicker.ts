@@ -1,7 +1,6 @@
-const { CompositeDisposable } = require('event-kit')
 import { Editor } from './Editor'
 import * as THREE from "three";
-import { Disposable } from 'event-kit';
+import { Disposable, CompositeDisposable } from 'event-kit';
 
 const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 

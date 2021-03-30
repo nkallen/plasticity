@@ -7,6 +7,8 @@ export class Selector extends THREE.EventDispatcher {
 
     changeEvent = { type: 'change' };
 
+    enabled = true; // FIXME make work
+
     constructor(drawModel: Set<THREE.Object3D>, camera: THREE.Camera, domElement: HTMLElement) {
         super();
 

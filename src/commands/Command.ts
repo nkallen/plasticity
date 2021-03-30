@@ -10,7 +10,7 @@ import BoxFactory from './Box';
 import MoveFactory from './Move';
 import UnionFactory from './Union';
 import FilletFactory from './Fillet';
-import { Item } from '../VisualModel';
+import { FilletGizmo } from './FilletGizmo';
 
 export default abstract class Command {
     editor: Editor;
@@ -196,9 +196,24 @@ export class FilletCommand extends Command {
         let edges = [...this.editor.selectionManager.selectedEdges];
         const item = edges[0].parentObject
 
+        const edge = edges[0];
+
+        edge.geometry.computeBoundingBox();
+        const centroid = new THREE.Vector3();
+        edge.geometry.boundingBox.getCenter(centroid);
+
         const fillet = new FilletFactory(this.editor);
         fillet.item = item;
         fillet.edges = edges;
+ 
+        const filletGizmo = new FilletGizmo(this.editor);
+        filletGizmo.attach2(edge, centroid, null);
+
+        await filletGizmo.execute((delta) => {
+            fillet.distance = delta;
+            fillet.update();
+        })
+
         fillet.commit();
     }
 }

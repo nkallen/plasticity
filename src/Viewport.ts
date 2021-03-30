@@ -11,8 +11,6 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
-import { Item } from './VisualModel';
-
 const near = 0.01;
 const far = 1000;
 const frustumSize = 20;
@@ -24,12 +22,12 @@ export default (editor: Editor) => {
     class Viewport extends HTMLElement {
         readonly camera: THREE.Camera;
         readonly renderer = new THREE.WebGLRenderer({ antialias: false });
-        readonly controls?: OrbitControls;
+        readonly navigationControls?: OrbitControls;
         readonly selector: Selector;
         readonly constructionPlane = new THREE.Mesh(planeGeo, planeMat);
-        composer: EffectComposer;
-
-        outlinePass: OutlinePass;
+        readonly composer: EffectComposer;
+        readonly outlinePass: OutlinePass;
+        readonly controls = new Set<{ enabled: boolean }>();
 
         constructor() {
             super();
@@ -47,7 +45,7 @@ export default (editor: Editor) => {
                 case "3d":
                     camera = perspectiveCamera;
                     camera.position.set(0, 20, 5);
-                    this.controls = new OrbitControls(camera, domElement);
+                    this.navigationControls = new OrbitControls(camera, domElement);
                     this.constructionPlane.lookAt(0, 0, 1);
                     break;
                 case "top":
@@ -86,7 +84,7 @@ export default (editor: Editor) => {
             outlinePass.edgeStrength = 10;
             outlinePass.edgeGlow = 0;
             outlinePass.edgeThickness = 2.0;
-            outlinePass.visibleEdgeColor.setHex(0xfaed27)
+            outlinePass.visibleEdgeColor.setHex(0xfffff00);
             this.outlinePass = outlinePass;
 
             this.composer.addPass(renderPass);
@@ -98,6 +96,9 @@ export default (editor: Editor) => {
             this.outline = this.outline.bind(this);
             this.resize = this.resize.bind(this);
             this.render = this.render.bind(this);
+
+            if (this.navigationControls) this.controls.add(this.navigationControls)
+            this.controls.add(this.selector);
         }
 
         connectedCallback() {
@@ -129,7 +130,7 @@ export default (editor: Editor) => {
 
             scene.add(grid);
 
-            this.controls?.addEventListener('change', this.render);
+            this.navigationControls?.addEventListener('change', this.render);
             this.selector.addEventListener('change', (event) => { // FIXME reconsider whether to use a signal
                 const selection = event.value;
                 if (selection != null) editor.selectionManager.select(selection);
@@ -166,6 +167,18 @@ export default (editor: Editor) => {
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
             this.composer.setSize(this.offsetWidth, this.offsetHeight);
             this.render();
+        }
+
+        disableControls() {
+            for (var control of this.controls) {
+                control.enabled = false;
+            }
+        }
+
+        enableControls() {
+            for (var control of this.controls) {
+                control.enabled = true;
+            }
         }
     }
 
