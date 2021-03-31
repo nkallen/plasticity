@@ -194,7 +194,7 @@ export class UnionCommand extends Command {
 export class FilletCommand extends Command {
     async execute() {
         let edges = [...this.editor.selectionManager.selectedEdges];
-        const item = edges[0].parentObject
+        const item = edges[0].parentItem
 
         const edge = edges[0];
 

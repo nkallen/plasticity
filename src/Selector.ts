@@ -1,15 +1,21 @@
+import signals from "signals";
 import * as THREE from "three";
 import { VisualModel } from "./VisualModel";
+class SelectorSignals {
+    clicked: signals.Signal<THREE.Intersection[]>;
+}
 
 export class Selector extends THREE.EventDispatcher {
     readonly drawModel: Set<VisualModel>;
     readonly camera: THREE.Camera;
     readonly domElement: HTMLElement;
-
-    changeEvent = { type: 'change' };
+    readonly signals: SelectorSignals = {
+        clicked: new signals.Signal()
+    }
 
     enabled = true; // FIXME make work
 
+    // FIXME add dispose
     constructor(drawModel: Set<VisualModel>, camera: THREE.Camera, domElement: HTMLElement) {
         super();
 
@@ -57,7 +63,7 @@ export class Selector extends THREE.EventDispatcher {
                 object = intersects[0].object;
             }
 
-            this.dispatchEvent({ type: 'change', value: object });
+            this.signals.clicked.dispatch(intersects);
         }
     }
 

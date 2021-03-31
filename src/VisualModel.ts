@@ -26,10 +26,12 @@ export interface ItemBuilder {
     build(): Item;
 }
 export class Item extends DisposableGroup implements ItemBuilder {
+    edges: EdgeGroup;
+    faces: FaceGroup;
+
     private constructor() {
         super();
     }
-
 
     static builder(): ItemBuilder {
         return new Item();
@@ -39,11 +41,13 @@ export class Item extends DisposableGroup implements ItemBuilder {
 
     addEdges(edges: EdgeGroup) {
         super.add(edges);
+        this.edges = edges;
         this.disposable.add(new Disposable(() => edges.dispose()));
     }
 
     addFaces(faces: FaceGroup) {
         super.add(faces);
+        this.faces = faces;
         this.disposable.add(new Disposable(() => faces.dispose()));
     }
 
@@ -104,7 +108,13 @@ export class FaceGroup extends DisposableGroup implements FaceGroupBuilder {
     }
 }
 
-export class Face extends THREE.Mesh implements DisposableLike {
+export interface HasParentItem  {
+    readonly parentItem: Item;
+}
+
+export type TopologyItem = VisualModel & HasParentItem;
+
+export class Face extends THREE.Mesh implements DisposableLike, HasParentItem {
     constructor(name: c3d.Name, simpleName: number, geometry?: THREE.BufferGeometry, material?: THREE.Material) {
         super(geometry, material);
         this.userData.name = name;
@@ -113,6 +123,10 @@ export class Face extends THREE.Mesh implements DisposableLike {
 
     dispose() {
         this.geometry.dispose();
+    }
+
+    get parentItem(): Item {
+        return this.parent.parent as Item;
     }
 }
 
@@ -128,8 +142,8 @@ export class Edge extends Line2 implements DisposableLike {
     }
 }
 
-export class CurveEdge extends Edge {
-    get parentObject(): Item {
+export class CurveEdge extends Edge implements HasParentItem {
+    get parentItem(): Item {
         return this.parent.parent as Item;
     }
 }

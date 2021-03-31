@@ -10,6 +10,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+import { Item } from "./VisualModel";
 
 const near = 0.01;
 const far = 1000;
@@ -131,11 +132,7 @@ export default (editor: Editor) => {
             scene.add(grid);
 
             this.navigationControls?.addEventListener('change', this.render);
-            this.selector.addEventListener('change', (event) => { // FIXME reconsider whether to use a signal
-                const selection = event.value;
-                if (selection != null) editor.selectionManager.select(selection);
-                else editor.selectionManager.deselectAll();
-            });
+            this.selector.signals.clicked.add((intersections) => editor.selectionManager.onIntersection(intersections));
         }
 
         render() {
@@ -144,7 +141,7 @@ export default (editor: Editor) => {
         }
 
         outline() {
-            const toOutline = [...editor.selectionManager.selectedItems];
+            let toOutline = [...editor.selectionManager.selectedItems].map((item) => item.faces);
             this.outlinePass.selectedObjects = toOutline;
         }
 

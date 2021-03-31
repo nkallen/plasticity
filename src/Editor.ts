@@ -5,7 +5,7 @@ import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "./MaterialDatabase";
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { SelectionManager } from './SelectionManager';
-import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel } from './VisualModel';
+import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel, TopologyItem } from './VisualModel';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -105,8 +105,8 @@ export class Editor {
         return item;
     }
 
-    lookupTopologyItem(object: CurveEdge): c3d.TopologyItem {
-        const parent = object.parentObject;
+    lookupTopologyItem(object: TopologyItem): c3d.TopologyItem {
+        const parent = object.parentItem;
         const parentModel = this.lookupItem(parent);
         if (parentModel.IsA() != c3d.SpaceType.Solid) throw "Unexpected return type";
         const solid = parentModel.Cast<c3d.Solid>(c3d.SpaceType.Solid);
