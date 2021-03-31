@@ -15,6 +15,7 @@ export default class MaterialDatabase {
     constructor() {
         this.lineMaterials.set(hash("line"), new THREE.LineBasicMaterial({ color: 0x000000 }));
         this.lineMaterials.set(hash("line-highlighted"), new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 4 }));
+        this.lineMaterials.set(hash("line-hovered"), new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 4 }));
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
 
         const material = new THREE.MeshMatcapMaterial();
@@ -73,5 +74,9 @@ export default class MaterialDatabase {
 
     lookup(o: c3d.TopologyItem): THREE.LineBasicMaterial {
         return this.lineMaterials.get(hash("line"));
+    }
+
+    hover() {
+        return this.lineMaterials.get(hash("line-hovered"));
     }
 }

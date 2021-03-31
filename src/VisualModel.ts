@@ -109,7 +109,7 @@ export interface HasParentItem  {
     readonly parentItem: Item;
 }
 
-export type TopologyItem = VisualModel & HasParentItem;
+export type TopologyItem = (Face | CurveEdge) & DisposableLike & HasParentItem;
 
 export class Face extends THREE.Mesh implements DisposableLike, HasParentItem {
     constructor(name: c3d.Name, simpleName: number, geometry?: THREE.BufferGeometry, material?: THREE.Material) {

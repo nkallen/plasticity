@@ -8,10 +8,11 @@ import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
-interface EditorSignals {
+export interface EditorSignals {
     objectAdded: signals.Signal<VisualModel>;
     objectSelected: signals.Signal<VisualModel>;
     objectDeselected: signals.Signal<VisualModel>;
+    objectHovered: signals.Signal<VisualModel>
     sceneGraphChanged: signals.Signal;
     commandUpdated: signals.Signal;
     pointPickerChanged: signals.Signal;
@@ -40,6 +41,7 @@ export class Editor {
         objectAdded: new signals.Signal(),
         objectSelected: new signals.Signal(),
         objectDeselected: new signals.Signal(),
+        objectHovered: new signals.Signal(),
         sceneGraphChanged: new signals.Signal(),
         commandUpdated: new signals.Signal(),
         pointPickerChanged: new signals.Signal(),

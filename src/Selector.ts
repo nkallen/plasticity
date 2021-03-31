@@ -3,16 +3,23 @@ import * as THREE from "three";
 import { VisualModel } from "./VisualModel";
 class SelectorSignals {
     clicked: signals.Signal<THREE.Intersection[]>;
+    hovered: signals.Signal<THREE.Intersection[]>;
 }
 
 export class Selector extends THREE.EventDispatcher {
-    readonly drawModel: Set<VisualModel>;
-    readonly camera: THREE.Camera;
-    readonly domElement: HTMLElement;
-    readonly signals: SelectorSignals = {
-        clicked: new signals.Signal()
-    }
+    private readonly drawModel: Set<VisualModel>;
+    private readonly camera: THREE.Camera;
+    private readonly domElement: HTMLElement;
+    private readonly raycaster = new THREE.Raycaster();
+    private readonly mouse = new THREE.Vector2();
 
+    private readonly onDownPosition = new THREE.Vector2();
+    private readonly onUpPosition = new THREE.Vector2();
+
+    readonly signals: SelectorSignals = {
+        clicked: new signals.Signal(),
+        hovered: new signals.Signal()
+    }
     enabled = true; // FIXME make work
 
     // FIXME add dispose
@@ -23,54 +30,51 @@ export class Selector extends THREE.EventDispatcher {
         this.camera = camera;
         this.domElement = domElement;
 
+        this.raycaster.params.Line.threshold = 0.05;
+        this.raycaster.params.Mesh.threshold = 0;
+
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
+        this.onPointerHover = this.onPointerHover.bind(this);
 
         domElement.addEventListener('pointerdown', this.onPointerDown, false);
+        domElement.addEventListener('pointermove', this.onPointerHover);
     }
 
-    onDownPosition = new THREE.Vector2();
     onPointerDown(event: PointerEvent) {
-        const domElement = this.domElement;
-        var array = this.getMousePosition(domElement, event.clientX, event.clientY);
+        var array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         this.onDownPosition.fromArray(array);
 
         document.addEventListener('pointerup', this.onPointerUp, false);
     }
 
-    onUpPosition = new THREE.Vector2();
+    onPointerHover(event: PointerEvent) {
+        var array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
+        const point = new THREE.Vector2();
+        point.fromArray(array);
+        const intersects = this.getIntersects(point, [...this.drawModel]);
+        this.signals.hovered.dispatch(intersects);
+    }
+
     onPointerUp(event: PointerEvent) {
-        const domElement = this.domElement;
-        var array = this.getMousePosition(domElement, event.clientX, event.clientY);
+        var array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         this.onUpPosition.fromArray(array);
 
-        this.handleClick();
+        if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
+            const intersects = this.getIntersects(this.onUpPosition, [...this.drawModel]);
+
+            this.signals.clicked.dispatch(intersects);
+        }
 
         document.removeEventListener('pointerup', this.onPointerUp, false);
     }
 
-    getMousePosition(dom: HTMLElement, x: number, y: number) {
+    private getMousePosition(dom: HTMLElement, x: number, y: number) {
         var rect = dom.getBoundingClientRect();
         return [(x - rect.left) / rect.width, (y - rect.top) / rect.height];
     }
 
-    handleClick() {
-        if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
-            var intersects = this.getIntersects(this.onUpPosition, [...this.drawModel]);
-
-            let object: THREE.Object3D = null;
-            if (intersects.length > 0) {
-                object = intersects[0].object;
-            }
-
-            this.signals.clicked.dispatch(intersects);
-        }
-    }
-
-    raycaster = new THREE.Raycaster();
-    mouse = new THREE.Vector2();
-
-    getIntersects(point: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
+    private getIntersects(point: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
         this.mouse.set((point.x * 2) - 1, - (point.y * 2) + 1);
 
         this.raycaster.setFromCamera(this.mouse, this.camera);

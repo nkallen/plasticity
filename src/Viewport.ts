@@ -10,7 +10,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
-import { Item } from "./VisualModel";
+import { Item, VisualModel } from "./VisualModel";
 
 const near = 0.01;
 const far = 1000;
@@ -27,7 +27,8 @@ export default (editor: Editor) => {
         readonly selector: Selector;
         readonly constructionPlane = new THREE.Mesh(planeGeo, planeMat);
         readonly composer: EffectComposer;
-        readonly outlinePass: OutlinePass;
+        readonly outlinePassSelection: OutlinePass;
+        readonly outlinePassHover: OutlinePass;
         readonly controls = new Set<{ enabled: boolean }>();
 
         constructor() {
@@ -81,20 +82,29 @@ export default (editor: Editor) => {
             const renderPass = new RenderPass(editor.scene, this.camera);
             const copyPass = new ShaderPass(CopyShader);
 
-            const outlinePass = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
-            outlinePass.edgeStrength = 10;
-            outlinePass.edgeGlow = 0;
-            outlinePass.edgeThickness = 2.0;
-            outlinePass.visibleEdgeColor.setHex(0xfffff00);
-            this.outlinePass = outlinePass;
+            const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
+            outlinePassSelection.edgeStrength = 10;
+            outlinePassSelection.edgeGlow = 0;
+            outlinePassSelection.edgeThickness = 2.0;
+            outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
+            this.outlinePassSelection = outlinePassSelection;
+
+            const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
+            outlinePassHover.edgeStrength = 10;
+            outlinePassHover.edgeGlow = 0;
+            outlinePassHover.edgeThickness = 2.0;
+            outlinePassHover.visibleEdgeColor.setHex(0xfffffff);
+            this.outlinePassHover = outlinePassHover;
 
             this.composer.addPass(renderPass);
-            this.composer.addPass(this.outlinePass);
+            this.composer.addPass(this.outlinePassHover);
+            this.composer.addPass(this.outlinePassSelection);
             this.composer.addPass(copyPass);
 
             this.shadowRoot!.append(domElement);
 
-            this.outline = this.outline.bind(this);
+            this.outlineSelection = this.outlineSelection.bind(this);
+            this.outlineHover = this.outlineHover.bind(this);
             this.resize = this.resize.bind(this);
             this.render = this.render.bind(this);
 
@@ -110,16 +120,19 @@ export default (editor: Editor) => {
 
             const pane = this.parentElement as Pane;
             pane.signals.flexScaleChanged.add(this.resize);
-
             editor.signals.windowLoaded.add(this.resize);
             editor.signals.windowResized.add(this.resize);
-            editor.signals.objectSelected.add(this.outline);
+
+            editor.signals.objectSelected.add(this.outlineSelection);
+            editor.signals.objectDeselected.add(this.outlineSelection);
+            editor.signals.objectHovered.add(this.outlineHover);
+
             editor.signals.objectSelected.add(this.render);
-            editor.signals.objectDeselected.add(this.outline);
             editor.signals.objectDeselected.add(this.render);
             editor.signals.sceneGraphChanged.add(this.render);
             editor.signals.commandUpdated.add(this.render);
             editor.signals.pointPickerChanged.add(this.render);
+            editor.signals.objectHovered.add(this.render);
 
             const grid = new THREE.GridHelper(300, 300, 0x666666);
             grid.rotateX(Math.PI / 2);
@@ -132,7 +145,8 @@ export default (editor: Editor) => {
             scene.add(grid);
 
             this.navigationControls?.addEventListener('change', this.render);
-            this.selector.signals.clicked.add((intersections) => editor.selectionManager.onIntersection(intersections));
+            this.selector.signals.clicked.add((intersections) => editor.selectionManager.onClick(intersections));
+            this.selector.signals.hovered.add((intersections) => editor.selectionManager.onPointerMove(intersections));
         }
 
         render() {
@@ -140,9 +154,15 @@ export default (editor: Editor) => {
             this.composer.render();
         }
 
-        outline() {
-            let toOutline = [...editor.selectionManager.selectedItems].map((item) => item.faces);
-            this.outlinePass.selectedObjects = toOutline;
+        outlineSelection() {
+            const selectionManager = editor.selectionManager;
+            const toOutline = [...selectionManager.selectedItems].map((item) => item.faces);
+            this.outlinePassSelection.selectedObjects = toOutline;
+        }
+
+        outlineHover(object?: VisualModel) {
+            if (object == null) this.outlinePassHover.selectedObjects = [];
+            else if (object instanceof Item) this.outlinePassHover.selectedObjects = [object.faces];
         }
 
         resize() {
