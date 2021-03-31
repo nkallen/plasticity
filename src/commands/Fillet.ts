@@ -59,12 +59,8 @@ export default class FilletFactory extends GeometryFactory {
 
         const names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
 
-        console.time("fillet");
         const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.KeepHistory, this.curves, [], this.params, names);
-        console.timeEnd("fillet");
-        console.time("addTemp");
         this.temp = this.editor.addTemporaryObject(result);
-        console.timeEnd("addTemp");
 
         return super.update();
     }

@@ -75,6 +75,7 @@
     "@types/atom-keymap": "^8.0.3",
     "@types/event-kit": "^2.4.0",
     "@types/signals": "^1.0.1",
+    "@types/stats.js": "^0.17.0",
     "@types/three": "^0.126.2",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
@@ -106,6 +107,7 @@
     "event-kit": "^2.5.3",
     "preact": "^10.5.13",
     "signals": "^1.0.0",
+    "stats.js": "^0.17.0",
     "three": "^0.126.1"
   }
 }

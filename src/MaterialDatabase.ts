@@ -63,7 +63,7 @@ export default class MaterialDatabase {
             material = this.materials.get(o.style);
         }
         material = material ?? this.materials.get(hash("mesh"));
-        material = material.clone();
+        // material = material.clone(); // FIXME need to dispose of this material
         material.side = doubleSided ? THREE.FrontSide : THREE.DoubleSide;
         return material;
     }

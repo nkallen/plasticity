@@ -143,11 +143,7 @@ export default (editor: Editor) => {
             this.composer.render();
         }
 
-        outline(o: THREE.Object3D) {
-            if (o == null) {
-                this.outlinePass.selectedObjects = [];
-                return;
-            }
+        outline() {
             const toOutline = [...editor.selectionManager.selectedItems];
             this.outlinePass.selectedObjects = toOutline;
         }

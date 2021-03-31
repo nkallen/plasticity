@@ -1,16 +1,25 @@
 import './css/index.css';
 
+import Stats from 'stats.js';
 import { Editor } from './Editor';
 import './Pane';
 import Toolbar from './Toolbar';
 import Viewport from './Viewport';
 // import registerDefaultCommands from './register-default-commands';
 const editor = new Editor();
+const stats = new Stats();
+stats.showPanel(2);
+document.body.appendChild(stats.dom);
 
-import c3d  from '../build/Release/c3d.node';
+import c3d from '../build/Release/c3d.node';
 import './types/c3d-enum'
 import license from '../license-key.json';
 c3d.Enabler.EnableMathModules(license.name, license.key);
+
+requestAnimationFrame(function loop() {
+    stats.update();
+    requestAnimationFrame(loop)
+});
 
 // import CommandRegistry from './CommandRegistry';
 

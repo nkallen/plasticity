@@ -133,7 +133,6 @@ export class BoxCommand extends Command {
         });
         line.cancel();
 
-
         const rect = new RectFactory(this.editor);
         rect.p1 = p1;
         rect.p2 = p2;

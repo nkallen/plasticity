@@ -1,8 +1,6 @@
 
 import { Editor } from './Editor';
-import * as THREE from "three";
-import { Edge, Face, Item, CurveEdge } from './VisualModel';
-
+import { Edge, Face, Item, CurveEdge, VisualModel } from './VisualModel';
 export class SelectionManager {
     readonly selectedItems = new Set<Item>();
     readonly selectedEdges = new Set<CurveEdge>();
@@ -13,7 +11,7 @@ export class SelectionManager {
         this.editor = editor;
     }
 
-    select(object: THREE.Object3D) {
+    select(object: VisualModel) {
         if (object instanceof CurveEdge) {
             this.selectEdge(object);
         }

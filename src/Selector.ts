@@ -1,7 +1,8 @@
 import * as THREE from "three";
+import { VisualModel } from "./VisualModel";
 
 export class Selector extends THREE.EventDispatcher {
-    readonly drawModel: Set<THREE.Object3D>;
+    readonly drawModel: Set<VisualModel>;
     readonly camera: THREE.Camera;
     readonly domElement: HTMLElement;
 
@@ -9,7 +10,7 @@ export class Selector extends THREE.EventDispatcher {
 
     enabled = true; // FIXME make work
 
-    constructor(drawModel: Set<THREE.Object3D>, camera: THREE.Camera, domElement: HTMLElement) {
+    constructor(drawModel: Set<VisualModel>, camera: THREE.Camera, domElement: HTMLElement) {
         super();
 
         this.drawModel = drawModel;
