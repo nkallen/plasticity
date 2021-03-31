@@ -8,7 +8,7 @@ import Viewport from './Viewport';
 // import registerDefaultCommands from './register-default-commands';
 const editor = new Editor();
 const stats = new Stats();
-stats.showPanel(2);
+stats.showPanel(1);
 document.body.appendChild(stats.dom);
 
 import c3d from '../build/Release/c3d.node';

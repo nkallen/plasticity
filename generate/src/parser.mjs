@@ -293,12 +293,13 @@ class ReturnDeclaration extends TypeDeclaration {
 
         this.desc = desc;
         this.options = options;
+        if (this.options?.isErrorBool) this.isErrorBool = true;
         this.const = matchType.groups.const;
         this.ref = matchType.groups.ref;
     }
 
     get isReturn() {
-        return !this.isErrorCode && this.rawType != 'void'
+        return !this.isErrorCode && !this.isErrorBool && this.rawType != 'void'
     }
 
     get name() {

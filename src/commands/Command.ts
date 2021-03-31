@@ -11,6 +11,7 @@ import MoveFactory from './Move';
 import UnionFactory from './Union';
 import FilletFactory from './Fillet';
 import { FilletGizmo } from './FilletGizmo';
+import c3d from '../../build/Release/c3d.node';
 
 export default abstract class Command {
     editor: Editor;
@@ -206,7 +207,10 @@ export class FilletCommand extends Command {
         fillet.edges = edges;
  
         const filletGizmo = new FilletGizmo(this.editor);
-        filletGizmo.attach2(edge, centroid, null);
+        const curveEdge = this.editor.lookupTopologyItem(edge) as c3d.CurveEdge;
+        const normal = curveEdge.EdgeNormal(0.5);
+
+        filletGizmo.attach2(edge, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));
 
         await filletGizmo.execute((delta) => {
             fillet.distance = delta;

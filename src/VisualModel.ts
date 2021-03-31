@@ -58,7 +58,7 @@ interface EdgeGroupBuilder {
 }
 
 export class EdgeGroup extends DisposableGroup implements EdgeGroupBuilder {
-    private constructor() {
+    protected constructor() {
         super();
     }
 

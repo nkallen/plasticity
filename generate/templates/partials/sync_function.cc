@@ -13,7 +13,7 @@
 <%_ } _%>
 
 
-<% if (func.returnType.isReturn || func.returnType.isErrorCode) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> <%- func.returnType.name %> = <% } _%>
+<% if (func.returnType.isReturn || func.returnType.isErrorCode || func.returnType.isErrorBool) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> <%- func.returnType.name %> = <% } _%>
 <%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- func.name %>(
 <%_ for (const arg of func.params) { _%>
     <% if (arg.isCppString2CString) { _%>
@@ -32,6 +32,8 @@
 
 <%_ if (func.returnType.isErrorCode) { _%>
 if (_result == rt_Success) {
+<%_ } else if (func.returnType.isErrorBool) { _%>
+if (_result) {
 <%_ } _%>
 
 <%_ if (func.returnsCount == 0) { _%>
@@ -59,6 +61,13 @@ if (_result == rt_Success) {
 } else {
     std::ostringstream msg;
     msg << "Operation <%- func.name %> failed with error: " << Error::GetSolidErrorResId(_result);
+    Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
+    return env.Undefined();
+}
+<%_ } else if (func.returnType.isErrorBool) { _%>
+} else {
+    std::ostringstream msg;
+    msg << "Operation <%- func.name %> failed";
     Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
     return env.Undefined();
 }

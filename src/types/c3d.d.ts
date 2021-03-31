@@ -12,6 +12,10 @@ declare module "*c3d.node" {
         private _useNominal: undefined;
         constructor(number, number, number);
         constructor(CartPoint3D, CartPoint3D);
+
+        x: number;
+        y: number;
+        z: number;
     }
 
     declare class Axis3D {
@@ -119,7 +123,7 @@ declare module "*c3d.node" {
     }
 
     declare class CurveEdge extends Edge {
-
+        EdgeNormal(number): Vector3D;
     }
 
     declare class Solid extends Item {

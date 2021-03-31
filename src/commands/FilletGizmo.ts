@@ -31,7 +31,7 @@ matHelper.opacity = 0.33;
 
 const sphereGeometry = new THREE.SphereGeometry(0.1);
 const lineGeometry = new THREE.BufferGeometry();
-lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3));
+lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 1, 0], 3));
 
 export class FilletGizmo extends THREE.Object3D {
     // worldPositionStart = new THREE.Vector3();
@@ -54,7 +54,7 @@ export class FilletGizmo extends THREE.Object3D {
         this.picker = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
         this.picker.position.set(0, 0.6, 0);
         const deltaGeometry = new THREE.BufferGeometry();
-        deltaGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 1, 1], 3));
+        deltaGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 1, 0], 3));
         this.delta = new THREE.Line(deltaGeometry, matHelper);
 
         this.add(sphere);
@@ -74,6 +74,7 @@ export class FilletGizmo extends THREE.Object3D {
     attach2(object: THREE.Object3D, point: THREE.Vector3, normal: THREE.Vector3) { // FIXME either rename or inline into execute
         this.object = object;
         this.position.copy(point);
+        this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         this.visible = true;
     }
 

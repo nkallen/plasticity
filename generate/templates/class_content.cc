@@ -1,3 +1,6 @@
+#include <iostream>     // std::cout, std::ios
+#include <sstream>      // std::ostringstream
+
 #include "../include/<%- klass.cppClassName %>.h"
 
 Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object exports) {
@@ -91,6 +94,7 @@ Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::Ca
     Napi::Value _to;
     <%- field.rawType %> <%- field.name %> = _underlying-><%- field.name %>;
     <%- include('convert_to_js.cc', { arg: field }) %>
+    return _to;
 }
 
 void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {

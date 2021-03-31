@@ -35,7 +35,7 @@ export default class FilletFactory extends GeometryFactory {
 
         const curves = [];
         for (const edge of this.edges) {
-            curves.push(this.editor.lookupTopologyItem(edge));
+            curves.push(this.editor.lookupTopologyItem(edge) as c3d.CurveEdge);
         }
         this.curves = curves;
     }

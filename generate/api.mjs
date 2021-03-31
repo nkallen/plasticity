@@ -34,7 +34,7 @@ export default {
         Item: {
             rawHeader: "model_item.h",
             dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h", "SpaceItem.h", "Matrix3D.h", "Axis3D.h"],
-            extends: [ "SpaceItem", "AttributeContainer"],
+            extends: ["SpaceItem", "AttributeContainer"],
             functions: [
                 "MbeSpaceType IsA()",
                 "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg = NULL)",
@@ -196,6 +196,11 @@ export default {
             initializers: [
                 "double a, double b, double c",
                 "const MbCartPoint3D & p1, const MbCartPoint3D & p2"
+            ],
+            fields: [
+                "double x",
+                "double y",
+                "double z"
             ]
         },
         Axis3D: {
@@ -291,7 +296,14 @@ export default {
         CurveEdge: {
             rawHeader: "topology.h",
             extends: "Edge",
-            dependencies: ["Edge.h"]
+            dependencies: ["Edge.h", "Vector3D.h"],
+            functions: [
+                {
+                    signature: "bool EdgeNormal(double t, MbVector3D & p)",
+                    p: { isReturn: true },
+                    return: { isErrorBool: true }
+                }
+            ]
         },
         Face: {
             rawHeader: "topology.h",
@@ -355,7 +367,7 @@ export default {
         PolyCurve3D: {
             rawHeader: "cur_polycurve3d.h",
             extends: "Curve3D",
-            dependencies: ["Curve3D.h"],            
+            dependencies: ["Curve3D.h"],
         },
         Polyline3D: {
             rawHeader: "cur_polyline3d.h",
