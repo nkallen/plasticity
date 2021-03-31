@@ -94,10 +94,10 @@ export class Editor {
         }
     }
 
-    // FIXME review why this method exists and who calls it
-    removeObject(object: VisualModel) {
+    removeItem(object: Item) {
         this.scene.remove(object);
         this.drawModel.delete(object);
+        this.geometryModel.DetachItem(this.lookupItem(object));
     }
 
     lookupItem(object: Item): c3d.Item {

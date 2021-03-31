@@ -27,7 +27,7 @@ export default class MoveFactory extends GeometryFactory {
     }
 
     commit() {
-        this.editor.scene.remove(this.object);
+        this.editor.removeItem(this.object);
         const model = this.editor.lookupItem(this.object);
 
         const delta = this.p2.clone().sub(this.p1);

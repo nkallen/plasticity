@@ -11,7 +11,10 @@ export default {
             initializers: [""],
             functions: [
                 "MbItem * AddItem(MbItem & item, SimpleName n = c3d::UNDEFINED_SNAME)",
-                "bool DetachItem(MbItem * item)",
+                {
+                    signature: "bool DetachItem(MbItem * item)",
+                    before: "item->AddRef();"
+                },
                 {
                     signature: "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)",
                     path: { isReturn: true }, from: { isReturn: true },

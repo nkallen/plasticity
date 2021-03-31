@@ -67,8 +67,8 @@ export default class FilletFactory extends GeometryFactory {
 
     commit() {
         this.temp!.commit();
-        this.editor.removeObject(this.item);
         this.editor.selectionManager.deselectAll();
+        this.editor.removeItem(this.item);
     }
 
     cancel() {

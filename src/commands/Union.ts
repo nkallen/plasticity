@@ -7,8 +7,8 @@ export default class UnionFactory extends GeometryFactory {
     object2!: Item;
 
     commit() {
-        this.editor.removeObject(this.object1);
-        this.editor.removeObject(this.object2);
+        this.editor.removeItem(this.object1);
+        this.editor.removeItem(this.object2);
 
         let model1 = this.editor.lookupItem(this.object1);
         let model2 = this.editor.lookupItem(this.object2);

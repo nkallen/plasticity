@@ -50,6 +50,7 @@ declare module "*c3d.node" {
         private _useNominal: undefined;
         AddItem(Item): Item;
         GetItemByName(SimpeName): { item: Item };
+        DetachItem(Item): void;
     }
 
     declare class FormNote {
