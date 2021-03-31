@@ -2,19 +2,17 @@ import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
 import { Editor } from '../Editor'
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 
 export default class CircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
     radius!: number;
-    mesh: Line2;
+    mesh: THREE.Line;
 
     constructor(editor: Editor) {
         super(editor);
-        const geometry = new LineGeometry();
+        const geometry = new THREE.BufferGeometry();
 
-        this.mesh = new Line2(geometry, this.editor.materialDatabase.line());
+        this.mesh = new THREE.Line(geometry, this.editor.materialDatabase.line());
         this.editor.scene.add(this.mesh);
     }
 
@@ -29,8 +27,8 @@ export default class CircleFactory extends GeometryFactory {
             vertices[i * 3 + 1] = Math.sin(theta) * this.radius;
             vertices[i * 3 + 2] = 0;
         }
-        const geometry = new LineGeometry();
-        geometry.setPositions(vertices);
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         this.mesh.geometry = geometry;
         this.mesh.position.copy(this.center);
 

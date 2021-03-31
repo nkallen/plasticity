@@ -3,7 +3,6 @@ import signals from "signals";
 import Command from './commands/Command';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "./MaterialDatabase";
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { SelectionManager } from './SelectionManager';
 import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel, TopologyItem } from './VisualModel';
 
@@ -125,8 +124,8 @@ export class Editor {
                 const curve3D = Curve3D.builder();
                 const edges = mesh.GetEdges();
                 for (const edge of edges) {
-                    const geometry = new LineGeometry();
-                    geometry.setPositions(edge.position);
+                    const geometry = new THREE.BufferGeometry();
+                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(edge.position, 3));
                     const line = new Edge(edge.name, edge.simpleName, geometry, this.materialDatabase.line());
                     curve3D.addEdge(line);
                 }
@@ -145,8 +144,8 @@ export class Editor {
                 const lineMaterial = this.materialDatabase.line();
                 const polygons = mesh.GetEdges(true);
                 for (const edge of polygons) {
-                    const geometry = new LineGeometry();
-                    geometry.setPositions(edge.position);
+                    const geometry = new THREE.BufferGeometry();
+                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(edge.position, 3));
                     const line = new CurveEdge(edge.name, edge.simpleName, geometry, lineMaterial);
                     edges.addEdge(line);
                 }

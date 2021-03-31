@@ -2,19 +2,17 @@ import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
 import { Editor } from './../Editor'
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 
 export default class LineFactory extends GeometryFactory {
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
-    mesh: Line2;
+    mesh: THREE.Line;
 
     constructor(editor: Editor) {
         super(editor);
-        const geometry = new LineGeometry();
+        const geometry = new THREE.BufferGeometry();
 
-        this.mesh = new Line2(geometry, this.editor.materialDatabase.line());
+        this.mesh = new THREE.Line(geometry, this.editor.materialDatabase.line());
         this.editor.scene.add(this.mesh);
     }
 
@@ -29,8 +27,8 @@ export default class LineFactory extends GeometryFactory {
         vertices[4] = this.p2.y;
         vertices[5] = this.p2.z;
 
-        const geometry = new LineGeometry();
-        geometry.setPositions(vertices);
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         this.mesh.geometry = geometry;
 
         return super.update();

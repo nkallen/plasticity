@@ -1,7 +1,4 @@
 import * as THREE from "three";
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../build/Release/c3d.node';
 import { Disposable, DisposableLike, CompositeDisposable } from 'event-kit';
 
@@ -130,8 +127,8 @@ export class Face extends THREE.Mesh implements DisposableLike, HasParentItem {
     }
 }
 
-export class Edge extends Line2 implements DisposableLike {
-    constructor(name: c3d.Name, simpleName: number, geometry?: LineGeometry, material?: LineMaterial) {
+export class Edge extends THREE.Line implements DisposableLike {
+    constructor(name: c3d.Name, simpleName: number, geometry?: THREE.BufferGeometry, material?: THREE.LineBasicMaterial) {
         super(geometry, material);
         this.userData.name = name;
         this.userData.simpleName = simpleName;
