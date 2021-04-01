@@ -80,15 +80,6 @@ export class PointPicker {
                     };
                 }
 
-                function intersectObjectWithRay(objects: THREE.Object3D[], raycaster: THREE.Raycaster) {
-                    const allIntersections = raycaster.intersectObjects(objects, true);
-                    for (const intersection of allIntersections) {
-                        const snap = intersection.object.userData.snap;
-                        return snap.project(intersection);
-                    }
-                    return null;
-                }
-
                 function onPointerDown(e: PointerEvent) {
                     viewport.overlay.clear();
                     scene.remove(mesh);
