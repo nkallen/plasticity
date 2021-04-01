@@ -1,7 +1,7 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
 import { Item, CurveEdge } from '../VisualModel';
-import { TemporaryObject } from '../Editor_';
+import { TemporaryObject } from '../Editor';
 
 export default class FilletFactory extends GeometryFactory {
     _item!: Item;

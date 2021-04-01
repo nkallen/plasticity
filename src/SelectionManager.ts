@@ -1,7 +1,7 @@
 
 import { CompositeDisposable, Disposable } from 'event-kit';
 import signals from 'signals';
-import { Editor, EditorSignals } from './Editor_';
+import { Editor, EditorSignals } from './Editor';
 import { Face, Item, CurveEdge, TopologyItem, VisualModel } from './VisualModel';
 
 enum SelectionMode {

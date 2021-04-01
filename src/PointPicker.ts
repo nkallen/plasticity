@@ -1,4 +1,4 @@
-import { Editor } from './Editor_'
+import { Editor } from './Editor'
 import * as THREE from "three";
 import { Disposable, CompositeDisposable } from 'event-kit';
 
