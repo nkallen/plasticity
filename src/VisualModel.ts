@@ -62,13 +62,9 @@ interface EdgeGroupBuilder {
     build(): EdgeGroup;
 }
 
-export class EdgeGroup extends DisposableGroup implements EdgeGroupBuilder {
+export abstract class EdgeGroup extends DisposableGroup implements EdgeGroupBuilder {
     protected constructor() {
         super();
-    }
-
-    static builder(): EdgeGroupBuilder {
-        return new EdgeGroup();
     }
 
     build() { return this }
@@ -98,7 +94,7 @@ export class FaceGroup extends DisposableGroup implements FaceGroupBuilder {
     }
 
     build() { return this }
-    
+
     addFace(face: Face) {
         super.add(face);
         this.disposable.add(new Disposable(() => face.dispose()));
@@ -109,7 +105,7 @@ export class FaceGroup extends DisposableGroup implements FaceGroupBuilder {
     }
 }
 
-export interface HasParentItem  {
+export interface HasParentItem {
     readonly parentItem: Item;
 }
 
@@ -133,7 +129,7 @@ export class Face extends THREE.Mesh implements DisposableLike, HasParentItem {
 
 export class Edge extends Line2 implements DisposableLike {
     readonly snaps = new Set<Snap>();
-    
+
     constructor(name: c3d.Name, simpleName: number, geometry?: LineGeometry, material?: LineMaterial) {
         super(geometry, material);
         this.userData.name = name;
@@ -143,6 +139,10 @@ export class Edge extends Line2 implements DisposableLike {
     dispose() {
         this.geometry.dispose();
     }
+
+    get parentItem(): Item {
+        return this.parent as Item;
+    }
 }
 
 export class CurveEdge extends Edge implements HasParentItem {
@@ -151,15 +151,29 @@ export class CurveEdge extends Edge implements HasParentItem {
     }
 }
 
+export class CurveSegment extends Edge {
+    get parentCurve(): Curve3D {
+        return this.parent as Curve3D;
+    }
+}
+
 export class Curve3D extends EdgeGroup {
+
+    static builder(): EdgeGroupBuilder {
+        return new Curve3D();
+    }
+
     *[Symbol.iterator]() {
         for (const child of this.children) {
-            yield child as Edge;
+            yield child as CurveSegment;
         }
     }
 }
 
 export class CurveEdgeGroup extends EdgeGroup {
+    static builder(): EdgeGroupBuilder {
+        return new CurveEdgeGroup();
+    }
     *[Symbol.iterator]() {
         for (const child of this.children) {
             yield child as CurveEdge;

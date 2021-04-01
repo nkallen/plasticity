@@ -4,7 +4,7 @@ import Command from './commands/Command';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "./MaterialDatabase";
 import { SelectionManager } from './SelectionManager';
-import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel, TopologyItem } from './VisualModel';
+import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel, TopologyItem, CurveSegment, CurveEdgeGroup } from './VisualModel';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { SpriteDatabase } from "./SpriteDatabase";
 import { PlaneSnap, SnapManager } from './SnapManager';
@@ -131,9 +131,9 @@ export class Editor {
                 const curve3D = Curve3D.builder();
                 const edges = mesh.GetEdges();
                 for (const edge of edges) {
-                    const geometry = new LineGeometry();
+                    const geometry = new LineGeometry(); // FIXME inline these into CurveSegment constructor
                     geometry.setPositions(edge.position);
-                    const line = new Edge(edge.name, edge.simpleName, geometry, this.materialDatabase.line(item));
+                    const line = new CurveSegment(edge.name, edge.simpleName, geometry, this.materialDatabase.line(item));
                     curve3D.addEdge(line);
                 }
                 return curve3D.build();
@@ -147,7 +147,7 @@ export class Editor {
             // }
             default: {
                 const item = Item.builder();
-                const edges = EdgeGroup.builder();
+                const edges = CurveEdgeGroup.builder();
                 const lineMaterial = this.materialDatabase.line();
                 const polygons = mesh.GetEdges(true);
                 for (const edge of polygons) {

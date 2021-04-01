@@ -4,7 +4,7 @@ import signals from 'signals';
 import { LineBasicMaterial } from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { Editor } from './Editor';
-import { Face, Item, CurveEdge, TopologyItem, VisualModel, Curve3D } from './VisualModel';
+import { Face, Item, CurveEdge, TopologyItem, VisualModel, Curve3D, Edge, CurveSegment } from './VisualModel';
 
 enum SelectionMode {
     Edge, Face, Item, Curve
@@ -91,7 +91,7 @@ class Curve3DHoverable extends Hoverable {
         this.previousMaterial = previous;
     }
 
-    dipose() {
+    dispose() {
         for (const edge of this.object) {
             edge.material = this.previousMaterial;
         }
@@ -208,12 +208,14 @@ export class SelectionManager {
                     }
                     return;
                 }
-            } else if (object instanceof Curve3D) {
-                if (this.hoverCurve3D(object)) {
+            } else if (object instanceof CurveSegment) {
+                const parentCurve = object.parentCurve;
+                if (this.hoverCurve3D(object, parentCurve)) {
                     if (!this.hover?.isEqual(object)) {
                         this.hover?.dispose();
-                        this.hover = new Curve3DHoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
+                        this.hover = new Curve3DHoverable(parentCurve, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
                     }
+                    return;
                 }
             }
         }
@@ -221,8 +223,8 @@ export class SelectionManager {
         this.hover = null;
     }
 
-    private hoverCurve3D(object: Curve3D): boolean {
-        if (this.mode.has(SelectionMode.Curve) && object instanceof Curve3D && !this.selectedCurves.has(object)) {
+    private hoverCurve3D(object: CurveSegment, parentCurve: Curve3D): boolean {
+        if (this.mode.has(SelectionMode.Curve) && !this.selectedCurves.has(parentCurve)) {
             return true;
         }
         return false;
