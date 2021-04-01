@@ -26,8 +26,8 @@ export class SnapManager {
 
     private update() {
         const all = [...this.snaps, ...this.begPoints, ...this.midPoints];
-        this.snappers = all.map((s) => s.picker);
-        this.pickers = all.map((s) => s.snapper);
+        this.pickers = all.map((s) => s.picker);
+        this.snappers = all.map((s) => s.snapper);
     }
 
     add(item: VisualModel) {
