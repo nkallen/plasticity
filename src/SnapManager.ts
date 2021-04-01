@@ -141,8 +141,8 @@ export class PlaneSnap extends Snap {
     constructor(n: THREE.Vector3, p: THREE.Vector3 = new THREE.Vector3()) {
         const planeGeo = new THREE.PlaneGeometry(1000, 1000, 2, 2);
         const mesh = new THREE.Mesh(planeGeo);
-        mesh.position.copy(p);
         mesh.lookAt(n);
+        mesh.position.copy(p);
         super(mesh);
         this.n = n;
     }
