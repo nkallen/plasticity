@@ -1,4 +1,26 @@
 import * as THREE from "three";
+import { Editor } from "./Editor";
+
+export class SnapManager {
+    private readonly editor: Editor;
+    private readonly snaps = new Set<Snap>();
+
+    constructor(editor: Editor) {
+        this.editor = editor;
+        this.snaps.add(new OriginSnap().configure());
+        this.snaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)).configure());
+        this.snaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)).configure());
+        this.snaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)).configure());
+    }
+
+    get pickers() {
+        return [...this.snaps].map((s) => s.picker);
+    }
+
+    get snappers() {
+        return [...this.snaps].map((s) => s.snapper);
+    }
+}
 
 export abstract class Snap {
     snapper: THREE.Object3D;

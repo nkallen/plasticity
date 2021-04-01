@@ -7,7 +7,7 @@ import { SelectionManager } from './SelectionManager';
 import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel, TopologyItem } from './VisualModel';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { SpriteDatabase } from "./SpriteDatabase";
-import { Snap, OriginSnap, AxisSnap } from './SnapManager';
+import { SnapManager } from './SnapManager';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -59,7 +59,7 @@ export class Editor {
     readonly materialDatabase = new MaterialDatabase();
     readonly scene = new THREE.Scene();
     readonly selectionManager = new SelectionManager(this);
-    readonly snaps = new Set<Snap>();
+    readonly snapManager = new SnapManager(this);
     readonly spriteDatabase = new SpriteDatabase();
 
     constructor() {
@@ -70,11 +70,6 @@ export class Editor {
         const axes = new THREE.AxesHelper(10000);
         this.scene.add(axes);
         this.scene.background = new THREE.Color(0x424242);
-
-        this.snaps.add(new OriginSnap().configure());
-        this.snaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)).configure());
-        this.snaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)).configure());
-        this.snaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)).configure());
     }
 
     execute(command: Command) {
