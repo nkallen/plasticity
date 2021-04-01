@@ -8,24 +8,23 @@ enum SelectionMode {
     Edge, Face, Item
 }
 
-class RefCounter {
-    private readonly counts = new Map<Item, number>();
+class RefCounter<T> {
+    private readonly counts = new Map<T, number>();
 
-    has(item: Item): boolean {
+    has(item: T): boolean {
         return this.counts.has(item);
     }
 
-    incr(item: Item) {
+    incr(item: T) {
         if (this.counts.has(item)) {
             const count = this.counts.get(item);
             this.counts.set(item, count + 1)
         } else {
             this.counts.set(item, 1);
         }
-        const count = this.counts.get(item);
     }
 
-    decr(item: Item) {
+    decr(item: T) {
         const count = this.counts.get(item);
         if (count == 1) {
             this.counts.delete(item);

@@ -30,6 +30,7 @@ export default (editor: Editor) => {
         readonly outlinePassSelection: OutlinePass;
         readonly outlinePassHover: OutlinePass;
         readonly controls = new Set<{ enabled: boolean }>();
+        readonly grid: THREE.Object3D;
 
         constructor() {
             super();
@@ -66,6 +67,15 @@ export default (editor: Editor) => {
                     this.constructionPlane.lookAt(1, 0, 0);
                     break;
             }
+
+            const grid = new THREE.GridHelper(300, 300, 0x666666);
+            grid.rotateX(Math.PI / 2);
+            const material1 = grid.material as THREE.LineBasicMaterial;
+            material1.color.setHex(0x888888);
+            material1.vertexColors = false;
+            material1.depthFunc = THREE.AlwaysDepth;
+            this.grid = grid;
+
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());
             this.camera = camera;
@@ -134,15 +144,7 @@ export default (editor: Editor) => {
             editor.signals.pointPickerChanged.add(this.render);
             editor.signals.objectHovered.add(this.render);
 
-            const grid = new THREE.GridHelper(300, 300, 0x666666);
-            grid.rotateX(Math.PI / 2);
-            const material1 = grid.material as THREE.LineBasicMaterial;
-            material1.color.setHex(0x888888);
-            material1.vertexColors = false;
-
-            scene.fog = new THREE.Fog(0x424242, 1, 250);
-
-            scene.add(grid);
+            scene.fog = new THREE.Fog(0x424242, 1, 100);
 
             this.navigationControls?.addEventListener('change', this.render);
             this.selector.signals.clicked.add((intersections) => editor.selectionManager.onClick(intersections));
@@ -151,7 +153,16 @@ export default (editor: Editor) => {
 
         render() {
             editor.materialDatabase.setResolution(this.offsetWidth, this.offsetHeight);
+
+            // Adding/removing grid to scene so materials with depthWrite false
+            // don't render under the grid.
+            editor.scene.add(this.grid);
             this.composer.render();
+            editor.scene.remove(this.grid);
+
+            // this.renderer.autoClear = false;
+            // if (showSceneHelpers === true) renderer.render(sceneHelpers, camera);
+            // this.renderer.autoClear = true;
         }
 
         outlineSelection() {

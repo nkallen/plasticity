@@ -19,6 +19,7 @@ export default class MaterialDatabase {
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
 
         const material = new THREE.MeshMatcapMaterial();
+        material.fog = false;
         const matcapTexture = new THREE.TextureLoader().load(porcelain);
         material.matcap = matcapTexture;
         material.polygonOffset = true;
