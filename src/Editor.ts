@@ -6,7 +6,8 @@ import MaterialDatabase from "./MaterialDatabase";
 import { SelectionManager } from './SelectionManager';
 import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel, TopologyItem } from './VisualModel';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-import { SpriteDatabase, Snap, OriginSnap, AxisSnap } from "./SpriteDatabase";
+import { SpriteDatabase } from "./SpriteDatabase";
+import { Snap, OriginSnap, AxisSnap } from './SnapManager';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
