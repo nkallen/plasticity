@@ -83,6 +83,7 @@ export class Editor {
 
         this.scene.add(mesh);
         this.drawModel.add(mesh);
+        this.snapManager.add(mesh);
 
         this.signals.objectAdded.dispatch(mesh);
         this.signals.sceneGraphChanged.dispatch();
@@ -105,6 +106,7 @@ export class Editor {
     removeItem(object: Item) {
         this.scene.remove(object);
         this.drawModel.delete(object);
+        this.snapManager.delete(object);
         this.geometryModel.DetachItem(this.lookupItem(object));
     }
 

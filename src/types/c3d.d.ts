@@ -70,6 +70,10 @@ declare module "*c3d.node" {
     declare class CartPoint3D {
         private _useNominal: undefined;
         constructor(number, number, number);
+
+        x: number;
+        y: number;
+        z: number;
     }
 
     declare class NameMaker {
@@ -120,7 +124,9 @@ declare module "*c3d.node" {
     }
 
     declare class Edge extends TopologyItem {
-
+        Point(number): CartPoint3D;
+        GetBegPoint(): CartPoint3D;
+        GetEndPoint(number): CartPoint3D;
     }
 
     declare class CurveEdge extends Edge {

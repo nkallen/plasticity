@@ -4,6 +4,7 @@ import { Disposable, DisposableLike, CompositeDisposable } from 'event-kit';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { Snap } from "./SnapManager";
 
 // This class hierarchy mirrors the c3d hierarchy into the THREE.js
 // Object3D hierarchy. In addition to the various utility functions
@@ -80,6 +81,12 @@ export class EdgeGroup extends DisposableGroup implements EdgeGroupBuilder {
     add(...object: THREE.Object3D[]): this {
         throw 'Do not call this method, call addEdge instead';
     }
+
+    *[Symbol.iterator]() {
+        for (const child of this.children) {
+            yield child as CurveEdge;
+        }
+    }
 }
 
 interface FaceGroupBuilder {
@@ -131,6 +138,8 @@ export class Face extends THREE.Mesh implements DisposableLike, HasParentItem {
 }
 
 export class Edge extends Line2 implements DisposableLike {
+    readonly snaps = new Set<Snap>();
+    
     constructor(name: c3d.Name, simpleName: number, geometry?: LineGeometry, material?: LineMaterial) {
         super(geometry, material);
         this.userData.name = name;

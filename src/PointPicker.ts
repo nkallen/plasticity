@@ -24,6 +24,9 @@ export class PointPicker {
             const disposables = new CompositeDisposable();
 
             for (const viewport of this.editor.viewports) {
+                viewport.disableControls();
+                disposables.add(new Disposable(() => viewport.enableControls()))
+
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
                 const constructionPlane = viewport.constructionPlane.clone();
@@ -53,7 +56,6 @@ export class PointPicker {
                         const snap = intersection.object.userData.snap;
                         sprite.position.copy(snap.project(intersection));
                         viewport.overlay.add(sprite);
-                        editor.signals.pointPickerChanged.dispatch();
                     }
 
                     const snappers = editor.snapManager.snappers;
@@ -61,8 +63,8 @@ export class PointPicker {
                     if (point != null) {
                         if (cb != null) cb(point);
                         mesh.position.copy(point);
-                        editor.signals.pointPickerChanged.dispatch();
                     }
+                    editor.signals.pointPickerChanged.dispatch();
                 }
 
                 function getPointer(e: PointerEvent) {
@@ -77,7 +79,7 @@ export class PointPicker {
                 }
 
                 function intersectObjectWithRay(objects: THREE.Object3D[], raycaster: THREE.Raycaster) {
-                    const allIntersections = raycaster.intersectObjects(objects);
+                    const allIntersections = raycaster.intersectObjects(objects, true);
                     for (const intersection of allIntersections) {
                         if (intersection.object === constructionPlane) {
                             return intersection.point;
@@ -90,6 +92,7 @@ export class PointPicker {
                 }
 
                 function onPointerDown(e: PointerEvent) {
+                    viewport.overlay.clear();
                     scene.remove(mesh);
                     resolve(mesh.position.clone());
                     disposables.dispose();

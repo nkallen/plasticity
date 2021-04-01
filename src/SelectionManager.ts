@@ -1,7 +1,7 @@
 
 import { CompositeDisposable, Disposable } from 'event-kit';
 import signals from 'signals';
-import { Editor, EditorSignals } from './Editor';
+import { Editor } from './Editor';
 import { Face, Item, CurveEdge, TopologyItem, VisualModel } from './VisualModel';
 
 enum SelectionMode {
@@ -60,7 +60,7 @@ class Hoverable {
         this.disposable.dispose();
     }
 
-    equals(other: Item | TopologyItem) {
+    isEqual(other: Item | TopologyItem) {
         return this.object == other;
     }
 }
@@ -161,13 +161,13 @@ export class SelectionManager {
             const model = this.editor.lookupTopologyItem(object);
 
             if (this.hoverItem(object, parentItem)) {
-                if (!this.hover?.equals(parentItem)) {
+                if (!this.hover?.isEqual(parentItem)) {
                     this.hover?.dispose();
                     this.hover = new Hoverable(parentItem, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
                 }
                 return;
             } else if (this.hoverTopologicalItem(object, parentItem)) {
-                if (!this.hover?.equals(object)) {
+                if (!this.hover?.isEqual(object)) {
                     this.hover?.dispose();
                     this.hover = new Hoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
                 }

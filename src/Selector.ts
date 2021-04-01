@@ -16,11 +16,12 @@ export class Selector extends THREE.EventDispatcher {
     private readonly onDownPosition = new THREE.Vector2();
     private readonly onUpPosition = new THREE.Vector2();
 
+    enabled = true;
+
     readonly signals: SelectorSignals = {
         clicked: new signals.Signal(),
         hovered: new signals.Signal()
     }
-    enabled = true; // FIXME make work
 
     // FIXME add dispose
     constructor(drawModel: Set<VisualModel>, camera: THREE.Camera, domElement: HTMLElement) {
@@ -43,6 +44,8 @@ export class Selector extends THREE.EventDispatcher {
     }
 
     onPointerDown(event: PointerEvent) {
+        if (!this.enabled) return;
+
         var array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         this.onDownPosition.fromArray(array);
 
@@ -50,6 +53,8 @@ export class Selector extends THREE.EventDispatcher {
     }
 
     onPointerHover(event: PointerEvent) {
+        if (!this.enabled) return;
+
         var array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         const point = new THREE.Vector2();
         point.fromArray(array);
@@ -58,6 +63,8 @@ export class Selector extends THREE.EventDispatcher {
     }
 
     onPointerUp(event: PointerEvent) {
+        if (!this.enabled) return;
+
         var array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         this.onUpPosition.fromArray(array);
 

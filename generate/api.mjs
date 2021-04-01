@@ -119,6 +119,11 @@ export default {
             rawHeader: "mb_cart_point3d.h",
             initializers: [
                 "double xx, double yy, double zz"
+            ],
+            fields: [
+                "double x",
+                "double y",
+                "double z"
             ]
         },
         ElementarySurface: {
@@ -294,7 +299,12 @@ export default {
         Edge: {
             rawHeader: "topology.h",
             extends: "TopologyItem",
-            dependencies: ["TopologyItem.h"]
+            dependencies: ["TopologyItem.h", "CartPoint3D.h"],
+            functions: [
+                { signature: "void Point(double t, MbCartPoint3D &p)", p: { isReturn: true } },
+                { signature: "void GetBegPoint(MbCartPoint3D & p)", p: { isReturn: true } },
+                { signature: "void GetEndPoint(MbCartPoint3D & p)", p: { isReturn: true } },
+            ]
         },
         CurveEdge: {
             rawHeader: "topology.h",
@@ -305,7 +315,7 @@ export default {
                     signature: "bool EdgeNormal(double t, MbVector3D & p)",
                     p: { isReturn: true },
                     return: { isErrorBool: true }
-                }
+                },
             ]
         },
         Face: {
