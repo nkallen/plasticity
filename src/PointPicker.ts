@@ -85,7 +85,6 @@ export class PointPicker {
                             return intersection.point;
                         } else {
                             const snap = intersection.object.userData.snap;
-                            console.log(snap);
                             return snap.project(intersection);
                         }
                     }

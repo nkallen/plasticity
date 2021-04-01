@@ -46,9 +46,10 @@ export class OriginSnap extends Snap {
 }
 
 export class AxisSnap extends Snap {
-    constructor() {
+    constructor(n: THREE.Vector3) {
         super();
-        const points = [0, -1000, 0, 0, 1000, 0];
+        n = n.normalize().multiplyScalar(1000);
+        const points = [-n.x, -n.y, -n.z, n.x, n.y, n.z];
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
         this.snapper = new THREE.Line(geometry);
@@ -56,7 +57,6 @@ export class AxisSnap extends Snap {
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
-        const point = intersection.point;
-        return new THREE.Vector3(0, point.y, 0);
+        return intersection.point;
     }
 }

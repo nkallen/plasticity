@@ -71,8 +71,9 @@ export class Editor {
         this.scene.background = new THREE.Color(0x424242);
 
         this.snaps.add(new OriginSnap().configure());
-        this.snaps.add(new AxisSnap().configure());
-
+        this.snaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)).configure());
+        this.snaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)).configure());
+        this.snaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)).configure());
     }
 
     execute(command: Command) {
