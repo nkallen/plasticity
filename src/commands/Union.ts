@@ -7,9 +7,6 @@ export default class UnionFactory extends GeometryFactory {
     object2!: Item;
 
     commit() {
-        this.editor.removeItem(this.object1);
-        this.editor.removeItem(this.object2);
-
         let model1 = this.editor.lookupItem(this.object1);
         let model2 = this.editor.lookupItem(this.object2);
 
@@ -27,6 +24,10 @@ export default class UnionFactory extends GeometryFactory {
         flags.SetMergingEdges(true);
 
         const result = c3d.ActionSolid.BooleanResult(model1, c3d.CopyMode.KeepHistory, model2, c3d.CopyMode.KeepHistory, c3d.OperationType.Union, flags, names);
+
+        this.editor.removeItem(this.object1);
+        this.editor.removeItem(this.object2);
+
         this.editor.addObject(result);
     }
 

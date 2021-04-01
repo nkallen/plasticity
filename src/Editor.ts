@@ -82,7 +82,7 @@ export class Editor {
     }
 
     addTemporaryObject(object: c3d.Item): TemporaryObject {
-        const mesh = this.object2mesh(object);
+        const mesh = this.object2mesh(object, 0.05, false);
         this.scene.add(mesh);
         return {
             cancel: () => {
@@ -115,9 +115,9 @@ export class Editor {
         return solid.FindEdgeByName(object.userData.name);
     }
 
-    object2mesh(obj: c3d.Item): VisualModel {
-        const stepData = new c3d.StepData(c3d.StepType.SpaceStep, 0.005);
-        const note = new c3d.FormNote(true, true, true, false, false);
+    object2mesh(obj: c3d.Item, sag: number = 0.005, wireframe: boolean = true): VisualModel {
+        const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
+        const note = new c3d.FormNote(wireframe, true, true, false, false);
         const item = obj.CreateMesh(stepData, note, null);
         if (item.IsA() != c3d.SpaceType.Mesh) throw "Unexpected return type";
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
