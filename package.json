@@ -93,6 +93,7 @@
     "node-addon-api": "^3.1.0",
     "node-loader": "^1.0.1",
     "style-loader": "^1.2.1",
+    "svg-inline-loader": "^0.8.2",
     "ts-loader": "^8.0.2",
     "typescript": "^4.0.2",
     "underscore": "^1.12.1",
@@ -103,6 +104,7 @@
   "dependencies": {
     "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
     "atom-keymap": "^8.2.14",
+    "bootstrap-icons": "^1.4.1",
     "electron-squirrel-startup": "^1.0.0",
     "event-kit": "^2.5.3",
     "preact": "^10.5.13",

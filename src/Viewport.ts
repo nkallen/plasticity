@@ -22,7 +22,8 @@ const planeMat = new THREE.MeshBasicMaterial({ visible: false, side: THREE.Doubl
 export default (editor: Editor) => {
     class Viewport extends HTMLElement {
         readonly camera: THREE.Camera;
-        readonly renderer = new THREE.WebGLRenderer({ antialias: false });
+        readonly overlayCamera: THREE.OrthographicCamera;
+        readonly renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
         readonly navigationControls?: OrbitControls;
         readonly selector: Selector;
         readonly constructionPlane = new THREE.Mesh(planeGeo, planeMat);
@@ -73,7 +74,7 @@ export default (editor: Editor) => {
             const material1 = grid.material as THREE.LineBasicMaterial;
             material1.color.setHex(0x888888);
             material1.vertexColors = false;
-            material1.depthFunc = THREE.AlwaysDepth;
+            material1.depthFunc = THREE.NeverDepth;
             this.grid = grid;
 
             camera.up.set(0, 0, 1);
@@ -89,8 +90,14 @@ export default (editor: Editor) => {
             this.composer = new EffectComposer(this.renderer, renderTarget);
             this.composer.setPixelRatio(window.devicePixelRatio);
 
+            this.overlayCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
+
             const renderPass = new RenderPass(editor.scene, this.camera);
+            const overlayPass = new RenderPass(editor.overlay, this.camera);
             const copyPass = new ShaderPass(CopyShader);
+
+            overlayPass.clear = false;
+            overlayPass.clearDepth = true;
 
             const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
             outlinePassSelection.edgeStrength = 10;
@@ -109,6 +116,7 @@ export default (editor: Editor) => {
             this.composer.addPass(renderPass);
             this.composer.addPass(this.outlinePassHover);
             this.composer.addPass(this.outlinePassSelection);
+            this.composer.addPass(overlayPass);
             this.composer.addPass(copyPass);
 
             this.shadowRoot!.append(domElement);
@@ -126,7 +134,6 @@ export default (editor: Editor) => {
             editor.viewports.push(this);
 
             const scene = editor.scene;
-            scene.background = new THREE.Color(0x424242);
 
             const pane = this.parentElement as Pane;
             pane.signals.flexScaleChanged.add(this.resize);
@@ -153,6 +160,8 @@ export default (editor: Editor) => {
 
         render() {
             editor.materialDatabase.setResolution(this.offsetWidth, this.offsetHeight);
+
+            this.overlayCamera.position.copy(this.camera.position);
 
             // Adding/removing grid to scene so materials with depthWrite false
             // don't render under the grid.
@@ -184,9 +193,12 @@ export default (editor: Editor) => {
             } else if (this.camera instanceof THREE.OrthographicCamera) {
                 this.camera.left = frustumSize * aspect / - 2;
                 this.camera.right = frustumSize * aspect / 2;
-
                 this.camera.updateProjectionMatrix();
             }
+
+            this.overlayCamera.left = frustumSize * aspect / - 2;
+            this.overlayCamera.right = frustumSize * aspect / 2;
+            this.overlayCamera.updateProjectionMatrix();
 
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
             this.composer.setSize(this.offsetWidth, this.offsetHeight);

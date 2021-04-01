@@ -14,7 +14,7 @@ rules.push({
 });
 
 rules.push({
-    test: /\.(png|svg|jpg|jpeg|gif)$/i,
+    test: /\.(png|jpg|jpeg|gif)$/i,
     use: [
         {
             loader: 'file-loader',
@@ -25,10 +25,15 @@ rules.push({
     ],
 });
 
+rules.push({
+    test: /\.svg$/,
+    loader: 'svg-inline-loader'
+});
+
 module.exports = {
     'node': {
         __dirname: true,
-      },
+    },
     module: {
         rules,
     },

@@ -38,15 +38,16 @@ export class PointPicker {
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
                 disposables.add(new Disposable(() => scene.remove(constructionPlane)));
+                const snaps = this.editor.snaps;
                 function onPointerMove(e: PointerEvent) {
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
-                    const planeIntersect = intersectObjectWithRay(constructionPlane, raycaster, true);
-                    if (planeIntersect != null) {
+                    const point = intersectObjectWithRay([constructionPlane, ...snaps], raycaster, true);
+                    if (point != null) {
                         if (cb != null) {
-                            cb(planeIntersect.point);
+                            cb(point);
                         }
-                        mesh.position.copy(planeIntersect.point);
+                        mesh.position.copy(point);
                         editor.signals.pointPickerChanged.dispatch();
                     }
                 }
@@ -62,11 +63,15 @@ export class PointPicker {
                     };
                 }
 
-                function intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean) {
-                    var allIntersections = raycaster.intersectObject(object, true);
-                    for (var i = 0; i < allIntersections.length; i++) {
-                        if (allIntersections[i].object.visible || includeInvisible) {
-                            return allIntersections[i];
+                function intersectObjectWithRay(objects: THREE.Object3D[], raycaster: THREE.Raycaster, includeInvisible: boolean) {
+                    var allIntersections = raycaster.intersectObjects(objects, true);
+                    for (const intersection of allIntersections) {
+                        if (intersection.object.visible || includeInvisible) {
+                            if (intersection.object === constructionPlane) {
+                                return intersection.point;
+                            } else {
+                                return intersection.object.position;                                
+                            }
                         }
                     }
                     return null;

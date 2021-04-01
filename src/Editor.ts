@@ -6,6 +6,7 @@ import MaterialDatabase from "./MaterialDatabase";
 import { SelectionManager } from './SelectionManager';
 import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel, TopologyItem } from './VisualModel';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import SpriteDatabase from "./SpriteDatabase";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -56,14 +57,24 @@ export class Editor {
     readonly materialDatabase = new MaterialDatabase();
     readonly scene = new THREE.Scene();
     readonly selectionManager = new SelectionManager(this);
+    readonly snaps = new Set<THREE.Object3D>();
+    readonly spriteDatabase = new SpriteDatabase();
+
+    readonly overlay = new THREE.Scene();
 
     constructor() {
         // FIXME dispose of these:
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
         window.addEventListener('load', this.onWindowLoad.bind(this), false);
 
-        const axis = new THREE.AxesHelper(300);
+        const axis = new THREE.AxesHelper(10000);
         this.scene.add(axis);
+        this.scene.background = new THREE.Color(0x424242);
+
+        this.overlay.add(this.spriteDatabase.sprite);
+
+        const origin = new THREE.Mesh(new THREE.SphereGeometry(0.2));
+        this.snaps.add(origin);
     }
 
     execute(command: Command) {
