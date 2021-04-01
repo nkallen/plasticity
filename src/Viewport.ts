@@ -23,6 +23,7 @@ export default (editor: Editor) => {
     class Viewport extends HTMLElement {
         readonly camera: THREE.Camera;
         readonly overlayCamera: THREE.OrthographicCamera;
+        readonly overlay = new THREE.Scene();
         readonly renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
         readonly navigationControls?: OrbitControls;
         readonly selector: Selector;
@@ -93,7 +94,7 @@ export default (editor: Editor) => {
             this.overlayCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
 
             const renderPass = new RenderPass(editor.scene, this.camera);
-            const overlayPass = new RenderPass(editor.overlay, this.camera);
+            const overlayPass = new RenderPass(this.overlay, this.camera);
             const copyPass = new ShaderPass(CopyShader);
 
             overlayPass.clear = false;

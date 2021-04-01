@@ -1,47 +1,62 @@
 import * as THREE from "three";
-import icon from 'bootstrap-icons/icons/circle.svg';
+import circleIcon from 'bootstrap-icons/icons/circle.svg';
+import circleFillIcon from 'bootstrap-icons/icons/circle-fill.svg';
 
-export default class SpriteDatabase {
-    sprite: THREE.Sprite;
+const textureloader = new THREE.TextureLoader();
 
-    constructor() {
-        const map = new THREE.CanvasTexture(this.drawIcon(icon));
-        const material = new THREE.SpriteMaterial({ map, sizeAttenuation: false });
-        const sprite = new THREE.Sprite(material);
-        this.sprite = sprite;
-        this.sprite.scale.set(0.1, 0.1, 1);
+const circle = textureloader.load(circleIcon);
+const circleFill = textureloader.load(circleFillIcon);
+
+const isNear = new THREE.Sprite(new THREE.SpriteMaterial({ map: circle, sizeAttenuation: false }));
+const willSnap = new THREE.Sprite(new THREE.SpriteMaterial({ map: circleFill, sizeAttenuation: false }));
+
+export class SpriteDatabase {
+    isNear() {
+        const result = isNear.clone();
+        result.scale.set(0.01, 0.01, 0.01);
+        return result;
     }
 
-    private drawIcon(path: string) {
-        console.log(icon);
-        const size = 256;
-        const fillStyle = 'rgba(255, 255, 255, 0.8)';
-        const viewport = { x: 0, y: 0, width: 1024, height: 1024 };
-        var canvas = document.createElement('canvas');
-        const [width, height] = [size, size];
-        const minSize = Math.min(width, height);
-        canvas.width = width;
-        canvas.height = height;
-        const iconRatio = viewport.width / viewport.height;
-        const canvasRatio = width / height;
-        const scale = canvasRatio > iconRatio ? height / viewport.height : width / viewport.width;
-        const context = canvas.getContext('2d');
-        // draw white background
-        context.save();
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.fill();
-        context.beginPath();
-        context.fillStyle = fillStyle;
-        context.arc(minSize / 2, minSize / 2, minSize / 2, 0, 2 * Math.PI);
-        context.fillStyle = 'black';
-        context.fill();
-        context.translate(width / 2, height / 2);
-        context.scale(scale, scale);
-        context.translate(-viewport.x - viewport.width / 2, - viewport.y - viewport.height / 2);
-        context.beginPath();
-        context.fillStyle = 'red';
-        context.fill(new Path2D(path));
-        context.restore();
-        return canvas;
+    willSnap() {
+        const result = willSnap.clone();
+        result.scale.set(0.01, 0.01, 0.01);
+        return result;
+    }
+}
+
+export abstract class Snap {
+    snapper: THREE.Object3D;
+    picker: THREE.Object3D
+    abstract project(intersection: THREE.Intersection): THREE.Vector3;
+
+    configure() {
+        this.snapper.userData.snap = this;
+        this.picker.userData.snap = this;
+        return this;
+    }
+}
+
+export class OriginSnap extends Snap {
+    snapper = new THREE.Mesh(new THREE.SphereGeometry(0.2));
+    picker = new THREE.Mesh(new THREE.SphereGeometry(0.5));
+
+    project(intersection: THREE.Intersection): THREE.Vector3 {
+        return new THREE.Vector3();
+    }
+}
+
+export class AxisSnap extends Snap {
+    constructor() {
+        super();
+        const points = [0, -1000, 0, 0, 1000, 0];
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+        this.snapper = new THREE.Line(geometry);
+        this.picker = this.snapper;
+    }
+
+    project(intersection: THREE.Intersection): THREE.Vector3 {
+        const point = intersection.point;
+        return new THREE.Vector3(0, point.y, 0);
     }
 }
