@@ -15,8 +15,10 @@ export default class MaterialDatabase {
 
     constructor() {
         this.lineMaterials.set(hash("line"), new LineMaterial({ color: 0x000000 }));
-        this.lineMaterials.set(hash("line-highlighted"), new LineMaterial({ color: 0xffff00, linewidth: 4 }));
-        this.lineMaterials.set(hash("line-hovered"), new LineMaterial({ color: 0xffffff, linewidth: 4 }));
+        this.lineMaterials.set(hash("line-highlighted"), new LineMaterial({ color: 0xffff00, linewidth: 2 }));
+        const hovered = new LineMaterial({ color: 0xffffff, linewidth: 2 });
+        hovered.depthFunc = THREE.AlwaysDepth;
+        this.lineMaterials.set(hash("line-hovered"), hovered);
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
 
         const material = new THREE.MeshMatcapMaterial();

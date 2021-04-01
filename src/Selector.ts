@@ -30,7 +30,7 @@ export class Selector extends THREE.EventDispatcher {
         this.camera = camera;
         this.domElement = domElement;
 
-        this.raycaster.params.Line.threshold = 0.05;
+        this.raycaster.params.Line2 = { threshold: 10 };
         this.raycaster.params.Mesh.threshold = 0;
 
         this.onPointerDown = this.onPointerDown.bind(this);
