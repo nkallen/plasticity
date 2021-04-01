@@ -6,10 +6,12 @@ const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI
 
 export class PointPicker {
     editor: Editor;
-    mesh: THREE.Object3D = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
+    mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
 
     constructor(editor: Editor) {
         this.editor = editor;
+        this.mesh.material.depthTest = false;
+        this.mesh.renderOrder = 999;
     }
 
     async execute(cb?: (pt: THREE.Vector3) => void) {
@@ -29,19 +31,16 @@ export class PointPicker {
 
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
-                const constructionPlane = viewport.constructionPlane.clone();
+                let constructionPlane = viewport.constructionPlane;
                 if (this.restrictionPoint != null) {
-                    constructionPlane.position.copy(this.restrictionPoint)
+                    constructionPlane = constructionPlane.restrict(this.restrictionPoint);
                 }
                 const domElement = renderer.domElement;
-
-                scene.add(constructionPlane);
 
                 domElement.addEventListener('pointermove', onPointerMove);
                 domElement.addEventListener('pointerdown', onPointerDown);
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
-                disposables.add(new Disposable(() => scene.remove(constructionPlane)));
 
                 const editor = this.editor;
                 function onPointerMove(e: PointerEvent) {
@@ -52,16 +51,16 @@ export class PointPicker {
                     const pickers = editor.snapManager.pickers;
                     const allIntersections = raycaster.intersectObjects(pickers);
                     for (const intersection of allIntersections) {
-                        const sprite = editor.spriteDatabase.isNear();
-                        const snap = intersection.object.userData.snap;
-                        sprite.position.copy(snap.project(intersection));
+                        const sprite = editor.snapManager.helperFor(intersection);
                         viewport.overlay.add(sprite);
                     }
 
                     const snappers = editor.snapManager.snappers;
-                    const point = intersectObjectWithRay([constructionPlane, ...snappers], raycaster);
+                    const point = intersectObjectWithRay([constructionPlane.snapper, ...snappers], raycaster);
                     if (point != null) {
                         if (cb != null) cb(point);
+                        // const sprite = editor.snapManager.helperFor(intersection);
+                        // viewport.overlay.add(sprite);
                         mesh.position.copy(point);
                     }
                     editor.signals.pointPickerChanged.dispatch();
@@ -81,12 +80,8 @@ export class PointPicker {
                 function intersectObjectWithRay(objects: THREE.Object3D[], raycaster: THREE.Raycaster) {
                     const allIntersections = raycaster.intersectObjects(objects, true);
                     for (const intersection of allIntersections) {
-                        if (intersection.object === constructionPlane) {
-                            return intersection.point;
-                        } else {
-                            const snap = intersection.object.userData.snap;
-                            return snap.project(intersection);
-                        }
+                        const snap = intersection.object.userData.snap;
+                        return snap.project(intersection);
                     }
                     return null;
                 }

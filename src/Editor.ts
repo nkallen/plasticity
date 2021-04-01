@@ -7,7 +7,8 @@ import { SelectionManager } from './SelectionManager';
 import { Face, CurveEdge, Item, Edge, Curve3D, EdgeGroup, FaceGroup, VisualModel, TopologyItem } from './VisualModel';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { SpriteDatabase } from "./SpriteDatabase";
-import { SnapManager } from './SnapManager';
+import { PlaneSnap, SnapManager } from './SnapManager';
+import { Viewport } from "./Viewport";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -22,15 +23,6 @@ export interface EditorSignals {
     windowResized: signals.Signal;
     windowLoaded: signals.Signal;
     rendererAdded: signals.Signal<THREE.Renderer>;
-}
-
-interface Viewport {
-    renderer: THREE.Renderer;
-    camera: THREE.Camera;
-    constructionPlane: THREE.Mesh;
-    enableControls(): void;
-    disableControls(): void;
-    overlay: THREE.Scene;
 }
 
 export interface TemporaryObject {
@@ -68,6 +60,9 @@ export class Editor {
         window.addEventListener('load', this.onWindowLoad.bind(this), false);
 
         const axes = new THREE.AxesHelper(10000);
+        axes.renderOrder = 0;
+        const material = axes.material as THREE.Material;
+        material.depthFunc = THREE.AlwaysDepth;
         this.scene.add(axes);
         this.scene.background = new THREE.Color(0x424242);
     }

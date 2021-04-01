@@ -26,8 +26,8 @@ export class SnapManager {
 
     private update() {
         const all = [...this.snaps, ...this.begPoints, ...this.midPoints];
-        this.pickers = all.map((s) => s.picker);
-        this.snappers = all.map((s) => s.snapper);
+        this.pickers = all.map((s) => s.picker).filter(x => x != null);
+        this.snappers = all.map((s) => s.snapper).flat();
     }
 
     add(item: VisualModel) {
@@ -66,17 +66,24 @@ export class SnapManager {
 
         this.update();
     }
+
+    helperFor(intersection: THREE.Intersection) {
+        const sprite = this.editor.spriteDatabase.isNear();
+        const snap = intersection.object.userData.snap;
+        sprite.position.copy(snap.project(intersection));
+        return sprite;
+    }
 }
 
 export abstract class Snap {
     snapper: THREE.Object3D;
-    picker: THREE.Object3D
+    picker?: THREE.Object3D
 
-    constructor(snapper: THREE.Object3D, picker: THREE.Object3D) {
+    constructor(snapper: THREE.Object3D, picker?: THREE.Object3D) {
         snapper.userData.snap = this;
-        picker.userData.snap = this;
+        if (picker != null) picker.userData.snap = this;
         snapper.updateMatrixWorld();
-        picker.updateMatrixWorld();
+        picker?.updateMatrixWorld();
 
         this.snapper = snapper;
         this.picker = picker;
@@ -110,12 +117,32 @@ export class AxisSnap extends Snap {
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
         const snapper = new THREE.Line(geometry);
-        const picker = snapper;
 
-        super(snapper, picker);
+        super(snapper, null);
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
         return intersection.point;
+    }
+}
+
+export class PlaneSnap extends Snap {
+    private readonly n: THREE.Vector3;
+
+    constructor(n: THREE.Vector3, p: THREE.Vector3 = new THREE.Vector3()) {
+        const planeGeo = new THREE.PlaneGeometry(1000, 1000, 2, 2);
+        const mesh = new THREE.Mesh(planeGeo);
+        mesh.position.copy(p);
+        mesh.lookAt(n);
+        super(mesh);
+        this.n = n;
+    }
+
+    project(intersection: THREE.Intersection): THREE.Vector3 {
+        return intersection.point;
+    }
+
+    restrict(pt: THREE.Vector3) {
+        return new PlaneSnap(this.n, pt);
     }
 }

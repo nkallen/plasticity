@@ -3,31 +3,36 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Editor } from './Editor';
 import { Pane } from './Pane';
 import { Selector } from './Selector';
-
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { Item, VisualModel } from "./VisualModel";
+import { PlaneSnap } from "./SnapManager";
 
 const near = 0.01;
 const far = 1000;
 const frustumSize = 20;
 
-const planeGeo = new THREE.PlaneGeometry(1000, 1000, 2, 2);
-const planeMat = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide, transparent: true, opacity: 0.1, toneMapped: false });
+export interface Viewport {
+    renderer: THREE.Renderer;
+    camera: THREE.Camera;
+    constructionPlane: PlaneSnap;
+    enableControls(): void;
+    disableControls(): void;
+    overlay: THREE.Scene;
+}
 
 export default (editor: Editor) => {
-    class Viewport extends HTMLElement {
+    class _Viewport extends HTMLElement {
         readonly camera: THREE.Camera;
         readonly overlayCamera: THREE.OrthographicCamera;
         readonly overlay = new THREE.Scene();
         readonly renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
         readonly navigationControls?: OrbitControls;
         readonly selector: Selector;
-        readonly constructionPlane = new THREE.Mesh(planeGeo, planeMat);
+        readonly constructionPlane: PlaneSnap;
         readonly composer: EffectComposer;
         readonly outlinePassSelection: OutlinePass;
         readonly outlinePassHover: OutlinePass;
@@ -51,22 +56,22 @@ export default (editor: Editor) => {
                     camera = perspectiveCamera;
                     camera.position.set(0, 20, 5);
                     this.navigationControls = new OrbitControls(camera, domElement);
-                    this.constructionPlane.lookAt(0, 0, 1);
+                    this.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
                     break;
                 case "top":
                     camera = orthographicCamera;
                     camera.position.set(0, 0, 10);
-                    this.constructionPlane.lookAt(0, 0, 1);
+                    this.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
                     break;
                 case "front":
                     camera = orthographicCamera;
                     camera.position.set(0, 10, 0);
-                    this.constructionPlane.lookAt(0, 1, 0);
+                    this.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 1, 0));
                     break;
                 case "right":
                     camera = orthographicCamera;
                     camera.position.set(10, 0, 0);
-                    this.constructionPlane.lookAt(1, 0, 0);
+                    this.constructionPlane = new PlaneSnap(new THREE.Vector3(1, 0, 0));
                     break;
             }
 
@@ -76,6 +81,7 @@ export default (editor: Editor) => {
             material1.color.setHex(0x888888);
             material1.vertexColors = false;
             material1.depthFunc = THREE.NeverDepth;
+            grid.renderOrder = -1;
             this.grid = grid;
 
             camera.up.set(0, 0, 1);
@@ -219,5 +225,5 @@ export default (editor: Editor) => {
         }
     }
 
-    customElements.define('ispace-viewport', Viewport);
+    customElements.define('ispace-viewport', _Viewport);
 }
