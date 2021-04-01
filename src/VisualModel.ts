@@ -27,7 +27,7 @@ export interface ItemBuilder {
     build(): Item;
 }
 export class Item extends DisposableGroup implements ItemBuilder {
-    edges: EdgeGroup;
+    edges: CurveEdgeGroup;
     faces: FaceGroup;
 
     private constructor() {
@@ -40,7 +40,7 @@ export class Item extends DisposableGroup implements ItemBuilder {
 
     build() { return this }
 
-    addEdges(edges: EdgeGroup) {
+    addEdges(edges: CurveEdgeGroup) {
         super.add(edges);
         this.edges = edges;
         this.disposable.add(new Disposable(() => edges.dispose()));
@@ -80,12 +80,6 @@ export class EdgeGroup extends DisposableGroup implements EdgeGroupBuilder {
 
     add(...object: THREE.Object3D[]): this {
         throw 'Do not call this method, call addEdge instead';
-    }
-
-    *[Symbol.iterator]() {
-        for (const child of this.children) {
-            yield child as CurveEdge;
-        }
     }
 }
 
@@ -158,5 +152,17 @@ export class CurveEdge extends Edge implements HasParentItem {
 }
 
 export class Curve3D extends EdgeGroup {
+    *[Symbol.iterator]() {
+        for (const child of this.children) {
+            yield child as Edge;
+        }
+    }
+}
 
+export class CurveEdgeGroup extends EdgeGroup {
+    *[Symbol.iterator]() {
+        for (const child of this.children) {
+            yield child as CurveEdge;
+        }
+    }
 }

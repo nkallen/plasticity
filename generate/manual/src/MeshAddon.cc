@@ -99,17 +99,20 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
             if (!polygon->IsVisible())
                 continue;
 
-            const MbTopItem *item = polygon->TopItem();
-            if (item == NULL)
-                continue;
+            if (outlinesOnly)
+            {
+                const MbTopItem *item = polygon->TopItem();
+                if (item == NULL)
+                    continue;
 
-            if (outlinesOnly && item->IsA() != tt_CurveEdge)
-                continue;
+                if (item->IsA() != tt_CurveEdge)
+                    continue;
 
-            const MbEdge *edge = (MbEdge *)item;
-            jsInfo.Set(Napi::String::New(env, "style"), Napi::Number::New(env, edge->GetStyle()));
-            jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
-            jsInfo.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(edge->GetName())));
+                const MbEdge *edge = (MbEdge *)item;
+
+                jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
+                jsInfo.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(edge->GetName())));
+            }
 
             size_t pointsCnt = polygon->Count();
             Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, 4 * 3 * pointsCnt);

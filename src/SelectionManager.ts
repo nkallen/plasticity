@@ -1,11 +1,13 @@
 
 import { CompositeDisposable, Disposable } from 'event-kit';
 import signals from 'signals';
+import { LineBasicMaterial } from 'three';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { Editor } from './Editor';
-import { Face, Item, CurveEdge, TopologyItem, VisualModel } from './VisualModel';
+import { Face, Item, CurveEdge, TopologyItem, VisualModel, Curve3D } from './VisualModel';
 
 enum SelectionMode {
-    Edge, Face, Item
+    Edge, Face, Item, Curve
 }
 
 class RefCounter<T> {
@@ -40,28 +42,60 @@ class RefCounter<T> {
 
 class Hoverable {
     private readonly disposable = new CompositeDisposable();
-    private readonly object: Item | TopologyItem;
-    private readonly previousMaterial?: THREE.Material | THREE.Material[];
+    protected readonly object: VisualModel;
 
-    constructor(object: Item | TopologyItem, material: THREE.Material, signal: signals.Signal<VisualModel>) {
+    constructor(object: VisualModel, signal: signals.Signal<VisualModel>) {
         this.object = object;
         this.disposable.add(new Disposable(() => signal.dispatch(null)));
-        if (!(object instanceof Item)) {
-            this.previousMaterial = object.material;
-            object.material = material;
-        }
         signal.dispatch(object);
     }
 
     dispose() {
-        if (!(this.object instanceof Item)) {
-            this.object.material = this.previousMaterial;
-        }
         this.disposable.dispose();
     }
 
-    isEqual(other: Item | TopologyItem) {
+    isEqual(other: VisualModel) {
         return this.object == other;
+    }
+}
+
+class TopologicalItemHoverable<T extends THREE.Material | THREE.Material[]> extends Hoverable {
+    private readonly previousMaterial: T;
+    protected readonly object: VisualModel & { material: T };
+
+    constructor(object: VisualModel & { material: T }, material: T, signal: signals.Signal<VisualModel>) {
+        const previous = object.material;
+        object.material = material;
+        super(object, signal);
+        this.previousMaterial = previous;
+    }
+
+    dipose() {
+        this.object.material = this.previousMaterial;
+        super.dispose();
+    }
+}
+
+class Curve3DHoverable extends Hoverable {
+    private readonly previousMaterial: LineMaterial;
+    protected readonly object: Curve3D;
+
+    constructor(object: Curve3D, material: LineMaterial, signal: signals.Signal<VisualModel>) {
+        let previous;
+        for (const edge of object) {
+            previous = edge.material;
+            edge.material = material;
+        }
+
+        super(object, signal);
+        this.previousMaterial = previous;
+    }
+
+    dipose() {
+        for (const edge of this.object) {
+            edge.material = this.previousMaterial;
+        }
+        super.dispose();
     }
 }
 
@@ -70,8 +104,9 @@ export class SelectionManager {
     readonly selectedChildren = new RefCounter();
     readonly selectedEdges = new Set<CurveEdge>();
     readonly selectedFaces = new Set<Face>();
+    readonly selectedCurves = new Set<Curve3D>();
     readonly editor: Editor;
-    readonly mode = new Set<SelectionMode>([SelectionMode.Item, SelectionMode.Edge]);
+    readonly mode = new Set<SelectionMode>([SelectionMode.Item, SelectionMode.Edge, SelectionMode.Curve]);
     hover?: Hoverable = null;
 
     constructor(editor: Editor) {
@@ -156,29 +191,44 @@ export class SelectionManager {
         }
 
         for (const intersection of intersections) {
-            const object = intersection.object as TopologyItem;
-            const parentItem = object.parentItem;
-            const model = this.editor.lookupTopologyItem(object);
+            const object = intersection.object;
 
-            if (this.hoverItem(object, parentItem)) {
-                if (!this.hover?.isEqual(parentItem)) {
-                    this.hover?.dispose();
-                    this.hover = new Hoverable(parentItem, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
+            if (object instanceof Face || object instanceof CurveEdge) {
+                const parentItem = object.parentItem;
+                if (this.hoverItem(parentItem)) {
+                    if (!this.hover?.isEqual(parentItem)) {
+                        this.hover?.dispose();
+                        this.hover = new Hoverable(parentItem, this.editor.signals.objectHovered);
+                    }
+                    return;
+                } else if (this.hoverTopologicalItem(object, parentItem)) {
+                    if (!this.hover?.isEqual(object)) {
+                        this.hover?.dispose();
+                        this.hover = new TopologicalItemHoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
+                    }
+                    return;
                 }
-                return;
-            } else if (this.hoverTopologicalItem(object, parentItem)) {
-                if (!this.hover?.isEqual(object)) {
-                    this.hover?.dispose();
-                    this.hover = new Hoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
+            } else if (object instanceof Curve3D) {
+                if (this.hoverCurve3D(object)) {
+                    if (!this.hover?.isEqual(object)) {
+                        this.hover?.dispose();
+                        this.hover = new Curve3DHoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
+                    }
                 }
-                return;
             }
         }
         this.hover?.dispose();
         this.hover = null;
     }
 
-    private hoverItem(object: TopologyItem, parentItem: Item): boolean {
+    private hoverCurve3D(object: Curve3D): boolean {
+        if (this.mode.has(SelectionMode.Curve) && object instanceof Curve3D && !this.selectedCurves.has(object)) {
+            return true;
+        }
+        return false;
+    }
+
+    private hoverItem(parentItem: Item): boolean {
         if (this.mode.has(SelectionMode.Item)) {
             if (!this.selectedItems.has(parentItem) && !this.selectedChildren.has(parentItem)) {
                 return true;

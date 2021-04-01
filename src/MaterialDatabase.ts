@@ -76,6 +76,7 @@ export default class MaterialDatabase {
         return this.lineMaterials.get(hash("line-highlighted"));
     }
 
+    // FIXME audit these methods
     lookup(o: c3d.TopologyItem): LineMaterial {
         return this.lineMaterials.get(hash("line"));
     }

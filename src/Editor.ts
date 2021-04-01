@@ -133,7 +133,7 @@ export class Editor {
                 for (const edge of edges) {
                     const geometry = new LineGeometry();
                     geometry.setPositions(edge.position);
-                    const line = new Edge(edge.name, edge.simpleName, geometry, this.materialDatabase.line());
+                    const line = new Edge(edge.name, edge.simpleName, geometry, this.materialDatabase.line(item));
                     curve3D.addEdge(line);
                 }
                 return curve3D.build();
