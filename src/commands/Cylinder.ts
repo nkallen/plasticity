@@ -1,7 +1,7 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
-import { Editor } from './../Editor'
+import { Editor } from '../Editor_'
 
 export default class CylinderFactory extends GeometryFactory {
     base!: THREE.Vector3;

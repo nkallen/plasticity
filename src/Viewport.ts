@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { Editor } from './Editor';
+import { Editor } from './Editor_';
 import { Pane } from './Pane';
 import { Selector } from './Selector';
 

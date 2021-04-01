@@ -1,4 +1,4 @@
-import { Editor } from './../Editor'
+import { Editor } from '../Editor_'
 
 type callSuper = never;
 export abstract class GeometryFactory {

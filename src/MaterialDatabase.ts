@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import porcelain from './img/matcap-porcelain-white.jpg';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 function hash(str: string) {
     for (var i = 0, h = 9; i < str.length;)
@@ -10,12 +11,12 @@ function hash(str: string) {
 
 export default class MaterialDatabase {
     private readonly materials = new Map<number, THREE.Material>();
-    private readonly lineMaterials = new Map<number, THREE.LineBasicMaterial>();
+    private readonly lineMaterials = new Map<number, LineMaterial>();
 
     constructor() {
-        this.lineMaterials.set(hash("line"), new THREE.LineBasicMaterial({ color: 0x000000 }));
-        this.lineMaterials.set(hash("line-highlighted"), new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 4 }));
-        this.lineMaterials.set(hash("line-hovered"), new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 4 }));
+        this.lineMaterials.set(hash("line"), new LineMaterial({ color: 0x000000 }));
+        this.lineMaterials.set(hash("line-highlighted"), new LineMaterial({ color: 0xffff00, linewidth: 4 }));
+        this.lineMaterials.set(hash("line-hovered"), new LineMaterial({ color: 0xffffff, linewidth: 4 }));
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
 
         const material = new THREE.MeshMatcapMaterial();
@@ -33,12 +34,12 @@ export default class MaterialDatabase {
         return this.materials.get(st);
     }
 
-    private getLine(l: c3d.SpaceInstance): THREE.LineBasicMaterial | undefined {
+    private getLine(l: c3d.SpaceInstance): LineMaterial | undefined {
         const st = l.GetStyle();
         return this.lineMaterials.get(st);
     }
 
-    line(o?: c3d.SpaceInstance): THREE.LineBasicMaterial {
+    line(o?: c3d.SpaceInstance): LineMaterial {
         if (!o) return this.lineMaterials.get(hash("line"));
         else return this.getLine(o) ?? this.lineMaterials.get(hash("line"));
     }
@@ -46,9 +47,9 @@ export default class MaterialDatabase {
     // A quirk of three.js is that to render lines with any thickness, you need to use
     // a LineMaterial whose resolution must be set before each render
     setResolution(width: number, height: number) {
-    //     for (const material of this.lineMaterials.values()) {
-    //         material.resolution.set(width, height);
-    //     }
+        for (const material of this.lineMaterials.values()) {
+            material.resolution.set(width, height);
+        }
     }
 
     point(o?: c3d.Item): THREE.Material {
@@ -69,11 +70,11 @@ export default class MaterialDatabase {
         return material;
     }
 
-    highlight(o: c3d.TopologyItem): THREE.LineBasicMaterial {
+    highlight(o: c3d.TopologyItem): LineMaterial {
         return this.lineMaterials.get(hash("line-highlighted"));
     }
 
-    lookup(o: c3d.TopologyItem): THREE.LineBasicMaterial {
+    lookup(o: c3d.TopologyItem): LineMaterial {
         return this.lineMaterials.get(hash("line"));
     }
 

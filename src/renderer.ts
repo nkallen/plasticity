@@ -1,7 +1,7 @@
 import './css/index.css';
 
 import Stats from 'stats.js';
-import { Editor } from './Editor';
+import { Editor } from './Editor_';
 import './Pane';
 import Toolbar from './Toolbar';
 import Viewport from './Viewport';

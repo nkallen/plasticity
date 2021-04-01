@@ -1,4 +1,4 @@
-import { Editor } from '../Editor'
+import { Editor } from '../Editor_'
 import { PointPicker } from '../PointPicker'
 import * as THREE from "three";
 import SphereFactory from './Sphere';
