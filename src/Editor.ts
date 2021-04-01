@@ -76,6 +76,7 @@ export class Editor {
         command.execute();
     }
 
+    // FIXME rename addItem?(item, visual)
     addObject(object: c3d.Item, mesh?: VisualModel) {
         mesh = mesh ?? this.object2mesh(object);
         const o = this.geometryModel.AddItem(object);

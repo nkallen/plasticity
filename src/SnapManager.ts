@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Editor } from "./Editor";
-import { Item, VisualModel } from "./VisualModel";
+import { CurveEdge, Edge, Item, VisualModel } from "./VisualModel";
 import c3d from '../build/Release/c3d.node';
 import { Object3D } from "three";
 
@@ -9,6 +9,7 @@ export class SnapManager {
     private readonly snaps = new Set<Snap>();
 
     private readonly begPoints = new Set<Snap>();
+    private readonly midPoints = new Set<Snap>();
 
     pickers: Object3D[];
     snappers: Object3D[];
@@ -20,31 +21,37 @@ export class SnapManager {
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)));
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)));
 
-        this.pickers = this._pickers();
-        this.snappers = this._snappers();
+        this.update();
     }
 
-    private _pickers() {
-        return [...this.snaps, ...this.begPoints].map((s) => s.picker);
-    }
-
-    private _snappers() {
-        return [...this.snaps, ...this.begPoints].map((s) => s.snapper);
+    private update() {
+        const all = [...this.snaps, ...this.begPoints, ...this.midPoints];
+        this.snappers = all.map((s) => s.picker);
+        this.pickers = all.map((s) => s.snapper);
     }
 
     add(item: VisualModel) {
         if (item instanceof Item) {
             for (const edge of item.edges) {
-                const model = this.editor.lookupTopologyItem(edge) as c3d.Edge;
-                const pt = model.GetBegPoint();
-                const snap = new PointSnap(pt.x, pt.y, pt.z);
-                edge.snaps.add(snap);
-                this.begPoints.add(snap);
+                this.addEdge(edge);
             }
         }
 
-        this.pickers = this._pickers();
-        this.snappers = this._snappers();
+        this.update();
+    }
+
+    addEdge(edge: CurveEdge) {
+        const model = this.editor.lookupTopologyItem(edge) as c3d.Edge;
+        const begPt = model.GetBegPoint();
+        const begSnap = new PointSnap(begPt.x, begPt.y, begPt.z);
+        this.begPoints.add(begSnap);
+
+        const midPt = model.Point(0.5);
+        const midSnap = new PointSnap(midPt.x, midPt.y, midPt.z);
+        this.midPoints.add(midSnap);
+
+        edge.snaps.add(midSnap);
+        edge.snaps.add(begSnap);
     }
 
     delete(item: VisualModel) {
@@ -52,12 +59,12 @@ export class SnapManager {
             for (const edge of item.edges) {
                 for (const snap of edge.snaps) {
                     this.begPoints.delete(snap);
+                    this.midPoints.delete(snap);
                 }
             }
         }
 
-        this.pickers = this._pickers();
-        this.snappers = this._snappers();
+        this.update();
     }
 }
 
