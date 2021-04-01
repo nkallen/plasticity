@@ -67,26 +67,35 @@ export class SnapManager {
         this.update();
     }
 
-    helperFor(intersection: THREE.Intersection) {
+    hoverIndicatorFor(intersection: THREE.Intersection) {
         const sprite = this.editor.spriteDatabase.isNear();
         const snap = intersection.object.userData.snap;
         sprite.position.copy(snap.project(intersection));
         return sprite;
     }
+
+    foo(intersection: THREE.Intersection) {
+        const snap = intersection.object.userData.snap;
+        const helper = snap.helper;
+        return [helper, snap.project(intersection)];
+    }
 }
 
 export abstract class Snap {
     snapper: THREE.Object3D;
-    picker?: THREE.Object3D
+    picker?: THREE.Object3D;
+    helper?: THREE.Object3D;
 
-    constructor(snapper: THREE.Object3D, picker?: THREE.Object3D) {
+    constructor(snapper: THREE.Object3D, picker?: THREE.Object3D, helper?: THREE.Object3D) {
         snapper.userData.snap = this;
         if (picker != null) picker.userData.snap = this;
         snapper.updateMatrixWorld();
         picker?.updateMatrixWorld();
+        helper?.updateMatrixWorld();
 
         this.snapper = snapper;
         this.picker = picker;
+        this.helper = helper;
     }
 
     abstract project(intersection: THREE.Intersection): THREE.Vector3;
@@ -116,9 +125,9 @@ export class AxisSnap extends Snap {
         const points = [-n.x, -n.y, -n.z, n.x, n.y, n.z];
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-        const snapper = new THREE.Line(geometry);
+        const snapper = new THREE.Line(geometry, new THREE.LineBasicMaterial());
 
-        super(snapper, null);
+        super(snapper, null, snapper);
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
