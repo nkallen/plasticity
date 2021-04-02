@@ -1,6 +1,6 @@
 import signals from "signals";
 import * as THREE from "three";
-import { SpaceItem } from "./VisualModel";
+import { SpaceItem } from "../VisualModel";
 
 class SelectorSignals {
     clicked: signals.Signal<THREE.Intersection[]>;
