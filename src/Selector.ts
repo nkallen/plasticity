@@ -85,7 +85,6 @@ export class Selector extends THREE.EventDispatcher {
 
     private getIntersects(point: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
         this.mouse.set((point.x * 2) - 1, - (point.y * 2) + 1);
-
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
         return this.raycaster.intersectObjects(objects, true);
