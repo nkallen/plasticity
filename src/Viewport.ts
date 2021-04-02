@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Editor } from './Editor';
 import { Pane } from './Pane';
-import { Selector } from './selection/Selector';
+import { ViewportSelector } from './selection/ViewportSelector';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -32,7 +32,7 @@ export default (editor: Editor) => {
         readonly overlay = new THREE.Scene();
         readonly renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
         readonly navigationControls?: OrbitControls;
-        readonly selector: Selector;
+        readonly selector: ViewportSelector;
         readonly constructionPlane: PlaneSnap;
         readonly composer: EffectComposer;
         readonly outlinePassSelection: OutlinePass;
@@ -88,7 +88,7 @@ export default (editor: Editor) => {
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());
             this.camera = camera;
-            this.selector = new Selector(editor.drawModel, camera, this.renderer.domElement);
+            this.selector = new ViewportSelector(editor.drawModel, camera, this.renderer.domElement);
 
             this.renderer.setPixelRatio(window.devicePixelRatio);
             const size = this.renderer.getSize(new THREE.Vector2());

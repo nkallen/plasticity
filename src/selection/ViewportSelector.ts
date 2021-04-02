@@ -7,7 +7,7 @@ class SelectorSignals {
     hovered: signals.Signal<THREE.Intersection[]>;
 }
 
-export class Selector extends THREE.EventDispatcher {
+export class ViewportSelector extends THREE.EventDispatcher {
     private readonly drawModel: Set<SpaceItem>;
     private readonly camera: THREE.Camera;
     private readonly domElement: HTMLElement;
