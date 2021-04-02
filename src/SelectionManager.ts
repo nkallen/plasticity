@@ -72,6 +72,152 @@ class Curve3DHoverable extends Hoverable {
     }
 }
 
+interface SelectionStrategy {
+    emptyIntersection(): void;
+    solid(object: TopologyItem, parentItem: Solid): boolean;
+    topologicalItem(object: TopologyItem, parentItem: Solid): boolean;
+    curve3D(object: CurveSegment, parentItem: SpaceInstance): boolean;
+    invalidIntersection(): void;
+}
+
+class ClickStrategy implements SelectionStrategy {
+    constructor(private selectionManager: SelectionManager) {
+    }
+
+    emptyIntersection() {
+        this.selectionManager.deselectAll();
+    }
+
+    invalidIntersection() { }
+
+    curve3D(object: CurveSegment, parentItem: SpaceInstance) {
+        const model = this.selectionManager.editor.lookupItem(parentItem);
+
+        if (this.selectionManager.mode.has(SelectionMode.Curve)) {
+            if (this.selectionManager.selectedCurves.has(parentItem)) {
+                this.selectionManager.selectedCurves.delete(parentItem);
+                object.material = this.selectionManager.editor.materialDatabase.line(model);
+                this.selectionManager.editor.signals.objectDeselected.dispatch(parentItem);
+            } else {
+                this.selectionManager.hover?.dispose();
+                this.selectionManager.hover = null;
+                this.selectionManager.selectedCurves.add(parentItem);
+                object.material = this.selectionManager.editor.materialDatabase.highlight(model);
+                this.selectionManager.editor.signals.objectSelected.dispatch(parentItem);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    solid(object: TopologyItem, parentItem: Solid): boolean {
+        if (this.selectionManager.selectedSolids.has(parentItem)) {
+            if (this.topologicalItem(object, parentItem)) {
+                this.selectionManager.selectedSolids.delete(parentItem);
+                this.selectionManager.editor.signals.objectDeselected.dispatch(parentItem);
+            }
+            return true;
+        } else if (!this.selectionManager.selectedChildren.has(parentItem)) {
+            this.selectionManager.hover?.dispose();
+            this.selectionManager.hover = null;
+            this.selectionManager.selectedSolids.add(parentItem);
+            this.selectionManager.editor.signals.objectSelected.dispatch(parentItem);
+            return true;
+        }
+        return false;
+    }
+
+    topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
+        const model = this.selectionManager.editor.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
+        if (this.selectionManager.mode.has(SelectionMode.Face) && object instanceof Face) {
+            if (this.selectionManager.selectedFaces.has(object)) {
+                this.selectionManager.selectedFaces.delete(object);
+                object.material = this.selectionManager.editor.materialDatabase.lookup(model);
+                this.selectionManager.selectedChildren.decr(parentItem);
+                this.selectionManager.editor.signals.objectDeselected.dispatch(object);
+            } else {
+                this.selectionManager.hover?.dispose();
+                this.selectionManager.hover = null;
+                this.selectionManager.selectedFaces.add(object);
+                object.material = this.selectionManager.editor.materialDatabase.highlight(model);
+                this.selectionManager.selectedChildren.incr(parentItem);
+                this.selectionManager.editor.signals.objectSelected.dispatch(object);
+            }
+            return true;
+        } else if (this.selectionManager.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
+            if (this.selectionManager.selectedEdges.has(object)) {
+                this.selectionManager.selectedEdges.delete(object);
+                object.material = this.selectionManager.editor.materialDatabase.lookup(model);
+                this.selectionManager.selectedChildren.decr(parentItem);
+                this.selectionManager.editor.signals.objectDeselected.dispatch(object);
+            } else {
+                this.selectionManager.hover?.dispose();
+                this.selectionManager.hover = null;
+                this.selectionManager.selectedEdges.add(object);
+                object.material = this.selectionManager.editor.materialDatabase.highlight(model);
+                this.selectionManager.selectedChildren.incr(parentItem);
+                this.selectionManager.editor.signals.objectSelected.dispatch(object);
+            }
+            return true;
+        }
+        return false;
+    }
+}
+
+class HoverStrategy implements SelectionStrategy {
+    constructor(private selectionManager: SelectionManager) {
+    }
+
+    emptyIntersection() {
+        this.selectionManager.hover?.dispose();
+        this.selectionManager.hover = null;
+    }
+
+    invalidIntersection() {
+        this.selectionManager.hover?.dispose();
+        this.selectionManager.hover = null;
+    }
+
+    curve3D(object: CurveSegment, parentCurve: SpaceInstance): boolean {
+        if (this.selectionManager.mode.has(SelectionMode.Curve) && !this.selectionManager.selectedCurves.has(parentCurve)) {
+            if (!this.selectionManager.hover?.isEqual(object)) {
+                this.selectionManager.hover?.dispose();
+                this.selectionManager.hover = new Curve3DHoverable(parentCurve, this.selectionManager.editor.materialDatabase.hover(), this.selectionManager.editor.signals.objectHovered);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    solid(object: TopologyItem, parentItem: Solid): boolean {
+        if (!this.selectionManager.selectedSolids.has(parentItem) && !this.selectionManager.selectedChildren.has(parentItem)) {
+            if (!this.selectionManager.hover?.isEqual(parentItem)) {
+                this.selectionManager.hover?.dispose();
+                this.selectionManager.hover = new Hoverable(parentItem, this.selectionManager.editor.signals.objectHovered);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
+        if (this.selectionManager.mode.has(SelectionMode.Face) && object instanceof Face && !this.selectionManager.selectedFaces.has(object)) {
+            if (!this.selectionManager.hover?.isEqual(object)) {
+                this.selectionManager.hover?.dispose();
+                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.editor.materialDatabase.hover(), this.selectionManager.editor.signals.objectHovered);
+            }
+            return true;
+        } else if (this.selectionManager.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selectionManager.selectedEdges.has(object)) {
+            if (!this.selectionManager.hover?.isEqual(object)) {
+                this.selectionManager.hover?.dispose();
+                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.editor.materialDatabase.hover(), this.selectionManager.editor.signals.objectHovered);
+            }
+            return true;
+        }
+        return false;
+    }
+}
+
 export class SelectionManager {
     readonly selectedSolids = new Set<Solid>();
     readonly selectedChildren = new RefCounter();
@@ -82,13 +228,16 @@ export class SelectionManager {
     readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve]);
     hover?: Hoverable = null;
 
+    private readonly clickStrategy = new ClickStrategy(this);
+    private readonly hoverStrategy = new HoverStrategy(this);
+
     constructor(editor: Editor) {
         this.editor = editor;
     }
 
-    onClick(intersections: THREE.Intersection[]) {
+    private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy) {
         if (intersections.length == 0) {
-            this.deselectAll();
+            strategy.emptyIntersection();
             return;
         }
 
@@ -96,153 +245,23 @@ export class SelectionManager {
             const object = intersection.object;
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
-
-                if (this.selectSolid(object, parentItem as Solid)) break;
-                if (this.selectTopologicalItem(object, parentItem as Solid)) break;
+                if (this.mode.has(SelectionMode.Solid)) {
+                    if (strategy.solid(object, parentItem as Solid)) return;
+                }
+                if (strategy.topologicalItem(object, parentItem as Solid)) return;
             } else if (object instanceof CurveSegment) {
                 const parentItem = object.parentItem;
-                if (this.selectCurve3D(object, parentItem)) break;
+                if (strategy.curve3D(object, parentItem)) return;
             }
         }
     }
 
-    private selectCurve3D(object: CurveSegment, parentItem: SpaceInstance) {
-        const model = this.editor.lookupItem(parentItem);
-
-        if (this.mode.has(SelectionMode.Curve)) {
-            if (this.selectedCurves.has(parentItem)) {
-                this.selectedCurves.delete(parentItem);
-                object.material = this.editor.materialDatabase.line(model);
-                this.editor.signals.objectDeselected.dispatch(parentItem);
-            } else {
-                this.hover?.dispose();
-                this.hover = null;
-                this.selectedCurves.add(parentItem);
-                object.material = this.editor.materialDatabase.highlight(model);
-                this.editor.signals.objectSelected.dispatch(parentItem);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private selectSolid(object: TopologyItem, parentItem: Solid): boolean {
-        if (this.mode.has(SelectionMode.Solid)) {
-            if (this.selectedSolids.has(parentItem)) {
-                if (this.selectTopologicalItem(object, parentItem)) {
-                    this.selectedSolids.delete(parentItem);
-                    this.editor.signals.objectDeselected.dispatch(parentItem);
-                }
-                return true;
-            } else if (!this.selectedChildren.has(parentItem)) {
-                this.hover?.dispose();
-                this.hover = null;
-                this.selectedSolids.add(parentItem);
-                this.editor.signals.objectSelected.dispatch(parentItem);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private selectTopologicalItem(object: TopologyItem, parentItem: Solid): boolean {
-        const model = this.editor.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
-        if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
-            if (this.selectedFaces.has(object)) {
-                this.selectedFaces.delete(object);
-                object.material = this.editor.materialDatabase.lookup(model);
-                this.selectedChildren.decr(parentItem);
-                this.editor.signals.objectDeselected.dispatch(object);
-            } else {
-                this.hover?.dispose();
-                this.hover = null;
-                this.selectedFaces.add(object);
-                object.material = this.editor.materialDatabase.highlight(model);
-                this.selectedChildren.incr(parentItem);
-                this.editor.signals.objectSelected.dispatch(object);
-            }
-            return true;
-        } else if (this.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
-            if (this.selectedEdges.has(object)) {
-                this.selectedEdges.delete(object);
-                object.material = this.editor.materialDatabase.lookup(model);
-                this.selectedChildren.decr(parentItem);
-                this.editor.signals.objectDeselected.dispatch(object);
-            } else {
-                this.hover?.dispose();
-                this.hover = null;
-                this.selectedEdges.add(object);
-                object.material = this.editor.materialDatabase.highlight(model);
-                this.selectedChildren.incr(parentItem);
-                this.editor.signals.objectSelected.dispatch(object);
-            }
-            return true;
-        }
-        return false;
+    onClick(intersections: THREE.Intersection[]) {
+        this.onIntersection(intersections, this.clickStrategy);
     }
 
     onPointerMove(intersections: THREE.Intersection[]) {
-        if (intersections.length == 0) {
-            this.hover?.dispose();
-            this.hover = null;
-            return;
-        }
-
-        for (const intersection of intersections) {
-            const object = intersection.object;
-
-            if (object instanceof Face || object instanceof CurveEdge) {
-                const parentItem = object.parentItem;
-                if (this.hoverItem(parentItem as Solid)) return;
-                else if (this.hoverTopologicalItem(object, parentItem as Solid)) return;
-            } else if (object instanceof CurveSegment) {
-                const parentItem = object.parentItem;
-                if (this.hoverCurve3D(object, parentItem)) return;
-            }
-        }
-        this.hover?.dispose();
-        this.hover = null;
-    }
-
-    private hoverCurve3D(object: CurveSegment, parentCurve: SpaceInstance): boolean {
-        if (this.mode.has(SelectionMode.Curve) && !this.selectedCurves.has(parentCurve)) {
-            if (!this.hover?.isEqual(object)) {
-                this.hover?.dispose();
-                this.hover = new Curve3DHoverable(parentCurve, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private hoverItem(parentItem: Solid): boolean {
-        if (this.mode.has(SelectionMode.Solid)) {
-            if (!this.selectedSolids.has(parentItem) && !this.selectedChildren.has(parentItem)) {
-                if (!this.hover?.isEqual(parentItem)) {
-                    this.hover?.dispose();
-                    this.hover = new Hoverable(parentItem, this.editor.signals.objectHovered);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private hoverTopologicalItem(object: TopologyItem, parentItem: Solid): boolean {
-        if (this.mode.has(SelectionMode.Face) && object instanceof Face && !this.selectedFaces.has(object)) {
-            if (!this.hover?.isEqual(object)) {
-                this.hover?.dispose();
-                this.hover = new TopologicalItemHoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
-            }
-            return true;
-        } else if (this.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selectedEdges.has(object)) {
-            if (!this.hover?.isEqual(object)) {
-                this.hover?.dispose();
-                this.hover = new TopologicalItemHoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
-            }
-            return true;
-        }
-        return false;
+        this.onIntersection(intersections, this.hoverStrategy);
     }
 
     deselectAll() {
