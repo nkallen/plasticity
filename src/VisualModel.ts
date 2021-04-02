@@ -77,7 +77,6 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
         super()
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
-        console.log(this);
         Line2.call(this, geometry, material);
         this.userData.name = edge.name;
         this.userData.simpleName = edge.simpleName;

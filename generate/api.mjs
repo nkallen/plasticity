@@ -4,6 +4,9 @@ export default {
             rawHeader: "reference_item.h",
             freeFunctionName: "DeleteItem",
             protectedDestructor: true,
+            functions: [
+                "refcount_t GetUseCount()"
+            ]
         },
         Model: {
             rawHeader: "model.h",
@@ -399,6 +402,14 @@ export default {
                 "void AddVertex(const MbCartPoint3D & point)",
             ]
         },
+        EdgeSequence: {
+            rawHeader: "position_data.h",
+            freeFunctionName: "DeleteMatItem",
+            fields: [
+                // "RPArray<MbCurveEdge> edges",
+                // "bool closed"
+            ]
+        }
     },
     modules: {
         Enabler: {
@@ -439,6 +450,21 @@ export default {
             functions: [
                 "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType TransformedSolid(MbSolid & solid, MbeCopyMode sameShell, const TransformValues & params, const MbSNameMaker & names, MbSolid *& result)",
+            ]
+        },
+        ActionPhantom: {
+            rawHeader: "action_phantom.h",
+            dependencies: ["Solid.h", "CurveEdge.h", "_SmoothValues.h", "Surface.h", "EdgeSequence.h"],
+            functions: [
+                {
+                    signature: "MbResultType SmoothPhantom(MbSolid & solid, RPArray<MbCurveEdge> & initCurves, const SmoothValues & params, RPArray<MbSurface> & result)",
+                    result: { isReturn: true }
+                },
+                {
+                    signature: "MbResultType SmoothSequence(const MbSolid & solid, RPArray<MbCurveEdge> & edges, const SmoothValues & params, bool createSurfaces, RPArray<MbEdgeSequence> & sequences, RPArray<MbSurface> & result)",
+                    sequences: { isReturn: true },
+                    result: { isReturn: true },
+                }
             ]
         },
         ActionCurve3D: {

@@ -1,6 +1,6 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
-import { Item, CurveEdge } from '../VisualModel';
+import { Item, CurveEdge, SpaceInstance } from '../VisualModel';
 import { TemporaryObject } from '../Editor';
 
 export default class FilletFactory extends GeometryFactory {
@@ -57,16 +57,19 @@ export default class FilletFactory extends GeometryFactory {
         this.item.visible = false;
         this.temp?.cancel();
 
-        const names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
+        const phantom = c3d.ActionPhantom.SmoothPhantom(this.solid, this.curves, this.params);
 
-        const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.KeepHistory, this.curves, [], this.params, names);
-        this.temp = this.editor.addTemporaryObject(result);
+        this.temp = this.editor.addTemporaryObjects(phantom.map(ph => new c3d.SpaceInstance(ph)));
 
         return super.update();
     }
 
     commit() {
-        this.temp!.commit();
+        this.temp!.cancel();
+        const names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
+        const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.KeepHistory, this.curves, [], this.params, names);
+        this.editor.addObject(result);
+
         this.editor.selectionManager.deselectAll();
         this.editor.removeItem(this.item);
     }

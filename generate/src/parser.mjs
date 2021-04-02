@@ -230,7 +230,7 @@ class TypeDeclaration {
     }
 
     get isNumber() {
-        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float"
+        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t"
     }
 
     get isCppString2CString() {

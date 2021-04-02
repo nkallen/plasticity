@@ -55,6 +55,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
                 Napi::Error::New(env, "Invalid construction").ThrowAsJavaScriptException();
                 return;
             }
+            <%_ if (klass.freeFunctionName == 'DeleteItem') { _%>underlying->AddRef();<%_ } _%>
             this->_underlying = underlying;
         <%_ } _%>
         } else {
@@ -106,6 +107,7 @@ void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackI
 
 <%_ if (klass.freeFunctionName && !klass.protectedDestructor) { _%>
 <%- klass.cppClassName %>::~<%- klass.cppClassName %>() {
+    // std::cout << "calling <%- klass.freeFunctionName %> on <%- klass.cppClassName %> for " << this->_underlying->GetUseCount() << "\n";
     <%- klass.freeFunctionName %>(this->_underlying);
 }
 <%_ } _%>

@@ -42,8 +42,6 @@ export class PointPicker {
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
 
-                // this.editor.scene.add(constructionPlane.snapper);
-
                 const editor = this.editor;
                 function onPointerMove(e: PointerEvent) {
                     const pointer = getPointer(e);
@@ -60,7 +58,7 @@ export class PointPicker {
                     const snappers = editor.snapManager.snappers;
                     const snapperIntersections = raycaster.intersectObjects([constructionPlane.snapper, ...snappers]);
                     for (const intersection of snapperIntersections) {
-                        const [helper, point] = editor.snapManager.foo(intersection);
+                        const [helper, point] = editor.snapManager.helperFor(intersection);
                         if (cb != null) cb(point);
                         mesh.position.copy(point);
                         if (helper != null) viewport.overlay.add(helper);

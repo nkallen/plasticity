@@ -16,11 +16,15 @@ Napi::Object getBuffer(const Napi::CallbackInfo &info, const MbGrid *grid)
     result.Set(Napi::String::New(env, "position"), position);
     result.Set(Napi::String::New(env, "normal"), normal);
 
-    const MbTopItem *top = grid->TopItem();
-    MbFace *face = (MbFace *)top;
     result.Set(Napi::String::New(env, "style"), Napi::Number::New(env, grid->GetStyle()));
     result.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, grid->GetPrimitiveName()));
-    result.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(face->GetName())));
+
+    const MbTopItem *top = grid->TopItem();
+    if (top != NULL)
+    {
+        MbFace *face = (MbFace *)top;
+        result.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(face->GetName())));
+    }
 
     return result;
 }

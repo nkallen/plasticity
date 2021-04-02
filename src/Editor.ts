@@ -84,6 +84,22 @@ export class Editor {
         this.signals.sceneGraphChanged.dispatch();
     }
 
+    addTemporaryObjects(objects: c3d.Item[]): TemporaryObject {
+        const temps: TemporaryObject[] = [];
+        for (const object of objects) {
+            const temp = this.addTemporaryObject(object);
+            temps.push(temp);
+        }
+        return {
+            cancel: () => {
+                temps.forEach(t => t.cancel())
+            },
+            commit: () => {
+                temps.forEach(t => t.commit())
+            }
+        }
+    }
+
     addTemporaryObject(object: c3d.Item): TemporaryObject {
         const mesh = this.object2mesh(object, 0.05, false);
         this.scene.add(mesh);

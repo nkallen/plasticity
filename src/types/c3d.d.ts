@@ -4,7 +4,10 @@ declare module "*c3d.node" {
         SetStyle(number): void;
     }
 
-    declare class SpaceItem {
+    declare class RefItem {
+        GetUseCount(): number;
+    }
+    declare class SpaceItem extends RefItem {
         private _useNominal: undefined;
     }
 
@@ -114,6 +117,10 @@ declare module "*c3d.node" {
         IsClosed(): boolean;
     }
 
+    declare class Surface extends SpaceItem {
+
+    }
+
     declare class TopologyItem extends AttributeContainer {
         private _useNominal: undefined;
 
@@ -201,6 +208,11 @@ declare module "*c3d.node" {
 
     var ActionDirect: {
         TransformedSolid(Solid, CopyMode, TransformValues, NameMaker): Solid
+    }
+
+    var ActionPhantom: {
+        SmoothPhantom(solid: Solid, edges: CurveEdge[], params: SmoothValues): Surface[];
+        SmoothSequence(solid: Solid, edges: CurveEdge[], params: SmoothValues, createSurfaces: boolean);
     }
 
     declare enum ESides {
