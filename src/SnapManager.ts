@@ -74,7 +74,7 @@ export class SnapManager {
         return sprite;
     }
 
-    foo(intersection: THREE.Intersection) {
+    helperFor(intersection: THREE.Intersection) {
         const snap = intersection.object.userData.snap;
         const helper = snap.helper;
         return [helper, snap.project(intersection)];
