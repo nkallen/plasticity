@@ -174,7 +174,7 @@ declare module "*c3d.node" {
         constructor(Curve3D);
     }
 
-    declare class Curve3D {
+    declare class Curve3D extends SpaceItem {
         private _useNominal: undefined;
     }
 

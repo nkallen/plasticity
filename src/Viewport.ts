@@ -8,7 +8,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
-import { Item, VisualModel } from "./VisualModel";
+import { Item, Solid, SpaceItem } from "./VisualModel";
 import { PlaneSnap } from "./SnapManager";
 
 const near = 0.01;
@@ -25,6 +25,7 @@ export interface Viewport {
 }
 
 export default (editor: Editor) => {
+    // FIXME rename
     class _Viewport extends HTMLElement {
         readonly camera: THREE.Camera;
         readonly overlayCamera: THREE.OrthographicCamera;
@@ -183,13 +184,13 @@ export default (editor: Editor) => {
 
         outlineSelection() {
             const selectionManager = editor.selectionManager;
-            const toOutline = [...selectionManager.selectedItems].map((item) => item.faces);
+            const toOutline = [...selectionManager.selectedSolids].map((item) => item.faces);
             this.outlinePassSelection.selectedObjects = toOutline;
         }
 
-        outlineHover(object?: VisualModel) {
+        outlineHover(object?: SpaceItem) {
             if (object == null) this.outlinePassHover.selectedObjects = [];
-            else if (object instanceof Item) this.outlinePassHover.selectedObjects = [object.faces];
+            else if (object instanceof Solid) this.outlinePassHover.selectedObjects = [object.faces];
         }
 
         resize() {

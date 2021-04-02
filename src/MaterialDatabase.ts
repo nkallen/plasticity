@@ -72,7 +72,7 @@ export default class MaterialDatabase {
         return material;
     }
 
-    highlight(o: c3d.TopologyItem): LineMaterial {
+    highlight(o: c3d.TopologyItem | c3d.SpaceInstance): LineMaterial {
         return this.lineMaterials.get(hash("line-highlighted"));
     }
 

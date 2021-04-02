@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Editor } from "./Editor";
-import { CurveEdge, Edge, Item, VisualModel } from "./VisualModel";
+import { CurveEdge, Edge, Item, Solid, SpaceItem } from "./VisualModel";
 import c3d from '../build/Release/c3d.node';
 import { Object3D } from "three";
 
@@ -30,8 +30,8 @@ export class SnapManager {
         this.snappers = all.map((s) => s.snapper).flat();
     }
 
-    add(item: VisualModel) {
-        if (item instanceof Item) {
+    add(item: SpaceItem) {
+        if (item instanceof Solid) {
             for (const edge of item.edges) {
                 this.addEdge(edge);
             }
@@ -54,8 +54,8 @@ export class SnapManager {
         edge.snaps.add(begSnap);
     }
 
-    delete(item: VisualModel) {
-        if (item instanceof Item) {
+    delete(item: SpaceItem) {
+        if (item instanceof Solid) {
             for (const edge of item.edges) {
                 for (const snap of edge.snaps) {
                     this.begPoints.delete(snap);

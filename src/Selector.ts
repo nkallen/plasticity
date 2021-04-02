@@ -1,13 +1,14 @@
 import signals from "signals";
 import * as THREE from "three";
-import { VisualModel } from "./VisualModel";
+import { SpaceItem } from "./VisualModel";
+
 class SelectorSignals {
     clicked: signals.Signal<THREE.Intersection[]>;
     hovered: signals.Signal<THREE.Intersection[]>;
 }
 
 export class Selector extends THREE.EventDispatcher {
-    private readonly drawModel: Set<VisualModel>;
+    private readonly drawModel: Set<SpaceItem>;
     private readonly camera: THREE.Camera;
     private readonly domElement: HTMLElement;
     private readonly raycaster = new THREE.Raycaster();
@@ -24,7 +25,7 @@ export class Selector extends THREE.EventDispatcher {
     }
 
     // FIXME add dispose
-    constructor(drawModel: Set<VisualModel>, camera: THREE.Camera, domElement: HTMLElement) {
+    constructor(drawModel: Set<SpaceItem>, camera: THREE.Camera, domElement: HTMLElement) {
         super();
 
         this.drawModel = drawModel;
