@@ -1,6 +1,6 @@
 // https://www.typescriptlang.org/docs/handbook/mixins.html
 export function applyMixins(derivedCtor: any, constructors: any[]) {
-    constructors.forEach((baseCtor) => {
+    constructors.reverse().forEach((baseCtor) => {
         Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
             Object.defineProperty(
                 derivedCtor.prototype,

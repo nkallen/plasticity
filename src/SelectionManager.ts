@@ -13,14 +13,17 @@ enum SelectionMode {
 class Hoverable {
     private readonly disposable = new CompositeDisposable();
     protected readonly object: SpaceItem;
+    private readonly signal: signals.Signal<SpaceItem>;
 
     constructor(object: SpaceItem, signal: signals.Signal<SpaceItem>) {
         this.object = object;
         this.disposable.add(new Disposable(() => signal.dispatch(null)));
         signal.dispatch(object);
+        this.signal = signal;
     }
 
     dispose() {
+        this.signal.dispatch(this.object);
         this.disposable.dispose();
     }
 
@@ -40,7 +43,7 @@ class TopologicalItemHoverable<T extends THREE.Material | THREE.Material[]> exte
         this.previousMaterial = previous;
     }
 
-    dipose() {
+    dispose() {
         this.object.material = this.previousMaterial;
         super.dispose();
     }

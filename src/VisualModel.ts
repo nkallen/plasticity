@@ -17,15 +17,22 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
  * And that's principally what's going on in this file.
  */
 
-export abstract class SpaceItem extends THREE.Object3D { }
+export abstract class SpaceItem { }
 export abstract class Item extends SpaceItem { }
 export class Solid extends Item {
+    disposable = new CompositeDisposable()
     edges: CurveEdgeGroup;
     faces: FaceGroup;
+
+    constructor() {
+        super();
+        THREE.Object3D.call(this);
+    }
 }
 export class SpaceInstance extends Item {
     constructor(underlying: SpaceItem) {
         super();
+        THREE.Object3D.call(this);
         this.add(underlying);
     }
 
@@ -34,8 +41,11 @@ export class SpaceInstance extends Item {
     }
 }
 export class Curve3D extends SpaceItem {
+    disposable = new CompositeDisposable()
+
     constructor() {
         super();
+        THREE.Object3D.call(this);
     }
 
     *[Symbol.iterator]() {
@@ -44,13 +54,15 @@ export class Curve3D extends SpaceItem {
         }
     }
 }
-export abstract class TopologyItem extends THREE.Object3D {
+export abstract class TopologyItem {
     get parentItem() {
         return this.parent.parent as Item;
     }
 }
 export class Edge extends TopologyItem { }
 export class CurveEdge extends Edge {
+    readonly snaps = new Set<Snap>();
+
     constructor(edge: c3d.EdgeBuffer, material: LineMaterial) {
         super()
         const geometry = new LineGeometry();
@@ -76,6 +88,8 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
     }
 }
 export class Face extends TopologyItem {
+    readonly snaps = new Set<Snap>();
+
     constructor(grid: c3d.MeshBuffer, material: THREE.Material) {
         super()
         const geometry = new THREE.BufferGeometry();
@@ -89,25 +103,34 @@ export class Face extends TopologyItem {
 }
 
 export class CurveEdgeGroup extends THREE.Group {
+    disposable = new CompositeDisposable();
+
     *[Symbol.iterator]() {
         for (const child of this.children) {
             yield child as CurveEdge;
         }
     }
 }
-export class FaceGroup extends THREE.Group { }
+export class FaceGroup extends THREE.Group {
+    disposable = new CompositeDisposable();
+}
 
 /**
  * With the object hierarchy establish, we now mixin the THREE.js behavior
  */
 
+export interface SpaceItem extends THREE.Object3D { }
+export interface TopologyItem extends THREE.Object3D { }
 export interface CurveSegment extends Line2 { }
 export interface CurveEdge extends Line2 { }
 export interface Face extends THREE.Mesh { }
 
-applyMixins(Edge, [Line2]);
-applyMixins(CurveSegment, [Line2]);
-applyMixins(Face, [THREE.Mesh]);
+applyMixins(Solid, [THREE.Object3D, THREE.EventDispatcher]);
+applyMixins(SpaceInstance, [THREE.Object3D, THREE.EventDispatcher]);
+applyMixins(Curve3D, [THREE.Object3D, THREE.EventDispatcher]);
+applyMixins(Edge, [Line2, LineSegments2, THREE.Mesh, THREE.Object3D, THREE.EventDispatcher]);
+applyMixins(CurveSegment, [Line2, LineSegments2, THREE.Mesh, THREE.Object3D, THREE.EventDispatcher]);
+applyMixins(Face, [THREE.Mesh, THREE.Object3D, THREE.EventDispatcher]);
 
 /**
  * In order to deal with garbage collection issues around geometry disposal, we also mixin
@@ -127,18 +150,18 @@ applyMixins(Face, [GeometryDisposable]);
 applyMixins(CurveEdge, [GeometryDisposable]);
 applyMixins(CurveSegment, [GeometryDisposable]);
 
-class HasDisposable {
-    readonly disposable = new CompositeDisposable();
+abstract class HasDisposable {
+    abstract disposable: Disposable;
     dispose() { this.disposable.dispose(); }
 }
 
 export interface Curve3D extends HasDisposable { }
 export interface Solid extends HasDisposable { }
-applyMixins(Curve3D, [HasDisposable]);
-applyMixins(Solid, [HasDisposable]);
-
 export interface CurveEdgeGroup extends HasDisposable { };
 export interface FaceGroup extends HasDisposable { }
+
+applyMixins(Curve3D, [HasDisposable]);
+applyMixins(Solid, [HasDisposable]);
 applyMixins(FaceGroup, [HasDisposable]);
 applyMixins(CurveEdgeGroup, [HasDisposable]);
 
@@ -154,7 +177,7 @@ export class Curve3DBuilder {
 
     addCurveSegment(segment: CurveSegment) {
         this.curve3D.add(segment);
-        this.curve3D.disposable.add(new Disposable(() => segment.dispose()));
+        // this.curve3D.disposable.add(new Disposable(() => segment.dispose()));
     }
 }
 
@@ -162,11 +185,13 @@ export class SolidBuilder {
     private readonly solid = new Solid();
 
     addEdges(edges: CurveEdgeGroup) {
+        this.solid.edges = edges;
         this.solid.add(edges);
         this.solid.disposable.add(new Disposable(() => edges.dispose()));
     }
 
     addFaces(faces: FaceGroup) {
+        this.solid.faces = faces;
         this.solid.add(faces);
         this.solid.disposable.add(new Disposable(() => faces.dispose()));
     }
@@ -201,13 +226,3 @@ export class CurveEdgeGroupBuilder {
         return this.curveEdgeGroup;
     }
 }
-
-/**
- * Snaps
- */
-
-class HasSnaps {
-    readonly snaps = new Set<Snap>();
-}
-export interface CurveEdge extends HasSnaps {}
-applyMixins(CurveEdge, [HasSnaps]);
