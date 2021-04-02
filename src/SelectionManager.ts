@@ -193,28 +193,11 @@ export class SelectionManager {
 
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
-                if (this.hoverItem(parentItem as Solid)) {
-                    if (!this.hover?.isEqual(parentItem)) {
-                        this.hover?.dispose();
-                        this.hover = new Hoverable(parentItem, this.editor.signals.objectHovered);
-                    }
-                    return;
-                } else if (this.hoverTopologicalItem(object, parentItem as Solid)) {
-                    if (!this.hover?.isEqual(object)) {
-                        this.hover?.dispose();
-                        this.hover = new TopologicalItemHoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
-                    }
-                    return;
-                }
+                if (this.hoverItem(parentItem as Solid)) return;
+                else if (this.hoverTopologicalItem(object, parentItem as Solid)) return;
             } else if (object instanceof CurveSegment) {
                 const parentItem = object.parentItem;
-                if (this.hoverCurve3D(object, parentItem)) {
-                    if (!this.hover?.isEqual(object)) {
-                        this.hover?.dispose();
-                        this.hover = new Curve3DHoverable(parentItem, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
-                    }
-                    return;
-                }
+                if (this.hoverCurve3D(object, parentItem)) return;
             }
         }
         this.hover?.dispose();
@@ -223,6 +206,10 @@ export class SelectionManager {
 
     private hoverCurve3D(object: CurveSegment, parentCurve: SpaceInstance): boolean {
         if (this.mode.has(SelectionMode.Curve) && !this.selectedCurves.has(parentCurve)) {
+            if (!this.hover?.isEqual(object)) {
+                this.hover?.dispose();
+                this.hover = new Curve3DHoverable(parentCurve, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
+            }
             return true;
         }
         return false;
@@ -231,6 +218,10 @@ export class SelectionManager {
     private hoverItem(parentItem: Solid): boolean {
         if (this.mode.has(SelectionMode.Solid)) {
             if (!this.selectedSolids.has(parentItem) && !this.selectedChildren.has(parentItem)) {
+                if (!this.hover?.isEqual(parentItem)) {
+                    this.hover?.dispose();
+                    this.hover = new Hoverable(parentItem, this.editor.signals.objectHovered);
+                }
                 return true;
             }
         }
@@ -239,8 +230,16 @@ export class SelectionManager {
 
     private hoverTopologicalItem(object: TopologyItem, parentItem: Solid): boolean {
         if (this.mode.has(SelectionMode.Face) && object instanceof Face && !this.selectedFaces.has(object)) {
+            if (!this.hover?.isEqual(object)) {
+                this.hover?.dispose();
+                this.hover = new TopologicalItemHoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
+            }
             return true;
         } else if (this.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selectedEdges.has(object)) {
+            if (!this.hover?.isEqual(object)) {
+                this.hover?.dispose();
+                this.hover = new TopologicalItemHoverable(object, this.editor.materialDatabase.hover(), this.editor.signals.objectHovered);
+            }
             return true;
         }
         return false;
