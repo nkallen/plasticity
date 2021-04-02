@@ -4,7 +4,7 @@
     _to = Napi::Boolean::New(env, <%- arg.name %>);
 <%_ } else if (arg.isArray) { _%>
     Napi::Array arr_<%- arg.name %> = Napi::Array::New(env);
-    for (size_t i = 0; i < <%- arg.name %>->size(); i++) {
+    for (size_t i = 0; i < <%- arg.name %>->Count(); i++) {
         arr_<%- arg.name %>[i] = <%- arg.elementType.cppType %>::NewInstance(env, (*<%- arg.name %>)[i]);
     }
     _to = arr_<%- arg.name %>;

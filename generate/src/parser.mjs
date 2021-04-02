@@ -246,7 +246,7 @@ class TypeDeclaration {
     }
 }
 class ParamDeclaration extends TypeDeclaration {
-    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<(?<elementType>\w+)\>)?)\s+((?<ref>[*&]*)\s*)?(?<name>\w+)(\s+=\s*(?<default>[\w:]+))?/;
+    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<((?<elementConst>const)\s+)?(?<elementType>\w+)\>)?)\s+((?<ref>[*&]*)\s*)?(?<name>\w+)(\s+=\s*(?<default>[\w:]+))?/;
 
     constructor(cppIndex, jsIndex, desc, typeRegistry, options) {
         const matchType = ParamDeclaration.declaration.exec(desc);

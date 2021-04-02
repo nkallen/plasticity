@@ -75,6 +75,9 @@ export default {
             rawHeader: "surface.h",
             extends: "SpaceItem",
             dependencies: ["SpaceItem.h"],
+            functions: [
+                // "const MbSurface & GetSurface()"
+            ]
         },
         Solid: {
             rawHeader: "solid.h",
@@ -297,6 +300,7 @@ export default {
                 "SimpleName GetMainName()",
                 "SimpleName GetFirstName()",
                 "SimpleName GetNameHash()",
+
             ]
         },
         Edge: {
@@ -309,22 +313,39 @@ export default {
                 { signature: "void GetEndPoint(MbCartPoint3D & p)", p: { isReturn: true } },
             ]
         },
+        SurfaceIntersectionCurve: {
+            rawHeader: "cur_surface_intersection.h",
+            dependencies: ["Surface.h", "Curve3D.h"],
+            extends: "Curve3D",
+            functions: [
+                "const MbSurface * GetSurfaceOne()",
+                "const MbSurface * GetSurfaceTwo()",
+                // "const MbSurface & GetCurveOneSurface()",
+                // "const MbSurface & GetCurveTwoSurface()",
+            ]
+        },
         CurveEdge: {
             rawHeader: "topology.h",
             extends: "Edge",
-            dependencies: ["Edge.h", "Vector3D.h"],
+            dependencies: ["Edge.h", "Vector3D.h", "SurfaceIntersectionCurve.h", "Face.h"],
             functions: [
                 {
                     signature: "bool EdgeNormal(double t, MbVector3D & p)",
                     p: { isReturn: true },
                     return: { isErrorBool: true }
                 },
+                // "const MbSurfaceIntersectionCurve & GetIntersectionCurve()",
+                "MbFace * GetFacePlus()",
+                "MbFace * GetFaceMinus()",
             ]
         },
         Face: {
             rawHeader: "topology.h",
             extends: "TopologyItem",
-            dependencies: ["TopologyItem.h"]
+            dependencies: ["TopologyItem.h"],
+            functions: [
+                // "const MbSurface & GetSurface()"
+            ]
         },
         Vertex: {
             rawHeader: "topology.h",
@@ -404,10 +425,11 @@ export default {
         },
         EdgeSequence: {
             rawHeader: "position_data.h",
+            dependencies: ["CurveEdge.h"],
             freeFunctionName: "DeleteMatItem",
             fields: [
-                // "RPArray<MbCurveEdge> edges",
-                // "bool closed"
+                // "RPArray<const MbCurveEdge> edges",
+                "bool closed"
             ]
         }
     },
