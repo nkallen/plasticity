@@ -3,10 +3,10 @@ import signals from "signals";
 import Command from './commands/Command';
 import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from "./MaterialDatabase";
-import { SelectionManager } from './SelectionManager';
+import { SelectionManager } from './selection/SelectionManager';
 import { Face, CurveEdge, Item, SpaceInstance, SpaceItem, TopologyItem, CurveSegment, Curve3DBuilder, SolidBuilder, FaceGroupBuilder, CurveEdgeGroupBuilder } from './VisualModel';
 import { SpriteDatabase } from "./SpriteDatabase";
-import { PlaneSnap, SnapManager } from './SnapManager';
+import { SnapManager } from './SnapManager';
 import { Viewport } from "./Viewport";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
