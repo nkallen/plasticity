@@ -20,28 +20,28 @@ export default class RectFactory extends GeometryFactory {
 
     update() {
         this.mesh.geometry.dispose();
+        let { p1, p2, p3, p4 } = this.orthogonal();
 
         const vertices = new Float32Array(5 * 3);
-        vertices[0] = this.p1.x;
-        vertices[1] = this.p1.y;
-        vertices[2] = this.p1.z;
+        vertices[0] = p1.x;
+        vertices[1] = p1.y;
+        vertices[2] = p1.z;
 
-        vertices[3] = this.p2.x;
-        vertices[4] = this.p2.y;
-        vertices[5] = this.p2.z;
+        vertices[3] = p2.x;
+        vertices[4] = p2.y;
+        vertices[5] = p2.z;
 
-        vertices[6] = this.p3.x;
-        vertices[7] = this.p3.y;
-        vertices[8] = this.p3.z;
+        vertices[6] = p3.x;
+        vertices[7] = p3.y;
+        vertices[8] = p3.z;
 
-        const p4 = this.p3.clone().sub(this.p2).add(this.p1);
         vertices[9] = p4.x;
         vertices[10] = p4.y;
         vertices[11] = p4.z;
 
-        vertices[12] = this.p1.x;
-        vertices[13] = this.p1.y;
-        vertices[14] = this.p1.z;
+        vertices[12] = p1.x;
+        vertices[13] = p1.y;
+        vertices[14] = p1.z;
 
         const geometry = new LineGeometry();
         geometry.setPositions(vertices);
@@ -52,8 +52,7 @@ export default class RectFactory extends GeometryFactory {
 
     commit() {
         this.editor.scene.remove(this.mesh);
-        const p1 = this.p1, p2 = this.p2, p3 = this.p3;
-        const p4 = p3.clone().sub(p2).add(p1);
+        let { p1, p2, p3, p4 } = this.orthogonal();
 
         const points = [
             new c3d.CartPoint3D(p1.x, p1.y, p1.z),
@@ -67,5 +66,22 @@ export default class RectFactory extends GeometryFactory {
 
     cancel() {
         this.editor.scene.remove(this.mesh);
+    }
+
+    private orthogonal() {
+        let { p1, p2, p3 } = this;
+
+        const AB = p2.clone().sub(p1)
+        let BC = p3.clone().sub(p2);
+        const heightNormal = AB.clone().cross(BC).normalize();
+
+        const depthNormal = AB.clone().cross(heightNormal).normalize();
+        const depth = p3.clone().sub(p2).dot(depthNormal);
+        BC = depthNormal.multiplyScalar(depth)
+        p3 = BC.clone().add(p2);
+
+        const p4 = p3.clone().sub(p2).add(p1);
+
+        return { p1, p2, p3, p4};       
     }
 }
