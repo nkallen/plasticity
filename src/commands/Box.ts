@@ -42,29 +42,27 @@ export default class BoxFactory extends GeometryFactory {
 
     commit() {
         this.editor.scene.remove(this.mesh);
-        const [p1, p2, p3] = this.clockwise(), p4 = this.p4;
-
+        const [ p1, p2, p3, p4 ] = this.clockwise();
+        
         const points = [
             new c3d.CartPoint3D(p1.x, p1.y, p1.z),
             new c3d.CartPoint3D(p2.x, p2.y, p2.z),
             new c3d.CartPoint3D(p3.x, p3.y, p3.z),
-            new c3d.CartPoint3D(p4.x, p4.y, p4.z)
+            new c3d.CartPoint3D(p4.x, p4.y, p4.z),
         ]
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
         this.editor.addObject(box);
     }
 
-    clockwise(): Array<THREE.Vector3> {
-        let p1 = this.p1, p2 = this.p2, p3 = this.p3;
-        const p4 = this.p4;
+    private clockwise() {
+        const { p1, p2, p3, p4 } = this;
 
-        let AB = p2.clone().sub(p1), BC = p3.clone().sub(p2);
-        const normal = AB.cross(BC);
-        if (normal.dot(p4) < 0) { 
-            [p1, p2, p3] = [p3, p2, p1];
-        }
-        return [p1, p2, p3];
+        let AB = p2.clone().sub(p1), AC = p3.clone().sub(p1);
+        const cross = AB.cross(AC).normalize();
+        let height = p4.clone().sub(p3).dot(cross);
+        if (height < 0) return [p2, p1, p3, cross.multiplyScalar(height) ]
+        else return [p1, p2, p3, p4];
     }
 
     cancel() {
