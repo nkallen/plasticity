@@ -1,4 +1,3 @@
-import { render } from 'preact';
 import signals from 'signals';
 
 interface PaneSignals {

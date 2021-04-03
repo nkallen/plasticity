@@ -41,8 +41,9 @@ export class ClickStrategy implements SelectionStrategy {
             if (this.topologicalItem(object, parentItem)) {
                 this.selectionManager.selectedSolids.delete(parentItem);
                 this.selectionManager.editor.signals.objectDeselected.dispatch(parentItem);
+                return true;
             }
-            return true;
+            return false;
         } else if (!this.selectionManager.selectedChildren.has(parentItem)) {
             this.selectionManager.hover?.dispose();
             this.selectionManager.hover = null;

@@ -13,17 +13,38 @@
             <ispace-pane-container>
                 <ispace-pane-axis class="horizontal">
                     <ispace-pane-axis class="vertical">
-                        <ispace-pane><ispace-viewport view="top"></ispace-viewport></ispace-pane>
-                        <ispace-pane><ispace-viewport view="front"></ispace-viewport></ispace-pane>
+                        <ispace-pane>
+                            <ispace-viewport view="top"></ispace-viewport>
+                        </ispace-pane>
+                        <ispace-pane>
+                            <ispace-viewport view="front"></ispace-viewport>
+                        </ispace-pane>
                     </ispace-pane-axis>
                     <ispace-pane-resize-handle></ispace-pane-resize-handle>
                     <ispace-pane-axis class="vertical">
-                        <ispace-pane><ispace-viewport view="3d"></ispace-viewport></ispace-pane>
-                        <ispace-pane><ispace-viewport view="right"></ispace-viewport></ispace-pane>
+                        <ispace-pane>
+                            <ispace-viewport view="3d"></ispace-viewport>
+                        </ispace-pane>
+                        <ispace-pane>
+                            <ispace-viewport view="right"></ispace-viewport>
+                        </ispace-pane>
                     </ispace-pane-axis>
                     <ispace-pane-resize-handle></ispace-pane-resize-handle>
                     <ispace-pane>
-                        <ispace-toolbar />
+                        <ispace-toolbar>
+                            <button icon="icons/LineIcon.png" name="circle" onClick={addLine}>Add Line</button>
+                            <button icon="icons/CircleIcon.png" name="circle" onClick={addCircle}>Add Circle</button>
+                            <button icon="icons/RectIcon.png" name="rectangle" onClick={addRect}>Add Rectangle</button>
+                            <br />
+                            <button icon="icons/SphereIcon.png" name="sphere" onClick={addSphere}>Add Sphere</button>
+                            <button icon="icons/CylinderIcon.png" name="cylinder" onClick={addCylinder}>Add Cylinder</button>
+                            <button icon="icons/BoxIcon.png" name="cylinder" onClick={addBox}>Add Box</button>
+                            <br />
+                            <button icon="icons/MoveIcon.png" name="move" onClick={move}>Move</button>
+                            <br />
+                            <button icon="icons/UnionIcon.png" name="union" onClick={union}>Union</button>
+                            <button icon="icons/FilletIcon.png" name="fillet" onClick={fillet}>Fillet</button>
+                        </ispace-toolbar>
                     </ispace-pane>
                 </ispace-pane-axis>
             </ispace-pane-container>

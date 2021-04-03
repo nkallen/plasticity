@@ -6,7 +6,7 @@ export default (editor: Editor) => {
     class Toolbar extends HTMLElement {
         constructor() {
             super();
-            this.attachShadow({ mode: 'open' });
+            // this.attachShadow({ mode: 'open' });
 
             const addLine = (e: Event) => {
                 editor.execute(new LineCommand(editor));
@@ -37,6 +37,7 @@ export default (editor: Editor) => {
             };
             const result = (
                 <>
+                
                     <button icon="icons/LineIcon.png" name="circle" onClick={addLine}>Add Line</button>
                     <button icon="icons/CircleIcon.png" name="circle" onClick={addCircle}>Add Circle</button>
                     <button icon="icons/RectIcon.png" name="rectangle" onClick={addRect}>Add Rectangle</button>
@@ -51,7 +52,7 @@ export default (editor: Editor) => {
                     <button icon="icons/FilletIcon.png" name="fillet" onClick={fillet}>Fillet</button>
                 </>
             );
-            render(result, this.shadowRoot!);
+            // render(result, this.shadowRoot!);
         }
     }
     customElements.define('ispace-toolbar', Toolbar);

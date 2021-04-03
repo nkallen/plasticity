@@ -1,0 +1,9 @@
+:root {
+    --ui-size: 1em;
+    --ui-input-size: --ui-size*1.15;
+    --ui-padding: --ui-size*1.5;
+    --ui-padding-pane: --ui-size*.5;
+    --ui-padding-icon: --ui-padding/3.3;
+    --ui-line-height: --ui-size*2;
+    --ui-tab-height: --ui-size*2.5;
+}

@@ -1,6 +1,3 @@
-@import "ui-variables";
-@import "utils";
-
 ispace-workspace {
     contain: var(--contain_all);
     display: flex;

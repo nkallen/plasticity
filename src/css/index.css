@@ -1,6 +1,9 @@
-@import "ui-variables";
+@import "ui-variables-default";
+@import "ui-variables-theme";
 @import "panes";
+@import "toolbar";
 @import "workspace";
+@import "utils";
 
 ispace-viewport {
     flex: 1;
