@@ -19,7 +19,7 @@ export default class CircleFactory extends GeometryFactory {
     update() {
         this.mesh.geometry.dispose();
         const segmentCount = 32;
-        const vertices = new Float32Array(segmentCount * 3);
+        const vertices = new Float32Array((segmentCount + 1) * 3);
 
         for (let i = 0; i <= segmentCount; i++) {
             var theta = (i / segmentCount) * Math.PI * 2;
@@ -27,6 +27,7 @@ export default class CircleFactory extends GeometryFactory {
             vertices[i * 3 + 1] = Math.sin(theta) * this.radius;
             vertices[i * 3 + 2] = 0;
         }
+
         const geometry = new LineGeometry();
         geometry.setPositions(vertices);
         this.mesh.geometry = geometry;

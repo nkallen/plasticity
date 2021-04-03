@@ -34,38 +34,24 @@
                         <ispace-toolbar>
                             <section>
                                 <h4>Curves</h4>
-                                <button icon="icons/LineIcon.png" name="circle"
-                                    onClick={addLine}>Add Line</button>
-                                <button icon="icons/CircleIcon.png"
-                                    name="circle" onClick={addCircle}>Add
-                                    Circle</button>
-                                <button icon="icons/RectIcon.png"
-                                    name="rectangle" onClick={addRect}>Add
-                                    Rectangle</button>
+                                <button is="ispace-command" name="Line">Add Line</button>
+                                <button is="ispace-command" name="Circle">Add Circle</button>
+                                <button is="ispace-command" name="Rectangle">Add Rectangle</button>
                             </section>
                             <section>
                                 <h4>Solids</h4>
-                                <button icon="icons/SphereIcon.png"
-                                    name="sphere" onClick={addSphere}>Add
-                                    Sphere</button>
-                                <button icon="icons/CylinderIcon.png"
-                                    name="cylinder" onClick={addCylinder}>Add
-                                    Cylinder</button>
-                                <button icon="icons/BoxIcon.png" name="cylinder"
-                                    onClick={addBox}>Add Box</button>
+                                <button is="ispace-command" name="Sphere">Add Sphere</button>
+                                <button is="ispace-command" name="Cylinder">Add Cylinder</button>
+                                <button is="ispace-command" name="Box">Add Box</button>
                             </section>
                             <section>
                                 <h4>Transform</h4>
-                                <button icon="icons/MoveIcon.png" name="move"
-                                    onClick={move}>Move</button>
+                                <button is="ispace-command" name="Move">Move</button>
                             </section>
                             <section>
                                 <h4>Construct</h4>
-                                <button icon="icons/UnionIcon.png" name="union"
-                                    onClick={union}>Union</button>
-                                <button icon="icons/FilletIcon.png"
-                                    name="fillet"
-                                    onClick={fillet}>Fillet</button>
+                                <button is="ispace-command" name="Union">Boolean Union</button>
+                                <button is="ispace-command" name="Fillet">Fillet</button>
                             </section>
                         </ispace-toolbar>
                     </ispace-pane>

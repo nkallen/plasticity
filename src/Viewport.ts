@@ -76,12 +76,8 @@ export default (editor: Editor) => {
                     break;
             }
 
-            const grid = new THREE.GridHelper(300, 300, 0x666666);
+            const grid = new THREE.GridHelper(300, 300, 0x666666, 0x666666);
             grid.rotateX(Math.PI / 2);
-            const material1 = grid.material as THREE.LineBasicMaterial;
-            material1.color.setHex(0x888888);
-            material1.vertexColors = false;
-            material1.depthFunc = THREE.NeverDepth;
             grid.renderOrder = -1;
             this.grid = grid;
 

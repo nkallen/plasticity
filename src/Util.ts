@@ -1,4 +1,8 @@
 // https://www.typescriptlang.org/docs/handbook/mixins.html
+
+export type Constructor = new (...args: any[]) => {};
+export type GConstructor<T = {}> = new (...args: any[]) => T;
+
 export function applyMixins(derivedCtor: any, constructors: any[]) {
     constructors.reverse().forEach((baseCtor) => {
         Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
