@@ -158,6 +158,7 @@ export default (editor: Editor) => {
             editor.signals.commandUpdated.add(this.render);
             editor.signals.pointPickerChanged.add(this.render);
             editor.signals.objectHovered.add(this.render);
+            editor.signals.objectAdded.add(this.render);
 
             scene.fog = new THREE.Fog(0x424242, 1, 100);
 

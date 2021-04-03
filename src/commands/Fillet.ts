@@ -58,17 +58,6 @@ export default class FilletFactory extends GeometryFactory {
         this.temp?.cancel();
 
         const phantom = c3d.ActionPhantom.SmoothPhantom(this.solid, this.curves, this.params);
-        // const { sequences, result } = c3d.ActionPhantom.SmoothSequence(this.solid, this.curves, this.params, true);
-
-        // console.log(sequences);
-        // for (const sequence of sequences) {
-        //     for (const edge of sequence.edges) {
-        //         console.log(edge.GetFacePlus().Calc);
-        //         console.log(edge.GetFaceMinus());
-        //         this.editor.addTemporaryObject(new c3d.SpaceInstance());
-        //     }
-        // }
-
         this.temp = this.editor.addTemporaryObjects(phantom.map(ph => new c3d.SpaceInstance(ph)));
 
         return super.update();
@@ -76,12 +65,12 @@ export default class FilletFactory extends GeometryFactory {
 
     commit() {
         this.temp!.cancel();
+        this.editor.removeItem(this.item);
         const names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
         const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.KeepHistory, this.curves, [], this.params, names);
         this.editor.addObject(result);
 
         this.editor.selectionManager.deselectAll();
-        this.editor.removeItem(this.item);
     }
 
     cancel() {
