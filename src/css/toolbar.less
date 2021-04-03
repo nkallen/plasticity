@@ -1,3 +1,7 @@
+// Import only after ui-variables.less
+@package-card-background-color: lighten(@tool-panel-background-color, 8%);
+@package-card-disabled-background-color: darken(@package-card-background-color, 3%);
+
 @ms-6: @ui-size * 2.027;
 @ms-5: @ui-size * 1.802;
 @ms-4: @ui-size * 1.602;
@@ -22,9 +26,53 @@ ispace-toolbar {
         font-size: @ms-1;
         line-height: 1;
         padding: (@ui-padding/3) (@ui-padding/2);
+
         &::before {
             vertical-align: middle;
         }
+
         margin: 1px 0;
+    }
+
+    section {
+        padding: @component-padding*1.5;
+        margin-bottom: @component-padding;
+        list-style-type: none;
+        font-size: 1.2em;
+        border-radius: @component-border-radius*2;
+        border: 1px solid @base-border-color;
+        background-color: @package-card-background-color;
+        overflow: hidden;
+        cursor: pointer;
+        -webkit-user-select: none;
+
+        &:hover {
+            background-color: contrast(@package-card-background-color, darken(@package-card-background-color, 2%), lighten(@package-card-background-color, 2%));
+        }
+
+        &:active {
+            background-color: @package-card-background-color;
+        }
+
+        &.disabled {
+            background-color: @package-card-disabled-background-color;
+
+            .body,
+            .avatar,
+            .author,
+            .stats {
+                opacity: .5;
+            }
+        }
+
+        h4 {
+            font-weight: 300;
+            margin: 0 0 .2em 0;
+            font-size: 1.2em;
+            line-height: 1.4;
+
+            font-weight: bolder;
+            color: @text-color-highlight;
+          }
     }
 }
