@@ -9,16 +9,22 @@
 @ms_2: @ui-size * 0.790;
 
 ispace-toolbar {
-    margin: 15px;
-}
+    padding: 15px;
+    flex-grow: 1;
+    min-width: @ui-size * 15;
+    border-width: 0 1px 0 0;
+    border-image: linear-gradient(@level-2-color 10px, @base-border-color 200px) 0 1 0 0 stretch;
+    background: @level-2-color;
 
-ispace-toolbar button {
-    width: 100%;
-    white-space: initial;
-    font-size: @ms-1;
-    line-height: 1;
-    padding: @ui-padding/3 @ui-padding/2;
-    &::before {
-        vertical-align: middle;
+    button {
+        width: 100%;
+        white-space: initial;
+        font-size: @ms-1;
+        line-height: 1;
+        padding: (@ui-padding/3) (@ui-padding/2);
+        &::before {
+            vertical-align: middle;
+        }
+        margin: 1px 0;
     }
 }
