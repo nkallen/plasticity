@@ -20,21 +20,18 @@ export default class BoxFactory extends GeometryFactory {
 
     update() {
         this.mesh.geometry.dispose();
-        const [p1, p2, p3] = this.clockwise(), p4 = this.p4;
+        const { BC, points: [p1, p2, p3, p4] } = this.clockwise();
+        const AB = p2.clone().sub(p1);
+        const CD = p4.clone().sub(p3);
 
-        let AB = p2.clone().sub(p1), BC = p3.clone().sub(p2);
-        const cross = BC.cross(AB);
-        const CD = AB.clone().cross(cross).divideScalar(Math.pow(AB.length(), 2)).add(p2);
-        const normal = cross.clone().normalize();
 
-        const height = p4.clone().sub(p3).dot(normal);
-        const geometry = new THREE.BoxGeometry(AB.length(), CD.clone().sub(p2).length(), height);
+        const geometry = new THREE.BoxGeometry(AB.length(), BC.length(), CD.length());
         // Box is centered, so uncenter it xyz:
-        this.mesh.position.copy(p1.clone()
-            .add(AB.clone().multiplyScalar(0.5))
-            .add(normal.multiplyScalar(height * 0.5))
-            .add(CD.clone().sub(p2).multiplyScalar(0.5)));
-        this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), AB.clone().normalize());
+        this.mesh.position.copy(p1.clone())
+            .add(AB.multiplyScalar(0.5))
+            .add(BC.multiplyScalar(0.5))
+            .add(CD.multiplyScalar(0.5));
+        this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), AB.normalize());
         this.mesh.geometry = geometry;
 
         return super.update();
@@ -42,8 +39,8 @@ export default class BoxFactory extends GeometryFactory {
 
     commit() {
         this.editor.scene.remove(this.mesh);
-        const [ p1, p2, p3, p4 ] = this.clockwise();
-        
+        const { points: [p1, p2, p3, p4] } = this.clockwise();
+
         const points = [
             new c3d.CartPoint3D(p1.x, p1.y, p1.z),
             new c3d.CartPoint3D(p2.x, p2.y, p2.z),
@@ -58,14 +55,19 @@ export default class BoxFactory extends GeometryFactory {
     private clockwise() {
         let { p1, p2, p3, p4 } = this;
 
-        let AB = p2.clone().sub(p1), AC = p3.clone().sub(p1);
-        const cross = AB.cross(AC);
-        const n = cross.clone().normalize();
-        let height = p4.clone().sub(p3).dot(n);
+        const AB = p2.clone().sub(p1)
+        let BC = p3.clone().sub(p2);
+        const heightNormal = AB.clone().cross(BC).normalize();
+        const height = p4.clone().sub(p3).dot(heightNormal);
 
-        p4 = n.multiplyScalar(height);
-        if (height < 0) return [p2, p1, p3, p4 ]
-        else return [p1, p2, p3, p4];
+        const depthNormal = AB.clone().cross(heightNormal).normalize();
+        const depth = p3.clone().sub(p2).dot(depthNormal);
+        BC = depthNormal.multiplyScalar(depth)
+        p3 = BC.clone().add(p2);
+
+        p4 = heightNormal.multiplyScalar(height).add(p3);
+        if (height < 0) return { BC, points: [p2, p1, p3, p4] }
+        else return { BC, points: [p1, p2, p3, p4] }
     }
 
     cancel() {
