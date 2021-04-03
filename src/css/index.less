@@ -1,5 +1,6 @@
 @import "ui-variables-default";
 @import "ui-variables-theme";
+@import "ui-variables-custom";
 @import "panes";
 @import "toolbar";
 @import "workspace";
@@ -21,10 +22,10 @@ body {
 }
 
 html {
-    font-family: var(--font-family);
-    font-size: var(--font-size);
+    font-family: @font-family;
+    font-size: @font-size;
     line-height: 1.428571429;
-    color: var(--text-color);
-    background-color: var(--app-background-color);
-  }
+    color: @text-color;
+    background-color: @app-background-color;
+}
   

@@ -1,9 +1,0 @@
-:root {
-    --ui-size: 1em;
-    --ui-input-size: calc(var(--ui-size)*1.15);
-    --ui-padding: calc(var(--ui-size)*1.5);
-    --ui-padding-pane: calc(var(--ui-size)*.5);
-    --ui-padding-icon: calc(var(--ui-padding)/3.3);
-    --ui-line-height: calc(var(--ui-size)*2);
-    --ui-tab-height: calc(var(--ui-size)*2.5);
-}

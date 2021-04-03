@@ -1,0 +1,24 @@
+@ms-6: @ui-size * 2.027;
+@ms-5: @ui-size * 1.802;
+@ms-4: @ui-size * 1.602;
+@ms-3: @ui-size * 1.424;
+@ms-2: @ui-size * 1.266;
+@ms-1: @ui-size * 1.125;
+@ms-0: @ui-size * 1;
+@ms_1: @ui-size * 0.889;
+@ms_2: @ui-size * 0.790;
+
+ispace-toolbar {
+    margin: 15px;
+}
+
+ispace-toolbar button {
+    width: 100%;
+    white-space: initial;
+    font-size: @ms-1;
+    line-height: 1;
+    padding: @ui-padding/3 @ui-padding/2;
+    &::before {
+        vertical-align: middle;
+    }
+}

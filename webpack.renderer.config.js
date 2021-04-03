@@ -14,6 +14,21 @@ rules.push({
 });
 
 rules.push({
+    test: /\.less$/,
+    use: [
+        {
+            loader: 'style-loader',
+        },
+        {
+            loader: 'css-loader',
+        },
+        {
+            loader: 'less-loader',
+        },
+    ],
+});
+
+rules.push({
     test: /\.(png|jpg|svg|jpeg|gif)$/i,
     use: [
         {

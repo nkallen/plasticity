@@ -1,4 +1,4 @@
-import './css/index.css';
+import './css/index.less';
 
 import Stats from 'stats.js';
 import { Editor } from './Editor';
