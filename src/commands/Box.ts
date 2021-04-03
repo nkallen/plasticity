@@ -56,12 +56,15 @@ export default class BoxFactory extends GeometryFactory {
     }
 
     private clockwise() {
-        const { p1, p2, p3, p4 } = this;
+        let { p1, p2, p3, p4 } = this;
 
         let AB = p2.clone().sub(p1), AC = p3.clone().sub(p1);
-        const cross = AB.cross(AC).normalize();
-        let height = p4.clone().sub(p3).dot(cross);
-        if (height < 0) return [p2, p1, p3, cross.multiplyScalar(height) ]
+        const cross = AB.cross(AC);
+        const n = cross.clone().normalize();
+        let height = p4.clone().sub(p3).dot(n);
+
+        p4 = n.multiplyScalar(height);
+        if (height < 0) return [p2, p1, p3, p4 ]
         else return [p1, p2, p3, p4];
     }
 
