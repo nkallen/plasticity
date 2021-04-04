@@ -165,8 +165,9 @@ export class Editor {
                 const lineMaterial = this.materialDatabase.line();
                 const polygons = mesh.GetEdges(true);
                 for (const edge of polygons) {
-                    const line = new CurveEdge(edge, lineMaterial);
+                    const line = new CurveEdge(edge, lineMaterial, this.materialDatabase.lineDashed());
                     edges.addEdge(line);
+                    line.renderOrder = 999;
                 }
                 solid.addEdges(edges.build());
 

@@ -14,12 +14,23 @@ export default class MaterialDatabase {
     private readonly lineMaterials = new Map<number, LineMaterial>();
 
     constructor() {
-        const lineMaterial = new LineMaterial({ color: 0x000000, linewidth: 1.1 });
+        const lineMaterial = new LineMaterial({ color: 0x000000, linewidth: 1.2 });
         this.lineMaterials.set(hash("line"), lineMaterial);
-        this.lineMaterials.set(hash("line-highlighted"), new LineMaterial({ color: 0xffff00, linewidth: 2 }));
-        const hovered = new LineMaterial({ color: 0xffffff, linewidth: 2 });
-        hovered.depthFunc = THREE.AlwaysDepth;
-        this.lineMaterials.set(hash("line-hovered"), hovered);
+
+        const lineMaterial_dashed = new LineMaterial({ color: 0xffffff, linewidth: 0.8, dashed: true, dashScale: 100 });
+        lineMaterial_dashed.depthFunc = THREE.AlwaysDepth;
+        lineMaterial_dashed.defines.USE_DASH = "";
+        lineMaterial_dashed.dashSize = 1;
+        lineMaterial_dashed.gapSize = 1;
+        this.lineMaterials.set(hash("line-dashed"), lineMaterial_dashed);
+
+        const lineMaterial_highlighted = new LineMaterial({ color: 0xffff00, linewidth: 2 });
+        lineMaterial_highlighted.depthFunc = THREE.AlwaysDepth;
+        this.lineMaterials.set(hash("line-highlighted"), lineMaterial_highlighted);
+
+        const lineMaterial_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2 });
+        lineMaterial_hovered.depthFunc = THREE.AlwaysDepth;
+        this.lineMaterials.set(hash("line-hovered"), lineMaterial_hovered);
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
 
         const material = new THREE.MeshMatcapMaterial();
@@ -45,6 +56,10 @@ export default class MaterialDatabase {
     line(o?: c3d.SpaceInstance): LineMaterial {
         if (!o) return this.lineMaterials.get(hash("line"));
         else return this.getLine(o) ?? this.lineMaterials.get(hash("line"));
+    }
+
+    lineDashed(): LineMaterial {
+        return this.lineMaterials.get(hash("line-dashed"));
     }
 
     // A quirk of three.js is that to render lines with any thickness, you need to use

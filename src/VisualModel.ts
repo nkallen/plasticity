@@ -7,6 +7,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { applyMixins } from './Util';
 import { Snap } from "./SnapManager";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
+import { Object3D } from "three";
 
 /**
  * This class hierarchy mirrors the c3d hierarchy into the THREE.js Object3D hierarchy.
@@ -63,13 +64,17 @@ export class Edge extends TopologyItem { }
 export class CurveEdge extends Edge {
     readonly snaps = new Set<Snap>();
 
-    constructor(edge: c3d.EdgeBuffer, material: LineMaterial) {
+    constructor(edge: c3d.EdgeBuffer, material: LineMaterial, occludedMaterial: LineMaterial) {
         super()
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         Line2.call(this, geometry, material);
         this.userData.name = edge.name;
         this.userData.simpleName = edge.simpleName;
+        const occludedLine = new Line2(geometry, occludedMaterial);
+        occludedLine.computeLineDistances();
+        this.add(occludedLine);
+        this.renderOrder = 999;
     }
 }
 export class CurveSegment extends SpaceItem { // This doesn't correspond to a real c3d class, but it's here for convenience
