@@ -15,7 +15,6 @@ export default class MaterialDatabase {
 
     constructor() {
         const lineMaterial = new LineMaterial({ color: 0x000000, linewidth: 1.1 });
-        lineMaterial.depthFunc = THREE.AlwaysDepth;
         this.lineMaterials.set(hash("line"), lineMaterial);
         this.lineMaterials.set(hash("line-highlighted"), new LineMaterial({ color: 0xffff00, linewidth: 2 }));
         const hovered = new LineMaterial({ color: 0xffffff, linewidth: 2 });

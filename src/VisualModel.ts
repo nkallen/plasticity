@@ -164,7 +164,6 @@ applyMixins(Solid, [HasDisposable]);
 applyMixins(FaceGroup, [HasDisposable]);
 applyMixins(CurveEdgeGroup, [HasDisposable]);
 
-
 /**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.
  */
