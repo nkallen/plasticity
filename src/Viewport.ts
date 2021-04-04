@@ -26,7 +26,7 @@ export interface Viewport {
 
 export default (editor: Editor) => {
     // FIXME rename
-    class Viewport extends HTMLElement {
+    class Viewport extends HTMLElement implements Viewport {
         readonly camera: THREE.Camera;
         readonly overlayCamera: THREE.OrthographicCamera;
         readonly overlay = new THREE.Scene();
@@ -38,48 +38,45 @@ export default (editor: Editor) => {
         readonly outlinePassSelection: OutlinePass;
         readonly outlinePassHover: OutlinePass;
         readonly controls = new Set<{ enabled: boolean }>();
-        readonly grid: THREE.Object3D;
-
+        readonly grid = new THREE.GridHelper(300, 300, 0x666666, 0x666666);
+        
         constructor() {
             super();
-
             this.attachShadow({ mode: 'open' });
 
             let camera: THREE.Camera;
-
             const view = this.getAttribute("view");
             const aspect = this.offsetWidth / this.offsetHeight;
             const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
             const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, aspect, near, far);
             const domElement = this.renderer.domElement;
+            let n: THREE.Vector3;
             switch (view) {
                 case "3d":
                     camera = perspectiveCamera;
                     camera.position.set(0, 20, 5);
                     this.navigationControls = new OrbitControls(camera, domElement);
-                    this.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+                    n = new THREE.Vector3(0, 0, 1);
                     break;
                 case "top":
                     camera = orthographicCamera;
                     camera.position.set(0, 0, 10);
-                    this.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+                    n = new THREE.Vector3(0, 0, 1);
                     break;
                 case "front":
                     camera = orthographicCamera;
                     camera.position.set(0, 10, 0);
-                    this.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 1, 0));
+                    n = new THREE.Vector3(0, 1, 0);
                     break;
                 case "right":
                     camera = orthographicCamera;
                     camera.position.set(10, 0, 0);
-                    this.constructionPlane = new PlaneSnap(new THREE.Vector3(1, 0, 0));
+                    n = new THREE.Vector3(1, 0, 0);
                     break;
             }
-
-            const grid = new THREE.GridHelper(300, 300, 0x666666, 0x666666);
-            grid.rotateX(Math.PI / 2);
-            grid.renderOrder = -1;
-            this.grid = grid;
+            this.constructionPlane = new PlaneSnap(n);
+            this.grid.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), n);
+            this.grid.renderOrder = -1;
 
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());

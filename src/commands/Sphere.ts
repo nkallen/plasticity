@@ -17,7 +17,7 @@ export default class SphereFactory extends GeometryFactory {
     }
 
     update() {
-        const geometry = new THREE.SphereGeometry(this.radius, 8, 6, 0, Math.PI * 2, 0, Math.PI);
+        const geometry = new THREE.SphereGeometry(this.radius, 18, 12, 0, Math.PI * 2, 0, Math.PI);
         this.mesh.geometry.dispose();
         this.mesh.geometry = geometry;
         this.mesh.position.copy(this.center);
