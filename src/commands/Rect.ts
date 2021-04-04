@@ -1,9 +1,9 @@
-import { GeometryFactory } from './Factory'
-import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
-import { Editor } from '../Editor'
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import c3d from '../../build/Release/c3d.node';
+import { Editor } from '../Editor';
+import { GeometryFactory } from './Factory';
 
 export default class RectFactory extends GeometryFactory {
     p1!: THREE.Vector3;

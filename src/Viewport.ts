@@ -1,15 +1,15 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { Editor } from './Editor';
 import { Pane } from './Pane';
 import { ViewportSelector } from './selection/ViewportSelector';
-import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
-import { Item, Solid, SpaceItem } from "./VisualModel";
 import { PlaneSnap } from "./SnapManager";
+import { Solid, SpaceItem } from "./VisualModel";
 
 const near = 0.01;
 const far = 1000;
@@ -26,7 +26,7 @@ export interface Viewport {
 
 export default (editor: Editor) => {
     // FIXME rename
-    class _Viewport extends HTMLElement {
+    class Viewport extends HTMLElement {
         readonly camera: THREE.Camera;
         readonly overlayCamera: THREE.OrthographicCamera;
         readonly overlay = new THREE.Scene();
@@ -223,5 +223,5 @@ export default (editor: Editor) => {
         }
     }
 
-    customElements.define('ispace-viewport', _Viewport);
+    customElements.define('ispace-viewport', Viewport);
 }
