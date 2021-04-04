@@ -126,9 +126,12 @@ export default (editor: Editor) => {
             this.outlineHover = this.outlineHover.bind(this);
             this.resize = this.resize.bind(this);
             this.render = this.render.bind(this);
+            this.setNeedsRender = this.setNeedsRender.bind(this);
 
             if (this.navigationControls) this.controls.add(this.navigationControls)
             this.controls.add(this.selector);
+
+            this.render();
         }
 
         connectedCallback() {
@@ -145,22 +148,30 @@ export default (editor: Editor) => {
             editor.signals.objectDeselected.add(this.outlineSelection);
             editor.signals.objectHovered.add(this.outlineHover);
 
-            editor.signals.objectSelected.add(this.render);
-            editor.signals.objectDeselected.add(this.render);
-            editor.signals.sceneGraphChanged.add(this.render);
-            editor.signals.commandUpdated.add(this.render);
-            editor.signals.pointPickerChanged.add(this.render);
-            editor.signals.objectHovered.add(this.render);
-            editor.signals.objectAdded.add(this.render);
+            editor.signals.objectSelected.add(this.setNeedsRender);
+            editor.signals.objectDeselected.add(this.setNeedsRender);
+            editor.signals.sceneGraphChanged.add(this.setNeedsRender);
+            editor.signals.commandUpdated.add(this.setNeedsRender);
+            editor.signals.pointPickerChanged.add(this.setNeedsRender);
+            editor.signals.objectHovered.add(this.setNeedsRender);
+            editor.signals.objectAdded.add(this.setNeedsRender);
 
             scene.fog = new THREE.Fog(0x424242, 1, 100);
 
-            this.navigationControls?.addEventListener('change', this.render);
+            this.navigationControls?.addEventListener('change', this.setNeedsRender);
             this.selector.signals.clicked.add((intersections) => editor.selectionManager.onClick(intersections));
             this.selector.signals.hovered.add((intersections) => editor.selectionManager.onPointerMove(intersections));
         }
 
+        private needsRender = true;
+        private setNeedsRender() {
+            this.needsRender = true;
+        }
+
         render() {
+            requestAnimationFrame(this.render);
+            if (!this.needsRender) return;
+
             editor.materialDatabase.setResolution(this.offsetWidth, this.offsetHeight);
 
             this.overlayCamera.position.copy(this.camera.position);
@@ -174,6 +185,7 @@ export default (editor: Editor) => {
             // this.renderer.autoClear = false;
             // if (showSceneHelpers === true) renderer.render(sceneHelpers, camera);
             // this.renderer.autoClear = true;
+            this.needsRender = false;
         }
 
         outlineSelection() {
@@ -204,7 +216,7 @@ export default (editor: Editor) => {
 
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
             this.composer.setSize(this.offsetWidth, this.offsetHeight);
-            this.render();
+            this.setNeedsRender();
         }
 
         disableControls() {

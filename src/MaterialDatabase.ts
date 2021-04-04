@@ -17,7 +17,7 @@ export default class MaterialDatabase {
         const lineMaterial = new LineMaterial({ color: 0x000000, linewidth: 1.2 });
         this.lineMaterials.set(hash("line"), lineMaterial);
 
-        const lineMaterial_dashed = new LineMaterial({ color: 0xffffff, linewidth: 0.8, dashed: true, dashScale: 100 });
+        const lineMaterial_dashed = new LineMaterial({ color: 0x000000, linewidth: 0.8, dashed: true, dashScale: 100 });
         lineMaterial_dashed.depthFunc = THREE.AlwaysDepth;
         lineMaterial_dashed.defines.USE_DASH = "";
         lineMaterial_dashed.dashSize = 1;
