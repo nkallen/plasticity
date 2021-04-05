@@ -13,8 +13,8 @@ declare module "*c3d.node" {
 
     declare class Vector3D {
         private _useNominal: undefined;
-        constructor(number, number, number);
-        constructor(CartPoint3D, CartPoint3D);
+        constructor(x: number, y: number, z: number);
+        constructor(p1: CartPoint3D, p2: CartPoint3D);
 
         x: number;
         y: number;
@@ -26,8 +26,8 @@ declare module "*c3d.node" {
         constructor(Axis3D);
         constructor(Vector3D);
 
-        Rotate(Axis3D, number);
-        Move(Vector3D);
+        Rotate(a: Axis3D, d: number);
+        Move(v: Vector3D);
     }
 
     declare class Item extends SpaceItem implements AttributeContainer {
