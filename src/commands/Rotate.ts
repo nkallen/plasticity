@@ -6,6 +6,7 @@ import * as visual from '../VisualModel';
 export default class RotateFactory extends GeometryFactory {
     _item!: visual.Item;
     originalQuaternion = new THREE.Quaternion();
+    point!: THREE.Vector3
     axis!: THREE.Vector3;
     angle!: number;
 
@@ -27,12 +28,14 @@ export default class RotateFactory extends GeometryFactory {
     }
 
     commit() {
-        const { item, axis, angle } = this;
+        const { item, axis, angle, point } = this;
         const model = this.db.lookupItem(item);
         this.db.removeItem(item);
 
+        const p = new c3d.CartPoint3D(point.x, point.y, point.z);
         const v = new c3d.Vector3D(axis.x, axis.y, axis.z);
-        model.Rotate(new c3d.Axis3D(v), angle);
+        const axi = new c3d.Axis3D(p, v);
+        model.Rotate(axi, angle);
         this.db.addItem(model);
 
         return super.commit();

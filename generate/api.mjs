@@ -219,10 +219,11 @@ export default {
         },
         Axis3D: {
             rawHeader: "mb_axis3d.h",
-            dependencies: ["Placement3D.h"],
+            dependencies: ["Placement3D.h", "CartPoint3D.h"],
             initializers: [
                 "const MbAxis3D & axis",
                 "const MbVector3D & v",
+                "const MbCartPoint3D & pnt0, const MbVector3D & dir",
             ],
             functions: [
                 "void Rotate(const MbAxis3D & axis, double angle)",

@@ -12,6 +12,7 @@ import UnionFactory from './Union';
 import FilletFactory from './Fillet';
 import { FilletGizmo } from './FilletGizmo';
 import c3d from '../../build/Release/c3d.node';
+import RotateFactory from './Rotate';
 
 export default abstract class Command {
     editor: Editor;
@@ -175,6 +176,36 @@ export class MoveCommand extends Command {
         });
         line.cancel();
         move.commit();
+    }
+}
+
+export class RotateCommand extends Command {
+    async execute() {
+        const pointPicker = new PointPicker(this.editor);
+        let object = [...this.editor.selectionManager.selectedSolids][0]!;
+
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const p1 = await pointPicker.execute();
+        line.p1 = p1;
+
+        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+            line.p2 = p2;
+            line.update();
+        });
+        line.cancel();
+
+        const axis = p1.clone().sub(p2).normalize();
+        const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        rotate.point = p1;
+        rotate.axis = axis;
+
+        // const rotateGizmo = new RotateGizmo(this.editor, p1, axis);
+        // rotateGizmo.execute(angle => {
+        //     rotate.angle = angle;
+        //     rotate.update();
+        // })
+
+        rotate.commit();
     }
 }
 

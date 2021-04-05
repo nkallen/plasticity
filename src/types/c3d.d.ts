@@ -23,10 +23,11 @@ declare module "*c3d.node" {
 
     declare class Axis3D {
         private _useNominal: undefined;
-        constructor(Axis3D);
-        constructor(Vector3D);
+        constructor(other: Axis3D);
+        constructor(v: Vector3D);
+        constructor(p: CartPoint3D, v: Vector3D);
 
-        Rotate(a: Axis3D, d: number);
+        Rotate(a: Axis3D, angle: number);
         Move(v: Vector3D);
     }
 

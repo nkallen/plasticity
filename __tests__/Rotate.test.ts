@@ -28,6 +28,7 @@ describe('update', () => {
     test('rotates the visual object', () => {
         const item = new visual.Solid();
         rotate.item = item;
+        rotate.point = new THREE.Vector3();
         rotate.axis = new THREE.Vector3(0, 0, 1);
         rotate.angle = Math.PI / 2;
         expect(item).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
@@ -52,6 +53,7 @@ describe('commit', () => {
         expect(item).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5));
 
         rotate.item = item;
+        rotate.point = new THREE.Vector3();
         rotate.axis = new THREE.Vector3(0, 0, 1);
         rotate.angle = Math.PI / 2;
         rotate.commit();
