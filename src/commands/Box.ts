@@ -1,7 +1,9 @@
-import { GeometryFactory } from './Factory'
-import c3d from '../../build/Release/c3d.node';
+import { GeometryDatabase } from "../GeometryDatabase";
 import * as THREE from "three";
-import { Editor } from '../Editor'
+import c3d from '../../build/Release/c3d.node';
+import { EditorSignals } from '../Editor';
+import MaterialDatabase from '../MaterialDatabase';
+import { GeometryFactory } from './Factory';
 
 export default class BoxFactory extends GeometryFactory {
     p1!: THREE.Vector3;
@@ -10,12 +12,12 @@ export default class BoxFactory extends GeometryFactory {
     p4!: THREE.Vector3;
     mesh: THREE.Mesh;
 
-    constructor(editor: Editor) {
-        super(editor);
+    constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
+        super(db, materials, signals);
         const geometry = new THREE.BufferGeometry();
 
-        this.mesh = new THREE.Mesh(geometry, this.editor.materialDatabase.mesh());
-        this.editor.scene.add(this.mesh);
+        this.mesh = new THREE.Mesh(geometry, materials.mesh());
+        this.db.scene.add(this.mesh);
     }
 
     update() {
@@ -38,7 +40,7 @@ export default class BoxFactory extends GeometryFactory {
     }
 
     commit() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
         const { points: [p1, p2, p3, p4] } = this.clockwise();
 
         const points = [
@@ -49,7 +51,9 @@ export default class BoxFactory extends GeometryFactory {
         ]
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
-        this.editor.addObject(box);
+        this.db.addItem(box);
+
+        return super.commit();
     }
 
     private clockwise() {
@@ -71,6 +75,6 @@ export default class BoxFactory extends GeometryFactory {
     }
 
     cancel() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
     }
 }

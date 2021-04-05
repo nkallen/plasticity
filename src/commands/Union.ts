@@ -7,8 +7,8 @@ export default class UnionFactory extends GeometryFactory {
     object2!: Item;
 
     commit() {
-        let model1 = this.editor.lookupItem(this.object1);
-        let model2 = this.editor.lookupItem(this.object2);
+        let model1 = this.db.lookupItem(this.object1);
+        let model2 = this.db.lookupItem(this.object2);
 
         if (model1.IsA() != c3d.SpaceType.Solid) throw "Unexpected return type";
         if (model2.IsA() != c3d.SpaceType.Solid) throw "Unexpected return type";
@@ -25,10 +25,12 @@ export default class UnionFactory extends GeometryFactory {
 
         const result = c3d.ActionSolid.BooleanResult(model1, c3d.CopyMode.KeepHistory, model2, c3d.CopyMode.KeepHistory, c3d.OperationType.Union, flags, names);
 
-        this.editor.removeItem(this.object1);
-        this.editor.removeItem(this.object2);
+        this.db.removeItem(this.object1);
+        this.db.removeItem(this.object2);
 
-        this.editor.addObject(result);
+        this.db.addItem(result);
+
+        return super.commit();
     }
 
     cancel() {

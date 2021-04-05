@@ -18,7 +18,7 @@ export class PointPicker {
         return new Promise<THREE.Vector3>((resolve, reject) => {
             const mesh = this.mesh;
             const editor = this.editor;
-            const scene = editor.scene;
+            const scene = editor.db.scene;
             scene.add(mesh);
             const raycaster = new THREE.Raycaster();
             raycaster.params.Line.threshold = 0.1;

@@ -1,19 +1,22 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
-import { Editor } from '../Editor'
+import { EditorSignals } from '../Editor'
+import MaterialDatabase from '../MaterialDatabase';
+import { GeometryDatabase } from '../GeometryDatabase';
 
 export default class SphereFactory extends GeometryFactory {
     center!: THREE.Vector3;
     radius!: number;
     mesh: THREE.Mesh;
 
-    constructor(editor: Editor) {
-        super(editor);
+    constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
+        super(db, materials, signals);
+
         const geometry = new THREE.SphereGeometry(0, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
-        this.mesh = new THREE.Mesh(geometry, this.editor.materialDatabase.mesh());
-        this.editor.scene.add(this.mesh);
+        this.mesh = new THREE.Mesh(geometry, materials.mesh());
+        this.db.scene.add(this.mesh);
     }
 
     update() {
@@ -26,7 +29,7 @@ export default class SphereFactory extends GeometryFactory {
     }
 
     commit() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
         const points = [
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z),
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z + 1),
@@ -34,10 +37,12 @@ export default class SphereFactory extends GeometryFactory {
         ];
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Sphere, names);
-        this.editor.addObject(sphere);
+        this.db.addItem(sphere);
+
+        return super.commit();
     }
 
     cancel() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
     }
 }

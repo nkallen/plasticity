@@ -1,19 +1,21 @@
-import { GeometryFactory } from './Factory'
-import c3d from '../../build/Release/c3d.node';
+import { GeometryDatabase } from '../GeometryDatabase';
 import * as THREE from "three";
-import { Editor } from '../Editor'
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import c3d from '../../build/Release/c3d.node';
+import { EditorSignals } from '../Editor';
+import MaterialDatabase from '../MaterialDatabase';
+import { GeometryFactory } from './Factory';
 
 export default class CircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
     radius!: number;
     mesh: Line2;
 
-    constructor(editor: Editor) {
-        super(editor);
-        this.mesh = new Line2(new LineGeometry(), this.editor.materialDatabase.line());
-        this.editor.scene.add(this.mesh);
+    constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
+        super(db, materials, signals);
+        this.mesh = new Line2(new LineGeometry(), materials.line());
+        this.db.scene.add(this.mesh);
     }
 
     update() {
@@ -37,13 +39,15 @@ export default class CircleFactory extends GeometryFactory {
     }
 
     commit() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
         const center = new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z);
         const circle = c3d.ActionCurve3D.Arc(center, [], true, 0, this.radius, this.radius);
-        this.editor.addObject(new c3d.SpaceInstance(circle));
+        this.db.addItem(new c3d.SpaceInstance(circle));
+
+        return super.commit();
     }
 
     cancel() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
     }
 }

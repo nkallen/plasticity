@@ -28,7 +28,7 @@ export class HoverStrategy implements SelectionStrategy {
         if (this.selectionManager.mode.has(SelectionMode.Curve) && !this.selectionManager.selectedCurves.has(parentCurve)) {
             if (!this.selectionManager.hover?.isEqual(object)) {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new Curve3DHoverable(parentCurve, this.selectionManager.editor.materialDatabase.hover(), this.selectionManager.editor.signals.objectHovered);
+                this.selectionManager.hover = new Curve3DHoverable(parentCurve, this.selectionManager.editor.materials.hover(), this.selectionManager.editor.signals.objectHovered);
             }
             return true;
         }
@@ -50,13 +50,13 @@ export class HoverStrategy implements SelectionStrategy {
         if (this.selectionManager.mode.has(SelectionMode.Face) && object instanceof Face && !this.selectionManager.selectedFaces.has(object)) {
             if (!this.selectionManager.hover?.isEqual(object)) {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.editor.materialDatabase.hover(), this.selectionManager.editor.signals.objectHovered);
+                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.editor.materials.hover(), this.selectionManager.editor.signals.objectHovered);
             }
             return true;
         } else if (this.selectionManager.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selectionManager.selectedEdges.has(object)) {
             if (!this.selectionManager.hover?.isEqual(object)) {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.editor.materialDatabase.hover(), this.selectionManager.editor.signals.objectHovered);
+                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.editor.materials.hover(), this.selectionManager.editor.signals.objectHovered);
             }
             return true;
         }

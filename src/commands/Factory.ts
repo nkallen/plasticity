@@ -1,15 +1,24 @@
-import { Editor } from '../Editor'
+import { EditorSignals } from '../Editor';
+import { GeometryDatabase } from '../GeometryDatabase';
+import MaterialDatabase from '../MaterialDatabase';
 
-type callSuper = never;
+type callUpdateSuper = never;
+type callCommitSuper = never;
+
 export abstract class GeometryFactory {
-    editor: Editor;
+    constructor(
+        protected readonly db: GeometryDatabase,
+        protected readonly materialDb: MaterialDatabase,
+        protected readonly signals: EditorSignals
+    ) {}
 
-    constructor(editor: Editor) {
-        this.editor = editor;
+    update(): callUpdateSuper {
+        this.signals.commandUpdated.dispatch();
+        return undefined as callUpdateSuper;
     }
 
-    update(): callSuper {
-        this.editor.signals.commandUpdated.dispatch();
-        return undefined as callSuper;
+    commit(): callCommitSuper {
+        this.signals.commandUpdated.dispatch();
+        return undefined as callUpdateSuper;
     }
 }

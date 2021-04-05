@@ -9,8 +9,20 @@ function hash(str: string) {
     return h ^ h >>> 9
 };
 
-export default class MaterialDatabase {
-    private readonly materials = new Map<number, THREE.Material>();
+export default interface MaterialDatabase {
+    get(o: c3d.Item): THREE.Material | undefined;
+    line(o?: c3d.SpaceInstance): LineMaterial;
+    lineDashed(): LineMaterial;
+    setResolution(width: number, height: number): void;
+    point(o?: c3d.Item): THREE.Material;
+    mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material;
+    highlight(o: c3d.TopologyItem | c3d.SpaceInstance): LineMaterial;
+    lookup(o: c3d.TopologyItem): LineMaterial;
+    hover(): void;
+}
+
+export class BasicMaterialDatabase implements MaterialDatabase {
+    readonly materials = new Map<number, THREE.Material>();
     private readonly lineMaterials = new Map<number, LineMaterial>();
 
     constructor() {

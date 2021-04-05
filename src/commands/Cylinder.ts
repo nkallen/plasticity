@@ -1,7 +1,9 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
-import { Editor } from '../Editor'
+import { EditorSignals } from '../Editor'
+import MaterialDatabase from '../MaterialDatabase';
+import { GeometryDatabase } from '../GeometryDatabase';
 
 export default class CylinderFactory extends GeometryFactory {
     base!: THREE.Vector3;
@@ -9,13 +11,13 @@ export default class CylinderFactory extends GeometryFactory {
     height!: THREE.Vector3;
     mesh: THREE.Line | THREE.Mesh;
 
-    constructor(editor: Editor) {
-        super(editor);
+    constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
+        super(db, materials, signals);
 
         const geometry = new THREE.CylinderGeometry(0, 0, 0, 32);
-        this.mesh = new THREE.Mesh(geometry, this.editor.materialDatabase.mesh());
+        this.mesh = new THREE.Mesh(geometry, materials.mesh());
         this.mesh.up = new THREE.Vector3(0, 1, 0);
-        this.editor.scene.add(this.mesh);
+        this.db.scene.add(this.mesh);
     }
 
     update() {
@@ -31,7 +33,7 @@ export default class CylinderFactory extends GeometryFactory {
     }
 
     commit() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
         const n = this.height.clone().sub(this.base);
         const z = -(n.x + n.y) / n.z
         const radius = this.base.clone().add(new THREE.Vector3(1, 1, z).normalize().multiplyScalar(this.radius.distanceTo(this.base)));
@@ -42,10 +44,12 @@ export default class CylinderFactory extends GeometryFactory {
         ];
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Cylinder, names);
-        this.editor.addObject(sphere);
+        this.db.addItem(sphere);
+
+        return super.commit();
     }
 
     cancel() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
     }
 }

@@ -81,7 +81,7 @@ export default (editor: Editor) => {
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());
             this.camera = camera;
-            this.selector = new ViewportSelector(editor.drawModel, camera, this.renderer.domElement);
+            this.selector = new ViewportSelector(editor.db.drawModel, camera, this.renderer.domElement);
 
             this.renderer.setPixelRatio(window.devicePixelRatio);
             const size = this.renderer.getSize(new THREE.Vector2());
@@ -93,21 +93,21 @@ export default (editor: Editor) => {
 
             this.overlayCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
 
-            const renderPass = new RenderPass(editor.scene, this.camera);
+            const renderPass = new RenderPass(editor.db.scene, this.camera);
             const overlayPass = new RenderPass(this.overlay, this.camera);
             const copyPass = new ShaderPass(CopyShader);
 
             overlayPass.clear = false;
             overlayPass.clearDepth = true;
 
-            const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
+            const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
             outlinePassSelection.edgeStrength = 10;
             outlinePassSelection.edgeGlow = 0;
             outlinePassSelection.edgeThickness = 2.0;
             outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
             this.outlinePassSelection = outlinePassSelection;
 
-            const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
+            const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
             outlinePassHover.edgeStrength = 10;
             outlinePassHover.edgeGlow = 0;
             outlinePassHover.edgeThickness = 2.0;
@@ -137,7 +137,7 @@ export default (editor: Editor) => {
         connectedCallback() {
             editor.viewports.push(this);
 
-            const scene = editor.scene;
+            const scene = editor.db.scene;
 
             const pane = this.parentElement as Pane;
             pane.signals.flexScaleChanged.add(this.resize);
@@ -172,15 +172,15 @@ export default (editor: Editor) => {
             requestAnimationFrame(this.render);
             if (!this.needsRender) return;
 
-            editor.materialDatabase.setResolution(this.offsetWidth, this.offsetHeight);
+            editor.materials.setResolution(this.offsetWidth, this.offsetHeight);
 
             this.overlayCamera.position.copy(this.camera.position);
 
             // Adding/removing grid to scene so materials with depthWrite false
             // don't render under the grid.
-            editor.scene.add(this.grid);
+            editor.db.scene.add(this.grid);
             this.composer.render();
-            editor.scene.remove(this.grid);
+            editor.db.scene.remove(this.grid);
 
             // this.renderer.autoClear = false;
             // if (showSceneHelpers === true) renderer.render(sceneHelpers, camera);

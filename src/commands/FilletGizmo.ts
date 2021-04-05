@@ -88,8 +88,8 @@ export class FilletGizmo extends THREE.Object3D {
 
         const disposables = new CompositeDisposable();
 
-        this.editor.scene.add(this);
-        disposables.add(new Disposable(() => this.editor.scene.remove(this)));
+        this.editor.db.scene.add(this);
+        disposables.add(new Disposable(() => this.editor.db.scene.remove(this)));
 
         return new Promise<void>((resolve, reject) => {
             for (const viewport of this.editor.viewports) {

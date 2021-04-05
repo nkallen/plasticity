@@ -1,7 +1,7 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
-import { Item, CurveEdge, SpaceInstance } from '../VisualModel';
-import { TemporaryObject } from '../Editor';
+import { Item, CurveEdge } from '../VisualModel';
+import { TemporaryObject } from '../GeometryDatabase';
 
 export default class FilletFactory extends GeometryFactory {
     _item!: Item;
@@ -20,7 +20,7 @@ export default class FilletFactory extends GeometryFactory {
     set item(item: Item) {
         this._item = item;
 
-        const lookup = this.editor.lookupItem(this.item);
+        const lookup = this.db.lookupItem(this.item);
         if (lookup.IsA() != c3d.SpaceType.Solid) throw "Unexpected return type";
         const solid = lookup.Cast<c3d.Solid>(c3d.SpaceType.Solid);
         this.solid = solid;
@@ -35,7 +35,7 @@ export default class FilletFactory extends GeometryFactory {
 
         const curves = [];
         for (const edge of this.edges) {
-            curves.push(this.editor.lookupTopologyItem(edge) as c3d.CurveEdge);
+            curves.push(this.db.lookupTopologyItem(edge) as c3d.CurveEdge);
         }
         this.curves = curves;
     }
@@ -58,22 +58,22 @@ export default class FilletFactory extends GeometryFactory {
         this.temp?.cancel();
 
         const phantom = c3d.ActionPhantom.SmoothPhantom(this.solid, this.curves, this.params);
-        this.temp = this.editor.addTemporaryObjects(phantom.map(ph => new c3d.SpaceInstance(ph)));
+        this.temp = this.db.addTemporaryItems(phantom.map(ph => new c3d.SpaceInstance(ph)));
 
         return super.update();
     }
 
     commit() {
         this.temp!.cancel();
-        this.editor.removeItem(this.item);
+        this.db.removeItem(this.item);
         const names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
         const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.KeepHistory, this.curves, [], this.params, names);
-        this.editor.addObject(result);
+        this.db.addItem(result);
 
-        this.editor.selectionManager.deselectAll();
+        return super.commit();
     }
 
     cancel() {
-        this.editor.scene.add(this.item);
+        this.db.scene.add(this.item);
     }
 }

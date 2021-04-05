@@ -31,6 +31,7 @@ export class SelectionManager {
 
     constructor(editor: Editor) {
         this.editor = editor;
+        editor.signals.commandCommitted.add(() => this.deselectAll());
     }
 
     private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy) {
@@ -65,14 +66,14 @@ export class SelectionManager {
     deselectAll() {
         for (const object of this.selectedEdges) {
             this.selectedEdges.delete(object);
-            const model = this.editor.lookupTopologyItem(object);
-            object.material = this.editor.materialDatabase.lookup(model);
+            const model = this.editor.db.lookupTopologyItem(object);
+            object.material = this.editor.materials.lookup(model);
             this.editor.signals.objectDeselected.dispatch(object);
         }
         for (const object of this.selectedFaces) {
             this.selectedFaces.delete(object);
-            const model = this.editor.lookupTopologyItem(object);
-            object.material = this.editor.materialDatabase.lookup(model);
+            const model = this.editor.db.lookupTopologyItem(object);
+            object.material = this.editor.materials.lookup(model);
             this.editor.signals.objectDeselected.dispatch(object);
         }
         for (const object of this.selectedSolids) {

@@ -1,9 +1,11 @@
+import MaterialDatabase from '../MaterialDatabase';
 import * as THREE from "three";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import c3d from '../../build/Release/c3d.node';
-import { Editor } from '../Editor';
+import { EditorSignals } from '../Editor';
 import { GeometryFactory } from './Factory';
+import { GeometryDatabase } from '../GeometryDatabase';
 
 export default class RectFactory extends GeometryFactory {
     p1!: THREE.Vector3;
@@ -11,11 +13,11 @@ export default class RectFactory extends GeometryFactory {
     p3!: THREE.Vector3;
     mesh: Line2;
 
-    constructor(editor: Editor) {
-        super(editor);
+    constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
+        super(db, materials, signals);
 
-        this.mesh = new Line2(new LineGeometry(), this.editor.materialDatabase.line());
-        this.editor.scene.add(this.mesh);
+        this.mesh = new Line2(new LineGeometry(), materials.line());
+        this.db.scene.add(this.mesh);
     }
 
     update() {
@@ -51,7 +53,7 @@ export default class RectFactory extends GeometryFactory {
     }
 
     commit() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
         let { p1, p2, p3, p4 } = this.orthogonal();
 
         const points = [
@@ -61,11 +63,13 @@ export default class RectFactory extends GeometryFactory {
             new c3d.CartPoint3D(p4.x, p4.y, p4.z)
         ]
         const line = new c3d.Polyline3D(points, true);
-        this.editor.addObject(new c3d.SpaceInstance(line));
+        this.db.addItem(new c3d.SpaceInstance(line));
+
+        return super.commit();
     }
 
     cancel() {
-        this.editor.scene.remove(this.mesh);
+        this.db.scene.remove(this.mesh);
     }
 
     private orthogonal() {

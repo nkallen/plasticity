@@ -1,11 +1,12 @@
 import * as THREE from "three";
-import { Editor } from "./Editor";
-import { CurveEdge, Edge, Item, Solid, SpaceItem } from "./VisualModel";
-import c3d from '../build/Release/c3d.node';
 import { Object3D } from "three";
+import c3d from '../build/Release/c3d.node';
+import { EditorSignals } from "./Editor";
+import { GeometryDatabase } from "./GeometryDatabase";
+import { SpriteDatabase } from "./SpriteDatabase";
+import { CurveEdge, Solid, SpaceItem } from "./VisualModel";
 
 export class SnapManager {
-    private readonly editor: Editor;
     private readonly snaps = new Set<Snap>();
 
     private readonly begPoints = new Set<Snap>();
@@ -14,12 +15,17 @@ export class SnapManager {
     pickers: Object3D[];
     snappers: Object3D[];
 
-    constructor(editor: Editor) {
-        this.editor = editor;
+    constructor(
+        private readonly db: GeometryDatabase,
+        private readonly spriteDatabase: SpriteDatabase,
+        private readonly signals: EditorSignals) {
         this.snaps.add(new PointSnap());
         this.snaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)));
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)));
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)));
+
+        signals.objectAdded.add((item) => this.add(item));
+        signals.objectRemoved.add((item) => this.delete(item));
 
         this.update();
     }
@@ -41,7 +47,7 @@ export class SnapManager {
     }
 
     addEdge(edge: CurveEdge) {
-        const model = this.editor.lookupTopologyItem(edge) as c3d.Edge;
+        const model = this.db.lookupTopologyItem(edge) as c3d.Edge;
         const begPt = model.GetBegPoint();
         const begSnap = new PointSnap(begPt.x, begPt.y, begPt.z);
         this.begPoints.add(begSnap);
@@ -68,7 +74,7 @@ export class SnapManager {
     }
 
     hoverIndicatorFor(intersection: THREE.Intersection) {
-        const sprite = this.editor.spriteDatabase.isNear();
+        const sprite = this.spriteDatabase.isNear();
         const snap = intersection.object.userData.snap;
         sprite.position.copy(snap.project(intersection));
         return sprite;

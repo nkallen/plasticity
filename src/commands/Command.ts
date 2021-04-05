@@ -25,7 +25,7 @@ export default abstract class Command {
 
 export class SphereCommand extends Command {
     async execute() {
-        const sphere = new SphereFactory(this.editor);
+        const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals);
 
         const pointPicker = new PointPicker(this.editor);
         const p1 = await pointPicker.execute();
@@ -42,7 +42,7 @@ export class SphereCommand extends Command {
 
 export class CircleCommand extends Command {
     async execute() {
-        const circle = new CircleFactory(this.editor);
+        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals);
         const pointPicker = new PointPicker(this.editor);
         const p1 = await pointPicker.execute();
         circle.center = p1;
@@ -60,7 +60,7 @@ export class CylinderCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
-        const circle = new CircleFactory(this.editor);
+        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals);
         const p1 = await pointPicker.execute();
         circle.center = p1;
 
@@ -71,7 +71,7 @@ export class CylinderCommand extends Command {
         });
         circle.cancel();
 
-        const cylinder = new CylinderFactory(this.editor);
+        const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals);
         cylinder.base = p1;
         cylinder.radius = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
@@ -84,7 +84,7 @@ export class CylinderCommand extends Command {
 
 export class LineCommand extends Command {
     async execute() {
-        const line = new LineFactory(this.editor);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
 
         const pointPicker = new PointPicker(this.editor);
         const p1 = await pointPicker.execute();
@@ -101,7 +101,7 @@ export class RectCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
-        const line = new LineFactory(this.editor);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
         const p1 = await pointPicker.execute();
         line.p1 = p1;
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
@@ -110,7 +110,7 @@ export class RectCommand extends Command {
         });
         line.cancel();
 
-        const rect = new RectFactory(this.editor);
+        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals);
         rect.p1 = p1;
         rect.p2 = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
@@ -125,7 +125,7 @@ export class BoxCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
-        const line = new LineFactory(this.editor);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
         const p1 = await pointPicker.execute();
         line.p1 = p1;
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
@@ -134,7 +134,7 @@ export class BoxCommand extends Command {
         });
         line.cancel();
 
-        const rect = new RectFactory(this.editor);
+        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals);
         rect.p1 = p1;
         rect.p2 = p2;
         const p3 = await pointPicker.execute((p3: THREE.Vector3) => {
@@ -143,7 +143,7 @@ export class BoxCommand extends Command {
         });
         rect.cancel();
 
-        const box = new BoxFactory(this.editor);
+        const box = new BoxFactory(this.editor.db, this.editor.materials, this.editor.signals);
         box.p1 = p1;
         box.p2 = p2;
         box.p3 = p3;
@@ -160,13 +160,13 @@ export class MoveCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         let object = [...this.editor.selectionManager.selectedSolids][0]!;
 
-        const line = new LineFactory(this.editor);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
         const p1 = await pointPicker.execute();
         line.p1 = p1;
 
-        const move = new MoveFactory(this.editor);
+        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals);
         move.p1 = p1;
-        move.object = object;
+        move.item = object;
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             move.p2 = p2;
@@ -184,7 +184,7 @@ export class UnionCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        const union = new UnionFactory(this.editor);
+        const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals);
         union.object1 = object1;
         union.object2 = object2;
         union.commit();
@@ -202,12 +202,12 @@ export class FilletCommand extends Command {
         const centroid = new THREE.Vector3();
         edge.geometry.boundingBox.getCenter(centroid);
 
-        const fillet = new FilletFactory(this.editor);
+        const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals);
         fillet.item = item;
         fillet.edges = edges;
  
         const filletGizmo = new FilletGizmo(this.editor);
-        const curveEdge = this.editor.lookupTopologyItem(edge) as c3d.CurveEdge;
+        const curveEdge = this.editor.db.lookupTopologyItem(edge) as c3d.CurveEdge;
         const normal = curveEdge.EdgeNormal(0.5);
 
         filletGizmo.attach2(edge, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));
