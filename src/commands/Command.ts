@@ -12,6 +12,7 @@ import LineFactory from './Line';
 import MoveFactory from './Move';
 import RectFactory from './Rect';
 import RotateFactory from './Rotate';
+import ScaleFactory from "./Scale";
 import SphereFactory from './Sphere';
 import UnionFactory from './Union';
 
@@ -177,6 +178,40 @@ export class MoveCommand extends Command {
         });
         line.cancel();
         move.commit();
+    }
+}
+
+export class ScaleCommand extends Command {
+    async execute() {
+        const pointPicker = new PointPicker(this.editor);
+        let object = [...this.editor.selectionManager.selectedSolids][0]!;
+
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const origin = await pointPicker.execute();
+        line.p1 = origin;
+
+        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+            line.p2 = p2;
+            line.update();
+        });
+        line.cancel();
+
+        const line2 = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        line.p1 = origin;
+
+        const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        scale.item = object;
+        scale.origin = line2.p1 = origin;
+        scale.p2 = p2;
+        const p3 = await pointPicker.execute((p3: THREE.Vector3) => {
+            line2.p2 = p3;
+            scale.p3 = p3
+            line2.update();
+            scale.update();
+        });
+        line2.cancel();
+
+        scale.commit();
     }
 }
 
