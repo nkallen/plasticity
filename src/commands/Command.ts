@@ -8,14 +8,13 @@ import CylinderFactory from './Cylinder';
 import FilletFactory from './Fillet';
 import { FilletGizmo } from './gizmos/FilletGizmo';
 import { RotateGizmo } from './gizmos/RotateGizmo';
-import IntersectionFactory from "./Intersection";
 import LineFactory from './Line';
 import MoveFactory from './Move';
 import RectFactory from './Rect';
 import RotateFactory from './Rotate';
 import ScaleFactory from "./Scale";
 import SphereFactory from './Sphere';
-import UnionFactory from './Union';
+import { UnionFactory, DifferenceFactory, IntersectionFactory } from './Boolean';
 
 export default abstract class Command {
     editor: Editor;
@@ -280,10 +279,10 @@ export class DifferenceCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        // const union = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        // union.item1 = object1;
-        // union.item2 = object2;
-        // union.commit();
+        const union = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        union.item1 = object1;
+        union.item2 = object2;
+        union.commit();
     }
 }
 

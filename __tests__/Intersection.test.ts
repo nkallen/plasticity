@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import IntersectionFactory from '../src/commands/Intersection';
+import { IntersectionFactory } from '../src/commands/Boolean';
 import SphereFactory from '../src/commands/Sphere';
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
