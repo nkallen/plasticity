@@ -4,10 +4,10 @@ import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
 
 interface GizmoView {
-    picker: THREE.Object3D;
-    delta: THREE.Object3D;
-    helper: THREE.Object3D;
     handle: THREE.Object3D;
+    picker: THREE.Object3D;
+    delta?: THREE.Object3D;
+    helper?: THREE.Object3D;
 }
 
 export abstract class AbstractGizmo<CB> extends THREE.Object3D {

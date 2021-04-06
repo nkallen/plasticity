@@ -240,11 +240,9 @@ export class FilletCommand extends Command {
         fillet.item = item;
         fillet.edges = edges;
  
-        const filletGizmo = new FilletGizmo(this.editor);
         const curveEdge = this.editor.db.lookupTopologyItem(edge) as c3d.CurveEdge;
         const normal = curveEdge.EdgeNormal(0.5);
-
-        filletGizmo.attach2(edge, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));
+        const filletGizmo = new FilletGizmo(this.editor, edge, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));
 
         await filletGizmo.execute((delta) => {
             fillet.distance = delta;
