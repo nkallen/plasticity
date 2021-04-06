@@ -1,6 +1,6 @@
 <%_ if (arg.rawType == "double") { _%>
     <%- arg.const %> double <%- arg.name %> = info[<%- arg.cppIndex %>].ToNumber().DoubleValue();
-<%_ } else if (arg.rawType == "int") { _%>
+<%_ } else if (arg.isNumber) { _%>
     <%- arg.const %> int <%- arg.name %> = info[<%- arg.cppIndex %>].ToNumber().Int64Value();
 <%_ } else if (arg.rawType == "bool") { _%>
     <%- arg.const %> bool <%- arg.name %> = info[<%- arg.cppIndex %>].ToBoolean();

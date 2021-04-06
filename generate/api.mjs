@@ -62,6 +62,16 @@ export default {
         Matrix3D: {
             rawHeader: "mb_matrix3d.h"
         },
+        Cube: {
+            rawHeader: "mb_cube.h",
+            dependencies: ["CartPoint3D.h", "Matrix3D.h"],
+            initializers: [
+                "const MbCartPoint3D & p0, const MbCartPoint3D & p1, bool normalize = false"
+            ],
+            functions: [
+                "bool CalculateMatrix(size_t pIndex, const MbCartPoint3D & point, const MbCartPoint3D & fixedPoint, bool useFixed, bool isotropy, MbMatrix3D & matrix)"
+            ]
+        },
         BooleanFlags: {
             rawHeader: "op_boolean_flags.h",
             initializers: [""],
@@ -371,7 +381,12 @@ export default {
             jsClassName: "TransformValues",
             rawHeader: "op_shell_parameter.h",
             dependencies: ["Matrix3D.h", "CartPoint3D.h"],
-            initializers: ["MbMatrix3D matrix"],
+            initializers: [
+                "",
+                "const MbMatrix3D & m",
+                "const MbMatrix3D & m, const MbCartPoint3D & f, bool fix = false, bool iso = false",
+                "double sX, double sY, double sZ, const MbCartPoint3D & fP"
+            ]
         },
         SmoothValues: {
             cppClassName: "_SmoothValues",

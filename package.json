@@ -13,7 +13,8 @@
     "generate": "node generate/src/generate.mjs",
     "build": "node-gyp build -j max",
     "test": "jest --maxWorkers=1",
-    "watch": "jest --maxWorkers=1 --watch",
+    "watch-test": "jest --maxWorkers=1 --watch",
+    "watch-generate": "find generate | entr -s 'yarn generate && yarn build && clear && echo Succesfully generated!'",
     "gbs": "yarn generate && yarn build && yarn start"
   },
   "keywords": [],
