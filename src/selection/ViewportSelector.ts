@@ -8,9 +8,6 @@ class SelectorSignals {
 }
 
 export class ViewportSelector extends THREE.EventDispatcher {
-    private readonly drawModel: Set<SpaceItem>;
-    private readonly camera: THREE.Camera;
-    private readonly domElement: HTMLElement;
     private readonly raycaster = new THREE.Raycaster();
     private readonly mouse = new THREE.Vector2();
 
@@ -25,12 +22,11 @@ export class ViewportSelector extends THREE.EventDispatcher {
     }
 
     // FIXME add dispose
-    constructor(drawModel: Set<SpaceItem>, camera: THREE.Camera, domElement: HTMLElement) {
+    constructor(
+        private readonly drawModel: Set<SpaceItem>,
+        private readonly camera: THREE.Camera,
+        private readonly domElement: HTMLElement) {
         super();
-
-        this.drawModel = drawModel;
-        this.camera = camera;
-        this.domElement = domElement;
 
         // @ts-ignore
         this.raycaster.params.Line2 = { threshold: 10 };

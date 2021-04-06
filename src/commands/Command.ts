@@ -1,19 +1,19 @@
-import { Editor } from '../Editor'
-import { PointPicker } from '../PointPicker'
 import * as THREE from "three";
-import SphereFactory from './Sphere';
+import c3d from '../../build/Release/c3d.node';
+import { Editor } from '../Editor';
+import { PointPicker } from '../PointPicker';
+import BoxFactory from './Box';
 import CircleFactory from './Circle';
 import CylinderFactory from './Cylinder';
-import LineFactory from './Line';
-import RectFactory from './Rect';
-import BoxFactory from './Box';
-import MoveFactory from './Move';
-import UnionFactory from './Union';
 import FilletFactory from './Fillet';
 import { FilletGizmo } from './gizmos/FilletGizmo';
-import c3d from '../../build/Release/c3d.node';
-import RotateFactory from './Rotate';
 import { RotateGizmo } from './gizmos/RotateGizmo';
+import LineFactory from './Line';
+import MoveFactory from './Move';
+import RectFactory from './Rect';
+import RotateFactory from './Rotate';
+import SphereFactory from './Sphere';
+import UnionFactory from './Union';
 
 export default abstract class Command {
     editor: Editor;
@@ -239,7 +239,7 @@ export class FilletCommand extends Command {
         const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals);
         fillet.item = item;
         fillet.edges = edges;
- 
+
         const curveEdge = this.editor.db.lookupTopologyItem(edge) as c3d.CurveEdge;
         const normal = curveEdge.EdgeNormal(0.5);
         const filletGizmo = new FilletGizmo(this.editor, edge, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));

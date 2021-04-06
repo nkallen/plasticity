@@ -18,8 +18,8 @@ export interface EditorSignals {
     objectDeselected: signals.Signal<SpaceItem>;
     objectHovered: signals.Signal<SpaceItem>
     sceneGraphChanged: signals.Signal;
-    commandUpdated: signals.Signal;
-    commandCommitted: signals.Signal;
+    factoryUpdated: signals.Signal;
+    factoryCommitted: signals.Signal;
     pointPickerChanged: signals.Signal;
     windowResized: signals.Signal;
     windowLoaded: signals.Signal;
@@ -36,8 +36,8 @@ export class Editor {
         objectDeselected: new signals.Signal(),
         objectHovered: new signals.Signal(),
         sceneGraphChanged: new signals.Signal(),
-        commandUpdated: new signals.Signal(),
-        commandCommitted: new signals.Signal(),
+        factoryUpdated: new signals.Signal(),
+        factoryCommitted: new signals.Signal(),
         pointPickerChanged: new signals.Signal(),
         windowResized: new signals.Signal(),
         windowLoaded: new signals.Signal(),

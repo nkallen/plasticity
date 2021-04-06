@@ -1,8 +1,8 @@
 import { Editor } from '../Editor';
-import { Face, CurveEdge, TopologyItem, CurveSegment, Solid, SpaceInstance } from '../VisualModel';
 import { RefCounter } from '../Util';
-import { Hoverable, HoverStrategy } from './Hover';
+import { CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyItem } from '../VisualModel';
 import { ClickStrategy } from './Click';
+import { Hoverable, HoverStrategy } from './Hover';
 
 export enum SelectionMode {
     Edge, Face, Solid, Curve
@@ -31,7 +31,7 @@ export class SelectionManager {
 
     constructor(editor: Editor) {
         this.editor = editor;
-        editor.signals.commandCommitted.add(() => this.deselectAll());
+        editor.signals.factoryCommitted.add(() => this.deselectAll());
     }
 
     private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy) {

@@ -13,12 +13,12 @@ export abstract class GeometryFactory {
     ) {}
 
     update(): callUpdateSuper {
-        this.signals.commandUpdated.dispatch();
+        this.signals.factoryUpdated.dispatch();
         return undefined as callUpdateSuper;
     }
 
     commit(): callCommitSuper {
-        this.signals.commandUpdated.dispatch();
+        this.signals.factoryCommitted.dispatch();
         return undefined as callUpdateSuper;
     }
 }

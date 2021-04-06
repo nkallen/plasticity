@@ -151,7 +151,7 @@ export default (editor: Editor) => {
             editor.signals.objectSelected.add(this.setNeedsRender);
             editor.signals.objectDeselected.add(this.setNeedsRender);
             editor.signals.sceneGraphChanged.add(this.setNeedsRender);
-            editor.signals.commandUpdated.add(this.setNeedsRender);
+            editor.signals.factoryUpdated.add(this.setNeedsRender);
             editor.signals.pointPickerChanged.add(this.setNeedsRender);
             editor.signals.objectHovered.add(this.setNeedsRender);
             editor.signals.objectAdded.add(this.setNeedsRender);
