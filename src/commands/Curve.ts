@@ -1,11 +1,11 @@
-import { GeometryFactory } from './Factory'
-import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
-import { EditorSignals } from '../Editor'
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-import MaterialDatabase from '../MaterialDatabase';
+import c3d from '../../build/Release/c3d.node';
+import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
+import MaterialDatabase from '../MaterialDatabase';
+import { GeometryFactory } from './Factory';
 
 export default class CurveFactory extends GeometryFactory {
     points = new Array<THREE.Vector3>();
@@ -40,7 +40,7 @@ export default class CurveFactory extends GeometryFactory {
         this.db.scene.remove(mesh);
 
         const cartPoints = points.map(p => new c3d.CartPoint3D(p.x, p.y, p.z));
-        const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, false, c3d.SpaceType.Nurbs3D);
+        const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, false, c3d.SpaceType.Hermit3D);
         this.db.addItem(new c3d.SpaceInstance(curve));
 
         return super.commit();

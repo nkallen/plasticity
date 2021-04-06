@@ -107,25 +107,33 @@ export class CurveCommand extends Command {
         const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals);
 
         const registry = this.editor.registry;
-        const promise = new Promise<void>((resolve, reject) => {
+        const finish = new Promise<'finished' | 'aborted'>((resolve, reject) => {
             const finished: Disposable = registry.add('body', 'command:finished', () => {
-                resolve();
+                resolve('finished');
                 finished.dispose();
             });
-            const aborted: Disposable = registry.add('body', 'command:aborted', () => {
-                reject();
+            const aborted: Disposable = registry.add('body', 'command:aborted', () => { // FIXME name - reject abort cancel?
+                resolve('aborted');
                 aborted.dispose();
             });
         })
 
         const pointPicker = new PointPicker(this.editor);
-        let point: THREE.Vector3 | void;
-        while (point = await Promise.race([promise, pointPicker.execute()])) {
-            curve.points.push(point);
-            curve.update();
+        while (true) {
+            const getPoint = pointPicker.execute();
+            const point = await Promise.race([finish, getPoint]);
+            switch (point) {
+                case 'finished':
+                    curve.commit();
+                case 'aborted':
+                    getPoint.cancel();
+                    return;
+                default:
+                    curve.points.push(point);
+                    curve.update();
+                    break;
+            }
         }
-
-        curve.commit();
     }
 }
 

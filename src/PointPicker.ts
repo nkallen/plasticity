@@ -4,6 +4,24 @@ import { Disposable, CompositeDisposable } from 'event-kit';
 
 const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
+class CancellablePromise<T> extends Promise<T> {
+    private _cancel: () => void;
+    
+    constructor(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => (() => void)) {
+        let _cancel;
+        super((resolve, reject) => {
+            _cancel = executor(resolve, reject);
+        });
+        this._cancel = _cancel;
+    }
+
+    cancel() {
+        console.log("in method cancel");
+        console.trace();
+        this._cancel();
+    }
+}
+
 export class PointPicker {
     editor: Editor;
     mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
@@ -14,16 +32,17 @@ export class PointPicker {
         this.mesh.renderOrder = 999;
     }
 
-    async execute(cb?: (pt: THREE.Vector3) => void) {
-        return new Promise<THREE.Vector3>((resolve, reject) => {
+    execute(cb?: (pt: THREE.Vector3) => void): CancellablePromise<THREE.Vector3> {
+        return new CancellablePromise<THREE.Vector3>((resolve, reject) => {
+            const disposables = new CompositeDisposable();
             const mesh = this.mesh;
             const editor = this.editor;
             const scene = editor.db.scene;
-            scene.add(mesh);
             const raycaster = new THREE.Raycaster();
             raycaster.params.Line.threshold = 0.1;
 
-            const disposables = new CompositeDisposable();
+            scene.add(mesh);
+            disposables.add(new Disposable(() => scene.remove(mesh)));
 
             for (const viewport of this.editor.viewports) {
                 viewport.disableControls();
@@ -41,6 +60,7 @@ export class PointPicker {
                 domElement.addEventListener('pointerdown', onPointerDown);
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
+                disposables.add(new Disposable(() => viewport.overlay.clear()));
 
                 const editor = this.editor;
                 function onPointerMove(e: PointerEvent) {
@@ -79,12 +99,16 @@ export class PointPicker {
                 }
 
                 function onPointerDown(e: PointerEvent) {
-                    viewport.overlay.clear();
-                    scene.remove(mesh);
                     resolve(mesh.position.clone());
                     disposables.dispose();
                     editor.signals.pointPickerChanged.dispatch();
                 }
+            }
+            return () => {
+                console.log("calling cancel");
+                disposables.dispose();
+                editor.signals.pointPickerChanged.dispatch();
+                console.log("/calling cancel");
             }
         });
     }

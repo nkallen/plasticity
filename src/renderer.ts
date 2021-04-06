@@ -1,9 +1,7 @@
-// import KeymapManager from 'atom-keymap';
 import Stats from 'stats.js';
 import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import license from '../license-key.json';
-import CommandRegistry from './CommandRegistry';
 import BoxFactory from './commands/Box';
 import './css/index.less';
 import { Editor } from './Editor';
