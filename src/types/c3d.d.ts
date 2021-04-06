@@ -204,8 +204,18 @@ declare module "*c3d.node" {
 
     declare class TransformValues {
         private _useNominal: undefined;
-        constructor(Matrix3D)
+        constructor();
+        constructor(matrix: Matrix3D);
+        constructor(matrix: Matrix3D, f: CartPoint3D, fix: boolean = false, iso: boolean = false);
+        constructor(sX: number, sY: number, sZ: number, fixedPoint: CartPoint3D);
     }
+
+    declare class Cube {
+        private _useNominal: undefined;
+        constructor(p0: CartPoint3D, p1: CartPoint3D, normalize: boolean = false);
+        CalculateMatrix(pIndex: number, point: CartPoint3D, fixedPoint: CartPoint3D, useFixed: boolean, isotropy: boolean): Matrix3D
+    }
+
 
     var ActionDirect: {
         TransformedSolid(Solid, CopyMode, TransformValues, NameMaker): Solid

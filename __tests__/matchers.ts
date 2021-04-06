@@ -28,7 +28,7 @@ expect.extend({
 });
 expect.extend({
     toApproximatelyEqual(received: THREE.Vector3, other: THREE.Vector3) {
-        const pass = received.distanceTo(other) < 0.005;
+        const pass = received.distanceTo(other) < 0.01;
         if (pass) {
             return {
                 message: () => `expected vec3 ${received.toArray()} not to equal ${other.toArray()}`,

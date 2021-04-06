@@ -19,11 +19,7 @@ export default class FilletFactory extends GeometryFactory {
 
     set item(item: Item) {
         this._item = item;
-
-        const lookup = this.db.lookupItem(this.item);
-        if (lookup.IsA() != c3d.SpaceType.Solid) throw "Unexpected return type";
-        const solid = lookup.Cast<c3d.Solid>(c3d.SpaceType.Solid);
-        this.solid = solid;
+        this.solid = this.db.lookup(this.item, c3d.SpaceType.Solid);
     }
 
     get edges() {

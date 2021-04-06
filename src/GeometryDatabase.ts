@@ -74,6 +74,19 @@ export class GeometryDatabase {
         return item;
     }
 
+    // FIXME obviously
+    lookup(object: visual.Item, spaceType: c3d.SpaceType.Solid): c3d.Solid {
+        const item = this.lookupItem(object);
+        if (item.IsA() != spaceType) throw "Unexpected return type";
+        switch (spaceType) {
+            case c3d.SpaceType.Solid:
+                const solid = item.Cast<c3d.Solid>(spaceType);
+                return solid;
+            default:
+                throw new Error("not yet implemented");
+        }
+    }
+
     lookupTopologyItem(object: visual.TopologyItem): c3d.TopologyItem {
         const parent = object.parentItem;
         const parentModel = this.lookupItem(parent);

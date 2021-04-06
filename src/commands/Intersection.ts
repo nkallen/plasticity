@@ -2,7 +2,7 @@ import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
 import { Item } from '../VisualModel';
 
-export default class IntersectionFactory extends GeometryFactory {
+export default class UnionFactory extends GeometryFactory {
     object1!: Item;
     object2!: Item;
 

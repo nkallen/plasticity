@@ -69,7 +69,10 @@ export default {
                 "const MbCartPoint3D & p0, const MbCartPoint3D & p1, bool normalize = false"
             ],
             functions: [
-                "bool CalculateMatrix(size_t pIndex, const MbCartPoint3D & point, const MbCartPoint3D & fixedPoint, bool useFixed, bool isotropy, MbMatrix3D & matrix)"
+                {
+                    signature: "bool CalculateMatrix(size_t pIndex, const MbCartPoint3D & point, const MbCartPoint3D & fixedPoint, bool useFixed, bool isotropy, MbMatrix3D & matrix)",
+                    matrix: { isReturn: true }
+                }
             ]
         },
         BooleanFlags: {
