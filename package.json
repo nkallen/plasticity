@@ -111,6 +111,7 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "@types/assert": "^1.5.4",
     "atom-keymap": "^8.2.14",
     "bootstrap-icons": "^1.4.1",
     "electron-squirrel-startup": "^1.0.0",

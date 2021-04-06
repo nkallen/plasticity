@@ -2,6 +2,7 @@ import { render } from 'preact';
 import { Editor } from './Editor';
 import Command, * as cmd from './commands/Command';
 import { GConstructor } from './Util';
+import assert from "assert";
 
 export default (editor: Editor) => {
     class CommandButton extends HTMLButtonElement {
@@ -11,10 +12,11 @@ export default (editor: Editor) => {
             const name = this.getAttribute('name');
             const CommandName = name + 'Command' as CommandName;
             const klass = cmd[CommandName] as GConstructor<Command>;
-            this.addEventListener('click', e => editor.execute(new klass(editor)) );
+            if (klass == null) throw `${name} is invalid`;
+            this.addEventListener('click', e => editor.execute(new klass(editor)));
         }
     }
-    customElements.define('ispace-command', CommandButton, { extends: 'button'});
+    customElements.define('ispace-command', CommandButton, { extends: 'button' });
 
     class Inspector extends HTMLElement {
         constructor() {

@@ -8,6 +8,7 @@ import CylinderFactory from './Cylinder';
 import FilletFactory from './Fillet';
 import { FilletGizmo } from './gizmos/FilletGizmo';
 import { RotateGizmo } from './gizmos/RotateGizmo';
+import IntersectionFactory from "./Intersection";
 import LineFactory from './Line';
 import MoveFactory from './Move';
 import RectFactory from './Rect';
@@ -254,9 +255,35 @@ export class UnionCommand extends Command {
         let object2 = items[1]!;
 
         const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        union.object1 = object1;
-        union.object2 = object2;
+        union.item1 = object1;
+        union.item2 = object2;
         union.commit();
+    }
+}
+
+export class IntersectionCommand extends Command {
+    async execute() {
+        const items = [...this.editor.selectionManager.selectedSolids];
+        let object1 = items[0]!;
+        let object2 = items[1]!;
+
+        const union = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        union.item1 = object1;
+        union.item2 = object2;
+        union.commit();
+    }
+}
+
+export class DifferenceCommand extends Command {
+    async execute() {
+        const items = [...this.editor.selectionManager.selectedSolids];
+        let object1 = items[0]!;
+        let object2 = items[1]!;
+
+        // const union = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        // union.item1 = object1;
+        // union.item2 = object2;
+        // union.commit();
     }
 }
 

@@ -2,6 +2,7 @@ module.exports = {
     target: 'electron-main',
     'node': {
       __dirname: false,
+      __filename: false,
     },
   /**
    * This is the main entry point for your application, it's the first file
