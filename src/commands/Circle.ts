@@ -6,6 +6,7 @@ import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../Editor';
 import MaterialDatabase from '../MaterialDatabase';
 import { GeometryFactory } from './Factory';
+import { CircleGeometry } from '../Util';
 
 export default class CircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
@@ -20,16 +21,7 @@ export default class CircleFactory extends GeometryFactory {
 
     update() {
         this.mesh.geometry.dispose();
-        const segmentCount = 32;
-        const vertices = new Float32Array((segmentCount + 1) * 3);
-
-        for (let i = 0; i <= segmentCount; i++) {
-            var theta = (i / segmentCount) * Math.PI * 2;
-            vertices[i * 3] = Math.cos(theta) * this.radius;
-            vertices[i * 3 + 1] = Math.sin(theta) * this.radius;
-            vertices[i * 3 + 2] = 0;
-        }
-
+        const vertices = CircleGeometry(this.radius, 32);
         const geometry = new LineGeometry();
         geometry.setPositions(vertices);
         this.mesh.geometry = geometry;
