@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Editor } from '../Editor'
+import { Editor } from '../../Editor'
 import { Disposable, CompositeDisposable } from 'event-kit';
 
 const gizmoMaterial = new THREE.MeshBasicMaterial({

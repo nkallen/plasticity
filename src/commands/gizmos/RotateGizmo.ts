@@ -2,8 +2,8 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { Editor } from '../Editor';
-import * as visual from "../VisualModel";
+import { Editor } from '../../Editor';
+import * as visual from "../../VisualModel";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { DoubleSide } from "three";
 

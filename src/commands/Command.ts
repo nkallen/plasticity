@@ -10,10 +10,10 @@ import BoxFactory from './Box';
 import MoveFactory from './Move';
 import UnionFactory from './Union';
 import FilletFactory from './Fillet';
-import { FilletGizmo } from './FilletGizmo';
+import { FilletGizmo } from './gizmos/FilletGizmo';
 import c3d from '../../build/Release/c3d.node';
 import RotateFactory from './Rotate';
-import { RotateGizmo } from './RotateGizmo';
+import { RotateGizmo } from './gizmos/RotateGizmo';
 
 export default abstract class Command {
     editor: Editor;
