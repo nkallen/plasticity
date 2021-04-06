@@ -1,5 +1,7 @@
+import KeymapManager from "atom-keymap";
 import signals from "signals";
 import * as THREE from "three";
+import CommandRegistry from "./CommandRegistry";
 import Command from './commands/Command';
 import { GeometryDatabase } from "./GeometryDatabase";
 import { BasicMaterialDatabase } from "./MaterialDatabase";
@@ -49,11 +51,18 @@ export class Editor {
     readonly selectionManager = new SelectionManager(this);
     readonly spriteDatabase = new SpriteDatabase();
     readonly snapManager = new SnapManager(this.db, this.spriteDatabase, this.signals);
+    readonly registry = new CommandRegistry();
+    readonly keymaps = new KeymapManager();
 
     constructor() {
         // FIXME dispose of these:
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
         window.addEventListener('load', this.onWindowLoad.bind(this), false);
+        this.registry.attach(window);
+        this.keymaps.defaultTarget = document.body;
+        document.addEventListener('keydown', event => {
+            this.keymaps.handleKeyboardEvent(event);
+        });
 
         const axes = new THREE.AxesHelper(10000);
         axes.renderOrder = 0;

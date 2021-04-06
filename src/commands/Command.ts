@@ -15,6 +15,8 @@ import RotateFactory from './Rotate';
 import ScaleFactory from "./Scale";
 import SphereFactory from './Sphere';
 import { UnionFactory, DifferenceFactory, IntersectionFactory } from './Boolean';
+import CurveFactory from "./Curve";
+import { Disposable } from "event-kit";
 
 export default abstract class Command {
     editor: Editor;
@@ -97,6 +99,33 @@ export class LineCommand extends Command {
             line.update();
         });
         line.commit();
+    }
+}
+
+export class CurveCommand extends Command {
+    async execute() {
+        const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals);
+
+        const registry = this.editor.registry;
+        const promise = new Promise<void>((resolve, reject) => {
+            const finished: Disposable = registry.add('body', 'command:finished', () => {
+                resolve();
+                finished.dispose();
+            });
+            const aborted: Disposable = registry.add('body', 'command:aborted', () => {
+                reject();
+                aborted.dispose();
+            });
+        })
+
+        const pointPicker = new PointPicker(this.editor);
+        let point: THREE.Vector3 | void;
+        while (point = await Promise.race([promise, pointPicker.execute()])) {
+            curve.points.push(point);
+            curve.update();
+        }
+
+        curve.commit();
     }
 }
 
