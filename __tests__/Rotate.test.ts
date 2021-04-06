@@ -33,7 +33,7 @@ describe('update', () => {
         rotate.angle = Math.PI / 2;
         expect(item).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
         rotate.update();
-        expect(item).toHaveQuaternion(new THREE.Quaternion(0, 0, 1, Math.PI / 2));
+        expect(item).toHaveQuaternion(new THREE.Quaternion().setFromAxisAngle(rotate.axis, rotate.angle));
     });
 });
 

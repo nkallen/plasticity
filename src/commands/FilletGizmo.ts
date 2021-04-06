@@ -62,8 +62,6 @@ export class FilletGizmo extends THREE.Object3D {
         this.add(this.picker);
         this.add(this.delta);
         this.renderOrder = Infinity;
-
-        // FIXME don't add to this but make group object
     }
 
     detach() {

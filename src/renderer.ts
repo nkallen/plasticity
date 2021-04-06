@@ -1,19 +1,21 @@
-import './css/index.less';
-
 import Stats from 'stats.js';
+import * as THREE from 'three';
+import c3d from '../build/Release/c3d.node';
+import license from '../license-key.json';
+import BoxFactory from './commands/Box';
+import './css/index.less';
 import { Editor } from './Editor';
 import './Pane';
 import Toolbar from './Toolbar';
+import './types/c3d-enum';
 import Viewport from './Viewport';
+
 // import registerDefaultCommands from './register-default-commands';
 const editor = new Editor();
 const stats = new Stats();
 stats.showPanel(1);
 document.body.appendChild(stats.dom);
 
-import c3d from '../build/Release/c3d.node';
-import './types/c3d-enum'
-import license from '../license-key.json';
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
 requestAnimationFrame(function loop() {
@@ -29,6 +31,13 @@ requestAnimationFrame(function loop() {
 
 Toolbar(editor);
 Viewport(editor);
+
+const box = new BoxFactory(editor.db, editor.materials, editor.signals);
+box.p1 = new THREE.Vector3();
+box.p2 = new THREE.Vector3(1, 0, 0);
+box.p3 = new THREE.Vector3(1, 1, 0);
+box.p4 = new THREE.Vector3(1, 1, 1);
+box.commit();
 
 // const KeymapManager = requireDynamically('atom-keymap');
 // console.log(KeymapManager);

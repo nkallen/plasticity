@@ -54,7 +54,7 @@ export default (editor: Editor) => {
             switch (view) {
                 case "3d":
                     camera = perspectiveCamera;
-                    camera.position.set(0, 20, 5);
+                    camera.position.set(-5, 15, 5);
                     this.navigationControls = new OrbitControls(camera, domElement);
                     n = new THREE.Vector3(0, 0, 1);
                     break;

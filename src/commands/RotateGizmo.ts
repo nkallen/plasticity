@@ -104,8 +104,10 @@ export class RotateGizmo extends THREE.Object3D {
                 let pointStart = new THREE.Vector2();
                 let pointEnd = new THREE.Vector2();
 
-                const center = position.clone().project(camera);
-                const foo = new THREE.Vector2(center.x, center.y).normalize();
+                const center3 = position.clone().project(camera);
+                const center = new THREE.Vector2(center3.x, center3.y);
+                const start = new THREE.Vector2();
+                const end = new THREE.Vector2();
 
                 const onPointerDown = (event: PointerEvent) => {
                     const pointer = getPointer(event);
@@ -117,7 +119,7 @@ export class RotateGizmo extends THREE.Object3D {
                     domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
 
                     pointStart.set(pointer.x, pointer.y);
-                    foo.sub(pointStart);
+                    start.copy(pointStart).sub(center).normalize();
                     dragging = true;
                 }
 
@@ -147,11 +149,9 @@ export class RotateGizmo extends THREE.Object3D {
                     if (this.object == null || !dragging || pointer.button !== -1) return;
 
                     pointEnd.set(pointer.x, pointer.y);
-                    const offset = pointEnd.clone().sub(pointStart);
+                    end.copy(pointEnd).sub(center).normalize();
 
-                    const bar = pointEnd.clone().sub(center).normalize();
-
-
+                    const rotationAngle = Math.atan2(end.y, end.x) - Math.atan2(start.y, start.x);
                     cb(rotationAngle);
 
                     this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename

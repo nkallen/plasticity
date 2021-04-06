@@ -13,6 +13,7 @@ import FilletFactory from './Fillet';
 import { FilletGizmo } from './FilletGizmo';
 import c3d from '../../build/Release/c3d.node';
 import RotateFactory from './Rotate';
+import { RotateGizmo } from './RotateGizmo';
 
 export default abstract class Command {
     editor: Editor;
@@ -194,16 +195,18 @@ export class RotateCommand extends Command {
         });
         line.cancel();
 
-        const axis = p1.clone().sub(p2).normalize();
+        const axis = p2.clone().sub(p1).normalize();
         const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        rotate.item = object;
         rotate.point = p1;
         rotate.axis = axis;
 
-        // const rotateGizmo = new RotateGizmo(this.editor, p1, axis);
-        // rotateGizmo.execute(angle => {
-        //     rotate.angle = angle;
-        //     rotate.update();
-        // })
+        const midpoint = p1.clone().add(p2).divideScalar(2);
+        const rotateGizmo = new RotateGizmo(this.editor, object, midpoint, axis);
+        await rotateGizmo.execute(angle => {
+            rotate.angle = angle;
+            rotate.update();
+        })
 
         rotate.commit();
     }

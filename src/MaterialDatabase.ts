@@ -43,7 +43,12 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         const lineMaterial_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2 });
         lineMaterial_hovered.depthFunc = THREE.AlwaysDepth;
         this.lineMaterials.set(hash("line-hovered"), lineMaterial_hovered);
+
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
+
+        const gizmoMaterial = new LineMaterial({ color: 0xffffff, linewidth: 2, depthTest: false, depthWrite: false, fog: false, toneMapped: false });
+        lineMaterial_hovered.depthFunc = THREE.AlwaysDepth;
+        this.lineMaterials.set(hash("line-gizmo"), gizmoMaterial);
 
         const material = new THREE.MeshMatcapMaterial();
         material.fog = false;
@@ -111,5 +116,9 @@ export class BasicMaterialDatabase implements MaterialDatabase {
 
     hover() {
         return this.lineMaterials.get(hash("line-hovered"));
+    }
+
+    gizmo() {
+        return this.lineMaterials.get(hash("line-gizmo"));
     }
 }

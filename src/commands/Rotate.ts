@@ -6,6 +6,7 @@ import * as visual from '../VisualModel';
 export default class RotateFactory extends GeometryFactory {
     _item!: visual.Item;
     originalQuaternion = new THREE.Quaternion();
+    originalPosition = new THREE.Vector3();
     point!: THREE.Vector3
     axis!: THREE.Vector3;
     angle!: number;
@@ -17,12 +18,17 @@ export default class RotateFactory extends GeometryFactory {
     set item(obj: visual.Item) {
         this._item = obj;
         this.originalQuaternion.copy(obj.quaternion);
+        this.originalPosition.copy(obj.position);
     }
 
     update() {
-        const { item, axis, angle } = this;
-        item.quaternion.multiplyQuaternions(this.originalQuaternion,
-            new THREE.Quaternion(axis.x, axis.y, axis.z, angle));
+        const { item, point, axis, angle } = this;
+        item.position.copy(this.originalPosition);
+
+        item.position.sub(point);
+        item.position.applyAxisAngle(axis, angle);
+        item.position.add(point);
+        item.quaternion.setFromAxisAngle(axis, angle);
         
         return super.update();
     }
