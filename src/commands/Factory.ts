@@ -8,7 +8,7 @@ type callCommitSuper = never;
 export abstract class GeometryFactory {
     constructor(
         protected readonly db: GeometryDatabase,
-        protected readonly materialDb: MaterialDatabase,
+        protected readonly materials: MaterialDatabase,
         protected readonly signals: EditorSignals
     ) {}
 

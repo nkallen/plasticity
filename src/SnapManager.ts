@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { Object3D } from "three";
 import c3d from '../build/Release/c3d.node';
-import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { SpriteDatabase } from "./SpriteDatabase";
 import { CurveEdge, Solid, SpaceItem } from "./VisualModel";
@@ -17,15 +16,11 @@ export class SnapManager {
 
     constructor(
         private readonly db: GeometryDatabase,
-        private readonly spriteDatabase: SpriteDatabase,
-        private readonly signals: EditorSignals) {
+        private readonly spriteDatabase: SpriteDatabase) {
         this.snaps.add(new PointSnap());
         this.snaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)));
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)));
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)));
-
-        signals.objectAdded.add((item) => this.add(item));
-        signals.objectRemoved.add((item) => this.delete(item));
 
         this.update();
     }
@@ -46,7 +41,7 @@ export class SnapManager {
         this.update();
     }
 
-    addEdge(edge: CurveEdge) {
+    private addEdge(edge: CurveEdge) {
         const model = this.db.lookupTopologyItem(edge) as c3d.Edge;
         const begPt = model.GetBegPoint();
         const begSnap = new PointSnap(begPt.x, begPt.y, begPt.z);

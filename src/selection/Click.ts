@@ -17,19 +17,19 @@ export class ClickStrategy implements SelectionStrategy {
     invalidIntersection() { }
 
     curve3D(object: CurveSegment, parentItem: SpaceInstance<Curve3D>) {
-        const model = this.selectionManager.editor.db.lookup(parentItem);
+        const model = this.selectionManager.db.lookup(parentItem);
 
         if (this.selectionManager.mode.has(SelectionMode.Curve)) {
             if (this.selectionManager.selectedCurves.has(parentItem)) {
                 this.selectionManager.selectedCurves.delete(parentItem);
-                object.material = this.selectionManager.editor.materials.line(model);
-                this.selectionManager.editor.signals.objectDeselected.dispatch(parentItem);
+                object.material = this.selectionManager.materials.line(model);
+                this.selectionManager.signals.objectDeselected.dispatch(parentItem);
             } else {
                 this.selectionManager.hover?.dispose();
                 this.selectionManager.hover = null;
                 this.selectionManager.selectedCurves.add(parentItem);
-                object.material = this.selectionManager.editor.materials.highlight(model);
-                this.selectionManager.editor.signals.objectSelected.dispatch(parentItem);
+                object.material = this.selectionManager.materials.highlight(model);
+                this.selectionManager.signals.objectSelected.dispatch(parentItem);
             }
             return true;
         }
@@ -40,7 +40,7 @@ export class ClickStrategy implements SelectionStrategy {
         if (this.selectionManager.selectedSolids.has(parentItem)) {
             if (this.topologicalItem(object, parentItem)) {
                 this.selectionManager.selectedSolids.delete(parentItem);
-                this.selectionManager.editor.signals.objectDeselected.dispatch(parentItem);
+                this.selectionManager.signals.objectDeselected.dispatch(parentItem);
                 return true;
             }
             return false;
@@ -48,42 +48,42 @@ export class ClickStrategy implements SelectionStrategy {
             this.selectionManager.hover?.dispose();
             this.selectionManager.hover = null;
             this.selectionManager.selectedSolids.add(parentItem);
-            this.selectionManager.editor.signals.objectSelected.dispatch(parentItem);
+            this.selectionManager.signals.objectSelected.dispatch(parentItem);
             return true;
         }
         return false;
     }
 
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
-        const model = this.selectionManager.editor.db.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
+        const model = this.selectionManager.db.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
         if (this.selectionManager.mode.has(SelectionMode.Face) && object instanceof Face) {
             if (this.selectionManager.selectedFaces.has(object)) {
                 this.selectionManager.selectedFaces.delete(object);
-                object.material = this.selectionManager.editor.materials.lookup(model);
+                object.material = this.selectionManager.materials.lookup(model);
                 this.selectionManager.selectedChildren.decr(parentItem);
-                this.selectionManager.editor.signals.objectDeselected.dispatch(object);
+                this.selectionManager.signals.objectDeselected.dispatch(object);
             } else {
                 this.selectionManager.hover?.dispose();
                 this.selectionManager.hover = null;
                 this.selectionManager.selectedFaces.add(object);
-                object.material = this.selectionManager.editor.materials.highlight(model);
+                object.material = this.selectionManager.materials.highlight(model);
                 this.selectionManager.selectedChildren.incr(parentItem);
-                this.selectionManager.editor.signals.objectSelected.dispatch(object);
+                this.selectionManager.signals.objectSelected.dispatch(object);
             }
             return true;
         } else if (this.selectionManager.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
             if (this.selectionManager.selectedEdges.has(object)) {
                 this.selectionManager.selectedEdges.delete(object);
-                object.material = this.selectionManager.editor.materials.lookup(model);
+                object.material = this.selectionManager.materials.lookup(model);
                 this.selectionManager.selectedChildren.decr(parentItem);
-                this.selectionManager.editor.signals.objectDeselected.dispatch(object);
+                this.selectionManager.signals.objectDeselected.dispatch(object);
             } else {
                 this.selectionManager.hover?.dispose();
                 this.selectionManager.hover = null;
                 this.selectionManager.selectedEdges.add(object);
-                object.material = this.selectionManager.editor.materials.highlight(model);
+                object.material = this.selectionManager.materials.highlight(model);
                 this.selectionManager.selectedChildren.incr(parentItem);
-                this.selectionManager.editor.signals.objectSelected.dispatch(object);
+                this.selectionManager.signals.objectSelected.dispatch(object);
             }
             return true;
         }

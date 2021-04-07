@@ -27,7 +27,9 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D {
         this.delta = view.delta;
         this.helper = view.helper;
 
-        this.add(this.handle, this.picker, this.delta, this.helper);
+        let elements = [this.handle, this.picker, this.delta, this.helper];
+        elements = elements.filter(x => !!x);
+        this.add(...elements);
     }
 
     abstract onPointerMove(cb: CB, pointStart: THREE.Vector2, pointEnd: THREE.Vector2, offset: THREE.Vector2, angle: number): void;

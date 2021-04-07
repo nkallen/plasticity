@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { Curve } from "three";
 import { CutFactory, IntersectionFactory } from '../src/commands/Boolean';
 import CurveFactory from "../src/commands/Curve";
 import SphereFactory from '../src/commands/Sphere';

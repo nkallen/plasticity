@@ -18,7 +18,7 @@ export default interface MaterialDatabase {
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material;
     highlight(o: c3d.TopologyItem | c3d.SpaceInstance): LineMaterial;
     lookup(o: c3d.TopologyItem): LineMaterial;
-    hover(): void;
+    hover(): LineMaterial;
 }
 
 export class BasicMaterialDatabase implements MaterialDatabase {
@@ -114,7 +114,7 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         return this.lineMaterials.get(hash("line"));
     }
 
-    hover() {
+    hover(): LineMaterial {
         return this.lineMaterials.get(hash("line-hovered"));
     }
 

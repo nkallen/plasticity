@@ -1,8 +1,11 @@
-import { Editor } from '../Editor';
+import { EditorSignals } from '../Editor';
+import { GeometryDatabase } from '../GeometryDatabase';
+import MaterialDatabase from '../MaterialDatabase';
 import { RefCounter } from '../Util';
 import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyItem } from '../VisualModel';
 import { ClickStrategy } from './Click';
 import { Hoverable, HoverStrategy } from './Hover';
+import * as visual from '../VisualModel';
 
 export enum SelectionMode {
     Edge, Face, Solid, Curve
@@ -22,17 +25,17 @@ export class SelectionManager {
     readonly selectedEdges = new Set<CurveEdge>();
     readonly selectedFaces = new Set<Face>();
     readonly selectedCurves = new Set<SpaceInstance<Curve3D>>();
-    readonly editor: Editor;
     readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve]);
     hover?: Hoverable = null;
 
     private readonly clickStrategy = new ClickStrategy(this);
     private readonly hoverStrategy = new HoverStrategy(this);
 
-    constructor(editor: Editor) {
-        this.editor = editor;
-        editor.signals.factoryCommitted.add(() => this.deselectAll());
-    }
+    constructor(
+        readonly db: GeometryDatabase,
+        readonly materials: MaterialDatabase,
+        readonly signals: EditorSignals
+    ) {}
 
     private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy) {
         if (intersections.length == 0) {
@@ -66,20 +69,24 @@ export class SelectionManager {
     deselectAll() {
         for (const object of this.selectedEdges) {
             this.selectedEdges.delete(object);
-            const model = this.editor.db.lookupTopologyItem(object);
-            object.material = this.editor.materials.lookup(model);
-            this.editor.signals.objectDeselected.dispatch(object);
+            const model = this.db.lookupTopologyItem(object);
+            object.material = this.materials.lookup(model);
+            this.signals.objectDeselected.dispatch(object);
         }
         for (const object of this.selectedFaces) {
             this.selectedFaces.delete(object);
-            const model = this.editor.db.lookupTopologyItem(object);
-            object.material = this.editor.materials.lookup(model);
-            this.editor.signals.objectDeselected.dispatch(object);
+            const model = this.db.lookupTopologyItem(object);
+            object.material = this.materials.lookup(model);
+            this.signals.objectDeselected.dispatch(object);
         }
         for (const object of this.selectedSolids) {
             this.selectedSolids.delete(object);
-            this.editor.signals.objectDeselected.dispatch(object);
+            this.signals.objectDeselected.dispatch(object);
         }
         this.selectedChildren.clear();
+    }
+
+    delete(item: visual.SpaceItem) {
+        throw "to implement"
     }
 }
