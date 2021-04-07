@@ -62,6 +62,7 @@ export class Editor {
         this.keymaps.defaultTarget = document.body;
         document.addEventListener('keydown', event => {
             this.keymaps.handleKeyboardEvent(event);
+            console.log(event);
         });
 
         const axes = new THREE.AxesHelper(10000);

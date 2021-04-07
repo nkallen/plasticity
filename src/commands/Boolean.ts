@@ -1,12 +1,12 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
-import { Item } from '../VisualModel';
+import * as visual from '../VisualModel';
 
 abstract class BooleanFactory extends GeometryFactory {
     protected abstract operationType: c3d.OperationType;
 
-    item1!: Item;
-    item2!: Item;
+    item1!: visual.Solid;
+    item2!: visual.Solid;
 
     commit() {
         let model1 = this.db.lookup(this.item1, c3d.SpaceType.Solid);
@@ -42,4 +42,9 @@ export class IntersectionFactory extends BooleanFactory {
 
 export class DifferenceFactory extends BooleanFactory {
     operationType = c3d.OperationType.Difference;
+}
+
+class CutFactory {
+    solid!: visual.Solid;
+    contour!: 
 }
