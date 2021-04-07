@@ -172,18 +172,26 @@ declare module "*c3d.node" {
     }
 
     var ActionSolid: {
-        ElementarySolid(points: CartPoint3D[], ElementaryShellType, NameMaker): Solid;
-        BooleanResult(Solid, CopyMode, Solid, CopyMode, OperationType, BooleanFlags, SNameMaker): Solid;
-        FilletSolid(Solid, CopyMode, edges: CurveEdge[], faces: Face[], SmoothValues, SNameMaker);
+        ElementarySolid(points: CartPoint3D[], type: ElementaryShellType, names: NameMaker): Solid;
+        BooleanResult(solid: Solid, mode: CopyMode, solid: Solid, mode: CopyMode, type: OperationType, flags: BooleanFlags, names: SNameMaker): Solid;
+        FilletSolid(solid: Solid, mode: CopyMode, edges: CurveEdge[], faces: Face[], smooth: SmoothValues, names: SNameMaker);
     }
 
     declare class SpaceInstance extends Item {
-        constructor(Surface);
-        constructor(Curve3D);
+        constructor(surf: Surface);
+        constructor(curve: Curve3D);
+    }
+
+    declare class PlaneItem extends RefItem {
+        private _useNominal: undefined;
+    }
+    
+    declare class Curve extends PlaneItem {
     }
 
     declare class Curve3D extends SpaceItem {
         private _useNominal: undefined;
+        GetPlaneCurve(saveParams: boolean): { curve: Curve, place: Placement3D }
     }
 
     declare class PolyCurve3D extends Curve3D {

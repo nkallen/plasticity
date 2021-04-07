@@ -115,10 +115,24 @@ export default {
         RegTransform: {
             rawHeader: "item_registrator.h"
         },
+        PlaneItem: {
+            rawHeader: "plane_item.h",
+            extends: "RefItem",
+            dependencies: ["RefItem.h"]
+        },
+        Curve: {
+            rawHeader: "curve.h",
+        },
         Curve3D: {
             rawHeader: "curve3d.h",
             extends: "SpaceItem",
             dependencies: ["SpaceItem.h"],
+            function: [
+                {
+                    signature: "bool MbCurve3D::GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & place, bool saveParams, VERSION version = Math::DefaultMathVersion())",
+                    place: { isReturn: true }
+                }
+            ]
         },
         Plane: {
             rawHeader: "surf_plane.h",
