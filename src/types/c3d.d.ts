@@ -228,6 +228,12 @@ declare module "*c3d.node" {
         private _useNominal: undefined;
     }
 
+    declare class ModifyValues {
+        constructor();
+        way: ModifyingType;
+        direction: Vector3D;
+    }
+
     declare class TransformValues {
         private _useNominal: undefined;
         constructor();
@@ -242,9 +248,9 @@ declare module "*c3d.node" {
         CalculateMatrix(pIndex: number, point: CartPoint3D, fixedPoint: CartPoint3D, useFixed: boolean, isotropy: boolean): Matrix3D
     }
 
-
     var ActionDirect: {
-        TransformedSolid(Solid, CopyMode, TransformValues, NameMaker): Solid
+        TransformedSolid(solid: Solid, copyMode: CopyMode, transform: TransformValues, names: SNameMaker): Solid
+        FaceModifiedSolid(solid: Solid, copyMode: CopyMode, params: ModifyValues, faces: Face[], names: SNameMaker): Solid;
     }
 
     var ActionPhantom: {
@@ -495,5 +501,16 @@ declare module "*c3d.node" {
         FreeItem = 900,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
 
     }
-    
+
+    declare enum ModifyingType {
+        Remove = 0, ///< \ru Удаление из тела выбранных граней с окружением. \en Removal of the specified faces with the neighborhood from a solid.
+        Create,     ///< \ru Создание тела из выбранных граней с окружением. \en Creation of a solid from the specified faces with the neighborhood.
+        Action,     ///< \ru Перемещение выбранных граней с окружением относительно оставшихся граней тела. \en Translation of the specified faces with neighborhood relative to the other faces of the solid.
+        Offset,     ///< \ru Замена выбранных граней тела эквидистантными гранями (перемещение по нормали, изменение радиуса). \en Replacement of the specified faces of a solid with the offset faces (translation along the normal, change of the radius).
+        Fillet,     ///< \ru Изменение радиусов выбранных граней скругления. \en Change of radii of the specified fillet faces.
+        Supple,     ///< \ru Замена выбранных граней тела деформируемыми гранями (превращение в NURBS для редактирования). \en Replacement of the specified faces of a solid with a deformable faces (conversion to NURBS for editing).
+        Purify,     ///< \ru Удаление из тела выбранных скруглений. \en Removal of the specified fillets from a solid.
+        Merger,     ///< \ru Слияние вершин ребёр и удаление рёбер. \en Merging vertices of edges and edges removal.
+        United,     ///< \ru Замена гладко стыкующихся граней одной гранью. \en Replacing smoothly joined faces with one face.
+    }
 }

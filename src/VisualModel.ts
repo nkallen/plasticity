@@ -116,6 +116,12 @@ export class CurveEdgeGroup extends THREE.Group {
 }
 export class FaceGroup extends THREE.Group {
     disposable = new CompositeDisposable();
+
+    *[Symbol.iterator]() {
+        for (const child of this.children) {
+            yield child as Face;
+        }
+    }
 }
 
 /**

@@ -159,8 +159,8 @@ export default (editor: Editor) => {
             scene.fog = new THREE.Fog(0x424242, 1, 100);
 
             this.navigationControls?.addEventListener('change', this.setNeedsRender);
-            this.selector.signals.clicked.add((intersections) => editor.selectionManager.onClick(intersections));
-            this.selector.signals.hovered.add((intersections) => editor.selectionManager.onPointerMove(intersections));
+            this.selector.signals.clicked.add((intersections) => editor.selection.onClick(intersections));
+            this.selector.signals.hovered.add((intersections) => editor.selection.onPointerMove(intersections));
         }
 
         private needsRender = true;
@@ -189,7 +189,7 @@ export default (editor: Editor) => {
         }
 
         outlineSelection() {
-            const selectionManager = editor.selectionManager;
+            const selectionManager = editor.selection;
             const toOutline = [...selectionManager.selectedSolids].map((item) => item.faces);
             this.outlinePassSelection.selectedObjects = toOutline;
         }

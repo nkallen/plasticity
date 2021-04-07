@@ -2,6 +2,9 @@ import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import porcelain from './img/matcap-porcelain-white.jpg';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import * as visual from '../src/VisualModel';
+import { NeverDepth } from "three";
+import { assertUnreachable } from "./Util";
 
 function hash(str: string) {
     for (var i = 0, h = 9; i < str.length;)
@@ -16,9 +19,16 @@ export default interface MaterialDatabase {
     setResolution(width: number, height: number): void;
     point(o?: c3d.Item): THREE.Material;
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material;
-    highlight(o: c3d.TopologyItem | c3d.SpaceInstance): LineMaterial;
+
+    highlight(o: c3d.Edge): LineMaterial;
+    highlight(o: c3d.Curve3D): LineMaterial;
+    highlight(o: c3d.Face): THREE.Material;
+    highlight(o: c3d.SpaceInstance): LineMaterial;
+
     lookup(o: c3d.TopologyItem): LineMaterial;
-    hover(): LineMaterial;
+
+    hover(object: visual.Face): THREE.Material;
+    hover(object: visual.Edge): LineMaterial;
 }
 
 export class BasicMaterialDatabase implements MaterialDatabase {
@@ -50,14 +60,32 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         lineMaterial_hovered.depthFunc = THREE.AlwaysDepth;
         this.lineMaterials.set(hash("line-gizmo"), gizmoMaterial);
 
-        const material = new THREE.MeshMatcapMaterial();
-        material.fog = false;
+        const meshMaterial = new THREE.MeshMatcapMaterial();
+        meshMaterial.fog = false;
         const matcapTexture = new THREE.TextureLoader().load(porcelain);
-        material.matcap = matcapTexture;
-        material.polygonOffset = true;
-        material.polygonOffsetFactor = 0.1;
-        material.polygonOffsetUnits = 1;
-        this.materials.set(hash("mesh"), material);
+        meshMaterial.matcap = matcapTexture;
+        meshMaterial.polygonOffset = true;
+        meshMaterial.polygonOffsetFactor = 0.1;
+        meshMaterial.polygonOffsetUnits = 1;
+        this.materials.set(hash("mesh"), meshMaterial);
+
+        const meshMaterial_highlighted = new THREE.MeshMatcapMaterial();
+        meshMaterial_highlighted.color.setHex(0xffff00);
+        meshMaterial_highlighted.fog = false;
+        meshMaterial_highlighted.matcap = matcapTexture;
+        meshMaterial_highlighted.polygonOffset = true;
+        meshMaterial_highlighted.polygonOffsetFactor = 0.1;
+        meshMaterial_highlighted.polygonOffsetUnits = 1;
+        this.materials.set(hash("mesh-highlighted"), meshMaterial_highlighted);
+
+        const meshMaterial_hovered = new THREE.MeshMatcapMaterial();
+        meshMaterial_hovered.color.setHex(0xffffdd);
+        meshMaterial_hovered.fog = false;
+        meshMaterial_hovered.matcap = matcapTexture;
+        meshMaterial_hovered.polygonOffset = true;
+        meshMaterial_hovered.polygonOffsetFactor = 0.1;
+        meshMaterial_hovered.polygonOffsetUnits = 1;
+        this.materials.set(hash("mesh-hovered"), meshMaterial_hovered);
     }
 
     get(o: c3d.Item): THREE.Material | undefined {
@@ -105,8 +133,21 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         return material;
     }
 
-    highlight(o: c3d.TopologyItem | c3d.SpaceInstance): LineMaterial {
-        return this.lineMaterials.get(hash("line-highlighted"));
+
+    highlight(o: c3d.Edge): LineMaterial;
+    highlight(o: c3d.Curve3D): LineMaterial;
+    highlight(o: c3d.Face): THREE.Material;
+    highlight(o: c3d.SpaceInstance): LineMaterial;
+    highlight(o: c3d.TopologyItem | c3d.Curve3D | c3d.SpaceInstance): THREE.Material {
+        if (o instanceof c3d.Curve3D)
+            return this.lineMaterials.get(hash("line-highlighted"));
+        else if (o instanceof c3d.Face)
+            return this.materials.get(hash("mesh-highlighted"));
+        else if (o instanceof c3d.SpaceInstance)
+            return this.lineMaterials.get(hash("line-highlighted"));
+        else {
+            throw new Error(`not yet implemented: ${o.constructor}`);
+        }
     }
 
     // FIXME audit these methods
@@ -114,8 +155,15 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         return this.lineMaterials.get(hash("line"));
     }
 
-    hover(): LineMaterial {
-        return this.lineMaterials.get(hash("line-hovered"));
+    hover(object: visual.Face): THREE.Material;
+    hover(object: visual.Edge): LineMaterial;
+    hover(object: visual.Face | visual.Edge): THREE.Material {
+        if (object instanceof visual.Edge) {
+            return this.lineMaterials.get(hash("line-hovered"));
+        } else if (object instanceof visual.Face) {
+            return this.materials.get(hash("mesh-hovered"));
+        }
+        assertUnreachable(object);
     }
 
     gizmo() {

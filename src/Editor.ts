@@ -48,9 +48,9 @@ export class Editor {
 
     readonly materials = new BasicMaterialDatabase();
     readonly db = new GeometryDatabase(this.materials, this.signals);
-    readonly selectionManager = new SelectionManager(this.db, this.materials, this.signals)
-    readonly spriteDatabase = new SpriteDatabase();
-    readonly snapManager = new SnapManager(this.db, this.spriteDatabase);
+    readonly selection = new SelectionManager(this.db, this.materials, this.signals)
+    readonly sprites = new SpriteDatabase();
+    readonly snaps = new SnapManager(this.db, this.sprites);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
 
@@ -65,9 +65,9 @@ export class Editor {
             console.log(event);
         });
 
-        this.signals.objectAdded.add(item => this.snapManager.add(item));
-        this.signals.objectRemoved.add(item => this.snapManager.delete(item));
-        this.signals.objectRemoved.add(item => this.selectionManager.delete(item));
+        this.signals.objectAdded.add(item => this.snaps.add(item));
+        this.signals.objectRemoved.add(item => this.snaps.delete(item));
+        this.signals.objectRemoved.add(item => this.selection.delete(item));
 
         const axes = new THREE.AxesHelper(10000);
         axes.renderOrder = 0;

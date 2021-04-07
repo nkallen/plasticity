@@ -180,108 +180,120 @@ export enum SmoothForm {
 
 export enum ThreeStates {
     negative = -1, ///< \ru Состояние НЕТ. \en The state NO. 
-    neutral  =  0, ///< \ru Состояние НЕ ИЗВЕСТНО. \en The state UNKNOWN. 
-    positive =  1  ///< \ru Состояние ДА. \en The state YES. 
+    neutral = 0, ///< \ru Состояние НЕ ИЗВЕСТНО. \en The state UNKNOWN. 
+    positive = 1  ///< \ru Состояние ДА. \en The state YES. 
 }
 
 export enum CornerForm {
     pointed = 0, ///< \ru Обработка угла отсутствует. \en Processing of corner is missing.
-    either  = 1, ///< \ru Стыкующиеся в одной точке три ребра обрабатываются в порядке внутренней нумерации ребер без учета выпуклости и вогнутости. \en Mating at one point of three edges are processed in the order of internal indexation of edges without convexity and concavity.
+    either = 1, ///< \ru Стыкующиеся в одной точке три ребра обрабатываются в порядке внутренней нумерации ребер без учета выпуклости и вогнутости. \en Mating at one point of three edges are processed in the order of internal indexation of edges without convexity and concavity.
     uniform = 2, ///< \ru Если в точке стыкуются два выпуклых (вогнутых) и одно вогнутое (выпуклое) ребро, то первым  обрабатывается вогнутое (выпуклое) ребро. \en If two convex (concave) and one concave (convex) edge are mated at the point, then concave (convex) edge is processed at the first.
-    sharp   = 3, ///< \ru Если в точке стыкуются два выпуклых (вогнутых) и одно вогнутое (выпуклое) ребро, то первыми обрабатываются выпуклые (вогнутые) ребра. \en If two convex (concave) and one concave (convex) edge are mated at the point, then concave (convex) edges are processed at the first.
+    sharp = 3, ///< \ru Если в точке стыкуются два выпуклых (вогнутых) и одно вогнутое (выпуклое) ребро, то первыми обрабатываются выпуклые (вогнутые) ребра. \en If two convex (concave) and one concave (convex) edge are mated at the point, then concave (convex) edges are processed at the first.
 }
 
 export enum CreatorType {
+    Undefined = 0,  ///< \ru Неизвестный объект. \en Unknown object.
+    Creator = 1,  ///< \ru Строитель объекта. \en Constructor of object. \n
 
-    Undefined                =   0,  ///< \ru Неизвестный объект. \en Unknown object.
-    Creator                  =   1,  ///< \ru Строитель объекта. \en Constructor of object. \n
-  
     // \ru Строители точек. \en Creators of points. 
-    PointsCreator            = 101,  ///< \ru Строитель точечного каркаса. \en Constructor of point-frame. \n 
-  
+    PointsCreator = 101,  ///< \ru Строитель точечного каркаса. \en Constructor of point-frame. \n 
+
     // \ru Строители кривых. \en Creators of curves. 
-    Curve3DCreator           = 201,  ///< \ru Строитель кривой. \en Constructor of curve. 
-    Nurbs3DCreator           = 202,  ///< \ru Строитель сплайна с сопряжениями. \en Constructor of spline with tangents. 
-    SurfaceSplineCreator     = 203,  ///< \ru Строитель сплайна на поверхности с сопряжениями. \en Constructor of spline on a surface with tangents. 
-    ProjectionCurveCreator   = 204,  ///< \ru Строитель проекционной кривой. \en Constructor of the projection curve. 
-    OffsetCurveCreator       = 205,  ///< \ru Строитель эквидистантной кривой. \en Constructor of the offset curve. 
+    Curve3DCreator = 201,  ///< \ru Строитель кривой. \en Constructor of curve. 
+    Nurbs3DCreator = 202,  ///< \ru Строитель сплайна с сопряжениями. \en Constructor of spline with tangents. 
+    SurfaceSplineCreator = 203,  ///< \ru Строитель сплайна на поверхности с сопряжениями. \en Constructor of spline on a surface with tangents. 
+    ProjectionCurveCreator = 204,  ///< \ru Строитель проекционной кривой. \en Constructor of the projection curve. 
+    OffsetCurveCreator = 205,  ///< \ru Строитель эквидистантной кривой. \en Constructor of the offset curve. 
     IntersectionCurveCreator = 206,  ///< \ru Строитель кривой пересечения. \en Constructor of the intersection curve. 
-    ConnectingCurveCreator   = 207,  ///< \ru Строитель кривой скругления двух кривых. \en Constructor of the curve connecting two curves. \n
-  
+    ConnectingCurveCreator = 207,  ///< \ru Строитель кривой скругления двух кривых. \en Constructor of the curve connecting two curves. \n
+
     // \ru Строители тел. \en Creators of solids. 
-    ShellCreator             = 501,  ///< \ru Строитель оболочки. \en Constructor of shell. 
-    SimpleCreator            = 502,  ///< \ru Строитель оболочки без истории. \en Constructor of a shell without history. 
-    ElementarySolid          = 503,  ///< \ru Строитель оболочки в форме: блока, клина, цилиндра, конуса, шара, тора. \en Constructor of a shell as: a block, a wedge, a cylinder, a cone, a sphere, a torus. 
-    CurveSweptSolid          = 504,  ///< \ru Строитель оболочки движения. \en Constructor of a swept shell. 
-    CurveExtrusionSolid      = 505,  ///< \ru Строитель оболочки выдавливания. \en Constructor of a shell of extrusion. 
-    CurveRevolutionSolid     = 506,  ///< \ru Строитель оболочки вращения. \en Constructor of a shell of revolution. 
-    CurveEvolutionSolid      = 507,  ///< \ru Строитель кинематической оболочки. \en Constructor of a shell of evolution. 
-    CurveLoftedSolid         = 508,  ///< \ru Строитель оболочки по плоским сечениям. \en Constructor of lofted shell. 
-    BooleanSolid             = 509,  ///< \ru Строитель оболочки булевой операции. \en Constructor of a shell of boolean operation. 
-    CuttingSolid             = 510,  ///< \ru Строитель разрезанной поверхностью оболочки. \en Constructor of a shell cut by surface. 
-    SymmetrySolid            = 511,  ///< \ru Строитель симметричной оболочки. \en Constructor of a symmetric shell. 
-    HoleSolid                = 512,  ///< \ru Строитель оболочки отверстия, кармана или фигурного паза. \en Constructor of a shell of a hole, a pocket or a groove. 
-    SmoothSolid              = 513,  ///< \ru Строитель оболочки с фаской или скруглением ребер. \en Constructor of a shell with a chamfer or with edges fillet. 
-    ChamferSolid             = 514,  ///< \ru Строитель оболочки с фаской ребер. \en Constructor of a shell with edges chamfer. 
-    FilletSolid              = 515,  ///< \ru Строитель оболочки со скруглением ребер. \en Constructor of a shell with edges fillet. 
-    FullFilletSolid          = 516,  ///< \ru Строитель оболочки со скруглением граней. \en Constructor of a shell with a faces fillet. 
-    ShellSolid               = 517,  ///< \ru Строитель тонкостенной оболочки, эквидистантной оболочки, придания толщины. \en Constructor of a thin-walled shell, an offset shell, thickening. 
-    DraftSolid               = 518,  ///< \ru Строитель оболочки с литейным уклоном. \en Constructor of a shell with a pattern taper. 
-    RibSolid                 = 519,  ///< \ru Строитель оболочки с ребром жесткости. \en Constructor of a shell with a rib. 
-    SplitShell               = 520,  ///< \ru Строитель оболочки с подразбиением граней. \en Constructor of a shell with faces subdivision. 
-    NurbsBlockSolid          = 521,  ///< \ru Строитель оболочки в форме блока из nurbs-поверхностей. \en Constructor of a shell as a block from NURBS surfaces: 
-    FaceModifiedSolid        = 522,  ///< \ru Строитель модифицированной оболочки. \en Constructor of a modified shell. 
-    ModifiedNurbsItem        = 523,  ///< \ru Строитель модифицированной nurbs-поверхностями оболочки. \en Constructor of a shell with modified NURBS surfaces. 
-    NurbsModification        = 524,  ///< \ru Строитель модифицированной контрольными точками оболочки. \en Constructor of a shell modified by control points. 
-    TransformedSolid         = 525,  ///< \ru Строитель трансформированной оболочки. \en Constructor of a transformed shell. 
-    ThinShellCreator         = 526,  ///< \ru Строитель тонкой оболочки. \en Constructor of a thin shell. 
-    UnionSolid               = 527,  ///< \ru Строитель объединённой оболочки. \en Constructor of a united shell. 
-    DetachSolid              = 528,  ///< \ru Строитель оболочки из отделяемой части многосвязной оболочки. \en Constructor of a shell from the detached part of a multiply connected shell. 
-    DuplicationSolid         = 529,  ///< \ru Строитель множества тел, построенных из исходного. \en Constructor of set of solids built from the original. \n
-    ReverseCreator           = 530,  ///< \ru Строитель вывернутого "наизнанку" тела. \en Constructor of a reversed solid. \n
-    DividedShell             = 531,  ///< \ru Строитель разделенной на части оболочки \en Constructor of a divided shell. 
-  
+    ShellCreator = 501,  ///< \ru Строитель оболочки. \en Constructor of shell. 
+    SimpleCreator = 502,  ///< \ru Строитель оболочки без истории. \en Constructor of a shell without history. 
+    ElementarySolid = 503,  ///< \ru Строитель оболочки в форме: блока, клина, цилиндра, конуса, шара, тора. \en Constructor of a shell as: a block, a wedge, a cylinder, a cone, a sphere, a torus. 
+    CurveSweptSolid = 504,  ///< \ru Строитель оболочки движения. \en Constructor of a swept shell. 
+    CurveExtrusionSolid = 505,  ///< \ru Строитель оболочки выдавливания. \en Constructor of a shell of extrusion. 
+    CurveRevolutionSolid = 506,  ///< \ru Строитель оболочки вращения. \en Constructor of a shell of revolution. 
+    CurveEvolutionSolid = 507,  ///< \ru Строитель кинематической оболочки. \en Constructor of a shell of evolution. 
+    CurveLoftedSolid = 508,  ///< \ru Строитель оболочки по плоским сечениям. \en Constructor of lofted shell. 
+    BooleanSolid = 509,  ///< \ru Строитель оболочки булевой операции. \en Constructor of a shell of boolean operation. 
+    CuttingSolid = 510,  ///< \ru Строитель разрезанной поверхностью оболочки. \en Constructor of a shell cut by surface. 
+    SymmetrySolid = 511,  ///< \ru Строитель симметричной оболочки. \en Constructor of a symmetric shell. 
+    HoleSolid = 512,  ///< \ru Строитель оболочки отверстия, кармана или фигурного паза. \en Constructor of a shell of a hole, a pocket or a groove. 
+    SmoothSolid = 513,  ///< \ru Строитель оболочки с фаской или скруглением ребер. \en Constructor of a shell with a chamfer or with edges fillet. 
+    ChamferSolid = 514,  ///< \ru Строитель оболочки с фаской ребер. \en Constructor of a shell with edges chamfer. 
+    FilletSolid = 515,  ///< \ru Строитель оболочки со скруглением ребер. \en Constructor of a shell with edges fillet. 
+    FullFilletSolid = 516,  ///< \ru Строитель оболочки со скруглением граней. \en Constructor of a shell with a faces fillet. 
+    ShellSolid = 517,  ///< \ru Строитель тонкостенной оболочки, эквидистантной оболочки, придания толщины. \en Constructor of a thin-walled shell, an offset shell, thickening. 
+    DraftSolid = 518,  ///< \ru Строитель оболочки с литейным уклоном. \en Constructor of a shell with a pattern taper. 
+    RibSolid = 519,  ///< \ru Строитель оболочки с ребром жесткости. \en Constructor of a shell with a rib. 
+    SplitShell = 520,  ///< \ru Строитель оболочки с подразбиением граней. \en Constructor of a shell with faces subdivision. 
+    NurbsBlockSolid = 521,  ///< \ru Строитель оболочки в форме блока из nurbs-поверхностей. \en Constructor of a shell as a block from NURBS surfaces: 
+    FaceModifiedSolid = 522,  ///< \ru Строитель модифицированной оболочки. \en Constructor of a modified shell. 
+    ModifiedNurbsItem = 523,  ///< \ru Строитель модифицированной nurbs-поверхностями оболочки. \en Constructor of a shell with modified NURBS surfaces. 
+    NurbsModification = 524,  ///< \ru Строитель модифицированной контрольными точками оболочки. \en Constructor of a shell modified by control points. 
+    TransformedSolid = 525,  ///< \ru Строитель трансформированной оболочки. \en Constructor of a transformed shell. 
+    ThinShellCreator = 526,  ///< \ru Строитель тонкой оболочки. \en Constructor of a thin shell. 
+    UnionSolid = 527,  ///< \ru Строитель объединённой оболочки. \en Constructor of a united shell. 
+    DetachSolid = 528,  ///< \ru Строитель оболочки из отделяемой части многосвязной оболочки. \en Constructor of a shell from the detached part of a multiply connected shell. 
+    DuplicationSolid = 529,  ///< \ru Строитель множества тел, построенных из исходного. \en Constructor of set of solids built from the original. \n
+    ReverseCreator = 530,  ///< \ru Строитель вывернутого "наизнанку" тела. \en Constructor of a reversed solid. \n
+    DividedShell = 531,  ///< \ru Строитель разделенной на части оболочки \en Constructor of a divided shell. 
+
     // \ru Строители листовых тел. \en Creators of sheet solids. 
-    SheetMetalSolid          = 601,  ///< \ru Строитель листовой оболочки. \en Constructor of a sheet shell. 
-    BendOverSegSolid         = 602,  ///< \ru Строитель оболочки со сгибом относительно отрезка. \en Constructor of a shell with a bend at the segment. 
-    JogSolid                 = 603,  ///< \ru Строитель оболочки с подсечкой. \en Constructor of a shell with a jog. 
-    BendsByEdgesSolid        = 604,  ///< \ru Строитель оболочки со сгибом по ребру. \en Constructor of a shell with a bend at the edge. 
-    BendUnbendSolid          = 605,  ///< \ru Строитель оболочки с выполненным сгибом или разгибом. \en Constructor of a shell with bending or unbending. 
-    ClosedCornerSolid        = 606,  ///< \ru Строитель оболочки с замыканием угла. \en Constructor of a shell with corner enclosure. 
-    StampSolid               = 607,  ///< \ru Строитель оболочки с штамповкой. \en Constructor of a shell with stamping. 
-    SphericalStampSolid      = 608,  ///< \ru Строитель оболочки со сферической штамповкой. \en Constructor of a shell with spherical stamping. 
-    BeadSolid                = 609,  ///< \ru Строитель оболочки с буртиком. \en Constructor of a shell with a bead. 
-    JalousieSolid            = 610,  ///< \ru Строитель оболочки с жалюзи. \en Constructor of a shell with jalousie. 
-    JointBendSolid           = 611,  ///< \ru Строитель оболочки с комбинированным сгибом. \en Constructor of a shell with a composite bend. 
-    StitchedSolid            = 612,  ///< \ru Строитель оболочки, сшитой из нескольких граней или оболочек. \en Constructor of a shell stitched from several faces or shells. 
-    RuledSolid               = 613,  ///< \ru Строитель линейчатой оболочки (обечайки). \en Constructor of a ruled shell (shell ring). 
-    RestoredEdgesSolid       = 614,  ///< \ru Строитель листовой оболочки с восстановленными боковыми рёбрами. \en Constructor of a sheet shell with restored lateral edges. 
-    SheetUnionSolid          = 615,  ///< \ru Строитель объединения двух листовых тел по торцу. \en Constructor of two sheet solids union by the side.
-    StampRibSolid            = 616,  ///< \ru Строитель ребра жесткости листового тела. \en Constructor of sheet solid rib. \n
-    BendAnySolid             = 617,  ///< \ru Строитель оболочки с выполненным сгибом нелистового тела. \en Constructor of a shell with bending of non-sheet solid
-    SimplifyFlatSolid        = 618,  ///< \ru Строитель упрощения развёртки листового тела. \en Constructor of the sheet solid flat pattern simplification.
-    UserStampSolid           = 619,  ///< \ru Строитель оболочки с штамповкой телом. \en Constructor of a shell with stamping by solid. 
-    RemoveOperationSolid     = 620,  ///< \ru Строитель удаления операции листового тела. \en Constructor of removing of the sheet solid.
-    BuildSheetMetalSolid     = 621,  ///< \ru Строитель листового тела по произвольному телу. \en Constructor of building sheet metal solid based on an arbitary solid.
-  
+    SheetMetalSolid = 601,  ///< \ru Строитель листовой оболочки. \en Constructor of a sheet shell. 
+    BendOverSegSolid = 602,  ///< \ru Строитель оболочки со сгибом относительно отрезка. \en Constructor of a shell with a bend at the segment. 
+    JogSolid = 603,  ///< \ru Строитель оболочки с подсечкой. \en Constructor of a shell with a jog. 
+    BendsByEdgesSolid = 604,  ///< \ru Строитель оболочки со сгибом по ребру. \en Constructor of a shell with a bend at the edge. 
+    BendUnbendSolid = 605,  ///< \ru Строитель оболочки с выполненным сгибом или разгибом. \en Constructor of a shell with bending or unbending. 
+    ClosedCornerSolid = 606,  ///< \ru Строитель оболочки с замыканием угла. \en Constructor of a shell with corner enclosure. 
+    StampSolid = 607,  ///< \ru Строитель оболочки с штамповкой. \en Constructor of a shell with stamping. 
+    SphericalStampSolid = 608,  ///< \ru Строитель оболочки со сферической штамповкой. \en Constructor of a shell with spherical stamping. 
+    BeadSolid = 609,  ///< \ru Строитель оболочки с буртиком. \en Constructor of a shell with a bead. 
+    JalousieSolid = 610,  ///< \ru Строитель оболочки с жалюзи. \en Constructor of a shell with jalousie. 
+    JointBendSolid = 611,  ///< \ru Строитель оболочки с комбинированным сгибом. \en Constructor of a shell with a composite bend. 
+    StitchedSolid = 612,  ///< \ru Строитель оболочки, сшитой из нескольких граней или оболочек. \en Constructor of a shell stitched from several faces or shells. 
+    RuledSolid = 613,  ///< \ru Строитель линейчатой оболочки (обечайки). \en Constructor of a ruled shell (shell ring). 
+    RestoredEdgesSolid = 614,  ///< \ru Строитель листовой оболочки с восстановленными боковыми рёбрами. \en Constructor of a sheet shell with restored lateral edges. 
+    SheetUnionSolid = 615,  ///< \ru Строитель объединения двух листовых тел по торцу. \en Constructor of two sheet solids union by the side.
+    StampRibSolid = 616,  ///< \ru Строитель ребра жесткости листового тела. \en Constructor of sheet solid rib. \n
+    BendAnySolid = 617,  ///< \ru Строитель оболочки с выполненным сгибом нелистового тела. \en Constructor of a shell with bending of non-sheet solid
+    SimplifyFlatSolid = 618,  ///< \ru Строитель упрощения развёртки листового тела. \en Constructor of the sheet solid flat pattern simplification.
+    UserStampSolid = 619,  ///< \ru Строитель оболочки с штамповкой телом. \en Constructor of a shell with stamping by solid. 
+    RemoveOperationSolid = 620,  ///< \ru Строитель удаления операции листового тела. \en Constructor of removing of the sheet solid.
+    BuildSheetMetalSolid = 621,  ///< \ru Строитель листового тела по произвольному телу. \en Constructor of building sheet metal solid based on an arbitary solid.
+
     // \ru Строители оболочек. \en Creators of shells. 
-    JoinShell                = 701,  ///< \ru Строитель оболочки соединения. \en Constructor of a joint shell. 
-    MeshShell                = 702,  ///< \ru Строитель оболочки по поверхностям на сетках кривых. \en Constructor of a shell by surfaces constructed by the grid curves. 
-    RuledShell               = 703,  ///< \ru Строитель оболочки по набору линейчатых поверхностей. \en Constructor of a shell by a set of ruled surfaces.   
-    NurbsSurfacesShell       = 704,  ///< \ru Строитель NURBS-оболочки на двумерном массиве точек. \en Constructor of a NURBS-shell on a two-dimensional array of points. 
-    TruncatedShell           = 705,  ///< \ru Строитель оболочки, усеченная геометрическими объектами. \en Constructor of a shell truncated by geometric objects. 
-    ExtensionShell           = 706,  ///< \ru Строитель продолженной оболочки. \en Constructor of an extended shell. 
-    PatchSetCreator          = 707,  ///< \ru Строитель заплатки по кривым на оболочке. \en Constructor of a patch by curves on the shell. 
-    FilletShell              = 708,  ///< \ru Строитель оболочки грани соединения. \en Constructor of a shell of a fillet face. 
-    MedianShell              = 709,  ///< \ru Строитель срединной оболочки тела. \en Constructor of a median shell of solid. \n
-    SectionShell             = 710,  ///< \ru Строитель оболочки на поверхности переменного сечения. \en Constructor of the shell on swept mutable section surface. \n
-  
+    JoinShell = 701,  ///< \ru Строитель оболочки соединения. \en Constructor of a joint shell. 
+    MeshShell = 702,  ///< \ru Строитель оболочки по поверхностям на сетках кривых. \en Constructor of a shell by surfaces constructed by the grid curves. 
+    RuledShell = 703,  ///< \ru Строитель оболочки по набору линейчатых поверхностей. \en Constructor of a shell by a set of ruled surfaces.   
+    NurbsSurfacesShell = 704,  ///< \ru Строитель NURBS-оболочки на двумерном массиве точек. \en Constructor of a NURBS-shell on a two-dimensional array of points. 
+    TruncatedShell = 705,  ///< \ru Строитель оболочки, усеченная геометрическими объектами. \en Constructor of a shell truncated by geometric objects. 
+    ExtensionShell = 706,  ///< \ru Строитель продолженной оболочки. \en Constructor of an extended shell. 
+    PatchSetCreator = 707,  ///< \ru Строитель заплатки по кривым на оболочке. \en Constructor of a patch by curves on the shell. 
+    FilletShell = 708,  ///< \ru Строитель оболочки грани соединения. \en Constructor of a shell of a fillet face. 
+    MedianShell = 709,  ///< \ru Строитель срединной оболочки тела. \en Constructor of a median shell of solid. \n
+    SectionShell = 710,  ///< \ru Строитель оболочки на поверхности переменного сечения. \en Constructor of the shell on swept mutable section surface. \n
+
     // \ru Строители других объектов (вставлять новые типы перед этим типом). \en Creators of the other objects (insert new types before this type). 
-    AttributeProvider        = 801,  ///< \ru Поставщик атрибутов для примитивов оболочки. \en Attribute provider for the shell primitives. 
-  
-    FreeItem                 = 900,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
-  
-  };
+    AttributeProvider = 801,  ///< \ru Поставщик атрибутов для примитивов оболочки. \en Attribute provider for the shell primitives. 
+
+    FreeItem = 900,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
+
+};
+
+export enum ModifyingType {
+    Remove = 0, ///< \ru Удаление из тела выбранных граней с окружением. \en Removal of the specified faces with the neighborhood from a solid.
+    Create,     ///< \ru Создание тела из выбранных граней с окружением. \en Creation of a solid from the specified faces with the neighborhood.
+    Action,     ///< \ru Перемещение выбранных граней с окружением относительно оставшихся граней тела. \en Translation of the specified faces with neighborhood relative to the other faces of the solid.
+    Offset,     ///< \ru Замена выбранных граней тела эквидистантными гранями (перемещение по нормали, изменение радиуса). \en Replacement of the specified faces of a solid with the offset faces (translation along the normal, change of the radius).
+    Fillet,     ///< \ru Изменение радиусов выбранных граней скругления. \en Change of radii of the specified fillet faces.
+    Supple,     ///< \ru Замена выбранных граней тела деформируемыми гранями (превращение в NURBS для редактирования). \en Replacement of the specified faces of a solid with a deformable faces (conversion to NURBS for editing).
+    Purify,     ///< \ru Удаление из тела выбранных скруглений. \en Removal of the specified fillets from a solid.
+    Merger,     ///< \ru Слияние вершин ребёр и удаление рёбер. \en Merging vertices of edges and edges removal.
+    United,     ///< \ru Замена гладко стыкующихся граней одной гранью. \en Replacing smoothly joined faces with one face.
+};
+
 
 Object.assign(c3d, {
     ESides: ESides,
@@ -293,5 +305,6 @@ Object.assign(c3d, {
     SmoothForm: SmoothForm,
     ThreeStates: ThreeStates,
     CornerForm: CornerForm,
-    CreatorType: CreatorType
+    CreatorType: CreatorType,
+    ModifyingType: ModifyingType,
 });

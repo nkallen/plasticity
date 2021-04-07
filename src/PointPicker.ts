@@ -67,17 +67,17 @@ export class PointPicker {
                     raycaster.setFromCamera(pointer, camera);
 
                     viewport.overlay.clear();
-                    const pickers = editor.snapManager.pickers;
+                    const pickers = editor.snaps.pickers;
                     const pickerIntersections = raycaster.intersectObjects(pickers);
                     for (const intersection of pickerIntersections) {
-                        const sprite = editor.snapManager.hoverIndicatorFor(intersection);
+                        const sprite = editor.snaps.hoverIndicatorFor(intersection);
                         viewport.overlay.add(sprite);
                     }
 
-                    const snappers = editor.snapManager.snappers;
+                    const snappers = editor.snaps.snappers;
                     const snapperIntersections = raycaster.intersectObjects([constructionPlane.snapper, ...snappers]);
                     for (const intersection of snapperIntersections) {
-                        const [helper, point] = editor.snapManager.helperFor(intersection);
+                        const [helper, point] = editor.snaps.helperFor(intersection);
                         if (cb != null) cb(point);
                         mesh.position.copy(point);
                         if (helper != null) viewport.overlay.add(helper);

@@ -6,6 +6,8 @@ import { Face } from "../VisualModel";
 import { TopologyItem } from "../VisualModel";
 import { SpaceInstance } from "../VisualModel";
 import { SelectionManager, SelectionMode, SelectionStrategy } from "./SelectionManager";
+import c3d from '../build/Release/c3d.node';
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 
 export class ClickStrategy implements SelectionStrategy {
     constructor(private selectionManager: SelectionManager) {
@@ -83,7 +85,7 @@ export class ClickStrategy implements SelectionStrategy {
                 this.selectionManager.hover?.dispose();
                 this.selectionManager.hover = null;
                 this.selectionManager.selectedEdges.add(object);
-                object.material = this.selectionManager.materials.highlight(model);
+                object.material = this.selectionManager.materials.highlight(model as c3d.CurveEdge);
                 this.selectionManager.selectedChildren.incr(parentItem,
                     new Disposable(() => this.selectionManager.selectedEdges.delete(object)));
                 this.selectionManager.signals.objectSelected.dispatch(object);

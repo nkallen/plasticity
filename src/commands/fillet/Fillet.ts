@@ -26,11 +26,12 @@ export default class FilletFactory extends GeometryFactory {
         return this._edges;
     }
 
+    // FIXME the naming edges/curves is confusing
     set edges(edges) {
         this._edges = edges;
 
         const curves = [];
-        for (const edge of this.edges) {
+        for (const edge of edges) {
             curves.push(this.db.lookupTopologyItem(edge) as c3d.CurveEdge);
         }
         this.curves = curves;

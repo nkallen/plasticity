@@ -5,6 +5,10 @@ import { CompositeDisposable, Disposable } from "event-kit";
 export type Constructor = new (...args: any[]) => {};
 export type GConstructor<T = {}> = new (...args: any[]) => T;
 
+export function assertUnreachable(x: never): never {
+    throw new Error("Didn't expect to get here");
+}
+
 export function applyMixins(derivedCtor: any, constructors: any[]) {
     constructors.reverse().forEach((baseCtor) => {
         Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {

@@ -25,7 +25,7 @@ export class SelectionManager {
     readonly selectedEdges = new Set<CurveEdge>();
     readonly selectedFaces = new Set<Face>();
     readonly selectedCurves = new Set<SpaceInstance<Curve3D>>();
-    readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve]);
+    readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face]);
     hover?: Hoverable = null;
 
     private readonly clickStrategy = new ClickStrategy(this);
@@ -37,6 +37,7 @@ export class SelectionManager {
         readonly signals: EditorSignals
     ) {}
 
+    // FIXME make this method just take an array of objects
     private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy) {
         if (intersections.length == 0) {
             strategy.emptyIntersection();

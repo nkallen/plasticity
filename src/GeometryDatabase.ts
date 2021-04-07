@@ -94,12 +94,18 @@ export class GeometryDatabase {
         throw new Error("not yet implemented");
     }
 
+    lookupTopologyItem(object: visual.Edge): c3d.Edge;
+    lookupTopologyItem(object: visual.Face): c3d.Face;
     lookupTopologyItem(object: visual.TopologyItem): c3d.TopologyItem {
         const parent = object.parentItem;
         const parentModel = this.lookupItem(parent);
         const solid = parentModel.Cast<c3d.Solid>(c3d.SpaceType.Solid);
 
-        return solid.FindEdgeByName(object.userData.name);
+        if (object instanceof visual.Edge) {
+            return solid.FindEdgeByName(object.userData.name);
+        } else if (object instanceof visual.Face) {
+            return solid.FindFaceByName(object.userData.name);
+        }
     }
 
     private object2mesh(obj: c3d.Item, sag: number = 0.005, wireframe: boolean = true): visual.SpaceItem {

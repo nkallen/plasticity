@@ -199,7 +199,7 @@ export class BoxCommand extends Command {
 export class MoveCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
-        let object = [...this.editor.selectionManager.selectedSolids][0]!;
+        let object = [...this.editor.selection.selectedSolids][0]!;
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
         const p1 = await pointPicker.execute();
@@ -222,7 +222,7 @@ export class MoveCommand extends Command {
 export class ScaleCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
-        let object = [...this.editor.selectionManager.selectedSolids][0]!;
+        let object = [...this.editor.selection.selectedSolids][0]!;
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
         const origin = await pointPicker.execute();
@@ -256,7 +256,7 @@ export class ScaleCommand extends Command {
 export class RotateCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
-        let object = [...this.editor.selectionManager.selectedSolids][0]!;
+        let object = [...this.editor.selection.selectedSolids][0]!;
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
         const p1 = await pointPicker.execute();
@@ -287,7 +287,7 @@ export class RotateCommand extends Command {
 
 export class UnionCommand extends Command {
     async execute() {
-        const items = [...this.editor.selectionManager.selectedSolids];
+        const items = [...this.editor.selection.selectedSolids];
         let object1 = items[0]!;
         let object2 = items[1]!;
 
@@ -300,7 +300,7 @@ export class UnionCommand extends Command {
 
 export class IntersectionCommand extends Command {
     async execute() {
-        const items = [...this.editor.selectionManager.selectedSolids];
+        const items = [...this.editor.selection.selectedSolids];
         let object1 = items[0]!;
         let object2 = items[1]!;
 
@@ -313,7 +313,7 @@ export class IntersectionCommand extends Command {
 
 export class DifferenceCommand extends Command {
     async execute() {
-        const items = [...this.editor.selectionManager.selectedSolids];
+        const items = [...this.editor.selection.selectedSolids];
         let object1 = items[0]!;
         let object2 = items[1]!;
 
@@ -326,8 +326,8 @@ export class DifferenceCommand extends Command {
 
 export class CutCommand extends Command {
     async execute() {
-        const solids = [...this.editor.selectionManager.selectedSolids];
-        const curves = [...this.editor.selectionManager.selectedCurves];
+        const solids = [...this.editor.selection.selectedSolids];
+        const curves = [...this.editor.selection.selectedCurves];
         let object1 = solids[0]!;
         let object2 = curves[0]!;
 
@@ -340,7 +340,7 @@ export class CutCommand extends Command {
 
 export class FilletCommand extends Command {
     async execute() {
-        let edges = [...this.editor.selectionManager.selectedEdges];
+        let edges = [...this.editor.selection.selectedEdges];
         const item = edges[0].parentItem as visual.Solid
 
         const edge = edges[0];

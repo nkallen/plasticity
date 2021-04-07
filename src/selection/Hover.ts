@@ -1,13 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { CurveSegment } from "../VisualModel";
-import { Solid } from "../VisualModel";
-import { CurveEdge } from "../VisualModel";
-import { Curve3D } from "../VisualModel";
-import { SpaceItem } from "../VisualModel";
-import { Face } from "../VisualModel";
-import { TopologyItem } from "../VisualModel";
-import { SpaceInstance } from "../VisualModel";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
+import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, SpaceItem, TopologyItem } from "../VisualModel";
 import { SelectionManager, SelectionMode, SelectionStrategy } from "./SelectionManager";
 
 export class HoverStrategy implements SelectionStrategy {
@@ -28,7 +21,7 @@ export class HoverStrategy implements SelectionStrategy {
         if (this.selectionManager.mode.has(SelectionMode.Curve) && !this.selectionManager.selectedCurves.has(parentCurve)) {
             if (!this.selectionManager.hover?.isEqual(object)) {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new Curve3DHoverable(parentCurve, this.selectionManager.materials.hover(), this.selectionManager.signals.objectHovered);
+                this.selectionManager.hover = new Curve3DHoverable(parentCurve, this.selectionManager.materials.hover(object), this.selectionManager.signals.objectHovered);
             }
             return true;
         }
@@ -50,13 +43,13 @@ export class HoverStrategy implements SelectionStrategy {
         if (this.selectionManager.mode.has(SelectionMode.Face) && object instanceof Face && !this.selectionManager.selectedFaces.has(object)) {
             if (!this.selectionManager.hover?.isEqual(object)) {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.materials.hover(), this.selectionManager.signals.objectHovered);
+                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.materials.hover(object), this.selectionManager.signals.objectHovered);
             }
             return true;
         } else if (this.selectionManager.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selectionManager.selectedEdges.has(object)) {
             if (!this.selectionManager.hover?.isEqual(object)) {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.materials.hover(), this.selectionManager.signals.objectHovered);
+                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.materials.hover(object), this.selectionManager.signals.objectHovered);
             }
             return true;
         }
