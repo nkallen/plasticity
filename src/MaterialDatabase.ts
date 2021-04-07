@@ -139,7 +139,7 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     highlight(o: c3d.Face): THREE.Material;
     highlight(o: c3d.SpaceInstance): LineMaterial;
     highlight(o: c3d.TopologyItem | c3d.Curve3D | c3d.SpaceInstance): THREE.Material {
-        if (o instanceof c3d.Curve3D)
+        if (o instanceof c3d.Curve3D || o instanceof c3d.Edge)
             return this.lineMaterials.get(hash("line-highlighted"));
         else if (o instanceof c3d.Face)
             return this.materials.get(hash("mesh-highlighted"));

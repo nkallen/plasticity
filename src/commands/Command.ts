@@ -18,6 +18,8 @@ import { UnionFactory, DifferenceFactory, IntersectionFactory, CutFactory } from
 import CurveFactory from "./curve/Curve";
 import { Disposable } from "event-kit";
 import * as visual from "../VisualModel";
+import ModifyFaceFactory from "./modifyface/Factory";
+import { ModifyFaceGizmo } from "./modifyface/Gizmo";
 
 export default abstract class Command {
     editor: Editor;
@@ -363,5 +365,32 @@ export class FilletCommand extends Command {
         })
 
         fillet.commit();
+    }
+}
+
+export class ModifyFaceCommand extends Command {
+    async execute() {
+        let faces = [...this.editor.selection.selectedFaces];
+        const parent = faces[0].parentItem as visual.Solid
+
+        const face = faces[0];
+
+        const modifyFace = new ModifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        modifyFace.solid = parent;
+        modifyFace.faces = faces;
+
+        const faceModel = this.editor.db.lookupTopologyItem(face);
+        const normal_ = faceModel.Normal(0.5, 0.5);
+        const normal = new THREE.Vector3(normal_.x, normal_.y, normal_.z);
+        const point_ = faceModel.Point(0.5, 0.5);
+        const point = new THREE.Vector3(point_.x, point_.y, point_.z);
+        const gizmo = new ModifyFaceGizmo(this.editor, face, point, normal);
+
+        await gizmo.execute((delta) => {
+            modifyFace.direction = normal.clone().multiplyScalar(delta);
+            modifyFace.update();
+        })
+
+        modifyFace.commit();
     }
 }

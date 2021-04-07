@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { DirectionalLight } from "three";
 import BoxFactory from "../src/commands/box/Box";
-import ModifyFace from '../src/commands/modifyface/Factory';
+import ModifyFaceFactory from '../src/commands/modifyface/Factory';
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
@@ -12,7 +12,7 @@ import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
 
 let db: GeometryDatabase;
-let modifyFace: ModifyFace;
+let modifyFace: ModifyFaceFactory;
 let materials: Required<MaterialDatabase>;
 let sprites: Required<SpriteDatabase>;
 let signals: EditorSignals;
@@ -22,7 +22,7 @@ beforeEach(() => {
     sprites = new FakeSprites();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
-    modifyFace = new ModifyFace(db, materials, signals);
+    modifyFace = new ModifyFaceFactory(db, materials, signals);
 })
 
 describe('update', () => {

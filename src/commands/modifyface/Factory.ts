@@ -3,7 +3,7 @@ import { TemporaryObject } from '../../GeometryDatabase';
 import * as visual from '../../VisualModel';
 import { GeometryFactory } from '../Factory';
 
-export default class ModifyFace extends GeometryFactory {
+export default class ModifyFaceFactory extends GeometryFactory {
     direction!: THREE.Vector3;
 
     private _faces = new Array<visual.Face>();

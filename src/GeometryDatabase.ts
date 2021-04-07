@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
 import MaterialDatabase from './MaterialDatabase';
+import { assertUnreachable } from './Util';
 import * as visual from './VisualModel';
 
 export interface TemporaryObject {
@@ -94,9 +95,9 @@ export class GeometryDatabase {
         throw new Error("not yet implemented");
     }
 
-    lookupTopologyItem(object: visual.Edge): c3d.Edge;
     lookupTopologyItem(object: visual.Face): c3d.Face;
-    lookupTopologyItem(object: visual.TopologyItem): c3d.TopologyItem {
+    lookupTopologyItem(object: visual.Edge): c3d.Edge;
+    lookupTopologyItem(object: visual.Edge | visual.Face): c3d.TopologyItem {
         const parent = object.parentItem;
         const parentModel = this.lookupItem(parent);
         const solid = parentModel.Cast<c3d.Solid>(c3d.SpaceType.Solid);
@@ -106,6 +107,7 @@ export class GeometryDatabase {
         } else if (object instanceof visual.Face) {
             return solid.FindFaceByName(object.userData.name);
         }
+        assertUnreachable(object);
     }
 
     private object2mesh(obj: c3d.Item, sag: number = 0.005, wireframe: boolean = true): visual.SpaceItem {

@@ -126,7 +126,8 @@ declare module "*c3d.node" {
     }
 
     declare class Face extends TopologyItem {
-
+        Normal(u: number, v: number): Vector3D
+        Point(u: number, v: number): Vector3D
     }
 
     declare class Edge extends TopologyItem {

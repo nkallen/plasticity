@@ -384,190 +384,199 @@ export default {
         Face: {
             rawHeader: "topology.h",
             extends: "TopologyItem",
-            dependencies: ["TopologyItem.h"],
+            dependencies: ["TopologyItem.h", "Vector3D.h"],
             functions: [
                 // "const MbSurface & GetSurface()"
-            ]
-        },
-        Vertex: {
-            rawHeader: "topology.h",
-            extends: "TopologyItem",
-            dependencies: ["TopologyItem.h"]
-        },
-        ModifyValues: {
-            cppClassName: "_ModifyValues",
-            rawClassName: "ModifyValues",
-            jsClassName: "ModifyValues",
-            rawHeader: "op_shell_parameter.h",
-            dependencies: ["Vector3D.h"],
-            initializers: [""],
-            fields: [
-                "MbeModifyingType way",
-                "MbVector3D direction"
-            ]
-        },
-        TransformValues: {
-            cppClassName: "_TransformValues",
-            rawClassName: "TransformValues",
-            jsClassName: "TransformValues",
-            rawHeader: "op_shell_parameter.h",
-            dependencies: ["Matrix3D.h", "CartPoint3D.h"],
-            initializers: [
-                "",
-                "const MbMatrix3D & m",
-                "const MbMatrix3D & m, const MbCartPoint3D & f, bool fix = false, bool iso = false",
-                "double sX, double sY, double sZ, const MbCartPoint3D & fP"
-            ]
-        },
-        SmoothValues: {
-            cppClassName: "_SmoothValues",
-            rawClassName: "SmoothValues",
-            jsClassName: "SmoothValues",
-            rawHeader: "op_shell_parameter.h",
-            dependencies: ["Vector3D.h"],
-            initializers: [""],
-            fields: [
-                "double distance1",
-                "double distance2",
-                "double conic",
-                "double begLength",
-                "double endLength",
-                "MbeSmoothForm form",
-                "SmoothValues::CornerForm smoothCorner",
-                "bool prolong",
-                "ThreeStates keepCant",
-                "bool strict",
-                "bool equable",
-            ]
-        },
-        Arc3D: {
-            rawHeader: "cur_arc3d.h",
-            extends: "Curve3D",
-            dependencies: ["CartPoint3D.h", "Curve3D.h"],
-            initializers: [
-                "const MbCartPoint3D & p0, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int n, bool closed"
-            ]
-        },
-        PolyCurve3D: {
-            rawHeader: "cur_polycurve3d.h",
-            extends: "Curve3D",
-            dependencies: ["Curve3D.h"],
-        },
-        Polyline3D: {
-            rawHeader: "cur_polyline3d.h",
-            extends: "PolyCurve3D",
-            dependencies: ["PolyCurve3D.h", "CartPoint3D.h"],
-            initializers: [
-                "const SArray<MbCartPoint3D> & initList, bool closed"
-            ]
-        },
-        PointFrame: {
-            rawHeader: "point_frame.h",
-            extends: "Item",
-            dependencies: ["Item.h", "CartPoint3D.h"],
-            initializers: [""],
-            functions: [
-                "void AddVertex(const MbCartPoint3D & point)",
-            ]
-        },
-        EdgeSequence: {
-            rawHeader: "position_data.h",
-            dependencies: ["CurveEdge.h"],
-            freeFunctionName: "DeleteMatItem",
-            fields: [
-                // "RPArray<const MbCurveEdge> edges",
-                "bool closed"
-            ]
-        },
-        MergingFlags: {
-            rawHeader: "op_boolean_flags.h",
-            initializers: [
-                "",
-                "bool mergeFaces, bool mergeEdges"
-            ]
-        }
-    },
-    modules: {
-        Enabler: {
-            rawHeader: "tool_enabler.h",
-            functions: [
-                "void EnableMathModules(const char * name, const char * key)"
-            ]
-        },
-        ActionSurface: {
-            rawHeader: "action_surface.h",
-            dependencies: ["CartPoint3D.h", "Surface.h"],
-            functions: [
-                "MbResultType ElementarySurface(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbeSpaceType surfaceType, MbSurface *& result)"
-            ]
-        },
-        ActionSolid: {
-            rawHeader: "action_solid.h",
-            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h"],
-            functions: [
-                "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
-                // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
-                "MbResultType FilletSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbCurveEdge> & initCurves, RPArray<MbFace> & initBounds, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
-                "MbResultType BooleanResult(MbSolid & solid1, MbeCopyMode sameShell1, MbSolid & solid2, MbeCopyMode sameShell2, OperationType oType, const MbBooleanFlags & flags, const MbSNameMaker & operNames, MbSolid *& result)",
-                "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
-                "MbResultType SolidCutting(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & place, const MbContour & contour, const MbVector3D & direction, int retainedPart, const MbSNameMaker & names, bool closed, const MbMergingFlags & flags, MbSolid *& result)",
-            ]
-
-        },
-        ActionPoint: {
-            rawHeader: "action_point.h",
-            dependencies: ["Line3D.h", "CartPoint3D.h"],
-            functions: [
-                "double LineLineNearestPoints(const MbLine3D & line1, const MbLine3D & line2, MbCartPoint3D & p1, MbCartPoint3D & p2)",
-            ]
-        },
-        ActionDirect: {
-            rawHeader: "action_direct.h",
-            dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h", "_TransformValues.h"],
-            functions: [
-                "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
-                "MbResultType TransformedSolid(MbSolid & solid, MbeCopyMode sameShell, const TransformValues & params, const MbSNameMaker & names, MbSolid *& result)",
-            ]
-        },
-        ActionPhantom: {
-            rawHeader: "action_phantom.h",
-            dependencies: ["Solid.h", "CurveEdge.h", "_SmoothValues.h", "Surface.h", "EdgeSequence.h"],
-            functions: [
+                // bool 	GetAnyPointOn (MbCartPoint3D &pnt, MbVector3D &nor)
                 {
-                    signature: "MbResultType SmoothPhantom(MbSolid & solid, RPArray<MbCurveEdge> & initCurves, const SmoothValues & params, RPArray<MbSurface> & result)",
+                    signature: "void Normal(double u, double v, MbVector3D & result)",
                     result: { isReturn: true }
                 },
                 {
-                    signature: "MbResultType SmoothSequence(const MbSolid & solid, RPArray<MbCurveEdge> & edges, const SmoothValues & params, bool createSurfaces, RPArray<MbEdgeSequence> & sequences, RPArray<MbSurface> & result)",
-                    sequences: { isReturn: true },
-                    result: { isReturn: true },
+                    signature: "void Point(double faceU, double faceV, MbCartPoint3D & point)",
+                    point: { isReturn: true }
                 }
             ]
-        },
-        ActionCurve3D: {
-            rawHeader: "action_curve3d.h",
-            dependencies: ["CartPoint3D.h", "Curve3D.h"],
-            functions: [
-                // FIXME: technically a & b are inout, but that's not supported yet
-                "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)",
-                "MbResultType Segment(const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbCurve3D *& result)",
-                "MbResultType SplineCurve(const SArray<MbCartPoint3D> & points, bool closed, MbeSpaceType curveType, MbCurve3D *& result)"
-                // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
-            ]
-        }
     },
-    enums: [
-        "SimpleName",
-        "MbeSpaceType",
-        "MbeStepType",
-        "MbeModifyingType",
-        "MbeCopyMode",
-        "MbeSmoothForm",
-        "MbSNameMaker::ESides",
-        "SmoothValues::CornerForm",
-        "ThreeStates",
-        "ElementaryShellType",
-        "OperationType",
-        "MbeFacePropagation",
-    ]
+    Vertex: {
+        rawHeader: "topology.h",
+        extends: "TopologyItem",
+        dependencies: ["TopologyItem.h"]
+    },
+    ModifyValues: {
+        cppClassName: "_ModifyValues",
+        rawClassName: "ModifyValues",
+        jsClassName: "ModifyValues",
+        rawHeader: "op_shell_parameter.h",
+        dependencies: ["Vector3D.h"],
+        initializers: [""],
+        fields: [
+            "MbeModifyingType way",
+            "MbVector3D direction"
+        ]
+    },
+    TransformValues: {
+        cppClassName: "_TransformValues",
+        rawClassName: "TransformValues",
+        jsClassName: "TransformValues",
+        rawHeader: "op_shell_parameter.h",
+        dependencies: ["Matrix3D.h", "CartPoint3D.h"],
+        initializers: [
+            "",
+            "const MbMatrix3D & m",
+            "const MbMatrix3D & m, const MbCartPoint3D & f, bool fix = false, bool iso = false",
+            "double sX, double sY, double sZ, const MbCartPoint3D & fP"
+        ]
+    },
+    SmoothValues: {
+        cppClassName: "_SmoothValues",
+        rawClassName: "SmoothValues",
+        jsClassName: "SmoothValues",
+        rawHeader: "op_shell_parameter.h",
+        dependencies: ["Vector3D.h"],
+        initializers: [""],
+        fields: [
+            "double distance1",
+            "double distance2",
+            "double conic",
+            "double begLength",
+            "double endLength",
+            "MbeSmoothForm form",
+            "SmoothValues::CornerForm smoothCorner",
+            "bool prolong",
+            "ThreeStates keepCant",
+            "bool strict",
+            "bool equable",
+        ]
+    },
+    Arc3D: {
+        rawHeader: "cur_arc3d.h",
+        extends: "Curve3D",
+        dependencies: ["CartPoint3D.h", "Curve3D.h"],
+        initializers: [
+            "const MbCartPoint3D & p0, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int n, bool closed"
+        ]
+    },
+    PolyCurve3D: {
+        rawHeader: "cur_polycurve3d.h",
+        extends: "Curve3D",
+        dependencies: ["Curve3D.h"],
+    },
+    Polyline3D: {
+        rawHeader: "cur_polyline3d.h",
+        extends: "PolyCurve3D",
+        dependencies: ["PolyCurve3D.h", "CartPoint3D.h"],
+        initializers: [
+            "const SArray<MbCartPoint3D> & initList, bool closed"
+        ]
+    },
+    PointFrame: {
+        rawHeader: "point_frame.h",
+        extends: "Item",
+        dependencies: ["Item.h", "CartPoint3D.h"],
+        initializers: [""],
+        functions: [
+            "void AddVertex(const MbCartPoint3D & point)",
+        ]
+    },
+    EdgeSequence: {
+        rawHeader: "position_data.h",
+        dependencies: ["CurveEdge.h"],
+        freeFunctionName: "DeleteMatItem",
+        fields: [
+            // "RPArray<const MbCurveEdge> edges",
+            "bool closed"
+        ]
+    },
+    MergingFlags: {
+        rawHeader: "op_boolean_flags.h",
+        initializers: [
+            "",
+            "bool mergeFaces, bool mergeEdges"
+        ]
+    }
+},
+modules: {
+    Enabler: {
+        rawHeader: "tool_enabler.h",
+            functions: [
+                "void EnableMathModules(const char * name, const char * key)"
+            ]
+    },
+    ActionSurface: {
+        rawHeader: "action_surface.h",
+            dependencies: ["CartPoint3D.h", "Surface.h"],
+                functions: [
+                    "MbResultType ElementarySurface(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbeSpaceType surfaceType, MbSurface *& result)"
+                ]
+    },
+    ActionSolid: {
+        rawHeader: "action_solid.h",
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h"],
+                functions: [
+                    "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
+                    // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
+                    "MbResultType FilletSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbCurveEdge> & initCurves, RPArray<MbFace> & initBounds, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
+                    "MbResultType BooleanResult(MbSolid & solid1, MbeCopyMode sameShell1, MbSolid & solid2, MbeCopyMode sameShell2, OperationType oType, const MbBooleanFlags & flags, const MbSNameMaker & operNames, MbSolid *& result)",
+                    "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
+                    "MbResultType SolidCutting(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & place, const MbContour & contour, const MbVector3D & direction, int retainedPart, const MbSNameMaker & names, bool closed, const MbMergingFlags & flags, MbSolid *& result)",
+                ]
+
+    },
+    ActionPoint: {
+        rawHeader: "action_point.h",
+            dependencies: ["Line3D.h", "CartPoint3D.h"],
+                functions: [
+                    "double LineLineNearestPoints(const MbLine3D & line1, const MbLine3D & line2, MbCartPoint3D & p1, MbCartPoint3D & p2)",
+                ]
+    },
+    ActionDirect: {
+        rawHeader: "action_direct.h",
+            dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h", "_TransformValues.h"],
+                functions: [
+                    "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
+                    "MbResultType TransformedSolid(MbSolid & solid, MbeCopyMode sameShell, const TransformValues & params, const MbSNameMaker & names, MbSolid *& result)",
+                ]
+    },
+    ActionPhantom: {
+        rawHeader: "action_phantom.h",
+            dependencies: ["Solid.h", "CurveEdge.h", "_SmoothValues.h", "Surface.h", "EdgeSequence.h"],
+                functions: [
+                    {
+                        signature: "MbResultType SmoothPhantom(MbSolid & solid, RPArray<MbCurveEdge> & initCurves, const SmoothValues & params, RPArray<MbSurface> & result)",
+                        result: { isReturn: true }
+                    },
+                    {
+                        signature: "MbResultType SmoothSequence(const MbSolid & solid, RPArray<MbCurveEdge> & edges, const SmoothValues & params, bool createSurfaces, RPArray<MbEdgeSequence> & sequences, RPArray<MbSurface> & result)",
+                        sequences: { isReturn: true },
+                        result: { isReturn: true },
+                    }
+                ]
+    },
+    ActionCurve3D: {
+        rawHeader: "action_curve3d.h",
+            dependencies: ["CartPoint3D.h", "Curve3D.h"],
+                functions: [
+                    // FIXME: technically a & b are inout, but that's not supported yet
+                    "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)",
+                    "MbResultType Segment(const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbCurve3D *& result)",
+                    "MbResultType SplineCurve(const SArray<MbCartPoint3D> & points, bool closed, MbeSpaceType curveType, MbCurve3D *& result)"
+                    // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
+                ]
+    }
+},
+enums: [
+    "SimpleName",
+    "MbeSpaceType",
+    "MbeStepType",
+    "MbeModifyingType",
+    "MbeCopyMode",
+    "MbeSmoothForm",
+    "MbSNameMaker::ESides",
+    "SmoothValues::CornerForm",
+    "ThreeStates",
+    "ElementaryShellType",
+    "OperationType",
+    "MbeFacePropagation",
+]
 }
