@@ -1,5 +1,7 @@
 // https://www.typescriptlang.org/docs/handbook/mixins.html
 
+import { CompositeDisposable, Disposable } from "event-kit";
+
 export type Constructor = new (...args: any[]) => {};
 export type GConstructor<T = {}> = new (...args: any[]) => T;
 
@@ -17,28 +19,38 @@ export function applyMixins(derivedCtor: any, constructors: any[]) {
 }
 
 export class RefCounter<T> {
-    private readonly counts = new Map<T, number>();
+    private readonly counts = new Map<T, [number, CompositeDisposable]>();
 
     has(item: T): boolean {
         return this.counts.has(item);
     }
 
-    incr(item: T) {
+    incr(item: T, disposable: Disposable) {
         if (this.counts.has(item)) {
-            const count = this.counts.get(item);
-            this.counts.set(item, count + 1)
+            const [count, disposables] = this.counts.get(item);
+            disposables.add(disposable);
+            this.counts.set(item, [count + 1, disposables])
         } else {
-            this.counts.set(item, 1);
+            this.counts.set(item, [1, new CompositeDisposable(disposable)]);
         }
     }
 
     decr(item: T) {
-        const count = this.counts.get(item);
+        const [count, disposable] = this.counts.get(item);
         if (count == 1) {
             this.counts.delete(item);
+            disposable.dispose();
         } else {
-            this.counts.set(item, count - 1)
+            this.counts.set(item, [count - 1, disposable])
         }
+    }
+
+    delete(item: T) {
+        if (!this.counts.has(item)) return;
+
+        const [_, disposable] = this.counts.get(item);
+        this.counts.delete(item);
+        disposable.dispose();
     }
 
     clear() {

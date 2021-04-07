@@ -1,3 +1,4 @@
+import { Disposable } from "event-kit";
 import { Curve3D, CurveSegment } from "../VisualModel";
 import { Solid } from "../VisualModel";
 import { CurveEdge } from "../VisualModel";
@@ -67,7 +68,8 @@ export class ClickStrategy implements SelectionStrategy {
                 this.selectionManager.hover = null;
                 this.selectionManager.selectedFaces.add(object);
                 object.material = this.selectionManager.materials.highlight(model);
-                this.selectionManager.selectedChildren.incr(parentItem);
+                this.selectionManager.selectedChildren.incr(parentItem,
+                    new Disposable(() => this.selectionManager.selectedFaces.delete(object)));
                 this.selectionManager.signals.objectSelected.dispatch(object);
             }
             return true;
@@ -82,7 +84,8 @@ export class ClickStrategy implements SelectionStrategy {
                 this.selectionManager.hover = null;
                 this.selectionManager.selectedEdges.add(object);
                 object.material = this.selectionManager.materials.highlight(model);
-                this.selectionManager.selectedChildren.incr(parentItem);
+                this.selectionManager.selectedChildren.incr(parentItem,
+                    new Disposable(() => this.selectionManager.selectedEdges.delete(object)));
                 this.selectionManager.signals.objectSelected.dispatch(object);
             }
             return true;
