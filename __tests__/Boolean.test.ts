@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { CutFactory, IntersectionFactory } from '../src/commands/Boolean';
-import CurveFactory from "../src/commands/Curve";
-import SphereFactory from '../src/commands/Sphere';
+import { CutFactory, IntersectionFactory } from '../src/commands/boolean/Boolean';
+import CurveFactory from "../src/commands/curve/Curve";
+import SphereFactory from '../src/commands/sphere/Sphere';
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';

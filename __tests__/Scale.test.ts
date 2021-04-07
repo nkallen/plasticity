@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import ScaleFactory from '../src/commands/Scale';
-import SphereFactory from '../src/commands/Sphere';
+import ScaleFactory from '../src/commands/scale/Scale';
+import SphereFactory from '../src/commands/sphere/Sphere';
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';

@@ -1,11 +1,11 @@
 import * as THREE from "three";
-import RotateFactory from '../src/commands/Rotate';
+import RotateFactory from '../src/commands/rotate/Rotate';
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
 import { SpriteDatabase } from "../src/SpriteDatabase";
 import * as visual from '../src/VisualModel';
-import BoxFactory from "../src/commands/Box";
+import BoxFactory from "../src/commands/box/Box";
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
