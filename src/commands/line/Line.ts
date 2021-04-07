@@ -1,11 +1,11 @@
-import { GeometryFactory } from './Factory'
-import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
-import { EditorSignals } from '../Editor'
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-import MaterialDatabase from '../MaterialDatabase';
-import { GeometryDatabase } from '../GeometryDatabase';
+import c3d from '../../../build/Release/c3d.node';
+import { EditorSignals } from '../../Editor';
+import { GeometryDatabase } from '../../GeometryDatabase';
+import MaterialDatabase from '../../MaterialDatabase';
+import { GeometryFactory } from '../Factory';
 
 export default class LineFactory extends GeometryFactory {
     p1!: THREE.Vector3;

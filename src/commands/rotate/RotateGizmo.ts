@@ -4,7 +4,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
-import { AbstractGizmo } from "./AbstractGizmo";
+import { AbstractGizmo } from "../AbstractGizmo";
 
 const matInvisible = new THREE.MeshBasicMaterial({
     depthTest: false,

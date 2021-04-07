@@ -1,7 +1,7 @@
-import { GeometryFactory } from './Factory'
-import c3d from '../../build/Release/c3d.node';
-import * as visual from '../VisualModel';
-import { TemporaryObject } from '../GeometryDatabase';
+import { GeometryFactory } from '../Factory'
+import c3d from '../../../build/Release/c3d.node';
+import * as visual from '../../VisualModel';
+import { TemporaryObject } from '../../GeometryDatabase';
 
 export default class FilletFactory extends GeometryFactory {
     _item!: visual.Solid;

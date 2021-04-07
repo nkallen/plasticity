@@ -1,12 +1,12 @@
-import { GeometryDatabase } from '../GeometryDatabase';
 import * as THREE from "three";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
-import c3d from '../../build/Release/c3d.node';
-import { EditorSignals } from '../Editor';
-import MaterialDatabase from '../MaterialDatabase';
-import { GeometryFactory } from './Factory';
-import { CircleGeometry } from '../Util';
+import c3d from '../../../build/Release/c3d.node';
+import { EditorSignals } from '../../Editor';
+import { GeometryDatabase } from '../../GeometryDatabase';
+import MaterialDatabase from '../../MaterialDatabase';
+import { CircleGeometry } from '../../Util';
+import { GeometryFactory } from '../Factory';
 
 export default class CircleFactory extends GeometryFactory {
     center!: THREE.Vector3;

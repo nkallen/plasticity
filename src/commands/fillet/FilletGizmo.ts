@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
-import { AbstractGizmo } from "./AbstractGizmo";
+import { AbstractGizmo } from "../AbstractGizmo";
 
 const gizmoMaterial = new THREE.MeshBasicMaterial({
     depthTest: false,

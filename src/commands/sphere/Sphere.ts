@@ -1,9 +1,9 @@
-import { GeometryFactory } from './Factory'
-import c3d from '../../build/Release/c3d.node';
+import { GeometryFactory } from '../Factory'
+import c3d from '../../../build/Release/c3d.node';
 import * as THREE from "three";
-import { EditorSignals } from '../Editor'
-import MaterialDatabase from '../MaterialDatabase';
-import { GeometryDatabase } from '../GeometryDatabase';
+import { EditorSignals } from '../../Editor'
+import MaterialDatabase from '../../MaterialDatabase';
+import { GeometryDatabase } from '../../GeometryDatabase';
 
 export default class SphereFactory extends GeometryFactory {
     center!: THREE.Vector3;

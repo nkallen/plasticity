@@ -1,6 +1,6 @@
-import c3d from '../../build/Release/c3d.node';
-import * as visual from '../VisualModel';
-import { GeometryFactory } from './Factory';
+import c3d from '../../../build/Release/c3d.node';
+import * as visual from '../../VisualModel';
+import { GeometryFactory } from '../Factory';
 
 abstract class BooleanFactory extends GeometryFactory {
     protected abstract operationType: c3d.OperationType;

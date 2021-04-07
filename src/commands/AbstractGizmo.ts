@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { Editor } from '../../Editor';
-import * as visual from "../../VisualModel";
+import { Editor } from '../Editor';
+import * as visual from "../VisualModel";
 
 interface GizmoView {
     handle: THREE.Object3D;
