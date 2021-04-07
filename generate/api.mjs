@@ -36,13 +36,16 @@ export default {
             rawHeader: "space_item.h",
             extends: "RefItem",
             dependencies: ["RefItem.h"],
+            functions: [
+                "MbeSpaceType IsA()",
+                { signature: "MbItem * Cast()", isManual: true },
+            ]
         },
         Item: {
             rawHeader: "model_item.h",
             dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h", "SpaceItem.h", "Matrix3D.h", "Axis3D.h"],
             extends: ["SpaceItem", "AttributeContainer"],
             functions: [
-                "MbeSpaceType IsA()",
                 "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg = NULL)",
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
@@ -123,14 +126,22 @@ export default {
         Curve: {
             rawHeader: "curve.h",
         },
+        Contour: {
+            rawHeader: "cur_contour.h",
+            extends: "Curve",
+            dependencies: ["Curve.h"],
+            initializers: [
+                "const RPArray<MbCurve> & curves, bool sameCurves"
+            ]
+        },
         Curve3D: {
             rawHeader: "curve3d.h",
             extends: "SpaceItem",
-            dependencies: ["SpaceItem.h"],
-            function: [
+            dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h"],
+            functions: [
                 {
-                    signature: "bool MbCurve3D::GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & place, bool saveParams, VERSION version = Math::DefaultMathVersion())",
-                    place: { isReturn: true }
+                    signature: "bool GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & placement, bool saveParams, VERSION version = Math::DefaultMathVersion())",
+                    placement: { isReturn: true }
                 }
             ]
         },
@@ -200,6 +211,9 @@ export default {
             initializers: [
                 "MbSurface & surf",
                 "MbCurve3D & curve"
+            ],
+            functions: [
+                "const MbSpaceItem * GetSpaceItem()"
             ]
         },
         Direction: {
@@ -217,8 +231,8 @@ export default {
         },
         LineSegment: {
             rawHeader: "cur_line_segment.h",
-            extends: "Curve3D",
-            dependencies: ["Curve3D.h", "CartPoint.h"],
+            extends: "Curve",
+            dependencies: ["Curve.h", "CartPoint.h"],
             initializers: [
                 "const MbCartPoint & p1, const MbCartPoint & p2"
             ]
@@ -464,6 +478,13 @@ export default {
                 // "RPArray<const MbCurveEdge> edges",
                 "bool closed"
             ]
+        },
+        MergingFlags: {
+            rawHeader: "op_boolean_flags.h",
+            initializers: [
+                "",
+                "bool mergeFaces, bool mergeEdges"
+            ]
         }
     },
     modules: {
@@ -482,13 +503,14 @@ export default {
         },
         ActionSolid: {
             rawHeader: "action_solid.h",
-            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h"],
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h"],
             functions: [
                 "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
                 // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType FilletSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbCurveEdge> & initCurves, RPArray<MbFace> & initBounds, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType BooleanResult(MbSolid & solid1, MbeCopyMode sameShell1, MbSolid & solid2, MbeCopyMode sameShell2, OperationType oType, const MbBooleanFlags & flags, const MbSNameMaker & operNames, MbSolid *& result)",
                 "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType SolidCutting(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & place, const MbContour & contour, const MbVector3D & direction, int retainedPart, const MbSNameMaker & names, bool closed, const MbMergingFlags & flags, MbSolid *& result)",
             ]
 
         },

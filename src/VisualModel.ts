@@ -29,15 +29,15 @@ export class Solid extends Item {
         THREE.Object3D.call(this);
     }
 }
-export class SpaceInstance extends Item {
+export class SpaceInstance<T extends SpaceItem> extends Item {
     constructor(underlying: SpaceItem) {
         super();
         THREE.Object3D.call(this);
         this.add(underlying);
     }
 
-    get underlying(): SpaceItem {
-        return this.children[0] as SpaceItem;
+    get underlying(): T {
+        return this.children[0] as T;
     }
 }
 export class Curve3D extends SpaceItem {
@@ -87,7 +87,7 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
     }
 
     get parentItem() {
-        return this.parent.parent as SpaceInstance;
+        return this.parent.parent as SpaceInstance<Curve3D>;
     }
 }
 export class Face extends TopologyItem {

@@ -6,7 +6,7 @@
             "cflags_cc!": ["-fno-exceptions"],
             "sources": [
                 "./lib/c3d/index.cc",
-                "./lib/c3d/src/ItemAddon.cc",
+                "./lib/c3d/src/SpaceItemAddon.cc",
                 "./lib/c3d/src/Error.cc",
                 "./lib/c3d/src/MeshAddon.cc",
                 <%_ for (c of classes) if (!c.ignore) { _%>

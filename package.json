@@ -12,6 +12,7 @@
     "lint": "eslint --ext .ts .",
     "generate": "node generate/src/generate.mjs",
     "build": "node-gyp build -j max",
+    "rebuild": "node-gyp rebuild -j max",
     "test": "jest --maxWorkers=1",
     "watch-test": "jest --maxWorkers=1 --watch",
     "watch-generate": "find generate | entr -s 'yarn generate && yarn build && clear && echo Succesfully generated!'",

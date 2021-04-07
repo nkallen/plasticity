@@ -1,6 +1,6 @@
 import { Editor } from '../Editor';
 import { RefCounter } from '../Util';
-import { CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyItem } from '../VisualModel';
+import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyItem } from '../VisualModel';
 import { ClickStrategy } from './Click';
 import { Hoverable, HoverStrategy } from './Hover';
 
@@ -12,7 +12,7 @@ export interface SelectionStrategy {
     emptyIntersection(): void;
     solid(object: TopologyItem, parentItem: Solid): boolean;
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean;
-    curve3D(object: CurveSegment, parentItem: SpaceInstance): boolean;
+    curve3D(object: CurveSegment, parentItem: SpaceInstance<Curve3D>): boolean;
     invalidIntersection(): void;
 }
 
@@ -21,7 +21,7 @@ export class SelectionManager {
     readonly selectedChildren = new RefCounter();
     readonly selectedEdges = new Set<CurveEdge>();
     readonly selectedFaces = new Set<Face>();
-    readonly selectedCurves = new Set<SpaceInstance>();
+    readonly selectedCurves = new Set<SpaceInstance<Curve3D>>();
     readonly editor: Editor;
     readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve]);
     hover?: Hoverable = null;

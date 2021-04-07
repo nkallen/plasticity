@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Curve } from "three";
-import { IntersectionFactory } from '../src/commands/Boolean';
+import { CutFactory, IntersectionFactory } from '../src/commands/Boolean';
 import CurveFactory from "../src/commands/Curve";
 import SphereFactory from '../src/commands/Sphere';
 import { EditorSignals } from '../src/Editor';
@@ -56,25 +56,31 @@ describe('intersection', () => {
 
 describe("cutting", () => {
     describe('commit', () => {
-        test('', () => {
-            let makeSphere = new SphereFactory(db, materials, signals);
-            makeSphere.center = new THREE.Vector3(-0.5, -0.5, -0.5);
+        test('takes a cutting curve and a solid and produces a divided solid', () => {
+            const makeSphere = new SphereFactory(db, materials, signals);
+            makeSphere.center = new THREE.Vector3(0, 0, 0);
             makeSphere.radius = 1;
             makeSphere.commit();
             const sphere = db.scene.children[0] as visual.Solid;
             expect(sphere).toBeInstanceOf(visual.Solid);
 
-            let makeCurve = new CurveFactory(db, materials, signals);
-            makeCurve.points.push(new THREE.Vector3());
-            makeCurve.points.push(new THREE.Vector3(1, 1, 0));
-            makeCurve.points.push(new THREE.Vector3(2, -1, 0));
+            const makeCurve = new CurveFactory(db, materials, signals);
+            makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+            makeCurve.points.push(new THREE.Vector3(0, 2, 0.5));
+            makeCurve.points.push(new THREE.Vector3(2, 2, 0));
             makeCurve.commit();
-            const item = db.scene.children[1] as visual.SpaceInstance;
+            const item = db.scene.children[1] as visual.SpaceInstance<visual.Curve3D>;
             expect(item).toBeInstanceOf(visual.SpaceInstance);
-            const curve = item.underlying
-            expect(curve).toBeInstanceOf(visual.Curve3D);
     
-            
+            const cut = new CutFactory(db, materials, signals);
+            cut.solid = sphere;
+            cut.contour = item;
+            cut.commit();
+
+            expect(db.scene.children.length).toBe(2);
+            expect(db.scene.children[0]).toBeInstanceOf(visual.Solid);
+            expect(db.scene.children[1]).toBeInstanceOf(visual.Solid);
+
         })
     })
 })

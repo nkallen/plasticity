@@ -9,6 +9,8 @@ declare module "*c3d.node" {
     }
     declare class SpaceItem extends RefItem {
         private _useNominal: undefined;
+        IsA(): SpaceType;
+        Cast<T extends SpaceItem>(SpaceType): T;
     }
 
     declare class Vector3D {
@@ -32,7 +34,6 @@ declare module "*c3d.node" {
     }
 
     declare class Item extends SpaceItem implements AttributeContainer {
-        private _useNominal: undefined;
         GetItemName(): number;
         CreateMesh(StepData, FormNote, RegDuplicate?): Item;
 
@@ -42,8 +43,6 @@ declare module "*c3d.node" {
 
         GetStyle(): number;
         SetStyle(number): void;
-        IsA(): SpaceType;
-        Cast<T extends Item>(SpaceType): T;
     }
 
     declare class Path {
@@ -85,7 +84,6 @@ declare module "*c3d.node" {
     }
 
     declare class SNameMaker extends NameMaker {
-        private _useNominal: undefined;
         constructor(number, ESides, number);
     }
 
@@ -171,27 +169,46 @@ declare module "*c3d.node" {
         equable: boolean;
     }
 
+    declare class MergingFlags {
+        constructor();
+        constructor(mergeFaces: boolean, mergeEdges: boolean);
+    }
+
+    declare class Placement3D {
+        constructor();
+
+        Move(to: Vector3D): Placement3D;
+        Rotate(axis: Axis3D, angle: number): Placement3D;
+        Scale(sx: number, sy: number, sz: number): Placement3D;
+    }
+
     var ActionSolid: {
         ElementarySolid(points: CartPoint3D[], type: ElementaryShellType, names: NameMaker): Solid;
-        BooleanResult(solid: Solid, mode: CopyMode, solid: Solid, mode: CopyMode, type: OperationType, flags: BooleanFlags, names: SNameMaker): Solid;
         FilletSolid(solid: Solid, mode: CopyMode, edges: CurveEdge[], faces: Face[], smooth: SmoothValues, names: SNameMaker);
+        BooleanResult(solid: Solid, mode: CopyMode, solid: Solid, mode: CopyMode, type: OperationType, flags: BooleanFlags, names: SNameMaker): Solid;
+        SolidCutting(solid: Solid, mode: CopyMode, placement: Placement3D, contour: Contour, direction: Vector3D, retainedPart: number, names: SNameMaker, closed: boolean, flags: MergingFlags): Solid;
     }
 
     declare class SpaceInstance extends Item {
         constructor(surf: Surface);
         constructor(curve: Curve3D);
+
+        GetSpaceItem(): SpaceItem;
     }
 
     declare class PlaneItem extends RefItem {
         private _useNominal: undefined;
     }
-    
+
     declare class Curve extends PlaneItem {
     }
 
+    declare class Contour extends Curve {
+        constructor(curves: Curve[], sameCurves: boolean)
+    }
+
     declare class Curve3D extends SpaceItem {
-        private _useNominal: undefined;
-        GetPlaneCurve(saveParams: boolean): { curve: Curve, place: Placement3D }
+        GetPlaneCurve(saveParams: boolean): { curve2d: Curve, placement: Placement3D }
     }
 
     declare class PolyCurve3D extends Curve3D {

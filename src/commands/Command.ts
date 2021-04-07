@@ -14,9 +14,10 @@ import RectFactory from './Rect';
 import RotateFactory from './Rotate';
 import ScaleFactory from "./Scale";
 import SphereFactory from './Sphere';
-import { UnionFactory, DifferenceFactory, IntersectionFactory } from './Boolean';
+import { UnionFactory, DifferenceFactory, IntersectionFactory, CutFactory } from './Boolean';
 import CurveFactory from "./Curve";
 import { Disposable } from "event-kit";
+import * as visual from "../VisualModel";
 
 export default abstract class Command {
     editor: Editor;
@@ -303,10 +304,10 @@ export class IntersectionCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        const union = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        union.item1 = object1;
-        union.item2 = object2;
-        union.commit();
+        const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        intersection.item1 = object1;
+        intersection.item2 = object2;
+        intersection.commit();
     }
 }
 
@@ -316,17 +317,31 @@ export class DifferenceCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        const union = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        union.item1 = object1;
-        union.item2 = object2;
-        union.commit();
+        const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        difference.item1 = object1;
+        difference.item2 = object2;
+        difference.commit();
+    }
+}
+
+export class CutCommand extends Command {
+    async execute() {
+        const solids = [...this.editor.selectionManager.selectedSolids];
+        const curves = [...this.editor.selectionManager.selectedCurves];
+        let object1 = solids[0]!;
+        let object2 = curves[0]!;
+
+        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        cut.solid = object1;
+        cut.contour = object2;
+        cut.commit();
     }
 }
 
 export class FilletCommand extends Command {
     async execute() {
         let edges = [...this.editor.selectionManager.selectedEdges];
-        const item = edges[0].parentItem
+        const item = edges[0].parentItem as visual.Solid
 
         const edge = edges[0];
 

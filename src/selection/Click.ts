@@ -1,4 +1,4 @@
-import { CurveSegment } from "../VisualModel";
+import { Curve3D, CurveSegment } from "../VisualModel";
 import { Solid } from "../VisualModel";
 import { CurveEdge } from "../VisualModel";
 import { Face } from "../VisualModel";
@@ -16,8 +16,8 @@ export class ClickStrategy implements SelectionStrategy {
 
     invalidIntersection() { }
 
-    curve3D(object: CurveSegment, parentItem: SpaceInstance) {
-        const model = this.selectionManager.editor.db.lookupItem(parentItem);
+    curve3D(object: CurveSegment, parentItem: SpaceInstance<Curve3D>) {
+        const model = this.selectionManager.editor.db.lookup(parentItem);
 
         if (this.selectionManager.mode.has(SelectionMode.Curve)) {
             if (this.selectionManager.selectedCurves.has(parentItem)) {

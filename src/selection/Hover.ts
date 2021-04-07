@@ -24,7 +24,7 @@ export class HoverStrategy implements SelectionStrategy {
         this.selectionManager.hover = null;
     }
 
-    curve3D(object: CurveSegment, parentCurve: SpaceInstance): boolean {
+    curve3D(object: CurveSegment, parentCurve: SpaceInstance<Curve3D>): boolean {
         if (this.selectionManager.mode.has(SelectionMode.Curve) && !this.selectionManager.selectedCurves.has(parentCurve)) {
             if (!this.selectionManager.hover?.isEqual(object)) {
                 this.selectionManager.hover?.dispose();
@@ -105,9 +105,9 @@ class TopologicalItemHoverable<T extends THREE.Material | THREE.Material[]> exte
 
 class Curve3DHoverable extends Hoverable {
     private readonly previousMaterial: LineMaterial;
-    protected readonly object: SpaceInstance;
+    protected readonly object: SpaceInstance<Curve3D>;
 
-    constructor(object: SpaceInstance, material: LineMaterial, signal: signals.Signal<SpaceItem>) {
+    constructor(object: SpaceInstance<Curve3D>, material: LineMaterial, signal: signals.Signal<SpaceItem>) {
         let previous;
         for (const edge of object.underlying as Curve3D) {
             previous = edge.material;

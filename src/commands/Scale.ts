@@ -4,7 +4,7 @@ import * as THREE from "three";
 import * as visual from '../VisualModel';
 
 export default class ScaleFactory extends GeometryFactory {
-    _item!: visual.Item;
+    _item!: visual.Solid;
     origin!: THREE.Vector3;
     p2!: THREE.Vector3;
     p3!: THREE.Vector3;
@@ -15,7 +15,7 @@ export default class ScaleFactory extends GeometryFactory {
         return this._item;
     }
 
-    set item(obj: visual.Item) {
+    set item(obj: visual.Solid) {
         this._item = obj;
         this.originalScale = obj.scale.clone();
         this.originalPosition = obj.position.clone();
@@ -40,7 +40,7 @@ export default class ScaleFactory extends GeometryFactory {
 
     commit() {
         const { item, origin, p2, p3 } = this;
-        const solid = this.db.lookup(this.item, c3d.SpaceType.Solid);
+        const solid = this.db.lookup(this.item);
         this.db.removeItem(item);
 
         const oldLength = p2.clone().sub(origin).length()

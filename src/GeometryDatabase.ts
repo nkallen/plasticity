@@ -74,23 +74,29 @@ export class GeometryDatabase {
         return item;
     }
 
-    // FIXME obviously
-    lookup(object: visual.Item, spaceType: c3d.SpaceType.Solid): c3d.Solid {
+    // FIXME rethink error messages and consider using Family rather than isA for curve3d?
+    lookup(object: visual.Curve3D): c3d.Curve3D;
+    lookup(object: visual.Solid): c3d.Solid;
+    lookup(object: visual.SpaceInstance<any>): c3d.SpaceInstance;
+    lookup(object: visual.Item): c3d.SpaceItem {
         const item = this.lookupItem(object);
-        if (item.IsA() != spaceType) throw "Unexpected return type";
-        switch (spaceType) {
-            case c3d.SpaceType.Solid:
-                const solid = item.Cast<c3d.Solid>(spaceType);
-                return solid;
-            default:
-                throw new Error("not yet implemented");
+        if (object instanceof visual.Curve3D) {
+            const instance = item.Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
+            const spaceItem = instance.GetSpaceItem();
+            return spaceItem.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+        } else if (object instanceof visual.SpaceInstance) {
+            const instance = item.Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
+            return instance;
+        } else if (object instanceof visual.Solid) {
+            const solid = item.Cast<c3d.Solid>(c3d.SpaceType.Solid);
+            return solid;
         }
+        throw new Error("not yet implemented");
     }
 
     lookupTopologyItem(object: visual.TopologyItem): c3d.TopologyItem {
         const parent = object.parentItem;
         const parentModel = this.lookupItem(parent);
-        if (parentModel.IsA() != c3d.SpaceType.Solid) throw "Unexpected return type";
         const solid = parentModel.Cast<c3d.Solid>(c3d.SpaceType.Solid);
 
         return solid.FindEdgeByName(object.userData.name);
@@ -100,13 +106,12 @@ export class GeometryDatabase {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const note = new c3d.FormNote(wireframe, true, true, false, false);
         const item = obj.CreateMesh(stepData, note, null);
-        if (item.IsA() != c3d.SpaceType.Mesh) throw "Unexpected return type";
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         switch (mesh.GetMeshType()) {
             case c3d.SpaceType.Curve3D: {
                 const curve3D = new visual.Curve3DBuilder();
                 const edges = mesh.GetEdges();
-                let material = this.materials.line(item);
+                let material = this.materials.line(obj as c3d.SpaceInstance);
                 for (const edge of edges) {
                     const line = new visual.CurveSegment(edge, material);
                     curve3D.addCurveSegment(line);

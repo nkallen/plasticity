@@ -84,7 +84,9 @@ class ClassDeclaration {
         for (const e of this.extends) {
             const superclass = typeRegistry.resolveClass(e);
             if (!superclass) throw "no superclass found: " + e + " -- note that the ordering of the api file is important.";
-            this.desc.functions = this.desc.functions.concat(superclass.desc.functions);
+            const superclassFunctions = superclass.desc.functions;
+            const superclassFunctionsWithoutManuals = superclassFunctions.filter(f => !f.isManual);
+            this.desc.functions = this.desc.functions.concat(superclassFunctionsWithoutManuals);
             if (superclass.freeFunctionName) {
                 this.freeFunctionName = superclass.freeFunctionName;
             }
@@ -158,7 +160,7 @@ class ModuleDeclaration extends ClassDeclaration {
 }
 
 class FunctionDeclaration {
-    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s<>,&*:=]*)\s*\)/
+    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s<>,&*:=()]*)\s*\)/
 
     constructor(desc, typeRegistry) {
         let options = {};
@@ -230,7 +232,7 @@ class TypeDeclaration {
     }
 
     get isNumber() {
-        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t" || this.rawType == "size_t"
+        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t" || this.rawType == "size_t" || this.rawType == "VERSION" || this.rawType == "uint"
     }
 
     get isCppString2CString() {
@@ -246,7 +248,7 @@ class TypeDeclaration {
     }
 }
 class ParamDeclaration extends TypeDeclaration {
-    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<((?<elementConst>const)\s+)?(?<elementType>\w+)\>)?)\s+((?<ref>[*&]*)\s*)?(?<name>\w+)(\s+=\s*(?<default>[\w:]+))?/;
+    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+(\<((?<elementConst>const)\s+)?(?<elementType>\w+)\>)?)\s+((?<ref>[*&]*)\s*)?(?<name>\w+)(\s+=\s*(?<default>[\w:()]+))?/;
 
     constructor(cppIndex, jsIndex, desc, typeRegistry, options) {
         const matchType = ParamDeclaration.declaration.exec(desc);

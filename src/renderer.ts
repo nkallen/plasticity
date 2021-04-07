@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import license from '../license-key.json';
 import BoxFactory from './commands/Box';
+import CurveFactory from './commands/Curve';
+import SphereFactory from './commands/Sphere';
 import './css/index.less';
 import { Editor } from './Editor';
 import './Pane';
@@ -32,9 +34,20 @@ requestAnimationFrame(function loop() {
 Toolbar(editor);
 Viewport(editor);
 
-const box = new BoxFactory(editor.db, editor.materials, editor.signals);
-box.p1 = new THREE.Vector3();
-box.p2 = new THREE.Vector3(1, 0, 0);
-box.p3 = new THREE.Vector3(1, 1, 0);
-box.p4 = new THREE.Vector3(1, 1, 1);
-box.commit();
+// const box = new BoxFactory(editor.db, editor.materials, editor.signals);
+// box.p1 = new THREE.Vector3();
+// box.p2 = new THREE.Vector3(1, 0, 0);
+// box.p3 = new THREE.Vector3(1, 1, 0);
+// box.p4 = new THREE.Vector3(1, 1, 1);
+// box.commit();
+
+const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
+makeSphere.center = new THREE.Vector3(0, 0, 0);
+makeSphere.radius = 1;
+makeSphere.commit();
+
+const makeCurve = new CurveFactory(editor.db, editor.materials, editor.signals);
+makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+makeCurve.points.push(new THREE.Vector3(0, 2, 0.5));
+makeCurve.points.push(new THREE.Vector3(2, 2, 0));
+makeCurve.commit();

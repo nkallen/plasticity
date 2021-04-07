@@ -1,11 +1,11 @@
 import { GeometryFactory } from './Factory'
 import c3d from '../../build/Release/c3d.node';
-import { Item, CurveEdge } from '../VisualModel';
+import * as visual from '../VisualModel';
 import { TemporaryObject } from '../GeometryDatabase';
 
 export default class FilletFactory extends GeometryFactory {
-    _item!: Item;
-    _edges!: CurveEdge[];
+    _item!: visual.Solid;
+    _edges!: visual.CurveEdge[];
     _distance!: number;
 
     private solid!: c3d.Solid;
@@ -17,9 +17,9 @@ export default class FilletFactory extends GeometryFactory {
         return this._item;
     }
 
-    set item(item: Item) {
+    set item(item: visual.Solid) {
         this._item = item;
-        this.solid = this.db.lookup(this.item, c3d.SpaceType.Solid);
+        this.solid = this.db.lookup(this.item);
     }
 
     get edges() {

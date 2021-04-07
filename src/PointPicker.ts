@@ -16,7 +16,6 @@ class CancellablePromise<T> extends Promise<T> {
     }
 
     cancel() {
-        console.log("in method cancel");
         console.trace();
         this._cancel();
     }
@@ -105,10 +104,8 @@ export class PointPicker {
                 }
             }
             return () => {
-                console.log("calling cancel");
                 disposables.dispose();
                 editor.signals.pointPickerChanged.dispatch();
-                console.log("/calling cancel");
             }
         });
     }
