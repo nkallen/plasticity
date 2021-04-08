@@ -44,13 +44,23 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
     private readonly origin: THREE.Vector3;
     private readonly plane: THREE.Mesh;
     private readonly circle: THREE.Mesh;
+    private readonly torus: THREE.Mesh;
 
     constructor(editor: Editor, object: visual.SpaceItem, origin: THREE.Vector3, normal: THREE.Vector3) {
         const sphere = new THREE.Mesh(sphereGeometry, matYellow);
         sphere.position.set(0, 1, 0);
         const line = new THREE.Line(lineGeometry, matLineYellow);
-        const picker = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
-        picker.position.set(0, 0.6, 0);
+        const picker = new THREE.Group();
+
+        const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
+        cylinder.position.set(0, 0.6, 0);
+        cylinder.name = 'normal';
+        
+        const torus = new THREE.Mesh(new THREE.TorusGeometry(1, 0.1, 4, 24), matInvisible);
+        torus.name = 'screen';
+
+        picker.add(cylinder);
+        picker.add(torus);
 
         const geometry = new LineGeometry();
         geometry.setPositions(CircleGeometry(1, 32));
@@ -71,23 +81,43 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
         this.origin = origin;
 
         this.circle = circle;
+        this.torus = torus;
 
         this.add(this.plane);
     }
 
+    private mode?: 'normal' | 'screen';
+
+    onPointerHover(intersect: Intersector) {
+        const picker = intersect(this.picker, true);
+        console.log("in oph", picker);
+        if (picker) this.mode = picker.object.name as 'normal' | 'screen';
+        else this.mode = null;
+    }
+
     onPointerDown(intersect: Intersector) {
-        const planeIntersect = intersect(this.plane, true);
-        this.pointStart.copy(planeIntersect.point).sub(this.origin);
+        if (this.mode == 'normal') {
+            const planeIntersect = intersect(this.plane, true);
+            this.pointStart.copy(planeIntersect.point).sub(this.origin);
+        }
     }
 
     onPointerMove(cb: (offset: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo) {
-        const planeIntersect = intersect(this.plane, true);
-        if (!planeIntersect) return;
-        this.pointEnd.copy(planeIntersect.point).sub(this.origin);
-        cb(this.pointEnd.sub(this.pointStart));
+        if (this.mode == 'normal') {
+            const planeIntersect = intersect(this.plane, true);
+            if (!planeIntersect) return;
+            this.pointEnd.copy(planeIntersect.point).sub(this.origin);
+            cb(this.pointEnd.sub(this.pointStart));
+        } else if (this.mode == 'screen') {
+            console.log(info);
+        }
     }
 
     update(camera: THREE.Camera) {
         this.circle.quaternion.copy(camera.quaternion);
+        this.torus.quaternion.copy(camera.quaternion);
+
+        this.circle.updateMatrixWorld();
+        this.torus.updateMatrixWorld();
     }
 }

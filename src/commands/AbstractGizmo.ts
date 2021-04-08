@@ -33,9 +33,10 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         this.add(...elements);
     }
 
+    onPointerHover(intersector: Intersector) { }
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
     abstract onPointerDown(intersect: Intersector): void;
-    update(camera: THREE.Camera) {}
+    update(camera: THREE.Camera) { }
 
     async execute(cb: CB) {
         const raycaster = new THREE.Raycaster();
@@ -73,6 +74,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                     pointStart.set(pointer.x, pointer.y);
 
+                    this.update(camera);
                     raycaster.setFromCamera(pointer, camera);
                     const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid)
                     this.onPointerDown(intersector);
@@ -114,8 +116,13 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     if (this.object == null || dragging) return;
 
                     const pointer = AbstractGizmo.getPointer(domElement, e);
+                    this.update(camera);
                     raycaster.setFromCamera(pointer, camera);
-                    const intersect = AbstractGizmo.intersectObjectWithRay(this.picker, raycaster, false);
+
+                    const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid)
+                    this.onPointerHover(intersector)
+
+                    const intersect = intersector(this.picker, true);
                     hover = !!intersect;
                 }
 
