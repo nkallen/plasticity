@@ -35,8 +35,8 @@ const sphereGeometry = new THREE.SphereGeometry(0.1);
 const lineGeometry = new THREE.BufferGeometry();
 lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 1, 0], 3));
 
-const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2)
-const planeMaterial = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide, transparent: true, opacity: 0.1, toneMapped: false })
+const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
+const planeMaterial = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide, transparent: true, opacity: 0.1, toneMapped: false });
 
 export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => void> {
     private readonly pointStart: THREE.Vector3;
@@ -90,7 +90,6 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
 
     onPointerHover(intersect: Intersector) {
         const picker = intersect(this.picker, true);
-        console.log("in oph", picker);
         if (picker) this.mode = picker.object.name as 'normal' | 'screen';
         else this.mode = null;
     }
@@ -109,7 +108,7 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
             this.pointEnd.copy(planeIntersect.point).sub(this.origin);
             cb(this.pointEnd.sub(this.pointStart));
         } else if (this.mode == 'screen') {
-            console.log(info);
+            cb(info.pointEnd3d.sub(info.pointStart3d));
         }
     }
 

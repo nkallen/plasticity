@@ -4,6 +4,18 @@ import * as THREE from "three";
 import { Editor } from '../Editor';
 import * as visual from "../VisualModel";
 
+/**
+ * Gizmos are the graphical tools used to run commands, such as move/rotate/fillet, etc.
+ * Generally, they have 1) a visible handle and 2) an invisible picker that's larger and easy to click.
+ * They also might have a helper and a delta, which are visual feedback for interaction.
+ * 
+ * AbstractGizmo.execute() handles the basic state machine of hover/mousedown/mousemove/mouseup.
+ * It also computes some useful data (e.g., how far the user has dragged) in 2d, 3d cartesian,
+ * and polar screen space. By 3d screenspace, I mean mouse positions projected on to a 3d plane
+ * facing the camera located at the position of the widget. Subclasses might also compute similar
+ * data by implementing onPointerHover/onPointerDown/onPointerMove.
+ */
+
 interface GizmoView {
     handle: THREE.Object3D;
     picker: THREE.Object3D;
@@ -55,52 +67,59 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 let dragging = false;
                 let hover = false;
 
-                const pointStart = new THREE.Vector2();
-                const pointEnd = new THREE.Vector2();
-                const offset = new THREE.Vector2();
+                const plane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2));
+                const pointStart2d = new THREE.Vector2();
+                const pointEnd2d = new THREE.Vector2();
+                const pointStart3d = new THREE.Vector3();
+                const pointEnd3d = new THREE.Vector3();
                 const center3d = this.position.clone().project(camera);
                 const center2d = new THREE.Vector2(center3d.x, center3d.y);
-                const start = new THREE.Vector2();
+                const start = new THREE.Vector2(); // FIXME something is wrong here
                 const end = new THREE.Vector2();
                 let angle = 0;
 
+                const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid);
+
                 const onPointerDown = (event: PointerEvent) => {
-                    const pointer = AbstractGizmo.getPointer(domElement, event);
+                    const pointer = update(event);
                     if (this.object == null || dragging || pointer.button !== 0) return;
                     if (!hover) return;
 
                     viewport.disableControls();
                     domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
 
-                    pointStart.set(pointer.x, pointer.y);
-
-                    this.update(camera);
-                    raycaster.setFromCamera(pointer, camera);
-                    const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid)
                     this.onPointerDown(intersector);
 
+                    pointStart2d.set(pointer.x, pointer.y);
+                    pointStart3d.copy(intersector(plane, true).point);
                     dragging = true;
                 }
 
-                const onPointerMove = (event: PointerEvent) => {
+                const update = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
+                    this.update(camera);
+                    plane.quaternion.copy(camera.quaternion);
+                    raycaster.setFromCamera(pointer, camera);
+                    return pointer;
+                }
+
+                const onPointerMove = (event: PointerEvent) => {
+                    const pointer = update(event);
                     if (this.object == null || !dragging || pointer.button !== -1) return;
 
-                    pointEnd.set(pointer.x, pointer.y);
-                    offset.copy(pointEnd).sub(pointStart);
-                    end.copy(pointEnd).sub(center2d).normalize();
+                    pointEnd2d.set(pointer.x, pointer.y);
+                    pointEnd3d.copy(intersector(plane, true).point);
+                    end.copy(pointEnd2d).sub(center2d).normalize();
                     angle = Math.atan2(end.y, end.x) - Math.atan2(start.y, start.x);
 
-                    raycaster.setFromCamera(pointer, camera);
-                    const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid)
-                    const info: MovementInfo = { pointStart, pointEnd, angle }
+                    const info: MovementInfo = { pointStart2d, pointEnd2d, angle, pointStart3d, pointEnd3d }
                     this.onPointerMove(cb, intersector, info);
 
                     this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename
                 }
 
                 const onPointerUp = (event: PointerEvent) => {
-                    const pointer = AbstractGizmo.getPointer(domElement, event);
+                    const pointer = update(event);
                     if (this.object == null || !dragging || pointer.button !== 0) return;
 
                     domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
@@ -112,15 +131,11 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     resolve();
                 }
 
-                const onPointerHover = (e: PointerEvent) => {
+                const onPointerHover = (event: PointerEvent) => {
+                    update(event);
                     if (this.object == null || dragging) return;
 
-                    const pointer = AbstractGizmo.getPointer(domElement, e);
-                    this.update(camera);
-                    raycaster.setFromCamera(pointer, camera);
-
-                    const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid)
-                    this.onPointerHover(intersector)
+                    this.onPointerHover(intersector);
 
                     const intersect = intersector(this.picker, true);
                     hover = !!intersect;
@@ -166,7 +181,15 @@ export interface Pointer {
 export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) => THREE.Intersection
 
 export interface MovementInfo {
-    pointStart: THREE.Vector2,
-    pointEnd: THREE.Vector2,
+    // These are the mouse down and mouse move positions in screenspace
+    pointStart2d: THREE.Vector2,
+    pointEnd2d: THREE.Vector2,
+
+    // These are the mouse positions projected on to a plane parallel to the camera
+    // but located at the gizmos position
+    pointStart3d: THREE.Vector3,
+    pointEnd3d: THREE.Vector3,
+
+    // This is the angle change (polar coordinates) in screenspace
     angle: number
 }

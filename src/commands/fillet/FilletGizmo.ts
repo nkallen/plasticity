@@ -50,7 +50,7 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
     onPointerDown(intersect: Intersector) {}
     
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
-        cb(info.pointEnd.sub(info.pointStart).length());
+        cb(info.pointEnd2d.sub(info.pointStart2d).length());
     }
 
     // updateMatrixWorld() {
