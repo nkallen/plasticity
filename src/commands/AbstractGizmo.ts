@@ -1,4 +1,5 @@
 import { CompositeDisposable, Disposable } from "event-kit";
+import { Helper } from "../Helpers";
 import * as THREE from "three";
 import { Editor } from '../Editor';
 import * as visual from "../VisualModel";
@@ -10,7 +11,7 @@ interface GizmoView {
     helper?: THREE.Object3D;
 }
 
-export abstract class AbstractGizmo<CB> extends THREE.Object3D {
+export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {
     handle: THREE.Object3D;
     picker: THREE.Object3D;
     delta: THREE.Object3D;
@@ -34,14 +35,15 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D {
 
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
     abstract onPointerDown(intersect: Intersector): void;
+    update(camera: THREE.Camera) {}
 
     async execute(cb: CB) {
         const raycaster = new THREE.Raycaster();
 
         const disposables = new CompositeDisposable();
 
-        this.editor.db.scene.add(this);
-        disposables.add(new Disposable(() => this.editor.db.scene.remove(this)));
+        this.editor.helpers.add(this);
+        disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
 
         return new Promise<void>((resolve, reject) => {
             for (const viewport of this.editor.viewports) {
@@ -55,8 +57,8 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D {
                 const pointStart = new THREE.Vector2();
                 const pointEnd = new THREE.Vector2();
                 const offset = new THREE.Vector2();
-                const center3 = this.position.clone().project(camera);
-                const center = new THREE.Vector2(center3.x, center3.y);
+                const center3d = this.position.clone().project(camera);
+                const center2d = new THREE.Vector2(center3d.x, center3d.y);
                 const start = new THREE.Vector2();
                 const end = new THREE.Vector2();
                 let angle = 0;
@@ -84,7 +86,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D {
 
                     pointEnd.set(pointer.x, pointer.y);
                     offset.copy(pointEnd).sub(pointStart);
-                    end.copy(pointEnd).sub(center).normalize();
+                    end.copy(pointEnd).sub(center2d).normalize();
                     angle = Math.atan2(end.y, end.x) - Math.atan2(start.y, start.x);
 
                     raycaster.setFromCamera(pointer, camera);

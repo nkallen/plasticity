@@ -1,6 +1,8 @@
-import { Editor } from './Editor'
+import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
-import { Disposable, CompositeDisposable } from 'event-kit';
+import { Editor } from './Editor';
+
+// FIXME move to gizmos
 
 const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 

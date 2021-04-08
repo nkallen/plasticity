@@ -5,6 +5,7 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+import { AbstractGizmo } from "./commands/AbstractGizmo";
 import { Editor } from './Editor';
 import { Pane } from './Pane';
 import { ViewportSelector } from './selection/ViewportSelector';
@@ -91,14 +92,18 @@ export default (editor: Editor) => {
             this.composer = new EffectComposer(this.renderer, renderTarget);
             this.composer.setPixelRatio(window.devicePixelRatio);
 
+            // FIXME this is unused ??
             this.overlayCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
 
             const renderPass = new RenderPass(editor.db.scene, this.camera);
             const overlayPass = new RenderPass(this.overlay, this.camera);
+            const helpersPass = new RenderPass(editor.helpers.scene, this.camera);
             const copyPass = new ShaderPass(CopyShader);
 
             overlayPass.clear = false;
             overlayPass.clearDepth = true;
+            helpersPass.clear = false;
+            helpersPass.clearDepth = true;
 
             const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
             outlinePassSelection.edgeStrength = 10;
@@ -118,6 +123,7 @@ export default (editor: Editor) => {
             this.composer.addPass(this.outlinePassHover);
             this.composer.addPass(this.outlinePassSelection);
             this.composer.addPass(overlayPass);
+            this.composer.addPass(helpersPass);
             this.composer.addPass(copyPass);
 
             this.shadowRoot!.append(domElement);
@@ -175,16 +181,12 @@ export default (editor: Editor) => {
             editor.materials.setResolution(this.offsetWidth, this.offsetHeight);
 
             this.overlayCamera.position.copy(this.camera.position);
+            editor.helpers.update(this.camera);
 
-            // Adding/removing grid to scene so materials with depthWrite false
-            // don't render under the grid.
             editor.db.scene.add(this.grid);
             this.composer.render();
             editor.db.scene.remove(this.grid);
 
-            // this.renderer.autoClear = false;
-            // if (showSceneHelpers === true) renderer.render(sceneHelpers, camera);
-            // this.renderer.autoClear = true;
             this.needsRender = false;
         }
 

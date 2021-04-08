@@ -4,6 +4,7 @@ import * as THREE from "three";
 import CommandRegistry from "./CommandRegistry";
 import Command from './commands/Command';
 import { GeometryDatabase } from "./GeometryDatabase";
+import { Helpers } from "./Helpers";
 import { BasicMaterialDatabase } from "./MaterialDatabase";
 import { SelectionManager } from './selection/SelectionManager';
 import { SnapManager } from './SnapManager';
@@ -53,6 +54,7 @@ export class Editor {
     readonly snaps = new SnapManager(this.db, this.sprites);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
+    readonly helpers = new Helpers();
 
     constructor() {
         // FIXME dispose of these:
