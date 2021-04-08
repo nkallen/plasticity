@@ -1,9 +1,8 @@
 import * as THREE from "three";
-import c3d from '../build/Release/c3d.node';
-import porcelain from './img/matcap-porcelain-white.jpg';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import c3d from '../build/Release/c3d.node';
 import * as visual from '../src/VisualModel';
-import { NeverDepth } from "three";
+import porcelain from './img/matcap-porcelain-white.jpg';
 import { assertUnreachable } from "./Util";
 
 function hash(str: string) {
