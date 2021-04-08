@@ -4,7 +4,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
-import { AbstractGizmo } from "../AbstractGizmo";
+import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 
 const matInvisible = new THREE.MeshBasicMaterial({
     depthTest: false,
@@ -31,8 +31,10 @@ export class RotateGizmo extends AbstractGizmo<(angle: number) => void> {
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), axis);
     }
 
-    onPointerMove(cb: (angle: number) => void, pointStart: THREE.Vector2, pointEnd: THREE.Vector2, offset: THREE.Vector2, angle: number) {
-        cb(angle);
+    onPointerDown(intersect: Intersector) {}
+    
+    onPointerMove(cb: (offset: number) => void, intersect: Intersector, info: MovementInfo) {
+        cb(info.angle);
     }
 }
 

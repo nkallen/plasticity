@@ -386,8 +386,8 @@ export class ModifyFaceCommand extends Command {
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
         const gizmo = new ModifyFaceGizmo(this.editor, face, point, normal);
 
-        await gizmo.execute((delta) => {
-            modifyFace.direction = normal.clone().multiplyScalar(delta);
+        await gizmo.execute((offset) => {
+            modifyFace.direction = offset;
             modifyFace.update();
         })
 

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
-import { AbstractGizmo } from "../AbstractGizmo";
+import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 
 const gizmoMaterial = new THREE.MeshBasicMaterial({
     depthTest: false,
@@ -47,10 +47,11 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
     }
 
-    onPointerMove(cb: (radius: number) => void, pointStart: THREE.Vector2, pointEnd: THREE.Vector2, offset: THREE.Vector2, angle: number) {
-        cb(offset.length());
+    onPointerDown(intersect: Intersector) {}
+    
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
+        cb(info.pointEnd.sub(info.pointStart).length());
     }
-
 
     // updateMatrixWorld() {
     // let factor;

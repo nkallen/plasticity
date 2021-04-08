@@ -32,7 +32,8 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D {
         this.add(...elements);
     }
 
-    abstract onPointerMove(cb: CB, pointStart: THREE.Vector2, pointEnd: THREE.Vector2, offset: THREE.Vector2, angle: number): void;
+    abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
+    abstract onPointerDown(intersect: Intersector): void;
 
     async execute(cb: CB) {
         const raycaster = new THREE.Raycaster();
@@ -67,7 +68,13 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D {
 
                     viewport.disableControls();
                     domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
+
                     pointStart.set(pointer.x, pointer.y);
+
+                    raycaster.setFromCamera(pointer, camera);
+                    const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid)
+                    this.onPointerDown(intersector);
+
                     dragging = true;
                 }
 
@@ -80,7 +87,10 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D {
                     end.copy(pointEnd).sub(center).normalize();
                     angle = Math.atan2(end.y, end.x) - Math.atan2(start.y, start.x);
 
-                    this.onPointerMove(cb, pointStart, pointEnd, offset, angle);
+                    raycaster.setFromCamera(pointer, camera);
+                    const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid)
+                    const info: MovementInfo = { pointStart, pointEnd, angle }
+                    this.onPointerMove(cb, intersector, info);
 
                     this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename
                 }
@@ -129,7 +139,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D {
         };
     }
 
-    protected static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean) {
+    protected static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean): THREE.Intersection {
         const allIntersections = raycaster.intersectObject(object, true);
         for (var i = 0; i < allIntersections.length; i++) {
             if (allIntersections[i].object.visible || includeInvisible) {
@@ -138,4 +148,16 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D {
         }
         return null;
     }
+}
+
+export interface Pointer {
+    x: number; y: number, button: number
+}
+
+export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) => THREE.Intersection
+
+export interface MovementInfo {
+    pointStart: THREE.Vector2,
+    pointEnd: THREE.Vector2,
+    angle: number
 }
