@@ -33,7 +33,7 @@ const lineGeometry = new THREE.BufferGeometry();
 lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 1, 0], 3));
 
 export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
-    constructor(editor: Editor, object: visual.SpaceItem, point: THREE.Vector3, normal: THREE.Vector3) {
+    constructor(editor: Editor, object: visual.Edge, point: THREE.Vector3, normal: THREE.Vector3) {
         const sphere = new THREE.Mesh(sphereGeometry, matYellow);
         sphere.position.set(0, 1, 0);
         const line = new THREE.Line(lineGeometry, matLineYellow);

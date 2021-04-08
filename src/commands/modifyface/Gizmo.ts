@@ -46,7 +46,7 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
     private readonly circle: THREE.Mesh;
     private readonly torus: THREE.Mesh;
 
-    constructor(editor: Editor, object: visual.SpaceItem, origin: THREE.Vector3, normal: THREE.Vector3) {
+    constructor(editor: Editor, object: visual.Face, origin: THREE.Vector3, normal: THREE.Vector3) {
         const sphere = new THREE.Mesh(sphereGeometry, matYellow);
         sphere.position.set(0, 1, 0);
         const line = new THREE.Line(lineGeometry, matLineYellow);
@@ -113,8 +113,8 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
     }
 
     update(camera: THREE.Camera) {
-        this.circle.quaternion.copy(camera.quaternion);
-        this.torus.quaternion.copy(camera.quaternion);
+        this.circle.lookAt(camera.position);
+        this.torus.lookAt(camera.position);
 
         this.circle.updateMatrixWorld();
         this.torus.updateMatrixWorld();

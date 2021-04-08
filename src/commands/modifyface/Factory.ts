@@ -46,7 +46,7 @@ export default class ModifyFaceFactory extends GeometryFactory {
         params.direction = new c3d.Vector3D(direction.x, direction.y, direction.z);
 
         const names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
-        const result = c3d.ActionDirect.FaceModifiedSolid(solidModel, c3d.CopyMode.KeepHistory, params, facesModel, names);
+        const result = c3d.ActionDirect.FaceModifiedSolid(solidModel, c3d.CopyMode.Copy, params, facesModel, names);
         this.temp = this.db.addTemporaryItems([result]);
         return super.update();
     }

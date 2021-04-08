@@ -10,7 +10,7 @@ import { Editor } from './Editor';
 import { Pane } from './Pane';
 import { ViewportSelector } from './selection/ViewportSelector';
 import { PlaneSnap } from "./SnapManager";
-import { Solid, SpaceItem } from "./VisualModel";
+import { Solid, SpaceItem, TopologyItem } from "./VisualModel";
 
 const near = 0.01;
 const far = 1000;
@@ -191,7 +191,7 @@ export default (editor: Editor) => {
             this.outlinePassSelection.selectedObjects = toOutline;
         }
 
-        outlineHover(object?: SpaceItem) {
+        outlineHover(object?: SpaceItem | TopologyItem) {
             if (object == null) this.outlinePassHover.selectedObjects = [];
             else if (object instanceof Solid) this.outlinePassHover.selectedObjects = [object.faces];
         }

@@ -21,7 +21,8 @@ export class HoverStrategy implements SelectionStrategy {
         if (this.selectionManager.mode.has(SelectionMode.Curve) && !this.selectionManager.selectedCurves.has(parentCurve)) {
             if (!this.selectionManager.hover?.isEqual(object)) {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new Curve3DHoverable(parentCurve, this.selectionManager.materials.hover(object), this.selectionManager.signals.objectHovered);
+                this.selectionManager.hover = new Curve3DHoverable(
+                    parentCurve, this.selectionManager.materials.hover(object), this.selectionManager.signals.objectHovered);
             }
             return true;
         }
@@ -59,10 +60,10 @@ export class HoverStrategy implements SelectionStrategy {
 
 export class Hoverable {
     private readonly disposable = new CompositeDisposable();
-    protected readonly object: SpaceItem;
-    private readonly signal: signals.Signal<SpaceItem>;
+    protected readonly object: SpaceItem | TopologyItem;
+    private readonly signal: signals.Signal<SpaceItem | TopologyItem>;
 
-    constructor(object: SpaceItem, signal: signals.Signal<SpaceItem>) {
+    constructor(object: SpaceItem | TopologyItem, signal: signals.Signal<SpaceItem | TopologyItem>) {
         this.object = object;
         this.disposable.add(new Disposable(() => signal.dispatch(null)));
         signal.dispatch(object);
@@ -74,16 +75,16 @@ export class Hoverable {
         this.disposable.dispose();
     }
 
-    isEqual(other: SpaceItem) {
+    isEqual(other: SpaceItem | TopologyItem) {
         return this.object == other;
     }
 }
 
 class TopologicalItemHoverable<T extends THREE.Material | THREE.Material[]> extends Hoverable {
     private readonly previousMaterial: T;
-    protected readonly object: SpaceItem & { material: T };
+    protected readonly object: TopologyItem & { material: T };
 
-    constructor(object: SpaceItem & { material: T }, material: T, signal: signals.Signal<SpaceItem>) {
+    constructor(object: TopologyItem & { material: T }, material: T, signal: signals.Signal<SpaceItem | TopologyItem>) {
         const previous = object.material;
         object.material = material;
         super(object, signal);
@@ -100,7 +101,7 @@ class Curve3DHoverable extends Hoverable {
     private readonly previousMaterial: LineMaterial;
     protected readonly object: SpaceInstance<Curve3D>;
 
-    constructor(object: SpaceInstance<Curve3D>, material: LineMaterial, signal: signals.Signal<SpaceItem>) {
+    constructor(object: SpaceInstance<Curve3D>, material: LineMaterial, signal: signals.Signal<SpaceItem | TopologyItem>) {
         let previous;
         for (const edge of object.underlying as Curve3D) {
             previous = edge.material;

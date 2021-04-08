@@ -10,16 +10,16 @@ import { SelectionManager } from './selection/SelectionManager';
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import { Viewport } from "./Viewport";
-import { SpaceItem } from './VisualModel';
+import { SpaceItem, TopologyItem } from './VisualModel';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
 export interface EditorSignals {
     objectAdded: signals.Signal<SpaceItem>;
     objectRemoved: signals.Signal<SpaceItem>;
-    objectSelected: signals.Signal<SpaceItem>;
-    objectDeselected: signals.Signal<SpaceItem>;
-    objectHovered: signals.Signal<SpaceItem>
+    objectSelected: signals.Signal<SpaceItem | TopologyItem>;
+    objectDeselected: signals.Signal<SpaceItem | TopologyItem>;
+    objectHovered: signals.Signal<SpaceItem | TopologyItem>
     sceneGraphChanged: signals.Signal;
     factoryUpdated: signals.Signal;
     factoryCommitted: signals.Signal;

@@ -17,7 +17,9 @@ import { applyMixins } from './Util';
  * And that's principally what's going on in this file.
  */
 
-export abstract class SpaceItem { }
+export abstract class SpaceItem {
+    private _useNominal: undefined;
+}
 export abstract class Item extends SpaceItem { }
 export class Solid extends Item {
     disposable = new CompositeDisposable()
@@ -55,11 +57,14 @@ export class Curve3D extends SpaceItem {
     }
 }
 export abstract class TopologyItem {
+    private _useNominal: undefined;
+
     get parentItem() {
         return this.parent.parent as Item;
     }
 }
-export class Edge extends TopologyItem { }
+export class Edge extends TopologyItem {
+}
 export class CurveEdge extends Edge {
     readonly snaps = new Set<Snap>();
 
@@ -106,6 +111,7 @@ export class Face extends TopologyItem {
 }
 
 export class CurveEdgeGroup extends THREE.Group {
+    private _useNominal: undefined;
     disposable = new CompositeDisposable();
 
     *[Symbol.iterator]() {
@@ -115,6 +121,7 @@ export class CurveEdgeGroup extends THREE.Group {
     }
 }
 export class FaceGroup extends THREE.Group {
+    private _useNominal: undefined;
     disposable = new CompositeDisposable();
 
     *[Symbol.iterator]() {

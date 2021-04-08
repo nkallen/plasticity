@@ -19,7 +19,7 @@ abstract class BooleanFactory extends GeometryFactory {
         flags.SetMergingFaces(true);
         flags.SetMergingEdges(true);
 
-        const result = c3d.ActionSolid.BooleanResult(model1, c3d.CopyMode.KeepHistory, model2, c3d.CopyMode.KeepHistory, this.operationType, flags, names);
+        const result = c3d.ActionSolid.BooleanResult(model1, c3d.CopyMode.Copy, model2, c3d.CopyMode.KeepHistory, this.operationType, flags, names);
 
         this.db.removeItem(this.item1);
         this.db.removeItem(this.item2);

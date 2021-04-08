@@ -28,6 +28,7 @@ export default interface MaterialDatabase {
 
     hover(object: visual.Face): THREE.Material;
     hover(object: visual.Edge): LineMaterial;
+    hover(object: visual.CurveSegment): LineMaterial;
 }
 
 export class BasicMaterialDatabase implements MaterialDatabase {
@@ -167,8 +168,9 @@ export class BasicMaterialDatabase implements MaterialDatabase {
 
     hover(object: visual.Face): THREE.Material;
     hover(object: visual.Edge): LineMaterial;
-    hover(object: visual.Face | visual.Edge): THREE.Material {
-        if (object instanceof visual.Edge) {
+    hover(object: visual.CurveSegment): LineMaterial;
+    hover(object: visual.Face | visual.Edge | visual.CurveSegment): THREE.Material {
+        if (object instanceof visual.Edge || object instanceof visual.CurveSegment) {
             return this.lineMaterials.get(hash("line-hovered"));
         } else if (object instanceof visual.Face) {
             return this.materials.get(hash("mesh-hovered"));
