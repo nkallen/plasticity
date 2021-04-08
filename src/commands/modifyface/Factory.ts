@@ -30,7 +30,8 @@ export default class ModifyFaceFactory extends GeometryFactory {
 
         const facesModel = [];
         for (const face of faces) {
-            facesModel.push(this.db.lookupTopologyItem(face) as c3d.Face);
+            const model = this.db.lookupTopologyItem(face);
+            facesModel.push(model);
         }
         this.facesModel = facesModel;
     }

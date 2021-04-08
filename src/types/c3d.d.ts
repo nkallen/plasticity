@@ -126,8 +126,12 @@ declare module "*c3d.node" {
     }
 
     declare class Face extends TopologyItem {
-        Normal(u: number, v: number): Vector3D
-        Point(u: number, v: number): Vector3D
+        Normal(u: number, v: number): Vector3D;
+        Point(u: number, v: number): Vector3D;
+        GetPlacement(): Placement3D;
+        GetControlPlacement(): Placement3D;
+        GetAnyPointOn(): { point: CartPoint3D, normal: CartPoint3D };
+        IsA(): SpaceType;
     }
 
     declare class Edge extends TopologyItem {
@@ -181,6 +185,11 @@ declare module "*c3d.node" {
         Move(to: Vector3D): Placement3D;
         Rotate(axis: Axis3D, angle: number): Placement3D;
         Scale(sx: number, sy: number, sz: number): Placement3D;
+
+        GetOrigin(): CartPoint3D;
+        GetAxisX(): Vector3D;
+        GetAxisY(): Vector3D;
+        GetAxisZ(): Vector3D;
     }
 
     var ActionSolid: {
