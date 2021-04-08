@@ -29,7 +29,6 @@ export default (editor: Editor) => {
     // FIXME rename
     class Viewport extends HTMLElement implements Viewport {
         readonly camera: THREE.Camera;
-        readonly overlayCamera: THREE.OrthographicCamera;
         readonly overlay = new THREE.Scene();
         readonly renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
         readonly navigationControls?: OrbitControls;
@@ -91,9 +90,6 @@ export default (editor: Editor) => {
 
             this.composer = new EffectComposer(this.renderer, renderTarget);
             this.composer.setPixelRatio(window.devicePixelRatio);
-
-            // FIXME this is unused ??
-            this.overlayCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
 
             const renderPass = new RenderPass(editor.db.scene, this.camera);
             const overlayPass = new RenderPass(this.overlay, this.camera);
@@ -180,7 +176,6 @@ export default (editor: Editor) => {
 
             editor.materials.setResolution(this.offsetWidth, this.offsetHeight);
 
-            this.overlayCamera.position.copy(this.camera.position);
             editor.helpers.update(this.camera);
 
             editor.db.scene.add(this.grid);
@@ -211,10 +206,6 @@ export default (editor: Editor) => {
                 this.camera.right = frustumSize * aspect / 2;
                 this.camera.updateProjectionMatrix();
             }
-
-            this.overlayCamera.left = frustumSize * aspect / - 2;
-            this.overlayCamera.right = frustumSize * aspect / 2;
-            this.overlayCamera.updateProjectionMatrix();
 
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
             this.composer.setSize(this.offsetWidth, this.offsetHeight);
