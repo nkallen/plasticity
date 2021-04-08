@@ -35,7 +35,7 @@ export default class SphereFactory extends GeometryFactory {
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z + 1),
             new c3d.CartPoint3D(this.center.x + this.radius, this.center.y, this.center.z),
         ];
-        const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
+        const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Sphere, names);
         this.db.addItem(sphere);
 
