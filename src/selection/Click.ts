@@ -1,13 +1,7 @@
 import { Disposable } from "event-kit";
-import { Curve3D, CurveSegment } from "../VisualModel";
-import { Solid } from "../VisualModel";
-import { CurveEdge } from "../VisualModel";
-import { Face } from "../VisualModel";
-import { TopologyItem } from "../VisualModel";
-import { SpaceInstance } from "../VisualModel";
-import { SelectionManager, SelectionMode, SelectionStrategy } from "./SelectionManager";
 import c3d from '../build/Release/c3d.node';
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
+import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyItem } from "../VisualModel";
+import { SelectionManager, SelectionMode, SelectionStrategy } from "./SelectionManager";
 
 export class ClickStrategy implements SelectionStrategy {
     constructor(private selectionManager: SelectionManager) {

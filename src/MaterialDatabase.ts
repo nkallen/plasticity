@@ -150,9 +150,20 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         }
     }
 
-    // FIXME audit these methods
-    lookup(o: c3d.TopologyItem): LineMaterial {
-        return this.lineMaterials.get(hash("line"));
+    lookup(o: c3d.Edge): LineMaterial;
+    lookup(o: c3d.Curve3D): LineMaterial;
+    lookup(o: c3d.Face): THREE.Material;
+    lookup(o: c3d.SpaceInstance): LineMaterial;
+    lookup(o: c3d.TopologyItem | c3d.Curve3D | c3d.SpaceInstance): THREE.Material {
+        if (o instanceof c3d.Curve3D || o instanceof c3d.Edge)
+            return this.lineMaterials.get(hash("line"));
+        else if (o instanceof c3d.Face)
+            return this.materials.get(hash("mesh"));
+        else if (o instanceof c3d.SpaceInstance)
+            return this.lineMaterials.get(hash("line"));
+        else {
+            throw new Error(`not yet implemented: ${o.constructor}`);
+        }
     }
 
     hover(object: visual.Face): THREE.Material;
