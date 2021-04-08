@@ -39,31 +39,30 @@ export default class ModifyFaceFactory extends GeometryFactory {
     update() {
         const { solid, solidModel, facesModel, direction } = this;
 
-        solid.visible = false;
-        this.temp?.cancel();
-
         const params = new c3d.ModifyValues();
-        params.way = c3d.ModifyingType.Action;
+        params.way = c3d.ModifyingType.Offset;
         params.direction = new c3d.Vector3D(direction.x, direction.y, direction.z);
-
         const names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
         const result = c3d.ActionDirect.FaceModifiedSolid(solidModel, c3d.CopyMode.Copy, params, facesModel, names);
+
+        solid.visible = false;
+        this.temp?.cancel();
         this.temp = this.db.addTemporaryItems([result]);
+
         return super.update();
     }
 
     commit() {
         const { solid, solidModel, facesModel, direction } = this;
 
-        this.temp!.cancel();
-        this.db.removeItem(solid);
-
         const params = new c3d.ModifyValues();
-        params.way = c3d.ModifyingType.Action;
+        params.way = c3d.ModifyingType.Offset;
         params.direction = new c3d.Vector3D(direction.x, direction.y, direction.z);
-
         const names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
         const result = c3d.ActionDirect.FaceModifiedSolid(solidModel, c3d.CopyMode.KeepHistory, params, facesModel, names);
+
+        this.temp!.cancel();
+        this.db.removeItem(solid);
         this.db.addItem(result);
 
         return super.commit();

@@ -1,7 +1,6 @@
 import * as THREE from "three";
-import { DirectionalLight } from "three";
 import BoxFactory from "../src/commands/box/Box";
-import ModifyFaceFactory from '../src/commands/modifyface/Factory';
+import FilletFactory from "../src/commands/fillet/Fillet";
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
@@ -12,7 +11,7 @@ import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
 
 let db: GeometryDatabase;
-let modifyFace: ModifyFaceFactory;
+let fillet: FilletFactory;
 let materials: Required<MaterialDatabase>;
 let sprites: Required<SpriteDatabase>;
 let signals: EditorSignals;
@@ -22,36 +21,38 @@ beforeEach(() => {
     sprites = new FakeSprites();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
-    modifyFace = new ModifyFaceFactory(db, materials, signals);
+    fillet = new FilletFactory(db, materials, signals);
 })
 
 describe('update', () => {
-    let solid: visual.Solid;
-
-    beforeEach(() => {
-        expect(db.scene.children.length).toBe(0);
+    test('when a fillet succeeds then fails, it rolls back to previous version', () => {
         const makeBox = new BoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
         makeBox.commit();
-        expect(db.scene.children.length).toBe(1);
-        solid = db.scene.children[0] as visual.Solid;
+        const solid = db.scene.children[0] as visual.Solid;
         expect(solid).toBeInstanceOf(visual.Solid);
-    });
 
-    test('push/pulls the visual face', () => {
-        const face = solid.faces.get(0);
-        modifyFace.solid = solid;
-        modifyFace.faces = [face];
-        modifyFace.direction = new THREE.Vector3(0, 0, 1);
-        modifyFace.update();
+        fillet.item = solid;
+        fillet.edges = [solid.edges.get(2)];
+        fillet.transaction(['distance'], () => {
+            fillet.distance = 0.01;
+            fillet.update();
+        });
+        expect(fillet.distance).toBe(0.01);
+
+        fillet.transaction(['distance'], () => {
+            fillet.distance = 0.1;
+            fillet.update();
+        });
+        expect(fillet.distance).toBe(0.1);
+
+        fillet.transaction(['distance'], () => {
+            fillet.distance = 100;
+            fillet.update();
+        });
+        expect(fillet.distance).toBe(0.1);
     });
 });
-
-describe('commit', () => {
-    test('invokes the appropriate c3d commands', () => {
-
-    })
-})

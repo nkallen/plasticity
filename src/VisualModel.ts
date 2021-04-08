@@ -42,6 +42,7 @@ export class SpaceInstance<T extends SpaceItem> extends Item {
         return this.children[0] as T;
     }
 }
+
 export class Curve3D extends SpaceItem {
     disposable = new CompositeDisposable()
 
@@ -119,6 +120,10 @@ export class CurveEdgeGroup extends THREE.Group {
             yield child as CurveEdge;
         }
     }
+
+    get(i: number) {
+        return this.children[i] as CurveEdge;
+    }
 }
 export class FaceGroup extends THREE.Group {
     private _useNominal: undefined;
@@ -128,6 +133,10 @@ export class FaceGroup extends THREE.Group {
         for (const child of this.children) {
             yield child as Face;
         }
+    }
+
+    get(i: number) {
+        return this.children[i] as Face;
     }
 }
 

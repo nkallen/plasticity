@@ -361,7 +361,9 @@ export class FilletCommand extends Command {
 
         await filletGizmo.execute((delta) => {
             fillet.distance = delta;
-            fillet.update();
+            fillet.transaction(['distance'], () => {
+                fillet.update();
+            });
         })
 
         fillet.commit();
@@ -387,8 +389,11 @@ export class ModifyFaceCommand extends Command {
         const gizmo = new ModifyFaceGizmo(this.editor, face, point, normal);
 
         await gizmo.execute((offset) => {
-            modifyFace.direction = offset;
-            modifyFace.update();
+            modifyFace.transaction(['direction'], () => {
+                modifyFace.direction = offset;
+                modifyFace.update();
+                console.log("was successful");
+            });
         })
 
         modifyFace.commit();

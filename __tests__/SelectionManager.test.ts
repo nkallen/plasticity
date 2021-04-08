@@ -42,7 +42,7 @@ describe('onClick', () => {
         intersections.push({
             distance: 1,
             point: new THREE.Vector3(),
-            object: solid.faces.children[0]
+            object: solid.faces.get(0)
         });
 
         expect(selectionManager.selectedSolids.size).toBe(0);
@@ -58,7 +58,7 @@ describe('onClick', () => {
         intersections.push({
             distance: 1,
             point: new THREE.Vector3(),
-            object: solid.edges.children[0]
+            object: solid.edges.get(0)
         });
 
         expect(selectionManager.selectedSolids.size).toBe(0);

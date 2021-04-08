@@ -46,12 +46,12 @@ const solid = editor.db.scene.children[1] as visual.Solid;
 // editor.selection.onClick([{
 //     distance: 1,
 //     point: new THREE.Vector3(),
-//     object: solid.faces.children[0]
+//     object: solid.faces.get(0)
 // }]);
 // editor.selection.onClick([{
 //     distance: 1,
 //     point: new THREE.Vector3(),
-//     object: solid.faces.children[0]
+//     object: solid.faces.get(0)
 // }]);
 
 

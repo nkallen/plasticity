@@ -50,21 +50,25 @@ export default class FilletFactory extends GeometryFactory {
         this.params = params;
     }
 
+    get distance() {
+        return this.params.distance1;
+    }
+
     update() {
         this.item.visible = false;
-        this.temp?.cancel();
 
         const phantom = c3d.ActionPhantom.SmoothPhantom(this.solid, this.curves, this.params);
+        this.temp?.cancel();
         this.temp = this.db.addTemporaryItems(phantom.map(ph => new c3d.SpaceInstance(ph)));
 
         return super.update();
     }
 
     commit() {
-        this.temp!.cancel();
-        this.db.removeItem(this.item);
         const names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
         const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.KeepHistory, this.curves, [], this.params, names);
+        this.db.removeItem(this.item);
+        this.temp!.cancel();
         this.db.addItem(result);
 
         return super.commit();
