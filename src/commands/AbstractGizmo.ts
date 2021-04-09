@@ -75,7 +75,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 const center3d = this.position.clone().project(camera);
                 const center2d = new THREE.Vector2(center3d.x, center3d.y);
                 const start = new THREE.Vector2(); // FIXME something is wrong here
-                const end = new THREE.Vector2();
+                const radius = new THREE.Vector2();
                 let angle = 0;
 
                 const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid);
@@ -88,10 +88,12 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     viewport.disableControls();
                     domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
 
-                    this.onPointerDown(intersector);
-
+                    const intersection = intersector(plane, true);
+                    if (intersection == null) return;
                     pointStart2d.set(pointer.x, pointer.y);
-                    pointStart3d.copy(intersector(plane, true).point);
+                    pointStart3d.copy(intersection.point);
+
+                    this.onPointerDown(intersector);
                     dragging = true;
                 }
 
@@ -108,11 +110,12 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     if (this.object == null || !dragging || pointer.button !== -1) return;
 
                     pointEnd2d.set(pointer.x, pointer.y);
-                    pointEnd3d.copy(intersector(plane, true).point);
-                    end.copy(pointEnd2d).sub(center2d).normalize();
-                    angle = Math.atan2(end.y, end.x) - Math.atan2(start.y, start.x);
+                    const intersection = intersector(plane, true);
+                    pointEnd3d.copy(intersection.point);
+                    radius.copy(pointEnd2d).sub(center2d).normalize();
+                    angle = Math.atan2(radius.y, radius.x) - Math.atan2(start.y, start.x);
 
-                    const info: MovementInfo = { pointStart2d, pointEnd2d, angle, pointStart3d, pointEnd3d }
+                    const info: MovementInfo = { pointStart2d, pointEnd2d, radius, angle, pointStart3d, center2d, pointEnd3d }
                     this.onPointerMove(cb, intersector, info);
 
                     this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename
@@ -182,14 +185,16 @@ export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) =
 
 export interface MovementInfo {
     // These are the mouse down and mouse move positions in screenspace
-    pointStart2d: THREE.Vector2,
-    pointEnd2d: THREE.Vector2,
+    pointStart2d: THREE.Vector2;
+    pointEnd2d: THREE.Vector2;
 
     // These are the mouse positions projected on to a plane parallel to the camera
     // but located at the gizmos position
-    pointStart3d: THREE.Vector3,
-    pointEnd3d: THREE.Vector3,
+    pointStart3d: THREE.Vector3;
+    pointEnd3d: THREE.Vector3;
 
     // This is the angle change (polar coordinates) in screenspace
-    angle: number
+    radius: THREE.Vector2;
+    angle: number;
+    center2d: THREE.Vector2;
 }

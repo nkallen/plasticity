@@ -48,7 +48,7 @@ export class GeometryDatabase {
     }
 
     addTemporaryItem(object: c3d.Item): TemporaryObject {
-        const mesh = this.object2mesh(object, 0.05, false);
+        const mesh = this.object2mesh(object, 0.01, false);
         this.scene.add(mesh);
         return {
             cancel: () => {

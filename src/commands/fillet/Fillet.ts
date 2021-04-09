@@ -57,9 +57,10 @@ export default class FilletFactory extends GeometryFactory {
     update() {
         this.item.visible = false;
 
-        const phantom = c3d.ActionPhantom.SmoothPhantom(this.solid, this.curves, this.params);
+        const names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
+        const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.KeepHistory, this.curves, [], this.params, names);
         this.temp?.cancel();
-        this.temp = this.db.addTemporaryItems(phantom.map(ph => new c3d.SpaceInstance(ph)));
+        this.temp = this.db.addTemporaryItem(result);
 
         return super.update();
     }
