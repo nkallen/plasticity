@@ -21,13 +21,13 @@ export class GeometryDatabase {
 
     addItem(object: c3d.Item, mesh?: visual.SpaceItem) {
         mesh = mesh ?? this.object2mesh(object);
-        const o = this.geometryModel.AddItem(object);
-        mesh.userData.simpleName = o.GetItemName();
+        this.geometryModel.AddItem(object, object.GetItemName());
+        mesh.userData.simpleName = object.GetItemName();
 
         this.scene.add(mesh);
         this.drawModel.add(mesh);
 
-        this.signals.objectAdded.dispatch(mesh);
+        this.signals.objectAdded.dispatch(mesh); // FIXME dispatch object and mesh, since snapmanager is just looking up the object immediately afterward
         this.signals.sceneGraphChanged.dispatch();
     }
 
@@ -71,6 +71,7 @@ export class GeometryDatabase {
     }
 
     lookupItem(object: visual.Item): c3d.Item {
+        console.log("looking up", object.userData.simpleName);
         const { item } = this.geometryModel.GetItemByName(object.userData.simpleName);
         return item;
     }
