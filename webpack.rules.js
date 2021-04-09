@@ -14,6 +14,17 @@ module.exports = [
         ],
     },
     {
+        test: /\.dll/,
+        use: [
+            {
+                loader: 'file-loader',
+                options: {
+                    name: '[name].[ext]'
+                }
+            },
+        ],
+    },
+    {
         test: /\.tsx?$/,
         exclude: /(node_modules|\.webpack)/,
         use: {
