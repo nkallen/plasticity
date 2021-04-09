@@ -55,7 +55,7 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
         const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
         cylinder.position.set(0, 0.6, 0);
         cylinder.name = 'normal';
-        
+
         const torus = new THREE.Mesh(new THREE.TorusGeometry(1, 0.1, 4, 24), matInvisible);
         torus.name = 'screen';
 
@@ -106,7 +106,12 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
             const planeIntersect = intersect(this.plane, true);
             if (!planeIntersect) return;
             this.pointEnd.copy(planeIntersect.point).sub(this.origin);
-            cb(this.pointEnd.sub(this.pointStart));
+            // cb(this.pointEnd.sub(this.pointStart));
+            const { center2d, pointStart2d, pointEnd2d } = info;
+            const startDist = pointStart2d.clone().sub(center2d).length();
+            const endDist = pointEnd2d.sub(center2d).length();
+
+            cb(new THREE.Vector3(1, 0, 0).multiplyScalar(startDist - endDist));
         } else if (this.mode == 'screen') {
             cb(info.pointEnd3d.sub(info.pointStart3d));
         }
