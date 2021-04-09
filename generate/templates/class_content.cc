@@ -47,7 +47,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
         <%- include('polymorphic_arguments.cc', { func: initializer }) %>
         ) {
             <%_ for (const arg of initializer.params) { _%>
-            <%- include('convert_from_js.cc', { arg: arg }) %>
+            <%- include('convert_from_js.cc', { arg: arg, isVoid: true }) %>
             <%_ } _%>
 
             <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(<%- initializer.params.map((arg) => arg.name).join(',') %>);
@@ -100,7 +100,7 @@ Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::Ca
 
 void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {
     Napi::Env env = info.Env();
-    <%- include('convert_from_js.cc', { arg: field }) %>
+    <%- include('convert_from_js.cc', { arg: field, isVoid: true }) %>
     _underlying-><%- field.name %> = <%- field.name %>;
 }
 <%_ } _%>

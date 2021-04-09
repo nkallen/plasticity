@@ -192,7 +192,6 @@ export default {
             extends: "Creator",
             dependencies: ["SNameMaker.h", "CartPoint3D.h", "FaceShell.h", "Creator.h"],
             initializers: [
-                "const RPArray<MbCartPoint3D> & pnts, ElementaryShellType t, const MbSNameMaker & n"
             ],
             functions: [
                 "bool CreateShell(MbFaceShell *& result, MbeCopyMode sameShell)"

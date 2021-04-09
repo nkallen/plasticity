@@ -16,7 +16,7 @@ const createWindow = (): void => {
         width: 1000,
         x: 0,
         y: 0,
-        show: false,
+        // show: false,
         webPreferences: {
             // preload: path.join(path.join(__dirname, 'preload.js')),
             nodeIntegration: true,

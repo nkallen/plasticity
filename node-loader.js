@@ -22,8 +22,8 @@ module.exports = function loader(content) {
 
   const compiler = this._compiler;
   const outputPath = compiler.options.output.path;
-  const fullPath = path.join(outputPath, name);
-  return `module.exports = __non_webpack_require__('${fullPath}');` 
+    const fullPath = path.join(outputPath, name);
+  return `module.exports = __non_webpack_require__(String.raw\`${fullPath}\`);` 
 }
 
 // export const raw = true;
