@@ -141,7 +141,6 @@ export class GeometryDatabase {
                 for (const edge of polygons) {
                     const line = new visual.CurveEdge(edge, lineMaterial, this.materials.lineDashed());
                     edges.addEdge(line);
-                    line.renderOrder = 999;
                 }
                 solid.addEdges(edges.build());
 

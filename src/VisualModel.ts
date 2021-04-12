@@ -79,7 +79,7 @@ export class CurveEdge extends Edge {
         const occludedLine = new Line2(geometry, occludedMaterial);
         occludedLine.computeLineDistances();
         this.add(occludedLine);
-        this.renderOrder = 999;
+        occludedLine.renderOrder = RenderOrder.CurveEdge;
     }
 }
 export class CurveSegment extends SpaceItem { // This doesn't correspond to a real c3d class, but it's here for convenience
@@ -90,6 +90,7 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
         Line2.call(this, geometry, material);
         this.userData.name = edge.name;
         this.userData.simpleName = edge.simpleName;
+        this.renderOrder = RenderOrder.CurveSegment;
     }
 
     get parentItem() {
@@ -108,6 +109,7 @@ export class Face extends TopologyItem {
         THREE.Mesh.call(this, geometry, material);
         this.userData.name = grid.name;
         this.userData.simpleName = grid.simpleName;
+        this.renderOrder = RenderOrder.Face;
     }
 }
 
@@ -249,4 +251,10 @@ export class CurveEdgeGroupBuilder {
     build() {
         return this.curveEdgeGroup;
     }
+}
+
+const RenderOrder = {
+    CurveEdge: 10,
+    Face: 1,
+    CurveSegment: 1,
 }
