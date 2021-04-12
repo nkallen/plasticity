@@ -102,8 +102,10 @@ export class SelectionManager {
         if (item instanceof visual.Solid) {
             this.selectedSolids.delete(item);
             this.selectedChildren.delete(item);
+            this.signals.objectDeselected.dispatch(item);
         } else if (item instanceof visual.SpaceInstance) {
             this.selectedCurves.delete(item);
+            this.signals.objectDeselected.dispatch(item);
         }
     }
 }

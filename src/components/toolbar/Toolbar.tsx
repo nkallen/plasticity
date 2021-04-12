@@ -22,6 +22,21 @@ export class Model {
             result.push(cmd.RotateCommand);
             result.push(cmd.ScaleCommand);
         }
+        if (this.selection.selectedSolids.size > 1) {
+            result.push(cmd.UnionCommand);
+            result.push(cmd.IntersectionCommand);
+            result.push(cmd.DifferenceCommand);
+        }
+        if (this.selection.selectedEdges.size > 0) {
+            result.push(cmd.FilletCommand);
+        }
+        if (this.selection.selectedFaces.size > 0) {
+            result.push(cmd.ModifyFaceCommand);
+        }
+        if (this.selection.selectedSolids.size > 0 && this.selection.selectedCurves.size > 0) {
+            result.push(cmd.CutCommand)
+        }
+
         return result;
     }
 }
@@ -56,7 +71,6 @@ export default (editor: Editor) => {
         }
 
         update(object: THREE.Object3D) {
-            console.log("in update");
             this.render();
         }
 
