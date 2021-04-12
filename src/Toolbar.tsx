@@ -1,8 +1,10 @@
 import { render } from 'preact';
-import { Editor } from './Editor';
 import Command, * as cmd from './commands/Command';
+import { Editor } from './Editor';
 import { GConstructor } from './Util';
-import assert from "assert";
+import './img/translate.svg';
+import './img/rotate.svg';
+import './img/scale.svg';
 
 export default (editor: Editor) => {
     class CommandButton extends HTMLButtonElement {

@@ -1,0 +1,42 @@
+ispace-toolbar2 {
+    position: absolute;
+    left: 10px;
+    top: 42px;
+    width: 32px;
+    background: #eee;
+    text-align: center;
+    z-index: 100;
+
+    button {
+        color: #aaa;
+        // background-color: #222;
+        position: relative;
+        border: 0px;
+        margin: 0px;
+        /* GNOME Web */
+        padding: 5px 8px;
+        text-transform: uppercase;
+        cursor: pointer;
+        outline: none;
+
+        &:hover {
+            color: #ccc;
+            background-color: #444;
+        }
+
+        &.selected {
+            color: #fff;
+            background-color: #08f;
+        }
+    }
+
+    button,
+    input {
+        height: 32px;
+    }
+
+    button img {
+        width: 16px;
+        opacity: 0.5;
+    }
+}
