@@ -71,7 +71,6 @@ export class GeometryDatabase {
     }
 
     lookupItem(object: visual.Item): c3d.Item {
-        console.log("looking up", object.userData.simpleName);
         const { item } = this.geometryModel.GetItemByName(object.userData.simpleName);
         return item;
     }

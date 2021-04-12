@@ -1,6 +1,6 @@
 import Stats from 'stats.js';
 import * as THREE from 'three';
-import '../build/Release/c3d.dll'; // On windows, this will copy the file into the webpack bundle
+// import '../build/Release/c3d.dll'; // On windows, this will copy the file into the webpack bundle
 import c3d from '../build/Release/c3d.node';
 import license from '../license-key.json';
 import BoxFactory from './commands/box/Box';
