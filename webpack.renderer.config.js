@@ -1,6 +1,5 @@
 const rules = require('./webpack.rules');
 const plugins = require('./webpack.plugins');
-const path = require('path');
 
 rules.push({
     test: /\.css$/,
@@ -16,29 +15,10 @@ rules.push({
 
 rules.push({
     test: /\.less$/,
-    include: [
-        path.resolve(__dirname, "src/css"),
-    ],
     use: [
         {
             loader: 'style-loader',
         },
-        {
-            loader: 'css-loader',
-        },
-        {
-            loader: 'less-loader',
-        },
-    ],
-});
-
-
-rules.push({
-    test: /\.less$/,
-    include: [
-        path.resolve(__dirname, "src/components"),
-    ],
-    use: [
         {
             loader: 'css-loader',
         },

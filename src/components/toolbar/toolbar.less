@@ -1,32 +1,34 @@
-button {
-    color: #aaa;
-    // background-color: #222;
-    position: relative;
-    border: 0px;
-    margin: 0px;
-    /* GNOME Web */
-    padding: 5px 8px;
-    text-transform: uppercase;
-    cursor: pointer;
-    outline: none;
+ispace-toolbar2 {
+    button {
+        color: #aaa;
+        // background-color: #222;
+        position: relative;
+        border: 0px;
+        margin: 0px;
+        /* GNOME Web */
+        padding: 5px 8px;
+        text-transform: uppercase;
+        cursor: pointer;
+        outline: none;
 
-    &:hover {
-        color: #ccc;
-        background-color: #444;
+        &:hover {
+            color: #ccc;
+            background-color: #444;
+        }
+
+        &.selected {
+            color: #fff;
+            background-color: #08f;
+        }
     }
 
-    &.selected {
-        color: #fff;
-        background-color: #08f;
+    button,
+    input {
+        height: 32px;
     }
-}
 
-button,
-input {
-    height: 32px;
-}
-
-button img {
-    width: 16px;
-    opacity: 0.5;
+    button img {
+        width: 16px;
+        opacity: 0.5;
+    }
 }

@@ -1,3 +1,4 @@
+import { render } from 'preact';
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -5,13 +6,11 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
-import { AbstractGizmo } from "./commands/AbstractGizmo";
 import { Editor } from './Editor';
 import { Pane } from './Pane';
 import { ViewportSelector } from './selection/ViewportSelector';
 import { PlaneSnap } from "./SnapManager";
 import { Solid, SpaceItem, TopologyItem } from "./VisualModel";
-import { h, render } from 'preact';
 
 const near = 0.01;
 const far = 1000;

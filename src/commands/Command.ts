@@ -24,6 +24,10 @@ import { ModifyFaceGizmo } from "./modifyface/Gizmo";
 export default abstract class Command {
     editor: Editor;
 
+    static get title() {
+        return this.name.replace(/Command/, '').toLowerCase();
+    }
+
     constructor(editor: Editor) {
         this.editor = editor;
     }
