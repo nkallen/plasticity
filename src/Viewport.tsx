@@ -11,6 +11,7 @@ import { Pane } from './Pane';
 import { ViewportSelector } from './selection/ViewportSelector';
 import { PlaneSnap } from "./SnapManager";
 import { Solid, SpaceItem, TopologyItem } from "./VisualModel";
+import { h, render } from 'preact';
 
 const near = 0.01;
 const far = 1000;
@@ -123,6 +124,7 @@ export default (editor: Editor) => {
             this.composer.addPass(copyPass);
 
             this.shadowRoot!.append(domElement);
+            render(<slot></slot>, this.shadowRoot!)
 
             this.outlineSelection = this.outlineSelection.bind(this);
             this.outlineHover = this.outlineHover.bind(this);
