@@ -8,7 +8,7 @@ import SphereFactory from './commands/sphere/Sphere';
 import './css/index.less';
 import { Editor } from './Editor';
 import './Pane';
-import Toolbar from './Toolbar';
+import Toolbar from './components/toolbar/Toolbar';
 import Viewport from './Viewport';
 import * as visual from '../src/VisualModel';
 import c3d from '../build/Release/c3d.node';

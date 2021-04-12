@@ -1,11 +1,11 @@
 import { render } from 'preact';
-import Command, * as cmd from './commands/Command';
-import { Editor } from './Editor';
-import { GConstructor } from './Util';
-import './img/translate.svg';
-import './img/rotate.svg';
-import './img/scale.svg';
-import toolbar2 from './components/toolbar2.less';
+import Command, * as cmd from '../../commands/Command';
+import { Editor } from '../../Editor';
+import { GConstructor } from '../../Util';
+import './translate.svg';
+import './rotate.svg';
+import './scale.svg';
+import toolbar2 from './toolbar.less';
 
 export default (editor: Editor) => {
     class CommandButton extends HTMLButtonElement {
