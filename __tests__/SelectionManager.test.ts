@@ -75,4 +75,31 @@ describe('onClick', () => {
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(0);
     });
+
+    test("clicking on both a line and a face selects the line", () => {
+        const intersections = [
+            {
+                distance: 1,
+                point: new THREE.Vector3(),
+                object: solid.faces.get(0)
+            },
+            {
+                distance: 1,
+                point: new THREE.Vector3(),
+                object: solid.edges.get(0)
+            }
+        ];
+
+        expect(selectionManager.selectedSolids.size).toBe(0);
+        expect(selectionManager.selectedEdges.size).toBe(0);
+        selectionManager.onClick(intersections);
+        expect(selectionManager.selectedSolids.size).toBe(1);
+        expect(selectionManager.selectedEdges.size).toBe(0);
+        expect(selectionManager.selectedFaces.size).toBe(0);
+
+        selectionManager.onClick(intersections);
+        expect(selectionManager.selectedSolids.size).toBe(0);
+        expect(selectionManager.selectedEdges.size).toBe(1);
+        expect(selectionManager.selectedFaces.size).toBe(0);
+    });
 })

@@ -44,9 +44,24 @@ export class SelectionManager {
             return;
         }
 
+        console.log(intersections.length, intersections)
+        intersections.sort((i1, i2) => {
+            const a = i1.object, b = i2.object;
+            if (a instanceof visual.CurveEdge && b instanceof visual.Face) {
+                return -1;
+            } else if (a instanceof visual.Face && b instanceof visual.CurveEdge) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        console.log(">>>>>>>>>>>>>>>>>>>");
         for (const intersection of intersections) {
+            console.log("processing intersection");
             const object = intersection.object;
             if (object instanceof Face || object instanceof CurveEdge) {
+                console.log(object instanceof Face, object instanceof CurveEdge)
                 const parentItem = object.parentItem;
                 if (this.mode.has(SelectionMode.Solid)) {
                     if (strategy.solid(object, parentItem as Solid)) return;

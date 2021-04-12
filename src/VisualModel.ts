@@ -79,7 +79,7 @@ export class CurveEdge extends Edge {
         const occludedLine = new Line2(geometry, occludedMaterial);
         occludedLine.computeLineDistances();
         this.add(occludedLine);
-        occludedLine.renderOrder = RenderOrder.CurveEdge;
+        occludedLine.renderOrder = this.renderOrder = RenderOrder.CurveEdge;
     }
 }
 export class CurveSegment extends SpaceItem { // This doesn't correspond to a real c3d class, but it's here for convenience
