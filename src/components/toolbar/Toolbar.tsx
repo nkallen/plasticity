@@ -2,15 +2,27 @@ import { render } from 'preact';
 import Command, * as cmd from '../../commands/Command';
 import { Editor } from '../../Editor';
 import { GConstructor } from '../../Util';
-import move from './move.svg';
-import rotate from './rotate.svg';
-import scale from './scale.svg';
+import move from './img/move.svg';
+import rotate from './img/rotate.svg';
+import scale from './img/scale.svg';
+import modifyFace from './img/modify-face.svg';
+import fillet from './img/fillet.svg';
+import intersection from './img/intersection.svg';
+import difference from './img/difference.svg';
+import union from './img/union.svg';
+import cut from './img/cut.svg';
 import { SelectionManager } from '../../selection/SelectionManager';
 
 const icons = new Map<typeof Command, string>();
 icons.set(cmd.MoveCommand, move);
 icons.set(cmd.RotateCommand, rotate);
 icons.set(cmd.ScaleCommand, scale);
+icons.set(cmd.ModifyFaceCommand, modifyFace);
+icons.set(cmd.FilletCommand, fillet);
+icons.set(cmd.IntersectionCommand, intersection);
+icons.set(cmd.DifferenceCommand, difference);
+icons.set(cmd.UnionCommand, union);
+icons.set(cmd.CutCommand, cut);
 
 export class Model {
     constructor(private readonly selection: SelectionManager) { }
