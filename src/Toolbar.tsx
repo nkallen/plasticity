@@ -5,6 +5,7 @@ import { GConstructor } from './Util';
 import './img/translate.svg';
 import './img/rotate.svg';
 import './img/scale.svg';
+import toolbar2 from './components/toolbar2.less';
 
 export default (editor: Editor) => {
     class CommandButton extends HTMLButtonElement {
@@ -20,27 +21,33 @@ export default (editor: Editor) => {
     }
     customElements.define('ispace-command', CommandButton, { extends: 'button' });
 
-    class Inspector extends HTMLElement {
+    class Toolbar2 extends HTMLElement {
         constructor() {
             super();
             this.attachShadow({ mode: 'open' });
 
-            editor.signals.objectAdded.add(this.update.bind(this));
+            editor.signals.objectSelected.add(this.update.bind(this));
+            editor.signals.objectDeselected.add(this.update.bind(this));
 
-            this.render("");
+            this.render();
         }
 
         update(object: THREE.Object3D) {
-            this.render(object.uuid);
+            this.render();
         }
 
-        render(uuid: string) {
+        render() {
             const result = (
-                <span>{uuid}</span>
+                <>
+                    <style type="text/css">{toolbar2.toString()}</style>
+                    <button><img title="Translate" src="img/translate.svg"></img></button>
+                    <button><img title="Rotate" src="img/rotate.svg"></img></button>
+                    <button><img title="Scale" src="img/scale.svg"></img></button>
+                </>
             );
             render(result, this.shadowRoot!);
         }
     }
-    customElements.define('ispace-inspector', Inspector);
+    customElements.define('ispace-toolbar2', Toolbar2);
 
 }
