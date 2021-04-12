@@ -392,7 +392,6 @@ export class ModifyFaceCommand extends Command {
             modifyFace.transaction(['direction'], () => {
                 modifyFace.direction = offset;
                 modifyFace.update();
-                console.log("was successful");
             });
         })
 
