@@ -1,10 +1,10 @@
-import { CircleGeometry } from "../../Util";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
+import { CircleGeometry } from "../../Util";
 import * as visual from "../../VisualModel";
-import { AbstractGizmo, Pointer, Intersector, MovementInfo } from "../AbstractGizmo";
+import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 
 const gizmoMaterial = new THREE.MeshBasicMaterial({
     depthTest: false,
@@ -106,7 +106,6 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
             const planeIntersect = intersect(this.plane, true);
             if (!planeIntersect) return;
             this.pointEnd.copy(planeIntersect.point).sub(this.origin);
-            // cb(this.pointEnd.sub(this.pointStart));
             const { center2d, pointStart2d, pointEnd2d } = info;
             const startDist = pointStart2d.clone().sub(center2d).length();
             const endDist = pointEnd2d.sub(center2d).length();

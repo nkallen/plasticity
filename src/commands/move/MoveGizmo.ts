@@ -1,5 +1,7 @@
-import { assertUnreachable } from "../../Util";
+import { CircleGeometry } from "../../Util";
 import * as THREE from "three";
+import { Line2 } from "three/examples/jsm/lines/Line2";
+import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
@@ -16,9 +18,8 @@ matInvisible.opacity = 0.15;
 
 const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, 0.1, 12, 1, false);
 
-
 const lineGeometry = new THREE.BufferGeometry();
-lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3));
+lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0.2, 0, 0, 1, 0, 0], 3));
 
 const gizmoMaterial = new THREE.MeshBasicMaterial({
     depthTest: false,
@@ -97,6 +98,8 @@ const planeMaterial = new THREE.MeshBasicMaterial({ visible: false, side: THREE.
 export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     private readonly pointStart: THREE.Vector3;
     private readonly pointEnd: THREE.Vector3;
+    private readonly circle: THREE.Mesh;
+    private readonly torus: THREE.Mesh;
 
     constructor(editor: Editor, object: visual.SpaceItem, p1: THREE.Vector3) {
         const handle = new THREE.Group();
@@ -109,7 +112,6 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         const planeXZ = new THREE.Mesh(planeGeometry, planeMaterial);
         planeXZ.lookAt(0, 1, 0);
         [planeXY, planeYZ, planeXY].forEach(plane => plane.updateMatrixWorld());
-
 
         {
             const X = new THREE.Vector3(1, 0, 0);
@@ -158,8 +160,8 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
 
         {
             const XY = new THREE.Vector3(1, 1, 0);
-            const square = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), matYellowTransparent.clone());
-            square.position.set(0.25, 0.25, 0);
+            const square = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.15), matYellowTransparent.clone());
+            square.position.set(0.3, 0.3, 0);
             handle.add(square);
 
             const p = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), matInvisible);
@@ -171,8 +173,8 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
 
         {
             const YZ = new THREE.Vector3(0, 1, 1);
-            const square = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), matCyanTransparent.clone());
-            square.position.set(0, 0.25, 0.25);
+            const square = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.15), matCyanTransparent.clone());
+            square.position.set(0, 0.3, 0.3);
             square.rotation.set(0, Math.PI / 2, 0);
             handle.add(square);
 
@@ -185,8 +187,8 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
 
         {
             const XZ = new THREE.Vector3(1, 0, 1);
-            const square = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), matMagentaTransparent.clone());
-            square.position.set(0.25, 0, 0.25);
+            const square = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.15), matMagentaTransparent.clone());
+            square.position.set(0.3, 0, 0.3);
             square.rotation.set(-Math.PI / 2, 0, 0);
             handle.add(square);
 
@@ -197,10 +199,25 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             picker.add(p);
         }
 
+        const { circle, torus } = (() => {
+            const geometry = new LineGeometry();
+            const radius = 0.15;
+            geometry.setPositions(CircleGeometry(radius, 32));
+            const circle = new Line2(geometry, editor.materials.gizmo());
+            handle.add(circle);
+            const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), matInvisible);
+            torus.userData.mode = { state: 'screen' } as Mode;
+            picker.add(torus);
+            return { circle, torus };
+        })()
+
         super(editor, object, { handle: handle, picker: picker, delta: null, helper: null });
 
         this.pointStart = new THREE.Vector3();
         this.pointEnd = new THREE.Vector3();
+
+        this.circle = circle;
+        this.torus = torus;
 
         this.position.copy(p1);
         // this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), axis);
@@ -215,8 +232,11 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     }
 
     onPointerDown(intersect: Intersector) {
-        const planeIntersect = intersect(this.mode.plane, true);
-        this.pointStart.copy(planeIntersect.point);
+        const mode = this.mode as Mode;
+        if (mode.state != 'screen') {
+            const planeIntersect = intersect(this.mode.plane, true);
+            this.pointStart.copy(planeIntersect.point);
+        }
     }
 
     onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo) {
@@ -233,19 +253,29 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
 
                 cb(this.pointEnd.sub(this.pointStart).multiply(this.mode.multiplicand));
                 break;
+            case 'screen':
+                cb(info.pointEnd3d.sub(info.pointStart3d));
+                break;
             default:
                 throw this.mode;
         }
     }
 
     update(camera: THREE.Camera) {
+
+        this.circle.lookAt(camera.position);
+        this.torus.lookAt(camera.position);
+
+        this.circle.updateMatrixWorld();
+        this.torus.updateMatrixWorld();
+
         let factor;
         if (camera instanceof THREE.OrthographicCamera) {
             factor = (camera.top - camera.bottom) / camera.zoom;
         } else if (camera instanceof THREE.PerspectiveCamera) {
             factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360) / camera.zoom, 7);
         } else {
-            throw "wtf";
+            throw new Error("Invalid camera type");
         }
 
         this.handle.scale.set(1, 1, 1).multiplyScalar(factor * 1 / 7);

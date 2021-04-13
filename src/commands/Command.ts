@@ -205,7 +205,6 @@ export class BoxCommand extends Command {
 
 export class MoveCommand extends Command {
     async execute() {
-        const pointPicker = new PointPicker(this.editor);
         let object = [...this.editor.selection.selectedSolids][0]!;
 
         const bbox = new THREE.Box3().setFromObject(object);
@@ -221,32 +220,13 @@ export class MoveCommand extends Command {
 
         const moveGizmo = new MoveGizmo(this.editor, object, centroid);
         await moveGizmo.execute(delta => {
-            console.log(delta);
             line.p2 = line.p1.clone().add(delta);
             move.p2 = move.p1.clone().add(delta);
             line.update();
             move.update();
-            // rotate.angle = angle;
-            // rotate.update();
         });
         line.cancel();
         move.commit();
-
-        // const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        // const p1 = await pointPicker.execute();
-        // line.p1 = p1;
-
-        // const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        // move.p1 = p1;
-        // move.item = object;
-        // const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
-        //     line.p2 = p2;
-        //     move.p2 = p2;
-        //     line.update();
-        //     move.update();
-        // });
-        // line.cancel();
-        // move.commit();
     }
 }
 
