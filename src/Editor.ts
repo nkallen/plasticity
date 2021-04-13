@@ -70,6 +70,12 @@ export class Editor {
         this.keymaps.add('/key/for/these/keymaps', {
             "ispace-viewport": {
                 "x": "gizmo:move:x",
+                "y": "gizmo:move:y",
+                "z": "gizmo:move:z",
+                "xy": "gizmo:move:xy",
+                "yz": "gizmo:move:yz",
+                "xz": "gizmo:move:xz",
+                "screen": "gizmo:move:screen",
             }
         });
 

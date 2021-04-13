@@ -127,6 +127,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             p.position.set(0.6, 0, 0);
             p.rotation.set(0, 0, - Math.PI / 2);
             p.userData.mode = { state: 'X', plane: planeXZ, multiplicand: X } as Mode;
+            p.userData.command = ['gizmo:move:x', () => this.mode = p.userData.mode];
             picker.add(p);
         }
 
@@ -142,6 +143,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
             p.position.set(0, 0.6, 0);
             p.userData.mode = { state: 'Y', plane: planeXY, multiplicand: Y } as Mode;
+            p.userData.command = ['gizmo:move:y', () => this.mode = p.userData.mode];
             picker.add(p);
         }
 
@@ -159,6 +161,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             p.position.set(0, 0, 0.6);
             p.rotation.set(Math.PI / 2, 0, 0);
             p.userData.mode = { state: 'Z', plane: planeXZ, multiplicand: Z } as Mode;
+            p.userData.command = ['gizmo:move:z', () => this.mode = p.userData.mode];
             picker.add(p);
         }
 
@@ -172,6 +175,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             p.position.copy(square.position);
             p.rotation.copy(square.rotation);
             p.userData.mode = { state: 'XY', plane: planeXY, multiplicand: XY };
+            p.userData.command = ['gizmo:move:xy', () => this.mode = p.userData.mode];
             picker.add(p);
         }
 
@@ -186,6 +190,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             p.position.copy(square.position);
             p.rotation.copy(square.rotation);
             p.userData.mode = { state: 'YZ', plane: planeYZ, multiplicand: YZ };
+            p.userData.command = ['gizmo:move:yz', () => this.mode = p.userData.mode];
             picker.add(p);
         }
 
@@ -200,6 +205,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             p.position.copy(square.position);
             p.rotation.copy(square.rotation);
             p.userData.mode = { state: 'XZ', plane: planeXZ, multiplicand: XZ };
+            p.userData.command = ['gizmo:move:xz', () => this.mode = p.userData.mode];
             picker.add(p);
         }
 
@@ -211,6 +217,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             handle.add(circle);
             const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), matInvisible);
             torus.userData.mode = { state: 'screen' } as Mode;
+            torus.userData.command = ['gizmo:move:screen', () => this.mode = torus.userData.mode];
             picker.add(torus);
             return { circle, torus };
         })()

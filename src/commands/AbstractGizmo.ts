@@ -53,14 +53,12 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     async execute(cb: CB) {
         const raycaster = new THREE.Raycaster();
 
-        const disposables = new CompositeDisposable();
-
         this.editor.helpers.add(this);
+        const disposables = new CompositeDisposable();
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
 
         return new Promise<void>((resolve, reject) => {
-            let hover = false;
-            let dragging = false;
+            let state: 'none' | 'hover' | 'dragging' | 'command' = 'none';
 
             for (const viewport of this.editor.viewports) {
                 const renderer = viewport.renderer;
@@ -77,24 +75,11 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 const start = new THREE.Vector2(); // FIXME something is wrong here
                 const radius = new THREE.Vector2();
                 let angle = 0;
-                console.log(domElement);
-
-                const registry = this.editor.registry;
-                const x: Disposable = registry.add(domElement, 'gizmo:move:x', () => {
-                    console.log("received x");
-                    // this.mode = { state: 'X', plane: planeXZ, multiplicand: new THREE.Vector3(1,0,0) };
-                    viewport.disableControls();
-                    const intersection = intersector(plane, true);
-                    if (intersection == null) return;
-                    // pointStart2d.set(pointer.x, pointer.y);
-                    domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
-                    pointStart3d.copy(intersection.point);
-                    dragging = true;
-                });
 
                 const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid);
+                let pointer: Pointer = null;
                 const update = (event: PointerEvent) => {
-                    const pointer = AbstractGizmo.getPointer(domElement, event);
+                    pointer = AbstractGizmo.getPointer(domElement, event);
                     this.update(camera);
                     plane.quaternion.copy(camera.quaternion);
                     plane.updateMatrixWorld();
@@ -102,13 +87,9 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     return pointer;
                 }
 
-                const onPointerDown = (event: PointerEvent) => {
-                    const pointer = update(event);
-                    if (this.object == null || dragging || pointer.button !== 0) return;
-                    if (!hover) return;
-
+                const begin = () => {
                     const intersection = intersector(plane, true);
-                    if (intersection == null) return;
+                    console.assert(intersection != null);
 
                     viewport.disableControls();
                     domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
@@ -116,48 +97,91 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                     pointStart2d.set(pointer.x, pointer.y);
                     pointStart3d.copy(intersection.point);
+                }
 
-                    this.onPointerDown(intersector);
-                    dragging = true;
+                // First, register any keyboard commands, like 'x' for move-x
+                const registry = this.editor.registry;
+                for (const picker of this.picker.children) {
+                    if (picker.userData.command == null) continue;
+                    const [name, fn] = picker.userData.command;
+
+                    const disp = registry.add(domElement, name, () => {
+                        begin();
+                        fn();
+                        state = 'command';
+                    });
+                    disposables.add(disp);
+                }
+
+                const onPointerDown = (event: PointerEvent) => {
+                    const pointer = update(event);
+                    switch (state) {
+                        case 'hover':
+                            console.assert(this.object != null);
+                            if (pointer.button !== 0) return;
+
+                            begin();
+                            this.onPointerDown(intersector);
+                            state = 'dragging';
+                            break;
+                        default: break;
+                    }
                 }
 
                 const onPointerMove = (event: PointerEvent) => {
                     const pointer = update(event);
-                    if (this.object == null || !dragging || pointer.button !== -1) return;
+                    switch (state) {
+                        case 'dragging':
+                            if (pointer.button !== -1) return;
+                        case 'command':
+                            console.assert(this.object != null);
+                            pointEnd2d.set(pointer.x, pointer.y);
+                            const intersection = intersector(plane, true);
+                            pointEnd3d.copy(intersection.point);
+                            radius.copy(pointEnd2d).sub(center2d).normalize();
+                            angle = Math.atan2(radius.y, radius.x) - Math.atan2(start.y, start.x);
 
-                    pointEnd2d.set(pointer.x, pointer.y);
-                    const intersection = intersector(plane, true);
-                    pointEnd3d.copy(intersection.point);
-                    radius.copy(pointEnd2d).sub(center2d).normalize();
-                    angle = Math.atan2(radius.y, radius.x) - Math.atan2(start.y, start.x);
+                            const info: MovementInfo = { pointStart2d, pointEnd2d, radius, angle, pointStart3d, center2d, pointEnd3d }
+                            this.onPointerMove(cb, intersector, info);
 
-                    const info: MovementInfo = { pointStart2d, pointEnd2d, radius, angle, pointStart3d, center2d, pointEnd3d }
-                    this.onPointerMove(cb, intersector, info);
-
-                    this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename
+                            this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename
+                            break;
+                        default:
+                            throw new Error('invalid state');
+                    }
                 }
 
                 const onPointerUp = (event: PointerEvent) => {
                     const pointer = update(event);
-                    if (this.object == null || !dragging || pointer.button !== 0) return;
+                    switch (state) {
+                        case 'dragging':
+                        case 'command':
+                            console.assert(this.object != null);
+                            console.log("here");
+                            if (pointer.button !== 0) return;
+                            disposables.dispose();
 
-                    disposables.dispose();
-
-                    this.editor.signals.pointPickerChanged.dispatch();
-                    dragging = false;
-                    viewport.enableControls();
-                    resolve();
+                            this.editor.signals.pointPickerChanged.dispatch();
+                            state = 'none';
+                            viewport.enableControls();
+                            resolve();
+                            break;
+                        default: break;
+                    }
                 }
 
                 const onPointerHover = (event: PointerEvent) => {
                     domElement.focus();
                     update(event);
-                    if (this.object == null || dragging) return;
-
-                    this.onPointerHover(intersector);
-
-                    const intersect = intersector(this.picker, true);
-                    hover = !!intersect;
+                    switch (state) {
+                        case 'none':
+                            console.assert(this.object != null);
+                            this.onPointerHover(intersector);
+                            const intersect = intersector(this.picker, true);
+                            state = !!intersect ? 'hover' : 'none';
+                            break;
+                        default: break;
+                    }
                 }
 
                 domElement.addEventListener('pointerdown', onPointerDown);
@@ -185,7 +209,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         this.updateMatrixWorld();
     }
 
-    protected static getPointer(domElement: HTMLElement, event: PointerEvent) {
+    protected static getPointer(domElement: HTMLElement, event: PointerEvent): Pointer {
         const rect = domElement.getBoundingClientRect();
         const pointer = event;
 

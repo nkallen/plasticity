@@ -40,7 +40,7 @@ export default class CommandRegistry {
             validateSelector(target);
             return this.addSelectorBasedListener(target, commandName, listener);
         } else {
-            this.addInlineListener(target, commandName, listener);
+            return this.addInlineListener(target, commandName, listener);
         }
     }
 
