@@ -1,8 +1,9 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import { Helper } from "../Helpers";
 import * as THREE from "three";
-import { Editor } from '../Editor';
+import { Editor, EditorSignals } from '../Editor';
 import * as visual from "../VisualModel";
+import { Viewport } from "../Viewport";
 
 /**
  * Gizmos are the graphical tools used to run commands, such as move/rotate/fillet, etc.
@@ -51,61 +52,16 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     abstract onPointerDown(intersect: Intersector): void;
 
     async execute(cb: CB) {
-        const raycaster = new THREE.Raycaster();
-
         this.editor.helpers.add(this);
         const disposables = new CompositeDisposable();
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
 
         return new Promise<void>((resolve, reject) => {
-            let state: 'none' | 'hover' | 'dragging' | 'command' = 'none';
-
             for (const viewport of this.editor.viewports) {
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
                 const domElement = renderer.domElement;
-
-                const plane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
-                const pointStart2d = new THREE.Vector2();
-                const pointEnd2d = new THREE.Vector2();
-                const pointStart3d = new THREE.Vector3();
-                const pointEnd3d = new THREE.Vector3();
-                const center3d = this.position.clone().project(camera);
-                const center2d = new THREE.Vector2(center3d.x, center3d.y);
-                const start = new THREE.Vector2(); // FIXME something is wrong here
-                const radius = new THREE.Vector2();
-                let angle = 0;
-
-                const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid);
-                let pointer: Pointer = null;
-                const update = (event: PointerEvent) => {
-                    pointer = AbstractGizmo.getPointer(domElement, event);
-                    this.update(camera);
-                    plane.quaternion.copy(camera.quaternion);
-                    plane.updateMatrixWorld();
-                    raycaster.setFromCamera(pointer, camera);
-                    return pointer;
-                }
-
-                const begin = () => {
-                    const intersection = intersector(plane, true);
-                    console.assert(intersection != null);
-
-                    if (state != 'command') {
-                        viewport.disableControls();
-                        domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
-                        domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
-
-                        pointStart3d.copy(intersection.point);
-                        pointStart2d.set(pointer.x, pointer.y);
-                        this.update(camera); // FIXME
-                        this.onPointerDown(intersector);
-                    } else {
-                        this.update(camera);
-                        this.onPointerMove(cb, intersector, {}); // FIXME this needs to be rethough
-                        this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename
-                    }
-                }
+                const stateMachine = new GizmoStateMachine(camera, this, this.editor.signals, cb);
 
                 // First, register any keyboard commands, like 'x' for move-x
                 const registry = this.editor.registry;
@@ -114,86 +70,44 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const [name, fn] = picker.userData.command;
 
                     const disp = registry.add(domElement, name, () => {
-                        switch (state) {
-                            case 'none':
-                            case 'hover':
-                            case 'command':
-                                fn();
-                                begin();
-                                state = 'command';
-                                break;
-                            default: break;
-                        }
+                        console.log(name, fn);
+                        stateMachine.command(fn, () => {
+                            viewport.disableControls();
+                            domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
+                            domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+                        });
                     });
                     disposables.add(disp);
                 }
 
+                // Next, the basic workflow for pointer events
                 const onPointerDown = (event: PointerEvent) => {
-                    const pointer = update(event);
-                    switch (state) {
-                        case 'hover':
-                            console.assert(this.object != null);
-                            if (pointer.button !== 0) return;
-
-                            begin();
-                            this.onPointerDown(intersector);
-                            state = 'dragging';
-                            break;
-                        default: break;
-                    }
+                    const pointer = AbstractGizmo.getPointer(domElement, event);
+                    stateMachine.pointerDown(pointer, () => {
+                        viewport.disableControls();
+                        domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
+                        domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+                    });
                 }
 
                 const onPointerMove = (event: PointerEvent) => {
-                    const pointer = update(event);
-                    switch (state) {
-                        case 'dragging':
-                            if (pointer.button !== -1) return;
-                        case 'command':
-                            console.assert(this.object != null);
-                            pointEnd2d.set(pointer.x, pointer.y);
-                            const intersection = intersector(plane, true);
-                            pointEnd3d.copy(intersection.point);
-                            radius.copy(pointEnd2d).sub(center2d).normalize();
-                            angle = Math.atan2(radius.y, radius.x) - Math.atan2(start.y, start.x);
-
-                            const info: MovementInfo = { pointStart2d, pointEnd2d, radius, angle, pointStart3d, center2d, pointEnd3d }
-                            this.onPointerMove(cb, intersector, info);
-                            this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename
-                            break;
-                        default: throw new Error('invalid state');
-                    }
+                    const pointer = AbstractGizmo.getPointer(domElement, event);
+                    stateMachine.pointerMove(pointer);
                 }
 
                 const onPointerUp = (event: PointerEvent) => {
-                    const pointer = update(event);
-                    switch (state) {
-                        case 'dragging':
-                        case 'command':
-                            console.assert(this.object != null);
-                            if (pointer.button !== 0) return;
-                            disposables.dispose();
-
-                            this.editor.signals.pointPickerChanged.dispatch();
-                            state = 'none';
-                            viewport.enableControls();
-                            resolve();
-                            break;
-                        default: break;
-                    }
+                    const pointer = AbstractGizmo.getPointer(domElement, event);
+                    stateMachine.pointerUp(pointer, () => {
+                        viewport.enableControls();
+                        disposables.dispose();
+                        resolve();
+                    });
                 }
 
                 const onPointerHover = (event: PointerEvent) => {
                     domElement.focus();
-                    update(event);
-                    switch (state) {
-                        case 'none':
-                            console.assert(this.object != null);
-                            this.onPointerHover(intersector);
-                            const intersect = intersector(this.picker, true);
-                            state = !!intersect ? 'hover' : 'none';
-                            break;
-                        default: break;
-                    }
+                    const pointer = AbstractGizmo.getPointer(domElement, event);
+                    stateMachine.pointerHover(pointer);
                 }
 
                 domElement.addEventListener('pointerdown', onPointerDown);
@@ -263,4 +177,149 @@ export interface MovementInfo {
     radius: THREE.Vector2;
     angle: number;
     center2d: THREE.Vector2;
+}
+
+// This class handles computing some useful data (like click start and click end) of the
+// gizmo user interaction. It deals with the hover->click->drag->unclick case (the traditional
+// gizmo interactions) as well as the keyboardCommand->move->click->unclick case (blender modal-style).
+class GizmoStateMachine<T> implements MovementInfo {
+    private state: 'none' | 'hover' | 'dragging' | 'command' = 'none';
+    private pointer!: Pointer;
+
+    private readonly plane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
+    pointStart2d = new THREE.Vector2();
+    pointEnd2d = new THREE.Vector2();
+    pointStart3d = new THREE.Vector3();
+    pointEnd3d = new THREE.Vector3();
+    center3d = this.gizmo.position.clone().project(this.camera);
+    center2d = new THREE.Vector2(this.center3d.x, this.center3d.y);
+    radius = new THREE.Vector2();
+    angle = 0;
+    private start = new THREE.Vector2(); // FIXME something is wrong here
+
+    private raycaster = new THREE.Raycaster();
+
+    constructor(
+        private readonly camera: THREE.Camera,
+        private readonly gizmo: AbstractGizmo<T>,
+        private readonly signals: EditorSignals,
+        private readonly cb: T,
+    ) { }
+
+    update(pointer: Pointer) {
+        this.gizmo.update(this.camera);
+        this.plane.quaternion.copy(this.camera.quaternion);
+        this.plane.updateMatrixWorld();
+        this.raycaster.setFromCamera(pointer, this.camera);
+        this.pointer = pointer;
+    }
+
+    intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
+
+    begin() {
+        const intersection = this.intersector(this.plane, true);
+        console.assert(intersection != null);
+        this.gizmo.update(this.camera);
+
+        switch (this.state) {
+            case 'none':
+            case 'hover':
+                this.pointStart3d.copy(intersection.point);
+                this.pointStart2d.set(this.pointer.x, this.pointer.y);
+                this.gizmo.onPointerDown(this.intersector);
+                break;
+            case 'command':
+                this.pointerMove(this.pointer);
+                break;
+            default: throw new Error("invalid state");
+        }
+        this.signals.pointPickerChanged.dispatch(); // FIXME rename
+    }
+
+    command(fn: () => void, start: () => void) {
+        console.log("in command", this.state);
+        switch (this.state) {
+            case 'none':
+            case 'hover':
+                start();
+            case 'command':
+                fn();
+                this.begin();
+                this.state = 'command';
+                break;
+            default: break;
+        }
+    }
+
+    pointerDown(pointer: Pointer, start: () => void) {
+        this.update(pointer);
+        switch (this.state) {
+            case 'hover':
+                if (pointer.button !== 0) return;
+
+                this.begin();
+                this.gizmo.onPointerDown(this.intersector);
+                this.state = 'dragging';
+                start();
+                break;
+            default: break;
+        }
+    }
+
+    pointerMove(pointer: Pointer) {
+        this.update(pointer);
+        switch (this.state) {
+            case 'dragging':
+                if (pointer.button !== -1) return;
+            case 'command':
+                this.pointEnd2d.set(pointer.x, pointer.y);
+                const intersection = this.intersector(this.plane, true);
+                this.pointEnd3d.copy(intersection.point);
+                this.radius.copy(this.pointEnd2d).sub(this.center2d).normalize();
+                this.angle = Math.atan2(this.radius.y, this.radius.x) - Math.atan2(this.start.y, this.start.x);
+
+                this.gizmo.onPointerMove(this.cb, this.intersector, this);
+                this.signals.pointPickerChanged.dispatch(); // FIXME rename
+                break;
+            default: throw new Error('invalid state');
+        }
+    }
+
+    pointerUp(pointer: Pointer, finish: () => void) {
+        this.update(pointer);
+        switch (this.state) {
+            case 'dragging':
+            case 'command':
+                if (pointer.button !== 0) return;
+
+                this.signals.pointPickerChanged.dispatch();
+                this.state = 'none';
+                finish();
+                break;
+            default: break;
+        }
+    }
+
+    pointerHover(pointer: Pointer) {
+        this.update(pointer);
+        switch (this.state) {
+            case 'none':
+            case 'hover':
+                this.gizmo.onPointerHover(this.intersector);
+                const intersect = this.intersector(this.gizmo.picker, true);
+                this.state = !!intersect ? 'hover' : 'none';
+                break;
+            default: break;
+        }
+    }
+
+    protected static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean): THREE.Intersection {
+        const allIntersections = raycaster.intersectObject(object, true);
+        for (var i = 0; i < allIntersections.length; i++) {
+            if (allIntersections[i].object.visible || includeInvisible) {
+                return allIntersections[i];
+            }
+        }
+        return null;
+    }
 }
