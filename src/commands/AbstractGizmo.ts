@@ -15,6 +15,9 @@ import { Viewport } from "../Viewport";
  * and polar screen space. By 3d screenspace, I mean mouse positions projected on to a 3d plane
  * facing the camera located at the position of the widget. Subclasses might also compute similar
  * data by implementing onPointerHover/onPointerDown/onPointerMove.
+ * 
+ * Note that these gizmos ALSO implement Blender-style modal interaction. For example,
+ * when a user types "x" with the move gizmo active, it starts moving along the x axis.
  */
 
 interface GizmoView {
@@ -70,7 +73,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const [name, fn] = picker.userData.command;
 
                     const disp = registry.add(domElement, name, () => {
-                        console.log(name, fn);
                         stateMachine.command(fn, () => {
                             viewport.disableControls();
                             domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
@@ -237,7 +239,6 @@ class GizmoStateMachine<T> implements MovementInfo {
     }
 
     command(fn: () => void, start: () => void) {
-        console.log("in command", this.state);
         switch (this.state) {
             case 'none':
             case 'hover':
