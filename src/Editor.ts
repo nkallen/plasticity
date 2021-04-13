@@ -67,6 +67,12 @@ export class Editor {
             console.log(event);
         });
 
+        this.keymaps.add('/key/for/these/keymaps', {
+            "ispace-viewport": {
+                "x": "gizmo:move:x",
+            }
+        });
+
         this.signals.objectAdded.add(item => this.snaps.add(item));
         this.signals.objectRemoved.add(item => this.snaps.delete(item));
         this.signals.objectRemoved.add(item => this.selection.delete(item));

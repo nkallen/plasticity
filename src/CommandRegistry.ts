@@ -7,6 +7,7 @@ export default class CommandRegistry {
     rootNode!: Window | HTMLElement;
     registeredCommands = new Map<String, boolean>();
     selectorBasedListenersByCommandName = new Map<String, SelectorBasedListener[]>();
+    inlineListenersByCommandName = new Map<String, WeakMap<HTMLElement | Window, InlineListener[]>>();
 
     constructor() {
         this.handleCommandEvent = this.handleCommandEvent.bind(this);
@@ -28,14 +29,19 @@ export default class CommandRegistry {
             );
         }
     }
-
-    add(target: string, commandName: string, listener: () => void): Disposable {
+    add(target: string, commandName: string, listener: () => void): Disposable;
+    add(target: HTMLElement, commandName: string, listener: () => void): Disposable;
+    add(target: string | HTMLElement, commandName: string, listener: () => void): Disposable {
         if (listener == null) {
             throw new Error('Cannot register a command with a null listener.');
         }
 
-        validateSelector(target);
-        return this.addSelectorBasedListener(target, commandName, listener);
+        if (typeof target === 'string') {
+            validateSelector(target);
+            return this.addSelectorBasedListener(target, commandName, listener);
+        } else {
+            this.addInlineListener(target, commandName, listener);
+        }
     }
 
     addSelectorBasedListener(selector: string, commandName: string, listener: () => void): Disposable {
@@ -55,6 +61,34 @@ export default class CommandRegistry {
             }
         });
     }
+
+    addInlineListener(element: HTMLElement, commandName: string, listener: () => void) {
+        if (this.inlineListenersByCommandName.get(commandName) == null) {
+            this.inlineListenersByCommandName.set(commandName, new WeakMap());
+        }
+
+        const listenersForCommand = this.inlineListenersByCommandName.get(commandName);
+        let listenersForElement = listenersForCommand.get(element);
+        if (!listenersForElement) {
+            listenersForElement = [];
+            listenersForCommand.set(element, listenersForElement);
+        }
+        const inlineListener = new InlineListener(commandName, listener);
+        listenersForElement.push(inlineListener);
+
+        this.commandRegistered(commandName);
+
+        return new Disposable(() => {
+            listenersForElement.splice(
+                listenersForElement.indexOf(inlineListener),
+                1
+            );
+            if (listenersForElement.length === 0) {
+                listenersForCommand.delete(element);
+            }
+        });
+    }
+
 
     handleCommandEvent(event: Event) {
         let propagationStopped = false;
@@ -101,10 +135,12 @@ export default class CommandRegistry {
             if (currentTarget === window || propagationStopped) break;
             const currentElement = currentTarget as HTMLElement;
 
-            const selectorBasedListeners = (this.selectorBasedListenersByCommandName.get(event.type) || [])
+            const commandInlineListeners = this.inlineListenersByCommandName.get(event.type)?.get(currentTarget) ?? [];
+            
+            const selectorBasedListeners: (InlineListener | SelectorBasedListener)[] = (this.selectorBasedListenersByCommandName.get(event.type) || [])
                 .filter(listener => listener.matchesTarget(currentElement))
                 .sort((a, b) => a.compare(b));
-            const listeners = selectorBasedListeners;
+            const listeners = selectorBasedListeners.concat(commandInlineListeners);
 
             // Call inline listeners first in reverse registration order,
             // and selector-based listeners by specificity and reverse
@@ -115,7 +151,6 @@ export default class CommandRegistry {
 
                 matched.push(listener.listener.call(currentTarget, dispatchedEvent));
             }
-
 
             currentTarget = currentElement.parentElement || window;
         }
@@ -158,5 +193,12 @@ class SelectorBasedListener {
 
     matchesTarget(target: HTMLElement) {
         return target.matches(this.selector)
+    }
+}
+
+class InlineListener {
+    constructor(
+        private readonly commandName: string,
+        readonly listener: () => void) {
     }
 }

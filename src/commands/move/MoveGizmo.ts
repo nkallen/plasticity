@@ -5,6 +5,7 @@ import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
+import { Disposable } from "event-kit";
 
 const matInvisible = new THREE.MeshBasicMaterial({
     depthTest: false,
@@ -213,13 +214,6 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             picker.add(torus);
             return { circle, torus };
         })()
-
-        // {
-        //     const point = new THREE.Point();
-        //     handle.add(point);
-        //     const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.1), matInvisible);
-        //     picker.add(sphere);
-        // }
 
         super(editor, object, { handle: handle, picker: picker, delta: null, helper: null });
 

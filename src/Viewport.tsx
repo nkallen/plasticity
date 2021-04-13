@@ -42,7 +42,6 @@ export default (editor: Editor) => {
         
         constructor() {
             super();
-            this.attachShadow({ mode: 'open' });
 
             let camera: THREE.Camera;
             const view = this.getAttribute("view");
@@ -50,6 +49,7 @@ export default (editor: Editor) => {
             const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
             const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, aspect, near, far);
             const domElement = this.renderer.domElement;
+            domElement.setAttribute("tabindex", "1");
             let n: THREE.Vector3;
             switch (view) {
                 case "3d":
@@ -122,8 +122,7 @@ export default (editor: Editor) => {
             this.composer.addPass(helpersPass);
             this.composer.addPass(copyPass);
 
-            this.shadowRoot!.append(domElement);
-            render(<slot></slot>, this.shadowRoot!)
+            this.append(domElement);
 
             this.outlineSelection = this.outlineSelection.bind(this);
             this.outlineHover = this.outlineHover.bind(this);

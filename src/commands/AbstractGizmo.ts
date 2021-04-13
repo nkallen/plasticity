@@ -77,27 +77,22 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 const start = new THREE.Vector2(); // FIXME something is wrong here
                 const radius = new THREE.Vector2();
                 let angle = 0;
+                console.log(domElement);
 
-                const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid);
-
-                const onPointerDown = (event: PointerEvent) => {
-                    const pointer = update(event);
-                    if (this.object == null || dragging || pointer.button !== 0) return;
-                    if (!hover) return;
-
+                const registry = this.editor.registry;
+                const x: Disposable = registry.add(domElement, 'gizmo:move:x', () => {
+                    console.log("received x");
+                    // this.mode = { state: 'X', plane: planeXZ, multiplicand: new THREE.Vector3(1,0,0) };
                     viewport.disableControls();
-                    domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
-                    domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
-
                     const intersection = intersector(plane, true);
                     if (intersection == null) return;
-                    pointStart2d.set(pointer.x, pointer.y);
+                    // pointStart2d.set(pointer.x, pointer.y);
+                    domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
                     pointStart3d.copy(intersection.point);
-
-                    this.onPointerDown(intersector);
                     dragging = true;
-                }
+                });
 
+                const intersector: Intersector = (obj, hid) => AbstractGizmo.intersectObjectWithRay(obj, raycaster, hid);
                 const update = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     this.update(camera);
@@ -105,6 +100,25 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     plane.updateMatrixWorld();
                     raycaster.setFromCamera(pointer, camera);
                     return pointer;
+                }
+
+                const onPointerDown = (event: PointerEvent) => {
+                    const pointer = update(event);
+                    if (this.object == null || dragging || pointer.button !== 0) return;
+                    if (!hover) return;
+
+                    const intersection = intersector(plane, true);
+                    if (intersection == null) return;
+
+                    viewport.disableControls();
+                    domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
+                    domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+
+                    pointStart2d.set(pointer.x, pointer.y);
+                    pointStart3d.copy(intersection.point);
+
+                    this.onPointerDown(intersector);
+                    dragging = true;
                 }
 
                 const onPointerMove = (event: PointerEvent) => {
@@ -136,6 +150,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 }
 
                 const onPointerHover = (event: PointerEvent) => {
+                    domElement.focus();
                     update(event);
                     if (this.object == null || dragging) return;
 
