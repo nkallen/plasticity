@@ -215,7 +215,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         })()
 
         // {
-        //     const point = new THREE.PointLight();
+        //     const point = new THREE.Point();
         //     handle.add(point);
         //     const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.1), matInvisible);
         //     picker.add(sphere);

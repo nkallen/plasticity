@@ -213,13 +213,13 @@ export default (editor: Editor) => {
         }
 
         disableControls() {
-            for (var control of this.controls) {
+            for (const control of this.controls) {
                 control.enabled = false;
             }
         }
 
         enableControls() {
-            for (var control of this.controls) {
+            for (const control of this.controls) {
                 control.enabled = true;
             }
         }

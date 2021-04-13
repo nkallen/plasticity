@@ -59,9 +59,9 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
 
         return new Promise<void>((resolve, reject) => {
-            let dragging = false;
             let hover = false;
-            
+            let dragging = false;
+
             for (const viewport of this.editor.viewports) {
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
@@ -87,6 +87,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                     viewport.disableControls();
                     domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
+                    domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
 
                     const intersection = intersector(plane, true);
                     if (intersection == null) return;
@@ -126,7 +127,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const pointer = update(event);
                     if (this.object == null || !dragging || pointer.button !== 0) return;
 
-                    domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
                     disposables.dispose();
 
                     this.editor.signals.pointPickerChanged.dispatch();
@@ -147,10 +147,10 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                 domElement.addEventListener('pointerdown', onPointerDown);
                 domElement.addEventListener('pointermove', onPointerHover);
-                domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerHover)));
                 disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointerup', onPointerUp)));
+                disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointermove', onPointerMove)));
                 this.editor.signals.pointPickerChanged.dispatch();
             }
         });
