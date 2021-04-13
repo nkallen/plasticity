@@ -91,12 +91,20 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const intersection = intersector(plane, true);
                     console.assert(intersection != null);
 
-                    viewport.disableControls();
-                    domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
-                    domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+                    if (state != 'command') {
+                        viewport.disableControls();
+                        domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
+                        domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
 
-                    pointStart2d.set(pointer.x, pointer.y);
-                    pointStart3d.copy(intersection.point);
+                        pointStart3d.copy(intersection.point);
+                        pointStart2d.set(pointer.x, pointer.y);
+                        this.update(camera); // FIXME
+                        this.onPointerDown(intersector);
+                    } else {
+                        this.update(camera);
+                        this.onPointerMove(cb, intersector, {}); // FIXME this needs to be rethough
+                        this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename
+                    }
                 }
 
                 // First, register any keyboard commands, like 'x' for move-x
@@ -106,9 +114,16 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const [name, fn] = picker.userData.command;
 
                     const disp = registry.add(domElement, name, () => {
-                        begin();
-                        fn();
-                        state = 'command';
+                        switch (state) {
+                            case 'none':
+                            case 'hover':
+                            case 'command':
+                                fn();
+                                begin();
+                                state = 'command';
+                                break;
+                            default: break;
+                        }
                     });
                     disposables.add(disp);
                 }
@@ -143,11 +158,9 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                             const info: MovementInfo = { pointStart2d, pointEnd2d, radius, angle, pointStart3d, center2d, pointEnd3d }
                             this.onPointerMove(cb, intersector, info);
-
                             this.editor.signals.pointPickerChanged.dispatch(); // FIXME rename
                             break;
-                        default:
-                            throw new Error('invalid state');
+                        default: throw new Error('invalid state');
                     }
                 }
 
@@ -157,7 +170,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                         case 'dragging':
                         case 'command':
                             console.assert(this.object != null);
-                            console.log("here");
                             if (pointer.button !== 0) return;
                             disposables.dispose();
 

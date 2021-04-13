@@ -259,9 +259,8 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             case 'YZ':
             case 'XZ':
                 const planeIntersect = intersect(this.mode.plane, true);
-                if (!planeIntersect) return;
+                console.assert(planeIntersect != null);
                 this.pointEnd.copy(planeIntersect.point);
-
                 cb(this.pointEnd.sub(this.pointStart).multiply(this.mode.multiplicand));
                 break;
             case 'screen':
