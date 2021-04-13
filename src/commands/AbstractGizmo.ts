@@ -94,7 +94,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     pointStart3d.copy(intersection.point);
 
                     this.onPointerDown(intersector);
-                    console.log("d=false");
                     dragging = true;
                 }
 
@@ -138,7 +137,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                 const onPointerHover = (event: PointerEvent) => {
                     update(event);
-                    console.log(dragging);
                     if (this.object == null || dragging) return;
 
                     this.onPointerHover(intersector);

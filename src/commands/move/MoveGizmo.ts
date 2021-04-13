@@ -118,6 +118,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const fwd = new THREE.Mesh(arrowGeometry, matRed);
             fwd.position.copy(X);
             fwd.rotation.set(0, 0, -Math.PI / 2);
+            fwd.userData.hideWhen = X;
             const line = new THREE.Line(lineGeometry, matLineRed);
             handle.add(fwd, line);
 
@@ -132,6 +133,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const Y = new THREE.Vector3(0, 1, 0);
             const fwd = new THREE.Mesh(arrowGeometry, matGreen);
             fwd.position.copy(Y);
+            fwd.userData.hideWhen = Y;
             const line = new THREE.Line(lineGeometry, matLineGreen);
             line.rotation.set(0, 0, Math.PI / 2);
             handle.add(fwd, line);
@@ -147,6 +149,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const fwd = new THREE.Mesh(arrowGeometry, matBlue);
             fwd.position.copy(Z);
             fwd.rotation.set(Math.PI / 2, 0, 0);
+            fwd.userData.hideWhen = Z;
             const line = new THREE.Line(lineGeometry, matLineBlue);
             line.rotation.set(0, - Math.PI / 2, 0);
             handle.add(fwd, line);
@@ -211,6 +214,13 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             return { circle, torus };
         })()
 
+        // {
+        //     const point = new THREE.PointLight();
+        //     handle.add(point);
+        //     const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.1), matInvisible);
+        //     picker.add(sphere);
+        // }
+
         super(editor, object, { handle: handle, picker: picker, delta: null, helper: null });
 
         this.pointStart = new THREE.Vector3();
@@ -229,7 +239,6 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         const picker = intersect(this.picker, true);
         if (picker) this.mode = picker.object.userData.mode as Mode;
         else this.mode = null;
-        console.log(this.mode);
     }
 
     onPointerDown(intersect: Intersector) {
@@ -290,6 +299,17 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             matrix.lookAt(new THREE.Vector3(), dir, align);
             this.mode.plane.quaternion.setFromRotationMatrix(matrix);
             this.mode.plane.updateMatrixWorld();
+        }
+
+        // hide objects facing the camera
+        var AXIS_HIDE_TRESHOLD = 0.99;
+        for (const child of [...this.handle.children, ...this.picker.children]) {
+            if (child.userData.hideWhen == null) continue;
+            child.visible = true;
+
+            if (Math.abs(align.copy(child.userData.hideWhen).dot(eye)) > AXIS_HIDE_TRESHOLD) {
+                child.visible = false;
+            }
         }
     }
 }
