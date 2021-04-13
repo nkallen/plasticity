@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { LinearMipmapNearestFilter } from "three";
 import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
@@ -136,6 +137,16 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     constructor(editor: Editor, object: visual.SpaceItem, p1: THREE.Vector3) {
         const handle = new THREE.Group();
         const picker = new THREE.Group();
+
+        const planeXY = new THREE.Mesh(planeGeometry, planeMaterial);
+        planeXY.lookAt(0, 0, 1);
+        const planeYZ = new THREE.Mesh(planeGeometry, planeMaterial);
+        planeYZ.lookAt(1, 0, 0);
+        const planeXZ = new THREE.Mesh(planeGeometry, planeMaterial);
+        planeXZ.lookAt(0, 1, 0);
+        [planeXY, planeYZ, planeXY].forEach(plane => plane.updateMatrixWorld());
+
+
         {
             const X = new THREE.Vector3(1, 0, 0);
             const fwd = new THREE.Mesh(arrowGeometry, matRed);
@@ -147,9 +158,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
             p.position.set(0.6, 0, 0);
             p.rotation.set(0, 0, - Math.PI / 2);
-            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-            plane.lookAt(0, 1, 0); plane.updateMatrixWorld();
-            p.userData.mode = { state: 'X', plane, multiplicand: X } as Mode;
+            p.userData.mode = { state: 'X', plane: planeXZ, multiplicand: X } as Mode;
             picker.add(p);
         }
 
@@ -163,9 +172,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
 
             const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
             p.position.set(0, 0.6, 0);
-            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-            plane.lookAt(0, 0, 1); plane.updateMatrixWorld();
-            p.userData.mode = { state: 'Y', plane, multiplicand: Y } as Mode;
+            p.userData.mode = { state: 'Y', plane: planeXY, multiplicand: Y } as Mode;
             picker.add(p);
         }
 
@@ -181,9 +188,48 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
             p.position.set(0, 0, 0.6);
             p.rotation.set(Math.PI / 2, 0, 0);
-            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-            plane.lookAt(0, 1, 0); plane.updateMatrixWorld();
-            p.userData.mode = { state: 'Z', plane, multiplicand: Z } as Mode;
+            p.userData.mode = { state: 'Z', plane: planeXZ, multiplicand: Z } as Mode;
+            picker.add(p);
+        }
+
+        {
+            const XY = new THREE.Vector3(1, 1, 0);
+            const square = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), matYellowTransparent.clone());
+            square.position.set(0.25, 0.25, 0);
+            handle.add(square);
+
+            const p = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), matInvisible);
+            p.position.copy(square.position);
+            p.rotation.copy(square.rotation);
+            p.userData.mode = { state: 'XY', plane: planeXY, multiplicand: XY };
+            picker.add(p);
+        }
+
+        {
+            const YZ = new THREE.Vector3(0, 1, 1);
+            const square = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), matCyanTransparent.clone());
+            square.position.set(0, 0.25, 0.25);
+            square.rotation.set(0, Math.PI / 2, 0);
+            handle.add(square);
+
+            const p = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), matInvisible);
+            p.position.copy(square.position);
+            p.rotation.copy(square.rotation);
+            p.userData.mode = { state: 'YZ', plane: planeYZ, multiplicand: YZ };
+            picker.add(p);
+        }
+
+        {
+            const XZ = new THREE.Vector3(1, 0, 1);
+            const square = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), matMagentaTransparent.clone());
+            square.position.set(0.25, 0, 0.25);
+            square.rotation.set(-Math.PI / 2, 0, 0);
+            handle.add(square);
+
+            const p = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), matInvisible);
+            p.position.copy(square.position);
+            p.rotation.copy(square.rotation);
+            p.userData.mode = { state: 'XZ', plane: planeXZ, multiplicand: XZ };
             picker.add(p);
         }
 
@@ -200,7 +246,6 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
 
     onPointerHover(intersect: Intersector) {
         const picker = intersect(this.picker, true);
-        console.log(picker);
         if (picker) this.mode = picker.object.userData.mode as Mode;
         else this.mode = null;
     }
@@ -215,6 +260,9 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             case 'X':
             case 'Y':
             case 'Z':
+            case 'XY':
+            case 'YZ':
+            case 'XZ':
                 const planeIntersect = intersect(this.mode.plane, true);
                 if (!planeIntersect) return;
                 this.pointEnd.copy(planeIntersect.point);
