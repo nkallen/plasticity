@@ -41,6 +41,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         this.helper = view.helper;
 
         let elements = [this.handle, this.picker, this.delta, this.helper];
+        this.picker.visible = false;
         elements = elements.filter(x => !!x);
         this.add(...elements);
     }

@@ -1,13 +1,7 @@
 import * as THREE from "three";
-import { TriangleFanDrawMode } from "three";
-import { Line2 } from "three/examples/jsm/lines/Line2";
-import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
-import { CircleGeometry } from "../../Util";
 import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
-
-type Mode = 'X' | 'Y' | 'Z' | 'XY' | 'YZ' | 'XZ' | 'screen'
 
 const matInvisible = new THREE.MeshBasicMaterial({
     depthTest: false,
@@ -15,11 +9,11 @@ const matInvisible = new THREE.MeshBasicMaterial({
     transparent: true,
     side: THREE.DoubleSide,
     fog: false,
-    toneMapped: false
+    toneMapped: false,
 })
 matInvisible.opacity = 0.15;
 
-const arrowGeometry = new THREE.CylinderGeometry(0, 0.05, 0.2, 12, 1, false);
+const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, 0.1, 12, 1, false);
 
 
 const lineGeometry = new THREE.BufferGeometry();
@@ -136,66 +130,96 @@ const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const planeMaterial = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide, transparent: true, opacity: 0.1, toneMapped: false });
 
 export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
-    private readonly plane: THREE.Mesh;
     private readonly pointStart: THREE.Vector3;
     private readonly pointEnd: THREE.Vector3;
-    private readonly origin: THREE.Vector3;
 
     constructor(editor: Editor, object: visual.SpaceItem, p1: THREE.Vector3) {
-        const X = (() => {
+        const handle = new THREE.Group();
+        const picker = new THREE.Group();
+        {
+            const X = new THREE.Vector3(1, 0, 0);
             const fwd = new THREE.Mesh(arrowGeometry, matRed);
-            fwd.position.set(1, 0, 0);
+            fwd.position.copy(X);
             fwd.rotation.set(0, 0, -Math.PI / 2);
             const line = new THREE.Line(lineGeometry, matLineRed);
-            const result = new THREE.Group();
-            result.add(fwd, line);
-            return result;
-        })();
-        const picker = (() => {
-            const picker = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
-            picker.position.set(0.6, 0, 0);
-            picker.rotation.set(0, 0, - Math.PI / 2);
-            picker.name = 'X';
-            return picker;
-        })();
-        const plane = (() => {
-            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-            plane.lookAt(0, 0, 1);
-            return plane;
-        })();
+            handle.add(fwd, line);
 
-        super(editor, object, { handle: X, picker: picker, delta: null, helper: null });
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
+            p.position.set(0.6, 0, 0);
+            p.rotation.set(0, 0, - Math.PI / 2);
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.lookAt(0, 1, 0); plane.updateMatrixWorld();
+            p.userData.mode = { state: 'X', plane, multiplicand: X } as Mode;
+            picker.add(p);
+        }
+
+        {
+            const Y = new THREE.Vector3(0, 1, 0);
+            const fwd = new THREE.Mesh(arrowGeometry, matGreen);
+            fwd.position.copy(Y);
+            const line = new THREE.Line(lineGeometry, matLineGreen);
+            line.rotation.set(0, 0, Math.PI / 2);
+            handle.add(fwd, line);
+
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
+            p.position.set(0, 0.6, 0);
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.lookAt(0, 0, 1); plane.updateMatrixWorld();
+            p.userData.mode = { state: 'Y', plane, multiplicand: Y } as Mode;
+            picker.add(p);
+        }
+
+        {
+            const Z = new THREE.Vector3(0, 0, 1);
+            const fwd = new THREE.Mesh(arrowGeometry, matBlue);
+            fwd.position.copy(Z);
+            fwd.rotation.set(Math.PI / 2, 0, 0);
+            const line = new THREE.Line(lineGeometry, matLineBlue);
+            line.rotation.set(0, - Math.PI / 2, 0);
+            handle.add(fwd, line);
+
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
+            p.position.set(0, 0, 0.6);
+            p.rotation.set(Math.PI / 2, 0, 0);
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.lookAt(0, 1, 0); plane.updateMatrixWorld();
+            p.userData.mode = { state: 'Z', plane, multiplicand: Z } as Mode;
+            picker.add(p);
+        }
+
+        super(editor, object, { handle: handle, picker: picker, delta: null, helper: null });
 
         this.pointStart = new THREE.Vector3();
         this.pointEnd = new THREE.Vector3();
 
         this.position.copy(p1);
         // this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), axis);
-        this.add(plane);
-        this.plane = plane;
     }
 
     private mode?: Mode;
 
     onPointerHover(intersect: Intersector) {
         const picker = intersect(this.picker, true);
-        if (picker) this.mode = picker.object.name as Mode;
+        console.log(picker);
+        if (picker) this.mode = picker.object.userData.mode as Mode;
         else this.mode = null;
     }
 
     onPointerDown(intersect: Intersector) {
-        const planeIntersect = intersect(this.plane, true);
+        const planeIntersect = intersect(this.mode.plane, true);
         this.pointStart.copy(planeIntersect.point);
     }
 
     onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo) {
-        switch (this.mode) {
+        switch (this.mode.state) {
             case 'X':
-                const planeIntersect = intersect(this.plane, true);
+            case 'Y':
+            case 'Z':
+                const planeIntersect = intersect(this.mode.plane, true);
                 if (!planeIntersect) return;
                 this.pointEnd.copy(planeIntersect.point);
 
-                cb(this.pointEnd.sub(this.pointStart).multiply(new THREE.Vector3(1, 0, 0)));
+                cb(this.pointEnd.sub(this.pointStart).multiply(this.mode.multiplicand));
                 break;
             default:
                 throw this.mode;
@@ -203,3 +227,8 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     }
 }
 
+type Mode = {
+    state: 'X' | 'Y' | 'Z' | 'XY' | 'YZ' | 'XZ' | 'screen';
+    plane: THREE.Mesh;
+    multiplicand: THREE.Vector3;
+}
