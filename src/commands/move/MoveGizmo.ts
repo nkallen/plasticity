@@ -1,5 +1,5 @@
+import { assertUnreachable } from "../../Util";
 import * as THREE from "three";
-import { LinearMipmapNearestFilter } from "three";
 import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
@@ -90,42 +90,6 @@ matLineGray.color.set(0x787878);
 
 const matLineYellowTransparent = matLineYellow.clone();
 matLineYellowTransparent.opacity = 0.25;
-
-const gizmoTranslate = {
-    X: [
-        [new THREE.Mesh(arrowGeometry, matRed), [1, 0, 0], [0, 0, - Math.PI / 2], null, 'fwd'],
-        [new THREE.Mesh(arrowGeometry, matRed), [1, 0, 0], [0, 0, Math.PI / 2], null, 'bwd'],
-        [new THREE.Line(lineGeometry, matLineRed)]
-    ],
-    Y: [
-        [new THREE.Mesh(arrowGeometry, matGreen), [0, 1, 0], null, null, 'fwd'],
-        [new THREE.Mesh(arrowGeometry, matGreen), [0, 1, 0], [Math.PI, 0, 0], null, 'bwd'],
-        [new THREE.Line(lineGeometry, matLineGreen), null, [0, 0, Math.PI / 2]]
-    ],
-    Z: [
-        [new THREE.Mesh(arrowGeometry, matBlue), [0, 0, 1], [Math.PI / 2, 0, 0], null, 'fwd'],
-        [new THREE.Mesh(arrowGeometry, matBlue), [0, 0, 1], [- Math.PI / 2, 0, 0], null, 'bwd'],
-        [new THREE.Line(lineGeometry, matLineBlue), null, [0, - Math.PI / 2, 0]]
-    ],
-    XYZ: [
-        [new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), matWhiteTransparent.clone() as THREE.MeshBasicMaterial), [0, 0, 0], [0, 0, 0]]
-    ],
-    XY: [
-        [new THREE.Mesh(new THREE.PlaneGeometry(0.295, 0.295), matYellowTransparent.clone()), [0.15, 0.15, 0]],
-        [new THREE.Line(lineGeometry, matLineYellow), [0.18, 0.3, 0], null, [0.125, 1, 1]],
-        [new THREE.Line(lineGeometry, matLineYellow), [0.3, 0.18, 0], [0, 0, Math.PI / 2], [0.125, 1, 1]]
-    ],
-    YZ: [
-        [new THREE.Mesh(new THREE.PlaneGeometry(0.295, 0.295), matCyanTransparent.clone()), [0, 0.15, 0.15], [0, Math.PI / 2, 0]],
-        [new THREE.Line(lineGeometry, matLineCyan), [0, 0.18, 0.3], [0, 0, Math.PI / 2], [0.125, 1, 1]],
-        [new THREE.Line(lineGeometry, matLineCyan), [0, 0.3, 0.18], [0, - Math.PI / 2, 0], [0.125, 1, 1]]
-    ],
-    XZ: [
-        [new THREE.Mesh(new THREE.PlaneGeometry(0.295, 0.295), matMagentaTransparent.clone()), [0.15, 0, 0.15], [- Math.PI / 2, 0, 0]],
-        [new THREE.Line(lineGeometry, matLineMagenta), [0.18, 0, 0.3], null, [0.125, 1, 1]],
-        [new THREE.Line(lineGeometry, matLineMagenta), [0.3, 0, 0.18], [0, - Math.PI / 2, 0], [0.125, 1, 1]]
-    ]
-};
 
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const planeMaterial = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide, transparent: true, opacity: 0.1, toneMapped: false });
@@ -272,6 +236,19 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             default:
                 throw this.mode;
         }
+    }
+
+    update(camera: THREE.Camera) {
+        let factor;
+        if (camera instanceof THREE.OrthographicCamera) {
+            factor = (camera.top - camera.bottom) / camera.zoom;
+        } else if (camera instanceof THREE.PerspectiveCamera) {
+            factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360) / camera.zoom, 7);
+        } else {
+            throw "wtf";
+        }
+
+        this.handle.scale.set(1, 1, 1).multiplyScalar(factor * 1 / 7);
     }
 }
 
