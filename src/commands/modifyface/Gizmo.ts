@@ -117,6 +117,8 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
     }
 
     update(camera: THREE.Camera) {
+        super.update(camera);
+        
         this.circle.lookAt(camera.position);
         this.torus.lookAt(camera.position);
 

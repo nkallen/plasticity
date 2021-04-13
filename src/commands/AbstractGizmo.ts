@@ -49,7 +49,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     onPointerHover(intersector: Intersector) { }
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
     abstract onPointerDown(intersect: Intersector): void;
-    update(camera: THREE.Camera) { }
 
     async execute(cb: CB) {
         const raycaster = new THREE.Raycaster();
@@ -60,15 +59,15 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
 
         return new Promise<void>((resolve, reject) => {
+            let dragging = false;
+            let hover = false;
+            
             for (const viewport of this.editor.viewports) {
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
                 const domElement = renderer.domElement;
 
-                let dragging = false;
-                let hover = false;
-
-                const plane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2));
+                const plane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
                 const pointStart2d = new THREE.Vector2();
                 const pointEnd2d = new THREE.Vector2();
                 const pointStart3d = new THREE.Vector3();
@@ -95,6 +94,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     pointStart3d.copy(intersection.point);
 
                     this.onPointerDown(intersector);
+                    console.log("d=false");
                     dragging = true;
                 }
 
@@ -102,6 +102,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     this.update(camera);
                     plane.quaternion.copy(camera.quaternion);
+                    plane.updateMatrixWorld();
                     raycaster.setFromCamera(pointer, camera);
                     return pointer;
                 }
@@ -137,6 +138,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                 const onPointerHover = (event: PointerEvent) => {
                     update(event);
+                    console.log(dragging);
                     if (this.object == null || dragging) return;
 
                     this.onPointerHover(intersector);
@@ -154,6 +156,20 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 this.editor.signals.pointPickerChanged.dispatch();
             }
         });
+    }
+
+    update(camera: THREE.Camera) {
+        let factor;
+        if (camera instanceof THREE.OrthographicCamera) {
+            factor = (camera.top - camera.bottom) / camera.zoom;
+        } else if (camera instanceof THREE.PerspectiveCamera) {
+            factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360) / camera.zoom, 7);
+        } else {
+            throw new Error("Invalid camera type");
+        }
+
+        this.scale.set(1, 1, 1).multiplyScalar(factor * 1 / 7);
+        this.updateMatrixWorld();
     }
 
     protected static getPointer(domElement: HTMLElement, event: PointerEvent) {

@@ -201,12 +201,11 @@ export default (editor: Editor) => {
             const aspect = this.offsetWidth / this.offsetHeight;
             if (this.camera instanceof THREE.PerspectiveCamera) {
                 this.camera.aspect = aspect;
-                this.camera.updateProjectionMatrix();
             } else if (this.camera instanceof THREE.OrthographicCamera) {
                 this.camera.left = frustumSize * aspect / - 2;
                 this.camera.right = frustumSize * aspect / 2;
-                this.camera.updateProjectionMatrix();
-            }
+            } else throw new Error("Invalid camera");
+            this.camera.updateProjectionMatrix();
 
             this.renderer.setSize(this.offsetWidth, this.offsetHeight);
             this.composer.setSize(this.offsetWidth, this.offsetHeight);

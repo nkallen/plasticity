@@ -229,6 +229,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         const picker = intersect(this.picker, true);
         if (picker) this.mode = picker.object.userData.mode as Mode;
         else this.mode = null;
+        console.log(this.mode);
     }
 
     onPointerDown(intersect: Intersector) {
@@ -262,23 +263,34 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     }
 
     update(camera: THREE.Camera) {
+        super.update(camera);
 
         this.circle.lookAt(camera.position);
         this.torus.lookAt(camera.position);
-
         this.circle.updateMatrixWorld();
         this.torus.updateMatrixWorld();
 
-        let factor;
-        if (camera instanceof THREE.OrthographicCamera) {
-            factor = (camera.top - camera.bottom) / camera.zoom;
-        } else if (camera instanceof THREE.PerspectiveCamera) {
-            factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360) / camera.zoom, 7);
-        } else {
-            throw new Error("Invalid camera type");
-        }
+        const eye = new THREE.Vector3();
+        eye.copy(camera.position).sub(this.position).normalize();
+        const align = new THREE.Vector3();
+        const dir = new THREE.Vector3();
 
-        this.handle.scale.set(1, 1, 1).multiplyScalar(factor * 1 / 7);
+        if (this.mode != null) {
+            switch (this.mode.state) {
+                case 'X':
+                case 'Y':
+                case 'Z':
+                    align.copy(eye).cross(this.mode.multiplicand);
+                    dir.copy(this.mode.multiplicand).cross(align);
+                    break;
+                default:
+                    return;
+            }
+            const matrix = new THREE.Matrix4();
+            matrix.lookAt(new THREE.Vector3(), dir, align);
+            this.mode.plane.quaternion.setFromRotationMatrix(matrix);
+            this.mode.plane.updateMatrixWorld();
+        }
     }
 }
 
