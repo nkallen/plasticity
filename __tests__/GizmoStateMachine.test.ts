@@ -2,9 +2,11 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
+import CommandRegistry from "../src/CommandRegistry";
 import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import { Editor } from "../src/Editor";
+import { Helpers } from "../src/Helpers";
 import FakeSignals from '../__mocks__/FakeSignals';
 import { FakeViewport } from "../__mocks__/FakeViewport";
 
@@ -12,9 +14,11 @@ class FakeGizmo extends AbstractGizmo<() => void> {
     fakeCommand: jest.Mock;
 
     constructor(editor: Editor) {
-        const picker = new THREE.Mesh(new THREE.SphereGeometry(0.1));
+        const picker = new THREE.Group();
+        const p = new THREE.Mesh(new THREE.SphereGeometry(0.1));
+        picker.add(p);
         const fakeCommand = jest.fn();
-        picker.userData.command = ['gizmo:fake:key', fakeCommand];
+        p.userData.command = ['gizmo:fake:key', fakeCommand];
         const view = {
             handle: new THREE.Object3D(),
             picker: picker,
@@ -65,19 +69,27 @@ test("basic drag interaction", () => {
     expect(sm.state).toBe('none');
 });
 
-test("commands are registered", () => {
+test("commands are registered", done => {
     const signals = FakeSignals();
     const viewport = new FakeViewport();
     viewport.camera.position.set(0, 0, 1);
     viewport.camera.lookAt(0, 0, 0);
     const editor = {
         viewports: [viewport],
-        gizmos: new GizmoMaterialDatabase(signals)
+        gizmos: new GizmoMaterialDatabase(signals),
+        helpers: new Helpers(signals),
+        registry: new CommandRegistry(),
+        signals: signals,
     };
-    const gizmo = new FakeGizmo(editor); // FIXME type error
+    editor.registry.attach(viewport.renderer.domElement);
     const event = new CustomEvent("gizmo:fake:key");
+    const gizmo = new FakeGizmo(editor); // FIXME type error
     expect(gizmo.fakeCommand).toHaveBeenCalledTimes(0);
-    viewport.dispatchEvent(event);
+    const result = gizmo.execute(() => {});
+    result.then(() => {}, () => done());
+    viewport.renderer.domElement.dispatchEvent(event);
+    result.cancel();
+
     expect(gizmo.fakeCommand).toHaveBeenCalledTimes(1);
 });
 
