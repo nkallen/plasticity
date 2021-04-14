@@ -13,7 +13,7 @@ const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 
 type State = 'X' | 'Y' | 'Z' | 'XY' | 'YZ' | 'XZ' | 'screen';
 type Mode = {
-    state: State
+    tag: State
     plane: THREE.Mesh;
     multiplicand: THREE.Vector3;
 }
@@ -55,7 +55,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), materials.invisible);
             p.position.set(0.6, 0, 0);
             p.rotation.set(0, 0, - Math.PI / 2);
-            p.userData.mode = { state: 'X', plane: planeXZ, multiplicand: X } as Mode;
+            p.userData.mode = { tag: 'X', plane: planeXZ, multiplicand: X } as Mode;
             p.userData.command = ['gizmo:move:x', () => this.mode = p.userData.mode];
             picker.add(p);
         }
@@ -71,7 +71,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
 
             const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), materials.invisible);
             p.position.set(0, 0.6, 0);
-            p.userData.mode = { state: 'Y', plane: planeXY, multiplicand: Y } as Mode;
+            p.userData.mode = { tag: 'Y', plane: planeXY, multiplicand: Y } as Mode;
             p.userData.command = ['gizmo:move:y', () => this.mode = p.userData.mode];
             picker.add(p);
         }
@@ -89,7 +89,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const p = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), materials.invisible);
             p.position.set(0, 0, 0.6);
             p.rotation.set(Math.PI / 2, 0, 0);
-            p.userData.mode = { state: 'Z', plane: planeXZ, multiplicand: Z } as Mode;
+            p.userData.mode = { tag: 'Z', plane: planeXZ, multiplicand: Z } as Mode;
             p.userData.command = ['gizmo:move:z', () => this.mode = p.userData.mode];
             picker.add(p);
         }
@@ -145,7 +145,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const circle = new Line2(geometry, materials.line);
             handle.add(circle);
             const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
-            torus.userData.mode = { state: 'screen' } as Mode;
+            torus.userData.mode = { tag: 'screen' } as Mode;
             torus.userData.command = ['gizmo:move:screen', () => this.mode = torus.userData.mode];
             picker.add(torus);
             return { circle, torus };
@@ -170,14 +170,15 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
 
     onPointerDown(intersect: Intersector) {
         const mode = this.mode;
-        if (mode.state != 'screen') {
+        if (mode.tag != 'screen') {
+            console.log(mode);
             const planeIntersect = intersect(mode.plane, true);
             this.pointStart.copy(planeIntersect.point);
         }
     }
 
     onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo) {
-        switch (this.mode.state) {
+        switch (this.mode.tag) {
             case 'X':
             case 'Y':
             case 'Z':
@@ -185,7 +186,8 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             case 'YZ':
             case 'XZ':
                 const planeIntersect = intersect(this.mode.plane, true);
-                console.assert(planeIntersect != null);
+                if (planeIntersect == null) return; // this only happens when the is dragging through different viewports.
+
                 this.pointEnd.copy(planeIntersect.point);
                 cb(this.pointEnd.sub(this.pointStart).multiply(this.mode.multiplicand));
                 break;
@@ -211,7 +213,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         const dir = new THREE.Vector3();
 
         if (this.mode != null) {
-            switch (this.mode.state) {
+            switch (this.mode.tag) {
                 case 'X':
                 case 'Y':
                 case 'Z':

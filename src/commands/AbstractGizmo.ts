@@ -59,12 +59,13 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         const disposables = new CompositeDisposable();
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
 
+        const stateMachine = new GizmoStateMachine(this, this.editor.signals, cb);
+
         return new Promise<void>((resolve, reject) => {
             for (const viewport of this.editor.viewports) {
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
                 const domElement = renderer.domElement;
-                const stateMachine = new GizmoStateMachine(camera, this, this.editor.signals, cb);
 
                 // First, register any keyboard commands, like 'x' for move-x
                 const registry = this.editor.registry;
@@ -73,6 +74,11 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const [name, fn] = picker.userData.command;
 
                     const disp = registry.addOne(domElement, name, () => {
+                        // If a keyboard command is invoked immediately after the gizmo appears, we will
+                        // not have received any pointer info from pointermove/hover. Since we need a "start"
+                        // position for many calculations, use the "lastPointerEvent" which is always available.
+                        const pointer = AbstractGizmo.getPointer(domElement, viewport.lastPointerEvent);
+                        stateMachine.update(camera, pointer);
                         stateMachine.command(fn, () => {
                             viewport.disableControls();
                             domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
@@ -85,7 +91,8 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 // Next, the basic workflow for pointer events
                 const onPointerDown = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.pointerDown(pointer, () => {
+                    stateMachine.update(camera, pointer);
+                    stateMachine.pointerDown(() => {
                         viewport.disableControls();
                         domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
                         domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
@@ -94,12 +101,14 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                 const onPointerMove = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.pointerMove(pointer);
+                    stateMachine.update(camera, pointer);
+                    stateMachine.pointerMove();
                 }
 
                 const onPointerUp = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.pointerUp(pointer, () => {
+                    stateMachine.update(camera, pointer);
+                    stateMachine.pointerUp(() => {
                         viewport.enableControls();
                         disposables.dispose();
                         resolve();
@@ -107,9 +116,9 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 }
 
                 const onPointerHover = (event: PointerEvent) => {
-                    domElement.focus();
                     const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.pointerHover(pointer);
+                    stateMachine.update(camera, pointer);
+                    stateMachine.pointerHover();
                 }
 
                 domElement.addEventListener('pointerdown', onPointerDown);
@@ -193,8 +202,7 @@ class GizmoStateMachine<T> implements MovementInfo {
     pointEnd2d = new THREE.Vector2();
     pointStart3d = new THREE.Vector3();
     pointEnd3d = new THREE.Vector3();
-    center3d = this.gizmo.position.clone().project(this.camera);
-    center2d = new THREE.Vector2(this.center3d.x, this.center3d.y);
+    center2d = new THREE.Vector2()
     radius = new THREE.Vector2();
     angle = 0;
     private start = new THREE.Vector2(); // FIXME something is wrong here
@@ -202,18 +210,21 @@ class GizmoStateMachine<T> implements MovementInfo {
     private raycaster = new THREE.Raycaster();
 
     constructor(
-        private readonly camera: THREE.Camera,
         private readonly gizmo: AbstractGizmo<T>,
         private readonly signals: EditorSignals,
         private readonly cb: T,
     ) { }
 
-    update(pointer: Pointer) {
-        this.gizmo.update(this.camera);
-        this.plane.quaternion.copy(this.camera.quaternion);
+    private camera?: THREE.Camera = null;
+    update(camera: THREE.Camera, pointer?: Pointer) {
+        this.camera = camera;
+        this.gizmo.update(camera);
+        this.plane.quaternion.copy(camera.quaternion);
         this.plane.updateMatrixWorld();
-        this.raycaster.setFromCamera(pointer, this.camera);
-        this.pointer = pointer;
+        if (pointer != null) {
+            this.raycaster.setFromCamera(pointer, camera);
+            this.pointer = pointer;
+        }
     }
 
     intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
@@ -221,17 +232,18 @@ class GizmoStateMachine<T> implements MovementInfo {
     begin() {
         const intersection = this.intersector(this.plane, true);
         console.assert(intersection != null);
-        this.gizmo.update(this.camera);
 
         switch (this.state) {
             case 'none':
             case 'hover':
+                const center3d = this.gizmo.position.clone().project(this.camera);
+                this.center2d.set(center3d.x, center3d.y);
                 this.pointStart3d.copy(intersection.point);
                 this.pointStart2d.set(this.pointer.x, this.pointer.y);
                 this.gizmo.onPointerDown(this.intersector);
                 break;
             case 'command':
-                this.pointerMove(this.pointer);
+                this.pointerMove();
                 break;
             default: throw new Error("invalid state");
         }
@@ -245,6 +257,7 @@ class GizmoStateMachine<T> implements MovementInfo {
                 start();
             case 'command':
                 fn();
+                this.gizmo.update(this.camera); // FIXME: need to update the gizmo after calling fn. figure out a way to test
                 this.begin();
                 this.state = 'command';
                 break;
@@ -252,11 +265,10 @@ class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    pointerDown(pointer: Pointer, start: () => void) {
-        this.update(pointer);
+    pointerDown(start: () => void) {
         switch (this.state) {
             case 'hover':
-                if (pointer.button !== 0) return;
+                if (this.pointer.button !== 0) return;
 
                 this.begin();
                 this.gizmo.onPointerDown(this.intersector);
@@ -267,13 +279,12 @@ class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    pointerMove(pointer: Pointer) {
-        this.update(pointer);
+    pointerMove() {
         switch (this.state) {
             case 'dragging':
-                if (pointer.button !== -1) return;
+                if (this.pointer.button !== -1) return;
             case 'command':
-                this.pointEnd2d.set(pointer.x, pointer.y);
+                this.pointEnd2d.set(this.pointer.x, this.pointer.y);
                 const intersection = this.intersector(this.plane, true);
                 this.pointEnd3d.copy(intersection.point);
                 this.radius.copy(this.pointEnd2d).sub(this.center2d).normalize();
@@ -286,12 +297,11 @@ class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    pointerUp(pointer: Pointer, finish: () => void) {
-        this.update(pointer);
+    pointerUp(finish: () => void) {
         switch (this.state) {
             case 'dragging':
             case 'command':
-                if (pointer.button !== 0) return;
+                if (this.pointer.button !== 0) return;
 
                 this.signals.pointPickerChanged.dispatch();
                 this.state = 'none';
@@ -301,8 +311,7 @@ class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    pointerHover(pointer: Pointer) {
-        this.update(pointer);
+    pointerHover() {
         switch (this.state) {
             case 'none':
             case 'hover':

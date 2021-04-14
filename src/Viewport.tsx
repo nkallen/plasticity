@@ -23,6 +23,7 @@ export interface Viewport {
     enableControls(): void;
     disableControls(): void;
     overlay: THREE.Scene;
+    lastPointerEvent: PointerEvent;
 }
 
 export default (editor: Editor) => {
@@ -39,7 +40,8 @@ export default (editor: Editor) => {
         readonly outlinePassHover: OutlinePass;
         readonly controls = new Set<{ enabled: boolean }>();
         readonly grid = new THREE.GridHelper(300, 300, 0x666666, 0x666666);
-        
+        lastPointerEvent: PointerEvent;
+
         constructor() {
             super();
 
@@ -49,7 +51,13 @@ export default (editor: Editor) => {
             const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
             const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, aspect, near, far);
             const domElement = this.renderer.domElement;
+
             domElement.setAttribute("tabindex", "1");
+            domElement.addEventListener('pointermove', e => {
+                domElement.focus();
+                this.lastPointerEvent = e;
+            });
+
             let n: THREE.Vector3;
             switch (view) {
                 case "3d":
