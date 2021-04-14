@@ -69,6 +69,9 @@ export default class ModifyFaceFactory extends GeometryFactory {
     }
 
     cancel() {
-        this.db.scene.add(this.solid);
+        this.solid.visible = true;
+        this.temp?.cancel();
+        // FIXME the state machine in super needs to run first!!
+        return super.cancel();
     }
 }

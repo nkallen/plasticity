@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { DirectionalLight } from "three";
 import BoxFactory from "../src/commands/box/Box";
 import ModifyFaceFactory from '../src/commands/modifyface/Factory';
 import { EditorSignals } from '../src/Editor';

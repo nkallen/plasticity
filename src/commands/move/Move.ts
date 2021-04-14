@@ -40,5 +40,6 @@ export default class MoveFactory extends GeometryFactory {
 
     cancel() {
         this._item.position.copy(this.originalPosition);
+        return super.cancel();
     }
 }

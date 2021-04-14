@@ -1,7 +1,9 @@
+
+  - last registered things should be .finish(this) so we can handle finishing automatically
+
 Gizmo week:
-- Redo fillet gizmo, etc.
+- redo face commands
 - Rename toolbar2 and Toolbar to palette (or whatever) and make prettier
-- escape to cancel move
 - point-picker style move/etc.
 - Dialogs
 
@@ -20,3 +22,7 @@ Speed week:
 Undo/redo
 
 File save / open
+
+reorganize all commands / custom html elements in the filesystem
+outlines broken by grid
+disable highlight when orbiting / executing commands

@@ -1,4 +1,5 @@
 import { CompositeDisposable, Disposable } from "event-kit";
+import { Cancel, CancellablePromise, Finish } from "../Cancellable";
 import * as THREE from "three";
 import { Editor, EditorSignals } from '../Editor';
 import { Helper } from "../Helpers";
@@ -49,14 +50,14 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
     abstract onPointerDown(intersect: Intersector): void;
 
-    async execute(cb: CB) {
+    execute(cb: CB): CancellablePromise<void> {
         this.editor.helpers.add(this);
         const disposables = new CompositeDisposable();
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
 
         const stateMachine = new GizmoStateMachine(this, this.editor.signals, cb);
 
-        return new Promise<void>((resolve, reject) => {
+        return new CancellablePromise<void>((resolve, reject) => {
             for (const viewport of this.editor.viewports) {
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
@@ -107,7 +108,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     stateMachine.update(camera, pointer);
                     stateMachine.pointerUp(() => {
-                        viewport.enableControls();
                         disposables.dispose();
                         resolve();
                     });
@@ -121,12 +121,24 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                 domElement.addEventListener('pointerdown', onPointerDown);
                 domElement.addEventListener('pointermove', onPointerHover);
+                disposables.add(new Disposable(() => viewport.enableControls()));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerHover)));
                 disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointerup', onPointerUp)));
                 disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointermove', onPointerMove)));
-                this.editor.signals.pointPickerChanged.dispatch();
+                this.editor.signals.pointPickerChanged.dispatch(); // FIXME wrong signal
             }
+            const cancel = () => {
+                disposables.dispose();
+                this.editor.signals.pointPickerChanged.dispatch(); // FIXME wrong signal
+                reject(Cancel);
+            }
+            const finish = () => {
+                disposables.dispose();
+                this.editor.signals.pointPickerChanged.dispatch(); // FIXME wrong signal
+                reject(Finish);
+            }
+            return { cancel, finish };
         });
     }
 

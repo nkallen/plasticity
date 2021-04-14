@@ -58,5 +58,6 @@ export default class ScaleFactory extends GeometryFactory {
     cancel() {
         const { item } = this;
         item.scale.copy(this.originalScale);
+        return super.cancel();
     }
 }

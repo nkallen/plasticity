@@ -49,5 +49,6 @@ export default class RotateFactory extends GeometryFactory {
 
     cancel() {
         this._item.quaternion.copy(this.originalQuaternion);
+        return super.cancel();
     }
 }

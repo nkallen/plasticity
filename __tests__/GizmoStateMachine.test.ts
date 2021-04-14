@@ -1,18 +1,26 @@
+/**
+ * @jest-environment jsdom
+ */
 import * as THREE from "three";
 import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
-import { MoveGizmo } from "../src/commands/move/MoveGizmo";
 import { Editor } from "../src/Editor";
 import FakeSignals from '../__mocks__/FakeSignals';
 import { FakeViewport } from "../__mocks__/FakeViewport";
 
 class FakeGizmo extends AbstractGizmo<() => void> {
+    fakeCommand: jest.Mock;
+
     constructor(editor: Editor) {
+        const picker = new THREE.Mesh(new THREE.SphereGeometry(0.1));
+        const fakeCommand = jest.fn();
+        picker.userData.command = ['gizmo:fake:key', fakeCommand];
         const view = {
             handle: new THREE.Object3D(),
-            picker: new THREE.Mesh(new THREE.SphereGeometry(0.1)),
+            picker: picker,
         };
         super("fake", editor, view);
+        this.fakeCommand = fakeCommand;
     }
 
     onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void {
@@ -55,7 +63,23 @@ test("basic drag interaction", () => {
     sm.update(viewport.camera, { x: 0.6, y: 0.6, button: 0 });
     sm.pointerUp(() => { });
     expect(sm.state).toBe('none');
-})
+});
+
+test("commands are registered", () => {
+    const signals = FakeSignals();
+    const viewport = new FakeViewport();
+    viewport.camera.position.set(0, 0, 1);
+    viewport.camera.lookAt(0, 0, 0);
+    const editor = {
+        viewports: [viewport],
+        gizmos: new GizmoMaterialDatabase(signals)
+    };
+    const gizmo = new FakeGizmo(editor); // FIXME type error
+    const event = new CustomEvent("gizmo:fake:key");
+    expect(gizmo.fakeCommand).toHaveBeenCalledTimes(0);
+    viewport.dispatchEvent(event);
+    expect(gizmo.fakeCommand).toHaveBeenCalledTimes(1);
+});
 
 test("basic command interaction", () => {
 

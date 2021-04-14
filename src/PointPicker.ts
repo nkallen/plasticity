@@ -1,27 +1,10 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
+import { Cancel, CancellablePromise, Finish } from './Cancellable';
 import { Editor } from './Editor';
 
 // FIXME move to gizmos
-
 const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI);
-
-class CancellablePromise<T> extends Promise<T> {
-    private _cancel: () => void;
-    
-    constructor(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => (() => void)) {
-        let _cancel;
-        super((resolve, reject) => {
-            _cancel = executor(resolve, reject);
-        });
-        this._cancel = _cancel;
-    }
-
-    cancel() {
-        console.trace();
-        this._cancel();
-    }
-}
 
 export class PointPicker {
     editor: Editor;
@@ -105,10 +88,17 @@ export class PointPicker {
                     editor.signals.pointPickerChanged.dispatch();
                 }
             }
-            return () => {
+            const cancel = () => {
                 disposables.dispose();
                 editor.signals.pointPickerChanged.dispatch();
+                reject(Cancel);
             }
+            const finish = () => {
+                disposables.dispose();
+                editor.signals.pointPickerChanged.dispatch();
+                reject(Finish);
+            }
+            return { cancel, finish };
         });
     }
 

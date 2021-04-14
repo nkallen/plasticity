@@ -51,5 +51,6 @@ export default class CylinderFactory extends GeometryFactory {
 
     cancel() {
         this.db.scene.remove(this.mesh);
+        return super.cancel();
     }
 }

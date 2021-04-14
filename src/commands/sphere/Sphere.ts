@@ -44,5 +44,6 @@ export default class SphereFactory extends GeometryFactory {
 
     cancel() {
         this.db.scene.remove(this.mesh);
+        return super.cancel();
     }
 }

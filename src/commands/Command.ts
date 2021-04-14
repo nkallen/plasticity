@@ -1,26 +1,26 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { Cancellable, Finish } from "../Cancellable";
 import { Editor } from '../Editor';
 import { PointPicker } from '../PointPicker';
+import * as visual from "../VisualModel";
+import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/Boolean';
 import BoxFactory from './box/Box';
 import CircleFactory from './circle/Circle';
+import CurveFactory from "./curve/Curve";
 import CylinderFactory from './cylinder/Cylinder';
 import FilletFactory from './fillet/Fillet';
 import { FilletGizmo } from './fillet/FilletGizmo';
-import { RotateGizmo } from './rotate/RotateGizmo';
-import { MoveGizmo } from './move/MoveGizmo';
 import LineFactory from './line/Line';
-import MoveFactory from './move/Move';
-import RectFactory from './rect/Rect';
-import RotateFactory from './rotate/Rotate';
-import ScaleFactory from "./scale/Scale";
-import SphereFactory from './sphere/Sphere';
-import { UnionFactory, DifferenceFactory, IntersectionFactory, CutFactory } from './boolean/Boolean';
-import CurveFactory from "./curve/Curve";
-import { Disposable } from "event-kit";
-import * as visual from "../VisualModel";
 import ModifyFaceFactory from "./modifyface/Factory";
 import { ModifyFaceGizmo } from "./modifyface/Gizmo";
+import MoveFactory from './move/Move';
+import { MoveGizmo } from './move/MoveGizmo';
+import RectFactory from './rect/Rect';
+import RotateFactory from './rotate/Rotate';
+import { RotateGizmo } from './rotate/RotateGizmo';
+import ScaleFactory from "./scale/Scale";
+import SphereFactory from './sphere/Sphere';
 
 export default abstract class Command {
     editor: Editor;
@@ -34,37 +34,56 @@ export default abstract class Command {
     }
 
     abstract execute(): Promise<void>;
+
+    cancel() {
+        for (const resource of this.resources) {
+            resource.cancel();
+        }
+    }
+
+    finish() {
+        for (const resource of this.resources) {
+            resource.finish();
+        }
+    }
+
+    resources: Cancellable[] = [];
+    register<T extends Cancellable>(x: T): T {
+        this.resources.push(x);
+        return x
+    }
 }
 
 export class SphereCommand extends Command {
     async execute() {
-        const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals);
-
+        const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         const pointPicker = new PointPicker(this.editor);
-        const p1 = await pointPicker.execute();
+
+        const p1 = await pointPicker.execute().register(this);
         sphere.center = p1;
 
         await pointPicker.execute((p2: THREE.Vector3) => {
             const radius = p1.distanceTo(p2);
             sphere.radius = radius;
             sphere.update();
-        });
+        }).register(this);
         sphere.commit();
     }
 }
 
 export class CircleCommand extends Command {
     async execute() {
-        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+
         const pointPicker = new PointPicker(this.editor);
-        const p1 = await pointPicker.execute();
+        const p1 = await pointPicker.execute().register(this);
         circle.center = p1;
 
         await pointPicker.execute((p2: THREE.Vector3) => {
             const radius = p1.distanceTo(p2);
             circle.radius = radius;
             circle.update();
-        });
+        }).register(this);
         circle.commit();
     }
 }
@@ -73,73 +92,70 @@ export class CylinderCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
-        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        const p1 = await pointPicker.execute();
+        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const p1 = await pointPicker.execute().register(this);
         circle.center = p1;
 
         pointPicker.restrictToPlaneThroughPoint(p1);
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             circle.radius = p1.distanceTo(p2);
             circle.update();
-        });
+        }).register(this);
         circle.cancel();
 
-        const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         cylinder.base = p1;
         cylinder.radius = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
             cylinder.height = p3;
             cylinder.update();
-        });
+        }).register(this);
         cylinder.commit();
     }
 }
 
 export class LineCommand extends Command {
     async execute() {
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const p1 = await pointPicker.execute();
+        const p1 = await pointPicker.execute().register(this);
         line.p1 = p1;
         await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
-        });
+        }).register(this);
         line.commit();
     }
 }
 
 export class CurveCommand extends Command {
     async execute() {
-        const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals);
-
-        const registry = this.editor.registry;
-        const finish = new Promise<'finished' | 'aborted'>((resolve, reject) => {
-            const finished: Disposable = registry.addOne('body', 'command:finished', () => {
-                resolve('finished');
-                finished.dispose();
-            });
-            const aborted: Disposable = registry.addOne('body', 'command:aborted', () => { // FIXME name - reject abort cancel?
-                resolve('aborted');
-                aborted.dispose();
-            });
-        })
+        const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
 
         const pointPicker = new PointPicker(this.editor);
+        let i = 0;
         while (true) {
-            const getPoint = pointPicker.execute();
-            const point = await Promise.race([finish, getPoint]);
-            switch (point) {
-                case 'finished':
-                    curve.commit();
-                case 'aborted':
-                    getPoint.cancel();
-                    return;
-                default:
-                    curve.points.push(point);
-                    curve.update();
-                    break;
+            try {
+                const point = await pointPicker.execute((p: THREE.Vector3) => {
+                    if (i == 0) {
+                        line.p1 = p;
+                    } else if (i == 1) {
+                        line.p2 = p;
+                        line.update();
+                    } else if (i == 2) {
+                        line.cancel();
+                    };
+                }).register(this);
+                curve.points.push(point);
+                curve.update();
+                i++;
+            } catch (e) {
+                if (e !== Finish) throw e;
+                line.cancel();
+                curve.commit();
+                break;
             }
         }
     }
@@ -149,22 +165,22 @@ export class RectCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         const p1 = await pointPicker.execute();
         line.p1 = p1;
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
-        });
+        }).register(this);
         line.cancel();
 
-        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         rect.p1 = p1;
         rect.p2 = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
             rect.p3 = p3;
             rect.update();
-        });
+        }).register(this);
         rect.commit();
     }
 }
@@ -173,32 +189,32 @@ export class BoxCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        const p1 = await pointPicker.execute();
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const p1 = await pointPicker.execute().register(this);
         line.p1 = p1;
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
-        });
+        }).register(this);
         line.cancel();
 
-        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         rect.p1 = p1;
         rect.p2 = p2;
         const p3 = await pointPicker.execute((p3: THREE.Vector3) => {
             rect.p3 = p3;
             rect.update();
-        });
+        }).register(this);
         rect.cancel();
 
-        const box = new BoxFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const box = new BoxFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         box.p1 = p1;
         box.p2 = p2;
         box.p3 = p3;
         await pointPicker.execute((p4: THREE.Vector3) => {
             box.p4 = p4;
             box.update();
-        });
+        }).register(this);
         box.commit();
     }
 }
@@ -211,10 +227,10 @@ export class MoveCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         line.p1 = centroid;
 
-        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         move.p1 = centroid;
         move.item = object;
 
@@ -224,7 +240,7 @@ export class MoveCommand extends Command {
             move.p2 = move.p1.clone().add(delta);
             line.update();
             move.update();
-        });
+        }).register(this);
         line.cancel();
         move.commit();
     }
@@ -235,20 +251,20 @@ export class ScaleCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         let object = [...this.editor.selection.selectedSolids][0]!;
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        const origin = await pointPicker.execute();
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const origin = await pointPicker.execute().register(this);
         line.p1 = origin;
 
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
-        });
+        }).register(this);
         line.cancel();
 
-        const line2 = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const line2 = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         line.p1 = origin;
 
-        const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         scale.item = object;
         scale.origin = line2.p1 = origin;
         scale.p2 = p2;
@@ -257,7 +273,7 @@ export class ScaleCommand extends Command {
             scale.p3 = p3
             line2.update();
             scale.update();
-        });
+        }).register(this);
         line2.cancel();
 
         scale.commit();
@@ -272,7 +288,7 @@ export class RotateCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         rotate.item = object;
         rotate.point = centroid;
 
@@ -281,7 +297,7 @@ export class RotateCommand extends Command {
             rotate.axis = axis;
             rotate.angle = angle;
             rotate.update();
-        })
+        }).register(this);
 
         rotate.commit();
     }
@@ -293,7 +309,7 @@ export class UnionCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         union.item1 = object1;
         union.item2 = object2;
         union.commit();
@@ -306,7 +322,7 @@ export class IntersectionCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         intersection.item1 = object1;
         intersection.item2 = object2;
         intersection.commit();
@@ -333,7 +349,7 @@ export class CutCommand extends Command {
         let object1 = solids[0]!;
         let object2 = curves[0]!;
 
-        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         cut.solid = object1;
         cut.contour = object2;
         cut.commit();
@@ -351,7 +367,7 @@ export class FilletCommand extends Command {
         const centroid = new THREE.Vector3();
         edge.geometry.boundingBox.getCenter(centroid);
 
-        const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         fillet.item = item;
         fillet.edges = edges;
 
@@ -364,7 +380,7 @@ export class FilletCommand extends Command {
             fillet.transaction(['distance'], () => {
                 fillet.update();
             });
-        })
+        }).register(this);
 
         fillet.commit();
     }
@@ -377,7 +393,7 @@ export class ModifyFaceCommand extends Command {
 
         const face = faces[0];
 
-        const modifyFace = new ModifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const modifyFace = new ModifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
         modifyFace.solid = parent;
         modifyFace.faces = faces;
 
@@ -393,7 +409,7 @@ export class ModifyFaceCommand extends Command {
                 modifyFace.direction = offset;
                 modifyFace.update();
             });
-        })
+        }).register(this);
 
         modifyFace.commit();
     }

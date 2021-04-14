@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { PlaneSnap } from '../src/SnapManager';
 import { Viewport } from '../src/Viewport';
 
-export class FakeViewport implements Viewport {
+export class FakeViewport extends HTMLElement implements Viewport {
     controlsEnabled: boolean = true;
 
     renderer: THREE.Renderer;
@@ -17,3 +17,4 @@ export class FakeViewport implements Viewport {
     overlay: THREE.Scene;
     lastPointerEvent: PointerEvent;
 }
+customElements.define('ispace-viewport', FakeViewport);

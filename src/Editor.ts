@@ -1,6 +1,7 @@
 import KeymapManager from "atom-keymap";
 import signals from "signals";
 import * as THREE from "three";
+import { Cancel } from "./Cancellable";
 import CommandRegistry from "./CommandRegistry";
 import Command from './commands/Command';
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
@@ -77,8 +78,18 @@ export class Editor {
         this.db.scene.background = new THREE.Color(0x424242);
     }
 
-    execute(command: Command) {
-        command.execute();
+    async execute(command: Command) {
+        const disposable = this.registry.add('ispace-viewport', {
+            'command:finish': () => command.finish(),
+            'command:abort': () => command.cancel(),
+        })
+        try {
+            await command.execute();
+        } catch (e) {
+            if (e !== Cancel) throw e;
+        } finally {
+            disposable.dispose();
+        }
     }
 
     onWindowResize() {

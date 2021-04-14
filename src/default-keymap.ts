@@ -22,7 +22,7 @@ export default {
         "s": "command:rotate",
         "b": "command:fillet",
 
-        "escape": "command:aborted",
-        "enter": "command:finished",
+        "escape": "command:abort",
+        "enter": "command:finish",
     }
 }

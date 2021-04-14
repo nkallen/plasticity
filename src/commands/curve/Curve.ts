@@ -48,5 +48,6 @@ export default class CurveFactory extends GeometryFactory {
 
     cancel() {
         this.db.scene.remove(this.mesh);
+        return super.cancel();
     }
 }

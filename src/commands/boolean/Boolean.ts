@@ -30,6 +30,7 @@ abstract class BooleanFactory extends GeometryFactory {
     }
 
     cancel() {
+        return super.cancel();
     }
 }
 export class UnionFactory extends BooleanFactory {
@@ -69,5 +70,9 @@ export class CutFactory extends GeometryFactory {
         this.db.addItem(result1);
 
         return super.commit();
+    }
+
+    cancel() {
+        return super.cancel();
     }
 }
