@@ -72,7 +72,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     if (picker.userData.command == null) continue;
                     const [name, fn] = picker.userData.command;
 
-                    const disp = registry.add(domElement, name, () => {
+                    const disp = registry.addOne(domElement, name, () => {
                         stateMachine.command(fn, () => {
                             viewport.disableControls();
                             domElement.ownerDocument.addEventListener('pointermove', onPointerMove);

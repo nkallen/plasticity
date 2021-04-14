@@ -1,5 +1,5 @@
 import { calculateSpecificity, validateSelector } from 'clear-cut';
-import { Disposable } from 'event-kit';
+import { CompositeDisposable, Disposable } from 'event-kit';
 
 let SequenceCount = 0;
 
@@ -29,9 +29,17 @@ export default class CommandRegistry {
             );
         }
     }
-    add(target: string, commandName: string, listener: () => void): Disposable;
-    add(target: HTMLElement, commandName: string, listener: () => void): Disposable;
-    add(target: string | HTMLElement, commandName: string, listener: () => void): Disposable {
+
+    add(target: HTMLElement | string, commands: Record<string, () => void>): Disposable {
+        const disposable = new CompositeDisposable();
+        for (const name in commands) {
+            const dispo = this.addOne(target, name, commands[name]);
+            disposable.add(dispo);
+        }
+        return disposable;
+    }
+
+    addOne(target: string | HTMLElement, commandName: string, listener: () => void): Disposable {
         if (listener == null) {
             throw new Error('Cannot register a command with a null listener.');
         }
@@ -136,7 +144,7 @@ export default class CommandRegistry {
             const currentElement = currentTarget as HTMLElement;
 
             const commandInlineListeners = this.inlineListenersByCommandName.get(event.type)?.get(currentTarget) ?? [];
-            
+
             const selectorBasedListeners: (InlineListener | SelectorBasedListener)[] = (this.selectorBasedListenersByCommandName.get(event.type) || [])
                 .filter(listener => listener.matchesTarget(currentElement))
                 .sort((a, b) => a.compare(b));

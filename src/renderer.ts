@@ -20,8 +20,11 @@ const stats = new Stats();
 stats.showPanel(1);
 document.body.appendChild(stats.dom);
 
-import keymap from "./Keymap";
+import keymap from "./default-keymap";
 editor.keymaps.add('/key/for/these/keymaps', keymap);
+
+import registerDefaultCommands from './register-default-commands';
+registerDefaultCommands(editor);
 
 requestAnimationFrame(function loop() {
     stats.update();

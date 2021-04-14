@@ -1,6 +1,5 @@
 Gizmo week:
 - Move Gizmo (XY, YZ, screen), etc.
-- Keybindings for Move command (G)
 - Gizmo materials reorganized & line event logic rethought
 - Redo fillet gizmo, etc.
 - Unit test GizmoStateMachine

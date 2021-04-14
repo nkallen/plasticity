@@ -8,6 +8,8 @@ export default {
         "xz": "gizmo:move:xz",
         "screen": "gizmo:move:screen",
 
+        "g": "command:move",
+
         "escape": "command:aborted",
         "enter": "command:finished",
     }

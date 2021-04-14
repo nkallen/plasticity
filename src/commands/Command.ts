@@ -116,11 +116,11 @@ export class CurveCommand extends Command {
 
         const registry = this.editor.registry;
         const finish = new Promise<'finished' | 'aborted'>((resolve, reject) => {
-            const finished: Disposable = registry.add('body', 'command:finished', () => {
+            const finished: Disposable = registry.addOne('body', 'command:finished', () => {
                 resolve('finished');
                 finished.dispose();
             });
-            const aborted: Disposable = registry.add('body', 'command:aborted', () => { // FIXME name - reject abort cancel?
+            const aborted: Disposable = registry.addOne('body', 'command:aborted', () => { // FIXME name - reject abort cancel?
                 resolve('aborted');
                 aborted.dispose();
             });
