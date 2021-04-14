@@ -10,7 +10,6 @@ import { Editor } from './Editor';
 import './Pane';
 import Toolbar from './components/toolbar/Toolbar';
 import Viewport from './Viewport';
-import * as visual from '../src/VisualModel';
 import c3d from '../build/Release/c3d.node';
 import './types/c3d-enum';
 c3d.Enabler.EnableMathModules(license.name, license.key);
@@ -40,19 +39,6 @@ box.p2 = new THREE.Vector3(1, 0, 0);
 box.p3 = new THREE.Vector3(1, 1, 0);
 box.p4 = new THREE.Vector3(1, 1, 1);
 box.commit();
-const solid = editor.db.scene.children[1] as visual.Solid;
-
-// editor.selection.onClick([{
-//     distance: 1,
-//     point: new THREE.Vector3(),
-//     object: solid.faces.get(0)
-// }]);
-// editor.selection.onClick([{
-//     distance: 1,
-//     point: new THREE.Vector3(),
-//     object: solid.faces.get(0)
-// }]);
-
 
 const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
 makeSphere.center = new THREE.Vector3(0.5, 0.5, 1.25);
