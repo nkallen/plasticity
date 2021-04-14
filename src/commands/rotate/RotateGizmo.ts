@@ -33,6 +33,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
             handle.add(circle);
 
             const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
+            torus.rotation.copy(circle.rotation);
             torus.userData.mode = { tag: 'X', axis: new THREE.Vector3(1, 0, 0) };
             torus.userData.command = ['gizmo:rotate:x', () => this.mode = torus.userData.mode];
             picker.add(torus)
@@ -46,6 +47,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
             handle.add(circle);
 
             const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
+            torus.rotation.copy(circle.rotation);
             torus.userData.mode = { tag: 'Y', axis: new THREE.Vector3(0, 1, 0) };
             torus.userData.command = ['gizmo:rotate:y', () => this.mode = torus.userData.mode];
             picker.add(torus)
@@ -59,19 +61,21 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
             handle.add(circle);
 
             const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
-            torus.userData.mode = { tag: 'Z', axis: new THREE.Vector3(0,0,1) };
+            torus.rotation.copy(circle.rotation);
+            torus.userData.mode = { tag: 'Z', axis: new THREE.Vector3(0, 0, 1) };
             torus.userData.command = ['gizmo:rotate:z', () => this.mode = torus.userData.mode];
             picker.add(torus)
         }
 
         const { circle, torus } = (() => {
+            const radius = 1;
             const geometry = new LineGeometry();
-            geometry.setPositions(CircleGeometry(1, 32));
+            geometry.setPositions(CircleGeometry(radius, 32));
             const circle = new Line2(geometry, materials.line);
             handle.add(circle);
 
-            const torus = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.1, 4, 24), materials.invisible);
-            torus.userData.mode = circle.userData.mode = { tag: 'screen' };
+            const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
+            torus.userData.mode = { tag: 'screen' };
             torus.userData.command = ['gizmo:rotate:screen', () => this.mode = torus.userData.mode];
             picker.add(torus);
 
@@ -90,20 +94,24 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
     }
 
     onPointerHover(intersect: Intersector) {
+        this.picker.updateMatrixWorld();
         const picker = intersect(this.picker, true);
         if (picker) this.mode = picker.object.userData.mode as Mode;
         else this.mode = null;
     }
 
-    onPointerDown(intersect: Intersector) {
-        const mode = this.mode;
-        if (mode.tag != 'screen') {
-            console.log("drag");
-        }
-    }
+    onPointerDown(intersect: Intersector) {}
 
     onPointerMove(cb: (axis: THREE.Vector3, angle: number) => void, intersect: Intersector, info: MovementInfo) {
-        cb(this.mode.axis, 1);
+        switch (this.mode.tag) {
+            case 'screen':
+                cb(info.eye, info.angle);
+                break;
+            default:
+                let angle = info.angle;
+                if (info.eye.dot(this.mode.axis) < 0) angle *= -1;;
+                cb(this.mode.axis, angle);
+            }
     }
 
     update(camera: THREE.Camera) {
@@ -118,7 +126,8 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         const eye = new THREE.Vector3();
         eye.copy(camera.position).sub(this.position).normalize();
         this.plane.position.copy(this.circle.position);
-        this.plane.position.add(eye.multiplyScalar(-0.01))
+        this.plane.position.add(eye.clone().multiplyScalar(-0.01))
+        this.plane.updateMatrixWorld();
     }
 }
 

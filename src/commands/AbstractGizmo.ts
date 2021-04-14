@@ -170,9 +170,11 @@ export interface MovementInfo {
     pointEnd3d: THREE.Vector3;
 
     // This is the angle change (polar coordinates) in screenspace
-    radius: THREE.Vector2;
+    endRadius: THREE.Vector2;
     angle: number;
     center2d: THREE.Vector2;
+
+    eye: THREE.Vector3;
 }
 
 // This class handles computing some useful data (like click start and click end) of the
@@ -183,14 +185,14 @@ export class GizmoStateMachine<T> implements MovementInfo {
     private pointer!: Pointer;
 
     private readonly plane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
+    eye = new THREE.Vector3();
     pointStart2d = new THREE.Vector2();
     pointEnd2d = new THREE.Vector2();
     pointStart3d = new THREE.Vector3();
     pointEnd3d = new THREE.Vector3();
     center2d = new THREE.Vector2()
-    radius = new THREE.Vector2();
+    endRadius = new THREE.Vector2();
     angle = 0;
-    private start = new THREE.Vector2(); // FIXME something is wrong here
 
     private raycaster = new THREE.Raycaster();
 
@@ -203,6 +205,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     private camera?: THREE.Camera = null;
     update(camera: THREE.Camera, pointer: Pointer) {
         this.camera = camera;
+        this.eye.copy(camera.position).sub(this.gizmo.position).normalize();
         this.gizmo.update(camera);
         this.plane.quaternion.copy(camera.quaternion);
         this.plane.updateMatrixWorld();
@@ -270,8 +273,9 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 const intersection = this.intersector(this.plane, true);
                 console.assert(intersection != null);
                 this.pointEnd3d.copy(intersection.point);
-                this.radius.copy(this.pointEnd2d).sub(this.center2d).normalize();
-                this.angle = Math.atan2(this.radius.y, this.radius.x) - Math.atan2(this.start.y, this.start.x);
+                this.endRadius.copy(this.pointEnd2d).sub(this.center2d).normalize();
+                const startRadius = this.pointStart2d.clone().sub(this.center2d);
+                this.angle = Math.atan2(this.endRadius.y, this.endRadius.x) - Math.atan2(startRadius.y, startRadius.x);
 
                 this.gizmo.onPointerMove(this.cb, this.intersector, this);
                 this.signals.pointPickerChanged.dispatch(); // FIXME rename
