@@ -66,19 +66,7 @@ export class Editor {
             this.keymaps.handleKeyboardEvent(event);
             console.log(event);
         });
-
-        this.keymaps.add('/key/for/these/keymaps', {
-            "ispace-viewport": {
-                "x": "gizmo:move:x",
-                "y": "gizmo:move:y",
-                "z": "gizmo:move:z",
-                "xy": "gizmo:move:xy",
-                "yz": "gizmo:move:yz",
-                "xz": "gizmo:move:xz",
-                "screen": "gizmo:move:screen",
-            }
-        });
-
+        
         this.signals.objectAdded.add(item => this.snaps.add(item));
         this.signals.objectRemoved.add(item => this.snaps.delete(item));
         this.signals.objectRemoved.add(item => this.selection.delete(item));

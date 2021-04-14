@@ -20,12 +20,8 @@ const stats = new Stats();
 stats.showPanel(1);
 document.body.appendChild(stats.dom);
 
-editor.keymaps.add('/key/for/these/keymaps', {
-    "body": {
-        "escape": "command:aborted",
-        "enter": "command:finished",
-    }
-});
+import keymap from "./Keymap";
+editor.keymaps.add('/key/for/these/keymaps', keymap);
 
 requestAnimationFrame(function loop() {
     stats.update();
