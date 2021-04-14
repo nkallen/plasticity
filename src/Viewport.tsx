@@ -174,9 +174,7 @@ export default (editor: Editor) => {
             requestAnimationFrame(this.render);
             if (!this.needsRender) return;
 
-            editor.materials.setResolution(this.offsetWidth, this.offsetHeight);
-
-            editor.helpers.update(this.camera);
+            editor.signals.renderPrepared.dispatch([this.camera, new THREE.Vector2(this.offsetWidth, this.offsetHeight)]);
 
             editor.db.scene.add(this.grid);
             this.composer.render();

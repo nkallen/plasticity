@@ -1,6 +1,4 @@
 Gizmo week:
-- Move Gizmo (XY, YZ, screen), etc.
-- Gizmo materials reorganized & line event logic rethought
 - Redo fillet gizmo, etc.
 - Unit test GizmoStateMachine
 - Rename toolbar2 and Toolbar to palette (or whatever) and make prettier

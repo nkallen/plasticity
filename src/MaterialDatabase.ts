@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../build/Release/c3d.node';
 import * as visual from '../src/VisualModel';
+import { EditorSignals } from "./Editor";
 import porcelain from './img/matcap-porcelain-white.jpg';
 import { assertUnreachable } from "./Util";
 
@@ -15,7 +16,7 @@ export default interface MaterialDatabase {
     get(o: c3d.Item): THREE.Material | undefined;
     line(o?: c3d.SpaceInstance): LineMaterial;
     lineDashed(): LineMaterial;
-    setResolution(width: number, height: number): void;
+    setResolution(size: THREE.Vector2): void;
     point(o?: c3d.Item): THREE.Material;
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material;
 
@@ -35,7 +36,9 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();
     private readonly lineMaterials = new Map<number, LineMaterial>();
 
-    constructor() {
+    constructor(signals: EditorSignals) {
+        signals.renderPrepared.add(([, resolution]) => this.setResolution(resolution));
+
         const lineMaterial = new LineMaterial({ color: 0x000000, linewidth: 1.2 });
         this.lineMaterials.set(hash("line"), lineMaterial);
 
@@ -55,10 +58,6 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         this.lineMaterials.set(hash("line-hovered"), lineMaterial_hovered);
 
         this.materials.set(hash("point"), new THREE.PointsMaterial({ color: 0x888888 }));
-
-        const gizmoMaterial = new LineMaterial({ color: 0xffffff, linewidth: 2, depthTest: false, depthWrite: false, fog: false, toneMapped: false });
-        lineMaterial_hovered.depthFunc = THREE.AlwaysDepth;
-        this.lineMaterials.set(hash("line-gizmo"), gizmoMaterial);
 
         const meshMaterial = new THREE.MeshMatcapMaterial();
         meshMaterial.fog = false;
@@ -109,7 +108,8 @@ export class BasicMaterialDatabase implements MaterialDatabase {
 
     // A quirk of three.js is that to render lines with any thickness, you need to use
     // a LineMaterial whose resolution must be set before each render
-    setResolution(width: number, height: number) {
+    setResolution(size: THREE.Vector2) {
+        const width = size.x, height = size.y;
         for (const material of this.lineMaterials.values()) {
             material.resolution.set(width, height);
         }
@@ -176,9 +176,5 @@ export class BasicMaterialDatabase implements MaterialDatabase {
             return this.materials.get(hash("mesh-hovered"));
         }
         assertUnreachable(object);
-    }
-
-    gizmo() {
-        return this.lineMaterials.get(hash("line-gizmo"));
     }
 }

@@ -34,7 +34,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     helper: THREE.Object3D;
 
     constructor(
-        private readonly editor: Editor,
+        protected readonly editor: Editor,
         private readonly object: visual.SpaceItem | visual.TopologyItem,
         view: GizmoView) {
         super();

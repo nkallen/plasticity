@@ -35,7 +35,9 @@ export class SelectionManager {
         readonly db: GeometryDatabase,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals
-    ) {}
+    ) {
+        signals.objectRemoved.add(item => this.delete(item));
+    }
 
     // FIXME make this method just take an array of objects
     private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy) {

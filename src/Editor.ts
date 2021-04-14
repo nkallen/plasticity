@@ -3,6 +3,7 @@ import signals from "signals";
 import * as THREE from "three";
 import CommandRegistry from "./CommandRegistry";
 import Command from './commands/Command';
+import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { Helpers } from "./Helpers";
 import { BasicMaterialDatabase } from "./MaterialDatabase";
@@ -26,7 +27,7 @@ export interface EditorSignals {
     pointPickerChanged: signals.Signal;
     windowResized: signals.Signal;
     windowLoaded: signals.Signal;
-    rendererAdded: signals.Signal<THREE.Renderer>;
+    renderPrepared: signals.Signal<[THREE.Camera, THREE.Vector2]>;
 }
 
 export class Editor {
@@ -44,17 +45,18 @@ export class Editor {
         pointPickerChanged: new signals.Signal(),
         windowResized: new signals.Signal(),
         windowLoaded: new signals.Signal(),
-        rendererAdded: new signals.Signal()
+        renderPrepared: new signals.Signal(),
     }
 
-    readonly materials = new BasicMaterialDatabase();
+    readonly materials = new BasicMaterialDatabase(this.signals);
+    readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly db = new GeometryDatabase(this.materials, this.signals);
     readonly selection = new SelectionManager(this.db, this.materials, this.signals)
     readonly sprites = new SpriteDatabase();
-    readonly snaps = new SnapManager(this.db, this.sprites);
+    readonly snaps = new SnapManager(this.db, this.sprites, this.signals);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
-    readonly helpers = new Helpers();
+    readonly helpers = new Helpers(this.signals);
 
     constructor() {
         // FIXME dispose of these:
@@ -66,10 +68,6 @@ export class Editor {
             this.keymaps.handleKeyboardEvent(event);
             console.log(event);
         });
-        
-        this.signals.objectAdded.add(item => this.snaps.add(item));
-        this.signals.objectRemoved.add(item => this.snaps.delete(item));
-        this.signals.objectRemoved.add(item => this.selection.delete(item));
 
         const axes = new THREE.AxesHelper(10000);
         axes.renderOrder = 0;

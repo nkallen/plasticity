@@ -14,6 +14,5 @@ export default () => {
         pointPickerChanged: new signals.Signal(),
         windowResized: new signals.Signal(),
         windowLoaded: new signals.Signal(),
-        rendererAdded: new signals.Signal()
     } as EditorSignals
 }
