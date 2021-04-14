@@ -20,7 +20,7 @@ stats.showPanel(1);
 document.body.appendChild(stats.dom);
 
 import keymap from "./default-keymap";
-editor.keymaps.add('/key/for/these/keymaps', keymap);
+editor.keymaps.add('/default', keymap);
 
 import registerDefaultCommands from './default-commands';
 registerDefaultCommands(editor);

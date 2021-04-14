@@ -85,7 +85,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         const helper = new THREE.Mesh(planeGeometry, materials.occlude);
         helper.renderOrder = -1;
 
-        super(editor, { handle: handle, picker: picker, delta: null, helper: helper });
+        super("rotate", editor, { handle: handle, picker: picker, delta: null, helper: helper });
 
         this.circle = circle;
         this.torus = torus;

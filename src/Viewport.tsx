@@ -16,7 +16,7 @@ const near = 0.01;
 const far = 1000;
 const frustumSize = 20;
 
-export interface Viewport {
+export interface Viewport extends HTMLElement {
     renderer: THREE.Renderer;
     camera: THREE.Camera;
     constructionPlane: PlaneSnap;

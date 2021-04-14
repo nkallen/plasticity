@@ -69,7 +69,7 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
 
         const handle = new THREE.Group();
         handle.add(sphere, line, circle);
-        super(editor, { handle: handle, picker: picker });
+        super("modify-face", editor, { handle: handle, picker: picker });
 
         this.position.copy(origin);
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);

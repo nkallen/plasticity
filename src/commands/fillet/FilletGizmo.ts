@@ -41,7 +41,7 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
         picker.position.set(0, 0.6, 0);
         const handle = new THREE.Group();
         handle.add(sphere, line);
-        super(editor, { handle: handle, picker: picker });
+        super("fillet", editor, { handle: handle, picker: picker });
 
         this.position.copy(point);
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
@@ -52,21 +52,4 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         cb(info.pointEnd2d.sub(info.pointStart2d).length());
     }
-
-    // updateMatrixWorld() {
-    // let factor;
-    // if (this.camera.isOrthographicCamera) {
-    //     factor = (this.camera.top - this.camera.bottom) / this.camera.zoom;
-    // } else {
-    //     factor = this.worldPosition.distanceTo(this.cameraPosition) * Math.min(1.9 * Math.tan(Math.PI * this.camera.fov / 360) / this.camera.zoom, 7);
-    // }
-
-    // handle.scale.set(1, 1, 1).multiplyScalar(factor * this.size / 7);
-    //     this.delta.position.copy(this.worldPositionStart);
-    //     const tempVector = new THREE.Vector3();
-    //     tempVector.set(1e-10, 1e-10, 1e-10).add(this.worldPositionStart).sub(this.worldPosition).multiplyScalar(-1);
-    //     this.delta.scale.copy(tempVector);
-
-    //     super.updateMatrixWorld();
-    // }
 }

@@ -12,7 +12,7 @@ class FakeGizmo extends AbstractGizmo<() => void> {
             handle: new THREE.Object3D(),
             picker: new THREE.Mesh(new THREE.SphereGeometry(0.1)),
         };
-        super(editor, view);
+        super("fake", editor, view);
     }
 
     onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void {
@@ -30,7 +30,7 @@ test("basic drag interaction", () => {
         viewports: [viewport],
         gizmos: new GizmoMaterialDatabase(signals)
     };
-    const gizmo = new FakeGizmo(editor);
+    const gizmo = new FakeGizmo(editor); // FIXME type error
     const cb = () => { };
     let sm = new GizmoStateMachine(gizmo, signals, cb);
 

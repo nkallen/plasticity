@@ -31,7 +31,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     delta: THREE.Object3D;
     helper: THREE.Object3D;
 
-    constructor(protected readonly editor: Editor, view: GizmoView) {
+    constructor(protected readonly title: string, protected readonly editor: Editor, view: GizmoView) {
         super();
 
         this.handle = view.handle;
@@ -61,6 +61,9 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
                 const domElement = renderer.domElement;
+
+                viewport.setAttribute("gizmo", this.title);
+                disposables.add(new Disposable(() => viewport.removeAttribute("gizmo")));
 
                 // First, register any keyboard commands, like 'x' for move-x
                 const registry = this.editor.registry;

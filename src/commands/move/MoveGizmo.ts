@@ -152,7 +152,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             return { circle, torus };
         })();
 
-        super(editor, { handle: handle, picker: picker, delta: null, helper: null });
+        super("move", editor, { handle: handle, picker: picker, delta: null, helper: null });
 
         this.pointStart = new THREE.Vector3();
         this.pointEnd = new THREE.Vector3();
