@@ -1,11 +1,10 @@
-import { CircleGeometry } from "../../Util";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
+import { CircleGeometry } from "../../Util";
 import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
-import { Disposable } from "event-kit";
 
 const matInvisible = new THREE.MeshBasicMaterial({
     depthTest: false,
@@ -106,6 +105,8 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         const handle = new THREE.Group();
         const picker = new THREE.Group();
 
+        // These planes represent planes of movement; specifically, they're raycasting targets for
+        // cursor movement
         const planeXY = new THREE.Mesh(planeGeometry, planeMaterial);
         planeXY.lookAt(0, 0, 1);
         const planeYZ = new THREE.Mesh(planeGeometry, planeMaterial);
@@ -114,6 +115,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         planeXZ.lookAt(0, 1, 0);
         [planeXY, planeYZ, planeXY].forEach(plane => plane.updateMatrixWorld());
 
+        // Setup handles/pickers for movement in X, Y, Z, XY, YZ, XZ, and screen-space.
         {
             const X = new THREE.Vector3(1, 0, 0);
             const fwd = new THREE.Mesh(arrowGeometry, matRed);
@@ -231,7 +233,6 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         this.torus = torus;
 
         this.position.copy(p1);
-        // this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), axis);
     }
 
     private mode?: Mode;

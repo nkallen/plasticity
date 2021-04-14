@@ -22,7 +22,7 @@ document.body.appendChild(stats.dom);
 import keymap from "./default-keymap";
 editor.keymaps.add('/key/for/these/keymaps', keymap);
 
-import registerDefaultCommands from './register-default-commands';
+import registerDefaultCommands from './default-commands';
 registerDefaultCommands(editor);
 
 requestAnimationFrame(function loop() {
