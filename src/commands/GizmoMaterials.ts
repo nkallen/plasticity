@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 const depthInfo = {
-    depthTest: false,
-    depthWrite: false,
+    depthTest: true,
+    depthWrite: true,
     fog: false,
     toneMapped: false,
     side: THREE.DoubleSide,
@@ -15,6 +15,12 @@ export class GizmoMaterialDatabase {
     readonly invisible = new THREE.MeshBasicMaterial(Object.assign({
         transparent: true,
         opacity: 0.15
+    }, depthInfo));
+
+    readonly occlude = new THREE.MeshBasicMaterial(Object.assign({
+        depthWrite: true,
+        transparent: true,
+        opacity: 0,
     }, depthInfo));
 
     readonly red = new THREE.MeshBasicMaterial(Object.assign({
@@ -51,25 +57,23 @@ export class GizmoMaterialDatabase {
 
     readonly lineRed = new LineMaterial(Object.assign({
         color: 0xff0000,
-        linewidth: 1,
+        linewidth: 2,
     }, depthInfo));
 
     readonly lineGreen = new LineMaterial(Object.assign({
         color: 0x00ff00,
-        linewidth: 1,
+        linewidth: 2,
     }, depthInfo));
 
     readonly lineBlue = new LineMaterial(Object.assign({
         color: 0x0000ff,
-        linewidth: 1,
+        linewidth: 2,
     }, depthInfo));
 
     private readonly lines = [this.line, this.lineRed, this.lineGreen, this.lineBlue];
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(([, resolution]) => this.setResolution(resolution));
-
-        this.cyanTransparent.opacity = 0.24;
     }
 
     // A quirk of three.js is that to render lines with any thickness, you need to use

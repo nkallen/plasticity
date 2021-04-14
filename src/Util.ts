@@ -62,9 +62,9 @@ export class RefCounter<T> {
     }
 }
 
-export function CircleGeometry(radius: number, segmentCount: number) {
-    const vertices = new Float32Array((segmentCount + 1) * 3);
-    for (let i = 0; i <= segmentCount; i++) {
+export function CircleGeometry(radius: number, segmentCount: number, arc: number = 1.0) {
+    const vertices = new Float32Array((segmentCount*arc + 1) * 3);
+    for (let i = 0; i <= segmentCount * arc; i++) {
         var theta = (i / segmentCount) * Math.PI * 2;
         vertices[i * 3] = Math.cos(theta) * radius;
         vertices[i * 3 + 1] = Math.sin(theta) * radius;

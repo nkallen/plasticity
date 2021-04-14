@@ -266,28 +266,19 @@ export class ScaleCommand extends Command {
 
 export class RotateCommand extends Command {
     async execute() {
-        const pointPicker = new PointPicker(this.editor);
         let object = [...this.editor.selection.selectedSolids][0]!;
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        const p1 = await pointPicker.execute();
-        line.p1 = p1;
+        const bbox = new THREE.Box3().setFromObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
 
-        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
-            line.p2 = p2;
-            line.update();
-        });
-        line.cancel();
-
-        const axis = p2.clone().sub(p1).normalize();
         const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals);
         rotate.item = object;
-        rotate.point = p1;
-        rotate.axis = axis;
+        rotate.point = centroid;
 
-        const midpoint = p1.clone().add(p2).divideScalar(2);
-        const rotateGizmo = new RotateGizmo(this.editor, object, midpoint, axis);
-        await rotateGizmo.execute(angle => {
+        const rotateGizmo = new RotateGizmo(this.editor, centroid);
+        await rotateGizmo.execute((axis, angle) => {
+            rotate.axis = axis;
             rotate.angle = angle;
             rotate.update();
         })

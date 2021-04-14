@@ -9,6 +9,7 @@ export default {
         "s": "gizmo:move:screen",
 
         "g": "command:move",
+        "r": "command:rotate",
 
         "escape": "command:aborted",
         "enter": "command:finished",

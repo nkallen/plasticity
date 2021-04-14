@@ -3,7 +3,6 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
 import { CircleGeometry } from "../../Util";
-import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 
 const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, 0.1, 12, 1, false);
@@ -144,12 +143,14 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             geometry.setPositions(CircleGeometry(radius, 32));
             const circle = new Line2(geometry, materials.line);
             handle.add(circle);
+            
             const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
-            torus.userData.mode = { tag: 'screen' } as Mode;
+            torus.userData.mode = { tag: 'screen' };
             torus.userData.command = ['gizmo:move:screen', () => this.mode = torus.userData.mode];
             picker.add(torus);
+
             return { circle, torus };
-        })()
+        })();
 
         super(editor, { handle: handle, picker: picker, delta: null, helper: null });
 
@@ -171,7 +172,6 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     onPointerDown(intersect: Intersector) {
         const mode = this.mode;
         if (mode.tag != 'screen') {
-            console.log(mode);
             const planeIntersect = intersect(mode.plane, true);
             this.pointStart.copy(planeIntersect.point);
         }
@@ -232,7 +232,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         // hide objects facing the camera
         var AXIS_HIDE_TRESHOLD = 0.99;
         for (const child of [...this.handle.children, ...this.picker.children]) {
-            if (child.userData.hideWhen == null) continue;
+            if (child.userData.hideWhen === undefined) continue;
             child.visible = true;
 
             if (Math.abs(align.copy(child.userData.hideWhen).dot(eye)) > AXIS_HIDE_TRESHOLD) {
