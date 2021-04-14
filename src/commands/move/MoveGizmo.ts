@@ -26,7 +26,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     private readonly circle: THREE.Mesh;
     private readonly torus: THREE.Mesh;
 
-    constructor(editor: Editor, object: visual.SpaceItem, p1: THREE.Vector3) {
+    constructor(editor: Editor, p1: THREE.Vector3) {
         const materials = editor.gizmos;
 
         const handle = new THREE.Group();
@@ -151,7 +151,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             return { circle, torus };
         })()
 
-        super(editor, object, { handle: handle, picker: picker, delta: null, helper: null });
+        super(editor, { handle: handle, picker: picker, delta: null, helper: null });
 
         this.pointStart = new THREE.Vector3();
         this.pointEnd = new THREE.Vector3();

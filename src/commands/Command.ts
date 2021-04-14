@@ -218,7 +218,7 @@ export class MoveCommand extends Command {
         move.p1 = centroid;
         move.item = object;
 
-        const moveGizmo = new MoveGizmo(this.editor, object, centroid);
+        const moveGizmo = new MoveGizmo(this.editor, centroid);
         await moveGizmo.execute(delta => {
             line.p2 = line.p1.clone().add(delta);
             move.p2 = move.p1.clone().add(delta);

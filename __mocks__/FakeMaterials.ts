@@ -14,8 +14,7 @@ export class FakeMaterials implements Required<MaterialDatabase> {
     lineDashed(): LineMaterial {
         return new LineMaterial();
     }
-    setResolution(width: number, height: number): void {
-    }
+    setResolution(size: THREE.Vector2): void {}
     point(o?: c3d.Item): THREE.Material {
         return new THREE.Material();
     }

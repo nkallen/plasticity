@@ -41,7 +41,7 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
         picker.position.set(0, 0.6, 0);
         const handle = new THREE.Group();
         handle.add(sphere, line);
-        super(editor, object, { handle: handle, picker: picker });
+        super(editor, { handle: handle, picker: picker });
 
         this.position.copy(point);
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);

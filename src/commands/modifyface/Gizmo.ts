@@ -64,12 +64,12 @@ export class ModifyFaceGizmo extends AbstractGizmo<(offset: THREE.Vector3) => vo
 
         const geometry = new LineGeometry();
         geometry.setPositions(CircleGeometry(1, 32));
-        const circle = new Line2(geometry, editor.materials.gizmo());
+        const circle = new Line2(geometry, editor.gizmos.line);
         circle.renderOrder = Infinity;
 
         const handle = new THREE.Group();
         handle.add(sphere, line, circle);
-        super(editor, object, { handle: handle, picker: picker });
+        super(editor, { handle: handle, picker: picker });
 
         this.position.copy(origin);
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);

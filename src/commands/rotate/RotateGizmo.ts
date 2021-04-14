@@ -20,12 +20,12 @@ export class RotateGizmo extends AbstractGizmo<(angle: number) => void> {
     constructor(editor: Editor, object: visual.SpaceItem, p1: THREE.Vector3, axis: THREE.Vector3) {
         const geometry = new LineGeometry();
         geometry.setPositions(CircleGeometry(1, 32));
-        const circle = new Line2(geometry, editor.materials.gizmo());
+        const circle = new Line2(geometry, editor.gizmos.line);
         circle.renderOrder = Infinity;
 
         const picker = new THREE.Mesh(new THREE.TorusGeometry(1, 0.1, 4, 24), matInvisible);
 
-        super(editor, object, { handle: circle, picker: picker, delta: null, helper: null });
+        super(editor, { handle: circle, picker: picker, delta: null, helper: null });
 
         this.position.copy(p1);
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), axis);

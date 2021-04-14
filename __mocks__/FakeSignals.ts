@@ -1,7 +1,7 @@
 import signals from "signals";
 import { EditorSignals } from '../src/Editor';
 
-export default () => {
+export default (): EditorSignals => {
     return {
         objectAdded: new signals.Signal(),
         objectRemoved: new signals.Signal(),
@@ -14,5 +14,6 @@ export default () => {
         pointPickerChanged: new signals.Signal(),
         windowResized: new signals.Signal(),
         windowLoaded: new signals.Signal(),
-    } as EditorSignals
+        renderPrepared: new signals.Signal()
+    }
 }

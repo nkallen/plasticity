@@ -1,9 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { Helper } from "../Helpers";
 import * as THREE from "three";
 import { Editor, EditorSignals } from '../Editor';
-import * as visual from "../VisualModel";
-import { Viewport } from "../Viewport";
+import { Helper } from "../Helpers";
 
 /**
  * Gizmos are the graphical tools used to run commands, such as move/rotate/fillet, etc.
@@ -33,10 +31,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     delta: THREE.Object3D;
     helper: THREE.Object3D;
 
-    constructor(
-        protected readonly editor: Editor,
-        private readonly object: visual.SpaceItem | visual.TopologyItem,
-        view: GizmoView) {
+    constructor(protected readonly editor: Editor, view: GizmoView) {
         super();
 
         this.handle = view.handle;
@@ -156,16 +151,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
             button: event.button
         };
     }
-
-    protected static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean): THREE.Intersection {
-        const allIntersections = raycaster.intersectObject(object, true);
-        for (var i = 0; i < allIntersections.length; i++) {
-            if (allIntersections[i].object.visible || includeInvisible) {
-                return allIntersections[i];
-            }
-        }
-        return null;
-    }
 }
 
 export interface Pointer {
@@ -193,8 +178,8 @@ export interface MovementInfo {
 // This class handles computing some useful data (like click start and click end) of the
 // gizmo user interaction. It deals with the hover->click->drag->unclick case (the traditional
 // gizmo interactions) as well as the keyboardCommand->move->click->unclick case (blender modal-style).
-class GizmoStateMachine<T> implements MovementInfo {
-    private state: 'none' | 'hover' | 'dragging' | 'command' = 'none';
+export class GizmoStateMachine<T> implements MovementInfo {
+    state: 'none' | 'hover' | 'dragging' | 'command' = 'none';
     private pointer!: Pointer;
 
     private readonly plane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
@@ -216,15 +201,13 @@ class GizmoStateMachine<T> implements MovementInfo {
     ) { }
 
     private camera?: THREE.Camera = null;
-    update(camera: THREE.Camera, pointer?: Pointer) {
+    update(camera: THREE.Camera, pointer: Pointer) {
         this.camera = camera;
         this.gizmo.update(camera);
         this.plane.quaternion.copy(camera.quaternion);
         this.plane.updateMatrixWorld();
-        if (pointer != null) {
-            this.raycaster.setFromCamera(pointer, camera);
-            this.pointer = pointer;
-        }
+        this.raycaster.setFromCamera(pointer, camera);
+        this.pointer = pointer;
     }
 
     intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
@@ -271,7 +254,6 @@ class GizmoStateMachine<T> implements MovementInfo {
                 if (this.pointer.button !== 0) return;
 
                 this.begin();
-                this.gizmo.onPointerDown(this.intersector);
                 this.state = 'dragging';
                 start();
                 break;
@@ -286,6 +268,7 @@ class GizmoStateMachine<T> implements MovementInfo {
             case 'command':
                 this.pointEnd2d.set(this.pointer.x, this.pointer.y);
                 const intersection = this.intersector(this.plane, true);
+                console.assert(intersection != null);
                 this.pointEnd3d.copy(intersection.point);
                 this.radius.copy(this.pointEnd2d).sub(this.center2d).normalize();
                 this.angle = Math.atan2(this.radius.y, this.radius.x) - Math.atan2(this.start.y, this.start.x);
@@ -323,7 +306,7 @@ class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    protected static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean): THREE.Intersection {
+    static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean): THREE.Intersection {
         const allIntersections = raycaster.intersectObject(object, true);
         for (var i = 0; i < allIntersections.length; i++) {
             if (allIntersections[i].object.visible || includeInvisible) {
