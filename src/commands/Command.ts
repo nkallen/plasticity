@@ -12,7 +12,7 @@ import CylinderFactory from './cylinder/Cylinder';
 import FilletFactory from './fillet/Fillet';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import LineFactory from './line/Line';
-import { FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFace";
+import { ActionFaceFactory, FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFace";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/Move';
 import { MoveGizmo } from './move/MoveGizmo';
@@ -422,7 +422,31 @@ export class PurifyFaceCommand extends Command {
 }
 
 export class CreateFaceCommand extends Command { async execute() { } }
-export class ActionFaceCommand extends Command { async execute() { } }
+export class ActionFaceCommand extends Command {
+    async execute() {
+        let faces = [...this.editor.selection.selectedFaces];
+        const parent = faces[0].parentItem as visual.Solid
+        const face = faces[0];
+
+        const actionFace = new ActionFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        actionFace.solid = parent;
+        actionFace.faces = faces;
+
+        const faceModel = this.editor.db.lookupTopologyItem(face);
+        const point_ = faceModel.Point(0.5, 0.5);
+        const point = new THREE.Vector3(point_.x, point_.y, point_.z);
+        const gizmo = new MoveGizmo(this.editor, point);
+
+        await gizmo.execute(delta => {
+            actionFace.transaction(['direction'], () => {
+                actionFace.direction = delta;
+                actionFace.update();
+            });
+        }).resource(this);
+
+        actionFace.commit();
+    }
+}
 
 export class FilletFaceCommand extends Command {
     async execute() {
