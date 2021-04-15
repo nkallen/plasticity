@@ -152,7 +152,7 @@ declare module "*c3d.node" {
 
     declare class Solid extends Item {
         GetFaces(): [Face];
-        GetEdges(): [Edge];
+        GetEdges(): [CurveEdge];
         GetShell(): FaceShell;
 
         FindFaceByName(Name): Face;

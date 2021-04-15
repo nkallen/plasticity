@@ -63,10 +63,9 @@ export class Model {
             const model = this.db.lookupTopologyItem(face);
             try {
                 const purifiableFaces = c3d.ActionDirect.CollectFacesForModification(solid.GetShell(), c3d.ModifyingType.Purify, 1);
-                console.log("purifiableFaces", purifiableFaces)
                 const purifiableNames = new Set(purifiableFaces.map(f => f.GetNameHash()));
                 const all = [...selection.selectedFaces].every(f => {
-                    const model = this.db.lookupTopologyItem(face);
+                    const model = this.db.lookupTopologyItem(f);
                     return purifiableNames.has(model.GetNameHash());
                 });
                 if (all) {
@@ -76,10 +75,9 @@ export class Model {
             } catch {}
             try {
                 const removableFaces = c3d.ActionDirect.CollectFacesForModification(solid.GetShell(), c3d.ModifyingType.Remove, 1);
-                console.log("removableFaces", removableFaces);
                 const removableNames = new Set(removableFaces.map(f => f.GetNameHash()));
                 const all = [...selection.selectedFaces].every(f => {
-                    const model = this.db.lookupTopologyItem(face);
+                    const model = this.db.lookupTopologyItem(f);
                     return removableNames.has(model.GetNameHash());
                 });
                 if (all) {

@@ -49,7 +49,7 @@ export default class BoxFactory extends GeometryFactory {
             new c3d.CartPoint3D(p3.x, p3.y, p3.z),
             new c3d.CartPoint3D(p4.x, p4.y, p4.z),
         ]
-        const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
+        const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
         const box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
         this.db.addItem(box);
 

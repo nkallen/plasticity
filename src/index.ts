@@ -1,5 +1,11 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, crashReporter } from 'electron';
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
+
+crashReporter.start({
+    productName: 'ispace',
+    submitURL: 'https://submit.backtrace.io/blurbs/8ba2ca632371bdac451b9bef87af76923b0b61191ae04459f622260035ea8a3b/minidump',
+    uploadToServer: true
+});
 
 // This is required by atom-keymap
 app.allowRendererProcessReuse = false

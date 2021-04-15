@@ -79,7 +79,8 @@ export abstract class GeometryFactory extends Cancellable {
                 }
                 this.previous.set(key, value);
             }
-        } catch {
+        } catch (e) {
+            console.warn(e);
             if (this.previous != null) {
                 for (const key of keys) {
                     this[key] = this.previous.get(key);
