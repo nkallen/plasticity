@@ -9,6 +9,8 @@ Gizmo week:
 Cleanup week:
 - Strict mode (nulls)
 - Lint to require return values of fn's.
+- redo the way factory commit handles inheritance. Need to check statemachine 1st and need to return created object
+- autogenerate c3d.d.ts
 
 Snap week:
 - Prettier snap display
@@ -25,3 +27,4 @@ File save / open
 reorganize all commands / custom html elements in the filesystem
 outlines broken by grid
 disable highlight when orbiting / executing commands
+expose selection to console as well as commands with editor already injected.

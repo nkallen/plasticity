@@ -3,7 +3,8 @@ import { TemporaryObject } from '../../GeometryDatabase';
 import * as visual from '../../VisualModel';
 import { GeometryFactory } from '../Factory';
 
-export default class ModifyFaceFactory extends GeometryFactory {
+abstract class ModifyFaceFactory extends GeometryFactory {
+    protected abstract operationType: c3d.ModifyingType;
     direction!: THREE.Vector3;
 
     private _faces = new Array<visual.Face>();
@@ -56,15 +57,14 @@ export default class ModifyFaceFactory extends GeometryFactory {
         const { solid, solidModel, facesModel, direction } = this;
 
         const params = new c3d.ModifyValues();
-        params.way = c3d.ModifyingType.Offset;
+        params.way = this.operationType;
         params.direction = new c3d.Vector3D(direction.x, direction.y, direction.z);
         const names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
         const result = c3d.ActionDirect.FaceModifiedSolid(solidModel, c3d.CopyMode.KeepHistory, params, facesModel, names);
 
-        this.temp!.cancel();
+        this.temp?.cancel();
         this.db.removeItem(solid);
         this.db.addItem(result);
-
         return super.commit();
     }
 
@@ -74,4 +74,40 @@ export default class ModifyFaceFactory extends GeometryFactory {
         // FIXME the state machine in super needs to run first!!
         return super.cancel();
     }
+}
+
+export class RemoveFaceFactory extends ModifyFaceFactory {
+    operationType = c3d.ModifyingType.Remove;
+}
+
+export class CreateFaceFactory extends ModifyFaceFactory {
+    operationType = c3d.ModifyingType.Create;
+}
+
+export class ActionFaceFactory extends ModifyFaceFactory {
+    operationType = c3d.ModifyingType.Action;
+}
+
+export class OffsetFaceFactory extends ModifyFaceFactory {
+    operationType = c3d.ModifyingType.Offset;
+}
+
+export class FilletFaceFactory extends ModifyFaceFactory {
+    operationType = c3d.ModifyingType.Fillet;
+}
+
+export class SuppleFaceFactory extends ModifyFaceFactory {
+    operationType = c3d.ModifyingType.Supple;
+}
+
+export class PurifyFaceFactory extends ModifyFaceFactory {
+    operationType = c3d.ModifyingType.Purify;
+}
+
+export class MergerFaceFactory extends ModifyFaceFactory {
+    operationType = c3d.ModifyingType.Merger;
+}
+
+export class UnitedFaceFactory extends ModifyFaceFactory {
+    operationType = c3d.ModifyingType.United;
 }

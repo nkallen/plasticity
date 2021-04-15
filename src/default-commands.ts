@@ -18,6 +18,6 @@ export default (editor: Editor) => {
         'command:difference': () => editor.execute(new cmd.DifferenceCommand(editor)),
         'command:cut': () => editor.execute(new cmd.CutCommand(editor)),
         'command:fillet': () => editor.execute(new cmd.FilletCommand(editor)),
-        'command:modify-face': () => editor.execute(new cmd.ModifyFaceCommand(editor)),
+        'command:modify-face': () => editor.execute(new cmd.OffsetFaceCommand(editor)),
     })
 }

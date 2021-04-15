@@ -12,8 +12,8 @@ import CylinderFactory from './cylinder/Cylinder';
 import FilletFactory from './fillet/Fillet';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import LineFactory from './line/Line';
-import ModifyFaceFactory from "./modifyface/Factory";
-import { ModifyFaceGizmo } from "./modifyface/Gizmo";
+import { OffsetFaceFactory } from "./modifyface/ModifyFace";
+import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/Move';
 import { MoveGizmo } from './move/MoveGizmo';
 import RectFactory from './rect/Rect';
@@ -354,7 +354,7 @@ export class FilletCommand extends Command {
 
         const curveEdge = this.editor.db.lookupTopologyItem(edge) as c3d.CurveEdge;
         const normal = curveEdge.EdgeNormal(0.5);
-        const filletGizmo = new FilletGizmo(this.editor, edge, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));
+        const filletGizmo = new FilletGizmo(this.editor, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));
 
         await filletGizmo.execute((delta) => {
             fillet.distance = delta;
@@ -367,31 +367,31 @@ export class FilletCommand extends Command {
     }
 }
 
-export class ModifyFaceCommand extends Command {
+export class OffsetFaceCommand extends Command {
     async execute() {
         let faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
 
         const face = faces[0];
 
-        const modifyFace = new ModifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
-        modifyFace.solid = parent;
-        modifyFace.faces = faces;
+        const offsetFace = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        offsetFace.solid = parent;
+        offsetFace.faces = faces;
 
         const faceModel = this.editor.db.lookupTopologyItem(face);
         const normal_ = faceModel.Normal(0.5, 0.5);
         const normal = new THREE.Vector3(normal_.x, normal_.y, normal_.z);
         const point_ = faceModel.Point(0.5, 0.5);
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
-        const gizmo = new ModifyFaceGizmo(this.editor, face, point, normal);
+        const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
 
-        await gizmo.execute((offset) => {
-            modifyFace.transaction(['direction'], () => {
-                modifyFace.direction = offset;
-                modifyFace.update();
+        await gizmo.execute((delta) => {
+            offsetFace.transaction(['direction'], () => {
+                offsetFace.direction = new THREE.Vector3(delta, 0, 0);
+                offsetFace.update();
             });
         }).resource(this);
 
-        modifyFace.commit();
+        offsetFace.commit();
     }
 }

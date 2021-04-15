@@ -17,7 +17,7 @@ const icons = new Map<typeof Command, string>();
 icons.set(cmd.MoveCommand, move);
 icons.set(cmd.RotateCommand, rotate);
 icons.set(cmd.ScaleCommand, scale);
-icons.set(cmd.ModifyFaceCommand, modifyFace);
+icons.set(cmd.OffsetFaceCommand, modifyFace);
 icons.set(cmd.FilletCommand, fillet);
 icons.set(cmd.IntersectionCommand, intersection);
 icons.set(cmd.DifferenceCommand, difference);
@@ -43,7 +43,7 @@ export class Model {
             result.push(cmd.FilletCommand);
         }
         if (this.selection.selectedFaces.size > 0) {
-            result.push(cmd.ModifyFaceCommand);
+            result.push(cmd.OffsetFaceCommand);
         }
         if (this.selection.selectedSolids.size > 0 && this.selection.selectedCurves.size > 0) {
             result.push(cmd.CutCommand)

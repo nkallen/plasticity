@@ -58,7 +58,8 @@ expect.extend({
                 message: () => `expected vec3 ${center.toArray()} to equal ${other.toArray()}`,
                 pass: pass && !this.isNot,
             }
-        }    }
+        }
+    }
 })
 
 export default {}

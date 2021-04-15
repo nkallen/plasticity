@@ -147,6 +147,7 @@ declare module "*c3d.node" {
     declare class Solid extends Item {
         GetFaces(): [Face];
         GetEdges(): [Edge];
+        GetShell(): FaceShell;
 
         FindFaceByName(Name): Face;
         FindEdgeByName(Name): CurveEdge;
@@ -244,6 +245,14 @@ declare module "*c3d.node" {
         direction: Vector3D;
     }
 
+    declare class TopItem extends RefItem {
+        private _useNominal: undefined;
+    }
+
+    declare class FaceShell extends TopItem {
+
+    }
+
     declare class TransformValues {
         private _useNominal: undefined;
         constructor();
@@ -261,6 +270,7 @@ declare module "*c3d.node" {
     var ActionDirect: {
         TransformedSolid(solid: Solid, copyMode: CopyMode, transform: TransformValues, names: SNameMaker): Solid
         FaceModifiedSolid(solid: Solid, copyMode: CopyMode, params: ModifyValues, faces: Face[], names: SNameMaker): Solid;
+        CollectFacesForModification(shell: FaceShell, way: ModifyingType, radius: double): Face[]
     }
 
     var ActionPhantom: {

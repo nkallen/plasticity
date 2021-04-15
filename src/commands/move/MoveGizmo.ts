@@ -8,7 +8,7 @@ import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, 0.1, 12, 1, false);
 const lineGeometry = new LineGeometry();
 lineGeometry.setPositions([0.2, 0, 0, 1, 0, 0]);
-const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
+const planeGeometry = new THREE.PlaneGeometry(10, 10, 2, 2);
 
 type State = 'X' | 'Y' | 'Z' | 'XY' | 'YZ' | 'XZ' | 'screen';
 type Mode = {

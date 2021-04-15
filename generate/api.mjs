@@ -115,6 +115,7 @@ export default {
                 },
                 "const MbFace * FindFaceByName(const MbName & name)",
                 "MbCurveEdge * FindEdgeByName(const MbName & name)",
+                "MbFaceShell * GetShell()",
             ]
         },
         RegTransform: {
@@ -558,6 +559,10 @@ export default {
             rawHeader: "action_direct.h",
             dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h", "_TransformValues.h"],
             functions: [
+                {
+                    signature: "MbResultType CollectFacesForModification(MbFaceShell * shell, MbeModifyingType way, double radius, RPArray<MbFace> & faces)",
+                    faces: isReturn
+                },
                 "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType TransformedSolid(MbSolid & solid, MbeCopyMode sameShell, const TransformValues & params, const MbSNameMaker & names, MbSolid *& result)",
             ]

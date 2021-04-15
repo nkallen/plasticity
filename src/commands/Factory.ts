@@ -2,6 +2,7 @@ import { Cancellable } from '../Cancellable';
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
+import * as visual from '../../src/VisualModel';
 
 type callUpdateSuper = never;
 type callCommitSuper = never;

@@ -35,6 +35,10 @@ export class GizmoMaterialDatabase {
         color: 0x0000ff
     }));
 
+    readonly yellow = new THREE.MeshBasicMaterial(Object.assign({
+        color: 0xffff00
+    }));
+
     readonly yellowTransparent = new THREE.MeshBasicMaterial(Object.assign({
         opacity: 0.25,
         color: 0xffff00
@@ -70,7 +74,12 @@ export class GizmoMaterialDatabase {
         linewidth: 2,
     }, depthInfo));
 
-    private readonly lines = [this.line, this.lineRed, this.lineGreen, this.lineBlue];
+    readonly lineYellow = new LineMaterial(Object.assign({
+        color: 0xffff00,
+        linewidth: 2,
+    }, depthInfo));
+
+    private readonly lines = [this.line, this.lineRed, this.lineGreen, this.lineBlue, this.lineYellow];
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(([, resolution]) => this.setResolution(resolution));

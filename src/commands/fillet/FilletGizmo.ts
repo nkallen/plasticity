@@ -1,43 +1,22 @@
 import * as THREE from "three";
+import { Line2 } from "three/examples/jsm/lines/Line2";
+import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
 import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 
-const gizmoMaterial = new THREE.MeshBasicMaterial({
-    depthTest: false,
-    depthWrite: false,
-    transparent: true,
-    side: THREE.DoubleSide,
-    fog: false,
-    toneMapped: false
-});
-
-const gizmoLineMaterial = new THREE.LineBasicMaterial({
-    depthTest: false,
-    depthWrite: false,
-    transparent: true,
-    linewidth: 1,
-    fog: false,
-    toneMapped: false
-});
-
-const matInvisible = gizmoMaterial.clone() as THREE.MeshBasicMaterial;
-matInvisible.opacity = 0.15;
-const matYellow = gizmoMaterial.clone() as THREE.MeshBasicMaterial;
-matYellow.color.set(0xffff00);
-const matLineYellow = gizmoLineMaterial.clone() as THREE.LineBasicMaterial;
-matLineYellow.color.set(0xffff00);
-
 const sphereGeometry = new THREE.SphereGeometry(0.1);
-const lineGeometry = new THREE.BufferGeometry();
-lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 1, 0], 3));
+const lineGeometry = new LineGeometry();
+lineGeometry.setPositions([0, 0, 0, 0, 1, 0]);
 
 export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
-    constructor(editor: Editor, object: visual.Edge, point: THREE.Vector3, normal: THREE.Vector3) {
-        const sphere = new THREE.Mesh(sphereGeometry, matYellow);
+    constructor(editor: Editor, point: THREE.Vector3, normal: THREE.Vector3) {
+        const materials = editor.gizmos;
+
+        const sphere = new THREE.Mesh(sphereGeometry, materials.yellow);
         sphere.position.set(0, 1, 0);
-        const line = new THREE.Line(lineGeometry, matLineYellow);
-        const picker = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), matInvisible);
+        const line = new Line2(lineGeometry, materials.lineYellow);
+        const picker = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), materials.invisible);
         picker.position.set(0, 0.6, 0);
         const handle = new THREE.Group();
         handle.add(sphere, line);

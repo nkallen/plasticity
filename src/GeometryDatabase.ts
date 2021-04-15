@@ -19,7 +19,7 @@ export class GeometryDatabase {
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals) { }
 
-    addItem(object: c3d.Item, mesh?: visual.SpaceItem) {
+    addItem(object: c3d.Item, mesh?: visual.SpaceItem): visual.SpaceItem {
         mesh = mesh ?? this.object2mesh(object);
         this.geometryModel.AddItem(object, object.GetItemName());
         mesh.userData.simpleName = object.GetItemName();
@@ -29,6 +29,7 @@ export class GeometryDatabase {
 
         this.signals.objectAdded.dispatch(mesh); // FIXME dispatch object and mesh, since snapmanager is just looking up the object immediately afterward
         this.signals.sceneGraphChanged.dispatch();
+        return mesh;
     }
 
     addTemporaryItems(objects: c3d.Item[]): TemporaryObject {

@@ -76,7 +76,7 @@ for (const klass of declarations) {
 
 // Pretty-print the c++ just so we can debug more easily (optional)
 
-const astyle = cp.execSync('where astyle');
+const astyle = cp.execSync('command -v astyle');
 if (astyle) {
     cp.execSync(
         'astyle --options=".astylerc" ' + tempSrcDirPath + '/*.cc ' +
