@@ -84,7 +84,6 @@ export class Model {
                 });
                 if (all) {
                     result.push(cmd.RemoveFaceCommand);
-                    result.push(cmd.OffsetFaceCommand);
                     result.push(cmd.ActionFaceCommand);
                     result.push(cmd.CreateFaceCommand);
                 }
