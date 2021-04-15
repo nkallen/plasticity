@@ -15,6 +15,13 @@ import move from './img/move.svg';
 import rotate from './img/rotate.svg';
 import scale from './img/scale.svg';
 import union from './img/union.svg';
+import curve from './img/curve.svg';
+import circle from './img/circle.svg';
+import sphere from './img/sphere.svg';
+import line from './img/line.svg';
+import rect from './img/rect.svg';
+import cylinder from './img/cylinder.svg';
+import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
 
 const icons = new Map<typeof Command, string>();
@@ -32,6 +39,13 @@ icons.set(cmd.CreateFaceCommand, offsetFace);
 icons.set(cmd.ActionFaceCommand, move);
 icons.set(cmd.FilletFaceCommand, fillet);
 icons.set(cmd.PurifyFaceCommand, trash);
+icons.set(cmd.CurveCommand, curve);
+icons.set(cmd.SphereCommand, sphere);
+icons.set(cmd.CircleCommand, circle);
+icons.set(cmd.LineCommand, line);
+icons.set(cmd.RectCommand, rect);
+icons.set(cmd.CylinderCommand, cylinder);
+icons.set(cmd.BoxCommand, box);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 
 export class Model {
@@ -86,8 +100,6 @@ export class Model {
                     result.push(cmd.CreateFaceCommand);
                 }
             } catch {}
-            // const removableFaces = c3d.ActionDirect.CollectFacesForModification(solid.GetShell(), c3d.ModifyingType.Remove, 1);
-
         }
         if (selection.selectedSolids.size > 0 && selection.selectedCurves.size > 0) {
             result.push(cmd.CutCommand)
@@ -107,6 +119,8 @@ export default (editor: Editor) => {
             const klass = cmd[CommandName] as GConstructor<Command>;
             if (klass == null) throw `${name} is invalid`;
             this.addEventListener('click', e => editor.execute(new klass(editor)));
+
+            render(<img title={name} src={icons.get(cmd[CommandName])}></img>, this);
         }
     }
     customElements.define('ispace-command', CommandButton, { extends: 'button' });
@@ -143,5 +157,5 @@ export default (editor: Editor) => {
             render(result, this);
         }
     }
-    customElements.define('ispace-toolbar2', Toolbar);
+    customElements.define('ispace-toolbar', Toolbar);
 }

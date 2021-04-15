@@ -39,7 +39,7 @@ export class Pane extends HTMLElement {
 
     constructor() {
         super();
-        this.style.flexGrow = '1';
+        if (!this.style.flexGrow) this.style.flexGrow = '1';
     }
 
     connectedCallback() {

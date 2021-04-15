@@ -8,7 +8,7 @@ import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, 0.1, 12, 1, false);
 const lineGeometry = new LineGeometry();
 lineGeometry.setPositions([0.2, 0, 0, 1, 0, 0]);
-const planeGeometry = new THREE.PlaneGeometry(10, 10, 2, 2);
+const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 
 type State = 'X' | 'Y' | 'Z' | 'XY' | 'YZ' | 'XZ' | 'screen';
 type Mode = {
@@ -102,7 +102,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const p = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), materials.invisible);
             p.position.copy(square.position);
             p.rotation.copy(square.rotation);
-            p.userData.mode = { state: 'XY', plane: planeXY, multiplicand: XY };
+            p.userData.mode = { tag: 'XY', plane: planeXY, multiplicand: XY };
             p.userData.command = ['gizmo:move:xy', () => this.mode = p.userData.mode];
             picker.add(p);
         }
@@ -117,7 +117,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const p = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), materials.invisible);
             p.position.copy(square.position);
             p.rotation.copy(square.rotation);
-            p.userData.mode = { state: 'YZ', plane: planeYZ, multiplicand: YZ };
+            p.userData.mode = { tag: 'YZ', plane: planeYZ, multiplicand: YZ };
             p.userData.command = ['gizmo:move:yz', () => this.mode = p.userData.mode];
             picker.add(p);
         }
@@ -132,7 +132,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             const p = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), materials.invisible);
             p.position.copy(square.position);
             p.rotation.copy(square.rotation);
-            p.userData.mode = { state: 'XZ', plane: planeXZ, multiplicand: XZ };
+            p.userData.mode = { tag: 'XZ', plane: planeXZ, multiplicand: XZ };
             p.userData.command = ['gizmo:move:xz', () => this.mode = p.userData.mode];
             picker.add(p);
         }
@@ -195,7 +195,8 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
                 cb(info.pointEnd3d.sub(info.pointStart3d));
                 break;
             default:
-                throw this.mode;
+                console.log(this.mode);
+                throw this.mode.tag;
         }
     }
 

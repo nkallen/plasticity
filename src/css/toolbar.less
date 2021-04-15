@@ -12,27 +12,12 @@
 @ms_1: @ui-size * 0.889;
 @ms_2: @ui-size * 0.790;
 
-ispace-toolbar {
+ispace-palette {
     padding: 15px;
     flex-grow: 1;
-    min-width: @ui-size * 15;
     border-width: 0 1px 0 0;
     border-image: linear-gradient(@level-2-color 10px, @base-border-color 200px) 0 1 0 0 stretch;
     background: @level-2-color;
-
-    button {
-        width: 100%;
-        white-space: initial;
-        font-size: @ms-1;
-        line-height: 1;
-        padding: (@ui-padding/3) (@ui-padding/2);
-
-        &::before {
-            vertical-align: middle;
-        }
-
-        margin: 1px 0;
-    }
 
     section {
         padding: @component-padding*1.5;
@@ -44,35 +29,5 @@ ispace-toolbar {
         background-color: @package-card-background-color;
         overflow: hidden;
         cursor: pointer;
-        -webkit-user-select: none;
-
-        &:hover {
-            background-color: contrast(@package-card-background-color, darken(@package-card-background-color, 2%), lighten(@package-card-background-color, 2%));
-        }
-
-        &:active {
-            background-color: @package-card-background-color;
-        }
-
-        &.disabled {
-            background-color: @package-card-disabled-background-color;
-
-            .body,
-            .avatar,
-            .author,
-            .stats {
-                opacity: .5;
-            }
-        }
-
-        h4 {
-            font-weight: 300;
-            margin: 0 0 .2em 0;
-            font-size: 1.2em;
-            line-height: 1.4;
-
-            font-weight: bolder;
-            color: @text-color-highlight;
-          }
     }
 }

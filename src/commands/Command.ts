@@ -12,7 +12,7 @@ import CylinderFactory from './cylinder/Cylinder';
 import FilletFactory from './fillet/Fillet';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import LineFactory from './line/Line';
-import { ActionFaceFactory, FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFace";
+import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFace";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/Move';
 import { MoveGizmo } from './move/MoveGizmo';
@@ -421,7 +421,19 @@ export class PurifyFaceCommand extends Command {
     }
 }
 
-export class CreateFaceCommand extends Command { async execute() { } }
+export class CreateFaceCommand extends Command {
+    async execute() {
+        let faces = [...this.editor.selection.selectedFaces];
+        const parent = faces[0].parentItem as visual.Solid
+
+        const removeFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        removeFace.solid = parent;
+        removeFace.faces = faces;
+
+        removeFace.commit();
+    }
+}
+
 export class ActionFaceCommand extends Command {
     async execute() {
         let faces = [...this.editor.selection.selectedFaces];
