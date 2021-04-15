@@ -316,7 +316,7 @@ export class DifferenceCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally;
+        const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         difference.item1 = object1;
         difference.item2 = object2;
         difference.commit();
