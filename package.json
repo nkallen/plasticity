@@ -14,7 +14,7 @@
     "build": "node-gyp build -j max",
     "rebuild": "node-gyp rebuild -j max",
     "test": "jest --maxWorkers=1 --silent",
-    "watch-test": "jest --maxWorkers=1 --watch",
+    "watch-test": "jest --maxWorkers=50% --watch",
     "watch-generate": "find generate | entr -s 'yarn generate && yarn build && clear && echo Succesfully generated!'",
     "gbs": "yarn generate && yarn build && yarn start"
   },
