@@ -340,7 +340,7 @@ export class CutCommand extends Command {
 export class FilletCommand extends Command {
     async execute() {
         let edges = [...this.editor.selection.selectedEdges];
-        const item = edges[0].parentItem as visual.Solid
+        const item = edges[0].parentItem as visual.Solid; // FIXME make method without cast in visual.
 
         const edge = edges[0];
 
@@ -395,3 +395,11 @@ export class OffsetFaceCommand extends Command {
         offsetFace.commit();
     }
 }
+
+export class RemoveFaceCommand extends Command { async execute() {} }
+export class CreateFaceCommand extends Command { async execute() {} }
+export class ActionFaceCommand extends Command { async execute() {} }
+export class FilletFaceCommand extends Command { async execute() {} }
+export class SuppleFaceCommand extends Command { async execute() {} }
+export class PurifyFaceCommand extends Command { async execute() {} }
+export class MergerFaceCommand extends Command { async execute() {} }

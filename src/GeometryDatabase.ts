@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
 import MaterialDatabase from './MaterialDatabase';
-import { assertUnreachable } from './Util';
+import { assertUnreachable, WeakValueMap } from './Util';
 import * as visual from './VisualModel';
 
 export interface TemporaryObject {
@@ -11,9 +11,10 @@ export interface TemporaryObject {
 }
 
 export class GeometryDatabase {
-    readonly geometryModel = new c3d.Model();
     readonly drawModel = new Set<visual.SpaceItem>();
     readonly scene = new THREE.Scene();
+    private readonly geometryModel = new c3d.Model();
+    private readonly name2topologyItem = new WeakValueMap<c3d.SimpleName, visual.TopologyItem>();
 
     constructor(
         private readonly materials: MaterialDatabase,
@@ -111,6 +112,10 @@ export class GeometryDatabase {
         assertUnreachable(object);
     }
 
+    lookupByName(name: c3d.Name): visual.TopologyItem {
+        return this.name2topologyItem.get(name.Hash());
+    }
+
     private object2mesh(obj: c3d.Item, sag: number = 0.005, wireframe: boolean = true): visual.SpaceItem {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const note = new c3d.FormNote(wireframe, true, true, false, false);
@@ -141,6 +146,7 @@ export class GeometryDatabase {
                 const polygons = mesh.GetEdges(true);
                 for (const edge of polygons) {
                     const line = new visual.CurveEdge(edge, lineMaterial, this.materials.lineDashed());
+                    this.name2topologyItem.set(edge.name.Hash(), line);
                     edges.addEdge(line);
                 }
                 solid.addEdges(edges.build());
@@ -150,6 +156,7 @@ export class GeometryDatabase {
                 for (const grid of grids) {
                     const material = this.materials.mesh(grid, mesh.IsClosed());
                     const face = new visual.Face(grid, material);
+                    this.name2topologyItem.set(grid.name.Hash(), face);
                     faces.addFace(face);
                 }
                 solid.addFaces(faces.build());

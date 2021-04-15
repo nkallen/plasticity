@@ -1,4 +1,6 @@
 declare module "*c3d.node" {
+    declare type SimpleName = number;
+
     declare interface AttributeContainer {
         GetStyle(): number;
         SetStyle(number): void;
@@ -89,6 +91,7 @@ declare module "*c3d.node" {
 
     declare class Name {
         private _useNominal: undefined;
+        Hash(): SimpleName;
     }
 
     declare interface MeshBuffer {
@@ -122,7 +125,10 @@ declare module "*c3d.node" {
 
     declare class TopologyItem extends AttributeContainer {
         private _useNominal: undefined;
-
+        GetName(): Name;
+        GetMainName(): SimpleName;
+        GetFirstName(): SimpleName;
+        GetNameHash(): SimpleName;
     }
 
     declare class Face extends TopologyItem {

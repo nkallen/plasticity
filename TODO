@@ -28,3 +28,4 @@ reorganize all commands / custom html elements in the filesystem
 outlines broken by grid
 disable highlight when orbiting / executing commands
 expose selection to console as well as commands with editor already injected.
+select method should be more direct

@@ -29,7 +29,7 @@ beforeEach(() => {
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
-    toolbar = new Model(selection);
+    toolbar = new Model(selection, db);
 })
 
 

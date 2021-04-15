@@ -22,6 +22,8 @@ export default {
         "s": "command:scale",
         "b": "command:fillet",
 
+        "p": "p",
+
         "escape": "command:abort",
         "enter": "command:finish",
     }

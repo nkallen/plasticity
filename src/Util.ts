@@ -63,7 +63,7 @@ export class RefCounter<T> {
 }
 
 export function CircleGeometry(radius: number, segmentCount: number, arc: number = 1.0) {
-    const vertices = new Float32Array((segmentCount*arc + 1) * 3);
+    const vertices = new Float32Array((segmentCount * arc + 1) * 3);
     for (let i = 0; i <= segmentCount * arc; i++) {
         var theta = (i / segmentCount) * Math.PI * 2;
         vertices[i * 3] = Math.cos(theta) * radius;
@@ -71,4 +71,23 @@ export function CircleGeometry(radius: number, segmentCount: number, arc: number
         vertices[i * 3 + 2] = 0;
     }
     return vertices;
+}
+
+export class WeakValueMap<K, V extends {}> {
+    private readonly underlying = new Map<K, WeakRef<V>>();
+
+    get(k: K) {
+        const ref = this.underlying.get(k);
+        const v = ref.deref();
+        if (v) {
+            return v;
+        } else {
+            this.underlying.delete(k);
+            return null;
+        }
+    }
+
+    set(k: K, v: V) {
+        this.underlying.set(k, new WeakRef(v));
+    }
 }

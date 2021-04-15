@@ -331,7 +331,10 @@ export default {
             ]
         },
         Name: {
-            rawHeader: "name_item.h"
+            rawHeader: "name_item.h",
+            functions: [
+                "SimpleName Hash()"
+            ]
         },
         Path: {
             rawHeader: "name_item.h"
