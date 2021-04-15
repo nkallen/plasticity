@@ -29,10 +29,10 @@ icons.set(cmd.CutCommand, cut);
 icons.set(cmd.OffsetFaceCommand, offsetFace);
 icons.set(cmd.RemoveFaceCommand, trash);
 icons.set(cmd.CreateFaceCommand, offsetFace);
-icons.set(cmd.ActionFaceCommand, offsetFace);
-icons.set(cmd.FilletFaceCommand, offsetFace);
-icons.set(cmd.PurifyFaceCommand, offsetFace);
-icons.set(cmd.MergerFaceCommand, offsetFace);
+icons.set(cmd.ActionFaceCommand, move);
+icons.set(cmd.FilletFaceCommand, fillet);
+icons.set(cmd.PurifyFaceCommand, trash);
+// icons.set(cmd.MergerFaceCommand, offsetFace);
 
 export class Model {
     constructor(

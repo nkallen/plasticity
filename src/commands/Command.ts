@@ -12,7 +12,7 @@ import CylinderFactory from './cylinder/Cylinder';
 import FilletFactory from './fillet/Fillet';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import LineFactory from './line/Line';
-import { OffsetFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFace";
+import { FilletFaceFactory, OffsetFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFace";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/Move';
 import { MoveGizmo } from './move/MoveGizmo';
@@ -399,7 +399,6 @@ export class RemoveFaceCommand extends Command {
     async execute() {
         let faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
-        const face = faces[0];
 
         const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         removeFace.solid = parent;
@@ -411,7 +410,36 @@ export class RemoveFaceCommand extends Command {
 
 export class CreateFaceCommand extends Command { async execute() { } }
 export class ActionFaceCommand extends Command { async execute() { } }
-export class FilletFaceCommand extends Command { async execute() { } }
+
+export class FilletFaceCommand extends Command {
+    async execute() {
+        let faces = [...this.editor.selection.selectedFaces];
+        const parent = faces[0].parentItem as visual.Solid
+        const face = faces[0];
+
+        const refilletFace = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        refilletFace.solid = parent;
+        refilletFace.faces = faces;
+
+        const faceModel = this.editor.db.lookupTopologyItem(face);
+        const normal_ = faceModel.Normal(0.5, 0.5);
+        const normal = new THREE.Vector3(normal_.x, normal_.y, normal_.z);
+        const point_ = faceModel.Point(0.5, 0.5);
+        const point = new THREE.Vector3(point_.x, point_.y, point_.z);
+        const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
+
+        await gizmo.execute((delta) => {
+            refilletFace.transaction(['direction'], () => {
+                refilletFace.direction = new THREE.Vector3(delta, 0, 0);
+                refilletFace.update();
+            });
+        }).resource(this);
+
+        refilletFace.commit();
+
+    }
+}
+
 export class SuppleFaceCommand extends Command { async execute() { } }
 export class PurifyFaceCommand extends Command { async execute() { } }
 export class MergerFaceCommand extends Command { async execute() { } }
