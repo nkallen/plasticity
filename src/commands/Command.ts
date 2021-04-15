@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { Cancellable, Finish } from "../Cancellable";
+import { Cancellable, CancellableRegistor, Finish } from "../Cancellable";
 import { Editor } from '../Editor';
 import { PointPicker } from '../PointPicker';
 import * as visual from "../VisualModel";
@@ -22,7 +22,7 @@ import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/Scale";
 import SphereFactory from './sphere/Sphere';
 
-export default abstract class Command {
+export default abstract class Command extends CancellableRegistor {
     editor: Editor;
 
     static get title() {
@@ -30,60 +30,43 @@ export default abstract class Command {
     }
 
     constructor(editor: Editor) {
+        super();
         this.editor = editor;
     }
 
     abstract execute(): Promise<void>;
-
-    cancel() {
-        for (const resource of this.resources) {
-            resource.cancel();
-        }
-    }
-
-    finish() {
-        for (const resource of this.resources) {
-            resource.finish();
-        }
-    }
-
-    resources: Cancellable[] = [];
-    register<T extends Cancellable>(x: T): T {
-        this.resources.push(x);
-        return x
-    }
 }
 
 export class SphereCommand extends Command {
     async execute() {
-        const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         const pointPicker = new PointPicker(this.editor);
 
-        const p1 = await pointPicker.execute().register(this);
+        const p1 = await pointPicker.execute().resource(this);
         sphere.center = p1;
 
         await pointPicker.execute((p2: THREE.Vector3) => {
             const radius = p1.distanceTo(p2);
             sphere.radius = radius;
             sphere.update();
-        }).register(this);
+        }).resource(this);
         sphere.commit();
     }
 }
 
 export class CircleCommand extends Command {
     async execute() {
-        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const p1 = await pointPicker.execute().register(this);
+        const p1 = await pointPicker.execute().resource(this);
         circle.center = p1;
 
         await pointPicker.execute((p2: THREE.Vector3) => {
             const radius = p1.distanceTo(p2);
             circle.radius = radius;
             circle.update();
-        }).register(this);
+        }).resource(this);
         circle.commit();
     }
 }
@@ -92,47 +75,47 @@ export class CylinderCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
-        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
-        const p1 = await pointPicker.execute().register(this);
+        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const p1 = await pointPicker.execute().resource(this);
         circle.center = p1;
 
         pointPicker.restrictToPlaneThroughPoint(p1);
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             circle.radius = p1.distanceTo(p2);
             circle.update();
-        }).register(this);
+        }).resource(this);
         circle.cancel();
 
-        const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         cylinder.base = p1;
         cylinder.radius = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
             cylinder.height = p3;
             cylinder.update();
-        }).register(this);
+        }).resource(this);
         cylinder.commit();
     }
 }
 
 export class LineCommand extends Command {
     async execute() {
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const p1 = await pointPicker.execute().register(this);
+        const p1 = await pointPicker.execute().resource(this);
         line.p1 = p1;
         await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
-        }).register(this);
+        }).resource(this);
         line.commit();
     }
 }
 
 export class CurveCommand extends Command {
     async execute() {
-        const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
         let i = 0;
@@ -147,14 +130,12 @@ export class CurveCommand extends Command {
                     } else if (i == 2) {
                         line.cancel();
                     };
-                }).register(this);
+                }).resource(this);
                 curve.points.push(point);
                 curve.update();
                 i++;
             } catch (e) {
                 if (e !== Finish) throw e;
-                line.cancel();
-                curve.commit();
                 break;
             }
         }
@@ -165,22 +146,22 @@ export class RectCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const p1 = await pointPicker.execute();
         line.p1 = p1;
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
-        }).register(this);
+        }).resource(this);
         line.cancel();
 
-        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         rect.p1 = p1;
         rect.p2 = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
             rect.p3 = p3;
             rect.update();
-        }).register(this);
+        }).resource(this);
         rect.commit();
     }
 }
@@ -189,32 +170,32 @@ export class BoxCommand extends Command {
     async execute() {
         const pointPicker = new PointPicker(this.editor);
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
-        const p1 = await pointPicker.execute().register(this);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const p1 = await pointPicker.execute().resource(this);
         line.p1 = p1;
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
-        }).register(this);
+        }).resource(this);
         line.cancel();
 
-        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
         rect.p2 = p2;
         const p3 = await pointPicker.execute((p3: THREE.Vector3) => {
             rect.p3 = p3;
             rect.update();
-        }).register(this);
+        }).resource(this);
         rect.cancel();
 
-        const box = new BoxFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const box = new BoxFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         box.p1 = p1;
         box.p2 = p2;
         box.p3 = p3;
         await pointPicker.execute((p4: THREE.Vector3) => {
             box.p4 = p4;
             box.update();
-        }).register(this);
+        }).resource(this);
         box.commit();
     }
 }
@@ -227,10 +208,10 @@ export class MoveCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         line.p1 = centroid;
 
-        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         move.p1 = centroid;
         move.item = object;
 
@@ -240,7 +221,7 @@ export class MoveCommand extends Command {
             move.p2 = move.p1.clone().add(delta);
             line.update();
             move.update();
-        }).register(this);
+        }).resource(this);
         line.cancel();
         move.commit();
     }
@@ -251,20 +232,20 @@ export class ScaleCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         let object = [...this.editor.selection.selectedSolids][0]!;
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
-        const origin = await pointPicker.execute().register(this);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const origin = await pointPicker.execute().resource(this);
         line.p1 = origin;
 
         const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
-        }).register(this);
+        }).resource(this);
         line.cancel();
 
-        const line2 = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const line2 = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         line.p1 = origin;
 
-        const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         scale.item = object;
         scale.origin = line2.p1 = origin;
         scale.p2 = p2;
@@ -273,7 +254,7 @@ export class ScaleCommand extends Command {
             scale.p3 = p3
             line2.update();
             scale.update();
-        }).register(this);
+        }).resource(this);
         line2.cancel();
 
         scale.commit();
@@ -288,7 +269,7 @@ export class RotateCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         rotate.item = object;
         rotate.point = centroid;
 
@@ -297,7 +278,7 @@ export class RotateCommand extends Command {
             rotate.axis = axis;
             rotate.angle = angle;
             rotate.update();
-        }).register(this);
+        }).resource(this);
 
         rotate.commit();
     }
@@ -309,7 +290,7 @@ export class UnionCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         union.item1 = object1;
         union.item2 = object2;
         union.commit();
@@ -322,7 +303,7 @@ export class IntersectionCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         intersection.item1 = object1;
         intersection.item2 = object2;
         intersection.commit();
@@ -335,7 +316,7 @@ export class DifferenceCommand extends Command {
         let object1 = items[0]!;
         let object2 = items[1]!;
 
-        const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally;
         difference.item1 = object1;
         difference.item2 = object2;
         difference.commit();
@@ -349,7 +330,7 @@ export class CutCommand extends Command {
         let object1 = solids[0]!;
         let object2 = curves[0]!;
 
-        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         cut.solid = object1;
         cut.contour = object2;
         cut.commit();
@@ -367,7 +348,7 @@ export class FilletCommand extends Command {
         const centroid = new THREE.Vector3();
         edge.geometry.boundingBox.getCenter(centroid);
 
-        const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         fillet.item = item;
         fillet.edges = edges;
 
@@ -380,7 +361,7 @@ export class FilletCommand extends Command {
             fillet.transaction(['distance'], () => {
                 fillet.update();
             });
-        }).register(this);
+        }).resource(this);
 
         fillet.commit();
     }
@@ -393,7 +374,7 @@ export class ModifyFaceCommand extends Command {
 
         const face = faces[0];
 
-        const modifyFace = new ModifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).register(this);
+        const modifyFace = new ModifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         modifyFace.solid = parent;
         modifyFace.faces = faces;
 
@@ -409,7 +390,7 @@ export class ModifyFaceCommand extends Command {
                 modifyFace.direction = offset;
                 modifyFace.update();
             });
-        }).register(this);
+        }).resource(this);
 
         modifyFace.commit();
     }

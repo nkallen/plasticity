@@ -77,7 +77,7 @@ export default class FilletFactory extends GeometryFactory {
 
     cancel() {
         this.item.visible = true;
-        this.temp.cancel();
+        this.temp?.cancel();
         return super.cancel();
     }
 }

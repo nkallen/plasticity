@@ -1,5 +1,4 @@
 
-  - last registered things should be .finish(this) so we can handle finishing automatically
 
 Gizmo week:
 - redo face commands

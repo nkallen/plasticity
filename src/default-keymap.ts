@@ -19,7 +19,7 @@ export default {
     "ispace-viewport": {
         "g": "command:move",
         "r": "command:rotate",
-        "s": "command:rotate",
+        "s": "command:scale",
         "b": "command:fillet",
 
         "escape": "command:abort",

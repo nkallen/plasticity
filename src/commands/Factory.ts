@@ -2,26 +2,26 @@ import { Cancellable } from '../Cancellable';
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
-import Command from './Command';
 
 type callUpdateSuper = never;
 type callCommitSuper = never;
 type callCancelSuper = never;
 
 type State = 'none' | 'updated' | 'cancelled' | 'committed'
-export abstract class GeometryFactory implements Cancellable {
+export abstract class GeometryFactory extends Cancellable {
     state: State = 'none';
 
     constructor(
         protected readonly db: GeometryDatabase,
         protected readonly materials: MaterialDatabase,
         protected readonly signals: EditorSignals
-    ) { }
+    ) { super() }
 
     finish() {
         switch (this.state) {
             case 'none':
             case 'updated':
+                this.commit();
                 break;
             default:
                 throw new Error('invalid state: ' + this.state);
@@ -50,11 +50,6 @@ export abstract class GeometryFactory implements Cancellable {
             default:
                 throw new Error('invalid state: ' + this.state);
         }
-    }
-
-    register(command: Command): this {
-        command.register(this);
-        return this;
     }
 
     cancel(): callCancelSuper {
