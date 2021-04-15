@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from '../../GeometryDatabase';
 import * as visual from '../../VisualModel';
@@ -5,7 +6,7 @@ import { GeometryFactory } from '../Factory';
 
 abstract class ModifyFaceFactory extends GeometryFactory {
     protected abstract operationType: c3d.ModifyingType;
-    direction!: THREE.Vector3;
+    direction = new THREE.Vector3();
 
     private _faces = new Array<visual.Face>();
     private facesModel!: c3d.Face[];

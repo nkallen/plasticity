@@ -12,7 +12,7 @@ import CylinderFactory from './cylinder/Cylinder';
 import FilletFactory from './fillet/Fillet';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import LineFactory from './line/Line';
-import { OffsetFaceFactory } from "./modifyface/ModifyFace";
+import { OffsetFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFace";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/Move';
 import { MoveGizmo } from './move/MoveGizmo';
@@ -371,7 +371,6 @@ export class OffsetFaceCommand extends Command {
     async execute() {
         let faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
-
         const face = faces[0];
 
         const offsetFace = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
@@ -396,10 +395,23 @@ export class OffsetFaceCommand extends Command {
     }
 }
 
-export class RemoveFaceCommand extends Command { async execute() {} }
-export class CreateFaceCommand extends Command { async execute() {} }
-export class ActionFaceCommand extends Command { async execute() {} }
-export class FilletFaceCommand extends Command { async execute() {} }
-export class SuppleFaceCommand extends Command { async execute() {} }
-export class PurifyFaceCommand extends Command { async execute() {} }
-export class MergerFaceCommand extends Command { async execute() {} }
+export class RemoveFaceCommand extends Command {
+    async execute() {
+        let faces = [...this.editor.selection.selectedFaces];
+        const parent = faces[0].parentItem as visual.Solid
+        const face = faces[0];
+
+        const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        removeFace.solid = parent;
+        removeFace.faces = faces;
+
+        removeFace.commit();
+    }
+}
+
+export class CreateFaceCommand extends Command { async execute() { } }
+export class ActionFaceCommand extends Command { async execute() { } }
+export class FilletFaceCommand extends Command { async execute() { } }
+export class SuppleFaceCommand extends Command { async execute() { } }
+export class PurifyFaceCommand extends Command { async execute() { } }
+export class MergerFaceCommand extends Command { async execute() { } }
