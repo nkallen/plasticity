@@ -1,8 +1,7 @@
 import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
 import { Disposable } from 'event-kit';
-import { Component, hydrate, render } from 'preact';
-import { Fragment } from 'preact/jsx-runtime';
+import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
 import Command, * as cmd from '../../commands/Command';
 import { Editor } from '../../Editor';
