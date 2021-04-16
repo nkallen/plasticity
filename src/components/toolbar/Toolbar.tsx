@@ -1,7 +1,8 @@
 import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
 import { Disposable } from 'event-kit';
-import { render } from 'preact';
+import { Component, hydrate, render } from 'preact';
+import { Fragment } from 'preact/jsx-runtime';
 import c3d from '../../../build/Release/c3d.node';
 import Command, * as cmd from '../../commands/Command';
 import { Editor } from '../../Editor';
@@ -134,7 +135,7 @@ export class Model {
 
 export default (editor: Editor) => {
     class Tooltip extends HTMLElement {
-        dispose!: Disposable
+        dispose?: Disposable
 
         constructor() {
             super();
@@ -142,7 +143,6 @@ export default (editor: Editor) => {
         }
 
         connectedCallback() {
-            console.log("connected", `${this.getAttribute('command')}`, this.innerHTML);
             this.dispose = editor.tooltips.add(this.parentElement, {
                 title: this.innerHTML,
                 keyBindingCommand: `${this.getAttribute('command')}`,
@@ -150,8 +150,7 @@ export default (editor: Editor) => {
         }
 
         disconnectedCallback() {
-            console.log("disconnected")
-            this.dispose.dispose();
+            this.dispose!.dispose();
         }
     }
     customElements.define('ispace-tooltip', Tooltip);
@@ -196,6 +195,9 @@ export default (editor: Editor) => {
         }
 
         render() {
+            // preact's diffing algorithm will mutate ispace-tooltips rather than create new ones, which leads to corruption;
+            // So, force things to be cleared first.
+            render('', this);
             const result = (
                 <>
                     { this.model.commands.map(command => (
@@ -207,7 +209,6 @@ export default (editor: Editor) => {
                 </>
             );
             render(result, this);
-            this.childNodes
         }
     }
     customElements.define('ispace-toolbar', Toolbar);
