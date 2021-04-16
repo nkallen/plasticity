@@ -62,6 +62,6 @@ test("reproduce crash", () => {
         params.direction = new c3d.Vector3D(0.7800048970850955, 0, -0);
         // params.direction = new c3d.Vector3D(0.05, 0, 0);
         const names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
-        return c3d.ActionDirect.FaceModifiedSolid(fillet, c3d.CopyMode.Copy, params, [face], names);
+        // return c3d.ActionDirect.FaceModifiedSolid(fillet, c3d.CopyMode.Copy, params, [face], names);
     })();
 });

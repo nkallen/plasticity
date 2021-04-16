@@ -11,6 +11,7 @@ import { BasicMaterialDatabase } from "./MaterialDatabase";
 import { SelectionManager } from './selection/SelectionManager';
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
+import TooltipManager from "./components/atom/tooltip-manager";
 import { Viewport } from "./Viewport";
 import { SpaceItem, TopologyItem } from './VisualModel';
 
@@ -58,7 +59,8 @@ export class Editor {
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
     readonly helpers = new Helpers(this.signals);
-
+    readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null}); // FIXME viewRegistry shouldn't be null
+  
     constructor() {
         // FIXME dispose of these:
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
