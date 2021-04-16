@@ -9,6 +9,7 @@ import { GeometryDatabase } from '../../GeometryDatabase';
 import { SelectionManager } from '../../selection/SelectionManager';
 import { GConstructor } from '../../Util';
 import * as visual from "../../VisualModel";
+import { humanizeKeystrokes } from '../atom/tooltip-manager';
 import circle from './img/circle.svg';
 import curve from './img/curve.svg';
 import cut from './img/cut.svg';
@@ -72,6 +73,21 @@ tooltips.set(cmd.RectCommand, "Three point rectangle");
 tooltips.set(cmd.CylinderCommand, "Cylinder");
 tooltips.set(cmd.BoxCommand, "Box");
 
+const keybindings = new Map<string, string>();
+keybindings.set("gizmo:move:x", "X axis");
+keybindings.set("gizmo:move:y", "Y axis");
+keybindings.set("gizmo:move:z", "Z axis");
+keybindings.set("gizmo:move:xy", "Z plane");
+keybindings.set("gizmo:move:yz", "X plane");
+keybindings.set("gizmo:move:xz", "Y plane");
+keybindings.set("gizmo:move:screen", "Screen space");
+keybindings.set("gizmo:rotate:x", "X axis");
+keybindings.set("gizmo:rotate:y", "Y axis");
+keybindings.set("gizmo:rotate:z", "Z axis");
+keybindings.set("gizmo:rotate:screen", "Screen space");
+keybindings.set("command:abort", "Abort");
+keybindings.set("command:finish", "Finish");
+
 export class Model {
     constructor(
         private readonly selection: SelectionManager,
@@ -97,12 +113,12 @@ export class Model {
             result.push(cmd.OffsetFaceCommand);
             const face = [...selection.selectedFaces][0];
             const parent = face.parentItem as visual.Solid;
-            const solid = this.db.lookup(parent);
+            const solid = db.lookup(parent);
             try {
                 const purifiableFaces = c3d.ActionDirect.CollectFacesForModification(solid.GetShell(), c3d.ModifyingType.Purify, 1);
                 const purifiableNames = new Set(purifiableFaces.map(f => f.GetNameHash()));
                 const all = [...selection.selectedFaces].every(f => {
-                    const model = this.db.lookupTopologyItem(f);
+                    const model = db.lookupTopologyItem(f);
                     return purifiableNames.has(model.GetNameHash());
                 });
                 if (all) {
@@ -114,7 +130,7 @@ export class Model {
                 const removableFaces = c3d.ActionDirect.CollectFacesForModification(solid.GetShell(), c3d.ModifyingType.Remove, 1);
                 const removableNames = new Set(removableFaces.map(f => f.GetNameHash()));
                 const all = [...selection.selectedFaces].every(f => {
-                    const model = this.db.lookupTopologyItem(f);
+                    const model = db.lookupTopologyItem(f);
                     return removableNames.has(model.GetNameHash());
                 });
                 if (all) {
@@ -209,6 +225,39 @@ export default (editor: Editor) => {
             );
             render(result, this);
         }
+
+        disconnectedCallback() {
+            editor.signals.objectSelected.remove(this.update);
+            editor.signals.objectDeselected.remove(this.update);
+        }
     }
     customElements.define('ispace-toolbar', Toolbar);
+
+    class Keybindings extends HTMLElement {
+        constructor() {
+            super();
+            this.update = this.update.bind(this);
+        }
+
+        connectedCallback() {
+            editor.signals.keybindingsRegistered.add(this.update);
+        }
+
+        update(commands: string[]) {
+            const keymaps = editor.keymaps;
+            const result = <ul>
+                {commands.map(command => {
+                    const bindings = keymaps.findKeyBindings({ command: command });
+                    const keystroke = humanizeKeystrokes(bindings[0].keystrokes);
+                    return <li><span class="keystroke">{keystroke}</span>{keybindings.get(command)}</li>
+                })}
+            </ul>;
+            render(result, this);
+        }
+
+        disconnectedCallback() {
+            editor.signals.keybindingsRegistered.remove(this.update);
+        }
+    }
+    customElements.define('ispace-keybindings', Keybindings);
 }

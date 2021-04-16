@@ -44,7 +44,7 @@ let Tooltip = null;
 //   keyBindingTarget: this.findEditor.element
 // })
 // ```
-module.exports = class TooltipManager {
+export default class TooltipManager {
     constructor({ keymapManager, viewRegistry }) {
         this.defaults = {
             trigger: 'hover',
@@ -55,7 +55,7 @@ module.exports = class TooltipManager {
         };
 
         this.hoverDefaults = {
-            delay: { show: 1000, hide: 100 }
+            delay: { show: 500, hide: 100 }
         };
 
         this.keymapManager = keymapManager;
@@ -194,13 +194,13 @@ module.exports = class TooltipManager {
     }
 };
 
-function humanizeKeystrokes(keystroke) {
+export function humanizeKeystrokes(keystroke) {
     let keystrokes = keystroke.split(' ');
     keystrokes = keystrokes.map(stroke => _.humanizeKeystroke(stroke));
     return keystrokes.join(' ');
 }
 
-function getKeystroke(bindings) {
+export function getKeystroke(bindings) {
     if (bindings && bindings.length) {
         return `<span class="keystroke">${humanizeKeystrokes(
             bindings[0].keystrokes

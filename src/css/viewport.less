@@ -1,16 +1,50 @@
-ispace-viewport:hover ispace-toolbar {
+ispace-viewport:hover {
+    ispace-toolbar {
         visibility: visible;
+    }
+
+    ispace-keybindings {
+        visibility: visible;
+    }
 }
 
-ispace-viewport ispace-toolbar {
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin: auto;
-    bottom: 12px;
-    background: #eee;
-    text-align: center;
-    visibility: hidden;
+
+ispace-viewport {
+    ispace-toolbar {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: auto;
+        bottom: 12px;
+        background: #eee;
+        text-align: center;
+        visibility: hidden;
+    }
+
+    ispace-keybindings {
+        position: absolute;
+        left: 0px;
+        // transform: translate(-50%, -50%);
+        // margin: auto;
+        bottom: 12px;
+        background: transparent;
+        visibility: hidden;
+        color: white;
+
+        ul {
+            li {
+                list-style-type: none;
+                margin: 5px;
+
+                .keystroke {
+                    font-weight: bold;
+                    border: 1px solid white;
+                    padding: 0 2px;
+                    margin: 5px;
+                }
+            }
+        }
+    }
 }
 
 ispace-viewport canvas:focus {

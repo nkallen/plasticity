@@ -68,9 +68,11 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                 // First, register any keyboard commands, like 'x' for move-x
                 const registry = this.editor.registry;
+                const commands = [];
                 for (const picker of this.picker.children) {
                     if (picker.userData.command == null) continue;
                     const [name, fn] = picker.userData.command;
+                    commands.push(name);
 
                     const disp = registry.addOne(domElement, name, () => {
                         // If a keyboard command is invoked immediately after the gizmo appears, we will
@@ -86,6 +88,8 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     });
                     disposables.add(disp);
                 }
+                this.editor.signals.keybindingsRegistered.dispatch(commands);
+                disposables.add(new Disposable(() => this.editor.signals.keybindingsRegistered.dispatch([])));
 
                 // Next, the basic workflow for pointer events
                 const onPointerDown = (event: PointerEvent) => {

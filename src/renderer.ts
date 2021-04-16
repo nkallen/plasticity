@@ -44,9 +44,3 @@ const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals
 makeSphere.center = new THREE.Vector3(0.5, 0.5, 1.25);
 makeSphere.radius = 0.5;
 makeSphere.commit();
-
-const makeCurve = new CurveFactory(editor.db, editor.materials, editor.signals);
-makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
-makeCurve.points.push(new THREE.Vector3(0, 2, 0.5));
-makeCurve.points.push(new THREE.Vector3(2, 2, 0));
-makeCurve.commit();

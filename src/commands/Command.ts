@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { Cancellable, CancellableRegistor, Finish } from "../Cancellable";
+import { CancellableRegistor, Finish } from "../Cancellable";
+import { getKeystroke } from "../components/atom/tooltip-manager";
 import { Editor } from '../Editor';
 import { PointPicker } from '../PointPicker';
 import * as visual from "../VisualModel";

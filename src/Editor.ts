@@ -30,6 +30,9 @@ export interface EditorSignals {
     windowResized: signals.Signal;
     windowLoaded: signals.Signal;
     renderPrepared: signals.Signal<[THREE.Camera, THREE.Vector2]>;
+    commandStarted: signals.Signal<Command>;
+    commandEnded: signals.Signal;
+    keybindingsRegistered: signals.Signal<string[]>;
 }
 
 export class Editor {
@@ -48,6 +51,9 @@ export class Editor {
         windowResized: new signals.Signal(),
         windowLoaded: new signals.Signal(),
         renderPrepared: new signals.Signal(),
+        commandStarted: new signals.Signal(),
+        commandEnded: new signals.Signal(),
+        keybindingsRegistered: new signals.Signal(),
     }
 
     readonly materials = new BasicMaterialDatabase(this.signals);
@@ -81,6 +87,7 @@ export class Editor {
     }
 
     async execute(command: Command) {
+        this.signals.commandStarted.dispatch(command);
         const disposable = this.registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
@@ -91,6 +98,7 @@ export class Editor {
             if (e !== Cancel) throw e;
         } finally {
             disposable.dispose();
+            this.signals.commandEnded.dispatch();
         }
     }
 
