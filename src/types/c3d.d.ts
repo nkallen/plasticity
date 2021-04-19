@@ -155,8 +155,8 @@ declare module "*c3d.node" {
         GetEdges(): [CurveEdge];
         GetShell(): FaceShell;
 
-        FindFaceByName(Name): Face;
-        FindEdgeByName(Name): CurveEdge;
+        FindFaceByName(Name): Face?;
+        FindEdgeByName(Name): CurveEdge?;
     }
 
     declare class BooleanFlags {

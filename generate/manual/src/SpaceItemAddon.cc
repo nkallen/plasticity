@@ -42,17 +42,17 @@ Napi::Value cast(MbSpaceItem * _underlying, const Napi::CallbackInfo &info)
     // case st_Instance:
     //     return Item::NewInstance(env, dynamic_cast<MbInstance *>(_underlying));
     case st_Mesh:
-        return Mesh::NewInstance(env, dynamic_cast<MbMesh *>(_underlying));
+        return Mesh::NewInstance(env, (MbMesh *)(_underlying));
     // case st_PlaneInstance:
     //     return Item::NewInstance(env, dynamic_cast<MbPlaneInstance *>(_underlying));
     // case st_PointFrame:
     //     return Item::NewInstance(env, dynamic_cast<MbPointFrame *>(_underlying));
     case st_Solid:
-        return Solid::NewInstance(env, dynamic_cast<MbSolid *>(_underlying));
+        return Solid::NewInstance(env, (MbSolid *)(_underlying));
     case st_SpaceInstance:
-        return SpaceInstance::NewInstance(env, dynamic_cast<MbSpaceInstance *>(_underlying));
+        return SpaceInstance::NewInstance(env, (MbSpaceInstance *)(_underlying));
     case st_Curve3D:
-        return Curve3D::NewInstance(env, dynamic_cast<MbCurve3D *>(_underlying));
+        return Curve3D::NewInstance(env, (MbCurve3D *)(_underlying));
         // case st_WireFrame:
         //     return Item::NewInstance(env, dynamic_cast<MbWireFrame *>(_underlying));
         // default:

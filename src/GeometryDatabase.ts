@@ -10,6 +10,8 @@ export interface TemporaryObject {
     commit(): void;
 }
 
+let counter = 0;
+
 export class GeometryDatabase {
     readonly drawModel = new Set<visual.SpaceItem>();
     readonly scene = new THREE.Scene();
@@ -22,8 +24,9 @@ export class GeometryDatabase {
 
     addItem(object: c3d.Item, mesh?: visual.SpaceItem): visual.SpaceItem {
         mesh = mesh ?? this.object2mesh(object);
-        this.geometryModel.AddItem(object, object.GetItemName());
-        mesh.userData.simpleName = object.GetItemName();
+        this.geometryModel.AddItem(object, counter);
+        mesh.userData.simpleName = counter;
+        counter++
 
         this.scene.add(mesh);
         this.drawModel.add(mesh);
@@ -121,8 +124,8 @@ export class GeometryDatabase {
         const note = new c3d.FormNote(wireframe, true, true, false, false);
         const item = obj.CreateMesh(stepData, note, null);
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
-        switch (mesh.GetMeshType()) {
-            case c3d.SpaceType.Curve3D: {
+        switch (obj.IsA()) {
+            case c3d.SpaceType.SpaceInstance: {
                 const curve3D = new visual.Curve3DBuilder();
                 const edges = mesh.GetEdges();
                 let material = this.materials.line(obj as c3d.SpaceInstance);

@@ -98,6 +98,8 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     }
 
     line(o?: c3d.SpaceInstance): LineMaterial {
+        return this.lineMaterials.get(hash("line"));
+        // FIXME GetStyle errors on windows on unset object
         if (!o) return this.lineMaterials.get(hash("line"));
         else return this.getLine(o) ?? this.lineMaterials.get(hash("line"));
     }
