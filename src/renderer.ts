@@ -1,6 +1,7 @@
 import Stats from 'stats.js';
 import * as THREE from 'three';
 // import '../build/Release/c3d.dll'; // On windows, this will copy the file into the webpack bundle
+import '../build/Release/libc3d.dylib'; // On mac
 import license from '../license-key.json';
 import BoxFactory from './commands/box/Box';
 import CurveFactory from './commands/curve/Curve';

@@ -22,7 +22,7 @@ const createWindow = (): void => {
         width: 1000,
         x: 0,
         y: 0,
-        // show: false,
+        show: false,
         webPreferences: {
             // preload: path.join(path.join(__dirname, 'preload.js')),
             nodeIntegration: true,
@@ -35,7 +35,7 @@ const createWindow = (): void => {
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.show();

@@ -49,7 +49,7 @@ export default class ScaleFactory extends GeometryFactory {
 
         const names = new c3d.SNameMaker(c3d.CreatorType.TransformedSolid, c3d.ESides.SideNone, 0);
         const params = new c3d.TransformValues(scaleFactor, scaleFactor, scaleFactor, new c3d.CartPoint3D(origin.x, origin.y, origin.z));
-        const result = c3d.ActionDirect.TransformedSolid(solid, c3d.CopyMode.KeepHistory, params, names);
+        const result = c3d.ActionDirect.TransformedSolid(solid, c3d.CopyMode.Copy, params, names);
         this.db.addItem(result);
 
         return super.commit();

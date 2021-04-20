@@ -14,7 +14,7 @@ module.exports = [
         ],
     },
     {
-        test: /\.dll/,
+        test: /\.dll|\.dylib/,
         use: [
             {
                 loader: 'file-loader',

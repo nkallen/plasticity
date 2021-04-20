@@ -27,9 +27,15 @@
                             'libraries': [
                                 'libc3d.dylib',
                             ]
-                        }
+                        },
+                        "copies": [
+                            {
+                                "destination": "<(module_root_dir)/build/Release/",
+                                "files": ["<(module_root_dir)/vendor/c3d/Debug/libc3d.dylib"]
+                            }
+                        ]
                     }
-                ],
+                 ],
                 ['OS=="win"',
                     {
                         'link_settings': {
@@ -37,19 +43,19 @@
                             'libraries': [
                                 'c3d.lib',
                             ],
-                             "copies": [
+                            "copies": [
                                 {
-                                  "destination": "<(module_root_dir)/build/Release/",
-                                  "files": [ "<(module_root_dir)/vendor/c3d/Debug/c3d.dll" ]
+                                    "destination": "<(module_root_dir)/build/Release/",
+                                    "files": ["<(module_root_dir)/vendor/c3d/Debug/c3d.dll"]
                                 }
-                              ]
+                            ]
                         }
                     }
-                ]
+                 ]
             ],
             'xcode_settings': {
                 'OTHER_LDFLAGS': [
-                    '-Wl,-rpath,\'@loader_path/../../vendor/c3d/Debug\''
+                    '-Wl,-rpath,\'@loader_path\''
                 ]
             },
             'defines': ['NAPI_DISABLE_CPP_EXCEPTIONS'],
