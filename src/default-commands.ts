@@ -20,15 +20,5 @@ export default (editor: Editor) => {
         'command:cut': () => editor.execute(new cmd.CutCommand(editor)),
         'command:fillet': () => editor.execute(new cmd.FilletCommand(editor)),
         'command:modify-face': () => editor.execute(new cmd.OffsetFaceCommand(editor)),
-        'p': () => {
-            for (const solid of editor.selection.selectedSolids) {
-                const model = editor.db.lookup(solid);
-                const shell = model.GetShell();
-                const result = c3d.ActionDirect.CollectFacesForModification(shell, c3d.ModifyingType.Purify, 1);
-                for (const face of result) {
-                    editor.selection.onClick([{ object: editor.db.lookupByName(face.GetName()), distance: null, point: null }])
-                }
-            }
-        }
     })
 }

@@ -175,15 +175,18 @@ export default (editor: Editor) => {
             super();
             type CommandName = keyof typeof cmd;
             const name = this.getAttribute('name');
+            if (!name) throw "invalid name";
             const CommandName = name + 'Command' as CommandName;
             const klass = cmd[CommandName] as GConstructor<Command>;
             if (klass == null) throw `${name} is invalid`;
             this.addEventListener('click', e => editor.execute(new klass(editor)));
-            let command = cmd[CommandName];
+            const command = cmd[CommandName];
+            const tooltip = tooltips.get(command);
+            if (!tooltip) throw "no matching tooltip for command " + CommandName;
 
             const result = <>
                 <img title={name} src={icons.get(command)}></img>
-                <ispace-tooltip command={`command:${command.title}`}>{tooltips.get(command)}</ispace-tooltip>
+                <ispace-tooltip command={`command:${command.title}`}>{tooltip}</ispace-tooltip>
             </>
             render(result, this);
         }
@@ -215,12 +218,14 @@ export default (editor: Editor) => {
             render('', this);
             const result = (
                 <>
-                    { this.model.commands.map(command => (
-                        <button onClick={_ => editor.execute(new command(editor))}>
+                    {this.model.commands.map(command => {
+                        const tooltip = tooltips.get(command);
+                        if (!tooltip) throw "invalid tooltip for " + command;
+                        return <button onClick={_ => editor.execute(new command(editor))}>
                             <img title={command.title} src={icons.get(command)}></img>
-                            <ispace-tooltip command={`command:${command.title}`}>{tooltips.get(command)}</ispace-tooltip>
+                            <ispace-tooltip command={`command:${command.title}`}>{tooltip}</ispace-tooltip>
                         </button>
-                    ))}
+                    })}
                 </>
             );
             render(result, this);
