@@ -23,7 +23,7 @@ export interface Viewport extends HTMLElement {
     enableControls(): void;
     disableControls(): void;
     overlay: THREE.Scene;
-    lastPointerEvent: PointerEvent;
+    lastPointerEvent?: PointerEvent;
 }
 
 export default (editor: Editor) => {
@@ -40,7 +40,7 @@ export default (editor: Editor) => {
         readonly outlinePassHover: OutlinePass;
         readonly controls = new Set<{ enabled: boolean }>();
         readonly grid = new THREE.GridHelper(300, 300, 0x666666, 0x666666);
-        lastPointerEvent: PointerEvent;
+        lastPointerEvent?: PointerEvent;
 
         constructor() {
             super();
@@ -71,19 +71,20 @@ export default (editor: Editor) => {
                     camera.position.set(0, 0, 10);
                     n = new THREE.Vector3(0, 0, 1);
                     break;
-                case "front":
-                    camera = orthographicCamera;
-                    camera.position.set(0, 10, 0);
-                    n = new THREE.Vector3(0, 1, 0);
-                    break;
                 case "right":
                     camera = orthographicCamera;
                     camera.position.set(10, 0, 0);
                     n = new THREE.Vector3(1, 0, 0);
                     break;
+                case "front":
+                default:
+                    camera = orthographicCamera;
+                    camera.position.set(0, 10, 0);
+                    n = new THREE.Vector3(0, 1, 0);
+                    break;
             }
             this.constructionPlane = new PlaneSnap(n);
-            this.grid.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), n);
+            this.grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
             this.grid.renderOrder = -1;
 
             camera.up.set(0, 0, 1);

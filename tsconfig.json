@@ -6,6 +6,7 @@
         "esModuleInterop": true,
         "noImplicitAny": true,
         "strictFunctionTypes": true,
+        "strict": true,
         "alwaysStrict": true,
         "noImplicitThis": true,
         "sourceMap": true,

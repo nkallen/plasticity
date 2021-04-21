@@ -23,14 +23,15 @@ export abstract class SpaceItem {
 export abstract class Item extends SpaceItem { }
 export class Solid extends Item {
     disposable = new CompositeDisposable()
-    edges: CurveEdgeGroup;
-    faces: FaceGroup;
+    edges!: CurveEdgeGroup;
+    faces!: FaceGroup;
 
     constructor() {
         super();
         THREE.Object3D.call(this);
     }
 }
+
 export class SpaceInstance<T extends SpaceItem> extends Item {
     constructor(underlying: SpaceItem) {
         super();
@@ -60,8 +61,8 @@ export class Curve3D extends SpaceItem {
 export abstract class TopologyItem {
     private _useNominal: undefined;
 
-    get parentItem() {
-        return this.parent.parent as Item;
+    get parentItem(): Item {
+        return this.parent?.parent as Item;
     }
 }
 export class Edge extends TopologyItem {
@@ -93,8 +94,8 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
         this.renderOrder = RenderOrder.CurveSegment;
     }
 
-    get parentItem() {
-        return this.parent.parent as SpaceInstance<Curve3D>;
+    get parentItem(): SpaceInstance<Curve3D> {
+        return this.parent?.parent as SpaceInstance<Curve3D>;
     }
 }
 export class Face extends TopologyItem {
@@ -123,7 +124,7 @@ export class CurveEdgeGroup extends THREE.Group {
         }
     }
 
-    get(i: number) {
+    get(i: number): CurveEdge {
         return this.children[i] as CurveEdge;
     }
 }
@@ -137,7 +138,7 @@ export class FaceGroup extends THREE.Group {
         }
     }
 
-    get(i: number) {
+    get(i: number): Face {
         return this.children[i] as Face;
     }
 }
@@ -210,19 +211,19 @@ export class Curve3DBuilder {
 export class SolidBuilder {
     private readonly solid = new Solid();
 
-    addEdges(edges: CurveEdgeGroup) {
+    addEdges(edges: CurveEdgeGroup): void {
         this.solid.edges = edges;
         this.solid.add(edges);
         this.solid.disposable.add(new Disposable(() => edges.dispose()));
     }
 
-    addFaces(faces: FaceGroup) {
+    addFaces(faces: FaceGroup): void {
         this.solid.faces = faces;
         this.solid.add(faces);
         this.solid.disposable.add(new Disposable(() => faces.dispose()));
     }
 
-    build() {
+    build(): Solid {
         return this.solid;
     }
 }

@@ -5,11 +5,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 export type Constructor = new (...args: any[]) => {};
 export type GConstructor<T = {}> = new (...args: any[]) => T;
 
-export function assertUnreachable(x: never): never {
-    throw new Error("Didn't expect to get here");
-}
-
-export function applyMixins(derivedCtor: any, constructors: any[]) {
+export function applyMixins(derivedCtor: any, constructors: any[]): void {
     constructors.reverse().forEach((baseCtor) => {
         Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
             Object.defineProperty(
@@ -22,6 +18,10 @@ export function applyMixins(derivedCtor: any, constructors: any[]) {
     });
 }
 
+export function assertUnreachable(x: never): never {
+    throw new Error("Didn't expect to get here");
+}
+
 export class RefCounter<T> {
     private readonly counts = new Map<T, [number, CompositeDisposable]>();
 
@@ -29,9 +29,12 @@ export class RefCounter<T> {
         return this.counts.has(item);
     }
 
-    incr(item: T, disposable: Disposable) {
+    incr(item: T, disposable: Disposable): void {
         if (this.counts.has(item)) {
-            const [count, disposables] = this.counts.get(item);
+            const value = this.counts.get(item);
+            if (!value) throw "invalid key";
+
+            const [count, disposables] = value;
             disposables.add(disposable);
             this.counts.set(item, [count + 1, disposables])
         } else {
@@ -39,8 +42,11 @@ export class RefCounter<T> {
         }
     }
 
-    decr(item: T) {
-        const [count, disposable] = this.counts.get(item);
+    decr(item: T): void {
+        const value = this.counts.get(item);
+        if (!value) throw "invalid key";
+
+        const [count, disposable] = value;
         if (count == 1) {
             this.counts.delete(item);
             disposable.dispose();
@@ -49,23 +55,24 @@ export class RefCounter<T> {
         }
     }
 
-    delete(item: T) {
-        if (!this.counts.has(item)) return;
+    delete(item: T): void {
+        const value = this.counts.get(item);
+        if (!value) return;
 
-        const [_, disposable] = this.counts.get(item);
+        const [, disposable] = value;
         this.counts.delete(item);
         disposable.dispose();
     }
 
-    clear() {
+    clear(): void {
         this.counts.clear();
     }
 }
 
-export function CircleGeometry(radius: number, segmentCount: number, arc: number = 1.0) {
+export function CircleGeometry(radius: number, segmentCount: number, arc = 1.0): Float32Array {
     const vertices = new Float32Array((segmentCount * arc + 1) * 3);
     for (let i = 0; i <= segmentCount * arc; i++) {
-        var theta = (i / segmentCount) * Math.PI * 2;
+        const theta = (i / segmentCount) * Math.PI * 2;
         vertices[i * 3] = Math.cos(theta) * radius;
         vertices[i * 3 + 1] = Math.sin(theta) * radius;
         vertices[i * 3 + 2] = 0;
@@ -73,21 +80,23 @@ export function CircleGeometry(radius: number, segmentCount: number, arc: number
     return vertices;
 }
 
-export class WeakValueMap<K, V extends {}> {
+export class WeakValueMap<K, V extends Record<string, unknown>> {
     private readonly underlying = new Map<K, WeakRef<V>>();
 
-    get(k: K) {
+    get(k: K): Record<string, unknown> | undefined {
         const ref = this.underlying.get(k);
+        if (ref === undefined) return;
         const v = ref.deref();
         if (v) {
             return v;
         } else {
             this.underlying.delete(k);
-            return null;
+            return;
         }
     }
 
-    set(k: K, v: V) {
+    set(k: K, v: V): this {
         this.underlying.set(k, new WeakRef(v));
+        return this;
     }
 }
