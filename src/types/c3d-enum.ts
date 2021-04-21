@@ -280,7 +280,7 @@ export enum CreatorType {
 
     FreeItem = 900,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
 
-};
+}
 
 export enum ModifyingType {
     Remove = 0, ///< \ru Удаление из тела выбранных граней с окружением. \en Removal of the specified faces with the neighborhood from a solid.
@@ -292,7 +292,7 @@ export enum ModifyingType {
     Purify,     ///< \ru Удаление из тела выбранных скруглений. \en Removal of the specified fillets from a solid.
     Merger,     ///< \ru Слияние вершин ребёр и удаление рёбер. \en Merging vertices of edges and edges removal.
     United,     ///< \ru Замена гладко стыкующихся граней одной гранью. \en Replacing smoothly joined faces with one face.
-};
+}
 
 
 Object.assign(c3d, {

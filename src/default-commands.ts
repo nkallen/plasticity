@@ -1,8 +1,7 @@
 import { Editor } from "./Editor";
 import * as cmd from './commands/Command';
-import c3d from '../build/Release/c3d.node';
 
-export default (editor: Editor) => {
+export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {
         'command:move': () => editor.execute(new cmd.MoveCommand(editor)),
         'command:rotate': () => editor.execute(new cmd.RotateCommand(editor)),

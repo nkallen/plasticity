@@ -22,7 +22,7 @@ export default class RectFactory extends GeometryFactory {
 
     update() {
         this.mesh.geometry.dispose();
-        let { p1, p2, p3, p4 } = this.orthogonal();
+        const { p1, p2, p3, p4 } = this.orthogonal();
 
         const vertices = new Float32Array(5 * 3);
         vertices[0] = p1.x;
@@ -54,7 +54,7 @@ export default class RectFactory extends GeometryFactory {
 
     commit() {
         this.db.scene.remove(this.mesh);
-        let { p1, p2, p3, p4 } = this.orthogonal();
+        const { p1, p2, p3, p4 } = this.orthogonal();
 
         const points = [
             new c3d.CartPoint3D(p1.x, p1.y, p1.z),
@@ -74,7 +74,8 @@ export default class RectFactory extends GeometryFactory {
     }
 
     private orthogonal() {
-        let { p1, p2, p3 } = this;
+        const { p1, p2 } = this;
+        let { p3 } = this;
 
         const AB = p2.clone().sub(p1)
         let BC = p3.clone().sub(p2);

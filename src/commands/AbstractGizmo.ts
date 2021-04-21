@@ -46,7 +46,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         this.add(...filtered);
     }
 
-    onPointerHover(intersector: Intersector) { }
+    onPointerHover(_intersector: Intersector) { }
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
     abstract onPointerDown(intersect: Intersector): void;
 
@@ -235,7 +235,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
 
-    begin() {
+    begin(): void {
         const intersection = this.intersector(this.plane, true);
         if (!intersection) throw "corrupt intersection query";
 
@@ -256,7 +256,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.signals.pointPickerChanged.dispatch(); // FIXME rename
     }
 
-    command(fn: () => void, start: () => void) {
+    command(fn: () => void, start: () => void): void {
         switch (this.state) {
             case 'none':
             case 'hover':
@@ -271,7 +271,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    pointerDown(start: () => void) {
+    pointerDown(start: () => void): void {
         switch (this.state) {
             case 'hover':
                 if (this.pointer.button !== 0) return;
@@ -284,7 +284,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    pointerMove() {
+    pointerMove(): void {
         switch (this.state) {
             case 'dragging':
                 if (this.pointer.button !== -1) return;
@@ -304,7 +304,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    pointerUp(finish: () => void) {
+    pointerUp(finish: () => void): void {
         switch (this.state) {
             case 'dragging':
             case 'command':
@@ -318,7 +318,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    pointerHover() {
+    pointerHover(): void {
         switch (this.state) {
             case 'none':
             case 'hover':

@@ -9,8 +9,8 @@ abstract class BooleanFactory extends GeometryFactory {
     item2!: visual.Solid;
 
     commit() {
-        let model1 = this.db.lookup(this.item1);
-        let model2 = this.db.lookup(this.item2);
+        const model1 = this.db.lookup(this.item1);
+        const model2 = this.db.lookup(this.item2);
 
         const names = new c3d.SNameMaker(c3d.CreatorType.BooleanSolid, c3d.ESides.SideNone, 0);
 

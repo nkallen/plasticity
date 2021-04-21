@@ -2,7 +2,6 @@ import { Cancellable } from '../Cancellable';
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
-import * as visual from '../../src/VisualModel';
 
 type callUpdateSuper = never;
 type callCommitSuper = never;
@@ -18,7 +17,7 @@ export abstract class GeometryFactory extends Cancellable {
         protected readonly signals: EditorSignals
     ) { super() }
 
-    finish() {
+    finish(): void {
         switch (this.state) {
             case 'none':
             case 'updated':

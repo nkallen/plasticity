@@ -18,7 +18,7 @@ export function applyMixins(derivedCtor: any, constructors: any[]): void {
     });
 }
 
-export function assertUnreachable(x: never): never {
+export function assertUnreachable(_x: never): never {
     throw new Error("Didn't expect to get here");
 }
 

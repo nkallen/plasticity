@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { AdditiveBlending } from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
@@ -37,7 +36,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
             torus.userData.mode = { tag: 'X', axis: new THREE.Vector3(1, 0, 0) };
             torus.userData.command = ['gizmo:rotate:x', () => this.mode = torus.userData.mode];
             picker.add(torus)
-        };
+        }
 
         {
             const geometry = new LineGeometry();
@@ -93,16 +92,16 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         this.position.copy(p1);
     }
 
-    onPointerHover(intersect: Intersector) {
+    onPointerHover(intersect: Intersector): void {
         this.picker.updateMatrixWorld();
         const picker = intersect(this.picker, true);
         if (picker) this.mode = picker.object.userData.mode as Mode;
         else this.mode = undefined;
     }
 
-    onPointerDown(intersect: Intersector) {}
+    onPointerDown(_intersect: Intersector): void { }
 
-    onPointerMove(cb: (axis: THREE.Vector3, angle: number) => void, intersect: Intersector, info: MovementInfo) {
+    onPointerMove(cb: (axis: THREE.Vector3, angle: number) => void, intersect: Intersector, info: MovementInfo): void {
         if (!this.mode) throw "invalid state";
         switch (this.mode.tag) {
             case 'screen':
@@ -110,12 +109,12 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
                 break;
             default:
                 let angle = info.angle;
-                if (info.eye.dot(this.mode.axis) < 0) angle *= -1;;
+                if (info.eye.dot(this.mode.axis) < 0) angle *= -1;
                 cb(this.mode.axis, angle);
-            }
+        }
     }
 
-    update(camera: THREE.Camera) {
+    update(camera: THREE.Camera): void {
         super.update(camera);
 
         this.plane.lookAt(camera.position);

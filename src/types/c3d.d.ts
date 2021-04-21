@@ -68,7 +68,7 @@ declare module "*c3d.node" {
         constructor(StepType, number);
     }
 
-    var Enabler: {
+    const Enabler: {
         EnableMathModules(string, string);
     };
 
@@ -199,7 +199,7 @@ declare module "*c3d.node" {
         GetAxisZ(): Vector3D;
     }
 
-    var ActionSolid: {
+    const ActionSolid: {
         ElementarySolid(points: CartPoint3D[], type: ElementaryShellType, names: NameMaker): Solid;
         FilletSolid(solid: Solid, mode: CopyMode, edges: CurveEdge[], faces: Face[], smooth: SmoothValues, names: SNameMaker);
         BooleanResult(solid: Solid, mode: CopyMode, solid: Solid, mode: CopyMode, type: OperationType, flags: BooleanFlags, names: SNameMaker): Solid;
@@ -235,7 +235,7 @@ declare module "*c3d.node" {
         constructor(points: CartPoint3D[], closed: bool)
     }
 
-    var ActionCurve3D: {
+    const ActionCurve3D: {
         Arc(point: CartPoint3D, points: CartPoint3D[], bool, double, double, double): Curve3D;
         Segment(CartPoint3D, CartPoint3D): Curve3D;
         SplineCurve(points: CartPoint3D[], closed: boolean, curveType: SpaceType): Curve3D;
@@ -273,13 +273,13 @@ declare module "*c3d.node" {
         CalculateMatrix(pIndex: number, point: CartPoint3D, fixedPoint: CartPoint3D, useFixed: boolean, isotropy: boolean): Matrix3D
     }
 
-    var ActionDirect: {
+    const ActionDirect: {
         TransformedSolid(solid: Solid, copyMode: CopyMode, transform: TransformValues, names: SNameMaker): Solid
         FaceModifiedSolid(solid: Solid, copyMode: CopyMode, params: ModifyValues, faces: Face[], names: SNameMaker): Solid;
         CollectFacesForModification(shell: FaceShell, way: ModifyingType, radius: double): Face[]
     }
 
-    var ActionPhantom: {
+    const ActionPhantom: {
         SmoothPhantom(solid: Solid, edges: CurveEdge[], params: SmoothValues): Surface[];
         SmoothSequence(solid: Solid, edges: CurveEdge[], params: SmoothValues, createSurfaces: boolean);
     }

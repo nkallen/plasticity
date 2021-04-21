@@ -1,5 +1,5 @@
 import { app, BrowserWindow, crashReporter } from 'electron';
-declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
+declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 
 crashReporter.start({
     productName: 'ispace',

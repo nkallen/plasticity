@@ -7,12 +7,12 @@ export class HoverStrategy implements SelectionStrategy {
     constructor(private readonly selectionManager: SelectionManager) {
     }
 
-    emptyIntersection() {
+    emptyIntersection(): void {
         this.selectionManager.hover?.dispose();
         this.selectionManager.hover = undefined;
     }
 
-    invalidIntersection() {
+    invalidIntersection(): void {
         this.selectionManager.hover?.dispose();
         this.selectionManager.hover = undefined;
     }
@@ -40,7 +40,7 @@ export class HoverStrategy implements SelectionStrategy {
         return false;
     }
 
-    topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
+    topologicalItem(object: TopologyItem, _parentItem: Solid): boolean {
         if (this.selectionManager.mode.has(SelectionMode.Face) && object instanceof Face && !this.selectionManager.selectedFaces.has(object)) {
             if (!this.selectionManager.hover?.isEqual(object)) {
                 this.selectionManager.hover?.dispose();
@@ -70,12 +70,12 @@ export class Hoverable {
         this.signal = signal;
     }
 
-    dispose() {
+    dispose(): void {
         this.signal.dispatch(this.object);
         this.disposable.dispose();
     }
 
-    isEqual(other: SpaceItem | TopologyItem) {
+    isEqual(other: SpaceItem | TopologyItem): boolean {
         return this.object == other;
     }
 }
@@ -103,7 +103,7 @@ class Curve3DHoverable extends Hoverable {
     protected readonly object: SpaceInstance<Curve3D>;
 
     constructor(object: SpaceInstance<Curve3D>, material: LineMaterial, signal: signals.Signal<SpaceItem | TopologyItem>) {
-        let previous = object.underlying.material;
+        const previous = object.underlying.material;
         for (const edge of object.underlying) {
             edge.material = material;
         }

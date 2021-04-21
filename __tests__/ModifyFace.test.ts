@@ -6,19 +6,17 @@ import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
 import { SpriteDatabase } from "../src/SpriteDatabase";
 import * as visual from '../src/VisualModel';
-import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
+import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
 
 let db: GeometryDatabase;
 let offsetFace: OffsetFaceFactory;
 let materials: Required<MaterialDatabase>;
-let sprites: Required<SpriteDatabase>;
 let signals: EditorSignals;
 
 beforeEach(() => {
     materials = new FakeMaterials();
-    sprites = new FakeSprites();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
     offsetFace = new OffsetFaceFactory(db, materials, signals);

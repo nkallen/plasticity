@@ -4,16 +4,16 @@ import * as visual from '../../VisualModel';
 import { TemporaryObject } from '../../GeometryDatabase';
 
 export default class FilletFactory extends GeometryFactory {
-    _item!: visual.Solid;
-    _edges!: visual.CurveEdge[];
-    _distance!: number;
+    private _item!: visual.Solid;
+    private _edges!: visual.CurveEdge[];
+    private _distance!: number;
 
     private solid!: c3d.Solid;
     private curves!: c3d.CurveEdge[];
     private params!: c3d.SmoothValues;
     private temp?: TemporaryObject;
 
-    get item() {
+    get item(): visual.Solid {
         return this._item;
     }
 
@@ -22,12 +22,12 @@ export default class FilletFactory extends GeometryFactory {
         this.solid = this.db.lookup(this.item);
     }
 
-    get edges() {
+    get edges(): visual.CurveEdge[] {
         return this._edges;
     }
 
     // FIXME the naming edges/curves is confusing
-    set edges(edges) {
+    set edges(edges: visual.CurveEdge[]) {
         this._edges = edges;
 
         const curves = [];
@@ -50,7 +50,7 @@ export default class FilletFactory extends GeometryFactory {
         this.params = params;
     }
 
-    get distance() {
+    get distance(): number {
         return this.params.distance1;
     }
 

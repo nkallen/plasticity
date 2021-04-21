@@ -1,4 +1,3 @@
-import signals from "signals";
 import { EditorSignals } from "../Editor";
 import * as THREE from "three";
 import { SpaceItem } from "../VisualModel";
@@ -20,7 +19,6 @@ export class ViewportSelector extends THREE.EventDispatcher {
         private readonly signals: EditorSignals) {
         super();
 
-        // @ts-ignore
         this.raycaster.params.Line2 = { threshold: 10 };
         this.raycaster.params.Mesh.threshold = 0;
 
@@ -32,29 +30,29 @@ export class ViewportSelector extends THREE.EventDispatcher {
         domElement.addEventListener('pointermove', this.onPointerHover);
     }
 
-    onPointerDown(event: PointerEvent) {
+    onPointerDown(event: PointerEvent): void {
         if (!this.enabled) return;
 
-        var array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
+        const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         this.onDownPosition.fromArray(array);
 
         document.addEventListener('pointerup', this.onPointerUp, false);
     }
 
-    onPointerHover(event: PointerEvent) {
+    onPointerHover(event: PointerEvent): void {
         if (!this.enabled) return;
 
-        var array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
+        const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         const point = new THREE.Vector2();
         point.fromArray(array);
         const intersects = this.getIntersects(point, [...this.drawModel]);
         this.signals.hovered.dispatch(intersects);
     }
 
-    onPointerUp(event: PointerEvent) {
+    onPointerUp(event: PointerEvent): void {
         if (!this.enabled) return;
 
-        var array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
+        const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         this.onUpPosition.fromArray(array);
 
         if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
@@ -67,7 +65,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
     }
 
     private getMousePosition(dom: HTMLElement, x: number, y: number) {
-        var rect = dom.getBoundingClientRect();
+        const rect = dom.getBoundingClientRect();
         return [(x - rect.left) / rect.width, (y - rect.top) / rect.height];
     }
 

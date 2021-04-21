@@ -43,7 +43,7 @@ test("basic drag interaction", () => {
     };
     const gizmo = new FakeGizmo(editor); // FIXME type error
     const cb = () => { };
-    let sm = new GizmoStateMachine(gizmo, signals, cb);
+    const sm = new GizmoStateMachine(gizmo, signals, cb);
 
     sm.update(viewport.camera, { x: 0, y: 0, button: 0 });
     sm.pointerHover();

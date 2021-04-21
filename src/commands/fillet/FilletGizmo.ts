@@ -2,7 +2,6 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
-import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 
 const sphereGeometry = new THREE.SphereGeometry(0.1);
@@ -26,9 +25,9 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
     }
 
-    onPointerDown(intersect: Intersector) {}
+    onPointerDown(_intersect: Intersector): void {}
     
-    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
         cb(info.pointEnd2d.sub(info.pointStart2d).length());
     }
 }

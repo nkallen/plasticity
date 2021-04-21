@@ -87,7 +87,7 @@ export class GizmoMaterialDatabase {
 
     // A quirk of three.js is that to render lines with any thickness, you need to use
     // a LineMaterial whose resolution must be set before each render
-    setResolution(size: THREE.Vector2) {
+    setResolution(size: THREE.Vector2): void {
         const width = size.x, height = size.y;
         for (const material of this.lines) {
             material.resolution.set(width, height);

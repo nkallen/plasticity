@@ -7,13 +7,13 @@ export class ClickStrategy implements SelectionStrategy {
     constructor(private selectionManager: SelectionManager) {
     }
 
-    emptyIntersection() {
+    emptyIntersection(): void {
         this.selectionManager.deselectAll();
     }
 
-    invalidIntersection() { }
+    invalidIntersection(): void { }
 
-    curve3D(object: CurveSegment, parentItem: SpaceInstance<Curve3D>) {
+    curve3D(object: CurveSegment, parentItem: SpaceInstance<Curve3D>): boolean {
         const model = this.selectionManager.db.lookup(parentItem);
 
         if (this.selectionManager.mode.has(SelectionMode.Curve)) {

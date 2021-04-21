@@ -57,7 +57,8 @@ export default class BoxFactory extends GeometryFactory {
     }
 
     private clockwise() {
-        let { p1, p2, p3, p4 } = this;
+        const { p1, p2 } = this;
+        let { p3, p4 } = this;
 
         const AB = p2.clone().sub(p1)
         let BC = p3.clone().sub(p2);

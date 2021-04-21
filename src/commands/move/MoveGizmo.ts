@@ -165,13 +165,13 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         this.position.copy(p1);
     }
 
-    onPointerHover(intersect: Intersector) {
+    onPointerHover(intersect: Intersector): void {
         const picker = intersect(this.picker, true);
         if (picker) this.mode = picker.object.userData.mode as Mode;
         else this.mode = undefined;
     }
 
-    onPointerDown(intersect: Intersector) {
+    onPointerDown(intersect: Intersector): void {
         if (!this.mode) throw "invalid state";
         const mode = this.mode;
         if (mode.tag != 'screen') {
@@ -181,7 +181,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         }
     }
 
-    onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo) {
+    onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
         if (!this.mode) throw "invalid state";
         switch (this.mode.tag) {
             case 'X':
@@ -202,7 +202,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         }
     }
 
-    update(camera: THREE.Camera) {
+    update(camera: THREE.Camera): void {
         super.update(camera);
 
         this.circle.lookAt(camera.position);
@@ -233,7 +233,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         }
 
         // hide objects facing the camera
-        var AXIS_HIDE_TRESHOLD = 0.99;
+        const AXIS_HIDE_TRESHOLD = 0.99;
         for (const child of [...this.handle.children, ...this.picker.children]) {
             if (child.userData.hideWhen === undefined) continue;
             child.visible = true;

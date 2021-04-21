@@ -18,7 +18,7 @@ export default class CurveFactory extends GeometryFactory {
     }
 
     update() {
-        const { points, mesh } = this;
+        const { points } = this;
 
         this.mesh.geometry.dispose();
         const vertices = new Float32Array(points.length * 3);

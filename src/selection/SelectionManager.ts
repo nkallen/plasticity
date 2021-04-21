@@ -74,15 +74,15 @@ export class SelectionManager {
         }
     }
 
-    onClick(intersections: THREE.Intersection[]) {
+    onClick(intersections: THREE.Intersection[]): void {
         this.onIntersection(intersections, this.clickStrategy);
     }
 
-    onPointerMove(intersections: THREE.Intersection[]) {
+    onPointerMove(intersections: THREE.Intersection[]): void {
         this.onIntersection(intersections, this.hoverStrategy);
     }
 
-    deselectAll() {
+    deselectAll(): void {
         for (const object of this.selectedEdges) {
             this.selectedEdges.delete(object);
             const model = this.db.lookupTopologyItem(object);
@@ -102,7 +102,7 @@ export class SelectionManager {
         this.selectedChildren.clear();
     }
 
-    delete(item: visual.SpaceItem) {
+    delete(item: visual.SpaceItem): void {
         if (item instanceof visual.Solid) {
             this.selectedSolids.delete(item);
             this.selectedChildren.delete(item);

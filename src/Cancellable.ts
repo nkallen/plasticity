@@ -1,5 +1,3 @@
-import Command from "./commands/Command";
-
 /**
  * The classes here represent promise-like object that can be cancelled or "finished" earlier than it would normally
  * terminate. For example, a promise that resolves when a user drags a gizmo from point a to b can be canceled by
@@ -22,7 +20,7 @@ export abstract class Cancellable {
         reg.finally(this);
         return this;
     }
-};
+}
 
 export const Cancel = {};
 export const Finish = {};
@@ -33,14 +31,14 @@ export abstract class CancellableRegistor {
     private readonly resources: Cancellable[] = [];
     private _finally?: Cancellable;
 
-    cancel() {
+    cancel(): void {
         for (const resource of this.resources) {
             resource.cancel();
         }
         this._finally?.cancel();
     }
 
-    finish() {
+    finish(): void {
         this._finally?.finish();
         for (const resource of this.resources) {
             resource.cancel();
@@ -68,7 +66,7 @@ export class CancellablePromise<T> extends Cancellable {
         this.executor = executor;
     }
 
-    then(resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) {
+    then(resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void): void {
         const { cancel, finish } = this.executor(resolve, reject);
         this.cancel = cancel;
         this.finish = finish;

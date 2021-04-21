@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { CancellableRegistor, Finish } from "../Cancellable";
-import { getKeystroke } from "../components/atom/tooltip-manager";
 import { Editor } from '../Editor';
 import { PointPicker } from '../PointPicker';
 import * as visual from "../VisualModel";
@@ -39,7 +38,7 @@ export default abstract class Command extends CancellableRegistor {
 }
 
 export class SphereCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         const pointPicker = new PointPicker(this.editor);
 
@@ -56,7 +55,7 @@ export class SphereCommand extends Command {
 }
 
 export class CircleCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
         const pointPicker = new PointPicker(this.editor);
@@ -73,7 +72,7 @@ export class CircleCommand extends Command {
 }
 
 export class CylinderCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
 
         const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -99,7 +98,7 @@ export class CylinderCommand extends Command {
 }
 
 export class LineCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
         const pointPicker = new PointPicker(this.editor);
@@ -114,7 +113,7 @@ export class LineCommand extends Command {
 }
 
 export class CurveCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
@@ -144,7 +143,7 @@ export class CurveCommand extends Command {
 }
 
 export class RectCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -168,7 +167,7 @@ export class RectCommand extends Command {
 }
 
 export class BoxCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -202,8 +201,8 @@ export class BoxCommand extends Command {
 }
 
 export class MoveCommand extends Command {
-    async execute() {
-        let object = [...this.editor.selection.selectedSolids][0]!;
+    async execute(): Promise<void> {
+        const object = [...this.editor.selection.selectedSolids][0]!;
 
         const bbox = new THREE.Box3().setFromObject(object);
         const centroid = new THREE.Vector3();
@@ -229,9 +228,9 @@ export class MoveCommand extends Command {
 }
 
 export class ScaleCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
-        let object = [...this.editor.selection.selectedSolids][0]!;
+        const object = [...this.editor.selection.selectedSolids][0]!;
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const origin = await pointPicker.execute().resource(this);
@@ -250,7 +249,7 @@ export class ScaleCommand extends Command {
         scale.item = object;
         scale.origin = line2.p1 = origin;
         scale.p2 = p2;
-        const p3 = await pointPicker.execute((p3: THREE.Vector3) => {
+        await pointPicker.execute((p3: THREE.Vector3) => {
             line2.p2 = p3;
             scale.p3 = p3
             line2.update();
@@ -263,8 +262,8 @@ export class ScaleCommand extends Command {
 }
 
 export class RotateCommand extends Command {
-    async execute() {
-        let object = [...this.editor.selection.selectedSolids][0]!;
+    async execute(): Promise<void> {
+        const object = [...this.editor.selection.selectedSolids][0]!;
 
         const bbox = new THREE.Box3().setFromObject(object);
         const centroid = new THREE.Vector3();
@@ -286,10 +285,10 @@ export class RotateCommand extends Command {
 }
 
 export class UnionCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const items = [...this.editor.selection.selectedSolids];
-        let object1 = items[0]!;
-        let object2 = items[1]!;
+        const object1 = items[0]!;
+        const object2 = items[1]!;
 
         const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         union.item1 = object1;
@@ -299,10 +298,10 @@ export class UnionCommand extends Command {
 }
 
 export class IntersectionCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const items = [...this.editor.selection.selectedSolids];
-        let object1 = items[0]!;
-        let object2 = items[1]!;
+        const object1 = items[0]!;
+        const object2 = items[1]!;
 
         const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         intersection.item1 = object1;
@@ -312,10 +311,10 @@ export class IntersectionCommand extends Command {
 }
 
 export class DifferenceCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const items = [...this.editor.selection.selectedSolids];
-        let object1 = items[0]!;
-        let object2 = items[1]!;
+        const object1 = items[0]!;
+        const object2 = items[1]!;
 
         const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         difference.item1 = object1;
@@ -325,11 +324,11 @@ export class DifferenceCommand extends Command {
 }
 
 export class CutCommand extends Command {
-    async execute() {
+    async execute(): Promise<void> {
         const solids = [...this.editor.selection.selectedSolids];
         const curves = [...this.editor.selection.selectedCurves];
-        let object1 = solids[0]!;
-        let object2 = curves[0]!;
+        const object1 = solids[0]!;
+        const object2 = curves[0]!;
 
         const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         cut.solid = object1;
@@ -339,8 +338,8 @@ export class CutCommand extends Command {
 }
 
 export class FilletCommand extends Command {
-    async execute() {
-        let edges = [...this.editor.selection.selectedEdges];
+    async execute(): Promise<void> {
+        const edges = [...this.editor.selection.selectedEdges];
         const item = edges[0].parentItem as visual.Solid; // FIXME make method without cast in visual.
 
         const edge = edges[0];
@@ -369,8 +368,8 @@ export class FilletCommand extends Command {
 }
 
 export class OffsetFaceCommand extends Command {
-    async execute() {
-        let faces = [...this.editor.selection.selectedFaces];
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
         const face = faces[0];
 
@@ -397,8 +396,8 @@ export class OffsetFaceCommand extends Command {
 }
 
 export class RemoveFaceCommand extends Command {
-    async execute() {
-        let faces = [...this.editor.selection.selectedFaces];
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
 
         const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
@@ -410,8 +409,8 @@ export class RemoveFaceCommand extends Command {
 }
 
 export class PurifyFaceCommand extends Command {
-    async execute() {
-        let faces = [...this.editor.selection.selectedFaces];
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
 
         const removeFace = new PurifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
@@ -423,8 +422,8 @@ export class PurifyFaceCommand extends Command {
 }
 
 export class CreateFaceCommand extends Command {
-    async execute() {
-        let faces = [...this.editor.selection.selectedFaces];
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
 
         const removeFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
@@ -436,8 +435,8 @@ export class CreateFaceCommand extends Command {
 }
 
 export class ActionFaceCommand extends Command {
-    async execute() {
-        let faces = [...this.editor.selection.selectedFaces];
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
         const face = faces[0];
 
@@ -462,8 +461,8 @@ export class ActionFaceCommand extends Command {
 }
 
 export class FilletFaceCommand extends Command {
-    async execute() {
-        let faces = [...this.editor.selection.selectedFaces];
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
         const face = faces[0];
 
@@ -490,6 +489,6 @@ export class FilletFaceCommand extends Command {
     }
 }
 
-export class SuppleFaceCommand extends Command { async execute() { } }
+export class SuppleFaceCommand extends Command { async execute(): Promise<void> { } }
 
-export class MergerFaceCommand extends Command { async execute() { } }
+export class MergerFaceCommand extends Command { async execute(): Promise<void> { } }

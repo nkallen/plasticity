@@ -1,8 +1,4 @@
-// "eslint:recommended",
-// "plugin:@typescript-eslint/eslint-recommended",
-// "plugin:@typescript-eslint/recommended",
-// "plugin:import/errors",
-// "plugin:import/warnings"
+
 {
   "env": {
     "browser": true,
@@ -10,7 +6,8 @@
     "node": true
   },
   "extends": [
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/eslint-recommended"
   ],
   "parser": "@typescript-eslint/parser"
 }

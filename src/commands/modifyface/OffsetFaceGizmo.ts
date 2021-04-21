@@ -2,7 +2,6 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
-import * as visual from "../../VisualModel";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 
 const sphereGeometry = new THREE.SphereGeometry(0.1);
@@ -37,13 +36,13 @@ export class OffsetFaceGizmo extends AbstractGizmo<(radius: number) => void> {
         this.pointEnd = new THREE.Vector3();
     }
 
-    onPointerDown(intersect: Intersector) {
+    onPointerDown(intersect: Intersector): void {
         const planeIntersect = intersect(this.plane, true);
         if (!planeIntersect) throw "corrupt intersection query";
         this.pointStart.copy(planeIntersect.point);
     }
 
-    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, _info: MovementInfo): void {
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect == null) return; // this only happens when the is dragging through different viewports.
 
@@ -52,7 +51,7 @@ export class OffsetFaceGizmo extends AbstractGizmo<(radius: number) => void> {
         cb(this.pointEnd.sub(this.pointStart).dot(this.normal));
     }
 
-    update(camera: THREE.Camera) {
+    update(camera: THREE.Camera): void {
         super.update(camera);
 
         const eye = new THREE.Vector3();

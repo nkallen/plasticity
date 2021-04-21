@@ -37,7 +37,7 @@ export default class SphereFactory extends GeometryFactory {
         ];
         const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Sphere, names);
-        const result = this.db.addItem(sphere);
+        this.db.addItem(sphere);
 
         return super.commit();
     }
