@@ -35,7 +35,7 @@ export default class RotateFactory extends GeometryFactory {
 
     commit() {
         const { item, axis, angle, point } = this;
-        const model = this.db.lookupItem(item);
+        const model = this.db.lookup(item);
         this.db.removeItem(item);
 
         const p = new c3d.CartPoint3D(point.x, point.y, point.z);

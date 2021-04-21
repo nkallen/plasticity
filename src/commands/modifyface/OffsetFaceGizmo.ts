@@ -39,6 +39,7 @@ export class OffsetFaceGizmo extends AbstractGizmo<(radius: number) => void> {
 
     onPointerDown(intersect: Intersector) {
         const planeIntersect = intersect(this.plane, true);
+        if (!planeIntersect) throw "corrupt intersection query";
         this.pointStart.copy(planeIntersect.point);
     }
 

@@ -176,6 +176,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         const mode = this.mode;
         if (mode.tag != 'screen') {
             const planeIntersect = intersect(mode.plane, true);
+            if (!planeIntersect) throw "corrupt intersection query";
             this.pointStart.copy(planeIntersect.point);
         }
     }

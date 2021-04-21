@@ -83,15 +83,12 @@ export class GeometryDatabase {
     // FIXME rethink error messages and consider using Family rather than isA for curve3d?
     lookup(object: visual.Solid): c3d.Solid;
     lookup(object: visual.SpaceInstance<any>): c3d.SpaceInstance;
-    lookup(object: visual.Item): c3d.SpaceItem {
+    lookup(object: visual.Item): c3d.Item;
+    lookup(object: visual.Item): c3d.Item {
         const item = this.lookupItem(object);
         if (!item) throw "looking up invalid objects";
-        
-        if (object instanceof visual.Curve3D) {
-            const instance = item.Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
-            const spaceItem = instance.GetSpaceItem();
-            return spaceItem.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-        } else if (object instanceof visual.SpaceInstance) {
+
+        if (object instanceof visual.SpaceInstance) {
             const instance = item.Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
             return instance;
         } else if (object instanceof visual.Solid) {

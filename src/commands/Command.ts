@@ -347,7 +347,7 @@ export class FilletCommand extends Command {
 
         edge.geometry.computeBoundingBox();
         const centroid = new THREE.Vector3();
-        edge.geometry.boundingBox.getCenter(centroid);
+        edge.geometry.boundingBox!.getCenter(centroid);
 
         const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         fillet.item = item;

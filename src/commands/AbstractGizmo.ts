@@ -177,7 +177,7 @@ export interface Pointer {
     x: number; y: number, button: number
 }
 
-export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) => THREE.Intersection
+export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) => THREE.Intersection | undefined
 
 export interface MovementInfo {
     // These are the mouse down and mouse move positions in screenspace
@@ -237,7 +237,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     begin() {
         const intersection = this.intersector(this.plane, true);
-        console.assert(intersection != null);
+        if (!intersection) throw "corrupt intersection query";
 
         switch (this.state) {
             case 'none':
@@ -291,7 +291,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
             case 'command':
                 this.pointEnd2d.set(this.pointer.x, this.pointer.y);
                 const intersection = this.intersector(this.plane, true);
-                console.assert(intersection != null);
+                if (!intersection) throw "corrupt intersection query";
                 this.pointEnd3d.copy(intersection.point);
                 this.endRadius.copy(this.pointEnd2d).sub(this.center2d).normalize();
                 const startRadius = this.pointStart2d.clone().sub(this.center2d);
