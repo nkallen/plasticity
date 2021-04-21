@@ -57,6 +57,8 @@ export class Curve3D extends SpaceItem {
             yield child as CurveSegment;
         }
     }
+
+    get material() { return (this.children[0] as CurveSegment).material }
 }
 export abstract class TopologyItem {
     private _useNominal: undefined;

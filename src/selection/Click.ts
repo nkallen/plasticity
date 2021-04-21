@@ -23,7 +23,7 @@ export class ClickStrategy implements SelectionStrategy {
                 this.selectionManager.signals.objectDeselected.dispatch(parentItem);
             } else {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = null;
+                this.selectionManager.hover = undefined;
                 this.selectionManager.selectedCurves.add(parentItem);
                 object.material = this.selectionManager.materials.highlight(model);
                 this.selectionManager.signals.objectSelected.dispatch(parentItem);
@@ -43,7 +43,7 @@ export class ClickStrategy implements SelectionStrategy {
             return false;
         } else if (!this.selectionManager.selectedChildren.has(parentItem)) {
             this.selectionManager.hover?.dispose();
-            this.selectionManager.hover = null;
+            this.selectionManager.hover = undefined;
             this.selectionManager.selectedSolids.add(parentItem);
             this.selectionManager.signals.objectSelected.dispatch(parentItem);
             return true;
@@ -61,7 +61,7 @@ export class ClickStrategy implements SelectionStrategy {
                 this.selectionManager.signals.objectDeselected.dispatch(object);
             } else {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = null;
+                this.selectionManager.hover = undefined;
                 this.selectionManager.selectedFaces.add(object);
                 object.material = this.selectionManager.materials.highlight(model);
                 this.selectionManager.selectedChildren.incr(parentItem,
@@ -77,7 +77,7 @@ export class ClickStrategy implements SelectionStrategy {
                 this.selectionManager.signals.objectDeselected.dispatch(object);
             } else {
                 this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = null;
+                this.selectionManager.hover = undefined;
                 this.selectionManager.selectedEdges.add(object);
                 object.material = this.selectionManager.materials.highlight(model as c3d.CurveEdge);
                 this.selectionManager.selectedChildren.incr(parentItem,

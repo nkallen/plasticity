@@ -9,12 +9,12 @@ export class HoverStrategy implements SelectionStrategy {
 
     emptyIntersection() {
         this.selectionManager.hover?.dispose();
-        this.selectionManager.hover = null;
+        this.selectionManager.hover = undefined;
     }
 
     invalidIntersection() {
         this.selectionManager.hover?.dispose();
-        this.selectionManager.hover = null;
+        this.selectionManager.hover = undefined;
     }
 
     curve3D(object: CurveSegment, parentCurve: SpaceInstance<Curve3D>): boolean {
@@ -65,7 +65,7 @@ export class Hoverable {
 
     constructor(object: SpaceItem | TopologyItem, signal: signals.Signal<SpaceItem | TopologyItem>) {
         this.object = object;
-        this.disposable.add(new Disposable(() => signal.dispatch(null)));
+        this.disposable.add(new Disposable(() => signal.dispatch(object)));
         signal.dispatch(object);
         this.signal = signal;
     }
@@ -88,6 +88,7 @@ class TopologicalItemHoverable<T extends THREE.Material | THREE.Material[]> exte
         const previous = object.material;
         object.material = material;
         super(object, signal);
+        this.object = object;
         this.previousMaterial = previous;
     }
 
@@ -102,13 +103,13 @@ class Curve3DHoverable extends Hoverable {
     protected readonly object: SpaceInstance<Curve3D>;
 
     constructor(object: SpaceInstance<Curve3D>, material: LineMaterial, signal: signals.Signal<SpaceItem | TopologyItem>) {
-        let previous;
-        for (const edge of object.underlying as Curve3D) {
-            previous = edge.material;
+        let previous = object.underlying.material;
+        for (const edge of object.underlying) {
             edge.material = material;
         }
 
         super(object, signal);
+        this.object = object;
         this.previousMaterial = previous;
     }
 
