@@ -33,6 +33,8 @@ export interface EditorSignals {
     commandStarted: signals.Signal<Command>;
     commandEnded: signals.Signal;
     keybindingsRegistered: signals.Signal<string[]>;
+    clicked: signals.Signal<THREE.Intersection[]>;
+    hovered: signals.Signal<THREE.Intersection[]>;
 }
 
 export class Editor {
@@ -54,6 +56,8 @@ export class Editor {
         commandStarted: new signals.Signal(),
         commandEnded: new signals.Signal(),
         keybindingsRegistered: new signals.Signal(),
+        clicked: new signals.Signal(),
+        hovered: new signals.Signal(),
     }
 
     readonly materials = new BasicMaterialDatabase(this.signals);

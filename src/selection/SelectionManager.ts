@@ -26,7 +26,7 @@ export class SelectionManager {
     readonly selectedFaces = new Set<Face>();
     readonly selectedCurves = new Set<SpaceInstance<Curve3D>>();
     readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face]);
-    hover?: Hoverable = null;
+    hover?: Hoverable = undefined;
 
     private readonly clickStrategy = new ClickStrategy(this);
     private readonly hoverStrategy = new HoverStrategy(this);
@@ -37,6 +37,8 @@ export class SelectionManager {
         readonly signals: EditorSignals
     ) {
         signals.objectRemoved.add(item => this.delete(item));
+        signals.clicked.add((intersections) => this.onClick(intersections));
+        signals.hovered.add((intersections) => this.onPointerMove(intersections));
     }
 
     // FIXME make this method just take an array of objects

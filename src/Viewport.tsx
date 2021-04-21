@@ -1,4 +1,3 @@
-import { render } from 'preact';
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -90,7 +89,7 @@ export default (editor: Editor) => {
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());
             this.camera = camera;
-            this.selector = new ViewportSelector(editor.db.drawModel, camera, this.renderer.domElement);
+            this.selector = new ViewportSelector(editor.db.drawModel, camera, this.renderer.domElement, editor.signals);
 
             this.renderer.setPixelRatio(window.devicePixelRatio);
             const size = this.renderer.getSize(new THREE.Vector2());
@@ -170,8 +169,6 @@ export default (editor: Editor) => {
             scene.fog = new THREE.Fog(0x424242, 1, 100);
 
             this.navigationControls?.addEventListener('change', this.setNeedsRender);
-            this.selector.signals.clicked.add((intersections) => editor.selection.onClick(intersections));
-            this.selector.signals.hovered.add((intersections) => editor.selection.onPointerMove(intersections));
         }
 
         private needsRender = true;
