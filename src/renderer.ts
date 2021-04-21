@@ -1,18 +1,19 @@
 import Stats from 'stats.js';
 import * as THREE from 'three';
+import c3d from '../build/Release/c3d.node';
 // import '../build/Release/c3d.dll'; // On windows, this will copy the file into the webpack bundle
 import '../build/Release/libc3d.dylib'; // On mac
 import license from '../license-key.json';
 import BoxFactory from './commands/box/Box';
-import CurveFactory from './commands/curve/Curve';
 import SphereFactory from './commands/sphere/Sphere';
+import Toolbar from './components/toolbar/Toolbar';
 import './css/index.less';
+import registerDefaultCommands from './default-commands';
+import keymap from "./default-keymap";
 import { Editor } from './Editor';
 import './Pane';
-import Toolbar from './components/toolbar/Toolbar';
-import Viewport from './Viewport';
-import c3d from '../build/Release/c3d.node';
 import './types/c3d-enum';
+import Viewport from './Viewport';
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
 const editor = new Editor();
@@ -20,10 +21,8 @@ const stats = new Stats();
 stats.showPanel(1);
 document.body.appendChild(stats.dom);
 
-import keymap from "./default-keymap";
 editor.keymaps.add('/default', keymap);
 
-import registerDefaultCommands from './default-commands';
 registerDefaultCommands(editor);
 
 requestAnimationFrame(function loop() {
