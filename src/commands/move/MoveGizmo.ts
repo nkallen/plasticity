@@ -154,7 +154,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             return { circle, torus };
         })();
 
-        super("move", editor, { handle: handle, picker: picker, delta: null, helper: null });
+        super("move", editor, { handle: handle, picker: picker });
 
         this.pointStart = new THREE.Vector3();
         this.pointEnd = new THREE.Vector3();
@@ -168,10 +168,11 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     onPointerHover(intersect: Intersector) {
         const picker = intersect(this.picker, true);
         if (picker) this.mode = picker.object.userData.mode as Mode;
-        else this.mode = null;
+        else this.mode = undefined;
     }
 
     onPointerDown(intersect: Intersector) {
+        if (!this.mode) throw "invalid state";
         const mode = this.mode;
         if (mode.tag != 'screen') {
             const planeIntersect = intersect(mode.plane, true);
@@ -180,6 +181,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     }
 
     onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo) {
+        if (!this.mode) throw "invalid state";
         switch (this.mode.tag) {
             case 'X':
             case 'Y':
@@ -196,9 +198,6 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             case 'screen':
                 cb(info.pointEnd3d.sub(info.pointStart3d));
                 break;
-            default:
-                console.log(this.mode);
-                throw this.mode.tag;
         }
     }
 

@@ -29,8 +29,8 @@ interface GizmoView {
 export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {
     handle: THREE.Object3D;
     picker: THREE.Object3D;
-    delta: THREE.Object3D;
-    helper: THREE.Object3D;
+    delta?: THREE.Object3D;
+    helper?: THREE.Object3D;
 
     constructor(protected readonly title: string, protected readonly editor: Editor, view: GizmoView) {
         super();
@@ -40,10 +40,10 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         this.delta = view.delta;
         this.helper = view.helper;
 
-        let elements = [this.handle, this.picker, this.delta, this.helper];
+        const elements = [this.handle, this.picker, this.delta, this.helper];
         this.picker.visible = false;
-        elements = elements.filter(x => !!x);
-        this.add(...elements);
+        const filtered = elements.filter(x => !!x) as THREE.Object3D[];
+        this.add(...filtered);
     }
 
     onPointerHover(intersector: Intersector) { }
@@ -63,7 +63,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 const camera = viewport.camera;
                 const domElement = renderer.domElement;
 
-                viewport.setAttribute("gizmo", this.title);
+                viewport.setAttribute("gizmo", this.title); // for gizmo-specific keyboard command selectors
                 disposables.add(new Disposable(() => viewport.removeAttribute("gizmo")));
 
                 // First, register any keyboard commands, like 'x' for move-x
@@ -77,8 +77,9 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const disp = registry.addOne(domElement, name, () => {
                         // If a keyboard command is invoked immediately after the gizmo appears, we will
                         // not have received any pointer info from pointermove/hover. Since we need a "start"
-                        // position for many calculations, use the "lastPointerEvent" which is always available.
-                        const pointer = AbstractGizmo.getPointer(domElement, viewport.lastPointerEvent);
+                        // position for many calculations, use the "lastPointerEvent" which is ALMOST always available.
+                        const lastEvent = viewport.lastPointerEvent ?? new PointerEvent("pointermove");
+                        const pointer = AbstractGizmo.getPointer(domElement, lastEvent);
                         stateMachine.update(camera, pointer);
                         stateMachine.command(fn, () => {
                             viewport.disableControls();
@@ -221,7 +222,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         private readonly cb: T,
     ) { }
 
-    private camera?: THREE.Camera = null;
+    private camera!: THREE.Camera;
     update(camera: THREE.Camera, pointer: Pointer) {
         this.camera = camera;
         this.eye.copy(camera.position).sub(this.gizmo.position).normalize();
@@ -329,13 +330,12 @@ export class GizmoStateMachine<T> implements MovementInfo {
         }
     }
 
-    static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean): THREE.Intersection {
+    static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean): THREE.Intersection | undefined {
         const allIntersections = raycaster.intersectObject(object, true);
         for (var i = 0; i < allIntersections.length; i++) {
             if (allIntersections[i].object.visible || includeInvisible) {
                 return allIntersections[i];
             }
         }
-        return null;
     }
 }

@@ -85,7 +85,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         const helper = new THREE.Mesh(planeGeometry, materials.occlude);
         helper.renderOrder = -1;
 
-        super("rotate", editor, { handle: handle, picker: picker, delta: null, helper: helper });
+        super("rotate", editor, { handle: handle, picker: picker });
 
         this.circle = circle;
         this.torus = torus;
@@ -97,12 +97,13 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         this.picker.updateMatrixWorld();
         const picker = intersect(this.picker, true);
         if (picker) this.mode = picker.object.userData.mode as Mode;
-        else this.mode = null;
+        else this.mode = undefined;
     }
 
     onPointerDown(intersect: Intersector) {}
 
     onPointerMove(cb: (axis: THREE.Vector3, angle: number) => void, intersect: Intersector, info: MovementInfo) {
+        if (!this.mode) throw "invalid state";
         switch (this.mode.tag) {
             case 'screen':
                 cb(info.eye, info.angle);
