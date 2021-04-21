@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { Object3D } from "three";
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
@@ -12,14 +11,14 @@ export class SnapManager {
     private readonly begPoints = new Set<Snap>();
     private readonly midPoints = new Set<Snap>();
 
-    pickers: Object3D[];
-    snappers: Object3D[];
+    pickers: THREE.Object3D[] = [];
+    snappers: THREE.Object3D[] = [];
 
     constructor(
         private readonly db: GeometryDatabase,
-        private readonly spriteDatabase: SpriteDatabase,
+        private readonly sprites: SpriteDatabase,
         signals: EditorSignals) {
-        this.snaps.add(new PointSnap());
+        this.snaps.add(originSnap);
         this.snaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)));
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)));
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)));
@@ -30,13 +29,33 @@ export class SnapManager {
         this.update();
     }
 
-    private update() {
-        const all = [...this.snaps, ...this.begPoints, ...this.midPoints];
-        this.pickers = all.map((s) => s.picker).filter(x => x != null);
-        this.snappers = all.map((s) => s.snapper).flat();
+    pick(raycaster: THREE.Raycaster): THREE.Object3D[] {
+        const pickerIntersections = raycaster.intersectObjects(this.pickers);
+        const result = [];
+        for (const intersection of pickerIntersections) {
+            const sprite = this.hoverIndicatorFor(intersection);
+            result.push(sprite);
+        }
+        return result;
     }
 
-    add(item: SpaceItem) {
+    snap(raycaster: THREE.Raycaster, constructionPlane: THREE.Object3D): [THREE.Object3D, THREE.Vector3][] {
+        const snapperIntersections = raycaster.intersectObjects([constructionPlane, ...this.snappers]);
+        const result = [];
+        for (const intersection of snapperIntersections) {
+            const h = this.helperFor(intersection);
+            result.push(h);
+        }
+        return result;
+    }
+
+    private update() {
+        const all = [...this.snaps, ...this.begPoints, ...this.midPoints];
+        this.pickers = all.map((s) => s.picker).filter(x => !!x) as THREE.Object3D[];
+        this.snappers = all.map((s) => s.snapper);
+    }
+
+    private add(item: SpaceItem): void {
         if (item instanceof Solid) {
             for (const edge of item.edges) {
                 this.addEdge(edge);
@@ -60,7 +79,7 @@ export class SnapManager {
         edge.snaps.add(begSnap);
     }
 
-    delete(item: SpaceItem) {
+    private delete(item: SpaceItem): void {
         if (item instanceof Solid) {
             for (const edge of item.edges) {
                 for (const snap of edge.snaps) {
@@ -73,14 +92,14 @@ export class SnapManager {
         this.update();
     }
 
-    hoverIndicatorFor(intersection: THREE.Intersection) {
-        const sprite = this.spriteDatabase.isNear();
+    hoverIndicatorFor(intersection: THREE.Intersection): THREE.Object3D {
+        const sprite = this.sprites.isNear();
         const snap = intersection.object.userData.snap;
         sprite.position.copy(snap.project(intersection));
         return sprite;
     }
 
-    helperFor(intersection: THREE.Intersection) {
+    helperFor(intersection: THREE.Intersection): [THREE.Object3D, THREE.Vector3] {
         const snap = intersection.object.userData.snap;
         const helper = snap.helper;
         return [helper, snap.project(intersection)];
@@ -110,7 +129,7 @@ export abstract class Snap {
 export class PointSnap extends Snap {
     private readonly projection: THREE.Vector3;
 
-    constructor(x: number = 0, y: number = 0, z: number = 0) {
+    constructor(x = 0, y = 0, z = 0) {
         const snapper = new THREE.Mesh(new THREE.SphereGeometry(0.1));
         const picker = new THREE.Mesh(new THREE.SphereGeometry(0.5));
         snapper.position.set(x, y, z);
@@ -133,7 +152,7 @@ export class AxisSnap extends Snap {
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
         const snapper = new THREE.Line(geometry, new THREE.LineBasicMaterial());
 
-        super(snapper, null, snapper);
+        super(snapper, undefined, snapper);
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -157,7 +176,9 @@ export class PlaneSnap extends Snap {
         return intersection.point;
     }
 
-    restrict(pt: THREE.Vector3) {
+    restrict(pt: THREE.Vector3): PlaneSnap {
         return new PlaneSnap(this.n, pt);
     }
 }
+
+const originSnap = new PointSnap();

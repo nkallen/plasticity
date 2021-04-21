@@ -26,7 +26,7 @@ describe('RefCounter', () => {
 });
 
 describe('WeakValueMap', () => {
-    let map: WeakValueMap<string, unknown>;
+    let map: WeakValueMap<string, Record<string, unknown>>;
 
     beforeEach(() => {
         map = new WeakValueMap();

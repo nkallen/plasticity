@@ -29,8 +29,7 @@ class FakeGizmo extends AbstractGizmo<() => void> {
 
     onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void {
     }
-    onPointerDown(intersect: Intersector): void {
-    }
+    onPointerDown(intersect: Intersector): void { }
 }
 
 test("basic drag interaction", () => {

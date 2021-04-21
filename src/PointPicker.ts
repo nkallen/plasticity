@@ -40,29 +40,19 @@ export class PointPicker {
                 }
                 const domElement = renderer.domElement;
 
-                domElement.addEventListener('pointermove', onPointerMove);
-                domElement.addEventListener('pointerdown', onPointerDown);
-                disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
-                disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
-                disposables.add(new Disposable(() => viewport.overlay.clear()));
-
                 const editor = this.editor;
-                function onPointerMove(e: PointerEvent) {
+                const onPointerMove = (e: PointerEvent) => {
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
 
                     viewport.overlay.clear();
-                    const pickers = editor.snaps.pickers;
-                    const pickerIntersections = raycaster.intersectObjects(pickers);
-                    for (const intersection of pickerIntersections) {
-                        const sprite = editor.snaps.hoverIndicatorFor(intersection);
+                    const sprites = editor.snaps.pick(raycaster);
+                    for (const sprite of sprites) {
                         viewport.overlay.add(sprite);
                     }
 
-                    const snappers = editor.snaps.snappers;
-                    const snapperIntersections = raycaster.intersectObjects([constructionPlane.snapper, ...snappers]);
-                    for (const intersection of snapperIntersections) {
-                        const [helper, point] = editor.snaps.helperFor(intersection);
+                    const snappers = editor.snaps.snap(raycaster, constructionPlane.snapper);
+                    for (const [helper, point] of snappers) {
                         if (cb != null) cb(point);
                         mesh.position.copy(point);
                         if (helper != null) viewport.overlay.add(helper);
@@ -71,7 +61,7 @@ export class PointPicker {
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
-                function getPointer(e: PointerEvent) {
+                const getPointer = (e: PointerEvent) => {
                     const rect = domElement.getBoundingClientRect();
                     const pointer = e;
 
@@ -82,11 +72,17 @@ export class PointPicker {
                     };
                 }
 
-                function onPointerDown(e: PointerEvent) {
+                const onPointerDown = () => {
                     resolve(mesh.position.clone());
                     disposables.dispose();
                     editor.signals.pointPickerChanged.dispatch();
                 }
+
+                domElement.addEventListener('pointermove', onPointerMove);
+                domElement.addEventListener('pointerdown', onPointerDown);
+                disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
+                disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
+                disposables.add(new Disposable(() => viewport.overlay.clear()));
             }
             const cancel = () => {
                 disposables.dispose();
@@ -104,7 +100,7 @@ export class PointPicker {
 
     restrictionPoint?: THREE.Vector3;
 
-    restrictToPlaneThroughPoint(point: THREE.Vector3) {
+    restrictToPlaneThroughPoint(point: THREE.Vector3): void {
         this.restrictionPoint = point;
     }
 }
