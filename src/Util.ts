@@ -80,10 +80,10 @@ export function CircleGeometry(radius: number, segmentCount: number, arc = 1.0):
     return vertices;
 }
 
-export class WeakValueMap<K, V extends Record<string, unknown>> {
+export class WeakValueMap<K, V extends object> {
     private readonly underlying = new Map<K, WeakRef<V>>();
 
-    get(k: K): Record<string, unknown> | undefined {
+    get(k: K): V | undefined {
         const ref = this.underlying.get(k);
         if (ref === undefined) return;
         const v = ref.deref();

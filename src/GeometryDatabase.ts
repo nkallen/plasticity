@@ -75,17 +75,18 @@ export class GeometryDatabase {
         this.signals.sceneGraphChanged.dispatch();
     }
 
-    lookupItem(object: visual.Item): c3d.Item {
+    private lookupItem(object: visual.Item): c3d.Item {
         const { item } = this.geometryModel.GetItemByName(object.userData.simpleName);
         return item;
     }
 
     // FIXME rethink error messages and consider using Family rather than isA for curve3d?
-    lookup(object: visual.Curve3D): c3d.Curve3D;
     lookup(object: visual.Solid): c3d.Solid;
     lookup(object: visual.SpaceInstance<any>): c3d.SpaceInstance;
     lookup(object: visual.Item): c3d.SpaceItem {
         const item = this.lookupItem(object);
+        if (!item) throw "looking up invalid objects";
+        
         if (object instanceof visual.Curve3D) {
             const instance = item.Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
             const spaceItem = instance.GetSpaceItem();
@@ -108,15 +109,21 @@ export class GeometryDatabase {
         const solid = parentModel.Cast<c3d.Solid>(c3d.SpaceType.Solid);
 
         if (object instanceof visual.Edge) {
-            return solid.FindEdgeByName(object.userData.name);
+            const result = solid.FindEdgeByName(object.userData.name);
+            if (!result) throw "cannot find edge";
+            return result;
         } else if (object instanceof visual.Face) {
-            return solid.FindFaceByName(object.userData.name);
+            const result = solid.FindFaceByName(object.userData.name);
+            if (!result) throw "cannot find face";
+            return result;
         }
         assertUnreachable(object);
     }
 
     lookupByName(name: c3d.Name): visual.TopologyItem {
-        return this.name2topologyItem.get(name.Hash());
+        const result = this.name2topologyItem.get(name.Hash());
+        if (!result) throw "item not found";
+        return result;
     }
 
     private object2mesh(obj: c3d.Item, sag: number = 0.005, wireframe: boolean = true): visual.SpaceItem {

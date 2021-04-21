@@ -20,7 +20,8 @@ import { applyMixins } from './Util';
 export abstract class SpaceItem {
     private _useNominal: undefined;
 }
-export abstract class Item extends SpaceItem { }
+export abstract class Item extends SpaceItem {    private _useNominal2: undefined;
+ }
 export class Solid extends Item {
     disposable = new CompositeDisposable()
     edges!: CurveEdgeGroup;
