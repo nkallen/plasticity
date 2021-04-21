@@ -56,7 +56,7 @@ export default class CommandRegistry {
         if (!this.selectorBasedListenersByCommandName.has(commandName)) {
             this.selectorBasedListenersByCommandName.set(commandName, new Array<SelectorBasedListener>());
         }
-        const listenersForCommand = this.selectorBasedListenersByCommandName.get(commandName);
+        const listenersForCommand = this.selectorBasedListenersByCommandName.get(commandName)!;
         const selectorListener = new SelectorBasedListener(selector, commandName, listener);
         listenersForCommand.push(selectorListener);
 
@@ -75,7 +75,7 @@ export default class CommandRegistry {
             this.inlineListenersByCommandName.set(commandName, new WeakMap());
         }
 
-        const listenersForCommand = this.inlineListenersByCommandName.get(commandName);
+        const listenersForCommand = this.inlineListenersByCommandName.get(commandName)!;
         let listenersForElement = listenersForCommand.get(element);
         if (!listenersForElement) {
             listenersForElement = [];
@@ -87,11 +87,11 @@ export default class CommandRegistry {
         this.commandRegistered(commandName);
 
         return new Disposable(() => {
-            listenersForElement.splice(
-                listenersForElement.indexOf(inlineListener),
+            listenersForElement!.splice(
+                listenersForElement!.indexOf(inlineListener),
                 1
             );
-            if (listenersForElement.length === 0) {
+            if (listenersForElement!.length === 0) {
                 listenersForCommand.delete(element);
             }
         });
@@ -180,11 +180,11 @@ export default class CommandRegistry {
 class SelectorBasedListener {
     selector: string;
     commandName: string;
-    listener: () => void;
+    listener: (e: CustomEvent) => void;
     specificity: number;
     sequenceNumber: number;
 
-    constructor(selector: string, commandName: string, listener: () => void) {
+    constructor(selector: string, commandName: string, listener: (e: CustomEvent) => void) {
         this.selector = selector;
         this.listener = listener;
         this.commandName = commandName;
