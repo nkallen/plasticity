@@ -31,13 +31,13 @@ type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reaso
 
 export abstract class CancellableRegistor {
     private readonly resources: Cancellable[] = [];
-    private _finally: Cancellable = null;
+    private _finally?: Cancellable;
 
     cancel() {
         for (const resource of this.resources) {
             resource.cancel();
         }
-        this._finally.cancel();
+        this._finally?.cancel();
     }
 
     finish() {
@@ -59,8 +59,8 @@ export abstract class CancellableRegistor {
 }
 
 export class CancellablePromise<T> extends Cancellable {
-    cancel: () => void;
-    finish: () => void;
+    cancel!: () => void;
+    finish!: () => void;
     executor: Executor<T>;
 
     constructor(executor: Executor<T>) {
