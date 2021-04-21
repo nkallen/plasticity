@@ -23,6 +23,7 @@ export class PointPicker {
             const editor = this.editor;
             const scene = editor.db.scene;
             const raycaster = new THREE.Raycaster();
+            // @ts-ignore
             raycaster.params.Line.threshold = 0.1;
 
             scene.add(mesh);
