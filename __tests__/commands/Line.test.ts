@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import CurveFactory from '../../src/commands/curve/CurveFactory';
+import LineFactory from "../../src/commands/line/LineFactory";
 import { EditorSignals } from '../../src/Editor';
 import { GeometryDatabase } from '../../src/GeometryDatabase';
 import MaterialDatabase from '../../src/MaterialDatabase';
@@ -9,7 +9,7 @@ import FakeSignals from '../../__mocks__/FakeSignals';
 import '../matchers';
 
 let db: GeometryDatabase;
-let makeCurve: CurveFactory;
+let makeLine: LineFactory;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 
@@ -17,31 +17,29 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
-    makeCurve = new CurveFactory(db, materials, signals);
+    makeLine = new LineFactory(db, materials, signals);
 })
 
 describe('update', () => {
     test('creates a line', () => {
-        makeCurve.points.push(new THREE.Vector3());
-        makeCurve.points.push(new THREE.Vector3(1, 1, 0));
-        makeCurve.points.push(new THREE.Vector3(2, -1, 0));
-        makeCurve.update();
+        makeLine.p1 = new THREE.Vector3();
+        makeLine.p2 = new THREE.Vector3(1, 1, 0);
+        makeLine.update();
     });
 });
 
 describe('commit', () => {
     test.only('invokes the appropriate c3d commands', () => {
-        makeCurve.points.push(new THREE.Vector3());
-        makeCurve.points.push(new THREE.Vector3(1, 1, 0));
-        makeCurve.points.push(new THREE.Vector3(2, -1, 0));
-        const item = makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+        makeLine.p1 = new THREE.Vector3();
+        makeLine.p2 = new THREE.Vector3(1, 1, 0);
+        const item = makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(item).toBeInstanceOf(visual.SpaceInstance);
         expect(item.underlying).toBeInstanceOf(visual.Curve3D);
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3());
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
     })
 })
