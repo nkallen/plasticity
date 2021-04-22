@@ -2,12 +2,10 @@ import { Cancellable } from '../Cancellable';
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
-
-type callUpdateSuper = never;
-type callCommitSuper = never;
-type callCancelSuper = never;
+import * as visual from '../VisualModel';
 
 type State = 'none' | 'updated' | 'cancelled' | 'committed'
+
 export abstract class GeometryFactory extends Cancellable {
     state: State = 'none';
 
@@ -28,36 +26,40 @@ export abstract class GeometryFactory extends Cancellable {
         }
     }
 
-    update(): callUpdateSuper {
+    protected abstract doUpdate(): void;
+    protected abstract doCommit(): visual.SpaceItem | visual.SpaceItem[];
+    protected abstract doCancel(): void;
+
+    update(): void {
         switch (this.state) {
             case 'none':
             case 'updated':
                 this.state = 'updated';
                 this.signals.factoryUpdated.dispatch();
-                return undefined as callUpdateSuper;
+                return this.doUpdate();
             default:
                 throw new Error('invalid state: ' + this.state);
         }
     }
 
-    commit(): callCommitSuper {
+    commit(): visual.SpaceItem | visual.SpaceItem[] {
         switch (this.state) {
             case 'none':
             case 'updated':
                 this.state = 'committed';
                 this.signals.factoryCommitted.dispatch();
-                return undefined as callUpdateSuper;
+                return this.doCommit();
             default:
                 throw new Error('invalid state: ' + this.state);
         }
     }
 
-    cancel(): callCancelSuper {
+    cancel(): void {
         switch (this.state) {
             case 'none':
             case 'cancelled':
             case 'updated':
-                return undefined as callCancelSuper;
+                this.doCancel();
             default:
                 throw new Error('invalid state: ' + this.state);
         }

@@ -8,7 +8,7 @@ abstract class BooleanFactory extends GeometryFactory {
     item1!: visual.Solid;
     item2!: visual.Solid;
 
-    commit() {
+    doCommit() {
         const model1 = this.db.lookup(this.item1);
         const model2 = this.db.lookup(this.item2);
 
@@ -24,14 +24,14 @@ abstract class BooleanFactory extends GeometryFactory {
         this.db.removeItem(this.item1);
         this.db.removeItem(this.item2);
 
-        this.db.addItem(result);
-
-        return super.commit();
+        return this.db.addItem(result);
     }
 
-    cancel() {
+    doCancel() {
         return super.cancel();
     }
+
+    doUpdate() { }
 }
 export class UnionFactory extends BooleanFactory {
     operationType = c3d.OperationType.Union;
@@ -49,7 +49,7 @@ export class CutFactory extends GeometryFactory {
     solid!: visual.Solid;
     contour!: visual.SpaceInstance<visual.Curve3D>;
 
-    commit() {
+    doCommit() {
         const solid = this.db.lookup(this.solid);
         const instance = this.db.lookup(this.contour);
         const item = instance.GetSpaceItem();
@@ -66,13 +66,14 @@ export class CutFactory extends GeometryFactory {
 
         this.db.removeItem(this.solid);
         this.db.removeItem(this.contour);
-        this.db.addItem(result0);
-        this.db.addItem(result1);
-
-        return super.commit();
+        const r1 = this.db.addItem(result0);
+        const r2 = this.db.addItem(result1);
+        return [r1, r2];
     }
 
-    cancel() {
+    doCancel() {
         return super.cancel();
     }
+
+    doUpdate() { }
 }

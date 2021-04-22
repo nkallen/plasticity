@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import BoxFactory from '../src/commands/box/Box';
+import BoxFactory from '../src/commands/box/BoxFactory';
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';

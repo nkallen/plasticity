@@ -5,11 +5,12 @@ import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
 import MaterialDatabase from '../../MaterialDatabase';
+import { CircleGeometry } from '../../Util';
 import { GeometryFactory } from '../Factory';
 
-export default class LineFactory extends GeometryFactory {
-    p1!: THREE.Vector3;
-    p2!: THREE.Vector3;
+export default class CircleFactory extends GeometryFactory {
+    center!: THREE.Vector3;
+    radius!: number;
     mesh: Line2;
 
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
@@ -18,36 +19,23 @@ export default class LineFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    update() {
+    doUpdate() {
         this.mesh.geometry.dispose();
-        const vertices = new Float32Array(2 * 3);
-        vertices[0] = this.p1.x;
-        vertices[1] = this.p1.y;
-        vertices[2] = this.p1.z;
-
-        vertices[3] = this.p2.x;
-        vertices[4] = this.p2.y;
-        vertices[5] = this.p2.z;
-
+        const vertices = CircleGeometry(this.radius, 32);
         const geometry = new LineGeometry();
         geometry.setPositions(vertices);
         this.mesh.geometry = geometry;
-
-        return super.update();
+        this.mesh.position.copy(this.center);
     }
 
-    commit() {
+    doCommit() {
         this.db.scene.remove(this.mesh);
-        const point1 = new c3d.CartPoint3D(this.p1.x, this.p1.y, this.p1.z);
-        const point2 = new c3d.CartPoint3D(this.p2.x, this.p2.y, this.p2.z);
-        const line = c3d.ActionCurve3D.Segment(point1, point2);
-        this.db.addItem(new c3d.SpaceInstance(line));
-
-        return super.commit();
+        const center = new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z);
+        const circle = c3d.ActionCurve3D.Arc(center, [], true, 0, this.radius, this.radius);
+        return this.db.addItem(new c3d.SpaceInstance(circle));
     }
 
-    cancel() {
+    doCancel() {
         this.db.scene.remove(this.mesh);
-        return super.cancel();
     }
 }

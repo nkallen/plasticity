@@ -38,7 +38,7 @@ abstract class ModifyFaceFactory extends GeometryFactory {
         this.facesModel = facesModel;
     }
 
-    update() {
+    doUpdate() {
         const { solid, solidModel, facesModel, direction } = this;
 
         const params = new c3d.ModifyValues();
@@ -50,11 +50,9 @@ abstract class ModifyFaceFactory extends GeometryFactory {
         solid.visible = false;
         this.temp?.cancel();
         this.temp = this.db.addTemporaryItems([result]);
-
-        return super.update();
     }
 
-    commit() {
+    doCommit() {
         const { solid, solidModel, facesModel, direction } = this;
 
         const params = new c3d.ModifyValues();
@@ -65,15 +63,12 @@ abstract class ModifyFaceFactory extends GeometryFactory {
 
         this.temp?.cancel();
         this.db.removeItem(solid);
-        this.db.addItem(result);
-        return super.commit();
+        return this.db.addItem(result);
     }
 
-    cancel() {
+    doCancel() {
         this.solid.visible = true;
         this.temp?.cancel();
-        // FIXME the state machine in super needs to run first!!
-        return super.cancel();
     }
 }
 

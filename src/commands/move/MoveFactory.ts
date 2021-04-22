@@ -18,28 +18,23 @@ export default class MoveFactory extends GeometryFactory {
         this.originalPosition.copy(obj.position);
     }
 
-    update() {
+    doUpdate() {
         const originalPosition = this.originalPosition.clone();
         const p1 = this.p1, p2 = this.p2;
         this.item.position.copy(originalPosition.add(p2).sub(p1));
-
-        return super.update();
     }
 
-    commit() {
+    doCommit() {
         const model = this.db.lookup(this.item);
         this.db.removeItem(this.item);
 
         const delta = this.p2.clone().sub(this.p1);
         const vec = new c3d.Vector3D(delta.x, delta.y, delta.z);
         model.Move(vec);
-        this.db.addItem(model);
-
-        return super.commit();
+        return this.db.addItem(model);
     }
 
-    cancel() {
+    doCancel() {
         this._item.position.copy(this.originalPosition);
-        return super.cancel();
     }
 }

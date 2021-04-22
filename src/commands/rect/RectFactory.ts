@@ -20,7 +20,7 @@ export default class RectFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    update() {
+    doUpdate() {
         this.mesh.geometry.dispose();
         const { p1, p2, p3, p4 } = this.orthogonal();
 
@@ -48,11 +48,9 @@ export default class RectFactory extends GeometryFactory {
         const geometry = new LineGeometry();
         geometry.setPositions(vertices);
         this.mesh.geometry = geometry;
-
-        return super.update();
     }
 
-    commit() {
+    doCommit() {
         this.db.scene.remove(this.mesh);
         const { p1, p2, p3, p4 } = this.orthogonal();
 
@@ -63,14 +61,11 @@ export default class RectFactory extends GeometryFactory {
             new c3d.CartPoint3D(p4.x, p4.y, p4.z)
         ]
         const line = new c3d.Polyline3D(points, true);
-        this.db.addItem(new c3d.SpaceInstance(line));
-
-        return super.commit();
+        return this.db.addItem(new c3d.SpaceInstance(line));
     }
 
-    cancel() {
+    doCancel() {
         this.db.scene.remove(this.mesh);
-        return super.cancel();
     }
 
     private orthogonal() {

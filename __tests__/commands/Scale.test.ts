@@ -1,13 +1,13 @@
 import * as THREE from "three";
-import ScaleFactory from '../src/commands/scale/Scale';
-import SphereFactory from '../src/commands/sphere/Sphere';
-import { EditorSignals } from '../src/Editor';
-import { GeometryDatabase } from '../src/GeometryDatabase';
-import MaterialDatabase from '../src/MaterialDatabase';
-import * as visual from '../src/VisualModel';
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import FakeSignals from '../__mocks__/FakeSignals';
-import './matchers';
+import ScaleFactory from '../../src/commands/scale/ScaleFactory';
+import SphereFactory from '../../src/commands/sphere/SphereFactory';
+import { EditorSignals } from '../../src/Editor';
+import { GeometryDatabase } from '../../src/GeometryDatabase';
+import MaterialDatabase from '../../src/MaterialDatabase';
+import * as visual from '../../src/VisualModel';
+import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import FakeSignals from '../../__mocks__/FakeSignals';
+import '../matchers';
 
 let db: GeometryDatabase;
 let scale: ScaleFactory;

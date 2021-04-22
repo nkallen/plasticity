@@ -21,7 +21,7 @@ export default class ScaleFactory extends GeometryFactory {
         this.originalPosition = obj.position.clone();
     }
 
-    update() {
+    doUpdate() {
         const { item, origin, p2, p3 } = this;
         item.scale.copy(this.originalScale);
         item.position.copy(this.originalPosition);
@@ -34,11 +34,9 @@ export default class ScaleFactory extends GeometryFactory {
         item.position.multiplyScalar(scaleFactor);
         item.position.add(origin);
         item.scale.multiplyScalar(scaleFactor);
-
-        return super.update();
     }
 
-    commit() {
+    doCommit() {
         const { item, origin, p2, p3 } = this;
         const solid = this.db.lookup(this.item);
         this.db.removeItem(item);
@@ -50,14 +48,11 @@ export default class ScaleFactory extends GeometryFactory {
         const names = new c3d.SNameMaker(c3d.CreatorType.TransformedSolid, c3d.ESides.SideNone, 0);
         const params = new c3d.TransformValues(scaleFactor, scaleFactor, scaleFactor, new c3d.CartPoint3D(origin.x, origin.y, origin.z));
         const result = c3d.ActionDirect.TransformedSolid(solid, c3d.CopyMode.Copy, params, names);
-        this.db.addItem(result);
-
-        return super.commit();
+        return this.db.addItem(result);
     }
 
-    cancel() {
+    doCancel() {
         const { item } = this;
         item.scale.copy(this.originalScale);
-        return super.cancel();
     }
 }

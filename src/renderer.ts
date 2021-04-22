@@ -4,8 +4,8 @@ import c3d from '../build/Release/c3d.node';
 // import '../build/Release/c3d.dll'; // On windows, this will copy the file into the webpack bundle
 import '../build/Release/libc3d.dylib'; // On mac
 import license from '../license-key.json';
-import BoxFactory from './commands/box/Box';
-import SphereFactory from './commands/sphere/Sphere';
+import BoxFactory from './commands/box/BoxFactory';
+import SphereFactory from './commands/sphere/SphereFactory';
 import Toolbar from './components/toolbar/Toolbar';
 import './css/index.less';
 import registerDefaultCommands from './default-commands';

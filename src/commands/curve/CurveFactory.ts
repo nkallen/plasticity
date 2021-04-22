@@ -17,7 +17,7 @@ export default class CurveFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    update() {
+    doUpdate() {
         const { points } = this;
 
         this.mesh.geometry.dispose();
@@ -31,23 +31,18 @@ export default class CurveFactory extends GeometryFactory {
         const geometry = new LineGeometry();
         geometry.setPositions(vertices);
         this.mesh.geometry = geometry;
-
-        return super.update();
     }
 
-    commit() {
+    doCommit() {
         const { points, mesh } = this;
         this.db.scene.remove(mesh);
 
         const cartPoints = points.map(p => new c3d.CartPoint3D(p.x, p.y, p.z));
         const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, false, c3d.SpaceType.Hermit3D);
-        this.db.addItem(new c3d.SpaceInstance(curve));
-
-        return super.commit();
+        return this.db.addItem(new c3d.SpaceInstance(curve));
     }
 
-    cancel() {
+    doCancel() {
         this.db.scene.remove(this.mesh);
-        return super.cancel();
     }
 }

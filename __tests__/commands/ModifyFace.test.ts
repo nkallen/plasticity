@@ -1,14 +1,13 @@
 import * as THREE from "three";
-import BoxFactory from "../src/commands/box/Box";
-import { OffsetFaceFactory } from '../src/commands/modifyface/ModifyFace';
-import { EditorSignals } from '../src/Editor';
-import { GeometryDatabase } from '../src/GeometryDatabase';
-import MaterialDatabase from '../src/MaterialDatabase';
-import { SpriteDatabase } from "../src/SpriteDatabase";
-import * as visual from '../src/VisualModel';
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import FakeSignals from '../__mocks__/FakeSignals';
-import './matchers';
+import BoxFactory from "../../src/commands/box/BoxFactory";
+import { OffsetFaceFactory } from '../../src/commands/modifyface/ModifyFaceFactory';
+import { EditorSignals } from '../../src/Editor';
+import { GeometryDatabase } from '../../src/GeometryDatabase';
+import MaterialDatabase from '../../src/MaterialDatabase';
+import * as visual from '../../src/VisualModel';
+import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import FakeSignals from '../../__mocks__/FakeSignals';
+import '../matchers';
 
 let db: GeometryDatabase;
 let offsetFace: OffsetFaceFactory;

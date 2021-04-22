@@ -21,7 +21,7 @@ export default class RotateFactory extends GeometryFactory {
         this.originalPosition.copy(obj.position);
     }
 
-    update() {
+    doUpdate() {
         const { item, point, axis, angle } = this;
         item.position.copy(this.originalPosition);
 
@@ -29,11 +29,9 @@ export default class RotateFactory extends GeometryFactory {
         item.position.applyAxisAngle(axis, angle);
         item.position.add(point);
         item.quaternion.setFromAxisAngle(axis, angle);
-        
-        return super.update();
     }
 
-    commit() {
+    doCommit() {
         const { item, axis, angle, point } = this;
         const model = this.db.lookup(item);
         this.db.removeItem(item);
@@ -42,13 +40,10 @@ export default class RotateFactory extends GeometryFactory {
         const v = new c3d.Vector3D(axis.x, axis.y, axis.z);
         const axi = new c3d.Axis3D(p, v);
         model.Rotate(axi, angle);
-        this.db.addItem(model);
-
-        return super.commit();
+        return this.db.addItem(model);
     }
 
-    cancel() {
+    doCancel() {
         this._item.quaternion.copy(this.originalQuaternion);
-        return super.cancel();
     }
 }

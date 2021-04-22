@@ -19,16 +19,14 @@ export default class SphereFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    update() {
+    doUpdate() {
         const geometry = new THREE.SphereGeometry(this.radius, 18, 12, 0, Math.PI * 2, 0, Math.PI);
         this.mesh.geometry.dispose();
         this.mesh.geometry = geometry;
         this.mesh.position.copy(this.center);
-
-        return super.update();
     }
 
-    commit() {
+    doCommit() {
         this.db.scene.remove(this.mesh);
         const points = [
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z),
@@ -37,13 +35,10 @@ export default class SphereFactory extends GeometryFactory {
         ];
         const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Sphere, names);
-        this.db.addItem(sphere);
-
-        return super.commit();
+        return this.db.addItem(sphere);
     }
 
-    cancel() {
+    doCancel() {
         this.db.scene.remove(this.mesh);
-        return super.cancel();
     }
 }

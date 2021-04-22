@@ -1,12 +1,12 @@
 import * as THREE from "three";
-import CurveFactory from '../src/commands/curve/Curve';
-import { EditorSignals } from '../src/Editor';
-import { GeometryDatabase } from '../src/GeometryDatabase';
-import MaterialDatabase from '../src/MaterialDatabase';
-import * as visual from '../src/VisualModel';
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import FakeSignals from '../__mocks__/FakeSignals';
-import './matchers';
+import CurveFactory from '../../src/commands/curve/CurveFactory';
+import { EditorSignals } from '../../src/Editor';
+import { GeometryDatabase } from '../../src/GeometryDatabase';
+import MaterialDatabase from '../../src/MaterialDatabase';
+import * as visual from '../../src/VisualModel';
+import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import FakeSignals from '../../__mocks__/FakeSignals';
+import '../matchers';
 
 let db: GeometryDatabase;
 let makeCurve: CurveFactory;

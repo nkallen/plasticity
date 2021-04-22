@@ -20,12 +20,11 @@ export default class BoxFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    update() {
+    doUpdate() {
         this.mesh.geometry.dispose();
         const { BC, points: [p1, p2, p3, p4] } = this.clockwise();
         const AB = p2.clone().sub(p1);
         const CD = p4.clone().sub(p3);
-
 
         const geometry = new THREE.BoxGeometry(AB.length(), BC.length(), CD.length());
         // Box is centered, so uncenter it xyz:
@@ -35,11 +34,9 @@ export default class BoxFactory extends GeometryFactory {
             .add(CD.multiplyScalar(0.5));
         this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), AB.normalize());
         this.mesh.geometry = geometry;
-
-        return super.update();
     }
 
-    commit() {
+    doCommit() {
         this.db.scene.remove(this.mesh);
         const { points: [p1, p2, p3, p4] } = this.clockwise();
 
@@ -51,9 +48,7 @@ export default class BoxFactory extends GeometryFactory {
         ]
         const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
         const box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
-        this.db.addItem(box);
-
-        return super.commit();
+        return this.db.addItem(box);
     }
 
     private clockwise() {
@@ -75,8 +70,7 @@ export default class BoxFactory extends GeometryFactory {
         else return { BC, points: [p1, p2, p3, p4] }
     }
 
-    cancel() {
+    doCancel() {
         this.db.scene.remove(this.mesh);
-        return super.cancel();
     }
 }

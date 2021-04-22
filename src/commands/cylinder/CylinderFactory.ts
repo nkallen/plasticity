@@ -20,7 +20,7 @@ export default class CylinderFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    update() {
+    doUpdate() {
         this.mesh.geometry.dispose();
         const radiusLength = this.base.distanceTo(this.radius);
         const heightLength = this.base.distanceTo(this.height);
@@ -28,11 +28,9 @@ export default class CylinderFactory extends GeometryFactory {
         const direction = this.height.clone().sub(this.base);
         this.mesh.position.copy(this.base.clone().add(direction.multiplyScalar(0.5)));
         this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
-
-        return super.update();
     }
 
-    commit() {
+    doCommit() {
         this.db.scene.remove(this.mesh);
         const n = this.height.clone().sub(this.base);
         const z = -(n.x + n.y) / n.z
@@ -44,13 +42,10 @@ export default class CylinderFactory extends GeometryFactory {
         ];
         const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Cylinder, names);
-        this.db.addItem(sphere);
-
-        return super.commit();
+        return this.db.addItem(sphere);
     }
 
-    cancel() {
+    doCancel() {
         this.db.scene.remove(this.mesh);
-        return super.cancel();
     }
 }
