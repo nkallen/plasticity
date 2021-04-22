@@ -34,8 +34,7 @@ describe('commit', () => {
         makeCurve.points.push(new THREE.Vector3());
         makeCurve.points.push(new THREE.Vector3(1, 1, 0));
         makeCurve.points.push(new THREE.Vector3(2, -1, 0));
-        makeCurve.commit();
-        const item = db.scene.children[0] as visual.SpaceInstance<visual.Curve3D>;
+        const item = makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(item).toBeInstanceOf(visual.SpaceInstance);
         expect(item.underlying).toBeInstanceOf(visual.Curve3D);
     })
