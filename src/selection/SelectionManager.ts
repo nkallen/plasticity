@@ -99,6 +99,10 @@ export class SelectionManager {
             this.selectedSolids.delete(object);
             this.signals.objectDeselected.dispatch(object);
         }
+        for (const curve of this.selectedCurves) {
+            this.selectedCurves.delete(curve);
+            this.signals.objectDeselected.dispatch(curve);
+        }
         this.selectedChildren.clear();
     }
 
