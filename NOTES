@@ -1,0 +1,277 @@
+import * as THREE from "three";
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+import { Editor } from '../../Editor';
+import { ViewportSelector } from '../../selection/ViewportSelector';
+import { PlaneSnap } from "../../SnapManager";
+import { Solid, SpaceItem, TopologyItem } from "../../VisualModel";
+import { Pane } from '../pane/Pane';
+
+const near = 0.01;
+const far = 1000;
+const frustumSize = 20;
+
+export interface Viewport extends HTMLElement {
+    renderer: THREE.Renderer;
+    camera: THREE.Camera;
+    constructionPlane: PlaneSnap;
+    enableControls(): void;
+    disableControls(): void;
+    overlay: THREE.Scene;
+    lastPointerEvent?: PointerEvent;
+}
+
+export class Model  {
+    readonly overlay = new THREE.Scene();
+    readonly outlinePassSelection: OutlinePass;
+    readonly outlinePassHover: OutlinePass;
+    readonly controls = new Set<{ enabled: boolean }>();
+    lastPointerEvent?: PointerEvent;
+
+    constructor(
+        private readonly editor: Editor,
+        readonly camera: THREE.Camera,
+        readonly renderer: THREE.Renderer,
+        private readonly composer: EffectComposer,
+        private readonly grid: THREE.GridHelper,
+        readonly constructionPlane: PlaneSnap,
+        private readonly selector: ViewportSelector,
+        private readonly navigationControls?: OrbitControls
+    ) {
+        const renderPass = new RenderPass(editor.db.scene, this.camera);
+        const overlayPass = new RenderPass(this.overlay, this.camera);
+        const helpersPass = new RenderPass(editor.helpers.scene, this.camera);
+        const copyPass = new ShaderPass(CopyShader);
+
+        overlayPass.clear = false;
+        overlayPass.clearDepth = true;
+        helpersPass.clear = false;
+        helpersPass.clearDepth = true;
+
+        const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
+        outlinePassSelection.edgeStrength = 10;
+        outlinePassSelection.edgeGlow = 0;
+        outlinePassSelection.edgeThickness = 2.0;
+        outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
+        this.outlinePassSelection = outlinePassSelection;
+
+        const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
+        outlinePassHover.edgeStrength = 10;
+        outlinePassHover.edgeGlow = 0;
+        outlinePassHover.edgeThickness = 2.0;
+        outlinePassHover.visibleEdgeColor.setHex(0xfffffff);
+        this.outlinePassHover = outlinePassHover;
+
+        this.composer.addPass(renderPass);
+        this.composer.addPass(this.outlinePassHover);
+        this.composer.addPass(this.outlinePassSelection);
+        this.composer.addPass(overlayPass);
+        this.composer.addPass(helpersPass);
+        this.composer.addPass(copyPass);
+
+        this.outlineSelection = this.outlineSelection.bind(this);
+        this.outlineHover = this.outlineHover.bind(this);
+        this.outlineUnhover = this.outlineUnhover.bind(this);
+        this.render = this.render.bind(this);
+        this.setNeedsRender = this.setNeedsRender.bind(this);
+
+        if (this.navigationControls) this.controls.add(this.navigationControls)
+        this.controls.add(this.selector);
+
+        editor.db.scene.fog = new THREE.Fog(0x424242, 1, 100);
+
+        editor.signals.objectSelected.add(this.outlineSelection);
+        editor.signals.objectDeselected.add(this.outlineSelection);
+        editor.signals.objectHovered.add(this.outlineHover);
+        editor.signals.objectUnhovered.add(this.outlineUnhover);
+
+        editor.signals.objectSelected.add(this.setNeedsRender);
+        editor.signals.objectDeselected.add(this.setNeedsRender);
+        editor.signals.sceneGraphChanged.add(this.setNeedsRender);
+        editor.signals.factoryUpdated.add(this.setNeedsRender);
+        editor.signals.pointPickerChanged.add(this.setNeedsRender);
+        editor.signals.objectHovered.add(this.setNeedsRender);
+        editor.signals.objectUnhovered.add(this.setNeedsRender);
+        editor.signals.objectAdded.add(this.setNeedsRender);
+
+        this.navigationControls?.addEventListener('change', this.setNeedsRender);
+    }
+
+    private needsRender = true;
+    setNeedsRender() {
+        this.needsRender = true;
+    }
+
+    render() {
+        requestAnimationFrame(this.render);
+        if (!this.needsRender) return;
+
+        this.editor.signals.renderPrepared.dispatch([this.camera, new THREE.Vector2(this.offsetWidth, this.offsetHeight)]);
+
+        this.editor.db.scene.add(this.grid);
+        this.composer.render();
+        this.editor.db.scene.remove(this.grid);
+
+        this.needsRender = false;
+    }
+
+    outlineSelection() {
+        const selectionManager = this.editor.selection;
+        const toOutline = [...selectionManager.selectedSolids].map((item) => item.faces);
+        console.log(this.outlinePassSelection.selectedObjects, toOutline);
+        this.outlinePassSelection.selectedObjects = toOutline;
+    }
+
+    outlineHover(object?: SpaceItem | TopologyItem) {
+        if (object instanceof Solid) this.outlinePassHover.selectedObjects = [object.faces];
+    }
+
+    outlineUnhover(object?: SpaceItem | TopologyItem) {
+        this.outlinePassHover.selectedObjects = [];
+    }
+
+    disableControls() {
+        for (const control of this.controls) {
+            control.enabled = false;
+        }
+    }
+
+    enableControls() {
+        for (const control of this.controls) {
+            control.enabled = true;
+        }
+    }
+
+    private offsetWidth!: number;
+    private offsetHeight!: number;
+
+    setSize(offsetWidth: number, offsetHeight: number) {
+        this.offsetWidth = offsetWidth;
+        this.offsetHeight = offsetHeight;
+
+        const { camera } = this;
+        const aspect = offsetWidth / offsetHeight;
+        if (camera instanceof THREE.PerspectiveCamera) {
+            camera.aspect = aspect;
+        } else if (camera instanceof THREE.OrthographicCamera) {
+            camera.left = frustumSize * aspect / - 2;
+            camera.right = frustumSize * aspect / 2;
+        } else throw new Error("Invalid camera");
+        camera.updateProjectionMatrix();
+
+        this.renderer.setSize(offsetWidth, offsetHeight);
+        this.composer.setSize(offsetWidth, offsetHeight);
+        this.setNeedsRender();
+    }
+}
+
+export default (editor: Editor) => {
+    class Viewport extends HTMLElement implements Viewport {
+        model: Model;
+
+        constructor() {
+            super();
+
+            let renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+            let camera: THREE.Camera;
+            let navigationControls: OrbitControls | undefined = undefined;
+            let constructionPlane: PlaneSnap;
+            let selector: ViewportSelector;
+
+            const view = this.getAttribute("view");
+            const aspect = this.offsetWidth / this.offsetHeight;
+            const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
+            const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, aspect, near, far);
+            const domElement = renderer.domElement;
+            let grid = new THREE.GridHelper(300, 300, 0x666666, 0x666666);
+
+            domElement.setAttribute("tabindex", "1");
+            domElement.addEventListener('pointermove', e => {
+                domElement.focus();
+                this.model.lastPointerEvent = e;
+            });
+
+            let n: THREE.Vector3;
+            switch (view) {
+                case "3d":
+                    camera = perspectiveCamera;
+                    camera.position.set(-5, 15, 5);
+                    navigationControls = new OrbitControls(camera, domElement);
+                    n = new THREE.Vector3(0, 0, 1);
+                    break;
+                case "top":
+                    camera = orthographicCamera;
+                    camera.position.set(0, 0, 10);
+                    n = new THREE.Vector3(0, 0, 1);
+                    break;
+                case "right":
+                    camera = orthographicCamera;
+                    camera.position.set(10, 0, 0);
+                    n = new THREE.Vector3(1, 0, 0);
+                    break;
+                case "front":
+                default:
+                    camera = orthographicCamera;
+                    camera.position.set(0, 10, 0);
+                    n = new THREE.Vector3(0, 1, 0);
+                    break;
+            }
+            constructionPlane = new PlaneSnap(n);
+            grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
+            grid.renderOrder = -1;
+
+            camera.up.set(0, 0, 1);
+            camera.lookAt(new THREE.Vector3());
+            selector = new ViewportSelector(editor.db.drawModel, camera, renderer.domElement, editor.signals);
+
+            renderer.setPixelRatio(window.devicePixelRatio);
+            const size = renderer.getSize(new THREE.Vector2());
+            const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { format: THREE.RGBFormat });
+            renderTarget.samples = 8;
+
+            const composer = new EffectComposer(renderer, renderTarget);
+            composer.setPixelRatio(window.devicePixelRatio);
+
+            this.resize = this.resize.bind(this);
+
+            this.model = new Model(
+                editor,
+                camera,
+                renderer,
+                composer,
+                grid,
+                constructionPlane,
+                selector,
+                navigationControls
+            );
+        }
+
+        get renderer() { return this.model.renderer }
+        get camera() { return this.model.camera }
+        get constructionPlane() { return this.model.constructionPlane }
+        enableControls() { this.model.enableControls() }
+        disableControls() { this.model.disableControls() }
+        get overlay() { return this.model.overlay }
+        get lastPointerEvent() { return this.model.lastPointerEvent }
+
+        connectedCallback() {
+            editor.viewports.push(this);
+
+            const pane = this.parentElement as Pane;
+            pane.signals.flexScaleChanged.add(this.resize);
+            editor.signals.windowLoaded.add(this.resize);
+            editor.signals.windowResized.add(this.resize);
+            this.model.render();
+        }
+
+        resize() {
+            this.model.setSize(this.offsetWidth, this.offsetHeight);
+        }
+    }
+
+    customElements.define('ispace-viewport', Viewport);
+}

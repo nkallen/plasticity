@@ -13,6 +13,7 @@ export default (): EditorSignals => {
         factoryUpdated: new signals.Signal(),
         factoryCommitted: new signals.Signal(),
         pointPickerChanged: new signals.Signal(),
+        gizmoChanged: new signals.Signal(),
         windowResized: new signals.Signal(),
         windowLoaded: new signals.Signal(),
         renderPrepared: new signals.Signal(),

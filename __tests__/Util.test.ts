@@ -1,5 +1,5 @@
 import { Disposable } from "event-kit";
-import { RefCounter, WeakValueMap } from "../src/Util";
+import { RefCounter, WeakValueMap } from "../src/util/Util";
 
 describe('RefCounter', () => {
     let refCounter: RefCounter<unknown>;

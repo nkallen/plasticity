@@ -41,7 +41,6 @@ export class SelectionManager {
         signals.hovered.add((intersections) => this.onPointerMove(intersections));
     }
 
-    // FIXME make this method just take an array of objects
     private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy) {
         if (intersections.length == 0) {
             strategy.emptyIntersection();

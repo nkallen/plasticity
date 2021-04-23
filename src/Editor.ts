@@ -7,7 +7,7 @@ import Command from './commands/Command';
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { Helpers } from "./util/Helpers";
-import { BasicMaterialDatabase } from "./MaterialDatabase";
+import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import { SelectionManager } from './selection/SelectionManager';
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
@@ -28,6 +28,7 @@ export interface EditorSignals {
     factoryUpdated: signals.Signal;
     factoryCommitted: signals.Signal;
     pointPickerChanged: signals.Signal;
+    gizmoChanged: signals.Signal;
     windowResized: signals.Signal;
     windowLoaded: signals.Signal;
     renderPrepared: signals.Signal<[THREE.Camera, THREE.Vector2]>;
@@ -52,6 +53,7 @@ export class Editor {
         factoryUpdated: new signals.Signal(),
         factoryCommitted: new signals.Signal(),
         pointPickerChanged: new signals.Signal(),
+        gizmoChanged: new signals.Signal(),
         windowResized: new signals.Signal(),
         windowLoaded: new signals.Signal(),
         renderPrepared: new signals.Signal(),
@@ -62,7 +64,7 @@ export class Editor {
         hovered: new signals.Signal(),
     }
 
-    readonly materials = new BasicMaterialDatabase(this.signals);
+    readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly db = new GeometryDatabase(this.materials, this.signals);
     readonly selection = new SelectionManager(this.db, this.materials, this.signals)

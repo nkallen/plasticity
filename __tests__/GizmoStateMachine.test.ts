@@ -2,18 +2,20 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
+import { AbstractGizmo, EditorLike, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
 import CommandRegistry from "../src/components/atom/CommandRegistry";
-import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
-import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
-import { Editor } from "../src/Editor";
+import { EditorSignals } from '../src/Editor';
+import { GeometryDatabase } from '../src/GeometryDatabase';
+import MaterialDatabase from '../src/MaterialDatabase';
 import { Helpers } from "../src/util/Helpers";
+import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 import { FakeViewport } from "../__mocks__/FakeViewport";
 
 class FakeGizmo extends AbstractGizmo<() => void> {
     fakeCommand: jest.Mock;
 
-    constructor(editor: Editor) {
+    constructor(editor: EditorLike) {
         const picker = new THREE.Group();
         const p = new THREE.Mesh(new THREE.SphereGeometry(0.1));
         picker.add(p);
@@ -27,21 +29,34 @@ class FakeGizmo extends AbstractGizmo<() => void> {
         this.fakeCommand = fakeCommand;
     }
 
-    onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void {
-    }
+    onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void { }
     onPointerDown(intersect: Intersector): void { }
 }
 
-test("basic drag interaction", () => {
-    const signals = FakeSignals();
-    const viewport = new FakeViewport();
+let db: GeometryDatabase;
+let materials: Required<MaterialDatabase>;
+let signals: EditorSignals;
+let viewport: FakeViewport;
+let editor: EditorLike;
+let gizmo: FakeGizmo;
+
+beforeEach(() => {
+    materials = new FakeMaterials();
+    signals = FakeSignals();
+    db = new GeometryDatabase(materials, signals);
+    viewport = new FakeViewport();
     viewport.camera.position.set(0, 0, 1);
     viewport.camera.lookAt(0, 0, 0);
-    const editor = {
+    editor = {
         viewports: [viewport],
-        gizmos: new GizmoMaterialDatabase(signals)
+        helpers: new Helpers(signals),
+        registry: new CommandRegistry(),
+        signals: signals,
     };
-    const gizmo = new FakeGizmo(editor); // FIXME type error
+    gizmo = new FakeGizmo(editor); // FIXME type error
+})
+
+test("basic drag interaction", () => {
     const cb = () => { };
     const sm = new GizmoStateMachine(gizmo, signals, cb);
 
@@ -52,7 +67,7 @@ test("basic drag interaction", () => {
     sm.update(viewport.camera, { x: 0, y: 0, button: 0 });
     const onPointerDown = jest.spyOn(gizmo, 'onPointerDown');
     expect(onPointerDown).toHaveBeenCalledTimes(0);
-    sm.pointerDown(() => {});
+    sm.pointerDown(() => { });
     expect(sm.state).toBe('dragging');
     expect(onPointerDown).toHaveBeenCalledTimes(1);
 
@@ -69,23 +84,11 @@ test("basic drag interaction", () => {
 });
 
 test("commands are registered", done => {
-    const signals = FakeSignals();
-    const viewport = new FakeViewport();
-    viewport.camera.position.set(0, 0, 1);
-    viewport.camera.lookAt(0, 0, 0);
-    const editor = {
-        viewports: [viewport],
-        gizmos: new GizmoMaterialDatabase(signals),
-        helpers: new Helpers(signals),
-        registry: new CommandRegistry(),
-        signals: signals,
-    };
     editor.registry.attach(viewport.renderer.domElement);
     const event = new CustomEvent("gizmo:fake:key");
-    const gizmo = new FakeGizmo(editor); // FIXME type error
     expect(gizmo.fakeCommand).toHaveBeenCalledTimes(0);
-    const result = gizmo.execute(() => {});
-    result.then(() => {}, () => done());
+    const result = gizmo.execute(() => { });
+    result.then(() => { }, () => done());
     viewport.renderer.domElement.dispatchEvent(event);
     result.cancel();
 

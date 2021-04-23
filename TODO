@@ -1,24 +1,33 @@
-Gizmo week:
-- point-picker style move/etc.
-- Dialogs
-
-Cleanup week:
-- Lint to require return values of fn's.
-reorganize all commands / custom html elements in the filesystem
-
-Snap week:
-- Prettier snap display
-- More snaps
-
 Speed week:
 - Async functions
 - Lod
 
 Undo/redo
 
+bug: outlines broken by grid
+bug: disable highlight when orbiting / executing commands
+
+audit all doCommit to ensure visibility is set to true on failure;
+  - perhaps the catch on Editor should call cancel
+
+visualize construction history of objects
+
+--
+
+Gizmo week:
+- point-picker style move/etc.
+- Dialogs
+
+Cleanup week:
+- Lint to require return values of fn's.
+- add dispose methods anywhere there is signal.add or .addEventListener
+
+Snap week:
+- Prettier snap display
+- More snaps
+
 File save / open
 
-outlines broken by grid
-disable highlight when orbiting / executing commands
 expose selection to console as well as commands with editor already injected.
 select method should be more direct
+change selection mode 123 keys

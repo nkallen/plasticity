@@ -5,11 +5,14 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
-import { Editor } from '../../Editor';
+import { Editor, EditorSignals } from '../../Editor';
 import { Pane } from '../pane/Pane';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { PlaneSnap } from "../../SnapManager";
 import { Solid, SpaceItem, TopologyItem } from "../../VisualModel";
+import { Helpers } from "../../util/Helpers";
+import { GeometryDatabase } from "../../GeometryDatabase";
+import { SelectionManager } from "../../selection/SelectionManager";
 
 const near = 0.01;
 const far = 1000;
@@ -23,9 +26,19 @@ export interface Viewport extends HTMLElement {
     disableControls(): void;
     overlay: THREE.Scene;
     lastPointerEvent?: PointerEvent;
+    outlinePassSelection: OutlinePass;
+    outlinePassHover: OutlinePass;
 }
 
-export default (editor: Editor) => {
+export interface EditorLike {
+    db: GeometryDatabase,
+    helpers: Helpers,
+    viewports: Viewport[],
+    signals: EditorSignals,
+    selection: SelectionManager,
+}
+
+export default (editor: EditorLike) => {
     class Viewport extends HTMLElement implements Viewport {
         readonly camera: THREE.Camera;
         readonly overlay = new THREE.Scene();
@@ -234,4 +247,5 @@ export default (editor: Editor) => {
     }
 
     customElements.define('ispace-viewport', Viewport);
+    return Viewport;
 }

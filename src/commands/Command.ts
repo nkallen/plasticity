@@ -340,7 +340,7 @@ export class CutCommand extends Command {
 export class FilletCommand extends Command {
     async execute(): Promise<void> {
         const edges = [...this.editor.selection.selectedEdges];
-        const item = edges[0].parentItem as visual.Solid; // FIXME make method without cast in visual.
+        const item = edges[0].parentItem as visual.Solid;
 
         const edge = edges[0];
 

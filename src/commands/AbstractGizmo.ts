@@ -1,8 +1,10 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { Cancel, CancellablePromise, Finish } from "../util/Cancellable";
 import * as THREE from "three";
-import { Editor, EditorSignals } from '../Editor';
-import { Helper } from "../util/Helpers";
+import CommandRegistry from "../components/atom/CommandRegistry";
+import { Viewport } from "../components/viewport/Viewport";
+import { EditorSignals } from '../Editor';
+import { Cancel, CancellablePromise, Finish } from "../util/Cancellable";
+import { Helper, Helpers } from "../util/Helpers";
 
 /**
  * Gizmos are the graphical tools used to run commands, such as move/rotate/fillet, etc.
@@ -26,13 +28,20 @@ interface GizmoView {
     helper?: THREE.Object3D;
 }
 
+export interface EditorLike {
+    helpers: Helpers,
+    viewports: Viewport[],
+    signals: EditorSignals,
+    registry: CommandRegistry,
+}
+
 export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {
     handle: THREE.Object3D;
     picker: THREE.Object3D;
     delta?: THREE.Object3D;
     helper?: THREE.Object3D;
 
-    constructor(protected readonly title: string, protected readonly editor: Editor, view: GizmoView) {
+    constructor(protected readonly title: string, protected readonly editor: EditorLike, view: GizmoView) {
         super();
 
         this.handle = view.handle;
@@ -131,16 +140,16 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerHover)));
                 disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointerup', onPointerUp)));
                 disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointermove', onPointerMove)));
-                this.editor.signals.pointPickerChanged.dispatch(); // FIXME wrong signal
+                this.editor.signals.gizmoChanged.dispatch();
             }
             const cancel = () => {
                 disposables.dispose();
-                this.editor.signals.pointPickerChanged.dispatch(); // FIXME wrong signal
+                this.editor.signals.gizmoChanged.dispatch();
                 reject(Cancel);
             }
             const finish = () => {
                 disposables.dispose();
-                this.editor.signals.pointPickerChanged.dispatch(); // FIXME wrong signal
+                this.editor.signals.gizmoChanged.dispatch();
                 reject(Finish);
             }
             return { cancel, finish };
@@ -253,7 +262,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 break;
             default: throw new Error("invalid state");
         }
-        this.signals.pointPickerChanged.dispatch(); // FIXME rename
+        this.signals.gizmoChanged.dispatch();
     }
 
     command(fn: () => void, start: () => void): void {
@@ -298,7 +307,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.angle = Math.atan2(this.endRadius.y, this.endRadius.x) - Math.atan2(startRadius.y, startRadius.x);
 
                 this.gizmo.onPointerMove(this.cb, this.intersector, this);
-                this.signals.pointPickerChanged.dispatch(); // FIXME rename
+                this.signals.gizmoChanged.dispatch();
                 break;
             default: throw new Error('invalid state');
         }
@@ -310,7 +319,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
             case 'command':
                 if (this.pointer.button !== 0) return;
 
-                this.signals.pointPickerChanged.dispatch();
+                this.signals.gizmoChanged.dispatch();
                 this.state = 'none';
                 finish();
                 break;
