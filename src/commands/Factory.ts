@@ -1,4 +1,4 @@
-import { Cancellable } from '../Cancellable';
+import { Cancellable } from '../util/Cancellable';
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';

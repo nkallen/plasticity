@@ -30,7 +30,7 @@ describe('update', () => {
 });
 
 describe('commit', () => {
-    test.only('invokes the appropriate c3d commands', () => {
+    test('invokes the appropriate c3d commands', () => {
         makeCurve.points.push(new THREE.Vector3());
         makeCurve.points.push(new THREE.Vector3(1, 1, 0));
         makeCurve.points.push(new THREE.Vector3(2, -1, 0));

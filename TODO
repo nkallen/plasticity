@@ -4,7 +4,6 @@ Gizmo week:
 
 Cleanup week:
 - Lint to require return values of fn's.
-- autogenerate c3d.d.ts
 reorganize all commands / custom html elements in the filesystem
 
 Snap week:

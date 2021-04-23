@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { CancellableRegistor, Finish } from "../Cancellable";
+import { CancellableRegistor, Finish } from "../util/Cancellable";
 import { Editor } from '../Editor';
 import { PointPicker } from '../PointPicker';
 import * as visual from "../VisualModel";

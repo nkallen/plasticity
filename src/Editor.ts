@@ -1,18 +1,18 @@
 import KeymapManager from "atom-keymap";
 import signals from "signals";
 import * as THREE from "three";
-import { Cancel } from "./Cancellable";
-import CommandRegistry from "./CommandRegistry";
+import { Cancel } from "./util/Cancellable";
+import CommandRegistry from "./components/atom/CommandRegistry";
 import Command from './commands/Command';
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { Helpers } from "./Helpers";
+import { Helpers } from "./util/Helpers";
 import { BasicMaterialDatabase } from "./MaterialDatabase";
 import { SelectionManager } from './selection/SelectionManager';
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import TooltipManager from "./components/atom/tooltip-manager";
-import { Viewport } from "./Viewport";
+import { Viewport } from "./components/viewport/Viewport";
 import { SpaceItem, TopologyItem } from './VisualModel';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);

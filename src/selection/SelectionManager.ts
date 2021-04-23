@@ -1,7 +1,7 @@
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
-import { RefCounter } from '../Util';
+import { RefCounter } from '../util/Util';
 import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyItem } from '../VisualModel';
 import { ClickStrategy } from './Click';
 import { Hoverable, HoverStrategy } from './Hover';

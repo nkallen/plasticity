@@ -5,11 +5,11 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
-import { Editor } from './Editor';
-import { Pane } from './Pane';
-import { ViewportSelector } from './selection/ViewportSelector';
-import { PlaneSnap } from "./SnapManager";
-import { Solid, SpaceItem, TopologyItem } from "./VisualModel";
+import { Editor } from '../../Editor';
+import { Pane } from '../pane/Pane';
+import { ViewportSelector } from '../../selection/ViewportSelector';
+import { PlaneSnap } from "../../SnapManager";
+import { Solid, SpaceItem, TopologyItem } from "../../VisualModel";
 
 const near = 0.01;
 const far = 1000;

@@ -5,7 +5,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
 import MaterialDatabase from '../../MaterialDatabase';
-import { CircleGeometry } from '../../Util';
+import { CircleGeometry } from '../../util/Util';
 import { GeometryFactory } from '../Factory';
 
 export default class CircleFactory extends GeometryFactory {

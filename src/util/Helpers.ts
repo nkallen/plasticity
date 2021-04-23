@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { EditorSignals } from './Editor';
+import { EditorSignals } from '../Editor';
 
 // Helpers are little visualization tools like gizmos that should
 // be rendered as a separate pass from the main scene.

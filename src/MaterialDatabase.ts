@@ -4,7 +4,7 @@ import c3d from '../build/Release/c3d.node';
 import * as visual from '../src/VisualModel';
 import { EditorSignals } from "./Editor";
 import porcelain from './img/matcap-porcelain-white.jpg';
-import { assertUnreachable } from "./Util";
+import { assertUnreachable } from "./util/Util";
 
 function hash(str: string) {
     for (var i = 0, h = 9; i < str.length;)

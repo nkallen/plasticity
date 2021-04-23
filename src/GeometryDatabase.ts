@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
 import MaterialDatabase from './MaterialDatabase';
-import { assertUnreachable, WeakValueMap } from './Util';
+import { assertUnreachable, WeakValueMap } from './util/Util';
 import * as visual from './VisualModel';
 
 export interface TemporaryObject {

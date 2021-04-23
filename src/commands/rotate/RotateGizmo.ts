@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
-import { CircleGeometry } from "../../Util";
+import { CircleGeometry } from "../../util/Util";
 import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
 
 type State = 'X' | 'Y' | 'Z' | 'screen';

@@ -7,7 +7,7 @@ import Command, * as cmd from '../../commands/Command';
 import { Editor } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
 import { SelectionManager } from '../../selection/SelectionManager';
-import { GConstructor } from '../../Util';
+import { GConstructor } from '../../util/Util';
 import * as visual from "../../VisualModel";
 import { humanizeKeystrokes } from '../atom/tooltip-manager';
 import circle from './img/circle.svg';

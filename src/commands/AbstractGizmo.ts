@@ -1,8 +1,8 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { Cancel, CancellablePromise, Finish } from "../Cancellable";
+import { Cancel, CancellablePromise, Finish } from "../util/Cancellable";
 import * as THREE from "three";
 import { Editor, EditorSignals } from '../Editor';
-import { Helper } from "../Helpers";
+import { Helper } from "../util/Helpers";
 
 /**
  * Gizmos are the graphical tools used to run commands, such as move/rotate/fillet, etc.

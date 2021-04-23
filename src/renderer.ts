@@ -11,9 +11,9 @@ import './css/index.less';
 import registerDefaultCommands from './default-commands';
 import keymap from "./default-keymap";
 import { Editor } from './Editor';
-import './Pane';
+import './components/pane/Pane';
 import '../lib/c3d/enums';
-import Viewport from './Viewport';
+import Viewport from './components/viewport/Viewport';
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
 const editor = new Editor();

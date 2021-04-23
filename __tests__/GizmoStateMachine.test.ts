@@ -2,11 +2,11 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
-import CommandRegistry from "../src/CommandRegistry";
+import CommandRegistry from "../src/components/atom/CommandRegistry";
 import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import { Editor } from "../src/Editor";
-import { Helpers } from "../src/Helpers";
+import { Helpers } from "../src/util/Helpers";
 import FakeSignals from '../__mocks__/FakeSignals';
 import { FakeViewport } from "../__mocks__/FakeViewport";
 

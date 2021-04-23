@@ -6,7 +6,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import c3d from '../build/Release/c3d.node';
 import { Snap } from "./SnapManager";
-import { applyMixins } from './Util';
+import { applyMixins } from './util/Util';
 
 /**
  * This class hierarchy mirrors the c3d hierarchy into the THREE.js Object3D hierarchy.
