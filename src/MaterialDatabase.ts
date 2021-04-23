@@ -73,7 +73,7 @@ mesh_hovered.polygonOffsetUnits = 1;
 
 export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();
-    private readonly lineMaterials = new Map<number, LineMaterial>();
+    private readonly lines = [line, line_dashed, line_highlighted];
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(([, resolution]) => this.setResolution(resolution));
@@ -98,9 +98,8 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     // A quirk of three.js is that to render lines with any thickness, you need to use
     // a LineMaterial whose resolution must be set before each render
     setResolution(size: THREE.Vector2) {
-        const width = size.x, height = size.y;
-        for (const material of this.lineMaterials.values()) {
-            material.resolution.set(width, height);
+        for (const material of this.lines) {
+            material.resolution.set(size.x, size.y);
         }
     }
 
