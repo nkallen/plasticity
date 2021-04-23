@@ -126,7 +126,7 @@ export class GeometryDatabase {
     private object2mesh(obj: c3d.Item, sag: number = 0.005, wireframe: boolean = true): visual.SpaceItem {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const note = new c3d.FormNote(wireframe, true, true, false, false);
-        const item = obj.CreateMesh(stepData, note, null);
+        const item = obj.CreateMesh(stepData, note);
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance: {

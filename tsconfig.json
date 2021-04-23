@@ -28,6 +28,8 @@
         }
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "lib/c3d/enums.ts",
+        "lib/c3d/c3d.d.ts"
     ]
 }

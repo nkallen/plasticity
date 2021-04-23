@@ -5,6 +5,7 @@ Gizmo week:
 Cleanup week:
 - Lint to require return values of fn's.
 - autogenerate c3d.d.ts
+reorganize all commands / custom html elements in the filesystem
 
 Snap week:
 - Prettier snap display
@@ -18,9 +19,7 @@ Undo/redo
 
 File save / open
 
-reorganize all commands / custom html elements in the filesystem
 outlines broken by grid
 disable highlight when orbiting / executing commands
 expose selection to console as well as commands with editor already injected.
 select method should be more direct
-bug: can't unselect curve3d

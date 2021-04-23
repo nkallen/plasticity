@@ -19,6 +19,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
         private readonly signals: EditorSignals) {
         super();
 
+        // @ts-expect-error("Line2 is missing from the typedef")
         this.raycaster.params.Line2 = { threshold: 10 };
         this.raycaster.params.Mesh.threshold = 0;
 

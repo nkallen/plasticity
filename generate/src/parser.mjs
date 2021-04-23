@@ -16,6 +16,18 @@ export default function Parse(api) {
     }
     return declarations;
 }
+
+function cppType2jsType(cppType) {
+    switch (cppType) {
+        case 'bool': return 'boolean';
+        case 'refcount_t':
+        case 'size_t':
+        case 'VERSION':
+        case 'double': return 'number';
+        default: return cppType;
+    }
+}
+
 class TypeRegistry {
     classes = {};
     resolveType(rawType) {
@@ -28,7 +40,7 @@ class TypeRegistry {
         if (this.enums.includes(rawType)) {
             return {
                 rawType: rawType,
-                jsType: rawType,
+                jsType: rawType.replace(/^\w+::/, '').replace(/^Mbe/, ''),
                 cppType: rawType,
                 isEnum: true
             }
@@ -43,12 +55,11 @@ class TypeRegistry {
                 jsType: klass.jsClassName
             }
         }
-    
+
         const cppType = rawType.replace(/^Mb/, '');
-        const jsType = cppType;
         return {
             rawType: rawType,
-            jsType: jsType,
+            jsType: cppType2jsType(cppType),
             cppType: cppType,
         };
     }
@@ -81,7 +92,9 @@ class ClassDeclaration {
         }
 
         this.dependencies = this.desc.dependencies ?? [];
-        for (const e of this.extends) {
+        this.desc.nonInheritedFunctions = this.desc.functions;
+        this.desc.implements = [];
+        for (const [i, e] of this.extends.entries()) {
             const superclass = typeRegistry.resolveClass(e);
             if (!superclass) throw "no superclass found: " + e + " -- note that the ordering of the api file is important.";
             const superclassFunctions = superclass.desc.functions;
@@ -89,6 +102,9 @@ class ClassDeclaration {
             this.desc.functions = this.desc.functions.concat(superclassFunctionsWithoutManuals);
             if (superclass.freeFunctionName) {
                 this.freeFunctionName = superclass.freeFunctionName;
+            }
+            if (i > 0) {
+                this.desc.implements = this.desc.implements.concat(superclassFunctionsWithoutManuals)
             }
         }
         if (desc.freeFunctionName) {
@@ -112,6 +128,24 @@ class ClassDeclaration {
     get functions() {
         const result = [];
         const functions = this.desc.functions ?? [];
+        for (const f of functions) {
+            result.push(new FunctionDeclaration(f, this.typeRegistry));
+        }
+        return result;
+    }
+
+    get nonInheritedFunctions() {
+        const result = [];
+        const functions = this.desc.nonInheritedFunctions ?? [];
+        for (const f of functions) {
+            result.push(new FunctionDeclaration(f, this.typeRegistry));
+        }
+        return result;
+    }
+
+    get implements() {
+        const result = [];
+        const functions = this.desc.implements ?? [];
         for (const f of functions) {
             result.push(new FunctionDeclaration(f, this.typeRegistry));
         }

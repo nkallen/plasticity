@@ -30,6 +30,7 @@ const templates = {
     class_content: util.readLocalFile('templates/class_content.cc'),
     module_header: util.readLocalFile('templates/module_header.h'),
     module_content: util.readLocalFile('templates/module_content.cc'),
+    type_declaration: util.readLocalFile('templates/c3d.d.ts'),
 }
 for (const k in templates) {
     templates[k] = ejs.compile(templates[k], {
@@ -57,6 +58,8 @@ await fse.copy(path.resolve(__dirname, '../manual/src'), tempSrcDirPath);
 
 util.writeLocalFile('../binding.gyp', beautify(templates.binding({ classes: declarations })), 'binding.gyp');
 util.writeLocalFile('../lib/c3d/index.cc', beautify(templates.index({ classes: declarations })), 'index.cc');
+
+util.writeLocalFile('../lib/c3d/c3d.d.ts', beautify(templates.type_declaration({ classes: declarations })), "c3d.d.ts");
 
 // Auto-generate the c++ files from the api description
 

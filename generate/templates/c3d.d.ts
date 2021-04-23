@@ -3,96 +3,39 @@ declare module "*c3d.node" {
 
     declare interface AttributeContainer {
         GetStyle(): number;
-        SetStyle(number): void;
+        SetStyle(s: number): void;
     }
 
-    declare class RefItem {
-        GetUseCount(): number;
-    }
-    declare class SpaceItem extends RefItem {
-        private _useNominal: undefined;
-        IsA(): SpaceType;
-        Cast<T extends SpaceItem>(SpaceType): T;
-    }
+    <%_ for (c of classes) if (c.templatePrefix == 'class') { _%>
+        <%_ if (c.cppClassName == 'AttributeContainer') continue; _%>
+        declare class <%- c.jsClassName %><%_ if (c.extends.length > 0) { %> extends <%- c.extends[0] %><%_ } _%><%_ if (c.extends.length > 1) { %> implements <%- c.extends[1] %><%_ } _%> {
+            <%_ if (c.extends.length == 0) { %>private _useNominal: undefined;<% } %>
+            <%_ for (const init of c.initializers) { _%>
+                constructor(<%- include('params.d.ts', { params: init.params }) %>);
+            <%_ } %>
+            <%_ for (const func of c.nonInheritedFunctions.concat(c.implements)) { _%>
+                <%_ if (func.name == 'Cast') { _%>
+                    Cast<T extends SpaceItem>(t: SpaceType): T;
+                <%_ } else { _%>
+                    <%- include('sync_function.d.ts', { func: func }) %>
+                <%_ } _%>
+            <%_ } _%>
+            <%_ for (const field of c.fields) { _%>
+                <%- field.name %>: <%- field.jsType %>;
+            <%_ } _%>
+        }
+        
+    <%_ } _%>
 
-    declare class Vector3D {
-        private _useNominal: undefined;
-        constructor(x: number, y: number, z: number);
-        constructor(p1: CartPoint3D, p2: CartPoint3D);
-
-        x: number;
-        y: number;
-        z: number;
-    }
-
-    declare class Axis3D {
-        private _useNominal: undefined;
-        constructor(other: Axis3D);
-        constructor(v: Vector3D);
-        constructor(p: CartPoint3D, v: Vector3D);
-
-        Rotate(a: Axis3D, angle: number);
-        Move(v: Vector3D);
-    }
-
-    declare class Item extends SpaceItem implements AttributeContainer {
-        GetItemName(): number;
-        CreateMesh(StepData, FormNote, RegDuplicate?): Item;
-
-        Transform(Matrix3D, RegTransform?)
-        Move(Vector3D, RegTransform?)
-        Rotate(Axis3D, number, RegTransform?)
-
-        GetStyle(): number;
-        SetStyle(number): void;
-    }
-
-    declare class Path {
-        private _useNominal: undefined;
-    }
-
-    declare class Model {
-        private _useNominal: undefined;
-        AddItem(item: Item, name?: SimpleName): Item;
-        GetItemByName(name: SimpeName): { item: Item };
-        DetachItem(item: Item): void;
-    }
-
-    declare class FormNote {
-        private _useNominal: undefined;
-        constructor(boolean, boolean, boolean, boolean, boolean);
-    }
-
-    declare class StepData {
-        private _useNominal: undefined;
-        constructor(StepType, number);
-    }
-
-    const Enabler: {
-        EnableMathModules(string, string);
-    };
-
-    declare class CartPoint3D {
-        private _useNominal: undefined;
-        constructor(number, number, number);
-
-        x: number;
-        y: number;
-        z: number;
-    }
-
-    declare class NameMaker {
-        private _useNominal: undefined;
-    }
-
-    declare class SNameMaker extends NameMaker {
-        constructor(number, ESides, number);
-    }
-
-    declare class Name {
-        private _useNominal: undefined;
-        Hash(): SimpleName;
-    }
+    <%_ for (c of classes) if (c.templatePrefix == 'module') { _%>
+        <%_ if (c.cppClassName == 'AttributeContainer') continue; _%>
+        const <%- c.cppClassName %>: {
+            <%_ for (const func of c.functions) { _%>
+                <%- include('sync_function.d.ts', { func: func }) %>
+            <%_ } _%>
+        }
+        
+    <%_ } _%>
 
     declare interface MeshBuffer {
         index: Uint32Array;
@@ -108,180 +51,6 @@ declare module "*c3d.node" {
         style: number;
         simpleName: number;
         name: Name;
-    }
-
-    declare class Mesh extends Item {
-        GetMeshType(): SpaceType;
-        GetApexes(): Float32Array;
-        GetEdges(boolean?): [EdgeBuffer];
-        GetBuffers(): [MeshBuffer];
-
-        IsClosed(): boolean;
-    }
-
-    declare class Surface extends SpaceItem {
-
-    }
-
-    declare class TopologyItem extends AttributeContainer {
-        private _useNominal: undefined;
-        GetName(): Name;
-        GetMainName(): SimpleName;
-        GetFirstName(): SimpleName;
-        GetNameHash(): SimpleName;
-    }
-
-    declare class Face extends TopologyItem {
-        Normal(u: number, v: number): Vector3D;
-        Point(u: number, v: number): Vector3D;
-        GetPlacement(): Placement3D;
-        GetControlPlacement(): Placement3D;
-        GetAnyPointOn(): { point: CartPoint3D, normal: CartPoint3D };
-        IsA(): SpaceType;
-    }
-
-    declare class Edge extends TopologyItem {
-        Point(number): CartPoint3D;
-        GetBegPoint(): CartPoint3D;
-        GetEndPoint(number): CartPoint3D;
-    }
-
-    declare class CurveEdge extends Edge {
-        EdgeNormal(number): Vector3D;
-    }
-
-    declare class Solid extends Item {
-        GetFaces(): [Face];
-        GetEdges(): [CurveEdge];
-        GetShell(): FaceShell;
-
-        FindFaceByName(Name): Face?;
-        FindEdgeByName(Name): CurveEdge?;
-    }
-
-    declare class BooleanFlags {
-        private _useNominal: undefined;
-        InitBoolean(boolean, boolean?);
-        SetMergingFaces(boolean);
-        SetMergingEdges(boolean);
-    }
-
-    declare class SmoothValues {
-        private _useNominal: undefined;
-        distance1: number;
-        distance2: number;
-        conic: number;
-        begLength: number;
-        endLength: number;
-        form: SmoothForm;
-        smoothCorner: CornerForm;
-        prolong: boolean;
-        keepCant: ThreeStates;
-        strict: boolean;
-        equable: boolean;
-    }
-
-    declare class MergingFlags {
-        constructor();
-        constructor(mergeFaces: boolean, mergeEdges: boolean);
-    }
-
-    declare class Placement3D {
-        constructor();
-
-        Move(to: Vector3D): Placement3D;
-        Rotate(axis: Axis3D, angle: number): Placement3D;
-        Scale(sx: number, sy: number, sz: number): Placement3D;
-
-        GetOrigin(): CartPoint3D;
-        GetAxisX(): Vector3D;
-        GetAxisY(): Vector3D;
-        GetAxisZ(): Vector3D;
-    }
-
-    const ActionSolid: {
-        ElementarySolid(points: CartPoint3D[], type: ElementaryShellType, names: NameMaker): Solid;
-        FilletSolid(solid: Solid, mode: CopyMode, edges: CurveEdge[], faces: Face[], smooth: SmoothValues, names: SNameMaker);
-        BooleanResult(solid: Solid, mode: CopyMode, solid: Solid, mode: CopyMode, type: OperationType, flags: BooleanFlags, names: SNameMaker): Solid;
-        SolidCutting(solid: Solid, mode: CopyMode, placement: Placement3D, contour: Contour, direction: Vector3D, retainedPart: number, names: SNameMaker, closed: boolean, flags: MergingFlags): Solid;
-    }
-
-    declare class SpaceInstance extends Item {
-        constructor(surf: Surface);
-        constructor(curve: Curve3D);
-
-        GetSpaceItem(): SpaceItem;
-    }
-
-    declare class PlaneItem extends RefItem {
-        private _useNominal: undefined;
-    }
-
-    declare class Curve extends PlaneItem {
-    }
-
-    declare class Contour extends Curve {
-        constructor(curves: Curve[], sameCurves: boolean)
-    }
-
-    declare class Curve3D extends SpaceItem {
-        GetPlaneCurve(saveParams: boolean): { curve2d: Curve, placement: Placement3D }
-    }
-
-    declare class PolyCurve3D extends Curve3D {
-    }
-
-    declare class Polyline3D extends PolyCurve3D {
-        constructor(points: CartPoint3D[], closed: bool)
-    }
-
-    const ActionCurve3D: {
-        Arc(point: CartPoint3D, points: CartPoint3D[], bool, double, double, double): Curve3D;
-        Segment(CartPoint3D, CartPoint3D): Curve3D;
-        SplineCurve(points: CartPoint3D[], closed: boolean, curveType: SpaceType): Curve3D;
-    }
-
-    declare class Matrix3D {
-        private _useNominal: undefined;
-    }
-
-    declare class ModifyValues {
-        constructor();
-        way: ModifyingType;
-        direction: Vector3D;
-    }
-
-    declare class TopItem extends RefItem {
-        private _useNominal: undefined;
-    }
-
-    declare class FaceShell extends TopItem {
-
-    }
-
-    declare class TransformValues {
-        private _useNominal: undefined;
-        constructor();
-        constructor(matrix: Matrix3D);
-        constructor(matrix: Matrix3D, f: CartPoint3D, fix: boolean = false, iso: boolean = false);
-        constructor(sX: number, sY: number, sZ: number, fixedPoint: CartPoint3D);
-    }
-
-    declare class Cube {
-        private _useNominal: undefined;
-        constructor(p0: CartPoint3D, p1: CartPoint3D, normalize: boolean = false);
-        CalculateMatrix(pIndex: number, point: CartPoint3D, fixedPoint: CartPoint3D, useFixed: boolean, isotropy: boolean): Matrix3D
-    }
-
-    const ActionDirect: {
-        TransformedSolid(solid: Solid, copyMode: CopyMode, transform: TransformValues, names: SNameMaker): Solid
-        FaceModifiedSolid(solid: Solid, copyMode: CopyMode, params: ModifyValues, faces: Face[], names: SNameMaker): Solid;
-        CollectFacesForModification(shell: FaceShell, way: ModifyingType, radius: double): Face[]
-    }
-
-    const ActionPhantom: {
-        SmoothPhantom(solid: Solid, edges: CurveEdge[], params: SmoothValues): Surface[];
-        SmoothSequence(solid: Solid, edges: CurveEdge[], params: SmoothValues, createSurfaces: boolean);
     }
 
     declare enum ESides {

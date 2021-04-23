@@ -12,7 +12,7 @@ import registerDefaultCommands from './default-commands';
 import keymap from "./default-keymap";
 import { Editor } from './Editor';
 import './Pane';
-import './types/c3d-enum';
+import '../lib/c3d/enums';
 import Viewport from './Viewport';
 c3d.Enabler.EnableMathModules(license.name, license.key);
 

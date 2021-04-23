@@ -128,6 +128,8 @@ export default {
         },
         Curve: {
             rawHeader: "curve.h",
+            extends: "PlaneItem",
+            dependencies: ["PlaneItem.h"],
         },
         Contour: {
             rawHeader: "cur_contour.h",
@@ -301,9 +303,9 @@ export default {
             extends: "Item",
             dependencies: ["Item.h"],
             functions: [
-                { signature: "void GetBuffers()", isManual: true },
-                { signature: "void GetApexes()", isManual: true },
-                { signature: "void GetEdges()", isManual: true },
+                { signature: "void GetBuffers(RPArray<MeshBuffer> & result)", isManual: true, result: isReturn },
+                { signature: "Float32Array GetApexes()", isManual: true },
+                { signature: "void GetEdges(bool outlinesOnly = false, RPArray<EdgeBuffer> &result)", isManual: true, result: isReturn },
                 "MbeSpaceType GetMeshType()",
                 "bool IsClosed()",
             ]

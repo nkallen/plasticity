@@ -8,7 +8,7 @@ global.console = {
     assert: console.assert,
 };
 
-import '../src/types/c3d-enum'
+import '../lib/c3d/enums'
 import license from '../license-key.json';
 import c3d from '../build/Release/c3d.node';
 
