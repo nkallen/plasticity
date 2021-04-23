@@ -8,6 +8,7 @@ export default (): EditorSignals => {
         objectSelected: new signals.Signal(),
         objectDeselected: new signals.Signal(),
         objectHovered: new signals.Signal(),
+        objectUnhovered: new signals.Signal(),
         sceneGraphChanged: new signals.Signal(),
         factoryUpdated: new signals.Signal(),
         factoryCommitted: new signals.Signal(),

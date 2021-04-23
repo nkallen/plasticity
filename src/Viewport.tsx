@@ -26,7 +26,6 @@ export interface Viewport extends HTMLElement {
 }
 
 export default (editor: Editor) => {
-    // FIXME rename
     class Viewport extends HTMLElement implements Viewport {
         readonly camera: THREE.Camera;
         readonly overlay = new THREE.Scene();
@@ -134,6 +133,7 @@ export default (editor: Editor) => {
 
             this.outlineSelection = this.outlineSelection.bind(this);
             this.outlineHover = this.outlineHover.bind(this);
+            this.outlineUnhover = this.outlineUnhover.bind(this);
             this.resize = this.resize.bind(this);
             this.render = this.render.bind(this);
             this.setNeedsRender = this.setNeedsRender.bind(this);
@@ -157,6 +157,7 @@ export default (editor: Editor) => {
             editor.signals.objectSelected.add(this.outlineSelection);
             editor.signals.objectDeselected.add(this.outlineSelection);
             editor.signals.objectHovered.add(this.outlineHover);
+            editor.signals.objectUnhovered.add(this.outlineUnhover);
 
             editor.signals.objectSelected.add(this.setNeedsRender);
             editor.signals.objectDeselected.add(this.setNeedsRender);
@@ -164,6 +165,7 @@ export default (editor: Editor) => {
             editor.signals.factoryUpdated.add(this.setNeedsRender);
             editor.signals.pointPickerChanged.add(this.setNeedsRender);
             editor.signals.objectHovered.add(this.setNeedsRender);
+            editor.signals.objectUnhovered.add(this.setNeedsRender);
             editor.signals.objectAdded.add(this.setNeedsRender);
 
             scene.fog = new THREE.Fog(0x424242, 1, 100);
@@ -196,10 +198,13 @@ export default (editor: Editor) => {
         }
 
         outlineHover(object?: SpaceItem | TopologyItem) {
-            if (object == null) this.outlinePassHover.selectedObjects = [];
-            else if (object instanceof Solid) this.outlinePassHover.selectedObjects = [object.faces];
+            if (object instanceof Solid) this.outlinePassHover.selectedObjects = [object.faces];
         }
 
+        outlineUnhover(object?: SpaceItem | TopologyItem) {
+            this.outlinePassHover.selectedObjects = [];
+        }
+        
         resize() {
             const aspect = this.offsetWidth / this.offsetHeight;
             if (this.camera instanceof THREE.PerspectiveCamera) {

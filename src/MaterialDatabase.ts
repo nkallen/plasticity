@@ -73,7 +73,7 @@ mesh_hovered.polygonOffsetUnits = 1;
 
 export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();
-    private readonly lines = [line, line_dashed, line_highlighted];
+    private readonly lines = [line, line_dashed, line_highlighted, line_hovered];
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(([, resolution]) => this.setResolution(resolution));

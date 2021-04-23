@@ -23,6 +23,7 @@ export interface EditorSignals {
     objectSelected: signals.Signal<SpaceItem | TopologyItem>;
     objectDeselected: signals.Signal<SpaceItem | TopologyItem>;
     objectHovered: signals.Signal<SpaceItem | TopologyItem>
+    objectUnhovered: signals.Signal<SpaceItem | TopologyItem>
     sceneGraphChanged: signals.Signal;
     factoryUpdated: signals.Signal;
     factoryCommitted: signals.Signal;
@@ -46,6 +47,7 @@ export class Editor {
         objectSelected: new signals.Signal(),
         objectDeselected: new signals.Signal(),
         objectHovered: new signals.Signal(),
+        objectUnhovered: new signals.Signal(),
         sceneGraphChanged: new signals.Signal(),
         factoryUpdated: new signals.Signal(),
         factoryCommitted: new signals.Signal(),
