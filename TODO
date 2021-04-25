@@ -5,7 +5,6 @@ Speed week:
 Undo/redo
 
 bug: outlines broken by grid
-bug: disable highlight when orbiting / executing commands
 
 audit all doCommit to ensure visibility is set to true on failure;
   - perhaps the catch on Editor should call cancel

@@ -4,7 +4,7 @@ import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
 import * as visual from '../VisualModel';
 
-type State = 'none' | 'updated' | 'cancelled' | 'committed'
+type State = 'none' | 'updated' | 'failed' | 'cancelled' | 'committed'
 
 export abstract class GeometryFactory extends Cancellable {
     state: State = 'none';
@@ -33,10 +33,17 @@ export abstract class GeometryFactory extends Cancellable {
     update(): void {
         switch (this.state) {
             case 'none':
+            case 'failed':
             case 'updated':
-                this.state = 'updated';
                 this.signals.factoryUpdated.dispatch();
-                return this.doUpdate();
+                try {
+                    this.doUpdate();
+                    this.state = 'updated';
+                } catch (e) {
+                    this.state = 'failed';
+                    throw e;
+                }
+                return;
             default:
                 throw new Error('invalid state: ' + this.state);
         }
@@ -56,10 +63,12 @@ export abstract class GeometryFactory extends Cancellable {
 
     cancel(): void {
         switch (this.state) {
-            case 'none':
-            case 'cancelled':
             case 'updated':
                 this.doCancel();
+            case 'none':
+            case 'cancelled':
+            case 'failed':
+                return;
             default:
                 throw new Error('invalid state: ' + this.state);
         }
@@ -71,7 +80,6 @@ export abstract class GeometryFactory extends Cancellable {
             cb();
             this.previous = new Map();
             for (const key of keys) {
-
                 const uncloned = this[key];
                 let value = uncloned;
                 if (typeof uncloned === 'object' && 'clone' in uncloned) {
@@ -80,12 +88,14 @@ export abstract class GeometryFactory extends Cancellable {
                 }
                 this.previous.set(key, value);
             }
+            this.previous.set("state", this.state);
         } catch (e) {
             console.warn(e);
             if (this.previous != null) {
                 for (const key of keys) {
                     this[key] = this.previous.get(key);
                 }
+                this.state = this.previous.get("state");
             }
         }
     }
