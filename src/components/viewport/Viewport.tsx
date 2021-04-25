@@ -42,12 +42,14 @@ export interface EditorLike {
     selection: SelectionManager,
 }
 
+type Control = { enabled: boolean };
+
 export class Model implements Viewport {
     readonly overlay = new THREE.Scene();
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
-    readonly controls = new Set<{ enabled: boolean }>();
+    readonly controls = new Set<Control>();
     readonly selector: ViewportSelector;
     lastPointerEvent?: PointerEvent;
 
@@ -114,9 +116,12 @@ export class Model implements Viewport {
         this.outlineUnhover = this.outlineUnhover.bind(this);
         this.render = this.render.bind(this);
         this.setNeedsRender = this.setNeedsRender.bind(this);
+        this.navigationStart = this.navigationStart.bind(this);
+        this.navigationEnd = this.navigationEnd.bind(this);
+        this.navigationChange = this.navigationChange.bind(this);
 
-        if (this.navigationControls) this.controls.add(this.navigationControls)
         this.controls.add(this.selector);
+        if (this.navigationControls) this.controls.add(this.navigationControls);
     }
 
     start() {
@@ -134,7 +139,10 @@ export class Model implements Viewport {
         this.editor.signals.objectUnhovered.add(this.setNeedsRender);
         this.editor.signals.objectAdded.add(this.setNeedsRender);
 
-        this.navigationControls?.addEventListener('change', this.setNeedsRender);
+        if (this.navigationControls) {
+            this.navigationControls.addEventListener('change', this.setNeedsRender);
+            this.navigationControls.addEventListener('start', this.navigationStart);
+        }
 
         this.render();
     }
@@ -201,8 +209,9 @@ export class Model implements Viewport {
         this.setNeedsRender();
     }
 
-    disableControls() {
+    disableControls(except?: Control) {
         for (const control of this.controls) {
+            if (control === except) continue;
             control.enabled = false;
         }
     }
@@ -211,6 +220,21 @@ export class Model implements Viewport {
         for (const control of this.controls) {
             control.enabled = true;
         }
+    }
+
+    navigationStart() {
+        this.navigationControls!.addEventListener('change', this.navigationChange);
+        this.navigationControls!.addEventListener('end', this.navigationEnd);
+    }
+
+    navigationChange() {
+        this.disableControls(this.navigationControls);
+    }
+
+    navigationEnd() {
+        this.enableControls();
+        this.navigationControls!.removeEventListener('change', this.navigationChange);
+        this.navigationControls!.removeEventListener('end', this.navigationEnd);
     }
 
     setAttribute(name: string, value: string) {

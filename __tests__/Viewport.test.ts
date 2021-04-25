@@ -2,6 +2,8 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
+import { EventDispatcher } from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import SphereFactory from "../src/commands/sphere/SphereFactory";
 import Reg, { Viewport, EditorLike, Model } from "../src/components/viewport/Viewport";
 import { EditorSignals } from "../src/Editor";
@@ -21,6 +23,7 @@ let viewport: Viewport;
 let editor: EditorLike;
 let sphere: visual.Solid;
 let selection: SelectionManager;
+let navigationControls: EventDispatcher;
 
 class FakeWebGLRenderer implements THREE.Renderer {
     domElement = document.createElement("canvas");
@@ -60,12 +63,15 @@ beforeEach(() => {
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;
     sphere = makeSphere.commit() as visual.Solid;
+    navigationControls = new EventDispatcher()
     viewport = new Model(
         editor,
         new FakeWebGLRenderer() as unknown as THREE.WebGLRenderer,
         document.createElement('viewport'),
         new THREE.Camera(),
-        new PlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3())
+        new PlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3()),
+        null,
+        navigationControls as unknown as OrbitControls
     )
     viewport.start();
 });
@@ -86,6 +92,12 @@ test("item hovered", () => {
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
 });
 
-// test("navigation start & end", () => {
-//     expect(1).toBe(1);
-// })
+test("navigation start & end", () => {
+    expect(viewport.selector.enabled).toBeTruthy();
+    navigationControls.dispatchEvent({ type: 'start' });
+    expect(viewport.selector.enabled).toBeTruthy();
+    navigationControls.dispatchEvent({ type: 'change' });
+    expect(viewport.selector.enabled).toBeFalsy();
+    navigationControls.dispatchEvent({ type: 'end' });
+    expect(viewport.selector.enabled).toBeTruthy();
+});
