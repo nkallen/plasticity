@@ -25,6 +25,14 @@ export interface Viewport extends HTMLElement {
     lastPointerEvent?: PointerEvent;
 }
 
+export interface EditorLike {
+    db: GeometryDatabase,
+    helpers: Helpers,
+    viewports: Viewport[],
+    signals: EditorSignals,
+    selection: SelectionManager,
+}
+
 export class Model  {
     readonly overlay = new THREE.Scene();
     readonly outlinePassSelection: OutlinePass;
@@ -169,7 +177,7 @@ export class Model  {
     }
 }
 
-export default (editor: Editor) => {
+export default (editor: EditorLike) => {
     class Viewport extends HTMLElement implements Viewport {
         model: Model;
 
