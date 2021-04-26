@@ -2,7 +2,9 @@
   class <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker : public Napi::AsyncWorker {
       
       public:
-          <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(Napi::Function& callback<%_ _%>
+          <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(
+            <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * underlying,<% } _%>
+            Napi::Function& callback<%_ _%>
             <%_ for (const arg of func.params) { _%>
                 <%_ if (arg.isReturn) continue; _%>,
                 <% if (arg.isCppString2CString) { _%>
@@ -18,6 +20,7 @@
           void OnOK();
 
       private:
+        <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * underlying;<% } _%>
         <%_ for (const arg of func.params) { _%>
             <%_ if (arg.isReturn) continue; _%>
             <% if (arg.isCppString2CString) { _%>

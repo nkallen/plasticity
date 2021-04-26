@@ -30,7 +30,9 @@
                 <%- include('convert_from_js.cc', { arg: arg }) %>
             <%_ } _%>
         <%_ } _%>
-        <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker* asyncWorker = new  <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(callback
+        <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker* asyncWorker = new  <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(
+            <%_ if (!func.isStatic) { _%>_underlying,<% } _%>
+            callback
             <%_ for (const arg of func.params) { _%>
                 <%_ if (arg.isReturn) continue; _%>,
                 <% if (arg.isCppString2CString) { _%>

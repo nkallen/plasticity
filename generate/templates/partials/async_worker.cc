@@ -1,5 +1,7 @@
 <%_ for (const func of klass.functions) { _%>
-    <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::<%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(Napi::Function& callback
+    <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::<%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(
+        <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * underlying,<% } _%>
+        Napi::Function& callback
         <%_ for (const arg of func.params) { _%>
             <%_ if (arg.isReturn) continue; _%>,
             <% if (arg.isCppString2CString) { _%>
@@ -9,7 +11,8 @@
             <%_ } _%>
         <%_ } _%>
     )
-        : Napi::AsyncWorker(callback)<%_ _%>
+        : <%_ if (!func.isStatic) { _%>underlying(underlying),<% } _%>
+        <%_ _%>Napi::AsyncWorker(callback)<%_ _%>
         <%_ for (const arg of func.params) { _%>
             <%_ if (arg.isReturn) continue; _%>,
             <% if (arg.isCppString2CString) { _%>
