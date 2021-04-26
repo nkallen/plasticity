@@ -2,6 +2,8 @@ Speed week:
 - Async functions
 - Lod
 
+object history
+
 Undo/redo
 
 bug: outlines broken by grid
@@ -24,6 +26,7 @@ Cleanup week:
 Snap week:
 - Prettier snap display
 - More snaps
+- alt/whatever to disable snaps
 
 File save / open
 

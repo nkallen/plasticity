@@ -111,3 +111,5 @@ void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackI
     <%- klass.freeFunctionName %>(this->_underlying);
 }
 <%_ } _%>
+
+<%- include('async_worker.cc') %>

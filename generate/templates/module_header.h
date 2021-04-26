@@ -18,7 +18,10 @@ class <%- klass.cppClassName %> : public
 
     <%_ for (const func of klass.functions) { _%>
         static Napi::Value <%- func.name %>(const Napi::CallbackInfo& info);
+        static Napi::Value <%- func.name %>_async(const Napi::CallbackInfo& info);
     <%_ } _%>
 };
+
+<%- include('async_worker.h') %>
 
 #endif
