@@ -2,6 +2,7 @@
 #define <%- klass.cppClassName.toUpperCase() %>_H
 
 #include <napi.h>
+#include <tuple>
 
 #include <<%- klass.rawHeader %>>
 

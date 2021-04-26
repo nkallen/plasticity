@@ -20,6 +20,7 @@
         }
     <%_ } _%>
 
+    <%_ if (func.isManual) continue _%>
     Napi::Value <%- klass.cppClassName %>::<%- func.name %>_async(const Napi::CallbackInfo& info) {
         Napi::Env env = info.Env();
         <%- include('guard_arguments.cc', func) %>

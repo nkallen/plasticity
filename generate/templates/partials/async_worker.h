@@ -1,9 +1,10 @@
 <%_ for (const func of klass.functions) { _%>
+<%_ if (func.isManual) continue _%>
+
   class <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker : public Napi::AsyncWorker {
-      
       public:
           <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(
-            <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * underlying,<% } _%>
+            <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying,<% } _%>
             Napi::Function& callback<%_ _%>
             <%_ for (const arg of func.params) { _%>
                 <%_ if (arg.isReturn) continue; _%>,
@@ -20,7 +21,18 @@
           void OnOK();
 
       private:
-        <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * underlying;<% } _%>
+        <%_ if (func.returnsCount == 1) { _%>
+        <%_ const arg = func.returns[0] _%>
+        void SetOK(<%- arg.const %> <%- arg.rawType %> <%- arg.shouldAlloc || arg.isPointer ? '*' : '' %> <%- arg.name %>);
+        <%_ } else if (func.returnsCount > 1) { _%>
+        void SetOK(
+            <%_ for (const [i, arg] of func.returns.entries()) { _%>
+                <%- arg.const %> <%- arg.rawType %> <%- arg.shouldAlloc || arg.isPointer ? '*' : '' %> <%- arg.name %><% if (i < func.returns.length - 1) { %>,<% } %>
+            <%_ } _%>
+        );
+        <%_ } _%>
+            
+        <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying;<% } _%>
         <%_ for (const arg of func.params) { _%>
             <%_ if (arg.isReturn) continue; _%>
             <% if (arg.isCppString2CString) { _%>
@@ -28,6 +40,19 @@
             <%_ } else { _%>
             <%- arg.const %> <%- arg.rawType %> <%- arg.ref %> <%- arg.name _%><%_ if (arg.isOptional) { _%> = <%- arg.default _%><%_ } _%>;
             <%_ } _%>
+        <%_ } _%>
+
+        <%_ if (func.returnsCount == 0) { _%>
+        <%_ } else if (func.returnsCount == 1) { _%>
+            <%_ for (const arg of func.returns) { _%>
+                <%- arg.const %> <%- arg.rawType %> <%- arg.shouldAlloc || arg.isPointer ? '*' : '' %> __ok;
+            <%_ } _%>
+        <%_ } else if (func.returnsCount > 1) { _%>
+        std::tuple<
+            <%_ for (const [i, arg] of func.returns.entries()) { _%>
+                <%- arg.const %> <%- arg.rawType %> <%- arg.shouldAlloc || arg.isPointer ? '*' : '' %><% if (i < func.returns.length - 1) { %>,<% } %>
+            <%_ } _%>
+        > *__ok = NULL;
         <%_ } _%>
   };
 
