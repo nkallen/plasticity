@@ -7,7 +7,7 @@ import * as visual from './VisualModel';
 
 export interface TemporaryObject {
     cancel(): void;
-    commit(): void;
+    commit(): visual.SpaceItem;
 }
 
 let counter = 0;
@@ -61,7 +61,7 @@ export class GeometryDatabase {
                 this.scene.remove(mesh);
             },
             commit: () => {
-                this.addItem(object, mesh);
+                return this.addItem(object, mesh);
             }
         }
     }

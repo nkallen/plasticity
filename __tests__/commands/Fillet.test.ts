@@ -20,6 +20,7 @@ beforeEach(() => {
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
     makeBox = new BoxFactory(db, materials, signals);
+    makeFillet = new FilletFactory(db, materials, signals);
 })
 
 describe('commit', () => {
@@ -29,10 +30,27 @@ describe('commit', () => {
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
         const box = makeBox.commit() as visual.Solid;
-        const edge = box.edges.children[0] as visual.CurveEdge;
+        const edge = box.edges.get(0);
 
         makeFillet.item = box;
         makeFillet.edges = [edge];
+        makeFillet.distance = 0.1;
         makeFillet.commit();
+    })
+})
+
+describe('async', () => {
+    test('invokes the appropriate c3d commands', async () => {
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        const box = makeBox.commit() as visual.Solid;
+        const edge = box.edges.get(0);
+
+        makeFillet.item = box;
+        makeFillet.edges = [edge];
+        makeFillet.distance = 0.01;
+        await makeFillet.doUpdate2();
     })
 })

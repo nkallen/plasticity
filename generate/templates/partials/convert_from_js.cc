@@ -6,7 +6,7 @@
     <%- arg.const %> bool <%- arg.name %> = info[<%- arg.cppIndex %>].ToBoolean();
 <%_ } else if (arg.jsType == "Array") { _%>
     const Napi::Array <%- arg.name %>_ = Napi::Array(env, info[<%- arg.cppIndex %>]);
-    <%- arg.rawType %> <%- arg.name %> = <%- arg.rawType %>(<%- arg.name %>_.Length(), 1);
+    <%- arg.rawType %> <%- (_return == 'promise') ? '*' : '' %> <%- arg.name %> = <%- (_return == 'promise') ? 'new' : '' %> <%- arg.rawType %>(<%- arg.name %>_.Length(), 1);
     for (size_t i = 0; i < <%- arg.name %>_.Length(); i++) {
         if (<%- arg.name %>_[i].IsNull() || <%- arg.name %>_[i].IsUndefined()) {
             std::cerr << __FILE__ << ":" << __LINE__ << " warning: Passed an array with a null element at [" << i << "]. This is probably a mistake, so skipping\n";
@@ -22,7 +22,7 @@
                 return;
             <%_ } _%>
         } else {
-            <%- arg.name %>.Add(<%_ if (!arg.elementType.isReference) { _%>*<%_ } _%><%- arg.elementType.cppType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
+            <%- arg.name %><%- (_return == 'promise') ? '->' : '.' %>Add(<%_ if (!arg.elementType.isReference) { _%>*<%_ } _%><%- arg.elementType.cppType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
         }
     }
 <%_ } else if (arg.isCppString2CString) { _%>

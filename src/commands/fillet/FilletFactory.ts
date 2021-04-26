@@ -6,7 +6,6 @@ import { TemporaryObject } from '../../GeometryDatabase';
 export default class FilletFactory extends GeometryFactory {
     private _item!: visual.Solid;
     private _edges!: visual.CurveEdge[];
-    private _distance!: number;
 
     private solid!: c3d.Solid;
     private curves!: c3d.CurveEdge[];
@@ -54,20 +53,29 @@ export default class FilletFactory extends GeometryFactory {
         return this.params.distance1;
     }
 
+    private readonly names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
+
     doUpdate() {
         this.item.visible = false;
 
-        const names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
-        const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, names);
+        const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
+        this.temp?.cancel();
+        this.temp = this.db.addTemporaryItem(result);
+    }
+
+    async doUpdate2() {
+        this.item.visible = false;
+
+        const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
         this.temp?.cancel();
         this.temp = this.db.addTemporaryItem(result);
     }
 
     doCommit() {
-        const names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
-        const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, names);
+        if (this.temp) return this.temp.commit();
+
+        const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
         this.db.removeItem(this.item);
-        this.temp!.cancel();
         return this.db.addItem(result);
     }
 
