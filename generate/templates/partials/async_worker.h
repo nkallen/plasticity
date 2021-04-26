@@ -1,11 +1,11 @@
 <%_ for (const func of klass.functions) { _%>
 <%_ if (func.isManual) continue _%>
 
-  class <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker : public Napi::AsyncWorker {
+  class <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker : public PromiseWorker {
       public:
           <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(
             <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying,<% } _%>
-            Napi::Function& callback<%_ _%>
+            Napi::Promise::Deferred const &d<%_ _%>
             <%_ for (const arg of func.params) { _%>
                 <%_ if (arg.isReturn) continue; _%>,
                 <% if (arg.isCppString2CString) { _%>
@@ -17,8 +17,8 @@
           <%_ %>);
           virtual ~<%- klass.cppClassName %>_<%- func.name %>_AsyncWorker() {};
 
-          void Execute();
-          void OnOK();
+          void Execute() override;
+          void Resolve(Napi::Promise::Deferred const &deferred) override;
 
       private:
         <%_ if (func.returnsCount == 1) { _%>
@@ -43,16 +43,10 @@
         <%_ } _%>
 
         <%_ if (func.returnsCount == 0) { _%>
-        <%_ } else if (func.returnsCount == 1) { _%>
+        <%_ } else if (func.returnsCount > 0) { _%>
             <%_ for (const arg of func.returns) { _%>
-                <%- arg.const %> <%- arg.rawType %> <%- arg.shouldAlloc || arg.isPointer ? '*' : '' %> __ok;
+                <%- arg.const %> <%- arg.rawType %> <%- arg.isPrimitive ? '' : '*' %> <%- arg.name %>;
             <%_ } _%>
-        <%_ } else if (func.returnsCount > 1) { _%>
-        std::tuple<
-            <%_ for (const [i, arg] of func.returns.entries()) { _%>
-                <%- arg.const %> <%- arg.rawType %> <%- arg.shouldAlloc || arg.isPointer ? '*' : '' %><% if (i < func.returns.length - 1) { %>,<% } %>
-            <%_ } _%>
-        > *__ok = NULL;
         <%_ } _%>
   };
 

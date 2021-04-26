@@ -8,7 +8,7 @@
 
 <%_ for (const arg of func.params) { _%>
     <%_ if (!arg.isReturn) { _%>
-        <%- include('convert_from_js.cc', { arg: arg }) %>
+        <%- include('convert_from_js.cc', { arg: arg, _return: 'value' }) %>
     <%_ } _%>
 <%_ } _%>
 
@@ -44,8 +44,8 @@ if (_result) {
     <%_ } _%>
     Napi::Value _to;
 
-    <%_ for (_return of func.returns) { _%>
-        <%- include('convert_to_js.cc', { arg: _return }) %>
+    <%_ for (const _return of func.returns) { _%>
+        <%- include('convert_to_js.cc', { arg: _return, skipCopy: false }) %>
         <%_ if (func.returnsCount > 1) { _%>
         _toReturn.Set(Napi::String::New(env, "<%- _return.name %>"), _to);
         <%_ } _%>

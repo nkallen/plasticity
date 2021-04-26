@@ -8,11 +8,11 @@
         arr_<%- arg.name %>[i] = <%- arg.elementType.cppType %>::NewInstance(env, (*<%- arg.name %>)[i]);
     }
     _to = arr_<%- arg.name %>;
-<%_ } else if (arg.isOnStack) { _%>
+<%_ } else if (!skipCopy && arg.isOnStack) { _%>
     _to = <%- arg.cppType %>::NewInstance(env, new <%- arg.rawType %>(<%- arg.name %>));
 <%_ } else { _%>
     if (<%- arg.name %> != NULL) {
-        _to = <%- arg.cppType %>::NewInstance(env, <% if (arg.const) { _%>(<%- arg.rawType %> <%- arg.ref %>)<%_ } _%><%- arg.name %>);
+        _to = <%- arg.cppType %>::NewInstance(env, <% if (arg.const) { _%>(<%- arg.rawType %> *)<%_ } _%><%- arg.name %>);
     } else {
         _to = env.Null();
     }

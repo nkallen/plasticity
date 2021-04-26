@@ -1,4 +1,4 @@
-<%_ for (const arg of params) { _%>
+<%_ for (const arg of func.params) { _%>
     <%_ if (arg.isJsArg) { _%>
         <%_ if (!arg.isOptional) { _%>
             if ((info.Length() == <%- arg.jsIndex %>
@@ -14,8 +14,13 @@
                 || !info[<%- arg.jsIndex %>].IsObject()
                 || !info[<%-arg.cppIndex %>].ToObject().InstanceOf(<%- arg.cppType %>::GetConstructor(env)))) {
             <%_ } _%>
-                Napi::Error::New(env, "<%-arg.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
-                return env.Undefined();
+                <%_ if (promise) { _%>
+                    deferred.Reject(Napi::String::New(env, "<%-arg.jsType%> <%-arg.name%> is required."));
+                    return deferred.Promise();
+                <%_ } else { _%>
+                    Napi::Error::New(env, "<%-arg.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
+                    return env.Undefined();
+                <%_ } _%>
             }
         <%_ } _%>
     <%_ } _%>

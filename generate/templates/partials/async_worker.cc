@@ -2,7 +2,7 @@
     <%_ if (func.isManual) continue _%>
     <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::<%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(
         <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying,<% } _%>
-        Napi::Function& callback
+        Napi::Promise::Deferred const &d
         <%_ for (const arg of func.params) { _%>
             <%_ if (arg.isReturn) continue; _%>,
             <% if (arg.isCppString2CString) { _%>
@@ -13,7 +13,7 @@
         <%_ } _%>
     )
         : <%_ if (!func.isStatic) { _%>_underlying(_underlying),<% } _%>
-        <%_ _%>Napi::AsyncWorker(callback)<%_ _%>
+        <%_ _%>PromiseWorker(d)<%_ _%>
         <%_ for (const arg of func.params) { _%>
             <%_ if (arg.isReturn) continue; _%>,
             <% if (arg.isCppString2CString) { _%>
@@ -54,18 +54,14 @@
         <%_ } _%>
 
         <%_ if (func.returnsCount == 0) { _%>
-        <%_ } else if (func.returnsCount == 1) { _%>
-            SetOK(<%- func.returns[0].name %>);
         <%_ } else { _%>
-            __ok = new std::tuple<
-                <%_ for (const [i, arg] of func.returns.entries()) { _%>
-                    <%- arg.const %> <%- arg.rawType %> <%- arg.shouldAlloc || arg.isPointer ? '*' : '' %> <% if (i < func.returns.length - 1) { %>,<% } %>
+            <%_ for (const arg of func.returns) { _%>
+                <%_  if (!arg.isPrimitive && arg.isOnStack) { _%>
+                this-><%- arg.name %> = new <%- arg.rawType %>(<%- arg.name %>);
+                <%_ } else { _%>
+                this-><%- arg.name %> = <%- arg.name %>;
                 <%_ } _%>
-            >(
-                <%_ for (const [i, _return] of func.returns.entries()) { _%>
-                    <%- _return.name %><% if (i < func.returns.length - 1) { %>,<% } %>
-                <%_ } _%>
-            );
+            <%_ } _%>
         <%_ } _%>
 
         <% if (func.returnType.isErrorCode) { _%>
@@ -83,20 +79,29 @@
         <%_ } _%>
     }
 
-    <%_ if (func.returnsCount == 1) { _%>
-    <%_ const arg = func.returns[0] _%>
-    void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::SetOK(<%- arg.const %> <%- arg.rawType %> <%- arg.shouldAlloc || arg.isPointer ? '*' : '' %> <%- arg.name %>) {
+    void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::Resolve(Napi::Promise::Deferred const &deferred) {
+        Napi::Env env = deferred.Env();
+        <%_ if (func.returnsCount == 0) { _%>
+            deferred.Resolve(env.Undefined());
+        <%_ } else if (func.returnsCount == 1) { _%>
+            Napi::Value _to;
+            <%_ const arg = func.returns[0] _%>
+            <%- arg.const %> <%- arg.rawType %> <%- arg.isPrimitive ? '' : '*' %> <%- arg.name %> = this-><%- arg.name %>;
+            <%- include('convert_to_js.cc', { arg: arg, skipCopy: true }) %>
+            deferred.Resolve(_to);
+        <%_ } else { _%>
+            Napi::Value _to;
+            Napi::Object _toReturn = Napi::Object::New(env);
 
-    }
-    <%_ } else if (func.returnsCount > 1) { _%>
-    void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::SetOK(
-        <%_ for (const [i, arg] of func.returns.entries()) { _%>
-            <%- arg.const %> <%- arg.rawType %> <%- arg.shouldAlloc || arg.isPointer ? '*' : '' %> <%- arg.name %><% if (i < func.returns.length - 1) { %>,<% } %>
+            <%_ for (const arg of func.returns) { _%>
+                <%- arg.const %> <%- arg.rawType %> <%- arg.isPrimitive ? '' : '*' %> <%- arg.name %> = this-><%- arg.name %>;
+                <%- include('convert_to_js.cc', { arg: arg, skipCopy: true }) %>
+                _toReturn.Set(Napi::String::New(env, "<%- arg.name %>"), _to);
+            <%_ } _%>
+
+            deferred.Resolve(_toReturn);
         <%_ } _%>
-    ) {
-        
     }
-    <%_ } _%>
 
 
 <%_ } _%>

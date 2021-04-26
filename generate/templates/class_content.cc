@@ -47,7 +47,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
         <%- include('polymorphic_arguments.cc', { func: initializer }) %>
         ) {
             <%_ for (const arg of initializer.params) { _%>
-            <%- include('convert_from_js.cc', { arg: arg, isVoid: true }) %>
+            <%- include('convert_from_js.cc', { arg: arg, _return: 'void' }) %>
             <%_ } _%>
 
             <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(<%- initializer.params.map((arg) => arg.name).join(',') %>);
@@ -94,13 +94,13 @@ Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::Ca
     Napi::Env env = info.Env();
     Napi::Value _to;
     <%- field.rawType %> <%- field.name %> = _underlying-><%- field.name %>;
-    <%- include('convert_to_js.cc', { arg: field }) %>
+    <%- include('convert_to_js.cc', { arg: field, skipCopy: false }) %>
     return _to;
 }
 
 void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {
     Napi::Env env = info.Env();
-    <%- include('convert_from_js.cc', { arg: field, isVoid: true }) %>
+    <%- include('convert_from_js.cc', { arg: field, _return: 'void' }) %>
     _underlying-><%- field.name %> = <%- field.name %>;
 }
 <%_ } _%>

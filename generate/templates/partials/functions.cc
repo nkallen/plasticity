@@ -14,7 +14,7 @@
                     return env.Undefined();
                 }
             <%_ } else { _%>
-                <%- include('guard_arguments.cc', func) %>
+                <%- include('guard_arguments.cc', { func: func, promise: false }) %>
                 <%- include('sync_function.cc', { func: func}) %>
             <%_ } _%>
         }
@@ -23,17 +23,17 @@
     <%_ if (func.isManual) continue _%>
     Napi::Value <%- klass.cppClassName %>::<%- func.name %>_async(const Napi::CallbackInfo& info) {
         Napi::Env env = info.Env();
-        <%- include('guard_arguments.cc', func) %>
-        Napi::Function callback = info[1].As<Napi::Function>();
+        Napi::Promise::Deferred deferred = Napi::Promise::Deferred::New(env);
+        <%- include('guard_arguments.cc', { func: func, promise: true }) %>
 
         <%_ for (const arg of func.params) { _%>
             <%_ if (!arg.isReturn) { _%>
-                <%- include('convert_from_js.cc', { arg: arg }) %>
+                <%- include('convert_from_js.cc', { arg: arg, _return: 'promise' }) %>
             <%_ } _%>
         <%_ } _%>
         <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker* asyncWorker = new  <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(
             <%_ if (!func.isStatic) { _%>_underlying,<% } _%>
-            callback
+            deferred
             <%_ for (const arg of func.params) { _%>
                 <%_ if (arg.isReturn) continue; _%>,
                 <% if (arg.isCppString2CString) { _%>
@@ -44,6 +44,6 @@
             <%_ } _%>
         );
         asyncWorker->Queue();
-        return env.Undefined();
+        return deferred.Promise();
     }
 <%_ } _%>

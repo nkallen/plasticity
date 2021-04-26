@@ -2,7 +2,7 @@
 #define <%- klass.cppClassName.toUpperCase() %>_H
 
 #include <napi.h>
-#include <tuple>
+#include <vector>
 
 #include <<%- klass.rawHeader %>>
 
@@ -10,6 +10,7 @@
 #include "<%- dependency %>"
 <%_ } _%>
 
+#include "PromiseWorker.h"
 
 class <%- klass.cppClassName %> : public
   Napi::ObjectWrap<<%- klass.cppClassName %>>

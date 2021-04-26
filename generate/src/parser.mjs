@@ -266,7 +266,7 @@ class TypeDeclaration {
     }
 
     get isNumber() {
-        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t" || this.rawType == "size_t" || this.rawType == "VERSION" || this.rawType == "uint"
+        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t" || this.rawType == "size_t" || this.rawType == "VERSION" || this.rawType == "uint" || this.rawType == "SimpleName"
     }
 
     get isCppString2CString() {
@@ -279,6 +279,10 @@ class TypeDeclaration {
 
     get isArray() {
         return /Array/.test(this.rawType);
+    }
+
+    get isPrimitive() {
+        return this.isBoolean || this.isNumber || this.isEnum;
     }
 }
 class ParamDeclaration extends TypeDeclaration {
