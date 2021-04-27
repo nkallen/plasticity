@@ -6,10 +6,11 @@ export class Scheduler<T> {
         private readonly concurrency: number,
         private readonly depth: number
     ) {
-        this.queue = new Array(concurrency);
+        this.queue = new Array();
     }
 
     schedule(p: () => Promise<T>) {
+        if (this.queue.length > 0) console.warn("Dropping job because of latency");
         this.queue.push(p);
         this.queue = this.queue.slice(-this.depth, this.queue.length);
         this.pop();
@@ -17,10 +18,10 @@ export class Scheduler<T> {
 
     private async pop() {
         if (this.outstanding < this.concurrency) {
-            this.outstanding++;
             const p = this.queue.pop();
             if (p) {
-                const result = await p();
+                this.outstanding++;
+                await p();
                 this.outstanding--;
                 this.pop();
             }

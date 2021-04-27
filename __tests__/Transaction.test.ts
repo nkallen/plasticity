@@ -22,7 +22,7 @@ beforeEach(() => {
 })
 
 describe('update', () => {
-    test('when a fillet succeeds then fails, it rolls back to previous version', () => {
+    test('when a fillet succeeds then fails, it rolls back to previous version', async () => {
         const makeBox = new BoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
@@ -34,21 +34,21 @@ describe('update', () => {
 
         fillet.item = solid;
         fillet.edges = [solid.edges.get(2)];
-        fillet.transaction(['distance'], () => {
+        await fillet.transaction(['distance'], async () => {
             fillet.distance = 0.01;
-            fillet.update();
+            await fillet.update();
         });
         expect(fillet.distance).toBe(0.01);
 
-        fillet.transaction(['distance'], () => {
+        await fillet.transaction(['distance'], async () => {
             fillet.distance = 0.1;
-            fillet.update();
+            await fillet.update();
         });
         expect(fillet.distance).toBe(0.1);
 
-        fillet.transaction(['distance'], () => {
+        await fillet.transaction(['distance'], async () => {
             fillet.distance = 100;
-            fillet.update();
+            await fillet.update();
         });
         expect(fillet.distance).toBe(0.1);
     });

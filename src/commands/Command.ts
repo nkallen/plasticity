@@ -358,8 +358,10 @@ export class FilletCommand extends Command {
 
         await filletGizmo.execute((delta) => {
             fillet.distance = delta;
-            fillet.transaction(['distance'], () => {
-                fillet.update();
+            fillet.schedule(async () => {
+                await fillet.transaction(['distance'], async () => {
+                    await fillet.update();
+                });
             });
         }).resource(this);
 

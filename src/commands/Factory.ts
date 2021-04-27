@@ -3,11 +3,13 @@ import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
 import * as visual from '../VisualModel';
+import { Scheduler } from '../util/Scheduler';
 
 type State = 'none' | 'updated' | 'failed' | 'cancelled' | 'committed'
 
 export abstract class GeometryFactory extends Cancellable {
     state: State = 'none';
+    private readonly scheduler = new Scheduler(1, 1);
 
     constructor(
         protected readonly db: GeometryDatabase,
@@ -26,18 +28,18 @@ export abstract class GeometryFactory extends Cancellable {
         }
     }
 
-    protected abstract doUpdate(): void;
+    protected abstract doUpdate(): Promise<void>;
     protected abstract doCommit(): visual.SpaceItem | visual.SpaceItem[];
     protected abstract doCancel(): void;
 
-    update(): void {
+    async update() {
         switch (this.state) {
             case 'none':
             case 'failed':
             case 'updated':
                 this.signals.factoryUpdated.dispatch();
                 try {
-                    this.doUpdate();
+                    await this.doUpdate();
                     this.state = 'updated';
                 } catch (e) {
                     this.state = 'failed';
@@ -75,15 +77,15 @@ export abstract class GeometryFactory extends Cancellable {
     }
 
     private previous?: Map<keyof this, any>;
-    transaction(keys: (keyof this)[], cb: () => void) {
+    async transaction(keys: (keyof this)[], cb: () => Promise<void>) {
         try {
-            cb();
+            await cb();
             this.previous = new Map();
             for (const key of keys) {
                 const uncloned = this[key];
                 let value = uncloned;
                 if (typeof uncloned === 'object' && 'clone' in uncloned) {
-                    // @ts-ignore
+                    // @ts-expect-error("clone doesn't exist")
                     value = uncloned.clone();
                 }
                 this.previous.set(key, value);
@@ -98,5 +100,9 @@ export abstract class GeometryFactory extends Cancellable {
                 this.state = this.previous.get("state");
             }
         }
+    }
+
+    schedule(fn: () => Promise<void>) {
+        this.scheduler.schedule(fn);
     }
 }

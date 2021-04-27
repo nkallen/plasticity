@@ -6,6 +6,8 @@ global.console = {
     info: console.info,
     debug: console.debug,
     assert: console.assert,
+    time: jest.fn(),
+    timeEnd: jest.fn(),
 };
 
 import '../lib/c3d/enums'
