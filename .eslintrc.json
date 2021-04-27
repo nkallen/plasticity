@@ -9,5 +9,7 @@
   "extends": [
 
   ],
+  "rules": {
+  },
   "parser": "@typescript-eslint/parser"
 }

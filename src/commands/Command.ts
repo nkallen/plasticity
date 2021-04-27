@@ -50,7 +50,7 @@ export class SphereCommand extends Command {
             sphere.radius = radius;
             sphere.update();
         }).resource(this);
-        sphere.commit();
+        await sphere.commit();
     }
 }
 
@@ -67,7 +67,7 @@ export class CircleCommand extends Command {
             circle.radius = radius;
             circle.update();
         }).resource(this);
-        circle.commit();
+        await circle.commit();
     }
 }
 
@@ -84,7 +84,7 @@ export class CylinderCommand extends Command {
             circle.radius = p1.distanceTo(p2);
             circle.update();
         }).resource(this);
-        circle.cancel();
+        await circle.cancel();
 
         const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         cylinder.base = p1;
@@ -93,7 +93,7 @@ export class CylinderCommand extends Command {
             cylinder.height = p3;
             cylinder.update();
         }).resource(this);
-        cylinder.commit();
+        await cylinder.commit();
     }
 }
 
@@ -108,7 +108,7 @@ export class LineCommand extends Command {
             line.p2 = p2;
             line.update();
         }).resource(this);
-        line.commit();
+        await line.commit();
     }
 }
 
@@ -132,7 +132,7 @@ export class CurveCommand extends Command {
                     };
                 }).resource(this);
                 curve.points.push(point);
-                curve.update();
+                await curve.update();
                 i++;
             } catch (e) {
                 if (e !== Finish) throw e;
@@ -153,7 +153,7 @@ export class RectCommand extends Command {
             line.p2 = p2;
             line.update();
         }).resource(this);
-        line.cancel();
+        await line.cancel();
 
         const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         rect.p1 = p1;
@@ -162,7 +162,7 @@ export class RectCommand extends Command {
             rect.p3 = p3;
             rect.update();
         }).resource(this);
-        rect.commit();
+        await rect.commit();
     }
 }
 
@@ -177,7 +177,7 @@ export class BoxCommand extends Command {
             line.p2 = p2;
             line.update();
         }).resource(this);
-        line.cancel();
+        await line.cancel();
 
         const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
@@ -186,7 +186,7 @@ export class BoxCommand extends Command {
             rect.p3 = p3;
             rect.update();
         }).resource(this);
-        rect.cancel();
+        await rect.cancel();
 
         const box = new BoxFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         box.p1 = p1;
@@ -196,7 +196,7 @@ export class BoxCommand extends Command {
             box.p4 = p4;
             box.update();
         }).resource(this);
-        box.commit();
+        await box.commit();
     }
 }
 
@@ -222,8 +222,8 @@ export class MoveCommand extends Command {
             line.update();
             move.update();
         }).resource(this);
-        line.cancel();
-        move.commit();
+        await line.cancel();
+        await move.commit();
     }
 }
 
@@ -240,7 +240,7 @@ export class ScaleCommand extends Command {
             line.p2 = p2;
             line.update();
         }).resource(this);
-        line.cancel();
+        await line.cancel();
 
         const line2 = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         line.p1 = origin;
@@ -255,9 +255,9 @@ export class ScaleCommand extends Command {
             line2.update();
             scale.update();
         }).resource(this);
-        line2.cancel();
+        await line2.cancel();
 
-        scale.commit();
+        await scale.commit();
     }
 }
 
@@ -280,7 +280,7 @@ export class RotateCommand extends Command {
             rotate.update();
         }).resource(this);
 
-        rotate.commit();
+        await rotate.commit();
     }
 }
 
@@ -293,7 +293,7 @@ export class UnionCommand extends Command {
         const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         union.item1 = object1;
         union.item2 = object2;
-        union.commit();
+        await union.commit();
     }
 }
 
@@ -306,7 +306,7 @@ export class IntersectionCommand extends Command {
         const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         intersection.item1 = object1;
         intersection.item2 = object2;
-        intersection.commit();
+        await intersection.commit();
     }
 }
 
@@ -319,7 +319,7 @@ export class DifferenceCommand extends Command {
         const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         difference.item1 = object1;
         difference.item2 = object2;
-        difference.commit();
+        await difference.commit();
     }
 }
 
@@ -333,7 +333,7 @@ export class CutCommand extends Command {
         const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         cut.solid = object1;
         cut.contour = object2;
-        cut.commit();
+        await cut.commit();
     }
 }
 
@@ -365,7 +365,7 @@ export class FilletCommand extends Command {
             });
         }).resource(this);
 
-        fillet.commit();
+        await fillet.commit();
     }
 }
 
@@ -393,7 +393,7 @@ export class OffsetFaceCommand extends Command {
             });
         }).resource(this);
 
-        offsetFace.commit();
+        await offsetFace.commit();
     }
 }
 
@@ -419,7 +419,7 @@ export class PurifyFaceCommand extends Command {
         removeFace.solid = parent;
         removeFace.faces = faces;
 
-        removeFace.commit();
+        await removeFace.commit();
     }
 }
 
@@ -432,7 +432,7 @@ export class CreateFaceCommand extends Command {
         removeFace.solid = parent;
         removeFace.faces = faces;
 
-        removeFace.commit();
+        await removeFace.commit();
     }
 }
 
@@ -458,7 +458,7 @@ export class ActionFaceCommand extends Command {
             });
         }).resource(this);
 
-        actionFace.commit();
+        await actionFace.commit();
     }
 }
 
@@ -486,8 +486,7 @@ export class FilletFaceCommand extends Command {
             });
         }).resource(this);
 
-        refilletFace.commit();
-
+        await refilletFace.commit();
     }
 }
 
