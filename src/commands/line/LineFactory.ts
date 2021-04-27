@@ -18,7 +18,7 @@ export default class LineFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    doUpdate() {
+    async doUpdate() {
         this.mesh.geometry.dispose();
         const vertices = new Float32Array(2 * 3);
         vertices[0] = this.p1.x;

@@ -21,7 +21,7 @@ export default class RotateFactory extends GeometryFactory {
         this.originalPosition.copy(obj.position);
     }
 
-    doUpdate() {
+    async doUpdate() {
         const { item, point, axis, angle } = this;
         item.position.copy(this.originalPosition);
 

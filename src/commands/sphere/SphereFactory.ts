@@ -19,7 +19,7 @@ export default class SphereFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    doUpdate() {
+    async doUpdate() {
         const geometry = new THREE.SphereGeometry(this.radius, 18, 12, 0, Math.PI * 2, 0, Math.PI);
         this.mesh.geometry.dispose();
         this.mesh.geometry = geometry;

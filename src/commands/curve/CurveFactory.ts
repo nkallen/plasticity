@@ -17,7 +17,7 @@ export default class CurveFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    doUpdate() {
+    async doUpdate() {
         const { points } = this;
 
         this.mesh.geometry.dispose();

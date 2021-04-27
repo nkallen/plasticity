@@ -20,7 +20,7 @@ export default class BoxFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    doUpdate() {
+    async doUpdate() {
         this.mesh.geometry.dispose();
         const { BC, points: [p1, p2, p3, p4] } = this.clockwise();
         const AB = p2.clone().sub(p1);

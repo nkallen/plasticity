@@ -31,7 +31,7 @@ abstract class BooleanFactory extends GeometryFactory {
         return super.cancel();
     }
 
-    doUpdate() { }
+    async doUpdate() { }
 }
 export class UnionFactory extends BooleanFactory {
     operationType = c3d.OperationType.Union;
@@ -75,5 +75,5 @@ export class CutFactory extends GeometryFactory {
         return super.cancel();
     }
 
-    doUpdate() { }
+    async doUpdate() { }
 }

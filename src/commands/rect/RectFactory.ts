@@ -20,7 +20,7 @@ export default class RectFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    doUpdate() {
+    async doUpdate() {
         this.mesh.geometry.dispose();
         const { p1, p2, p3, p4 } = this.orthogonal();
 

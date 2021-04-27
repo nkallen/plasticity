@@ -21,7 +21,7 @@ export default class ScaleFactory extends GeometryFactory {
         this.originalPosition = obj.position.clone();
     }
 
-    doUpdate() {
+    async doUpdate() {
         const { item, origin, p2, p3 } = this;
         item.scale.copy(this.originalScale);
         item.position.copy(this.originalPosition);

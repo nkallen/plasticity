@@ -18,7 +18,7 @@ export default class MoveFactory extends GeometryFactory {
         this.originalPosition.copy(obj.position);
     }
 
-    doUpdate() {
+    async doUpdate() {
         const originalPosition = this.originalPosition.clone();
         const p1 = this.p1, p2 = this.p2;
         this.item.position.copy(originalPosition.add(p2).sub(p1));

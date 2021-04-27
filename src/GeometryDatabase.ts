@@ -36,22 +36,6 @@ export class GeometryDatabase {
         return mesh;
     }
 
-    addTemporaryItems(objects: c3d.Item[]): TemporaryObject {
-        const temps: TemporaryObject[] = [];
-        for (const object of objects) {
-            const temp = this.addTemporaryItem(object);
-            temps.push(temp);
-        }
-        return {
-            cancel: () => {
-                temps.forEach(t => t.cancel())
-            },
-            commit: () => {
-                temps.forEach(t => t.commit())
-            }
-        }
-    }
-
     addTemporaryItem(object: c3d.Item): TemporaryObject {
         const mesh = this.object2mesh(object, 0.01, false);
         this.scene.add(mesh);

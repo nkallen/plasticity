@@ -20,7 +20,7 @@ export default class CylinderFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    doUpdate() {
+    async doUpdate() {
         this.mesh.geometry.dispose();
         const radiusLength = this.base.distanceTo(this.radius);
         const heightLength = this.base.distanceTo(this.height);

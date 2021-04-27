@@ -19,7 +19,7 @@ export default class CircleFactory extends GeometryFactory {
         this.db.scene.add(this.mesh);
     }
 
-    doUpdate() {
+    async doUpdate() {
         this.mesh.geometry.dispose();
         const vertices = CircleGeometry(this.radius, 32);
         const geometry = new LineGeometry();
