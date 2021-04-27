@@ -24,12 +24,12 @@ beforeEach(() => {
 })
 
 describe('commit', () => {
-    test('invokes the appropriate c3d commands', () => {
+    test('invokes the appropriate c3d commands', async () => {
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        const box = makeBox.commit() as visual.Solid;
+        const box = await makeBox.commit() as visual.Solid;
         const edge = box.edges.get(0);
 
         makeFillet.item = box;
@@ -37,20 +37,4 @@ describe('commit', () => {
         makeFillet.distance = 0.1;
         makeFillet.commit();
     })
-})
-
-describe('async', () => {
-    test('invokes the appropriate c3d commands', async () => {
-        makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        const box = makeBox.commit() as visual.Solid;
-        const edge = box.edges.get(0);
-
-        makeFillet.item = box;
-        makeFillet.edges = [edge];
-        makeFillet.distance = 0.01;
-        await makeFillet.doUpdate2();
-    })
-})
+});

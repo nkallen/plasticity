@@ -22,41 +22,37 @@ beforeEach(() => {
 })
 
 describe('update', () => {
-    test('scales the visual object', () => {
+    test('scales the visual object', async () => {
         const item = new visual.Solid();
         scale.item = item;
         scale.origin = new THREE.Vector3();
         scale.p2 = new THREE.Vector3(1, 0, 0);
         scale.p3 = new THREE.Vector3(2, 0, 0);
         expect(item.scale).toEqual(new THREE.Vector3(1, 1, 1));
-        scale.update();
+        await scale.update();
         expect(item.scale).toEqual(new THREE.Vector3(2, 2, 2));
     });
 });
 
 describe('commit', () => {
-    test('invokes the appropriate c3d commands', () => {
+    test('invokes the appropriate c3d commands', async () => {
         expect(db.scene.children.length).toBe(0);
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3();
         makeSphere.radius = 1;
-        makeSphere.commit();
-        expect(db.scene.children.length).toBe(1);
-        let item = db.scene.children[0] as visual.Solid;
-        expect(item).toBeInstanceOf(visual.Solid);
+        const sphere = await makeSphere.commit() as visual.Solid;
 
-        const bbox = new THREE.Box3().setFromObject(item);
+        const bbox = new THREE.Box3().setFromObject(sphere);
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
 
-        scale.item = item;
+        scale.item = sphere;
         scale.origin = new THREE.Vector3();
         scale.p2 = new THREE.Vector3(1, 0, 0);
         scale.p3 = new THREE.Vector3(2, 0, 0);
-        scale.commit();
-        item = db.scene.children[0] as visual.Solid;
-        expect(item).toBeInstanceOf(visual.Solid);
-        bbox.setFromObject(item);
+        const scaled = await scale.commit() as visual.Solid;
+
+        bbox.setFromObject(scaled);
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -2, -2));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 2));
     })

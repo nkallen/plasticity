@@ -52,7 +52,7 @@ abstract class ModifyFaceFactory extends GeometryFactory {
         this.temp = this.db.addTemporaryItem(result);
     }
 
-    doCommit() {
+    async doCommit() {
         const { solid, solidModel, facesModel, direction } = this;
 
         const params = new c3d.ModifyValues();

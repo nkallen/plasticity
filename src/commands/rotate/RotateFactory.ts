@@ -31,7 +31,7 @@ export default class RotateFactory extends GeometryFactory {
         item.quaternion.setFromAxisAngle(axis, angle);
     }
 
-    doCommit() {
+    async doCommit() {
         const { item, axis, angle, point } = this;
         const model = this.db.lookup(item);
         this.db.removeItem(item);

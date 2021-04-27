@@ -21,12 +21,12 @@ beforeEach(() => {
 })
 
 describe('commit', () => {
-    test('invokes the appropriate c3d commands', () => {
+    test('invokes the appropriate c3d commands', async () => {
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        const item = makeBox.commit() as visual.SpaceItem;
+        const item = await makeBox.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);

@@ -15,7 +15,7 @@ export class PointPicker {
         this.mesh.renderOrder = 999;
     }
 
-    execute(cb?: (pt: THREE.Vector3) => void): CancellablePromise<THREE.Vector3> {
+    execute<T>(cb?: (pt: THREE.Vector3) => T): CancellablePromise<THREE.Vector3> {
         return new CancellablePromise<THREE.Vector3>((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const mesh = this.mesh;

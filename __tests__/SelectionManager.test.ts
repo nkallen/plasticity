@@ -24,14 +24,14 @@ beforeEach(() => {
 describe('onClick', () => {
     let solid: visual.Solid;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         expect(db.scene.children.length).toBe(0);
         const makeBox = new BoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        solid = makeBox.commit() as visual.Solid;
+        solid = await makeBox.commit() as visual.Solid;
     });
 
     test('clicking on a face selects the solid', () => {
@@ -127,14 +127,14 @@ describe('onClick', () => {
 describe('onPointerMove', () => {
     let solid: visual.Solid;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         expect(db.scene.children.length).toBe(0);
         const makeBox = new BoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        solid = makeBox.commit() as visual.Solid;
+        solid = await makeBox.commit() as visual.Solid;
     });
     
     test("hovering in and out sends signals", () => { 

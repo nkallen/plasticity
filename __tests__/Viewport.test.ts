@@ -47,7 +47,7 @@ class FakeWebGLRenderer implements THREE.Renderer {
     clearDepth() { }
 }
 
-beforeEach(() => {
+beforeEach(async () => {
     materials = new FakeMaterials();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
@@ -62,7 +62,7 @@ beforeEach(() => {
     const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;
-    sphere = makeSphere.commit() as visual.Solid;
+    sphere = await makeSphere.commit() as visual.Solid;
     navigationControls = new EventDispatcher()
     viewport = new Model(
         editor,

@@ -8,7 +8,7 @@ import { Scheduler } from '../util/Scheduler';
 type State = 'none' | 'updated' | 'failed' | 'cancelled' | 'committed'
 
 export abstract class GeometryFactory extends Cancellable {
-    state: State = 'none';
+    state: Promise<State> = Promise.resolve('none');
     private readonly scheduler = new Scheduler(1, 1);
 
     constructor(
@@ -17,8 +17,9 @@ export abstract class GeometryFactory extends Cancellable {
         protected readonly signals: EditorSignals
     ) { super() }
 
-    finish(): void {
-        switch (this.state) {
+    async finish() {
+        const state = await this.state;
+        switch (state) {
             case 'none':
             case 'updated':
                 this.commit();
@@ -29,20 +30,21 @@ export abstract class GeometryFactory extends Cancellable {
     }
 
     protected abstract doUpdate(): Promise<void>;
-    protected abstract doCommit(): visual.SpaceItem | visual.SpaceItem[];
+    protected abstract doCommit(): Promise<visual.SpaceItem | visual.SpaceItem[]>;
     protected abstract doCancel(): void;
 
     async update() {
-        switch (this.state) {
+        const state = await this.state;
+        switch (state) {
             case 'none':
             case 'failed':
             case 'updated':
                 this.signals.factoryUpdated.dispatch();
                 try {
                     await this.doUpdate();
-                    this.state = 'updated';
+                    this.state = Promise.resolve('updated');
                 } catch (e) {
-                    this.state = 'failed';
+                    this.state = Promise.resolve('failed');
                     throw e;
                 }
                 return;
@@ -51,25 +53,29 @@ export abstract class GeometryFactory extends Cancellable {
         }
     }
 
-    commit(): visual.SpaceItem | visual.SpaceItem[] {
-        switch (this.state) {
+    async commit(): Promise<visual.SpaceItem | visual.SpaceItem[]> {
+        const state = await this.state;
+        switch (state) {
             case 'none':
             case 'updated':
-                this.state = 'committed';
+                const result = await this.doCommit();
+                this.state = Promise.resolve('committed');
                 this.signals.factoryCommitted.dispatch();
-                return this.doCommit();
+                return result;
             default:
                 throw new Error('invalid state: ' + this.state);
         }
     }
 
-    cancel(): void {
-        switch (this.state) {
+    async cancel() {
+        const state = await this.state;
+        switch (state) {
             case 'updated':
-                this.doCancel();
+                await this.doCancel();
             case 'none':
             case 'cancelled':
             case 'failed':
+                this.state = Promise.resolve('cancelled');
                 return;
             default:
                 throw new Error('invalid state: ' + this.state);

@@ -21,11 +21,11 @@ beforeEach(() => {
 })
 
 describe('commit', () => {
-    test('invokes the appropriate c3d commands', () => {
+    test('invokes the appropriate c3d commands', async () => {
         makeCylinder.base = new THREE.Vector3();
         makeCylinder.radius = new THREE.Vector3(1, 0, 0);
         makeCylinder.height = new THREE.Vector3(0, 0, 10);
-        const item = makeCylinder.commit() as visual.SpaceItem;
+        const item = await makeCylinder.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);

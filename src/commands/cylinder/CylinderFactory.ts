@@ -30,7 +30,7 @@ export default class CylinderFactory extends GeometryFactory {
         this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
     }
 
-    doCommit() {
+    async doCommit() {
         this.db.scene.remove(this.mesh);
         const n = this.height.clone().sub(this.base);
         const z = -(n.x + n.y) / n.z

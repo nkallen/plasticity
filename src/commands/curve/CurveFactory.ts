@@ -33,7 +33,7 @@ export default class CurveFactory extends GeometryFactory {
         this.mesh.geometry = geometry;
     }
 
-    doCommit() {
+    async doCommit() {
         const { points, mesh } = this;
         this.db.scene.remove(mesh);
 

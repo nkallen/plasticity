@@ -24,59 +24,45 @@ beforeEach(() => {
 
 describe('intersection', () => {
     describe('commit', () => {
-        test('invokes the appropriate c3d commands', () => {
+        test('invokes the appropriate c3d commands', async () => {
             let makeSphere = new SphereFactory(db, materials, signals);
             makeSphere.center = new THREE.Vector3(-0.5, -0.5, -0.5);
             makeSphere.radius = 1;
-            makeSphere.commit();
+            const sphere1 = await makeSphere.commit() as visual.Solid;
 
             makeSphere = new SphereFactory(db, materials, signals);
             makeSphere.center = new THREE.Vector3(0.5, 0.5, 0.5);
             makeSphere.radius = 1;
-            makeSphere.commit();
+            const sphere2 = await makeSphere.commit() as visual.Solid;
 
-            expect(db.scene.children.length).toBe(2);
-            const [item1, item2] = db.scene.children as visual.Solid[];
-            expect(item1).toBeInstanceOf(visual.Solid);
-            expect(item2).toBeInstanceOf(visual.Solid);
-
-            intersect.item1 = item1;
-            intersect.item2 = item2;
-            intersect.commit();
-            const item = db.scene.children[0] as visual.Solid;
-            expect(item).toBeInstanceOf(visual.Solid);
-            expect(item).toHaveCentroidNear(new THREE.Vector3(0, 0, 0));
+            intersect.item1 = sphere1;
+            intersect.item2 = sphere2;
+            const intersection = await intersect.commit();
+            expect(intersection).toHaveCentroidNear(new THREE.Vector3(0, 0, 0));
         })
     })
 })
 
 describe("cutting", () => {
     describe('commit', () => {
-        test('takes a cutting curve and a solid and produces a divided solid', () => {
+        test('takes a cutting curve and a solid and produces a divided solid', async () => {
             const makeSphere = new SphereFactory(db, materials, signals);
             makeSphere.center = new THREE.Vector3(0, 0, 0);
             makeSphere.radius = 1;
-            makeSphere.commit();
-            const sphere = db.scene.children[0] as visual.Solid;
-            expect(sphere).toBeInstanceOf(visual.Solid);
+            const sphere = await makeSphere.commit() as visual.Solid;
 
             const makeCurve = new CurveFactory(db, materials, signals);
             makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
             makeCurve.points.push(new THREE.Vector3(0, 2, 0.5));
             makeCurve.points.push(new THREE.Vector3(2, 2, 0));
-            makeCurve.commit();
-            const item = db.scene.children[1] as visual.SpaceInstance<visual.Curve3D>;
-            expect(item).toBeInstanceOf(visual.SpaceInstance);
+            const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
     
             const cut = new CutFactory(db, materials, signals);
             cut.solid = sphere;
-            cut.contour = item;
-            cut.commit();
+            cut.contour = curve;
+            const result = await cut.commit() as visual.SpaceItem[];
 
-            expect(db.scene.children.length).toBe(2);
-            expect(db.scene.children[0]).toBeInstanceOf(visual.Solid);
-            expect(db.scene.children[1]).toBeInstanceOf(visual.Solid);
-
+            expect(result.length).toBe(2);
         })
     })
 })

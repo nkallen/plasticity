@@ -21,10 +21,10 @@ beforeEach(() => {
 })
 
 describe('commit', () => {
-    test('invokes the appropriate c3d commands', () => {
+    test('invokes the appropriate c3d commands', async () => {
         makeCircle.center = new THREE.Vector3();
         makeCircle.radius = 1;
-        const item = makeCircle.commit() as visual.SpaceItem;
+        const item = await makeCircle.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);

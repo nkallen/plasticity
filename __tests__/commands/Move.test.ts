@@ -22,35 +22,30 @@ beforeEach(() => {
 })
 
 describe('update', () => {
-    test('moves the visual object', () => {
+    test('moves the visual object', async () => {
         const item = new visual.Solid();
         move.item = item;
         move.p1 = new THREE.Vector3();
         move.p2 = new THREE.Vector3(1, 0, 0);
         expect(item.position).toEqual(new THREE.Vector3(0, 0, 0));
-        move.update();
+        await move.update();
         expect(item.position).toEqual(new THREE.Vector3(1, 0, 0));
     });
 });
 
 describe('commit', () => {
-    test('invokes the appropriate c3d commands', () => {
+    test('invokes the appropriate c3d commands', async () => {
         expect(db.scene.children.length).toBe(0);
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3();
         makeSphere.radius = 1;
-        makeSphere.commit();
-        expect(db.scene.children.length).toBe(1);
-        let item = db.scene.children[0] as visual.Solid;
-        expect(item).toBeInstanceOf(visual.Solid);
+        const sphere = await makeSphere.commit() as visual.Solid;
 
-        move.item = item;
+        move.item = sphere;
         move.p1 = new THREE.Vector3();
         move.p2 = new THREE.Vector3(1, 0, 0);
-        move.commit();
-        item = db.scene.children[0] as visual.Solid;
-        expect(item).toBeInstanceOf(visual.Solid);
-        const bbox = new THREE.Box3().setFromObject(item);
+        const moved = await move.commit() as visual.Solid;
+        const bbox = new THREE.Box3().setFromObject(moved);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));

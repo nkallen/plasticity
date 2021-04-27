@@ -8,7 +8,7 @@ abstract class BooleanFactory extends GeometryFactory {
     item1!: visual.Solid;
     item2!: visual.Solid;
 
-    doCommit() {
+    async doCommit() {
         const model1 = this.db.lookup(this.item1);
         const model2 = this.db.lookup(this.item2);
 
@@ -49,7 +49,7 @@ export class CutFactory extends GeometryFactory {
     solid!: visual.Solid;
     contour!: visual.SpaceInstance<visual.Curve3D>;
 
-    doCommit() {
+    async doCommit() {
         const solid = this.db.lookup(this.solid);
         const instance = this.db.lookup(this.contour);
         const item = instance.GetSpaceItem();

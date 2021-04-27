@@ -22,41 +22,37 @@ beforeEach(() => {
 })
 
 describe('update', () => {
-    test('rotates the visual object', () => {
+    test('rotates the visual object', async () => {
         const item = new visual.Solid();
         rotate.item = item;
         rotate.point = new THREE.Vector3();
         rotate.axis = new THREE.Vector3(0, 0, 1);
         rotate.angle = Math.PI / 2;
         expect(item).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
-        rotate.update();
+        await rotate.update();
         expect(item).toHaveQuaternion(new THREE.Quaternion().setFromAxisAngle(rotate.axis, rotate.angle));
     });
 });
 
 describe('commit', () => {
-    test('invokes the appropriate c3d commands', () => {
+    test('invokes the appropriate c3d commands', async () => {
         expect(db.scene.children.length).toBe(0);
         const makeBox = new BoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        makeBox.commit();
-        expect(db.scene.children.length).toBe(1);
-        let item = db.scene.children[0] as visual.Solid;
-        expect(item).toBeInstanceOf(visual.Solid);
+        const box = await makeBox.commit() as visual.Solid;
 
-        expect(item).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5));
+        expect(box).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5));
 
-        rotate.item = item;
+        rotate.item = box;
         rotate.point = new THREE.Vector3();
         rotate.axis = new THREE.Vector3(0, 0, 1);
         rotate.angle = Math.PI / 2;
-        rotate.commit();
+        const rotated = await rotate.commit();
 
-        item = db.scene.children[0] as visual.Solid;
-        expect(item).toBeInstanceOf(visual.Solid);
-        expect(item).toHaveCentroidNear(new THREE.Vector3(-0.5, 0.5, 0.5));
+        expect(rotated).toBeInstanceOf(visual.Solid);
+        expect(rotated).toHaveCentroidNear(new THREE.Vector3(-0.5, 0.5, 0.5));
     })
 });

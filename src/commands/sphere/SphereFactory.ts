@@ -26,7 +26,7 @@ export default class SphereFactory extends GeometryFactory {
         this.mesh.position.copy(this.center);
     }
 
-    doCommit() {
+    async doCommit() {
         this.db.scene.remove(this.mesh);
         const points = [
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z),

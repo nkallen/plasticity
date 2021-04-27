@@ -34,7 +34,7 @@ export default class LineFactory extends GeometryFactory {
         this.mesh.geometry = geometry;
     }
 
-    doCommit() {
+    async doCommit() {
         this.db.scene.remove(this.mesh);
         const point1 = new c3d.CartPoint3D(this.p1.x, this.p1.y, this.p1.z);
         const point2 = new c3d.CartPoint3D(this.p2.x, this.p2.y, this.p2.z);

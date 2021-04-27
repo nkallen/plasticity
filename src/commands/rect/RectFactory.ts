@@ -50,7 +50,7 @@ export default class RectFactory extends GeometryFactory {
         this.mesh.geometry = geometry;
     }
 
-    doCommit() {
+    async doCommit() {
         this.db.scene.remove(this.mesh);
         const { p1, p2, p3, p4 } = this.orthogonal();
 

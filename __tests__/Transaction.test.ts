@@ -28,12 +28,10 @@ describe('update', () => {
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        makeBox.commit();
-        const solid = db.scene.children[0] as visual.Solid;
-        expect(solid).toBeInstanceOf(visual.Solid);
+        const box = await makeBox.commit() as visual.Solid;
 
-        fillet.item = solid;
-        fillet.edges = [solid.edges.get(2)];
+        fillet.item = box;
+        fillet.edges = [box.edges.get(2)];
         await fillet.transaction(['distance'], async () => {
             fillet.distance = 0.01;
             await fillet.update();

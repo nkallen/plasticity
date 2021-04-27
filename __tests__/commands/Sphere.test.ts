@@ -21,10 +21,10 @@ beforeEach(() => {
 })
 
 describe('commit', () => {
-    test('invokes the appropriate c3d commands', () => {
+    test('invokes the appropriate c3d commands', async () => {
         makeSphere.center = new THREE.Vector3();
         makeSphere.radius = 1;
-        const item = makeSphere.commit() as visual.SpaceItem;
+        const item = await makeSphere.commit() as visual.SpaceItem;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);

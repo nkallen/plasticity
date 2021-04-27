@@ -58,22 +58,12 @@ export default class FilletFactory extends GeometryFactory {
     async doUpdate() {
         this.item.visible = false;
 
-        console.time("exec2");
-        const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
-        console.timeEnd("exec2");
-        this.temp?.cancel();
-        this.temp = this.db.addTemporaryItem(result);
-    }
-
-    async doUpdate2() {
-        this.item.visible = false;
-
         const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
         this.temp?.cancel();
         this.temp = this.db.addTemporaryItem(result);
     }
 
-    doCommit() {
+    async doCommit() {
         if (this.temp) return this.temp.commit();
 
         const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);

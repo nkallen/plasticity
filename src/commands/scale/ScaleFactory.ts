@@ -36,7 +36,7 @@ export default class ScaleFactory extends GeometryFactory {
         item.scale.multiplyScalar(scaleFactor);
     }
 
-    doCommit() {
+    async doCommit() {
         const { item, origin, p2, p3 } = this;
         const solid = this.db.lookup(this.item);
         this.db.removeItem(item);

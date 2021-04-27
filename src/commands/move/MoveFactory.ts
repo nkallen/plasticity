@@ -24,7 +24,7 @@ export default class MoveFactory extends GeometryFactory {
         this.item.position.copy(originalPosition.add(p2).sub(p1));
     }
 
-    doCommit() {
+    async doCommit() {
         const model = this.db.lookup(this.item);
         this.db.removeItem(this.item);
 

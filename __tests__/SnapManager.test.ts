@@ -31,16 +31,13 @@ test("initial state", () => {
     expect(snaps.pickers.length).toBe(1);
 });
 
-test("adding object", () => {
+test("adding object", async () => {
     const makeBox = new BoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();
     makeBox.p2 = new THREE.Vector3(1, 0, 0);
     makeBox.p3 = new THREE.Vector3(1, 1, 0);
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
-    makeBox.commit();
-    expect(db.scene.children.length).toBe(1);
-    box = db.scene.children[0] as visual.Solid;
-    expect(box).toBeInstanceOf(visual.Solid);
+    const box = await makeBox.commit();
 
     expect(snaps.snappers.length).toBe(28);
     expect(snaps.pickers.length).toBe(25);
