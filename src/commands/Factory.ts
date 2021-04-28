@@ -83,26 +83,22 @@ export abstract class GeometryFactory extends Cancellable {
     }
 
     private previous?: Map<keyof this, any>;
-    async transaction(keys: (keyof this)[], cb: () => Promise<void>) {
+    async transaction(key: (keyof this), cb: () => Promise<void>) {
         try {
             await cb();
             this.previous = new Map();
-            for (const key of keys) {
-                const uncloned = this[key];
-                let value = uncloned;
-                if (typeof uncloned === 'object' && 'clone' in uncloned) {
-                    // @ts-expect-error("clone doesn't exist")
-                    value = uncloned.clone();
-                }
-                this.previous.set(key, value);
+            const uncloned = this[key];
+            let value = uncloned;
+            if (typeof uncloned === 'object' && 'clone' in uncloned) {
+                // @ts-expect-error("clone doesn't exist")
+                value = uncloned.clone();
             }
+            this.previous.set(key, value);
             this.previous.set("state", this.state);
         } catch (e) {
             console.warn(e);
             if (this.previous != null) {
-                for (const key of keys) {
-                    this[key] = this.previous.get(key);
-                }
+                this[key] = this.previous.get(key);
                 this.state = this.previous.get("state");
             }
         }

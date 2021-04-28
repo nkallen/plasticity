@@ -9,7 +9,7 @@ import BoxFactory from './box/BoxFactory';
 import CircleFactory from './circle/CircleFactory';
 import CurveFactory from "./curve/CurveFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
-import FilletFactory from './fillet/FilletFactory';
+import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import LineFactory from './line/LineFactory';
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
@@ -356,13 +356,10 @@ export class FilletCommand extends Command {
         const normal = curveEdge.EdgeNormal(0.5);
         const filletGizmo = new FilletGizmo(this.editor, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));
 
-        await filletGizmo.execute((delta) => {
-            fillet.distance = delta;
-            fillet.schedule(async () => {
-                await fillet.transaction(['distance'], async () => {
-                    await fillet.update();
-                });
-            });
+        const max = new Max(fillet);
+        max.start();
+        await filletGizmo.execute(async (delta) => {
+            max.exec(delta);
         }).resource(this);
 
         await fillet.commit();
@@ -387,7 +384,7 @@ export class OffsetFaceCommand extends Command {
         const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
 
         await gizmo.execute((delta) => {
-            offsetFace.transaction(['direction'], async () => {
+            offsetFace.transaction('direction', async () => {
                 offsetFace.direction = new THREE.Vector3(delta, 0, 0);
                 await offsetFace.update();
             });
@@ -452,7 +449,7 @@ export class ActionFaceCommand extends Command {
         const gizmo = new MoveGizmo(this.editor, point);
 
         await gizmo.execute(delta => {
-            actionFace.transaction(['direction'], async () => {
+            actionFace.transaction('direction', async () => {
                 actionFace.direction = delta;
                 await actionFace.update();
             });
@@ -480,7 +477,7 @@ export class FilletFaceCommand extends Command {
         const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
 
         await gizmo.execute((delta) => {
-            refilletFace.transaction(['direction'], async () => {
+            refilletFace.transaction('direction', async () => {
                 refilletFace.direction = new THREE.Vector3(delta, 0, 0);
                 await refilletFace.update();
             });

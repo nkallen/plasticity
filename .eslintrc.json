@@ -6,10 +6,9 @@
     "es6": true,
     "node": true
   },
-  "extends": [
-
-  ],
+  "extends": [],
   "rules": {
+    // "no-floating-promises": 2
   },
   "parser": "@typescript-eslint/parser"
 }

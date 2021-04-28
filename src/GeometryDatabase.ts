@@ -26,7 +26,7 @@ export class GeometryDatabase {
         mesh = mesh ?? this.object2mesh(object);
         this.geometryModel.AddItem(object, counter);
         mesh.userData.simpleName = counter;
-        counter++
+        counter++;
 
         this.scene.add(mesh);
         this.drawModel.add(mesh);

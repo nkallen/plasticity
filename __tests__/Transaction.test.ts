@@ -32,19 +32,19 @@ describe('update', () => {
 
         fillet.item = box;
         fillet.edges = [box.edges.get(2)];
-        await fillet.transaction(['distance'], async () => {
+        await fillet.transaction('distance', async () => {
             fillet.distance = 0.01;
             await fillet.update();
         });
         expect(fillet.distance).toBe(0.01);
 
-        await fillet.transaction(['distance'], async () => {
+        await fillet.transaction('distance', async () => {
             fillet.distance = 0.1;
             await fillet.update();
         });
         expect(fillet.distance).toBe(0.1);
 
-        await fillet.transaction(['distance'], async () => {
+        await fillet.transaction('distance', async () => {
             fillet.distance = 100;
             await fillet.update();
         });
