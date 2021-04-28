@@ -75,7 +75,7 @@ export default class FilletFactory extends GeometryFactory {
         this.temp?.cancel();
     }
 
-    async foo(d: number) {
+    async check(d: number) {
         const params = new c3d.SmoothValues();
         params.distance1 = d;
         params.distance2 = d;
@@ -96,15 +96,16 @@ export class Max {
     private state: State = { tag: 'start' }
 
     constructor(
-        private readonly fillet: FilletFactory
+        private readonly factory: GeometryFactory & { check(d: number): Promise<c3d.Solid>, distance: number }
     ) { }
 
     async start() {
         switch (this.state.tag) {
             case 'start':
                 this.state = { tag: 'finding' }
-                const result = await Max.search(0.01, 0.1, 100, (d) => this.fillet.foo(d));
-                console.log(result);
+                console.time("searching");
+                const result = await Max.search(0.01, 0.1, 100, (d) => this.factory.check(d));
+                console.timeEnd("searching");
                 this.state = { tag: 'found', value: result }
                 break;
             default: throw new Error("invalid state");
@@ -112,38 +113,39 @@ export class Max {
     }
 
     async exec(delta: number) {
-        const fillet = this.fillet;
+        const factory = this.factory;
         switch (this.state.tag) {
             case 'start':
             case 'finding':
-                fillet.distance = delta;
-                fillet.schedule(async () => {
-                    await fillet.transaction('distance', async () => {
-                        await fillet.update();
+                factory.distance = delta;
+                factory.schedule(async () => {
+                    await factory.transaction('distance', async () => {
+                        await factory.update();
                     });
                 });
                 break;
             case 'found':
                 const max = this.state.value;
                 if (delta >= max) {
-                    fillet.distance = this.state.value;
-                    fillet.schedule(async () => {
-                        await fillet.transaction('distance', async () => {
-                            await fillet.update();
+                    factory.distance = this.state.value;
+                    factory.schedule(async () => {
+                        await factory.transaction('distance', async () => {
+                            await factory.update();
                             this.state = { tag: 'computed', value: max }
                         });
                     });
                 } else {
-                    fillet.distance = delta;
-                    fillet.schedule(async () => {
-                        await fillet.transaction('distance', async () => {
-                            await fillet.update();
+                    factory.distance = delta;
+                    factory.schedule(async () => {
+                        await factory.transaction('distance', async () => {
+                            await factory.update();
                         });
                     });
                 }
                 break;
             case 'computed':
                 if (delta >= this.state.value) {
+                    console.warn("skipping work because delta exceeds max", delta, this.state.value);
                 } else {
                     this.state = { tag: 'found', value: this.state.value }
                     await this.exec(delta);
@@ -152,7 +154,7 @@ export class Max {
         }
     }
 
-    static async search(lastGood: number, candidate: number, max: number, cb: (n: number) => Promise<void>): Promise<number> {
+    static async search<_>(lastGood: number, candidate: number, max: number, cb: (n: number) => Promise<_>): Promise<number> {
         if (max < candidate) throw new Error('invalid');
         if (candidate < lastGood) throw new Error('invalid');
         if (Math.abs(candidate - lastGood) < 0.01) return Promise.resolve(lastGood);
