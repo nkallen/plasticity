@@ -1,6 +1,6 @@
-Speed week:
-- Async functions
 - Lod
+  - highlighting of objects (faces edges) pops in and out as you zoom
+  - standalone edges are no longer selectable
 
 object history
 

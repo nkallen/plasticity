@@ -49,7 +49,7 @@ abstract class ModifyFaceFactory extends GeometryFactory {
 
         solid.visible = false;
         this.temp?.cancel();
-        this.temp = this.db.addTemporaryItem(result);
+        this.temp = await this.db.addTemporaryItem(result);
     }
 
     async doCommit() {

@@ -66,8 +66,8 @@ export class CutFactory extends GeometryFactory {
 
         this.db.removeItem(this.solid);
         this.db.removeItem(this.contour);
-        const r1 = this.db.addItem(result0);
-        const r2 = this.db.addItem(result1);
+        const r1 = await this.db.addItem(result0);
+        const r2 = await this.db.addItem(result1);
         return [r1, r2];
     }
 

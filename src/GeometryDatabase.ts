@@ -9,7 +9,7 @@ const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5], [0.0001, 
 
 export interface TemporaryObject {
     cancel(): void;
-    commit(): visual.SpaceItem;
+    commit(): Promise<visual.SpaceItem>;
 }
 
 let counter = 0;
@@ -24,13 +24,12 @@ export class GeometryDatabase {
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals) { }
 
-    addItem(object: c3d.Item): visual.SpaceItem {
-        this.geometryModel.AddItem(object, counter);
+    async addItem(object: c3d.Item): Promise<visual.SpaceItem> {
+        const current = counter++;
+        this.geometryModel.AddItem(object, current);
 
-        const mesh = this.meshes(object, precision_distance);
-        mesh.userData.simpleName = counter;
-
-        counter++;
+        const mesh = await this.meshes(object, precision_distance);
+        mesh.userData.simpleName = current;
 
         this.scene.add(mesh);
         this.drawModel.add(mesh);
@@ -40,8 +39,8 @@ export class GeometryDatabase {
         return mesh;
     }
 
-    addTemporaryItem(object: c3d.Item): TemporaryObject {
-        const mesh = this.meshes(object, [[0.01, 1]]);
+    async addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
+        const mesh = await this.meshes(object, [[0.01, 1]]);
         this.scene.add(mesh);
         return {
             cancel: () => {
@@ -92,6 +91,7 @@ export class GeometryDatabase {
     lookupTopologyItem(object: visual.Edge | visual.Face): c3d.TopologyItem {
         const parent = object.parentItem;
         const parentModel = this.lookupItem(parent);
+        if (!parentModel) throw "Invalid precondition";
         const solid = parentModel.Cast<c3d.Solid>(c3d.SpaceType.Solid);
 
         if (object instanceof visual.Edge) {
@@ -112,7 +112,7 @@ export class GeometryDatabase {
         return result;
     }
 
-    private meshes(obj: c3d.Item, precision_distance: [number, number][]): visual.Item {
+    private async meshes(obj: c3d.Item, precision_distance: [number, number][]): Promise<visual.Item> {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
@@ -121,16 +121,19 @@ export class GeometryDatabase {
             default:
                 builder = new visual.SolidBuilder();
         }
+
         for (const [precision, distance] of precision_distance) {
-            this.object2mesh(builder, obj, precision, distance);
+            await this.object2mesh(builder, obj, precision, distance);
         }
-        return builder.build();
+
+        const result = builder.build();
+        return result;
     }
 
-    private object2mesh(builder: any, obj: c3d.Item, sag: number, distance?: number): void {
+    private async object2mesh(builder: any, obj: c3d.Item, sag: number, distance?: number): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const note = new c3d.FormNote(true, true, true, false, false);
-        const item = obj.CreateMesh(stepData, note);
+        const item = await obj.CreateMesh_async(stepData, note);
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance: {

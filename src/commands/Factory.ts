@@ -25,7 +25,7 @@ export abstract class GeometryFactory extends Cancellable {
                 this.commit();
                 break;
             default:
-                throw new Error('invalid state: ' + this.state);
+                throw new Error('invalid state: ' + state);
         }
     }
 
@@ -39,17 +39,18 @@ export abstract class GeometryFactory extends Cancellable {
             case 'none':
             case 'failed':
             case 'updated':
-                this.signals.factoryUpdated.dispatch();
                 try {
                     await this.doUpdate();
+                    this.signals.factoryUpdated.dispatch();
                     this.state = Promise.resolve('updated');
                 } catch (e) {
                     this.state = Promise.resolve('failed');
+                    this.signals.factoryUpdated.dispatch();
                     throw e;
                 }
                 return;
             default:
-                throw new Error('invalid state: ' + this.state);
+                throw new Error('invalid state: ' + state);
         }
     }
 
@@ -58,12 +59,20 @@ export abstract class GeometryFactory extends Cancellable {
         switch (state) {
             case 'none':
             case 'updated':
-                const result = await this.doCommit();
-                this.state = Promise.resolve('committed');
-                this.signals.factoryCommitted.dispatch();
-                return result;
+                try {
+                    const result = await this.doCommit();
+                    this.state = Promise.resolve('committed');
+                    this.signals.factoryCommitted.dispatch();
+                    return result;
+                } catch (e) {
+                    await this.cancel();
+                    throw e;
+                }
+            case 'failed':
+                this.cancel();
+                throw new Error('invalid state: ' + state);
             default:
-                throw new Error('invalid state: ' + this.state);
+                throw new Error('invalid state: ' + state);
         }
     }
 
@@ -78,7 +87,7 @@ export abstract class GeometryFactory extends Cancellable {
                 this.state = Promise.resolve('cancelled');
                 return;
             default:
-                throw new Error('invalid state: ' + this.state);
+                throw new Error('invalid state: ' + state);
         }
     }
 

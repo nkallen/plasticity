@@ -10,6 +10,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
         StaticMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),
             <%_ } else { _%>
         InstanceMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),
+        InstanceMethod<&<%- klass.cppClassName %>::<%- func.name %>_async>("<%- func.name %>_async"),
             <%_ } _%>
         <%_ } _%>
         <%_ for (const field of klass.fields) { _%>

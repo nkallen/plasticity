@@ -27,11 +27,11 @@ beforeEach(() => {
     box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
 })
 
-test("addItem & lookup & removeItem", () => {
+test("addItem & lookup & removeItem", async () => {
     expect(db.scene.children.length).toBe(0);
     expect(db.drawModel.size).toBe(0);
     
-    const v = db.addItem(box) as visual.Solid;
+    const v = await db.addItem(box) as visual.Solid;
     expect(db.lookup(v)).toBeTruthy();
     expect(db.scene.children.length).toBe(1);
     expect(db.drawModel.size).toBe(1);
@@ -42,19 +42,19 @@ test("addItem & lookup & removeItem", () => {
     expect(db.drawModel.size).toBe(0);
 })
 
-test("lookupTopologyItem", () => {
-    const v = db.addItem(box) as visual.Solid;
+test("lookupTopologyItem", async () => {
+    const v = await db.addItem(box) as visual.Solid;
     for (const edge of v.edges) {
         expect(db.lookupTopologyItem(edge)).toBeTruthy();
     }
 })
 
 describe("addTemporaryItem", () => {
-    test("cancel", () => {
+    test("cancel", async () => {
         expect(db.scene.children.length).toBe(0);
         expect(db.drawModel.size).toBe(0);
 
-        const temp = db.addTemporaryItem(box);
+        const temp = await db.addTemporaryItem(box);
         expect(db.scene.children.length).toBe(1);
         expect(db.drawModel.size).toBe(0);
 
@@ -64,15 +64,15 @@ describe("addTemporaryItem", () => {
         expect(db.drawModel.size).toBe(0);
     });
 
-    test("commit", () => {
+    test("commit", async () => {
         expect(db.scene.children.length).toBe(0);
         expect(db.drawModel.size).toBe(0);
 
-        const temp = db.addTemporaryItem(box);
+        const temp = await db.addTemporaryItem(box);
         expect(db.scene.children.length).toBe(1);
         expect(db.drawModel.size).toBe(0);
 
-        temp.commit();
+        await temp.commit();
 
         expect(db.scene.children.length).toBe(1);
         expect(db.drawModel.size).toBe(1);
