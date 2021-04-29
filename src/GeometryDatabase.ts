@@ -13,7 +13,7 @@ export interface TemporaryObject {
 let counter = 0;
 
 export class GeometryDatabase {
-    readonly drawModel = new Set<visual.SpaceItem>();
+    readonly drawModel = new Set<THREE.LOD>();
     readonly scene = new THREE.Scene();
     private readonly geometryModel = new c3d.Model();
     private readonly name2topologyItem = new WeakValueMap<c3d.SimpleName, visual.TopologyItem>();
@@ -22,14 +22,22 @@ export class GeometryDatabase {
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals) { }
 
-    addItem(object: c3d.Item, mesh?: visual.SpaceItem): visual.SpaceItem {
-        mesh = mesh ?? this.object2mesh(object);
+    addItem(object: c3d.Item): visual.SpaceItem {
         this.geometryModel.AddItem(object, counter);
-        mesh.userData.simpleName = counter;
+
+        const lod = new THREE.LOD();
+        const precision_distance = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];
+        for (const [precision, distance] of precision_distance) {
+            const mesh_ = this.object2mesh(object, precision)
+            mesh_.userData.simpleName = counter;
+            lod.addLevel(mesh_, distance);
+        }
+        const mesh = lod.getObjectForDistance(precision_distance[2][1]) as visual.SpaceItem;
+
         counter++;
 
-        this.scene.add(mesh);
-        this.drawModel.add(mesh);
+        this.scene.add(lod);
+        this.drawModel.add(lod);
 
         this.signals.objectAdded.dispatch(mesh); // FIXME dispatch object and mesh, since snapmanager is just looking up the object immediately afterward
         this.signals.sceneGraphChanged.dispatch();
@@ -45,6 +53,7 @@ export class GeometryDatabase {
                 this.scene.remove(mesh);
             },
             commit: () => {
+                this.scene.remove(mesh);
                 return this.addItem(object, mesh);
             }
         }
@@ -52,7 +61,7 @@ export class GeometryDatabase {
 
     removeItem(object: visual.Item) {
         this.scene.remove(object);
-        this.drawModel.delete(object);
+        this.drawModel.delete(object.lod);
         this.geometryModel.DetachItem(this.lookupItem(object));
 
         this.signals.objectRemoved.dispatch(object);
@@ -107,7 +116,7 @@ export class GeometryDatabase {
         return result;
     }
 
-    private object2mesh(obj: c3d.Item, sag: number = 0.005, wireframe: boolean = true): visual.SpaceItem {
+    private object2mesh(obj: c3d.Item, sag: number, wireframe: boolean = true): visual.SpaceItem {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const note = new c3d.FormNote(wireframe, true, true, false, false);
         const item = obj.CreateMesh(stepData, note);

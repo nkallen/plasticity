@@ -13,7 +13,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
 
     // FIXME add dispose
     constructor(
-        private readonly drawModel: Set<SpaceItem>,
+        private readonly drawModel: Set<THREE.LOD>,
         private readonly camera: THREE.Camera,
         private readonly domElement: HTMLElement,
         private readonly signals: EditorSignals) {

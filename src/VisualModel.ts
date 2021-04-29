@@ -19,6 +19,9 @@ import { applyMixins } from './util/Util';
 
 export abstract class SpaceItem {
     private _useNominal: undefined;
+    get lod() {
+        return this.parent as THREE.LOD;
+    }
 }
 export abstract class Item extends SpaceItem {    private _useNominal2: undefined;
  }
