@@ -74,6 +74,6 @@ export class ViewportSelector extends THREE.EventDispatcher {
         this.mouse.set((point.x * 2) - 1, - (point.y * 2) + 1);
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
-        return this.raycaster.intersectObjects(objects, true);
+        return this.raycaster.intersectObjects(objects, false);
     }
 }

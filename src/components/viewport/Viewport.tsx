@@ -178,8 +178,9 @@ export class Model implements Viewport {
     }
 
     outlineHover(object?: SpaceItem | TopologyItem) {
-        if (object instanceof Solid)
+        if (object instanceof Solid) {
             this.outlinePassHover.selectedObjects = [object.faces];
+        }
     }
 
     outlineUnhover(object?: SpaceItem | TopologyItem) {

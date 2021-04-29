@@ -5,6 +5,8 @@ import MaterialDatabase from './MaterialDatabase';
 import { assertUnreachable, WeakValueMap } from './util/Util';
 import * as visual from './VisualModel';
 
+const precision_distance = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];
+
 export interface TemporaryObject {
     cancel(): void;
     commit(): visual.SpaceItem;
@@ -26,9 +28,8 @@ export class GeometryDatabase {
         this.geometryModel.AddItem(object, counter);
 
         const lod = new THREE.LOD();
-        const precision_distance = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];
         for (const [precision, distance] of precision_distance) {
-            const mesh_ = this.object2mesh(object, precision)
+            const mesh_ = this.object2mesh(object, precision);
             mesh_.userData.simpleName = counter;
             lod.addLevel(mesh_, distance);
         }
@@ -54,13 +55,13 @@ export class GeometryDatabase {
             },
             commit: () => {
                 this.scene.remove(mesh);
-                return this.addItem(object, mesh);
+                return this.addItem(object);
             }
         }
     }
 
     removeItem(object: visual.Item) {
-        this.scene.remove(object);
+        this.scene.remove(object.lod);
         this.drawModel.delete(object.lod);
         this.geometryModel.DetachItem(this.lookupItem(object));
 

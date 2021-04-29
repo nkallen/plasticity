@@ -28,10 +28,18 @@ beforeEach(() => {
 })
 
 test("addItem & lookup & removeItem", () => {
+    expect(db.scene.children.length).toBe(0);
+    expect(db.drawModel.size).toBe(0);
+    
     const v = db.addItem(box) as visual.Solid;
     expect(db.lookup(v)).toBeTruthy();
+    expect(db.scene.children.length).toBe(1);
+    expect(db.drawModel.size).toBe(1);
+
     db.removeItem(v);
     expect(() => db.lookup(v)).toThrow();
+    expect(db.scene.children.length).toBe(0);
+    expect(db.drawModel.size).toBe(0);
 })
 
 test("lookupTopologyItem", () => {

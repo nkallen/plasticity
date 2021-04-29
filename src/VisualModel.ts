@@ -23,8 +23,9 @@ export abstract class SpaceItem {
         return this.parent as THREE.LOD;
     }
 }
-export abstract class Item extends SpaceItem {    private _useNominal2: undefined;
- }
+export abstract class Item extends SpaceItem {
+    private _useNominal2: undefined;
+}
 export class Solid extends Item {
     disposable = new CompositeDisposable()
     edges!: CurveEdgeGroup;
@@ -159,8 +160,8 @@ export interface CurveSegment extends Line2 { }
 export interface CurveEdge extends Line2 { }
 export interface Face extends THREE.Mesh { }
 
-applyMixins(Solid, [THREE.Object3D, THREE.EventDispatcher]);
-applyMixins(SpaceInstance, [THREE.Object3D, THREE.EventDispatcher]);
+applyMixins(Solid, [THREE.LOD, THREE.Object3D, THREE.EventDispatcher]);
+applyMixins(SpaceInstance, [THREE.LOD, THREE.Object3D, THREE.EventDispatcher]);
 applyMixins(Curve3D, [THREE.Object3D, THREE.EventDispatcher]);
 applyMixins(Edge, [Line2, LineSegments2, THREE.Mesh, THREE.Object3D, THREE.EventDispatcher]);
 applyMixins(CurveSegment, [Line2, LineSegments2, THREE.Mesh, THREE.Object3D, THREE.EventDispatcher]);
@@ -200,6 +201,26 @@ applyMixins(FaceGroup, [HasDisposable]);
 applyMixins(CurveEdgeGroup, [HasDisposable]);
 
 /**
+ * We also want some recursive raycasting behavior:
+ */
+
+abstract class RaycastsRecursively {
+    abstract children: THREE.Object3D[];
+
+    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const children = this.children;
+
+        for (let i = 0, l = children.length; i < l; i++) {
+            children[i].raycast(raycaster, intersects);
+        }
+    }
+}
+
+applyMixins(Solid, [RaycastsRecursively]);
+applyMixins(FaceGroup, [RaycastsRecursively]);
+applyMixins(CurveEdgeGroup, [RaycastsRecursively]);
+
+/**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.
  */
 
@@ -210,7 +231,7 @@ export class Curve3DBuilder {
 
     addCurveSegment(segment: CurveSegment) {
         this.curve3D.add(segment);
-        // this.curve3D.disposable.add(new Disposable(() => segment.dispose()));
+        // this.curve3D.disposable.add(new Disposable(() => segment.dispose())); // FIXME
     }
 }
 
