@@ -90,13 +90,16 @@ export default class FilletFactory extends GeometryFactory {
     }
 }
 
+/**
+ * The following class "clamps" fillets to a max
+ */
 type State = { tag: 'start' } | { tag: 'finding' } | { tag: 'found', value: number } | { tag: 'computed', value: number }
 
 export class Max {
     private state: State = { tag: 'start' }
 
     constructor(
-        private readonly factory: GeometryFactory & { check(d: number): Promise<c3d.Solid>, distance: number }
+        private readonly factory: FilletFactory
     ) { }
 
     async start() {
@@ -127,7 +130,7 @@ export class Max {
             case 'found':
                 const max = this.state.value;
                 if (delta >= max) {
-                    factory.distance = this.state.value;
+                    factory.distance = max;
                     factory.schedule(async () => {
                         await factory.transaction('distance', async () => {
                             await factory.update();

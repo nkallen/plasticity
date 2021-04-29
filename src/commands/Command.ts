@@ -449,9 +449,11 @@ export class ActionFaceCommand extends Command {
         const gizmo = new MoveGizmo(this.editor, point);
 
         await gizmo.execute(delta => {
-            actionFace.transaction('direction', async () => {
-                actionFace.direction = delta;
-                await actionFace.update();
+            actionFace.schedule(async () => {
+                actionFace.transaction('direction', async () => {
+                    actionFace.direction = delta;
+                    await actionFace.update();
+                });
             });
         }).resource(this);
 
