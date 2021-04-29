@@ -1,5 +1,6 @@
 import { CompositeDisposable, Disposable, DisposableLike } from 'event-kit';
 import * as THREE from "three";
+import { MeshBasicMaterial } from 'three';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
@@ -17,7 +18,7 @@ import { applyMixins } from './util/Util';
  * And that's principally what's going on in this file.
  */
 
-export abstract class SpaceItem {
+export abstract class SpaceItem extends THREE.Object3D {
     private _useNominal: undefined;
     get lod() {
         return this.parent as THREE.LOD;
@@ -30,17 +31,11 @@ export class Solid extends Item {
     disposable = new CompositeDisposable()
     edges!: CurveEdgeGroup;
     faces!: FaceGroup;
-
-    constructor() {
-        super();
-        THREE.Object3D.call(this);
-    }
 }
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
     constructor(underlying: SpaceItem) {
         super();
-        THREE.Object3D.call(this);
         this.add(underlying);
     }
 
@@ -50,12 +45,7 @@ export class SpaceInstance<T extends SpaceItem> extends Item {
 }
 
 export class Curve3D extends SpaceItem {
-    disposable = new CompositeDisposable()
-
-    constructor() {
-        super();
-        THREE.Object3D.call(this);
-    }
+    disposable = new CompositeDisposable();
 
     *[Symbol.iterator]() {
         for (const child of this.children) {
@@ -65,7 +55,7 @@ export class Curve3D extends SpaceItem {
 
     get material() { return (this.children[0] as CurveSegment).material }
 }
-export abstract class TopologyItem {
+export abstract class TopologyItem extends THREE.Object3D {
     private _useNominal: undefined;
 
     get parentItem(): Item {
@@ -75,30 +65,55 @@ export abstract class TopologyItem {
 export class Edge extends TopologyItem {
 }
 export class CurveEdge extends Edge {
+    private readonly line: Line2;
+    get geometry() { return this.line.geometry };
+    get material() { return this.line.material };
+    set material(m: LineMaterial) { this.line.material = m };
     readonly snaps = new Set<Snap>();
 
     constructor(edge: c3d.EdgeBuffer, material: LineMaterial, occludedMaterial: LineMaterial) {
         super()
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
-        Line2.call(this, geometry, material);
+        const line = new Line2(geometry, material);
         this.userData.name = edge.name;
         this.userData.simpleName = edge.simpleName;
+        this.add(line);
+        this.line = line;
+
         const occludedLine = new Line2(geometry, occludedMaterial);
         occludedLine.computeLineDistances();
         this.add(occludedLine);
-        occludedLine.renderOrder = this.renderOrder = RenderOrder.CurveEdge;
+        occludedLine.renderOrder = this.line.renderOrder = RenderOrder.CurveEdge;
+    }
+
+    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        for (const child of this.children) {
+            const is: THREE.Intersection[] = [];
+            child.raycast(raycaster, is);
+            for (const i of is) {
+                i.object = this;
+                intersects.push(i);
+            }
+        }
     }
 }
 export class CurveSegment extends SpaceItem { // This doesn't correspond to a real c3d class, but it's here for convenience
+    private readonly line: Line2;
+    get geometry() { return this.line.geometry };
+    get material() { return this.line.material };
+    set material(m: LineMaterial) { this.line.material = m; };
+
     constructor(edge: c3d.EdgeBuffer, material: LineMaterial) {
         super()
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
-        Line2.call(this, geometry, material);
+        const line = new Line2(geometry, material);
         this.userData.name = edge.name;
         this.userData.simpleName = edge.simpleName;
         this.renderOrder = RenderOrder.CurveSegment;
+        this.add(line);
+        this.line = line;
     }
 
     get parentItem(): SpaceInstance<Curve3D> {
@@ -107,6 +122,10 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
 }
 export class Face extends TopologyItem {
     readonly snaps = new Set<Snap>();
+    private readonly mesh: THREE.Mesh;
+    get geometry() { return this.mesh.geometry };
+    get material() { return this.mesh.material };
+    set material(m: THREE.Material | THREE.Material[]) { this.mesh.material = m };
 
     constructor(grid: c3d.MeshBuffer, material: THREE.Material) {
         super()
@@ -114,10 +133,22 @@ export class Face extends TopologyItem {
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
-        THREE.Mesh.call(this, geometry, material);
+        const mesh = new THREE.Mesh(geometry, material);
+        this.mesh = mesh;
         this.userData.name = grid.name;
         this.userData.simpleName = grid.simpleName;
         this.renderOrder = RenderOrder.Face;
+        this.add(mesh);
+    }
+
+    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const is: THREE.Intersection[] = [];
+        this.mesh.raycast(raycaster, is);
+        if (is.length > 0) {
+            const i = is[0];
+            i.object = this;
+            intersects.push(i);
+        }
     }
 }
 
@@ -149,23 +180,6 @@ export class FaceGroup extends THREE.Group {
         return this.children[i] as Face;
     }
 }
-
-/**
- * With the object hierarchy establish, we now mixin the THREE.js behavior
- */
-
-export interface SpaceItem extends THREE.Object3D { }
-export interface TopologyItem extends THREE.Object3D { }
-export interface CurveSegment extends Line2 { }
-export interface CurveEdge extends Line2 { }
-export interface Face extends THREE.Mesh { }
-
-applyMixins(Solid, [THREE.LOD, THREE.Object3D, THREE.EventDispatcher]);
-applyMixins(SpaceInstance, [THREE.LOD, THREE.Object3D, THREE.EventDispatcher]);
-applyMixins(Curve3D, [THREE.Object3D, THREE.EventDispatcher]);
-applyMixins(Edge, [Line2, LineSegments2, THREE.Mesh, THREE.Object3D, THREE.EventDispatcher]);
-applyMixins(CurveSegment, [Line2, LineSegments2, THREE.Mesh, THREE.Object3D, THREE.EventDispatcher]);
-applyMixins(Face, [THREE.Mesh, THREE.Object3D, THREE.EventDispatcher]);
 
 /**
  * In order to deal with garbage collection issues around geometry disposal, we also mixin
