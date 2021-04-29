@@ -34,7 +34,6 @@ describe('commit', () => {
         makeLine.p2 = new THREE.Vector3(1, 1, 0);
         const item = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(item).toBeInstanceOf(visual.SpaceInstance);
-        expect(item.underlying).toBeInstanceOf(visual.Curve3D);
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);

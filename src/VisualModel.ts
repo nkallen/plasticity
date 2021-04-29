@@ -1,10 +1,8 @@
 import { CompositeDisposable, Disposable, DisposableLike } from 'event-kit';
 import * as THREE from "three";
-import { MeshBasicMaterial } from 'three';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import c3d from '../build/Release/c3d.node';
 import { Snap } from "./SnapManager";
 import { applyMixins } from './util/Util';
@@ -20,33 +18,44 @@ import { applyMixins } from './util/Util';
 
 export abstract class SpaceItem extends THREE.Object3D {
     private _useNominal: undefined;
-    get lod() {
-        return this.parent as THREE.LOD;
+    lod = new THREE.LOD();
+
+    constructor() {
+        super();
+        this.add(this.lod);
     }
 }
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
 }
 export class Solid extends Item {
-    disposable = new CompositeDisposable()
-    edges!: CurveEdgeGroup;
-    faces!: FaceGroup;
+    disposable = new CompositeDisposable();
+    get edges() { return this.lod.children[0].children[0] as CurveEdgeGroup }
+    get faces() { return this.lod.children[0].children[1] as FaceGroup }
+    get outline() {
+        const result = [];
+        for (const child of this.lod.children) {
+            result.push(child.children[1]);
+        }
+        return result;
+    }
 }
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
-    constructor(underlying: SpaceItem) {
-        super();
-        this.add(underlying);
-    }
-
-    get underlying(): T {
-        return this.children[0] as T;
-    }
+    disposable = new CompositeDisposable();
+    get material() {
+        const firstChild = this.lod.children[0] as THREE.Object3D & { material: any }
+        return firstChild.material;
+    };
+    set material(m: LineMaterial) {
+        for (const child of this.lod.children) {
+            const hasMaterial = child as THREE.Object3D & { material: any };
+            hasMaterial.material = m;
+        }
+    };
 }
 
 export class Curve3D extends SpaceItem {
-    disposable = new CompositeDisposable();
-
     *[Symbol.iterator]() {
         for (const child of this.children) {
             yield child as CurveSegment;
@@ -59,7 +68,9 @@ export abstract class TopologyItem extends THREE.Object3D {
     private _useNominal: undefined;
 
     get parentItem(): Item {
-        return this.parent?.parent as Item;
+        const result = this.parent?.parent?.parent?.parent;
+        if (!(result instanceof Item)) throw "Invalid precondition";
+        return result as Item;
     }
 }
 export class Edge extends TopologyItem {
@@ -88,16 +99,16 @@ export class CurveEdge extends Edge {
     }
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        for (const child of this.children) {
-            const is: THREE.Intersection[] = [];
-            child.raycast(raycaster, is);
-            for (const i of is) {
-                i.object = this;
-                intersects.push(i);
-            }
+        const is: THREE.Intersection[] = [];
+        this.line.raycast(raycaster, is);
+        if (is.length > 0) {
+            const i = is[0];
+            i.object = this;
+            intersects.push(i);
         }
     }
 }
+
 export class CurveSegment extends SpaceItem { // This doesn't correspond to a real c3d class, but it's here for convenience
     private readonly line: Line2;
     get geometry() { return this.line.geometry };
@@ -224,8 +235,8 @@ abstract class RaycastsRecursively {
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
         const children = this.children;
 
-        for (let i = 0, l = children.length; i < l; i++) {
-            children[i].raycast(raycaster, intersects);
+        for (const child of this.children) {
+            child.raycast(raycaster, intersects);
         }
     }
 }
@@ -233,6 +244,10 @@ abstract class RaycastsRecursively {
 applyMixins(Solid, [RaycastsRecursively]);
 applyMixins(FaceGroup, [RaycastsRecursively]);
 applyMixins(CurveEdgeGroup, [RaycastsRecursively]);
+
+class RecursiveGroup extends THREE.Group { }
+applyMixins(RecursiveGroup, [RaycastsRecursively]);
+
 
 /**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.
@@ -245,27 +260,36 @@ export class Curve3DBuilder {
 
     addCurveSegment(segment: CurveSegment) {
         this.curve3D.add(segment);
-        // this.curve3D.disposable.add(new Disposable(() => segment.dispose())); // FIXME
     }
 }
 
 export class SolidBuilder {
     private readonly solid = new Solid();
 
-    addEdges(edges: CurveEdgeGroup): void {
-        this.solid.edges = edges;
-        this.solid.add(edges);
+    addLOD(edges: CurveEdgeGroup, faces: FaceGroup, distance?: number) {
+        const level = new RecursiveGroup();
+        level.add(edges);
+        level.add(faces);
         this.solid.disposable.add(new Disposable(() => edges.dispose()));
-    }
-
-    addFaces(faces: FaceGroup): void {
-        this.solid.faces = faces;
-        this.solid.add(faces);
         this.solid.disposable.add(new Disposable(() => faces.dispose()));
+        this.solid.lod.addLevel(level, distance);
     }
 
     build(): Solid {
         return this.solid;
+    }
+}
+
+export class SpaceInstanceBuilder<T extends SpaceItem> {
+    private readonly instance = new SpaceInstance();
+
+    addLOD(t: T, distance?: number) {
+        this.instance.lod.addLevel(t, distance);
+        this.instance.disposable.add(new Disposable(() => t.dispose()));
+    }
+
+    build(): SpaceInstance<T> {
+        return this.instance;
     }
 }
 

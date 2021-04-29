@@ -1,6 +1,6 @@
 import { EditorSignals } from "../Editor";
 import * as THREE from "three";
-import { SpaceItem } from "../VisualModel";
+import * as visual from "../VisualModel";
 
 export class ViewportSelector extends THREE.EventDispatcher {
     private readonly raycaster = new THREE.Raycaster();
@@ -13,7 +13,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
 
     // FIXME add dispose
     constructor(
-        private readonly drawModel: Set<THREE.LOD>,
+        private readonly drawModel: Set<visual.SpaceItem>,
         private readonly camera: THREE.Camera,
         private readonly domElement: HTMLElement,
         private readonly signals: EditorSignals) {

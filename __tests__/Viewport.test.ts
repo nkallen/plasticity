@@ -79,7 +79,7 @@ beforeEach(async () => {
 test("item selected", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
     selection.onClick([{object: sphere.faces.get(0), distance: 1, point: new THREE.Vector3()}]);
-    expect(viewport.outlinePassSelection.selectedObjects).toEqual([sphere.faces]);
+    expect(viewport.outlinePassSelection.selectedObjects).toEqual(sphere.outline);
     selection.onClick([]);
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
 });
@@ -87,7 +87,7 @@ test("item selected", () => {
 test("item hovered", () => {
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
     selection.onPointerMove([{object: sphere.faces.get(0), distance: 1, point: new THREE.Vector3()}]);
-    expect(viewport.outlinePassHover.selectedObjects).toEqual([sphere.faces]);
+    expect(viewport.outlinePassHover.selectedObjects).toEqual(sphere.outline);
     selection.onPointerMove([]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
 });

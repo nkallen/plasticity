@@ -173,13 +173,13 @@ export class Model implements Viewport {
 
     outlineSelection() {
         const selectionManager = this.editor.selection;
-        const toOutline = [...selectionManager.selectedSolids].map((item) => item.faces);
+        const toOutline = [...selectionManager.selectedSolids].flatMap((item) => item.outline);
         this.outlinePassSelection.selectedObjects = toOutline;
     }
 
     outlineHover(object?: SpaceItem | TopologyItem) {
         if (object instanceof Solid) {
-            this.outlinePassHover.selectedObjects = [object.faces];
+            this.outlinePassHover.selectedObjects = object.outline;
         }
     }
 

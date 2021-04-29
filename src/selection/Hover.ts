@@ -100,10 +100,8 @@ class Curve3DHoverable extends Hoverable {
     protected readonly object: SpaceInstance<Curve3D>;
 
     constructor(object: SpaceInstance<Curve3D>, material: LineMaterial, signals: EditorSignals) {
-        const previous = object.underlying.material;
-        for (const edge of object.underlying) {
-            edge.material = material;
-        }
+        const previous = object.material;
+        object.material = material;
 
         super(object, signals);
         this.object = object;
@@ -111,9 +109,7 @@ class Curve3DHoverable extends Hoverable {
     }
 
     dispose() {
-        for (const edge of this.object.underlying as Curve3D) {
-            edge.material = this.previousMaterial;
-        }
+        this.object.material = this.previousMaterial;
         super.dispose();
     }
 }

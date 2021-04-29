@@ -5,7 +5,7 @@ import MaterialDatabase from './MaterialDatabase';
 import { assertUnreachable, WeakValueMap } from './util/Util';
 import * as visual from './VisualModel';
 
-const precision_distance = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];
+const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];
 
 export interface TemporaryObject {
     cancel(): void;
@@ -15,7 +15,7 @@ export interface TemporaryObject {
 let counter = 0;
 
 export class GeometryDatabase {
-    readonly drawModel = new Set<THREE.LOD>();
+    readonly drawModel = new Set<visual.SpaceItem>();
     readonly scene = new THREE.Scene();
     private readonly geometryModel = new c3d.Model();
     private readonly name2topologyItem = new WeakValueMap<c3d.SimpleName, visual.TopologyItem>();
@@ -27,18 +27,13 @@ export class GeometryDatabase {
     addItem(object: c3d.Item): visual.SpaceItem {
         this.geometryModel.AddItem(object, counter);
 
-        const lod = new THREE.LOD();
-        for (const [precision, distance] of precision_distance) {
-            const mesh_ = this.object2mesh(object, precision);
-            mesh_.userData.simpleName = counter;
-            lod.addLevel(mesh_, distance);
-        }
-        const mesh = lod.getObjectForDistance(precision_distance[2][1]) as visual.SpaceItem;
+        const mesh = this.meshes(object, precision_distance);
+        mesh.userData.simpleName = counter;
 
         counter++;
 
-        this.scene.add(lod);
-        this.drawModel.add(lod);
+        this.scene.add(mesh);
+        this.drawModel.add(mesh);
 
         this.signals.objectAdded.dispatch(mesh); // FIXME dispatch object and mesh, since snapmanager is just looking up the object immediately afterward
         this.signals.sceneGraphChanged.dispatch();
@@ -46,7 +41,7 @@ export class GeometryDatabase {
     }
 
     addTemporaryItem(object: c3d.Item): TemporaryObject {
-        const mesh = this.object2mesh(object, 0.01, false);
+        const mesh = this.meshes(object, [[0.01, 1]]);
         this.scene.add(mesh);
         return {
             cancel: () => {
@@ -61,8 +56,8 @@ export class GeometryDatabase {
     }
 
     removeItem(object: visual.Item) {
-        this.scene.remove(object.lod);
-        this.drawModel.delete(object.lod);
+        this.scene.remove(object);
+        this.drawModel.delete(object);
         this.geometryModel.DetachItem(this.lookupItem(object));
 
         this.signals.objectRemoved.dispatch(object);
@@ -117,13 +112,29 @@ export class GeometryDatabase {
         return result;
     }
 
-    private object2mesh(obj: c3d.Item, sag: number, wireframe: boolean = true): visual.SpaceItem {
+    private meshes(obj: c3d.Item, precision_distance: [number, number][]): visual.Item {
+        let builder;
+        switch (obj.IsA()) {
+            case c3d.SpaceType.SpaceInstance:
+                builder = new visual.SpaceInstanceBuilder();
+                break;
+            default:
+                builder = new visual.SolidBuilder();
+        }
+        for (const [precision, distance] of precision_distance) {
+            this.object2mesh(builder, obj, precision, distance);
+        }
+        return builder.build();
+    }
+
+    private object2mesh(builder: any, obj: c3d.Item, sag: number, distance?: number): void {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
-        const note = new c3d.FormNote(wireframe, true, true, false, false);
+        const note = new c3d.FormNote(true, true, true, false, false);
         const item = obj.CreateMesh(stepData, note);
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance: {
+                const instance = builder as visual.SpaceInstanceBuilder<visual.Curve3D>;
                 const curve3D = new visual.Curve3DBuilder();
                 const edges = mesh.GetEdges();
                 let material = this.materials.line(obj as c3d.SpaceInstance);
@@ -131,7 +142,7 @@ export class GeometryDatabase {
                     const line = new visual.CurveSegment(edge, material);
                     curve3D.addCurveSegment(line);
                 }
-                return new visual.SpaceInstance(curve3D.build());
+                instance.addLOD(curve3D.build(), distance);
             }
             // case c3d.SpaceType.Point3D: {
             //     const apexes = mesh.GetApexes();
@@ -141,7 +152,7 @@ export class GeometryDatabase {
             //     return points;
             // }
             default: {
-                const solid = new visual.SolidBuilder();
+                const solid = builder as visual.SolidBuilder;
                 const edges = new visual.CurveEdgeGroupBuilder();
                 const lineMaterial = this.materials.line();
                 const polygons = mesh.GetEdges(true);
@@ -150,7 +161,6 @@ export class GeometryDatabase {
                     this.name2topologyItem.set(edge.name.Hash(), line);
                     edges.addEdge(line);
                 }
-                solid.addEdges(edges.build());
 
                 const faces = new visual.FaceGroupBuilder();
                 const grids = mesh.GetBuffers();
@@ -160,8 +170,7 @@ export class GeometryDatabase {
                     this.name2topologyItem.set(grid.name.Hash(), face);
                     faces.addFace(face);
                 }
-                solid.addFaces(faces.build());
-                return solid.build();
+                solid.addLOD(edges.build(), faces.build(), distance);
             }
         }
     }

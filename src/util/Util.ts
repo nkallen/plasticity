@@ -8,6 +8,7 @@ export type GConstructor<T = {}> = new (...args: any[]) => T;
 export function applyMixins(derivedCtor: any, constructors: any[]): void {
     constructors.reverse().forEach((baseCtor) => {
         Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
+            if (name == 'constructor') return;
             Object.defineProperty(
                 derivedCtor.prototype,
                 name,

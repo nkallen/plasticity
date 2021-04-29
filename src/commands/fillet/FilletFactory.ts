@@ -56,13 +56,14 @@ export default class FilletFactory extends GeometryFactory {
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
 
     async doUpdate() {
+        this.item.visible = false; // FIXME LOD fuct this
         const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
         this.temp?.cancel();
         this.temp = this.db.addTemporaryItem(result);
-        this.item.visible = false; // FIXME LOD fuct this
     }
 
     async doCommit() {
+        this.temp?.cancel();
         const result = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
         this.db.removeItem(this.item);
         return this.db.addItem(result);
