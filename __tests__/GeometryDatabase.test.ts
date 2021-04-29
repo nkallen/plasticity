@@ -40,3 +40,33 @@ test("lookupTopologyItem", () => {
         expect(db.lookupTopologyItem(edge)).toBeTruthy();
     }
 })
+
+describe("addTemporaryItem", () => {
+    test("cancel", () => {
+        expect(db.scene.children.length).toBe(0);
+        expect(db.drawModel.size).toBe(0);
+
+        const temp = db.addTemporaryItem(box);
+        expect(db.scene.children.length).toBe(1);
+        expect(db.drawModel.size).toBe(0);
+
+        temp.cancel();
+
+        expect(db.scene.children.length).toBe(0);
+        expect(db.drawModel.size).toBe(0);
+    });
+
+    test("commit", () => {
+        expect(db.scene.children.length).toBe(0);
+        expect(db.drawModel.size).toBe(0);
+
+        const temp = db.addTemporaryItem(box);
+        expect(db.scene.children.length).toBe(1);
+        expect(db.drawModel.size).toBe(0);
+
+        temp.commit();
+
+        expect(db.scene.children.length).toBe(1);
+        expect(db.drawModel.size).toBe(1);
+    })
+});
