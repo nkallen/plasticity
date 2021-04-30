@@ -40,7 +40,7 @@ export class GeometryDatabase {
     }
 
     async addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
-        const mesh = await this.meshes(object, [[0.01, 1]]);
+        const mesh = await this.meshes(object, [[0.005, 1]]);
         this.scene.add(mesh);
         return {
             cancel: () => {

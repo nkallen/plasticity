@@ -4,12 +4,17 @@ import c3d from '../build/Release/c3d.node';
 import MaterialDatabase from '../src/MaterialDatabase';
 import { SpriteDatabase } from "../src/SpriteDatabase";
 
-export class FakeMaterials implements Required<MaterialDatabase> {
+const line = new LineMaterial();
+const highlight = new LineMaterial();
+const hover = new LineMaterial();
+const mesh = new THREE.Material();
+
+export class FakeMaterials implements MaterialDatabase {
     get(_o: c3d.Item): THREE.Material {
         return new THREE.Material();
     }
     line(_o?: c3d.SpaceInstance): LineMaterial {
-        return new LineMaterial();
+        return line;
     }
     lineDashed(): LineMaterial {
         return new LineMaterial();
@@ -19,16 +24,16 @@ export class FakeMaterials implements Required<MaterialDatabase> {
         return new THREE.Material();
     }
     mesh(_o?: c3d.Item | c3d.MeshBuffer, _doubleSided?: boolean): THREE.Material {
-        return new THREE.Material();
+        return mesh;
     }
     highlight(_o:  c3d.TopologyItem | c3d.SpaceInstance): LineMaterial {
-        return new LineMaterial();
+        return highlight;
     }
-    lookup(_o: c3d.TopologyItem): LineMaterial {
-        return new LineMaterial();
+    lookup(_o: c3d.TopologyItem): THREE.Material {
+        return _o instanceof c3d.Edge ? line : mesh;
     }
     hover(): LineMaterial {
-        return new LineMaterial();
+        return hover;
     }
 }
 

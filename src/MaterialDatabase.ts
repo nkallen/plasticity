@@ -24,7 +24,9 @@ export default interface MaterialDatabase {
     highlight(o: c3d.Face): THREE.Material;
     highlight(o: c3d.SpaceInstance): LineMaterial;
 
-    lookup(o: c3d.TopologyItem): LineMaterial;
+    lookup(o: c3d.Edge): LineMaterial;
+    lookup(o: c3d.Face): THREE.Material;
+    lookup(o: c3d.TopologyItem): THREE.Material;
 
     hover(object: visual.Face): THREE.Material;
     hover(object: visual.Edge): LineMaterial;

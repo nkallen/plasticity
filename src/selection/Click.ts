@@ -19,13 +19,13 @@ export class ClickStrategy implements SelectionStrategy {
         if (this.selectionManager.mode.has(SelectionMode.Curve)) {
             if (this.selectionManager.selectedCurves.has(parentItem)) {
                 this.selectionManager.selectedCurves.delete(parentItem);
-                object.material = this.selectionManager.materials.line(model);
+                parentItem.material = this.selectionManager.materials.line(model);
                 this.selectionManager.signals.objectDeselected.dispatch(parentItem);
             } else {
                 this.selectionManager.hover?.dispose();
                 this.selectionManager.hover = undefined;
                 this.selectionManager.selectedCurves.add(parentItem);
-                object.material = this.selectionManager.materials.highlight(model);
+                parentItem.material = this.selectionManager.materials.highlight(model);
                 this.selectionManager.signals.objectSelected.dispatch(parentItem);
             }
             return true;

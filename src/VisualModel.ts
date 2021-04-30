@@ -41,10 +41,11 @@ export class Solid extends Item {
     }
 }
 
-export class SpaceInstance<T extends SpaceItem> extends Item {
+export class SpaceInstance<T extends Curve3D> extends Item {
+    get underlying() { return this.lod.children[0] as T }
     disposable = new CompositeDisposable();
     get material() {
-        const firstChild = this.lod.children[0] as THREE.Object3D & { material: any }
+        const firstChild = this.underlying as unknown as { material: any }
         return firstChild.material;
     };
     set material(m: LineMaterial) {
@@ -62,6 +63,10 @@ export class Curve3D extends SpaceItem {
         }
     }
 
+    get(i: number): CurveSegment {
+        return this.children[i] as CurveSegment;
+    }
+
     get material() { return (this.children[0] as CurveSegment).material }
     set material(m: LineMaterial) {
         for (const child of this.children) {
@@ -70,6 +75,7 @@ export class Curve3D extends SpaceItem {
         }
     }
 }
+
 export abstract class TopologyItem extends THREE.Object3D {
     private _useNominal: undefined;
 
@@ -79,8 +85,9 @@ export abstract class TopologyItem extends THREE.Object3D {
         return result as Item;
     }
 }
-export class Edge extends TopologyItem {
-}
+
+export class Edge extends TopologyItem { }
+
 export class CurveEdge extends Edge {
     private readonly line: Line2;
     get child() { return this.line };
@@ -103,10 +110,11 @@ export class CurveEdge extends Edge {
     }
 }
 
+// FIXME rethink name and the fact that it extends SpaceItem
 export class CurveSegment extends SpaceItem { // This doesn't correspond to a real c3d class, but it's here for convenience
     private readonly line: Line2;
     get child() { return this.line };
-    
+
     constructor(edge: c3d.EdgeBuffer, material: LineMaterial) {
         super()
         const geometry = new LineGeometry();
@@ -294,8 +302,8 @@ export class SolidBuilder {
     }
 }
 
-export class SpaceInstanceBuilder<T extends SpaceItem> {
-    private readonly instance = new SpaceInstance();
+export class SpaceInstanceBuilder<T extends Curve3D> {
+    private readonly instance = new SpaceInstance<T>();
 
     addLOD(t: T, distance?: number) {
         this.instance.lod.addLevel(t, distance);

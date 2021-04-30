@@ -100,6 +100,8 @@ export class SelectionManager {
         }
         for (const curve of this.selectedCurves) {
             this.selectedCurves.delete(curve);
+            const model = this.db.lookup(curve);
+            curve.material = this.materials.line(model);
             this.signals.objectDeselected.dispatch(curve);
         }
         this.selectedChildren.clear();
