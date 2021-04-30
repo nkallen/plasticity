@@ -73,7 +73,7 @@ export class Hoverable {
     }
 
     isEqual(other: SpaceItem | TopologyItem): boolean {
-        return this.object == other;
+        return this.object === other;
     }
 }
 

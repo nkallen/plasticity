@@ -146,6 +146,7 @@ export class GeometryDatabase {
                     curve3D.addCurveSegment(line);
                 }
                 instance.addLOD(curve3D.build(), distance);
+                break;
             }
             // case c3d.SpaceType.Point3D: {
             //     const apexes = mesh.GetApexes();
@@ -174,6 +175,7 @@ export class GeometryDatabase {
                     faces.addFace(face);
                 }
                 solid.addLOD(edges.build(), faces.build(), distance);
+                break;
             }
         }
     }

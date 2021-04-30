@@ -71,7 +71,7 @@ export class Curve3D extends SpaceItem {
     set material(m: LineMaterial) {
         for (const child of this.children) {
             const seg = child as CurveSegment;
-            seg.material = m;
+            seg.child.material = m; // using child because to avoid LOD sync code from doing unneccessary work
         }
     }
 }
@@ -100,6 +100,7 @@ export class CurveEdge extends Edge {
         const line = new Line2(geometry, material);
         this.userData.name = edge.name;
         this.userData.simpleName = edge.simpleName;
+        this.name = String(edge.simpleName);
         this.add(line);
         this.line = line;
 
@@ -122,6 +123,7 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
         const line = new Line2(geometry, material);
         this.userData.name = edge.name;
         this.userData.simpleName = edge.simpleName;
+        this.name = String(edge.simpleName)
         this.renderOrder = RenderOrder.CurveSegment;
         this.add(line);
         this.line = line;
@@ -149,6 +151,7 @@ export class Face extends TopologyItem {
         this.mesh = mesh;
         this.userData.name = grid.name;
         this.userData.simpleName = grid.simpleName;
+        this.name = String(grid.simpleName);
         this.renderOrder = RenderOrder.Face;
         this.add(mesh);
     }
@@ -243,14 +246,29 @@ class RecursiveGroup extends THREE.Group { }
 applyMixins(RecursiveGroup, [RaycastsRecursively]);
 
 /**
- * Similarly, for Face and CurveEdge, they are simple proxy/wrappers around their one child:
+ * Similarly, for Face and CurveEdge, they are simple proxy/wrappers around their one child.
+ * Their parents are LOD objects, and keeping materials synchronized across peers at
+ * different levels is a whole thing.
  */
 
-abstract class ObjectWrapper<T extends THREE.BufferGeometry, M extends THREE.Material> extends THREE.Object3D {
+abstract class ObjectWrapper<T extends THREE.BufferGeometry, M extends THREE.Material>
+extends THREE.Object3D {
+    abstract get parentItem(): Item;
     abstract child: THREE.Mesh;
     get geometry(): T { return this.child.geometry as T };
     get material(): M { return this.child.material as M };
-    set material(m: M) { this.child.material = m };
+    set material(m: M) {
+        const parent = this.parentItem;
+        const lod = parent.lod;
+        const twins = lod.getObjectByName(this.name);
+        if (!this.name) throw "invalid precondition";
+        lod.traverse(o =>  {
+            if (o.name ===  this.name) {
+                const q = o as this;
+                q.child.material = m;
+            }
+        })
+    };
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
         const is: THREE.Intersection[] = [];

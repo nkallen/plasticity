@@ -35,11 +35,12 @@ export default class LineFactory extends GeometryFactory {
     }
 
     async doCommit() {
-        this.db.scene.remove(this.mesh);
         const point1 = new c3d.CartPoint3D(this.p1.x, this.p1.y, this.p1.z);
         const point2 = new c3d.CartPoint3D(this.p2.x, this.p2.y, this.p2.z);
         const line = c3d.ActionCurve3D.Segment(point1, point2);
-        return this.db.addItem(new c3d.SpaceInstance(line));
+        const result = await this.db.addItem(new c3d.SpaceInstance(line));
+        this.db.scene.remove(this.mesh);
+        return result;
     }
 
     doCancel() {

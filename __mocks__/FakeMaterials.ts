@@ -29,6 +29,8 @@ export class FakeMaterials implements MaterialDatabase {
     highlight(_o:  c3d.TopologyItem | c3d.SpaceInstance): LineMaterial {
         return highlight;
     }
+    lookup(o: c3d.Edge): LineMaterial;
+    lookup(o: c3d.Face): THREE.Material;
     lookup(_o: c3d.TopologyItem): THREE.Material {
         return _o instanceof c3d.Edge ? line : mesh;
     }
