@@ -18,15 +18,15 @@ import { applyMixins } from './util/Util';
 
 export abstract class SpaceItem extends THREE.Object3D {
     private _useNominal: undefined;
+}
+export abstract class Item extends SpaceItem {
+    private _useNominal2: undefined;
     lod = new THREE.LOD();
 
     constructor() {
         super();
         this.add(this.lod);
     }
-}
-export abstract class Item extends SpaceItem {
-    private _useNominal2: undefined;
 }
 export class Solid extends Item {
     disposable = new CompositeDisposable();
@@ -77,9 +77,8 @@ export class Edge extends TopologyItem {
 }
 export class CurveEdge extends Edge {
     private readonly line: Line2;
-    get geometry() { return this.line.geometry };
-    get material() { return this.line.material };
-    set material(m: LineMaterial) { this.line.material = m };
+    // set material(m: LineMaterial) { this.line.material = m };
+    get child() { return this.line };
     readonly snaps = new Set<Snap>();
 
     constructor(edge: c3d.EdgeBuffer, material: LineMaterial, occludedMaterial: LineMaterial) {
@@ -96,16 +95,6 @@ export class CurveEdge extends Edge {
         occludedLine.computeLineDistances();
         this.add(occludedLine);
         occludedLine.renderOrder = this.line.renderOrder = RenderOrder.CurveEdge;
-    }
-
-    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        const is: THREE.Intersection[] = [];
-        this.line.raycast(raycaster, is);
-        if (is.length > 0) {
-            const i = is[0];
-            i.object = this;
-            intersects.push(i);
-        }
     }
 }
 
@@ -128,15 +117,15 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
     }
 
     get parentItem(): SpaceInstance<Curve3D> {
-        return this.parent?.parent as SpaceInstance<Curve3D>;
+        const result = this.parent?.parent as SpaceInstance<Curve3D>;
+        if (!(result instanceof SpaceInstance)) throw "Invalid precondition";
+        return result;
     }
 }
 export class Face extends TopologyItem {
     readonly snaps = new Set<Snap>();
     private readonly mesh: THREE.Mesh;
-    get geometry() { return this.mesh.geometry };
-    get material() { return this.mesh.material };
-    set material(m: THREE.Material | THREE.Material[]) { this.mesh.material = m };
+    get child() { return this.mesh };
 
     constructor(grid: c3d.MeshBuffer, material: THREE.Material) {
         super()
@@ -150,16 +139,6 @@ export class Face extends TopologyItem {
         this.userData.simpleName = grid.simpleName;
         this.renderOrder = RenderOrder.Face;
         this.add(mesh);
-    }
-
-    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        const is: THREE.Intersection[] = [];
-        this.mesh.raycast(raycaster, is);
-        if (is.length > 0) {
-            const i = is[0];
-            i.object = this;
-            intersects.push(i);
-        }
     }
 }
 
@@ -197,7 +176,7 @@ export class FaceGroup extends THREE.Group {
  * some basic dispose utilities
  */
 abstract class GeometryDisposable<T extends THREE.BufferGeometry> {
-    abstract geometry: T;
+    abstract get geometry(): T;
     dispose() { this.geometry.dispose() }
 }
 
@@ -242,12 +221,39 @@ abstract class RaycastsRecursively {
 }
 
 applyMixins(Solid, [RaycastsRecursively]);
+applyMixins(SpaceInstance, [RaycastsRecursively]);
 applyMixins(FaceGroup, [RaycastsRecursively]);
 applyMixins(CurveEdgeGroup, [RaycastsRecursively]);
 
 class RecursiveGroup extends THREE.Group { }
 applyMixins(RecursiveGroup, [RaycastsRecursively]);
 
+/**
+ * Similarly, for Face and CurveEdge, they are simple proxy/wrappers around their one child:
+ */
+
+abstract class ObjectWrapper<T extends THREE.BufferGeometry> extends THREE.Object3D {
+    abstract child: THREE.Mesh;
+    get geometry(): T { return this.child.geometry as T };
+    get material() { return this.child.material };
+    set material(m: THREE.Material | THREE.Material[]) { this.child.material = m };
+
+    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const is: THREE.Intersection[] = [];
+        this.child.raycast(raycaster, is);
+        if (is.length > 0) {
+            const i = is[0];
+            i.object = this;
+            intersects.push(i);
+        }
+    }
+}
+
+export interface Face extends ObjectWrapper<THREE.BufferGeometry> { }
+export interface CurveEdge extends ObjectWrapper<LineGeometry> { }
+
+applyMixins(Face, [ObjectWrapper]);
+applyMixins(CurveEdge, [ObjectWrapper]);
 
 /**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.
