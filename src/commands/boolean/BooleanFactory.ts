@@ -19,12 +19,12 @@ abstract class BooleanFactory extends GeometryFactory {
         flags.SetMergingFaces(true);
         flags.SetMergingEdges(true);
 
-        const result = c3d.ActionSolid.BooleanResult(model1, c3d.CopyMode.Copy, model2, c3d.CopyMode.Copy, this.operationType, flags, names);
+        const boolean = c3d.ActionSolid.BooleanResult(model1, c3d.CopyMode.Copy, model2, c3d.CopyMode.Copy, this.operationType, flags, names);
 
+        const result = await this.db.addItem(boolean);
         this.db.removeItem(this.item1);
         this.db.removeItem(this.item2);
-
-        return this.db.addItem(result);
+        return result;
     }
 
     doCancel() {
@@ -64,10 +64,10 @@ export class CutFactory extends GeometryFactory {
         const result0 = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, placement, contour, direction, -1, names, true, flags);
         const result1 = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, placement, contour, direction, 1, names, true, flags);
 
-        this.db.removeItem(this.solid);
-        this.db.removeItem(this.contour);
         const r1 = await this.db.addItem(result0);
         const r2 = await this.db.addItem(result1);
+        this.db.removeItem(this.solid);
+        this.db.removeItem(this.contour);
         return [r1, r2];
     }
 

@@ -384,9 +384,11 @@ export class OffsetFaceCommand extends Command {
         const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
 
         await gizmo.execute((delta) => {
-            offsetFace.transaction('direction', async () => {
-                offsetFace.direction = new THREE.Vector3(delta, 0, 0);
-                await offsetFace.update();
+            offsetFace.schedule(async () => {
+                offsetFace.transaction('direction', async () => {
+                    offsetFace.direction = new THREE.Vector3(delta, 0, 0);
+                    await offsetFace.update();
+                });
             });
         }).resource(this);
 
@@ -479,9 +481,11 @@ export class FilletFaceCommand extends Command {
         const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
 
         await gizmo.execute((delta) => {
-            refilletFace.transaction('direction', async () => {
-                refilletFace.direction = new THREE.Vector3(delta, 0, 0);
-                await refilletFace.update();
+            refilletFace.schedule(async () => {
+                refilletFace.transaction('direction', async () => {
+                    refilletFace.direction = new THREE.Vector3(delta, 0, 0);
+                    await refilletFace.update();
+                });
             });
         }).resource(this);
 

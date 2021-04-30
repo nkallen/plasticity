@@ -13,6 +13,8 @@ abstract class ModifyFaceFactory extends GeometryFactory {
     private temp?: TemporaryObject;
     private _solid!: visual.Solid;
     protected solidModel!: c3d.Solid;
+    private names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
+
 
     get solid() {
         return this._solid;
@@ -44,12 +46,12 @@ abstract class ModifyFaceFactory extends GeometryFactory {
         const params = new c3d.ModifyValues();
         params.way = this.operationType;
         params.direction = new c3d.Vector3D(direction.x, direction.y, direction.z);
-        const names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
-        const result = await c3d.ActionDirect.FaceModifiedSolid_async(solidModel, c3d.CopyMode.Copy, params, facesModel, names);
+        const result = await c3d.ActionDirect.FaceModifiedSolid_async(solidModel, c3d.CopyMode.Copy, params, facesModel, this.names);
+        const temp = await this.db.addTemporaryItem(result);
 
         solid.visible = false;
         this.temp?.cancel();
-        this.temp = await this.db.addTemporaryItem(result);
+        this.temp = temp;
     }
 
     async doCommit() {
@@ -58,12 +60,11 @@ abstract class ModifyFaceFactory extends GeometryFactory {
         const params = new c3d.ModifyValues();
         params.way = this.operationType;
         params.direction = new c3d.Vector3D(direction.x, direction.y, direction.z);
-        const names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
-        const result = c3d.ActionDirect.FaceModifiedSolid(solidModel, c3d.CopyMode.Copy, params, facesModel, names);
-
+        const modified = c3d.ActionDirect.FaceModifiedSolid(solidModel, c3d.CopyMode.Copy, params, facesModel, this.names);
+        const result = await this.db.addItem(modified);
         this.temp?.cancel();
         this.db.removeItem(solid);
-        return this.db.addItem(result);
+        return result;
     }
 
     doCancel() {
