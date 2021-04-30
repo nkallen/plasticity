@@ -63,6 +63,12 @@ export class Curve3D extends SpaceItem {
     }
 
     get material() { return (this.children[0] as CurveSegment).material }
+    set material(m: LineMaterial) {
+        for (const child of this.children) {
+            const seg = child as CurveSegment;
+            seg.material = m;
+        }
+    }
 }
 export abstract class TopologyItem extends THREE.Object3D {
     private _useNominal: undefined;
@@ -77,7 +83,6 @@ export class Edge extends TopologyItem {
 }
 export class CurveEdge extends Edge {
     private readonly line: Line2;
-    // set material(m: LineMaterial) { this.line.material = m };
     get child() { return this.line };
     readonly snaps = new Set<Snap>();
 
@@ -100,10 +105,8 @@ export class CurveEdge extends Edge {
 
 export class CurveSegment extends SpaceItem { // This doesn't correspond to a real c3d class, but it's here for convenience
     private readonly line: Line2;
-    get geometry() { return this.line.geometry };
-    get material() { return this.line.material };
-    set material(m: LineMaterial) { this.line.material = m; };
-
+    get child() { return this.line };
+    
     constructor(edge: c3d.EdgeBuffer, material: LineMaterial) {
         super()
         const geometry = new LineGeometry();
@@ -117,11 +120,12 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
     }
 
     get parentItem(): SpaceInstance<Curve3D> {
-        const result = this.parent?.parent as SpaceInstance<Curve3D>;
+        const result = this.parent?.parent?.parent as SpaceInstance<Curve3D>;
         if (!(result instanceof SpaceInstance)) throw "Invalid precondition";
         return result;
     }
 }
+
 export class Face extends TopologyItem {
     readonly snaps = new Set<Snap>();
     private readonly mesh: THREE.Mesh;
@@ -205,7 +209,8 @@ applyMixins(FaceGroup, [HasDisposable]);
 applyMixins(CurveEdgeGroup, [HasDisposable]);
 
 /**
- * We also want some recursive raycasting behavior:
+ * We also want some recursive raycasting behavior. Why don't we just use instersectObjects(recursive: true)?
+ * Well, LOD is incompatible with it since all of the levels are just normal children.
  */
 
 abstract class RaycastsRecursively {
@@ -221,9 +226,10 @@ abstract class RaycastsRecursively {
 }
 
 applyMixins(Solid, [RaycastsRecursively]);
-applyMixins(SpaceInstance, [RaycastsRecursively]);
 applyMixins(FaceGroup, [RaycastsRecursively]);
 applyMixins(CurveEdgeGroup, [RaycastsRecursively]);
+applyMixins(SpaceInstance, [RaycastsRecursively]);
+applyMixins(Curve3D, [RaycastsRecursively]);
 
 class RecursiveGroup extends THREE.Group { }
 applyMixins(RecursiveGroup, [RaycastsRecursively]);
@@ -232,11 +238,11 @@ applyMixins(RecursiveGroup, [RaycastsRecursively]);
  * Similarly, for Face and CurveEdge, they are simple proxy/wrappers around their one child:
  */
 
-abstract class ObjectWrapper<T extends THREE.BufferGeometry> extends THREE.Object3D {
+abstract class ObjectWrapper<T extends THREE.BufferGeometry, M extends THREE.Material> extends THREE.Object3D {
     abstract child: THREE.Mesh;
     get geometry(): T { return this.child.geometry as T };
-    get material() { return this.child.material };
-    set material(m: THREE.Material | THREE.Material[]) { this.child.material = m };
+    get material(): M { return this.child.material as M };
+    set material(m: M) { this.child.material = m };
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
         const is: THREE.Intersection[] = [];
@@ -249,11 +255,13 @@ abstract class ObjectWrapper<T extends THREE.BufferGeometry> extends THREE.Objec
     }
 }
 
-export interface Face extends ObjectWrapper<THREE.BufferGeometry> { }
-export interface CurveEdge extends ObjectWrapper<LineGeometry> { }
+export interface Face extends ObjectWrapper<THREE.BufferGeometry, THREE.Material> { }
+export interface CurveEdge extends ObjectWrapper<LineGeometry, LineMaterial> { }
+export interface CurveSegment extends ObjectWrapper<LineGeometry, LineMaterial> { }
 
 applyMixins(Face, [ObjectWrapper]);
 applyMixins(CurveEdge, [ObjectWrapper]);
+applyMixins(CurveSegment, [ObjectWrapper]);
 
 /**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.

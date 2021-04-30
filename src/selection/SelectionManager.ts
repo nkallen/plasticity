@@ -58,7 +58,6 @@ export class SelectionManager {
             }
         });
 
-        console.log(intersections);
         for (const intersection of intersections) {
             const object = intersection.object;
             if (object instanceof Face || object instanceof CurveEdge) {
@@ -68,11 +67,8 @@ export class SelectionManager {
                 }
                 if (strategy.topologicalItem(object, parentItem as Solid)) return;
             } else if (object instanceof CurveSegment) {
-                console.log(1);
                 const parentItem = object.parentItem;
-                console.log(parentItem);
                 if (strategy.curve3D(object, parentItem)) return;
-                console.log("fail");
             }
         }
     }
