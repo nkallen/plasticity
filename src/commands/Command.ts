@@ -358,9 +358,9 @@ export class FilletCommand extends Command {
 
         const max = new Max(fillet);
         max.start();
-        await filletGizmo.execute(async (delta) => {
-            max.exec(delta);
-        }).resource(this);
+        await filletGizmo.execute(async delta =>
+            max.exec(delta)
+        ).resource(this);
 
         await fillet.commit();
     }
