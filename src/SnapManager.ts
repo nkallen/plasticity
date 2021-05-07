@@ -2,6 +2,7 @@ import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
+import { Clone, SnapMemento } from "./History";
 import { SpriteDatabase } from "./SpriteDatabase";
 import { CurveEdge, Solid, SpaceItem } from "./VisualModel";
 
@@ -103,6 +104,10 @@ export class SnapManager {
         const snap = intersection.object.userData.snap;
         const helper = snap.helper;
         return [helper, snap.project(intersection)];
+    }
+
+    saveToMemento(registry: Map<any, any>): SnapMemento {
+        return new SnapMemento(Clone(this.begPoints, registry), Clone(this.midPoints, registry));
     }
 }
 

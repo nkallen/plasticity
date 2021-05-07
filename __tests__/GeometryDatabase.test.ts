@@ -42,6 +42,29 @@ test("addItem & lookup & removeItem", async () => {
     expect(db.drawModel.size).toBe(0);
 })
 
+test("saveToMemento & restoreFromMemento", async () => {
+    expect(db.scene.children.length).toBe(0);
+    expect(db.drawModel.size).toBe(0);
+    
+    const v = await db.addItem(box) as visual.Solid;
+    expect(db.lookup(v)).toBeTruthy();
+    expect(db.scene.children.length).toBe(1);
+    expect(db.drawModel.size).toBe(1);
+
+    const memento = db.saveToMemento(new Map());
+
+    db.removeItem(v);
+    expect(() => db.lookup(v)).toThrow();
+    expect(db.scene.children.length).toBe(0);
+    expect(db.drawModel.size).toBe(0);
+
+    db.restoreFromMemento(memento);
+
+    expect(db.lookup(v)).toBeTruthy();
+    expect(db.scene.children.length).toBe(1);
+    expect(db.drawModel.size).toBe(1);
+})
+
 test("lookupTopologyItem", async () => {
     const v = await db.addItem(box) as visual.Solid;
     for (const edge of v.edges) {

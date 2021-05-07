@@ -24,11 +24,11 @@ beforeEach(() => {
 
 test('construction', () => {
     const makeEdges = new visual.CurveEdgeGroupBuilder();
-    const edge = new visual.CurveEdge({ position: [1, 2, 3] }, materials.line(), materials.lineDashed());
+    const edge = visual.CurveEdge.build({ position: [1, 2, 3] }, materials.line(), materials.lineDashed());
     makeEdges.addEdge(edge);
 
     const makeFaces = new visual.FaceGroupBuilder();
-    const face = new visual.Face({}, materials.mesh());
+    const face = visual.Face.build({}, materials.mesh());
     makeFaces.addFace(face);
 
     const makeSolid = new visual.SolidBuilder();
@@ -42,19 +42,19 @@ describe('materials are consistent across LODs', () => {
         const makeSolid = new visual.SolidBuilder();
 
         const makeEdges1 = new visual.CurveEdgeGroupBuilder();
-        const edge1 = new visual.CurveEdge({ position: [1, 2, 3] }, materials.line(), materials.lineDashed());
+        const edge1 = visual.CurveEdge.build({ position: [1, 2, 3] }, materials.line(), materials.lineDashed());
         makeEdges1.addEdge(edge1);
 
         const makeFaces1 = new visual.FaceGroupBuilder();
-        const face1 = new visual.Face({}, materials.mesh());
+        const face1 = visual.Face.build({}, materials.mesh());
         makeFaces1.addFace(face1);
 
         const makeEdges2 = new visual.CurveEdgeGroupBuilder();
-        const edge2 = new visual.CurveEdge({ position: [1, 2, 3] }, materials.line(), materials.lineDashed());
+        const edge2 = visual.CurveEdge.build({ position: [1, 2, 3] }, materials.line(), materials.lineDashed());
         makeEdges1.addEdge(edge2);
 
         const makeFaces2 = new visual.FaceGroupBuilder();
-        const face2 = new visual.Face({}, materials.mesh());
+        const face2 = visual.Face.build({}, materials.mesh());
         makeFaces2.addFace(face2);
 
         makeSolid.addLOD(makeEdges1.build(), makeFaces1.build());

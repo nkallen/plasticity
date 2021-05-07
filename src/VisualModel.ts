@@ -14,20 +14,50 @@ import { applyMixins } from './util/Util';
  * We want a class hierarchy like CurveEdge <: Edge <: TopologyItem, and Face <: TopologyItem
  * but we also want CurveEdge <: Line2 and Face <: Mesh. But this requires multiple inheritance/mixins.
  * And that's principally what's going on in this file.
+ * 
+ * At the time of writing, the OBJECT graph hierarchy (not the class hierarchy) is like:
+ *
+ * * Solid -> LOD -> RecursiveGroup -> FaceGroup -> Face
+ * * Solid -> LOD -> RecursiveGroup -> CurveEdgeGroup -> CurveEdge
+ * * SpaceInstance -> LOD -> Curve3D -> CurveSegment
  */
 
 export abstract class SpaceItem extends THREE.Object3D {
     private _useNominal: undefined;
 }
+
+class LOD extends THREE.LOD {
+    duplicate(source: this, registry: Map<any, any>) {
+        this.autoUpdate = source.autoUpdate;
+        for (const level of source.levels) {
+            const o = level.object as unknown as CloneWithRegistry;
+            this.addLevel(o.duplicate(registry), level.distance);
+        }
+        return this;
+    }
+
+    clone(recursive?: boolean): THREE.Object3D { throw new Error("Don't call") }
+    copy(source: this, recursive?: boolean): this { throw new Error("Don't call") }
+}
+
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
-    lod = new THREE.LOD();
+    readonly lod = new LOD();
 
     constructor() {
         super();
         this.add(this.lod);
     }
+
+    duplicate(registry: Map<any, any> = new Map()): THREE.Object3D {
+        if (registry.has(this)) return registry.get(this);
+
+        const result = this.clone(false) as this;
+        result.lod.duplicate(this.lod, registry);
+        return result;
+    }
 }
+
 export class Solid extends Item {
     disposable = new CompositeDisposable();
     get edges() { return this.lod.children[0].children[0] as CurveEdgeGroup }
@@ -90,24 +120,36 @@ export class Edge extends TopologyItem { }
 
 export class CurveEdge extends Edge {
     private readonly line: Line2;
+    private readonly occludedLine: Line2;
     get child() { return this.line };
     readonly snaps = new Set<Snap>();
 
-    constructor(edge: c3d.EdgeBuffer, material: LineMaterial, occludedMaterial: LineMaterial) {
-        super()
+    static build(edge: c3d.EdgeBuffer, material: LineMaterial, occludedMaterial: LineMaterial) {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
-        this.userData.name = edge.name;
-        this.userData.simpleName = edge.simpleName;
-        this.name = String(edge.simpleName);
-        this.add(line);
-        this.line = line;
-
         const occludedLine = new Line2(geometry, occludedMaterial);
         occludedLine.computeLineDistances();
+        return new CurveEdge(line, occludedLine, edge.name, edge.simpleName);
+    }
+
+    private constructor(line: Line2, occludedLine: Line2, name: c3d.Name, simpleName: number) {
+        super()
+        this.userData.name = name;
+        this.userData.simpleName = simpleName;
+        this.name = String(simpleName);
+        this.add(line);
+        this.line = line;
+        this.occludedLine = occludedLine;
         this.add(occludedLine);
-        occludedLine.renderOrder = this.line.renderOrder = RenderOrder.CurveEdge;
+        occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
+    }
+
+    clone(recursive?: boolean): THREE.Object3D {
+        const line = this.line.clone(recursive) as Line2;
+        const occludedLine = this.occludedLine.clone(recursive) as Line2;
+
+        return new CurveEdge(line, occludedLine, this.userData.name, this.userData.simpleName);
     }
 }
 
@@ -116,22 +158,33 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
     private readonly line: Line2;
     get child() { return this.line };
 
-    constructor(edge: c3d.EdgeBuffer, material: LineMaterial) {
-        super()
+    static build(edge: c3d.EdgeBuffer, material: LineMaterial) {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
-        this.userData.name = edge.name;
-        this.userData.simpleName = edge.simpleName;
-        this.name = String(edge.simpleName)
-        this.renderOrder = RenderOrder.CurveSegment;
+        return new CurveSegment(line, edge.name, edge.simpleName);
+    }
+
+    private constructor(line: Line2, name: c3d.Name, simpleName: number) {
+        super();
         this.add(line);
         this.line = line;
+        this.userData.name = name;
+        this.userData.simpleName = simpleName;
+        this.name = String(simpleName)
+        this.renderOrder = RenderOrder.CurveSegment;
     }
 
     get parentItem(): SpaceInstance<Curve3D> {
         const result = this.parent?.parent?.parent as SpaceInstance<Curve3D>;
         if (!(result instanceof SpaceInstance)) throw "Invalid precondition";
+        return result;
+    }
+
+    clone(recursive?: boolean): THREE.Object3D {
+        const line = this.line.clone(recursive) as Line2;
+        const result = new CurveSegment(line, this.userData.name, this.userData.simpleName);
+        result.copy(this, recursive);
         return result;
     }
 }
@@ -141,19 +194,36 @@ export class Face extends TopologyItem {
     private readonly mesh: THREE.Mesh;
     get child() { return this.mesh };
 
-    constructor(grid: c3d.MeshBuffer, material: THREE.Material) {
-        super()
+    static build(grid: c3d.MeshBuffer, material: THREE.Material) {
         const geometry = new THREE.BufferGeometry();
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
         const mesh = new THREE.Mesh(geometry, material);
+        return new Face(mesh, grid.name, grid.simpleName);
+    }
+
+    private constructor(mesh: THREE.Mesh, name: c3d.Name, simpleName: number) {
+        super()
         this.mesh = mesh;
-        this.userData.name = grid.name;
-        this.userData.simpleName = grid.simpleName;
-        this.name = String(grid.simpleName);
+        this.userData.name = name;
+        this.userData.simpleName = simpleName;
+        this.name = String(simpleName);
         this.renderOrder = RenderOrder.Face;
         this.add(mesh);
+    }
+
+    clone(recursive?: boolean): THREE.Object3D {
+        const mesh = this.mesh.clone(recursive) as THREE.Mesh;
+        const result = new Face(mesh, this.userData.name, this.userData.simpleName);
+        result.copy(this, recursive);
+        return result;
+    }
+
+    duplicate(registry: Map<any, any> = new Map()): this {
+        if (registry.has(this)) return registry.get(this);
+
+        return this.clone(false) as this;
     }
 }
 
@@ -252,7 +322,7 @@ applyMixins(RecursiveGroup, [RaycastsRecursively]);
  */
 
 abstract class ObjectWrapper<T extends THREE.BufferGeometry, M extends THREE.Material>
-extends THREE.Object3D {
+    extends THREE.Object3D {
     abstract get parentItem(): Item;
     abstract child: THREE.Mesh;
     get geometry(): T { return this.child.geometry as T };
@@ -262,8 +332,8 @@ extends THREE.Object3D {
         const lod = parent.lod;
         const twins = lod.getObjectByName(this.name);
         if (!this.name) throw "invalid precondition";
-        lod.traverse(o =>  {
-            if (o.name ===  this.name) {
+        lod.traverse(o => {
+            if (o.name === this.name) {
                 const q = o as this;
                 q.child.material = m;
             }
@@ -288,6 +358,53 @@ export interface CurveSegment extends ObjectWrapper<LineGeometry, LineMaterial> 
 applyMixins(Face, [ObjectWrapper]);
 applyMixins(CurveEdge, [ObjectWrapper]);
 applyMixins(CurveSegment, [ObjectWrapper]);
+
+/**
+ * For the undo history, we need to clone the visual representation of objects.
+ * Normal THREE.js clone() behavior is good but we also need to ensure we don't
+ * clone the same object twice, thus we pass a registry around.
+ */
+
+abstract class CloneWithRegistry {
+    abstract clone(recursive?: boolean): THREE.Object3D;
+    abstract children: THREE.Object3D[];
+    abstract add(...object: THREE.Object3D[]): this;
+
+    duplicate(registry: Map<any, any> = new Map()): THREE.Object3D {
+        if (registry.has(this)) return registry.get(this);
+
+        const result = this.clone(false);
+        for (const child of this.children) {
+            const c = child as unknown as this;
+            result.add(c.duplicate(registry));
+        }
+        return result;
+    }
+}
+
+export interface CurveSegment extends CloneWithRegistry { };
+export interface FaceGroup extends CloneWithRegistry { };
+export interface CurveEdgeGroup extends CloneWithRegistry { };
+export interface Curve3D extends CloneWithRegistry { };
+
+applyMixins(FaceGroup, [CloneWithRegistry]);
+applyMixins(CurveEdgeGroup, [CloneWithRegistry]);
+applyMixins(Curve3D, [CloneWithRegistry]);
+applyMixins(RecursiveGroup, [CloneWithRegistry]);
+
+abstract class FlatDuplicate<T extends THREE.Object3D> {
+    abstract clone(recursive?: boolean): T;
+
+    duplicate(registry: Map<any, any> = new Map()): T {
+        if (registry.has(this)) return registry.get(this);
+
+        return this.clone(false) as T;
+    }
+}
+
+applyMixins(TopologyItem, [FlatDuplicate]);
+applyMixins(CurveEdge, [FlatDuplicate]);
+applyMixins(CurveSegment, [FlatDuplicate]);
 
 /**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.

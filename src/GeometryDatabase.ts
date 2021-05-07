@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
+import { Clone, GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { assertUnreachable, WeakValueMap } from './util/Util';
 import * as visual from './VisualModel';
@@ -17,7 +18,7 @@ let counter = 0;
 export class GeometryDatabase {
     readonly drawModel = new Set<visual.SpaceItem>();
     readonly scene = new THREE.Scene();
-    private readonly geometryModel = new c3d.Model();
+    private readonly geometryModel = new Map<number, c3d.Item>();
     private readonly name2topologyItem = new WeakValueMap<c3d.SimpleName, visual.TopologyItem>();
 
     constructor(
@@ -26,7 +27,7 @@ export class GeometryDatabase {
 
     async addItem(object: c3d.Item): Promise<visual.SpaceItem> {
         const current = counter++;
-        this.geometryModel.AddItem(object, current);
+        this.geometryModel.set(current, object);
 
         const mesh = await this.meshes(object, precision_distance);
         mesh.userData.simpleName = current;
@@ -57,15 +58,18 @@ export class GeometryDatabase {
     removeItem(object: visual.Item) {
         this.scene.remove(object);
         this.drawModel.delete(object);
-        this.geometryModel.DetachItem(this.lookupItem(object));
+        this.geometryModel.delete(object.userData.simpleName);
 
         this.signals.objectRemoved.dispatch(object);
         this.signals.sceneGraphChanged.dispatch();
     }
 
     private lookupItem(object: visual.Item): c3d.Item {
-        const { item } = this.geometryModel.GetItemByName(object.userData.simpleName);
-        return item;
+        if (!this.geometryModel.has(object.userData.simpleName)) {
+            throw new Error("invalid precondition");
+        }
+        const item = this.geometryModel.get(object.userData.simpleName);
+        return item!;
     }
 
     // FIXME rethink error messages and consider using Family rather than isA for curve3d?
@@ -74,16 +78,7 @@ export class GeometryDatabase {
     lookup(object: visual.Item): c3d.Item;
     lookup(object: visual.Item): c3d.Item {
         const item = this.lookupItem(object);
-        if (!item) throw "looking up invalid objects";
-
-        if (object instanceof visual.SpaceInstance) {
-            const instance = item.Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
-            return instance;
-        } else if (object instanceof visual.Solid) {
-            const solid = item.Cast<c3d.Solid>(c3d.SpaceType.Solid);
-            return solid;
-        }
-        throw new Error("not yet implemented");
+        return item;
     }
 
     lookupTopologyItem(object: visual.Face): c3d.Face;
@@ -91,16 +86,16 @@ export class GeometryDatabase {
     lookupTopologyItem(object: visual.Edge | visual.Face): c3d.TopologyItem {
         const parent = object.parentItem;
         const parentModel = this.lookupItem(parent);
-        if (!parentModel) throw "Invalid precondition";
-        const solid = parentModel.Cast<c3d.Solid>(c3d.SpaceType.Solid);
+        if (!(parentModel instanceof c3d.Solid)) throw new Error("Invalid precondition");
+        const solid = parentModel;
 
         if (object instanceof visual.Edge) {
             const result = solid.FindEdgeByName(object.userData.name);
-            if (!result) throw "cannot find edge";
+            if (!result) throw new Error("cannot find edge");
             return result;
         } else if (object instanceof visual.Face) {
             const result = solid.FindFaceByName(object.userData.name);
-            if (!result) throw "cannot find face";
+            if (!result) throw new Error("cannot find face");
             return result;
         }
         assertUnreachable(object);
@@ -108,7 +103,7 @@ export class GeometryDatabase {
 
     lookupByName(name: c3d.Name): visual.TopologyItem {
         const result = this.name2topologyItem.get(name.Hash());
-        if (!result) throw "item not found";
+        if (!result) throw new Error("item not found");
         return result;
     }
 
@@ -142,7 +137,7 @@ export class GeometryDatabase {
                 const edges = mesh.GetEdges();
                 let material = this.materials.line(obj as c3d.SpaceInstance);
                 for (const edge of edges) {
-                    const line = new visual.CurveSegment(edge, material);
+                    const line = visual.CurveSegment.build(edge, material);
                     curve3D.addCurveSegment(line);
                 }
                 instance.addLOD(curve3D.build(), distance);
@@ -161,7 +156,7 @@ export class GeometryDatabase {
                 const lineMaterial = this.materials.line();
                 const polygons = mesh.GetEdges(true);
                 for (const edge of polygons) {
-                    const line = new visual.CurveEdge(edge, lineMaterial, this.materials.lineDashed());
+                    const line = visual.CurveEdge.build(edge, lineMaterial, this.materials.lineDashed());
                     this.name2topologyItem.set(edge.name.Hash(), line);
                     edges.addEdge(line);
                 }
@@ -170,7 +165,7 @@ export class GeometryDatabase {
                 const grids = mesh.GetBuffers();
                 for (const grid of grids) {
                     const material = this.materials.mesh(grid, mesh.IsClosed());
-                    const face = new visual.Face(grid, material);
+                    const face = visual.Face.build(grid, material);
                     this.name2topologyItem.set(grid.name.Hash(), face);
                     faces.addFace(face);
                 }
@@ -178,5 +173,20 @@ export class GeometryDatabase {
                 break;
             }
         }
+    }
+
+    saveToMemento(registry: Map<any, any>): GeometryMemento {
+        return new GeometryMemento(
+            Clone(this.drawModel, registry),
+            Clone(this.geometryModel, registry),
+            Clone(this.scene, registry),
+            Clone(this.name2topologyItem, registry))
+    }
+
+    restoreFromMemento(m: GeometryMemento) {
+        (this.drawModel as GeometryDatabase['drawModel']) = m.drawModel;
+        (this.scene as GeometryDatabase['scene']) = m.scene;
+        (this.geometryModel as GeometryDatabase['geometryModel']) = m.geometryModel;
+        (this.name2topologyItem as GeometryDatabase['name2topologyItem']) = m.name2topologyItem;
     }
 }

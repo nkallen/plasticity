@@ -61,6 +61,34 @@ describe('onClick', () => {
         expect(line.material).toBe(materials.line(line));
     });
 
+    test('saveToMemento & restoreFromMemento', () => {
+        const intersections = [];
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: line.underlying.get(0)
+        });
+
+        expect(line.material).toBe(materials.line(line));
+        expect(selectionManager.selectedCurves.size).toBe(0);
+
+        selectionManager.onClick(intersections);
+        expect(selectionManager.selectedCurves.size).toBe(1);
+        expect(line.material).toBe(materials.highlight(line));
+
+        const memento = selectionManager.saveToMemento(new Map());
+
+        selectionManager.onClick(intersections);
+        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(line.material).toBe(materials.line(line));
+
+        selectionManager.restoreFromMemento(memento);
+
+        expect(selectionManager.selectedCurves.size).toBe(1);
+        line = [...selectionManager.selectedCurves][0];
+        expect(line.material).toBe(materials.highlight(line));
+    });
+
     test('clicking on a face selects the solid', () => {
         const face = solid.faces.get(0);
         const intersections = [];

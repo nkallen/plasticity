@@ -6,6 +6,8 @@ import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyI
 import { ClickStrategy } from './Click';
 import { Hoverable, HoverStrategy } from './Hover';
 import * as visual from '../VisualModel';
+import { SelectionMemento } from '../History';
+import { Clone } from '../History';
 
 export enum SelectionMode {
     Edge, Face, Solid, Curve
@@ -21,10 +23,15 @@ export interface SelectionStrategy {
 
 export class SelectionManager {
     readonly selectedSolids = new Set<Solid>();
-    readonly selectedChildren = new RefCounter();
     readonly selectedEdges = new Set<CurveEdge>();
     readonly selectedFaces = new Set<Face>();
     readonly selectedCurves = new Set<SpaceInstance<Curve3D>>();
+
+    // selectedChildren is the set of solids that have actively selected topological items;
+    // It's used in selection logic -- you can't select a solid if its face is already selected, for instance;
+    // Further, when you delete a solid, if it has any selected faces, you need to unselect those faces as well.
+    readonly selectedChildren = new RefCounter();
+
     readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face]);
     hover?: Hoverable = undefined;
 
@@ -116,5 +123,23 @@ export class SelectionManager {
             this.selectedCurves.delete(item);
             this.signals.objectDeselected.dispatch(item);
         }
+    }
+
+    saveToMemento(registry: Map<any, any>) {
+        return new SelectionMemento(
+            Clone(this.selectedSolids),
+            Clone(this.selectedChildren),
+            Clone(this.selectedEdges),
+            Clone(this.selectedFaces),
+            Clone(this.selectedCurves),
+        );
+    }
+
+    restoreFromMemento(m: SelectionMemento) {
+        (this.selectedSolids as SelectionManager['selectedSolids']) = m.selectedSolids;
+        (this.selectedChildren as SelectionManager['selectedChildren']) = m.selectedChildren;
+        (this.selectedEdges as SelectionManager['selectedEdges']) = m.selectedEdges;
+        (this.selectedFaces as SelectionManager['selectedFaces']) = m.selectedFaces;
+        (this.selectedCurves as SelectionManager['selectedCurves']) = m.selectedCurves;
     }
 }

@@ -14,6 +14,7 @@ import { SpriteDatabase } from "./SpriteDatabase";
 import TooltipManager from "./components/atom/tooltip-manager";
 import { Viewport } from "./components/viewport/Viewport";
 import { SpaceItem, TopologyItem } from './VisualModel';
+import { Memento } from "./History";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -116,5 +117,13 @@ export class Editor {
 
     onWindowLoad() {
         this.signals.windowLoaded.dispatch();
+    }
+
+    saveToMemento(registry: Map<any, any>): Memento {
+        return new Memento(this.db.saveToMemento(registry), this.selection.saveToMemento(registry), this.snaps.saveToMemento(registry));
+    }
+
+    restoreFromMemento(m: Memento) {
+
     }
 }

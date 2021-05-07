@@ -100,4 +100,12 @@ export class WeakValueMap<K, V extends object> {
         this.underlying.set(k, new WeakRef(v));
         return this;
     }
+
+    *[Symbol.iterator]() {
+        for (const key of this.underlying.keys()) {
+            const value = this.get(key);
+            if (!value) continue;
+            yield [key, value];
+        }
+    }
 }

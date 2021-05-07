@@ -11,7 +11,7 @@ import FakeSignals from '../__mocks__/FakeSignals';
 
 let db: GeometryDatabase;
 let snaps: SnapManager;
-let materials: Required<MaterialDatabase>;
+let materials: MaterialDatabase;
 let sprites: Required<SpriteDatabase>;
 let signals: EditorSignals;
 let box: visual.Solid;
