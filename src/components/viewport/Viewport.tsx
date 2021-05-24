@@ -52,6 +52,7 @@ export class Model implements Viewport {
     readonly controls = new Set<Control>();
     readonly selector: ViewportSelector;
     lastPointerEvent?: PointerEvent;
+    private readonly renderPass: RenderPass;
 
     constructor(
         private readonly editor: EditorLike,
@@ -80,7 +81,7 @@ export class Model implements Viewport {
         this.composer = new EffectComposer(this.renderer, renderTarget);
         this.composer.setPixelRatio(window.devicePixelRatio);
 
-        const renderPass = new RenderPass(editor.db.scene, this.camera);
+        this.renderPass = new RenderPass(editor.db.scene, this.camera);
         const overlayPass = new RenderPass(this.overlay, this.camera);
         const helpersPass = new RenderPass(editor.helpers.scene, this.camera);
         const copyPass = new ShaderPass(CopyShader);
@@ -104,7 +105,7 @@ export class Model implements Viewport {
         outlinePassHover.visibleEdgeColor.setHex(0xfffffff);
         this.outlinePassHover = outlinePassHover;
 
-        this.composer.addPass(renderPass);
+        this.composer.addPass(this.renderPass);
         this.composer.addPass(this.outlinePassHover);
         this.composer.addPass(this.outlinePassSelection);
         this.composer.addPass(overlayPass);
@@ -139,6 +140,7 @@ export class Model implements Viewport {
         this.editor.signals.objectHovered.add(this.setNeedsRender);
         this.editor.signals.objectUnhovered.add(this.setNeedsRender);
         this.editor.signals.objectAdded.add(this.setNeedsRender);
+        this.editor.signals.historyChanged.add(this.setNeedsRender);
 
         if (this.navigationControls) {
             this.navigationControls.addEventListener('change', this.setNeedsRender);
@@ -163,6 +165,7 @@ export class Model implements Viewport {
         const oldFog = this.editor.db.scene.fog;
         this.editor.db.scene.fog = fog;
 
+        this.renderPass.scene = this.editor.db.scene;
         this.composer.render();
 
         if (this.grid) this.editor.db.scene.remove(this.grid);

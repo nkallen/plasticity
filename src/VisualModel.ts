@@ -27,15 +27,6 @@ export abstract class SpaceItem extends THREE.Object3D {
 }
 
 class LOD extends THREE.LOD {
-    duplicate(source: this, registry: Map<any, any>) {
-        this.autoUpdate = source.autoUpdate;
-        for (const level of source.levels) {
-            const o = level.object as unknown as CloneWithRegistry;
-            this.addLevel(o.duplicate(registry), level.distance);
-        }
-        return this;
-    }
-
     clone(recursive?: boolean): THREE.Object3D { throw new Error("Don't call") }
     copy(source: this, recursive?: boolean): this { throw new Error("Don't call") }
 }
@@ -47,14 +38,6 @@ export abstract class Item extends SpaceItem {
     constructor() {
         super();
         this.add(this.lod);
-    }
-
-    duplicate(registry: Map<any, any> = new Map()): THREE.Object3D {
-        if (registry.has(this)) return registry.get(this);
-
-        const result = this.clone(false) as this;
-        result.lod.duplicate(this.lod, registry);
-        return result;
     }
 }
 
@@ -219,12 +202,6 @@ export class Face extends TopologyItem {
         result.copy(this, recursive);
         return result;
     }
-
-    duplicate(registry: Map<any, any> = new Map()): this {
-        if (registry.has(this)) return registry.get(this);
-
-        return this.clone(false) as this;
-    }
 }
 
 export class CurveEdgeGroup extends THREE.Group {
@@ -298,8 +275,6 @@ abstract class RaycastsRecursively {
     abstract children: THREE.Object3D[];
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        const children = this.children;
-
         for (const child of this.children) {
             child.raycast(raycaster, intersects);
         }
@@ -312,7 +287,7 @@ applyMixins(CurveEdgeGroup, [RaycastsRecursively]);
 applyMixins(SpaceInstance, [RaycastsRecursively]);
 applyMixins(Curve3D, [RaycastsRecursively]);
 
-class RecursiveGroup extends THREE.Group { }
+export class RecursiveGroup extends THREE.Group { }
 applyMixins(RecursiveGroup, [RaycastsRecursively]);
 
 /**
@@ -358,55 +333,6 @@ export interface CurveSegment extends ObjectWrapper<LineGeometry, LineMaterial> 
 applyMixins(Face, [ObjectWrapper]);
 applyMixins(CurveEdge, [ObjectWrapper]);
 applyMixins(CurveSegment, [ObjectWrapper]);
-
-/**
- * For the undo history, we need to clone the visual representation of objects.
- * Normal THREE.js clone() behavior is good but we also need to ensure we don't
- * clone the same object twice, thus we pass a registry around.
- */
-
-abstract class CloneWithRegistry {
-    abstract clone(recursive?: boolean): THREE.Object3D;
-    abstract children: THREE.Object3D[];
-    abstract add(...object: THREE.Object3D[]): this;
-
-    duplicate(registry: Map<any, any> = new Map()): THREE.Object3D {
-        if (registry.has(this)) return registry.get(this);
-
-        const result = this.clone(false);
-        for (const child of this.children) {
-            const c = child as unknown as this;
-            result.add(c.duplicate(registry));
-        }
-        return result;
-    }
-}
-
-export interface CurveSegment extends CloneWithRegistry { };
-export interface FaceGroup extends CloneWithRegistry { };
-export interface CurveEdgeGroup extends CloneWithRegistry { };
-export interface Curve3D extends CloneWithRegistry { };
-
-applyMixins(FaceGroup, [CloneWithRegistry]);
-applyMixins(CurveEdgeGroup, [CloneWithRegistry]);
-applyMixins(Curve3D, [CloneWithRegistry]);
-applyMixins(RecursiveGroup, [CloneWithRegistry]);
-
-abstract class FlatDuplicate<T extends THREE.Object3D> {
-    abstract clone(recursive?: boolean): THREE.Object3D;
-
-    duplicate(registry: Map<any, any> = new Map()): T {
-        if (registry.has(this)) return registry.get(this);
-
-        return this.clone(false) as T;
-    }
-}
-
-export interface TopologyItem extends FlatDuplicate<TopologyItem> { };
-
-applyMixins(TopologyItem, [FlatDuplicate]);
-applyMixins(CurveEdge, [FlatDuplicate]);
-applyMixins(CurveSegment, [FlatDuplicate]);
 
 /**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.

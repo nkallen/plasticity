@@ -29,7 +29,7 @@
     "forge": {
       "packagerConfig": {},
       "makers": [
-        {
+    {
           "name": "@electron-forge/maker-squirrel",
           "config": {
             "name": "ispace"

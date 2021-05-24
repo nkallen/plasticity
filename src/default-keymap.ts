@@ -27,7 +27,8 @@ export default {
     },
 
     "ispace-workspace": {
-        "cmd+z": "undo",
-        "cmd+shift+z": "redo",
+        "cmd-z": "undo",
+        "cmd-shift-z": "redo",
+        "u": "undo",
     }
 }

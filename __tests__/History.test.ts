@@ -1,4 +1,6 @@
-import c3d from '../build/Release/c3d.node';
+import * as THREE from "three";
+import * as visual from '../../src/VisualModel';
+import SphereFactory from '../src/commands/sphere/SphereFactory';
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import { Clone } from '../src/History';
@@ -13,23 +15,41 @@ import './matchers';
 
 describe("Clone", () => {
     test("set", () => {
-        const x = new Set([1,2,3]);
+        const x = new Set([1, 2, 3]);
         expect(Clone(x)).toEqual(x);
     })
 
-    test("registry is used to no reclone", () => {
-        const reg = new Map();
-        const i = {i: 'i'}, j = {j: 'j'}, k = {k: 'k'};
-        const x = new Set([i]);
-        const x_ = Clone(x, reg)
-        expect(x_).toEqual(x);
-        expect(Array.from(x_)[0]).not.toBe(i);
+    describe("visual.*", () => {
+        let items: visual.Item[];
 
-        const y = new Set([i,j,k]);
-        const y_ = Clone(y, reg);
-        expect(y_).toEqual(y);
-        expect(Array.from(x_)[0]).toBe(Array.from(y_)[0]);
-    })
+        beforeEach(async () => {
+            const materials = new FakeMaterials();
+            const signals = FakeSignals();
+            const db = new GeometryDatabase(materials, signals);
+            items = [];
+            for (let i = 0; i < 3; i++) {
+                const make = new SphereFactory(db, materials, signals);
+                make.center = new THREE.Vector3();
+                make.radius = i+1;
+                const item = await make.commit() as visual.SpaceItem;
+                items.push(item);
+            }
+        });
+
+        test("registry is used to not reclone", async () => {
+            const reg = new Map();
+            const [i,j,k] = items;
+            const x = new Set([i]);
+            const x_ = Clone(x, reg)
+            // expect(x_).toEqual(x);
+            expect(Array.from(x_)[0]).not.toBe(i);
+    
+            const y = new Set([i,j,k]);
+            const y_ = Clone(y, reg);
+            // expect(y_).toEqual(y);
+            expect(Array.from(x_)[0]).toBe(Array.from(y_)[0]);
+        })
+    });
 });
 
 describe("saveToMemento", () => {
@@ -45,7 +65,7 @@ describe("saveToMemento", () => {
         signals = FakeSignals();
         db = new GeometryDatabase(materials, signals);
         sprites = new FakeSprites();
-        snaps = new SnapManager(db,sprites,signals);
+        snaps = new SnapManager(db, sprites, signals);
         selection = new SelectionManager(db, materials, signals);
     });
 

@@ -30,7 +30,7 @@ export class SelectionManager {
     // selectedChildren is the set of solids that have actively selected topological items;
     // It's used in selection logic -- you can't select a solid if its face is already selected, for instance;
     // Further, when you delete a solid, if it has any selected faces, you need to unselect those faces as well.
-    readonly selectedChildren = new RefCounter();
+    readonly selectedChildren = new RefCounter<visual.SpaceItem>();
 
     readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face]);
     hover?: Hoverable = undefined;

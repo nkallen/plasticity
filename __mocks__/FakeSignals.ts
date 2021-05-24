@@ -22,5 +22,6 @@ export default (): EditorSignals => {
         keybindingsRegistered: new signals.Signal(),
         clicked: new signals.Signal(),
         hovered: new signals.Signal(),
+        historyChanged: new signals.Signal(),
     }
 }
