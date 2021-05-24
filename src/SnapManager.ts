@@ -23,6 +23,7 @@ export class SnapManager {
         this.snaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)));
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)));
         this.snaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)));
+        Object.freeze(this.snaps);
 
         signals.objectAdded.add(item => this.add(item));
         signals.objectRemoved.add(item => this.delete(item));
@@ -107,7 +108,15 @@ export class SnapManager {
     }
 
     saveToMemento(registry: Map<any, any>): SnapMemento {
-        return new SnapMemento(Clone(this.begPoints, registry), Clone(this.midPoints, registry));
+        return new SnapMemento(
+            Clone(this.begPoints, registry),
+            Clone(this.midPoints, registry));
+    }
+
+    restoreFromMemento(m: SnapMemento) {
+        (this.begPoints as SnapManager['begPoints']) = m.begPoints;
+        (this.midPoints as SnapManager['midPoints']) = m.midPoints;
+        this.update();
     }
 }
 

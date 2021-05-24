@@ -22,6 +22,9 @@ stats.showPanel(1);
 document.body.appendChild(stats.dom);
 
 editor.keymaps.add('/default', keymap);
+editor.registry.add("ispace-workspace", {
+
+});
 
 registerDefaultCommands(editor);
 

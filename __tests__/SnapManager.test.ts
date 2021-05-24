@@ -37,8 +37,37 @@ test("adding object", async () => {
     makeBox.p2 = new THREE.Vector3(1, 0, 0);
     makeBox.p3 = new THREE.Vector3(1, 1, 0);
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
-    const box = await makeBox.commit();
+    const box = await makeBox.commit() as visual.Solid;
 
+    expect(snaps.snappers.length).toBe(28);
+    expect(snaps.pickers.length).toBe(25);
+
+    db.removeItem(box);
+
+    expect(snaps.snappers.length).toBe(4);
+    expect(snaps.pickers.length).toBe(1);
+});
+
+test("saveToMemento & restoreFromMemento", async () => {
+    const makeBox = new BoxFactory(db, materials, signals);
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+    const box = await makeBox.commit() as visual.Solid;
+
+    expect(snaps.snappers.length).toBe(28);
+    expect(snaps.pickers.length).toBe(25);
+
+    const memento = snaps.saveToMemento(new Map());
+
+    db.removeItem(box);
+
+    expect(snaps.snappers.length).toBe(4);
+    expect(snaps.pickers.length).toBe(1);
+
+    snaps.restoreFromMemento(memento);
+    
     expect(snaps.snappers.length).toBe(28);
     expect(snaps.pickers.length).toBe(25);
 });

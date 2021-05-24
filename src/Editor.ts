@@ -93,6 +93,11 @@ export class Editor {
         material.depthFunc = THREE.AlwaysDepth;
         this.db.scene.add(axes);
         this.db.scene.background = new THREE.Color(0x424242);
+
+        this.registry.add("ispace-workspace", {
+            'undo': () => this.undo(),
+            'redo': () => this.redo()
+        });
     }
 
     async execute(command: Command) {
@@ -120,10 +125,23 @@ export class Editor {
     }
 
     saveToMemento(registry: Map<any, any>): Memento {
-        return new Memento(this.db.saveToMemento(registry), this.selection.saveToMemento(registry), this.snaps.saveToMemento(registry));
+        return new Memento(
+            this.db.saveToMemento(registry),
+            this.selection.saveToMemento(registry),
+            this.snaps.saveToMemento(registry));
     }
 
     restoreFromMemento(m: Memento) {
+        this.db.restoreFromMemento(m.db);
+        this.selection.restoreFromMemento(m.selection);
+        this.snaps.restoreFromMemento(m.snaps);
+    }
 
+    undo() {
+
+    }
+
+    redo() {
+        
     }
 }

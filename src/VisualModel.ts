@@ -393,7 +393,7 @@ applyMixins(Curve3D, [CloneWithRegistry]);
 applyMixins(RecursiveGroup, [CloneWithRegistry]);
 
 abstract class FlatDuplicate<T extends THREE.Object3D> {
-    abstract clone(recursive?: boolean): T;
+    abstract clone(recursive?: boolean): THREE.Object3D;
 
     duplicate(registry: Map<any, any> = new Map()): T {
         if (registry.has(this)) return registry.get(this);
@@ -401,6 +401,8 @@ abstract class FlatDuplicate<T extends THREE.Object3D> {
         return this.clone(false) as T;
     }
 }
+
+export interface TopologyItem extends FlatDuplicate<TopologyItem> { };
 
 applyMixins(TopologyItem, [FlatDuplicate]);
 applyMixins(CurveEdge, [FlatDuplicate]);
