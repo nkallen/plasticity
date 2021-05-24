@@ -92,7 +92,8 @@ out/
 /coverage/
 /dist/
 /include/
-/lib/c3d
+/lib/c3d/*
+!/lib/c3d/enums.ts
 /binding.gyp
 /build
 /bin
