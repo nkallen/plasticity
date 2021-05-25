@@ -16,7 +16,7 @@ import './matchers';
 describe("Clone", () => {
     test("set", () => {
         const x = new Set([1, 2, 3]);
-        expect(Clone(x)).toEqual(x);
+        expect(Clone(x, new Map())).toEqual(x);
     })
 
     describe("visual.*", () => {

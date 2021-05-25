@@ -33,7 +33,7 @@ export class RefCounter<T> {
     incr(item: T, disposable: Disposable): void {
         if (this.counts.has(item)) {
             const value = this.counts.get(item);
-            if (!value) throw "invalid key";
+            if (!value) throw new Error("invalid key");
 
             const [count, disposables] = value;
             disposables.add(disposable);
@@ -45,7 +45,7 @@ export class RefCounter<T> {
 
     decr(item: T): void {
         const value = this.counts.get(item);
-        if (!value) throw "invalid key";
+        if (!value) throw new Error("invalid key");
 
         const [count, disposable] = value;
         if (count == 1) {

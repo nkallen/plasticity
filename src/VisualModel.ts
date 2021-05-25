@@ -94,7 +94,10 @@ export abstract class TopologyItem extends THREE.Object3D {
 
     get parentItem(): Item {
         const result = this.parent?.parent?.parent?.parent;
-        if (!(result instanceof Item)) throw "Invalid precondition";
+        if (!(result instanceof Item)) {
+            console.error(this);
+            throw new Error("Invalid precondition");
+        }
         return result as Item;
     }
 }

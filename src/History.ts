@@ -80,7 +80,7 @@ export class History {
     }
 }
 
-export function Clone<T>(object: T, registry = new Map<any, any>()): T {
+export function Clone<T>(object: T, registry: Map<any, any>): T {
     let result;
     if (registry.has(object)) {
         return registry.get(object);
@@ -94,12 +94,12 @@ export function Clone<T>(object: T, registry = new Map<any, any>()): T {
         }
         result.disposable = object.disposable;
         for (const level of object.lod.levels) {
-            result.lod.addLevel(Clone(level.object), level.distance);
+            result.lod.addLevel(Clone(level.object, registry), level.distance);
         }
     } else if (object instanceof visual.FaceGroup || object instanceof visual.CurveEdgeGroup || object instanceof visual.Curve3D || object instanceof visual.RecursiveGroup) {
         result = object.clone(false);
         for (const child of object.children) {
-            result.add(Clone(child));
+            result.add(Clone(child, registry));
         }
     } else if (object instanceof visual.TopologyItem || object instanceof visual.CurveEdge || object instanceof visual.CurveSegment) {
         result = object.clone(false);
@@ -111,7 +111,7 @@ export function Clone<T>(object: T, registry = new Map<any, any>()): T {
         result = new RefCounter();
         const counts = new Map();
         for (const [key, item] of result.counts) {
-            counts.set(Clone(key), item);
+            counts.set(Clone(key, registry), item);
         }
         (result.counts as RefCounter<T>['counts']) = counts;
     } else if (object instanceof Snap) {
@@ -124,7 +124,7 @@ export function Clone<T>(object: T, registry = new Map<any, any>()): T {
     } else if (object instanceof Map) {
         result = new Map();
         for (const [key, item] of object) {
-            result.set(Clone(key), Clone(item, registry));
+            result.set(Clone(key, registry), Clone(item, registry));
         }
     } else if (object instanceof WeakValueMap) {
         result = new WeakValueMap();
