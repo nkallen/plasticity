@@ -16,7 +16,8 @@ export class ViewportSelector extends THREE.EventDispatcher {
         private readonly drawModel: Set<visual.SpaceItem>,
         private readonly camera: THREE.Camera,
         private readonly domElement: HTMLElement,
-        private readonly signals: EditorSignals) {
+        private readonly signals: EditorSignals
+    ) {
         super();
 
         // @ts-expect-error("Line2 is missing from the typedef")

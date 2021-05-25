@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { EventDispatcher } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import SphereFactory from "../src/commands/sphere/SphereFactory";
-import Reg, { Viewport, EditorLike, Model } from "../src/components/viewport/Viewport";
+import { EditorLike, Model, Viewport } from "../src/components/viewport/Viewport";
 import { EditorSignals } from "../src/Editor";
 import { GeometryDatabase } from "../src/GeometryDatabase";
 import MaterialDatabase from "../src/MaterialDatabase";
@@ -51,7 +51,7 @@ beforeEach(async () => {
     materials = new FakeMaterials();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
-    selection = new SelectionManager(db, materials, signals);
+    selection = new SelectionManager(db, materials, signals, f => f());
     editor = {
         db: db,
         viewports: [],

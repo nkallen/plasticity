@@ -128,6 +128,7 @@ export class Model implements Viewport {
     start() {
         this.editor.signals.objectSelected.add(this.outlineSelection);
         this.editor.signals.objectDeselected.add(this.outlineSelection);
+        this.editor.signals.historyChanged.add(this.outlineSelection);
         this.editor.signals.objectHovered.add(this.outlineHover);
         this.editor.signals.objectUnhovered.add(this.outlineUnhover);
 
@@ -165,7 +166,11 @@ export class Model implements Viewport {
         const oldFog = this.editor.db.scene.fog;
         this.editor.db.scene.fog = fog;
 
+        // Undo history actually swaps out scenes; so objects that keep a reference to scenes should be updated before render
         this.renderPass.scene = this.editor.db.scene;
+        this.outlinePassHover.renderScene = this.editor.db.scene;
+        this.outlinePassSelection.renderScene = this.editor.db.scene;
+
         this.composer.render();
 
         if (this.grid) this.editor.db.scene.remove(this.grid);

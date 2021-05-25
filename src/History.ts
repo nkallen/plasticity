@@ -2,8 +2,10 @@ import * as visual from './VisualModel';
 import c3d from '../build/Release/c3d.node';
 import * as THREE from 'three';
 import { RefCounter, WeakValueMap } from './util/Util';
-import { Snap } from './SnapManager';
+import { Snap, SnapManager } from './SnapManager';
 import { Editor, EditorSignals } from './Editor';
+import { GeometryDatabase } from './GeometryDatabase';
+import { SelectionManager } from './selection/SelectionManager';
 
 export class Memento {
     constructor(
@@ -39,16 +41,38 @@ export class SnapMemento {
     ) { }
 }
 
+
+export type StateChange = (f: () => void) => void;
+
+export class MementoOriginator {
+    constructor(
+        readonly db: GeometryDatabase,
+        readonly selection: SelectionManager,
+        readonly snaps: SnapManager
+    ) {}
+
+    saveToMemento(registry: Map<any, any>): Memento {
+        return new Memento(
+            this.db.saveToMemento(registry),
+            this.selection.saveToMemento(registry),
+            this.snaps.saveToMemento(registry));
+    }
+
+    restoreFromMemento(m: Memento) {
+        this.db.restoreFromMemento(m.db);
+        this.selection.restoreFromMemento(m.selection);
+        this.snaps.restoreFromMemento(m.snaps);
+    }
+}
+
 export class History {
     private readonly undoStack: [String, Memento][] = [];
     private readonly redoStack: [String, Memento][] = [];
-    private readonly editor: Editor;
-    private readonly signals: EditorSignals;
 
-    constructor(editor: Editor) {
-        this.editor = editor;
-        this.signals = editor.signals;
-    }
+    constructor(
+        private readonly originator: MementoOriginator,
+        private readonly signals: EditorSignals
+    ) {}
 
     add(name: String, state: Memento) {
         this.undoStack.push([name, state]);
@@ -60,7 +84,7 @@ export class History {
         if (!undo) return false;
 
         const [, memento] = undo;
-        this.editor.restoreFromMemento(memento);
+        this.originator.restoreFromMemento(memento);
         this.redoStack.push(undo);
 
         this.signals.historyChanged.dispatch();
@@ -72,7 +96,7 @@ export class History {
         if (!redo) return false;
 
         const [, memento] = redo;
-        this.editor.restoreFromMemento(memento);
+        this.originator.restoreFromMemento(memento);
         this.undoStack.push(redo);
         this.signals.historyChanged.dispatch();
 

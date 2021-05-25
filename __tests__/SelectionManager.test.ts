@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import BoxFactory from '../src/commands/box/BoxFactory';
 import LineFactory from '../src/commands/line/LineFactory';
-import { EditorSignals } from '../src/Editor';
+import { Editor, EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
 import { SelectionManager } from '../src/selection/SelectionManager';
@@ -14,12 +14,13 @@ let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 let selectionManager: SelectionManager;
+let editor: Editor;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
-    selectionManager = new SelectionManager(db, materials, signals);
+    selectionManager = new SelectionManager(db, materials, signals, f => f());
 });
 
 describe('onClick', () => {

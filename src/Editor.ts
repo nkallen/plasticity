@@ -14,7 +14,7 @@ import { SpriteDatabase } from "./SpriteDatabase";
 import TooltipManager from "./components/atom/tooltip-manager";
 import { Viewport } from "./components/viewport/Viewport";
 import { SpaceItem, TopologyItem } from './VisualModel';
-import { Memento, History } from "./History";
+import { Memento, History, StateChange, MementoOriginator } from "./History";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -64,21 +64,22 @@ export class Editor {
         keybindingsRegistered: new signals.Signal(),
         clicked: new signals.Signal(),
         hovered: new signals.Signal(),
-        historyChanged: new signals.Signal()
+        historyChanged: new signals.Signal(),
     }
 
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly db = new GeometryDatabase(this.materials, this.signals);
-    readonly selection = new SelectionManager(this.db, this.materials, this.signals);
     readonly sprites = new SpriteDatabase();
     readonly snaps = new SnapManager(this.db, this.sprites, this.signals);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
     readonly helpers = new Helpers(this.signals);
-    readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null}); // FIXME viewRegistry shouldn't be null
-    readonly history: History;
-  
+    readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
+    readonly selection = new SelectionManager(this.db, this.materials, this.signals, this.changeState.bind(this));
+    readonly originator = new MementoOriginator(this.db, this.selection, this.snaps);
+    readonly history = new History(this.originator, this.signals);
+
     constructor() {
         // FIXME dispose of these:
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
@@ -97,7 +98,6 @@ export class Editor {
         this.db.scene.add(axes);
         this.db.scene.background = new THREE.Color(0x424242);
 
-        this.history = new History(this);
         this.registry.add("ispace-workspace", {
             'undo': () => this.history.undo(),
             'redo': () => this.history.redo()
@@ -111,7 +111,7 @@ export class Editor {
             'command:abort': () => command.cancel(),
         })
         try {
-            const state = this.saveToMemento(new Map());
+            const state = this.originator.saveToMemento(new Map());
             await command.execute();
             this.history.add("Command", state);
         } catch (e) {
@@ -122,24 +122,17 @@ export class Editor {
         }
     }
 
+    changeState(f: () => void): void {
+        const state = this.originator.saveToMemento(new Map());
+        f();
+        this.history.add("Command", state);
+    }
+
     onWindowResize() {
         this.signals.windowResized.dispatch();
     }
 
     onWindowLoad() {
         this.signals.windowLoaded.dispatch();
-    }
-
-    saveToMemento(registry: Map<any, any>): Memento {
-        return new Memento(
-            this.db.saveToMemento(registry),
-            this.selection.saveToMemento(registry),
-            this.snaps.saveToMemento(registry));
-    }
-
-    restoreFromMemento(m: Memento) {
-        this.db.restoreFromMemento(m.db);
-        this.selection.restoreFromMemento(m.selection);
-        this.snaps.restoreFromMemento(m.snaps);
     }
 }

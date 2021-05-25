@@ -1,8 +1,8 @@
 import { Disposable } from 'event-kit';
 import c3d from '../build/Release/c3d.node';
-import { EditorSignals } from '../Editor';
+import { Editor, EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
-import { Clone, SelectionMemento } from '../History';
+import { Clone, SelectionMemento, StateChange } from '../History';
 import MaterialDatabase from '../MaterialDatabase';
 import { RefCounter } from '../util/Util';
 import * as visual from '../VisualModel';
@@ -42,7 +42,8 @@ export class SelectionManager {
     constructor(
         readonly db: GeometryDatabase,
         readonly materials: MaterialDatabase,
-        readonly signals: EditorSignals
+        readonly signals: EditorSignals,
+        readonly stateChange: StateChange
     ) {
         signals.objectRemoved.add(item => this.delete(item));
         signals.clicked.add((intersections) => this.onClick(intersections));
@@ -90,95 +91,113 @@ export class SelectionManager {
     }
 
     deselectFace(object: Face, parentItem: Solid) {
-        const model = this.db.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
-        this.selectedFaces.delete(object);
-        object.material = this.materials.lookup(model);
-        this.selectedChildren.decr(parentItem);
-        this.signals.objectDeselected.dispatch(object);
+        this.stateChange(() => {
+            const model = this.db.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
+            this.selectedFaces.delete(object);
+            object.material = this.materials.lookup(model);
+            this.selectedChildren.decr(parentItem);
+            this.signals.objectDeselected.dispatch(object);
+        });
     }
 
     selectFace(object: Face, parentItem: Solid) {
-        const model = this.db.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
-        this.hover?.dispose();
-        this.hover = undefined;
-        this.selectedFaces.add(object);
-        object.material = this.materials.highlight(model);
-        this.selectedChildren.incr(parentItem,
-            new Disposable(() => this.selectedFaces.delete(object)));
-        this.signals.objectSelected.dispatch(object);
+        this.stateChange(() => {
+            const model = this.db.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
+            this.hover?.dispose();
+            this.hover = undefined;
+            this.selectedFaces.add(object);
+            object.material = this.materials.highlight(model);
+            this.selectedChildren.incr(parentItem,
+                new Disposable(() => this.selectedFaces.delete(object)));
+            this.signals.objectSelected.dispatch(object);
+        });
     }
 
     deselectEdge(object: CurveEdge, parentItem: Solid) {
-        const model = this.db.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
-        this.selectedEdges.delete(object);
-        object.material = this.materials.lookup(model);
-        this.selectedChildren.decr(parentItem);
-        this.signals.objectDeselected.dispatch(object);
+        this.stateChange(() => {
+            const model = this.db.lookupTopologyItem(object); // FIXME it would be better to not lookup anything
+            this.selectedEdges.delete(object);
+            object.material = this.materials.lookup(model);
+            this.selectedChildren.decr(parentItem);
+            this.signals.objectDeselected.dispatch(object);
+        });
     }
 
     selectEdge(object: CurveEdge, parentItem: Solid) {
-        const model = this.db.lookupTopologyItem(object) as c3d.CurveEdge; // FIXME it would be better to not lookup anything
-        this.hover?.dispose();
-        this.hover = undefined;
-        this.selectedEdges.add(object);
-        object.material = this.materials.highlight(model);
-        this.selectedChildren.incr(parentItem,
-            new Disposable(() => this.selectedEdges.delete(object)));
-        this.signals.objectSelected.dispatch(object);
+        this.stateChange(() => {
+            const model = this.db.lookupTopologyItem(object) as c3d.CurveEdge; // FIXME it would be better to not lookup anything
+            this.hover?.dispose();
+            this.hover = undefined;
+            this.selectedEdges.add(object);
+            object.material = this.materials.highlight(model);
+            this.selectedChildren.incr(parentItem,
+                new Disposable(() => this.selectedEdges.delete(object)));
+            this.signals.objectSelected.dispatch(object);
+        });
     }
 
     deselectSolid(solid: Solid) {
-        this.selectedSolids.delete(solid);
-        this.signals.objectDeselected.dispatch(solid);
+        this.stateChange(() => {
+            this.selectedSolids.delete(solid);
+            this.signals.objectDeselected.dispatch(solid);
+        });
     }
 
     selectSolid(solid: Solid) {
-        this.hover?.dispose();
-        this.hover = undefined;
-        this.selectedSolids.add(solid);
-        this.signals.objectSelected.dispatch(solid);
+        this.stateChange(() => {
+            this.hover?.dispose();
+            this.hover = undefined;
+            this.selectedSolids.add(solid);
+            this.signals.objectSelected.dispatch(solid);
+        });
     }
 
     deselectCurve(curve: SpaceInstance<Curve3D>) {
-        const model = this.db.lookup(curve);
-        this.selectedCurves.delete(curve);
-        curve.material = this.materials.line(model);
-        this.signals.objectDeselected.dispatch(curve);
+        this.stateChange(() => {
+            const model = this.db.lookup(curve);
+            this.selectedCurves.delete(curve);
+            curve.material = this.materials.line(model);
+            this.signals.objectDeselected.dispatch(curve);
+        });
     }
 
     selectCurve(curve: SpaceInstance<Curve3D>) {
-        const model = this.db.lookup(curve);
-        this.hover?.dispose();
-        this.hover = undefined;
-        this.selectedCurves.add(curve);
-        curve.material = this.materials.highlight(model);
-        this.signals.objectSelected.dispatch(curve);
+        this.stateChange(() => {
+            const model = this.db.lookup(curve);
+            this.hover?.dispose();
+            this.hover = undefined;
+            this.selectedCurves.add(curve);
+            curve.material = this.materials.highlight(model);
+            this.signals.objectSelected.dispatch(curve);
+        });
     }
 
     deselectAll(): void {
-        for (const object of this.selectedEdges) {
-            this.selectedEdges.delete(object);
-            const model = this.db.lookupTopologyItem(object);
-            object.material = this.materials.lookup(model);
-            this.signals.objectDeselected.dispatch(object);
-        }
-        for (const object of this.selectedFaces) {
-            this.selectedFaces.delete(object);
-            const model = this.db.lookupTopologyItem(object);
-            object.material = this.materials.lookup(model);
-            this.signals.objectDeselected.dispatch(object);
-        }
-        for (const object of this.selectedSolids) {
-            this.selectedSolids.delete(object);
-            this.signals.objectDeselected.dispatch(object);
-        }
-        for (const curve of this.selectedCurves) {
-            this.selectedCurves.delete(curve);
-            const model = this.db.lookup(curve);
-            curve.material = this.materials.line(model);
-            this.signals.objectDeselected.dispatch(curve);
-        }
-        this.selectedChildren.clear();
+        this.stateChange(() => {
+            for (const object of this.selectedEdges) {
+                this.selectedEdges.delete(object);
+                const model = this.db.lookupTopologyItem(object);
+                object.material = this.materials.lookup(model);
+                this.signals.objectDeselected.dispatch(object);
+            }
+            for (const object of this.selectedFaces) {
+                this.selectedFaces.delete(object);
+                const model = this.db.lookupTopologyItem(object);
+                object.material = this.materials.lookup(model);
+                this.signals.objectDeselected.dispatch(object);
+            }
+            for (const object of this.selectedSolids) {
+                this.selectedSolids.delete(object);
+                this.signals.objectDeselected.dispatch(object);
+            }
+            for (const curve of this.selectedCurves) {
+                this.selectedCurves.delete(curve);
+                const model = this.db.lookup(curve);
+                curve.material = this.materials.line(model);
+                this.signals.objectDeselected.dispatch(curve);
+            }
+            this.selectedChildren.clear();
+        });
     }
 
     delete(item: visual.SpaceItem): void {
