@@ -1,28 +1,32 @@
+import MaterialDatabase from "../MaterialDatabase";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { EditorSignals } from "../Editor";
 import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, SpaceItem, TopologyItem } from "../VisualModel";
-import { SelectionManager, SelectionMode, SelectionStrategy } from "./SelectionManager";
+import { SelectionMode, SelectionStrategy, UndoableSelectionManager } from "./SelectionManager";
 
 export class HoverStrategy implements SelectionStrategy {
-    constructor(private readonly selectionManager: SelectionManager) {
-    }
+    constructor(
+        private readonly selection: UndoableSelectionManager,
+        private readonly materials: MaterialDatabase,
+        private readonly signals: EditorSignals,
+        ) {}
 
     emptyIntersection(): void {
-        this.selectionManager.hover?.dispose();
-        this.selectionManager.hover = undefined;
+        this.selection.hover?.dispose();
+        this.selection.hover = undefined;
     }
 
     invalidIntersection(): void {
-        this.selectionManager.hover?.dispose();
-        this.selectionManager.hover = undefined;
+        this.selection.hover?.dispose();
+        this.selection.hover = undefined;
     }
 
     curve3D(object: CurveSegment, parentCurve: SpaceInstance<Curve3D>): boolean {
-        if (this.selectionManager.mode.has(SelectionMode.Curve) && !this.selectionManager.selectedCurves.has(parentCurve)) {
-            if (!this.selectionManager.hover?.isEqual(object)) {
-                this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new Curve3DHoverable(
-                    parentCurve, this.selectionManager.materials.hover(object), this.selectionManager.signals);
+        if (this.selection.mode.has(SelectionMode.Curve) && !this.selection.selectedCurves.has(parentCurve)) {
+            if (!this.selection.hover?.isEqual(object)) {
+                this.selection.hover?.dispose();
+                this.selection.hover = new Curve3DHoverable(
+                    parentCurve, this.materials.hover(object), this.signals);
             }
             return true;
         }
@@ -30,10 +34,10 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     solid(object: TopologyItem, parentItem: Solid): boolean {
-        if (!this.selectionManager.selectedSolids.has(parentItem) && !this.selectionManager.selectedChildren.has(parentItem)) {
-            if (!this.selectionManager.hover?.isEqual(parentItem)) {
-                this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new Hoverable(parentItem, this.selectionManager.signals);
+        if (!this.selection.selectedSolids.has(parentItem) && !this.selection.selectedChildren.has(parentItem)) {
+            if (!this.selection.hover?.isEqual(parentItem)) {
+                this.selection.hover?.dispose();
+                this.selection.hover = new Hoverable(parentItem, this.signals);
             }
             return true;
         }
@@ -41,16 +45,16 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     topologicalItem(object: TopologyItem, _parentItem: Solid): boolean {
-        if (this.selectionManager.mode.has(SelectionMode.Face) && object instanceof Face && !this.selectionManager.selectedFaces.has(object)) {
-            if (!this.selectionManager.hover?.isEqual(object)) {
-                this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.materials.hover(object), this.selectionManager.signals);
+        if (this.selection.mode.has(SelectionMode.Face) && object instanceof Face && !this.selection.selectedFaces.has(object)) {
+            if (!this.selection.hover?.isEqual(object)) {
+                this.selection.hover?.dispose();
+                this.selection.hover = new TopologicalItemHoverable(object, this.materials.hover(object), this.signals);
             }
             return true;
-        } else if (this.selectionManager.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selectionManager.selectedEdges.has(object)) {
-            if (!this.selectionManager.hover?.isEqual(object)) {
-                this.selectionManager.hover?.dispose();
-                this.selectionManager.hover = new TopologicalItemHoverable(object, this.selectionManager.materials.hover(object), this.selectionManager.signals);
+        } else if (this.selection.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selection.selectedEdges.has(object)) {
+            if (!this.selection.hover?.isEqual(object)) {
+                this.selection.hover?.dispose();
+                this.selection.hover = new TopologicalItemHoverable(object, this.materials.hover(object), this.signals);
             }
             return true;
         }
@@ -64,8 +68,8 @@ export class Hoverable {
 
     constructor(object: SpaceItem | TopologyItem, signals: EditorSignals) {
         this.object = object;
-        signals.objectHovered.dispatch(object);
         this.signals = signals;
+        signals.objectHovered.dispatch(object);
     }
 
     dispose(): void {
@@ -75,41 +79,52 @@ export class Hoverable {
     isEqual(other: SpaceItem | TopologyItem): boolean {
         return this.object === other;
     }
+
+    highlight() {}
+    unhighlight() {}
 }
 
 class TopologicalItemHoverable<T extends THREE.Material | THREE.Material[]> extends Hoverable {
-    private readonly previousMaterial: T;
     protected readonly object: TopologyItem & { material: T };
+    private readonly material: T
 
     constructor(object: TopologyItem & { material: T }, material: T, signals: EditorSignals) {
-        const previous = object.material;
-        object.material = material;
         super(object, signals);
         this.object = object;
-        this.previousMaterial = previous;
+        this.material = material;
     }
 
-    dispose() {
-        this.object.material = this.previousMaterial;
-        super.dispose();
+    private previousMaterial: any;
+    highlight() {
+        this.previousMaterial = this.object.material;
+        this.object.material = this.material;
+    }
+
+    unhighlight() {
+        this.object.material = this.previousMaterial!;
     }
 }
 
 class Curve3DHoverable extends Hoverable {
-    private readonly previousMaterial: LineMaterial;
     protected readonly object: SpaceInstance<Curve3D>;
+    private readonly material: LineMaterial;
 
     constructor(object: SpaceInstance<Curve3D>, material: LineMaterial, signals: EditorSignals) {
-        const previous = object.material;
         object.material = material;
 
         super(object, signals);
         this.object = object;
-        this.previousMaterial = previous;
+        this.material = material;
     }
 
-    dispose() {
-        this.object.material = this.previousMaterial;
+    private previousMaterial: any;
+    highlight() {
+        this.previousMaterial = this.object.material;
+        this.object.material = this.material;
         super.dispose();
+    }
+
+    unhighlight() {
+        this.object.material = this.previousMaterial!;
     }
 }

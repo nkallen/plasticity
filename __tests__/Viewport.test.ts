@@ -8,8 +8,9 @@ import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorLike, Model, Viewport } from "../src/components/viewport/Viewport";
 import { EditorSignals } from "../src/Editor";
 import { GeometryDatabase } from "../src/GeometryDatabase";
+import { EditorOriginator } from "../src/History";
 import MaterialDatabase from "../src/MaterialDatabase";
-import { SelectionManager } from "../src/selection/SelectionManager";
+import { SelectionInteractionManager, SelectionManager, UndoableSelectionManager } from "../src/selection/SelectionManager";
 import { PlaneSnap } from "../src/SnapManager";
 import { Helpers } from "../src/util/Helpers";
 import * as visual from '../src/VisualModel';
@@ -19,11 +20,14 @@ import FakeSignals from '../__mocks__/FakeSignals';
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
-let viewport: Viewport;
+let viewport: Model;
 let editor: EditorLike;
 let sphere: visual.Solid;
 let selection: SelectionManager;
+let undo: UndoableSelectionManager;
+let interaction: SelectionInteractionManager;
 let navigationControls: EventDispatcher;
+let originator: EditorOriginator;
 
 class FakeWebGLRenderer implements THREE.Renderer {
     domElement = document.createElement("canvas");
@@ -51,13 +55,16 @@ beforeEach(async () => {
     materials = new FakeMaterials();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
-    selection = new SelectionManager(db, materials, signals, f => f());
+    selection = new SelectionManager(db, materials, signals);
+    undo = new UndoableSelectionManager(selection, f => f());
+    interaction = new SelectionInteractionManager(undo, materials, signals);
     editor = {
         db: db,
         viewports: [],
         helpers: new Helpers(signals),
         signals: signals,
-        selection: selection,
+        selection: undo,
+        originator: originator,
     };
     const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
@@ -78,17 +85,17 @@ beforeEach(async () => {
 
 test("item selected", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
-    selection.onClick([{object: sphere.faces.get(0), distance: 1, point: new THREE.Vector3()}]);
+    interaction.onClick([{object: sphere.faces.get(0), distance: 1, point: new THREE.Vector3()}]);
     expect(viewport.outlinePassSelection.selectedObjects).toEqual(sphere.outline);
-    selection.onClick([]);
+    interaction.onClick([]);
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
 });
 
 test("item hovered", () => {
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
-    selection.onPointerMove([{object: sphere.faces.get(0), distance: 1, point: new THREE.Vector3()}]);
+    interaction.onPointerMove([{object: sphere.faces.get(0), distance: 1, point: new THREE.Vector3()}]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual(sphere.outline);
-    selection.onPointerMove([]);
+    interaction.onPointerMove([]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
 });
 

@@ -184,7 +184,12 @@ export class GeometryDatabase {
     }
 
     restoreFromMemento(m: GeometryMemento) {
-        (this.drawModel as GeometryDatabase['drawModel']) = m.drawModel;
+        // .drawModel and .scene are both public; it's best to modify in place
+        // in case anyone has references to them. currently, we do this just for drawModel.
+
+        this.drawModel.clear();
+        for (const v of m.drawModel) this.drawModel.add(v);
+
         (this.scene as GeometryDatabase['scene']) = m.scene;
         (this.geometryModel as GeometryDatabase['geometryModel']) = m.geometryModel;
         (this.name2topologyItem as GeometryDatabase['name2topologyItem']) = m.name2topologyItem;

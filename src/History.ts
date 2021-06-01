@@ -1,11 +1,9 @@
-import * as visual from './VisualModel';
-import c3d from '../build/Release/c3d.node';
 import * as THREE from 'three';
+import c3d from '../build/Release/c3d.node';
+import { EditorSignals } from './Editor';
+import { Snap } from './SnapManager';
 import { RefCounter, WeakValueMap } from './util/Util';
-import { Snap, SnapManager } from './SnapManager';
-import { Editor, EditorSignals } from './Editor';
-import { GeometryDatabase } from './GeometryDatabase';
-import { SelectionManager } from './selection/SelectionManager';
+import * as visual from './VisualModel';
 
 export class Memento {
     constructor(
@@ -44,18 +42,40 @@ export class SnapMemento {
 
 export type StateChange = (f: () => void) => void;
 
-export class MementoOriginator {
-    constructor(
-        readonly db: GeometryDatabase,
-        readonly selection: SelectionManager,
-        readonly snaps: SnapManager
-    ) {}
+type OriginatorState = { tag: 'start' } | { tag: 'group', memento: Memento }
+export class EditorOriginator {
+    state: OriginatorState = { tag: 'start' }
 
-    saveToMemento(registry: Map<any, any>): Memento {
-        return new Memento(
+    constructor(
+        readonly db: MementoOriginator<GeometryMemento>,
+        readonly selection: MementoOriginator<SelectionMemento>,
+        readonly snaps: MementoOriginator<SnapMemento>
+    ) { }
+
+    group(registry: Map<any, any>, fn: () => void) {
+        const memento = new Memento(
             this.db.saveToMemento(registry),
             this.selection.saveToMemento(registry),
             this.snaps.saveToMemento(registry));
+
+        this.state = { tag: 'group', memento: memento };
+        try {
+            fn();
+        } finally {
+            this.state = { tag: 'start' };
+        }
+    }
+
+    saveToMemento(registry: Map<any, any>): Memento {
+        switch (this.state.tag) {
+            case 'start':
+                return new Memento(
+                    this.db.saveToMemento(registry),
+                    this.selection.saveToMemento(registry),
+                    this.snaps.saveToMemento(registry));
+            case 'group':
+                return this.state.memento;
+        }
     }
 
     restoreFromMemento(m: Memento) {
@@ -65,22 +85,28 @@ export class MementoOriginator {
     }
 }
 
+interface MementoOriginator<T> {
+    saveToMemento(registry: Map<any, any>): T;
+    restoreFromMemento(m: T): void;
+}
+
 export class History {
     private readonly undoStack: [String, Memento][] = [];
     private readonly redoStack: [String, Memento][] = [];
 
     constructor(
-        private readonly originator: MementoOriginator,
+        private readonly originator: EditorOriginator,
         private readonly signals: EditorSignals
-    ) {}
+    ) { }
 
     add(name: String, state: Memento) {
+        if (this.undoStack.length > 0 &&
+            this.undoStack[this.undoStack.length - 1][1] === state) return;
         this.undoStack.push([name, state]);
     }
 
     undo(): boolean {
         const undo = this.undoStack.pop();
-        console.log("undoing", undo);
         if (!undo) return false;
 
         const [, memento] = undo;
@@ -120,6 +146,7 @@ export function Clone<T>(object: T, registry: Map<any, any>): T {
         for (const level of object.lod.levels) {
             result.lod.addLevel(Clone(level.object, registry), level.distance);
         }
+        result.userData = object.userData;
     } else if (object instanceof visual.FaceGroup || object instanceof visual.CurveEdgeGroup || object instanceof visual.Curve3D || object instanceof visual.RecursiveGroup) {
         result = object.clone(false);
         for (const child of object.children) {
@@ -127,6 +154,7 @@ export function Clone<T>(object: T, registry: Map<any, any>): T {
         }
     } else if (object instanceof visual.TopologyItem || object instanceof visual.CurveEdge || object instanceof visual.CurveSegment) {
         result = object.clone(false);
+        result.userData = object.userData;
     } else if (object instanceof c3d.Item || object instanceof c3d.TopologyItem) {
         result = object;
     } else if (object instanceof THREE.AxesHelper) {

@@ -1,3 +1,4 @@
+import { EditorOriginator } from "../../History";
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -7,7 +8,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { EditorSignals } from '../../Editor';
 import { GeometryDatabase } from "../../GeometryDatabase";
-import { SelectionManager } from "../../selection/SelectionManager";
+import { UndoableSelectionManager } from "../../selection/SelectionManager";
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { PlaneSnap } from "../../SnapManager";
 import { Helpers } from "../../util/Helpers";
@@ -39,7 +40,8 @@ export interface EditorLike {
     helpers: Helpers,
     viewports: Viewport[],
     signals: EditorSignals,
-    selection: SelectionManager,
+    selection: UndoableSelectionManager,
+    originator: EditorOriginator
 }
 
 type Control = { enabled: boolean };
@@ -71,7 +73,7 @@ export class Model implements Viewport {
             this.lastPointerEvent = e;
         });
 
-        this.selector = new ViewportSelector(editor.db.drawModel, camera, this.renderer.domElement, editor.signals);
+        this.selector = new ViewportSelector(editor.db.drawModel, camera, this.renderer.domElement, editor.originator, editor.signals);
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
         const size = this.renderer.getSize(new THREE.Vector2());
@@ -165,6 +167,7 @@ export class Model implements Viewport {
         if (this.grid) this.editor.db.scene.add(this.grid);
         const oldFog = this.editor.db.scene.fog;
         this.editor.db.scene.fog = fog;
+        this.editor.selection.hover?.highlight();
 
         // Undo history actually swaps out scenes; so objects that keep a reference to scenes should be updated before render
         this.renderPass.scene = this.editor.db.scene;
@@ -173,6 +176,7 @@ export class Model implements Viewport {
 
         this.composer.render();
 
+        this.editor.selection.hover?.unhighlight();
         if (this.grid) this.editor.db.scene.remove(this.grid);
         this.editor.db.scene.fog = oldFog;
 

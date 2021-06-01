@@ -4,7 +4,7 @@ import LineFactory from '../src/commands/line/LineFactory';
 import { Editor, EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
-import { SelectionManager } from '../src/selection/SelectionManager';
+import { SelectionInteractionManager, SelectionManager, UndoableSelectionManager } from '../src/selection/SelectionManager';
 import * as visual from '../src/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
@@ -14,13 +14,17 @@ let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 let selectionManager: SelectionManager;
+let undo: UndoableSelectionManager;
+let interactionManager: SelectionInteractionManager;
 let editor: Editor;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
-    selectionManager = new SelectionManager(db, materials, signals, f => f());
+    selectionManager = new SelectionManager(db, materials, signals);
+    undo = new UndoableSelectionManager(selectionManager, f => f());
+    interactionManager = new SelectionInteractionManager(undo, materials, signals);
 });
 
 describe('onClick', () => {
@@ -53,11 +57,11 @@ describe('onClick', () => {
         expect(line.material).toBe(materials.line(line));
         expect(selectionManager.selectedCurves.size).toBe(0);
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(1);
         expect(line.material).toBe(materials.highlight(line));
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(0);
         expect(line.material).toBe(materials.line(line));
     });
@@ -73,13 +77,13 @@ describe('onClick', () => {
         expect(line.material).toBe(materials.line(line));
         expect(selectionManager.selectedCurves.size).toBe(0);
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(1);
         expect(line.material).toBe(materials.highlight(line));
 
         const memento = selectionManager.saveToMemento(new Map());
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(0);
         expect(line.material).toBe(materials.line(line));
 
@@ -101,15 +105,15 @@ describe('onClick', () => {
 
         expect(face.material).toBe(materials.mesh(solid));
         expect(selectionManager.selectedSolids.size).toBe(0);
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(1);
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedFaces.size).toBe(1);
         expect(face.material).toBe(materials.highlight(solid));
 
-        selectionManager.onClick([]);
+        interactionManager.onClick([]);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedFaces.size).toBe(0);
         expect(face.material).toBe(materials.mesh(solid));
@@ -128,16 +132,16 @@ describe('onClick', () => {
         expect(selectionManager.selectedEdges.size).toBe(0);
         expect(edge.material).toBe(materials.line(edge));
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(1);
         expect(selectionManager.selectedEdges.size).toBe(0);
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(1);
         expect(edge.material).toBe(materials.highlight(edge));
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(0);
         expect(edge.material).toBe(materials.line(edge));
@@ -154,8 +158,8 @@ describe('onClick', () => {
 
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(0);
-        selectionManager.onClick(intersections);
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedEdges.size).toBe(1);
 
         selectionManager.delete(solid);
@@ -180,12 +184,12 @@ describe('onClick', () => {
 
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(0);
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(1);
         expect(selectionManager.selectedEdges.size).toBe(0);
         expect(selectionManager.selectedFaces.size).toBe(0);
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(1);
         expect(selectionManager.selectedFaces.size).toBe(0);
@@ -203,13 +207,13 @@ describe('onClick', () => {
             object: solid.faces.get(0)
         });
 
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(sel).toHaveBeenCalledWith(solid);
         expect(desel).not.toHaveBeenCalled();
 
         sel.mockReset();
 
-        selectionManager.onClick([]);
+        interactionManager.onClick([]);
         expect(sel).not.toHaveBeenCalled();
         expect(desel).toHaveBeenCalledWith(solid);
     })
@@ -241,14 +245,14 @@ describe('onPointerMove', () => {
         const unhov = jest.fn();
         signals.objectUnhovered.add(unhov);
 
-        selectionManager.onPointerMove(intersections);
+        interactionManager.onPointerMove(intersections);
         expect(hov).toHaveBeenCalledWith(solid);
         expect(unhov).not.toHaveBeenCalled();
 
         hov.mockReset();
         unhov.mockReset();
 
-        selectionManager.onPointerMove([]);
+        interactionManager.onPointerMove([]);
         expect(hov).not.toHaveBeenCalled();
         expect(unhov).toHaveBeenCalledWith(solid);
     });
@@ -263,13 +267,17 @@ describe('onPointerMove', () => {
         });
 
         expect(edge.material).toBe(materials.line(edge));
-        selectionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(1);
 
-        selectionManager.onPointerMove(intersections);
+        interactionManager.onPointerMove(intersections);
+        selectionManager.hover.highlight();
         expect(edge.material).toBe(materials.hover(edge));
+        selectionManager.hover.unhighlight();
 
-        selectionManager.onPointerMove([]);
+        interactionManager.onPointerMove([]);
+        selectionManager.hover?.highlight();
         expect(edge.material).toBe(materials.line(edge));
+        selectionManager.hover?.unhighlight();
     });
 })

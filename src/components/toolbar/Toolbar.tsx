@@ -6,7 +6,7 @@ import c3d from '../../../build/Release/c3d.node';
 import Command, * as cmd from '../../commands/Command';
 import { Editor } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
-import { SelectionManager } from '../../selection/SelectionManager';
+import { UndoableSelectionManager } from '../../selection/SelectionManager';
 import { GConstructor } from '../../util/Util';
 import * as visual from "../../VisualModel";
 import { humanizeKeystrokes } from '../atom/tooltip-manager';
@@ -90,7 +90,7 @@ keybindings.set("command:finish", "Finish");
 
 export class Model {
     constructor(
-        private readonly selection: SelectionManager,
+        private readonly selection: UndoableSelectionManager,
         private readonly db: GeometryDatabase) { }
 
     get commands() {

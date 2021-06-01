@@ -1,5 +1,6 @@
-import { EditorSignals } from "../Editor";
+import { EditorOriginator } from "../History";
 import * as THREE from "three";
+import { EditorSignals } from "../Editor";
 import * as visual from "../VisualModel";
 
 export class ViewportSelector extends THREE.EventDispatcher {
@@ -16,6 +17,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
         private readonly drawModel: Set<visual.SpaceItem>,
         private readonly camera: THREE.Camera,
         private readonly domElement: HTMLElement,
+        private readonly originator: EditorOriginator,
         private readonly signals: EditorSignals
     ) {
         super();
@@ -60,7 +62,9 @@ export class ViewportSelector extends THREE.EventDispatcher {
         if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
             const intersects = this.getIntersects(this.onUpPosition, [...this.drawModel]);
 
-            this.signals.clicked.dispatch(intersects);
+            this.originator.group(new Map(), () => {
+                this.signals.clicked.dispatch(intersects);
+            });
         }
 
         document.removeEventListener('pointerup', this.onPointerUp, false);

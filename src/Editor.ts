@@ -1,20 +1,20 @@
 import KeymapManager from "atom-keymap";
 import signals from "signals";
 import * as THREE from "three";
-import { Cancel } from "./util/Cancellable";
-import CommandRegistry from "./components/atom/CommandRegistry";
 import Command from './commands/Command';
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
-import { GeometryDatabase } from "./GeometryDatabase";
-import { Helpers } from "./util/Helpers";
-import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
-import { SelectionManager } from './selection/SelectionManager';
-import { SnapManager } from './SnapManager';
-import { SpriteDatabase } from "./SpriteDatabase";
+import CommandRegistry from "./components/atom/CommandRegistry";
 import TooltipManager from "./components/atom/tooltip-manager";
 import { Viewport } from "./components/viewport/Viewport";
+import { GeometryDatabase } from "./GeometryDatabase";
+import { History, EditorOriginator } from "./History";
+import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
+import { SelectionInteractionManager, SelectionManager, UndoableSelectionManager } from './selection/SelectionManager';
+import { SnapManager } from './SnapManager';
+import { SpriteDatabase } from "./SpriteDatabase";
+import { Cancel } from "./util/Cancellable";
+import { Helpers } from "./util/Helpers";
 import { SpaceItem, TopologyItem } from './VisualModel';
-import { Memento, History, StateChange, MementoOriginator } from "./History";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -76,8 +76,10 @@ export class Editor {
     readonly keymaps = new KeymapManager();
     readonly helpers = new Helpers(this.signals);
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
-    readonly selection = new SelectionManager(this.db, this.materials, this.signals, this.changeState.bind(this));
-    readonly originator = new MementoOriginator(this.db, this.selection, this.snaps);
+    readonly _selection = new SelectionManager(this.db, this.materials, this.signals);
+    readonly selection = new UndoableSelectionManager(this._selection, this.changeState.bind(this));
+    readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
+    readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);
 
     constructor() {
