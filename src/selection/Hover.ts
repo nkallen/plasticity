@@ -9,7 +9,7 @@ export class HoverStrategy implements SelectionStrategy {
         private readonly selection: UndoableSelectionManager,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals,
-        ) {}
+    ) { }
 
     emptyIntersection(): void {
         this.selection.hover?.dispose();
@@ -80,8 +80,8 @@ export class Hoverable {
         return this.object === other;
     }
 
-    highlight() {}
-    unhighlight() {}
+    highlight() { }
+    unhighlight() { }
 }
 
 class MaterialHoverable<T extends (SpaceItem | TopologyItem) & { material: THREE.Material }> extends Hoverable {

@@ -24,7 +24,7 @@ beforeEach(() => {
 describe('update', () => {
     test('scales the visual object', async () => {
         const item = new visual.Solid();
-        scale.item = item;
+        scale.items = [item];
         scale.origin = new THREE.Vector3();
         scale.p2 = new THREE.Vector3(1, 0, 0);
         scale.p3 = new THREE.Vector3(2, 0, 0);
@@ -46,13 +46,13 @@ describe('commit', () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
 
-        scale.item = sphere;
+        scale.items = [sphere];
         scale.origin = new THREE.Vector3();
         scale.p2 = new THREE.Vector3(1, 0, 0);
         scale.p3 = new THREE.Vector3(2, 0, 0);
-        const scaled = await scale.commit() as visual.Solid;
+        const scaleds = await scale.commit() as visual.Solid[];
 
-        bbox.setFromObject(scaled);
+        for (const scaled of scaleds) bbox.setFromObject(scaled);
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -2, -2));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 2));
     })

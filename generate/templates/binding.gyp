@@ -8,6 +8,7 @@
                 "./lib/c3d/index.cc",
                 "./lib/c3d/src/FaceAddon.cc",
                 "./lib/c3d/src/SpaceItemAddon.cc",
+                "./lib/c3d/src/SpaceInstanceAddon.cc",
                 "./lib/c3d/src/Error.cc",
                 "./lib/c3d/src/MeshAddon.cc",
                 <%_ for (c of classes) if (!c.ignore) { _%>

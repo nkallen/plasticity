@@ -24,7 +24,7 @@ beforeEach(() => {
 describe('update', () => {
     test('moves the visual object', async () => {
         const item = new visual.Solid();
-        move.item = item;
+        move.items = [item];
         move.p1 = new THREE.Vector3();
         move.p2 = new THREE.Vector3(1, 0, 0);
         expect(item.position).toEqual(new THREE.Vector3(0, 0, 0));
@@ -41,11 +41,12 @@ describe('commit', () => {
         makeSphere.radius = 1;
         const sphere = await makeSphere.commit() as visual.Solid;
 
-        move.item = sphere;
+        move.items = [sphere];
         move.p1 = new THREE.Vector3();
         move.p2 = new THREE.Vector3(1, 0, 0);
-        const moved = await move.commit() as visual.Solid;
-        const bbox = new THREE.Box3().setFromObject(moved);
+        const moveds = await move.commit() as visual.Solid[];
+        const bbox = new THREE.Box3();
+        for (const moved of moveds) bbox.setFromObject(moved);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));

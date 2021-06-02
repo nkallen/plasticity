@@ -4,37 +4,45 @@ import * as THREE from "three";
 import * as visual from '../../VisualModel';
 
 export default class MoveFactory extends GeometryFactory {
-    _item!: visual.Item;
+    _items!: visual.Item[];
     originalPosition = new THREE.Vector3();
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
 
-    get item() {
-        return this._item;
+    get items() {
+        return this._items;
     }
 
-    set item(obj: visual.Item) {
-        this._item = obj;
-        this.originalPosition.copy(obj.position);
+    set items(objs: visual.Item[]) {
+        this._items = objs;
+        this.originalPosition.copy(objs[0].position);
     }
 
     async doUpdate() {
-        const originalPosition = this.originalPosition.clone();
         const p1 = this.p1, p2 = this.p2;
-        this.item.position.copy(originalPosition.add(p2).sub(p1));
+        for (const item of this.items) {
+            const originalPosition = this.originalPosition.clone();
+            item.position.copy(originalPosition.add(p2).sub(p1));
+        }
     }
 
     async doCommit() {
-        const model = this.db.lookup(this.item);
-        this.db.removeItem(this.item);
+        const result = [];
+        for (const item of this.items) {
+            const model = this.db.lookup(item);
+            this.db.removeItem(item);
 
-        const delta = this.p2.clone().sub(this.p1);
-        const vec = new c3d.Vector3D(delta.x, delta.y, delta.z);
-        model.Move(vec);
-        return this.db.addItem(model);
+            const delta = this.p2.clone().sub(this.p1);
+            const vec = new c3d.Vector3D(delta.x, delta.y, delta.z);
+            model.Move(vec);
+            result.push(this.db.addItem(model));
+        }
+        return Promise.all(result);
     }
 
     doCancel() {
-        this._item.position.copy(this.originalPosition);
+        for (const item of this.items) {
+            item.position.copy(this.originalPosition);
+        }
     }
 }

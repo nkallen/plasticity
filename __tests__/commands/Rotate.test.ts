@@ -24,7 +24,7 @@ beforeEach(() => {
 describe('update', () => {
     test('rotates the visual object', async () => {
         const item = new visual.Solid();
-        rotate.item = item;
+        rotate.items = [item];
         rotate.point = new THREE.Vector3();
         rotate.axis = new THREE.Vector3(0, 0, 1);
         rotate.angle = Math.PI / 2;
@@ -46,11 +46,11 @@ describe('commit', () => {
 
         expect(box).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5));
 
-        rotate.item = box;
+        rotate.items = [box];
         rotate.point = new THREE.Vector3();
         rotate.axis = new THREE.Vector3(0, 0, 1);
         rotate.angle = Math.PI / 2;
-        const rotated = await rotate.commit();
+        const rotated = (await rotate.commit())[0];
 
         expect(rotated).toBeInstanceOf(visual.Solid);
         expect(rotated).toHaveCentroidNear(new THREE.Vector3(-0.5, 0.5, 0.5));

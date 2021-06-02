@@ -202,9 +202,11 @@ export class BoxCommand extends Command {
 
 export class MoveCommand extends Command {
     async execute(): Promise<void> {
-        const object = [...this.editor.selection.selectedSolids][0]!;
+        const objects = [...this.editor.selection.selectedSolids, ...this.editor.selection.selectedCurves];
 
-        const bbox = new THREE.Box3().setFromObject(object);
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
@@ -213,7 +215,7 @@ export class MoveCommand extends Command {
 
         const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         move.p1 = centroid;
-        move.item = object;
+        move.items = objects;
 
         const moveGizmo = new MoveGizmo(this.editor, centroid);
         await moveGizmo.execute(delta => {
@@ -230,7 +232,7 @@ export class MoveCommand extends Command {
 export class ScaleCommand extends Command {
     async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
-        const object = [...this.editor.selection.selectedSolids][0]!;
+        const objects = [...this.editor.selection.selectedSolids];
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const origin = await pointPicker.execute().resource(this);
@@ -246,7 +248,7 @@ export class ScaleCommand extends Command {
         line.p1 = origin;
 
         const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
-        scale.item = object;
+        scale.items = objects;
         scale.origin = line2.p1 = origin;
         scale.p2 = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
@@ -263,14 +265,16 @@ export class ScaleCommand extends Command {
 
 export class RotateCommand extends Command {
     async execute(): Promise<void> {
-        const object = [...this.editor.selection.selectedSolids][0]!;
+        const objects = [...this.editor.selection.selectedSolids];
 
-        const bbox = new THREE.Box3().setFromObject(object);
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
         const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
-        rotate.item = object;
+        rotate.items = objects;
         rotate.point = centroid;
 
         const rotateGizmo = new RotateGizmo(this.editor, centroid);

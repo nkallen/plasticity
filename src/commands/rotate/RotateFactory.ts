@@ -4,46 +4,54 @@ import * as THREE from "three";
 import * as visual from '../../VisualModel';
 
 export default class RotateFactory extends GeometryFactory {
-    _item!: visual.Item;
+    _items!: visual.Item[];
     originalQuaternion = new THREE.Quaternion();
     originalPosition = new THREE.Vector3();
     point!: THREE.Vector3
     axis!: THREE.Vector3;
     angle!: number;
 
-    get item() {
-        return this._item;
+    get items() {
+        return this._items;
     }
 
-    set item(obj: visual.Item) {
-        this._item = obj;
-        this.originalQuaternion.copy(obj.quaternion);
-        this.originalPosition.copy(obj.position);
+    set items(objs: visual.Item[]) {
+        this._items = objs;
+        this.originalQuaternion.copy(objs[0].quaternion);
+        this.originalPosition.copy(objs[0].position);
     }
 
     async doUpdate() {
-        const { item, point, axis, angle } = this;
-        item.position.copy(this.originalPosition);
+        const { items, point, axis, angle } = this;
+        for (const item of items) {
+            item.position.copy(this.originalPosition);
 
-        item.position.sub(point);
-        item.position.applyAxisAngle(axis, angle);
-        item.position.add(point);
-        item.quaternion.setFromAxisAngle(axis, angle);
+            item.position.sub(point);
+            item.position.applyAxisAngle(axis, angle);
+            item.position.add(point);
+            item.quaternion.setFromAxisAngle(axis, angle);
+        }
     }
 
     async doCommit() {
-        const { item, axis, angle, point } = this;
-        const model = this.db.lookup(item);
-        this.db.removeItem(item);
+        const result = [];
+        const { items, axis, angle, point } = this;
+        for (const item of items) {
+            const model = this.db.lookup(item);
+            this.db.removeItem(item);
 
-        const p = new c3d.CartPoint3D(point.x, point.y, point.z);
-        const v = new c3d.Vector3D(axis.x, axis.y, axis.z);
-        const axi = new c3d.Axis3D(p, v);
-        model.Rotate(axi, angle);
-        return this.db.addItem(model);
+            const p = new c3d.CartPoint3D(point.x, point.y, point.z);
+            const v = new c3d.Vector3D(axis.x, axis.y, axis.z);
+            const axi = new c3d.Axis3D(p, v);
+            model.Rotate(axi, angle);
+            result.push(this.db.addItem(model));
+        }
+        return Promise.all(result);
     }
 
     doCancel() {
-        this._item.quaternion.copy(this.originalQuaternion);
+        for (const item of this.items) {
+            item.quaternion.copy(this.originalQuaternion);
+        }
     }
 }

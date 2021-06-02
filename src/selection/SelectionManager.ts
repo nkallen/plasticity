@@ -8,7 +8,7 @@ import { RefCounter } from '../util/Util';
 import * as visual from '../VisualModel';
 import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyItem } from '../VisualModel';
 import { ClickStrategy } from './Click';
-import { SolidHoverable, HoverStrategy } from './Hover';
+import { Hoverable, HoverStrategy } from './Hover';
 
 export enum SelectionMode {
     Edge, Face, Solid, Curve
@@ -93,7 +93,7 @@ export class SelectionManager {
     // Further, when you delete a solid, if it has any selected faces, you need to unselect those faces as well.
     readonly selectedChildren = new RefCounter<visual.SpaceItem>();
 
-    hover?: SolidHoverable = undefined;
+    hover?: Hoverable = undefined;
 
     constructor(
         readonly db: GeometryDatabase,
@@ -233,7 +233,7 @@ export class UndoableSelectionManager {
 
     get mode() { return this.selection.mode }
     get hover() { return this.selection.hover }
-    set hover(other: SolidHoverable | undefined) { this.selection.hover = other }
+    set hover(other: Hoverable | undefined) { this.selection.hover = other }
     get selectedSolids() { return this.selection.selectedSolids }
     get selectedFaces() { return this.selection.selectedFaces }
     get selectedCurves() { return this.selection.selectedCurves }

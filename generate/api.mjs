@@ -37,23 +37,23 @@ export default {
         SpaceItem: {
             rawHeader: "space_item.h",
             extends: "RefItem",
-            dependencies: ["RefItem.h"],
+            dependencies: ["RefItem.h", "RegDuplicate.h", "RegTransform.h", "Matrix3D.h", "Vector3D.h", "Axis3D.h"],
             functions: [
                 "MbeSpaceType IsA()",
                 { signature: "MbItem * Cast()", isManual: true },
+                "void Transform(const MbMatrix3D & mat, MbRegTransform * iReg = NULL)",
+                "void Move(const MbVector3D & v, MbRegTransform * iReg = NULL)",
+                "void Rotate(const MbAxis3D & axis, double angle, MbRegTransform * iReg = NULL )",
             ]
         },
         Item: {
             rawHeader: "model_item.h",
-            dependencies: ["Solid.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "Vector3D.h", "RegTransform.h", "SpaceItem.h", "Matrix3D.h", "Axis3D.h"],
+            dependencies: ["Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "SpaceItem.h"],
             extends: ["SpaceItem", "AttributeContainer"],
             functions: [
                 "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg = NULL)",
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
-                "void Transform(const MbMatrix3D & mat, MbRegTransform * iReg = NULL)",
-                "void Move(const MbVector3D & v, MbRegTransform * iReg = NULL)",
-                "void Rotate(const MbAxis3D & axis, double angle, MbRegTransform * iReg = NULL )",
             ],
         },
         TopItem: {
@@ -63,9 +63,6 @@ export default {
         },
         Path: {
             rawHeader: "name_item.h"
-        },
-        Matrix3D: {
-            rawHeader: "mb_matrix3d.h"
         },
         Cube: {
             rawHeader: "mb_cube.h",
@@ -217,7 +214,11 @@ export default {
                 "MbCurve3D & curve"
             ],
             functions: [
-                "const MbSpaceItem * GetSpaceItem()"
+                "const MbSpaceItem * GetSpaceItem()",
+                {
+                    signature: "MbSpaceItem * Duplicate(MbRegDuplicate * iReg = NULL)",
+                    isManual: true,
+                }
             ]
         },
         Direction: {
@@ -342,7 +343,10 @@ export default {
             rawHeader: "name_item.h"
         },
         Matrix3D: {
-            rawHeader: "mb_matrix3d.h"
+            rawHeader: "mb_matrix3d.h",
+            functions: [
+                "void Scale(double sx, double sy, double sz)"
+            ]
         },
         TopologyItem: {
             rawHeader: "topology_item.h",
@@ -594,7 +598,7 @@ export default {
                 // FIXME: technically a & b are inout, but that's not supported yet
                 "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)",
                 "MbResultType Segment(const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbCurve3D *& result)",
-                "MbResultType SplineCurve(const SArray<MbCartPoint3D> & points, bool closed, MbeSpaceType curveType, MbCurve3D *& result)"
+                "MbResultType SplineCurve(const SArray<MbCartPoint3D> & points, bool closed, MbeSpaceType curveType, MbCurve3D *& result)",
                 // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
             ]
         }
