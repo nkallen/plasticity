@@ -25,7 +25,7 @@ export class HoverStrategy implements SelectionStrategy {
         if (this.selection.mode.has(SelectionMode.Curve) && !this.selection.selectedCurves.has(parentCurve)) {
             if (!this.selection.hover?.isEqual(object)) {
                 this.selection.hover?.dispose();
-                this.selection.hover = new Curve3DHoverable(
+                this.selection.hover = new MaterialHoverable(
                     parentCurve, this.materials.hover(object), this.signals);
             }
             return true;
@@ -48,13 +48,13 @@ export class HoverStrategy implements SelectionStrategy {
         if (this.selection.mode.has(SelectionMode.Face) && object instanceof Face && !this.selection.selectedFaces.has(object)) {
             if (!this.selection.hover?.isEqual(object)) {
                 this.selection.hover?.dispose();
-                this.selection.hover = new TopologicalItemHoverable(object, this.materials.hover(object), this.signals);
+                this.selection.hover = new MaterialHoverable(object, this.materials.hover(object), this.signals);
             }
             return true;
         } else if (this.selection.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selection.selectedEdges.has(object)) {
             if (!this.selection.hover?.isEqual(object)) {
                 this.selection.hover?.dispose();
-                this.selection.hover = new TopologicalItemHoverable(object, this.materials.hover(object), this.signals);
+                this.selection.hover = new MaterialHoverable(object, this.materials.hover(object), this.signals);
             }
             return true;
         }
@@ -84,11 +84,11 @@ export class Hoverable {
     unhighlight() {}
 }
 
-class TopologicalItemHoverable<T extends THREE.Material | THREE.Material[]> extends Hoverable {
-    protected readonly object: TopologyItem & { material: T };
-    private readonly material: T
+class MaterialHoverable<T extends (SpaceItem | TopologyItem) & { material: THREE.Material }> extends Hoverable {
+    protected readonly object: T;
+    private readonly material: THREE.Material
 
-    constructor(object: TopologyItem & { material: T }, material: T, signals: EditorSignals) {
+    constructor(object: T, material: THREE.Material, signals: EditorSignals) {
         super(object, signals);
         this.object = object;
         this.material = material;
@@ -98,30 +98,6 @@ class TopologicalItemHoverable<T extends THREE.Material | THREE.Material[]> exte
     highlight() {
         this.previousMaterial = this.object.material;
         this.object.material = this.material;
-    }
-
-    unhighlight() {
-        this.object.material = this.previousMaterial!;
-    }
-}
-
-class Curve3DHoverable extends Hoverable {
-    protected readonly object: SpaceInstance<Curve3D>;
-    private readonly material: LineMaterial;
-
-    constructor(object: SpaceInstance<Curve3D>, material: LineMaterial, signals: EditorSignals) {
-        object.material = material;
-
-        super(object, signals);
-        this.object = object;
-        this.material = material;
-    }
-
-    private previousMaterial: any;
-    highlight() {
-        this.previousMaterial = this.object.material;
-        this.object.material = this.material;
-        super.dispose();
     }
 
     unhighlight() {
