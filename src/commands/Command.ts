@@ -8,7 +8,6 @@ import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from
 import BoxFactory from './box/BoxFactory';
 import CircleFactory from './circle/CircleFactory';
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
-import CurveFactory from "./curve/CurveFactory";
 import { CurveGizmo, CurveGizmoEvent } from "./curve/CurveGizmo";
 import CylinderFactory from './cylinder/CylinderFactory';
 import ExtrudeFactory from "./extrude/ExtrudeFactory";
@@ -121,6 +120,7 @@ export class CurveCommand extends Command {
     async execute(): Promise<void> {
         const curve = new CurveAndContourFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
+        const pointPicker = new PointPicker(this.editor);
         const keyboard = new CurveGizmo(this.editor);
         keyboard.execute((e: CurveGizmoEvent) => {
             switch (e.tag) {
@@ -131,18 +131,23 @@ export class CurveCommand extends Command {
                 case 'add-curve':
                     curve.push();
                     break;
+                case 'undo':
+                    pointPicker.undo(); // FIXME in theory the overlay needs to be updated;
+                    curve.undo();
+                    curve.update();
+                    break;
             }
         }).resource(this);
 
-        const pointPicker = new PointPicker(this.editor);
         while (true) {
             try {
                 const [point,] = await pointPicker.execute(async (p: THREE.Vector3) => {
                     curve.nextPoint = p;
-                    curve.closed = curve.points.length >= 2 && p.distanceToSquared(curve.startPoint) < 10e-6;
+                    if (!curve.isValid) return;
+                    curve.closed = curve.wouldBeClosed(p);
                     await curve.update();
                 }).resource(this);
-                if (curve.points.length >= 2 && point.distanceToSquared(curve.startPoint) < 10e-6) {
+                if (curve.wouldBeClosed(point)) {
                     curve.closed = true;
                     this.finish();
                     break;

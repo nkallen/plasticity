@@ -115,6 +115,10 @@ export class PointPicker {
         return result;
     }
 
+    undo() {
+        this._snaps.pop();
+    }
+
     restrictionPoint?: THREE.Vector3;
 
     restrictToPlaneThroughPoint(point: THREE.Vector3): void {

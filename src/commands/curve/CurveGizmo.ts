@@ -1,6 +1,10 @@
 import { CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
 import c3d from '../../../build/Release/c3d.node';
 
+const commands = new Array<string>();
+commands.push('gizmo:curve:add-curve');
+commands.push('gizmo:curve:undo');
+
 const map: Record<string, number> = {
     'gizmo:curve:line-segment': c3d.SpaceType.LineSegment3D,
     'gizmo:curve:arc': c3d.SpaceType.Arc3D,
@@ -9,15 +13,10 @@ const map: Record<string, number> = {
     'gizmo:curve:hermite': c3d.SpaceType.Hermit3D,
     'gizmo:curve:bezier': c3d.SpaceType.Bezier3D,
     'gizmo:curve:cubic-spline': c3d.SpaceType.CubicSpline3D,
-    'gizmo:curve:add-curve': -1,
 }
+for (const key in map) commands.push(key);
 
-const commands = new Array<string>();
-for (const key in map) {
-    commands.push(key);
-}
-
-export type CurveGizmoEvent = { tag: 'type', type: number } | { tag: 'add-curve' }
+export type CurveGizmoEvent = { tag: 'type', type: number } | { tag: 'add-curve' } | { tag: 'undo' }
 
 export class CurveGizmo extends CommandKeyboardInput<(e: CurveGizmoEvent) => void> {
     constructor(editor: EditorLike) {
@@ -25,10 +24,15 @@ export class CurveGizmo extends CommandKeyboardInput<(e: CurveGizmoEvent) => voi
     }
 
     resolve(cb: (e: CurveGizmoEvent) => void, command: string) {
-        if (command === 'gizmo:curve:add-curve') {
-            cb({ tag: 'add-curve' });
-        } else {
-            cb({ tag: 'type', type: map[command] });
+        switch (command) {
+            case 'gizmo:curve:add-curve':
+                cb({ tag: 'add-curve' });
+                break;
+            case 'gizmo:curve:undo':
+                cb({ tag: 'undo' });
+                break;
+            default:
+                cb({ tag: 'type', type: map[command] });
         }
     }
 }

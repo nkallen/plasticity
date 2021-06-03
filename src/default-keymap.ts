@@ -25,6 +25,7 @@ export default {
         "6": "gizmo:curve:bezier",
         "7": "gizmo:curve:cubic-spline",
         "space": "gizmo:curve:add-curve",
+        "cmd-z": "gizmo:curve:undo",
     },
 
     "ispace-viewport": {
@@ -44,6 +45,5 @@ export default {
     "ispace-workspace": {
         "cmd-z": "undo",
         "cmd-shift-z": "redo",
-        "u": "undo",
     }
 }

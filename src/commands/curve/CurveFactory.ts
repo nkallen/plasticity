@@ -63,6 +63,16 @@ export default class CurveFactory extends GeometryFactory {
         this.temp = temp;
     }
 
+    get isValid() {
+        if (this.points.length === 0) return false;
+        if (this.points.length === 1 && this.nextPoint === undefined) return false;
+        return true;
+    }
+
+    wouldBeClosed(p: THREE.Vector3) {
+        return this.points.length >= 2 && p.distanceToSquared(this.startPoint) < 10e-6;
+    }
+
     async doCommit() {
         const { points, mesh, type } = this;
         mesh.geometry.dispose();

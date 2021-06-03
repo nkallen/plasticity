@@ -104,6 +104,7 @@ keybindings.set("gizmo:curve:hermite", "Hermite");
 keybindings.set("gizmo:curve:bezier", "Bezier");
 keybindings.set("gizmo:curve:cubic-spline", "Cubic spline");
 keybindings.set("gizmo:curve:add-curve", "Add new curve");
+keybindings.set("gizmo:curve:undo", "Undo");
 
 export class Model {
     constructor(

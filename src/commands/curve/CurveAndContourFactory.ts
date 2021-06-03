@@ -11,8 +11,6 @@ import CurveFactory from "./CurveFactory";
 export default class CurveAndContourFactory extends GeometryFactory {
     factories: CurveFactory[];
 
-    readonly curves = new Array<{type: number, points: THREE.Vector3[]}>();
-
     private get currentFactory() { return this.factories[this.factories.length-1] }
     get points() { return this.currentFactory.points }
     get nextPoint() { return this.currentFactory.nextPoint }
@@ -20,6 +18,8 @@ export default class CurveAndContourFactory extends GeometryFactory {
     set type(t: number) { this.currentFactory.type = t}
     get startPoint() { return this.currentFactory.startPoint }
     set closed(c: boolean) { this.currentFactory.closed = c }
+    get isValid() { return this.currentFactory.isValid }
+    wouldBeClosed(p: THREE.Vector3) { return this.currentFactory.wouldBeClosed(p) }
 
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
         super(db, materials, signals);
@@ -27,7 +27,7 @@ export default class CurveAndContourFactory extends GeometryFactory {
     }
 
     push() {
-        if (this.points.length < 2) throw new Error("invalid state");
+        if (!this.isValid) throw new Error("invalid state");
 
         const { db, materials, signals } = this;
 
@@ -39,6 +39,16 @@ export default class CurveAndContourFactory extends GeometryFactory {
         currentFactory.nextPoint = previousFactory.nextPoint;
         previousFactory.nextPoint = undefined;
         previousFactory.update();
+    }
+
+    undo() {
+        this.points.pop();
+        const nextPoint = this.nextPoint;
+        if (this.points.length === 0 && this.factories.length > 1) {
+            const old = this.factories.pop();
+            old!.cancel();
+            this.nextPoint = nextPoint;
+        }
     }
 
     async doUpdate() {
