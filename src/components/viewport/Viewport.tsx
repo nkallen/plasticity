@@ -62,8 +62,8 @@ export class Model implements Viewport {
         readonly domElement: HTMLElement,
         readonly camera: THREE.Camera,
         readonly constructionPlane: PlaneSnap,
+        readonly navigationControls: OrbitControls,
         readonly grid?: THREE.GridHelper,
-        readonly navigationControls?: OrbitControls,
     ) {
         const rendererDomElement = this.renderer.domElement;
 
@@ -124,7 +124,7 @@ export class Model implements Viewport {
         this.navigationChange = this.navigationChange.bind(this);
 
         this.controls.add(this.selector);
-        if (this.navigationControls) this.controls.add(this.navigationControls);
+        this.controls.add(this.navigationControls);
     }
 
     start() {
@@ -145,10 +145,8 @@ export class Model implements Viewport {
         this.editor.signals.objectAdded.add(this.setNeedsRender);
         this.editor.signals.historyChanged.add(this.setNeedsRender);
 
-        if (this.navigationControls) {
-            this.navigationControls.addEventListener('change', this.setNeedsRender);
-            this.navigationControls.addEventListener('start', this.navigationStart);
-        }
+        this.navigationControls.addEventListener('change', this.setNeedsRender);
+        this.navigationControls.addEventListener('start', this.navigationStart);
 
         this.render();
     }
@@ -237,8 +235,8 @@ export class Model implements Viewport {
     }
 
     navigationStart() {
-        this.navigationControls!.addEventListener('change', this.navigationChange);
-        this.navigationControls!.addEventListener('end', this.navigationEnd);
+        this.navigationControls.addEventListener('change', this.navigationChange);
+        this.navigationControls.addEventListener('end', this.navigationEnd);
     }
 
     navigationChange() {
@@ -247,8 +245,8 @@ export class Model implements Viewport {
 
     navigationEnd() {
         this.enableControls();
-        this.navigationControls!.removeEventListener('change', this.navigationChange);
-        this.navigationControls!.removeEventListener('end', this.navigationEnd);
+        this.navigationControls.removeEventListener('change', this.navigationChange);
+        this.navigationControls.removeEventListener('end', this.navigationEnd);
     }
 
     setAttribute(name: string, value: string) {
@@ -275,16 +273,15 @@ export default (editor: EditorLike) => {
             const view = this.getAttribute("view");
             const aspect = this.offsetWidth / this.offsetHeight;
             const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
+            orthographicCamera.zoom = 3;
             const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, 1, near, far);
 
             let camera: THREE.Camera;
-            let navigationControls: OrbitControls | undefined;
             let n: THREE.Vector3;
             switch (view) {
                 case "3d":
                     camera = perspectiveCamera;
                     camera.position.set(-5, 15, 5);
-                    navigationControls = new OrbitControls(camera, renderer.domElement);
                     n = new THREE.Vector3(0, 0, 1);
                     break;
                 case "top":
@@ -304,6 +301,11 @@ export default (editor: EditorLike) => {
                     n = new THREE.Vector3(0, 1, 0);
                     break;
             }
+
+            const navigationControls = new OrbitControls(camera, renderer.domElement);
+            if (camera.type == 'OrthographicCamera') navigationControls.enableRotate = false;
+            console.log(navigationControls.enableRotate);
+
             let constructionPlane = new PlaneSnap(n);
             grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
             grid.renderOrder = -1;
@@ -317,8 +319,8 @@ export default (editor: EditorLike) => {
                 this,
                 camera,
                 constructionPlane,
+                navigationControls,
                 grid,
-                navigationControls
             );
 
             this.resize = this.resize.bind(this);

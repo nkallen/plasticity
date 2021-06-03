@@ -77,8 +77,8 @@ beforeEach(async () => {
         document.createElement('viewport'),
         new THREE.Camera(),
         new PlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3()),
+        navigationControls as unknown as OrbitControls,
         null,
-        navigationControls as unknown as OrbitControls
     )
     viewport.start();
 });
