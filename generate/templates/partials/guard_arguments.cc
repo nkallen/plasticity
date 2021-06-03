@@ -11,8 +11,7 @@
             <%_ } else if (arg.isArray) { _%>
                 || !info[<%- arg.jsIndex %>].IsArray())) {
             <%_ } else { _%>
-                || !info[<%- arg.jsIndex %>].IsObject()
-                || !info[<%-arg.cppIndex %>].ToObject().InstanceOf(<%- arg.cppType %>::GetConstructor(env)))) {
+                || !(<% if (arg.isNullable) { %>info[<%- arg.jsIndex %>].IsNull() || <% } %>(info[<%- arg.jsIndex %>].IsObject() && info[<%-arg.cppIndex %>].ToObject().InstanceOf(<%- arg.cppType %>::GetConstructor(env)))))) {
             <%_ } _%>
                 <%_ if (promise) { _%>
                     deferred.Reject(Napi::String::New(env, "<%-arg.jsType%> <%-arg.name%> is required."));

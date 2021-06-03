@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "typeinfo": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "new": "cpp"
     }
 }

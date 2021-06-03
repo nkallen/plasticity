@@ -21,6 +21,7 @@ import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
+import LoftFactory from "./loft/LoftFactory";
 
 export default abstract class Command extends CancellableRegistor {
     editor: Editor;
@@ -500,3 +501,12 @@ export class FilletFaceCommand extends Command {
 export class SuppleFaceCommand extends Command { async execute(): Promise<void> { } }
 
 export class MergerFaceCommand extends Command { async execute(): Promise<void> { } }
+
+export class LoftCommand extends Command {
+    async execute(): Promise<void> {
+        const curves = [...this.editor.selection.selectedCurves];
+        const loft = new LoftFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        loft.contours = curves;
+        await loft.commit();
+    }
+}

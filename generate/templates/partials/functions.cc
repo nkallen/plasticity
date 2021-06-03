@@ -38,7 +38,7 @@
                 <%_ if (arg.isReturn) continue; _%>,
                 <% if (arg.isCppString2CString) { _%>
                 <%- arg.name %>.c_str(), <%- arg.name %>.length()<%_ _%>
-                <%_ } else if (arg.jsType == "Array") { _%>
+                <%_ } else if (arg.jsType == "Array" && arg.ref != '*') { _%>
                 *<%- arg.name _%>
                 <% } else { %>
                 <%- arg.name _%>
