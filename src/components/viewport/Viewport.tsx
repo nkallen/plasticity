@@ -171,7 +171,7 @@ export class Model implements Viewport {
         this.renderPass.scene = this.editor.db.scene;
         this.outlinePassHover.renderScene = this.editor.db.scene;
         this.outlinePassSelection.renderScene = this.editor.db.scene;
-
+        
         this.composer.render();
 
         this.editor.selection.hover?.unhighlight();
@@ -271,7 +271,6 @@ export default (editor: EditorLike) => {
             this.append(renderer.domElement);
 
             const view = this.getAttribute("view");
-            const aspect = this.offsetWidth / this.offsetHeight;
             const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
             orthographicCamera.zoom = 3;
             const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, 1, near, far);
@@ -304,7 +303,6 @@ export default (editor: EditorLike) => {
 
             const navigationControls = new OrbitControls(camera, renderer.domElement);
             if (camera.type == 'OrthographicCamera') navigationControls.enableRotate = false;
-            console.log(navigationControls.enableRotate);
 
             let constructionPlane = new PlaneSnap(n);
             grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
