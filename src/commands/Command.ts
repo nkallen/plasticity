@@ -22,6 +22,7 @@ import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
 import LoftFactory from "./loft/LoftFactory";
+import ExtrudeFactory from "./extrude/ExtrudeFactory";
 
 export default abstract class Command extends CancellableRegistor {
     editor: Editor;
@@ -508,5 +509,26 @@ export class LoftCommand extends Command {
         const loft = new LoftFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         loft.contours = curves;
         await loft.commit();
+    }
+}
+
+export class ExtrudeCommand extends Command {
+    async execute(): Promise<void> {
+        const curves = [...this.editor.selection.selectedCurves];
+        const extrude = new ExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        extrude.contour = curves[0];
+        extrude.direction = new THREE.Vector3(1, 1, 1);
+
+        const pointPicker = new PointPicker(this.editor);
+
+        const p1 = await pointPicker.execute().resource(this);
+
+        await pointPicker.execute((p2: THREE.Vector3) => {
+            extrude.direction = p2.clone().sub(p1);
+            extrude.distance1 = extrude.direction.length();
+            extrude.update();
+        }).resource(this);
+
+        await extrude.commit();
     }
 }

@@ -536,6 +536,18 @@ export default {
             jsClassName: "LoftedValues",
             rawHeader: "op_swept_parameter.h",
             initializers: [""]
+        },
+        ExtrusionValues: {
+            cppClassName: "_ExtrusionValues",
+            rawClassName: "ExtrusionValues",
+            jsClassName: "ExtrusionValues",
+            rawHeader: "op_swept_parameter.h",
+            initializers: ["double scalarValue1, double scalarValue2"]
+        },
+        SweptData: {
+            dependencies: ["Placement3D.h", "Contour.h"],
+            rawHeader: "op_swept_parameter.h",
+            initializers: ["", "const MbPlacement3D &place, MbContour &contour"]
         }
     },
     modules: {
@@ -554,7 +566,7 @@ export default {
         },
         ActionSolid: {
             rawHeader: "action_solid.h",
-            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h"],
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h"],
             functions: [
                 "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
                 // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
@@ -566,6 +578,11 @@ export default {
                     signature: "MbResultType LoftedSolid(SArray<MbPlacement3D> & pl, RPArray<MbContour> & c, const MbCurve3D * spine, const LoftedValues & params, SArray<MbCartPoint3D> * ps, const MbSNameMaker & names, RPArray<MbSNameMaker> & ns, MbSolid *& result)",
                     spine: isNullable,
                     ps: isNullable
+                },
+                {
+                    signature: "MbResultType ExtrusionSolid(const MbSweptData & sweptData, const MbVector3D & direction, const MbSolid * solid1, const MbSolid * solid2, bool checkIntersection, const ExtrusionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)",
+                    solid1: isNullable,
+                    solid2: isNullable
                 }
             ]
 

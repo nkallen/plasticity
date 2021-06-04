@@ -1,13 +1,9 @@
-import * as THREE from "three";
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import c3d from '../../../build/Release/c3d.node';
+import * as visual from '../../../src/VisualModel';
 import { EditorSignals } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
 import MaterialDatabase from '../../MaterialDatabase';
-import { CircleGeometry } from '../../util/Util';
 import { GeometryFactory } from '../Factory';
-import * as visual from '../../../src/VisualModel';
 
 export default class LoftFactory extends GeometryFactory {
     contours!: visual.SpaceInstance<visual.Curve3D>[];
