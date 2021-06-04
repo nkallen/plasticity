@@ -1,6 +1,6 @@
 import { Disposable } from 'event-kit';
 import c3d from '../build/Release/c3d.node';
-import { Editor, EditorSignals } from '../Editor';
+import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import { Clone, SelectionMemento, StateChange } from '../History';
 import MaterialDatabase from '../MaterialDatabase';
@@ -22,6 +22,7 @@ export interface SelectionStrategy {
     invalidIntersection(): void;
 }
 
+// Handles click and hovering logic
 export class SelectionInteractionManager {
     private readonly clickStrategy: ClickStrategy;
     private readonly hoverStrategy: HoverStrategy;
@@ -81,7 +82,17 @@ export class SelectionInteractionManager {
 
 }
 
-export class SelectionManager {
+export interface HasSelection {
+    readonly mode: Set<SelectionMode>;
+    readonly selectedSolids: Set<Solid>;
+    readonly selectedEdges: Set<CurveEdge>;
+    readonly selectedFaces: Set<Face>;
+    readonly selectedCurves: Set<SpaceInstance<Curve3D>>;
+    hover?: Hoverable;
+    readonly selectedChildren: RefCounter<visual.SpaceItem>;
+}
+
+export class SelectionManager implements HasSelection {
     readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face]);
 
     readonly selectedSolids = new Set<Solid>();
@@ -206,6 +217,45 @@ export class SelectionManager {
             this.signals.objectDeselected.dispatch(item);
         }
     }
+}
+
+export class UndoableSelectionManager extends SelectionManager {
+    constructor(
+        db: GeometryDatabase,
+        materials: MaterialDatabase,
+        signals: EditorSignals,
+        readonly stateChange: StateChange
+    ) { 
+        super(db, materials, signals);
+    }
+
+    deselectFace(object: Face, parentItem: Solid) {
+        this.stateChange(() => super.deselectFace(object, parentItem));
+    }
+    selectFace(object: Face, parentItem: Solid) {
+        this.stateChange(() => super.selectFace(object, parentItem));
+    }
+    deselectEdge(object: CurveEdge, parentItem: Solid) {
+        this.stateChange(() => super.deselectEdge(object, parentItem));
+    }
+    selectEdge(object: CurveEdge, parentItem: Solid) {
+        this.stateChange(() => super.selectEdge(object, parentItem));
+    }
+    deselectSolid(solid: Solid) {
+        this.stateChange(() => super.deselectSolid(solid));
+    }
+    selectSolid(solid: Solid) {
+        this.stateChange(() => super.selectSolid(solid));
+    }
+    deselectCurve(curve: SpaceInstance<Curve3D>) {
+        this.stateChange(() => super.deselectCurve(curve));
+    }
+    selectCurve(curve: SpaceInstance<Curve3D>) {
+        this.stateChange(() => super.selectCurve(curve));
+    }
+    deselectAll(): void {
+        this.stateChange(() => super.deselectAll());
+    }
 
     saveToMemento(registry: Map<any, any>) {
         return new SelectionMemento(
@@ -223,56 +273,5 @@ export class SelectionManager {
         (this.selectedEdges as SelectionManager['selectedEdges']) = m.selectedEdges;
         (this.selectedFaces as SelectionManager['selectedFaces']) = m.selectedFaces;
         (this.selectedCurves as SelectionManager['selectedCurves']) = m.selectedCurves;
-    }
-}
-
-export class UndoableSelectionManager {
-    constructor(
-        readonly selection: SelectionManager,
-        readonly stateChange: StateChange
-    ) { }
-
-    get mode() { return this.selection.mode }
-    get hover() { return this.selection.hover }
-    set hover(other: Hoverable | undefined) { this.selection.hover = other }
-    get selectedSolids() { return this.selection.selectedSolids }
-    get selectedFaces() { return this.selection.selectedFaces }
-    get selectedCurves() { return this.selection.selectedCurves }
-    get selectedEdges() { return this.selection.selectedEdges }
-    get selectedChildren() { return this.selection.selectedChildren }
-
-    deselectFace(object: Face, parentItem: Solid) {
-        this.stateChange(() => this.selection.deselectFace(object, parentItem));
-    }
-    selectFace(object: Face, parentItem: Solid) {
-        this.stateChange(() => this.selection.selectFace(object, parentItem));
-    }
-    deselectEdge(object: CurveEdge, parentItem: Solid) {
-        this.stateChange(() => this.selection.deselectEdge(object, parentItem));
-    }
-    selectEdge(object: CurveEdge, parentItem: Solid) {
-        this.stateChange(() => this.selection.selectEdge(object, parentItem));
-    }
-    deselectSolid(solid: Solid) {
-        this.stateChange(() => this.selection.deselectSolid(solid));
-    }
-    selectSolid(solid: Solid) {
-        this.stateChange(() => this.selection.selectSolid(solid));
-    }
-    deselectCurve(curve: SpaceInstance<Curve3D>) {
-        this.stateChange(() => this.selection.deselectCurve(curve));
-    }
-    selectCurve(curve: SpaceInstance<Curve3D>) {
-        this.stateChange(() => this.selection.selectCurve(curve));
-    }
-    deselectAll(): void {
-        this.stateChange(() => this.selection.deselectAll());
-    }
-
-    saveToMemento(registry: Map<any, any>) {
-        return this.selection.saveToMemento(registry);
-    }
-    restoreFromMemento(m: SelectionMemento) {
-        this.selection.restoreFromMemento(m);
     }
 }

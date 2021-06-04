@@ -1,4 +1,3 @@
-import { EditorOriginator } from "../../History";
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -8,7 +7,8 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { EditorSignals } from '../../Editor';
 import { GeometryDatabase } from "../../GeometryDatabase";
-import { UndoableSelectionManager } from "../../selection/SelectionManager";
+import { EditorOriginator } from "../../History";
+import { SelectionManager } from "../../selection/SelectionManager";
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { PlaneSnap } from "../../SnapManager";
 import { Helpers } from "../../util/Helpers";
@@ -40,7 +40,7 @@ export interface EditorLike {
     helpers: Helpers,
     viewports: Viewport[],
     signals: EditorSignals,
-    selection: UndoableSelectionManager,
+    selection: SelectionManager,
     originator: EditorOriginator
 }
 

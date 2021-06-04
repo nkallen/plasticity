@@ -6,7 +6,7 @@ import c3d from '../../../build/Release/c3d.node';
 import Command, * as cmd from '../../commands/Command';
 import { Editor } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
-import { UndoableSelectionManager } from '../../selection/SelectionManager';
+import { HasSelection } from '../../selection/SelectionManager';
 import { GConstructor } from '../../util/Util';
 import * as visual from "../../VisualModel";
 import { humanizeKeystrokes } from '../atom/tooltip-manager';
@@ -18,6 +18,7 @@ import difference from './img/difference.svg';
 import fillet from './img/fillet.svg';
 import intersection from './img/intersection.svg';
 import line from './img/line.svg';
+import { default as extrude, default as loft, default as mirror } from './img/loft.svg';
 import move from './img/move.svg';
 import offsetFace from './img/offset-face.svg';
 import rect from './img/rect.svg';
@@ -25,9 +26,6 @@ import rotate from './img/rotate.svg';
 import scale from './img/scale.svg';
 import sphere from './img/sphere.svg';
 import union from './img/union.svg';
-import loft from './img/loft.svg';
-import extrude from './img/loft.svg';
-import mirror from './img/loft.svg';
 
 const icons = new Map<typeof Command, string>();
 icons.set(cmd.MoveCommand, move);
@@ -108,7 +106,7 @@ keybindings.set("gizmo:curve:undo", "Undo");
 
 export class Model {
     constructor(
-        private readonly selection: UndoableSelectionManager,
+        private readonly selection: HasSelection,
         private readonly db: GeometryDatabase) { }
 
     get commands() {

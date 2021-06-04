@@ -24,7 +24,6 @@ let viewport: Model;
 let editor: EditorLike;
 let sphere: visual.Solid;
 let selection: SelectionManager;
-let undo: UndoableSelectionManager;
 let interaction: SelectionInteractionManager;
 let navigationControls: EventDispatcher;
 let originator: EditorOriginator;
@@ -56,14 +55,13 @@ beforeEach(async () => {
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
-    undo = new UndoableSelectionManager(selection, f => f());
-    interaction = new SelectionInteractionManager(undo, materials, signals);
+    interaction = new SelectionInteractionManager(selection, materials, signals);
     editor = {
         db: db,
         viewports: [],
         helpers: new Helpers(signals),
         signals: signals,
-        selection: undo,
+        selection: selection,
         originator: originator,
     };
     const makeSphere = new SphereFactory(db, materials, signals);

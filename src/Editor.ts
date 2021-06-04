@@ -76,8 +76,7 @@ export class Editor {
     readonly keymaps = new KeymapManager();
     readonly helpers = new Helpers(this.signals);
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
-    readonly _selection = new SelectionManager(this.db, this.materials, this.signals);
-    readonly selection = new UndoableSelectionManager(this._selection, this.changeState.bind(this));
+    readonly selection = new UndoableSelectionManager(this.db, this.materials, this.signals, this.changeState.bind(this));
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);

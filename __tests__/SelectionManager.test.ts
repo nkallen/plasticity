@@ -13,18 +13,15 @@ import './matchers';
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
-let selectionManager: SelectionManager;
-let undo: UndoableSelectionManager;
+let selectionManager: UndoableSelectionManager;
 let interactionManager: SelectionInteractionManager;
-let editor: Editor;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
-    selectionManager = new SelectionManager(db, materials, signals);
-    undo = new UndoableSelectionManager(selectionManager, f => f());
-    interactionManager = new SelectionInteractionManager(undo, materials, signals);
+    selectionManager = new UndoableSelectionManager(db, materials, signals, f => f());
+    interactionManager = new SelectionInteractionManager(selectionManager, materials, signals);
 });
 
 describe('onClick', () => {

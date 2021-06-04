@@ -63,6 +63,9 @@ export default class CurveAndContourFactory extends GeometryFactory {
             ps.push(f.commit() as Promise<visual.SpaceInstance<visual.Curve3D>>);
         }
         const curves = await Promise.all(ps);
+
+        if (curves.length == 1) return curves[0];
+
         const contour = new ContourFactory(this.db, this.materials, this.signals);
         for (const curve of curves) {
             contour.curves.push(curve);

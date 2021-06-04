@@ -1,12 +1,11 @@
-import MaterialDatabase from "../MaterialDatabase";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { EditorSignals } from "../Editor";
+import MaterialDatabase from "../MaterialDatabase";
 import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, SpaceItem, TopologyItem } from "../VisualModel";
-import { SelectionMode, SelectionStrategy, UndoableSelectionManager } from "./SelectionManager";
+import { HasSelection, SelectionMode, SelectionStrategy } from "./SelectionManager";
 
 export class HoverStrategy implements SelectionStrategy {
     constructor(
-        private readonly selection: UndoableSelectionManager,
+        private readonly selection: HasSelection,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals,
     ) { }
