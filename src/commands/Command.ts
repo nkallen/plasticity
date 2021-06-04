@@ -10,6 +10,7 @@ import CircleFactory from './circle/CircleFactory';
 import ContourFactory from "./curve/ContourFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveGizmo, CurveGizmoEvent } from "./curve/CurveGizmo";
+import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
 import ExtrudeFactory from "./extrude/ExtrudeFactory";
 import FilletFactory, { Max } from './fillet/FilletFactory';
@@ -164,9 +165,9 @@ export class CurveCommand extends Command {
     }
 }
 
-export class ContourCommand extends Command {
+export class JoinCurvesCommand extends Command {
     async execute(): Promise<void> {
-        const contour = new ContourFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const contour = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         for (const curve of this.editor.selection.selectedCurves) contour.curves.push(curve);
         await contour.commit();
     }
