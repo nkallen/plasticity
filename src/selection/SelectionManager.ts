@@ -83,11 +83,11 @@ export class SelectionInteractionManager {
 }
 
 export interface HasSelection {
-    readonly mode: Set<SelectionMode>;
-    readonly selectedSolids: Set<Solid>;
-    readonly selectedEdges: Set<CurveEdge>;
-    readonly selectedFaces: Set<Face>;
-    readonly selectedCurves: Set<SpaceInstance<Curve3D>>;
+    readonly mode: ReadonlySet<SelectionMode>;
+    readonly selectedSolids: ReadonlySet<Solid>;
+    readonly selectedEdges: ReadonlySet<CurveEdge>;
+    readonly selectedFaces: ReadonlySet<Face>;
+    readonly selectedCurves: ReadonlySet<SpaceInstance<Curve3D>>;
     hover?: Hoverable;
     readonly selectedChildren: RefCounter<visual.SpaceItem>;
 }

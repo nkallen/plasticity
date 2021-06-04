@@ -146,7 +146,9 @@ export default {
                 {
                     signature: "bool GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & placement, bool saveParams, VERSION version = Math::DefaultMathVersion())",
                     placement: isReturn
-                }
+                },
+                "bool IsClosed()",
+                "bool IsTouch()",
             ]
         },
         Contour3D: {

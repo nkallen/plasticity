@@ -18,7 +18,9 @@ import difference from './img/difference.svg';
 import fillet from './img/fillet.svg';
 import intersection from './img/intersection.svg';
 import line from './img/line.svg';
-import { default as extrude, default as loft, default as mirror } from './img/loft.svg';
+import mirror from './img/mirror.svg';
+import loft from './img/loft.svg';
+import extrude from './img/extrude.svg';
 import move from './img/move.svg';
 import offsetFace from './img/offset-face.svg';
 import rect from './img/rect.svg';
@@ -157,9 +159,20 @@ export class Model {
             } catch { }
         }
         if (selection.selectedSolids.size > 0 && selection.selectedCurves.size > 0) {
-            result.push(cmd.CutCommand)
+            result.push(cmd.CutCommand);
         }
-
+        if (selection.selectedCurves.size > 0) {
+            const cs = [...selection.selectedCurves];
+            for (const c of cs) {
+                const inst = db.lookup(c);
+                const curve = inst.GetSpaceItem().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+                console.log(curve.IsClosed(), curve.IsTouch());
+            }
+            result.push(cmd.ExtrudeCommand);
+        }
+        if (selection.selectedCurves.size > 1) {
+            result.push(cmd.LoftCommand);
+        }
         return result;
     }
 }
