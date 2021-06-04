@@ -345,8 +345,11 @@ export default {
         },
         Matrix3D: {
             rawHeader: "mb_matrix3d.h",
+            dependencies: ["CartPoint3D.h", "Vector3D.h"],
+            initializers: [""],
             functions: [
-                "void Scale(double sx, double sy, double sz)"
+                "void Scale(double sx, double sy, double sz)",
+                "void Symmetry(const MbCartPoint3D & origin, MbVector3D & normal)"
             ]
         },
         TopologyItem: {

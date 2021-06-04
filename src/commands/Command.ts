@@ -23,6 +23,7 @@ import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
 import LoftFactory from "./loft/LoftFactory";
 import ExtrudeFactory from "./extrude/ExtrudeFactory";
+import MirrorFactory from "./mirror/MirrorFactory";
 
 export default abstract class Command extends CancellableRegistor {
     editor: Editor;
@@ -44,7 +45,7 @@ export class SphereCommand extends Command {
         const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         const pointPicker = new PointPicker(this.editor);
 
-        const p1 = await pointPicker.execute().resource(this);
+        const [p1,] = await pointPicker.execute().resource(this);
         sphere.center = p1;
 
         await pointPicker.execute((p2: THREE.Vector3) => {
@@ -61,7 +62,7 @@ export class CircleCommand extends Command {
         const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const p1 = await pointPicker.execute().resource(this);
+        const [p1,] = await pointPicker.execute().resource(this);
         circle.center = p1;
 
         await pointPicker.execute((p2: THREE.Vector3) => {
@@ -78,11 +79,11 @@ export class CylinderCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
 
         const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const p1 = await pointPicker.execute().resource(this);
+        const [p1,] = await pointPicker.execute().resource(this);
         circle.center = p1;
 
         pointPicker.restrictToPlaneThroughPoint(p1);
-        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+        const [p2,] = await pointPicker.execute((p2: THREE.Vector3) => {
             circle.radius = p1.distanceTo(p2);
             circle.update();
         }).resource(this);
@@ -104,7 +105,7 @@ export class LineCommand extends Command {
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const p1 = await pointPicker.execute().resource(this);
+        const [p1,] = await pointPicker.execute().resource(this);
         line.p1 = p1;
         await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
@@ -123,7 +124,7 @@ export class CurveCommand extends Command {
         let i = 0;
         while (true) {
             try {
-                const point = await pointPicker.execute((p: THREE.Vector3) => {
+                const [point,] = await pointPicker.execute((p: THREE.Vector3) => {
                     if (i == 0) {
                         line.p1 = p;
                     } else if (i == 1) {
@@ -149,9 +150,9 @@ export class RectCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const p1 = await pointPicker.execute();
+        const [p1,] = await pointPicker.execute();
         line.p1 = p1;
-        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+        const [p2,] = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
         }).resource(this);
@@ -173,9 +174,9 @@ export class BoxCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const p1 = await pointPicker.execute().resource(this);
+        const [p1,] = await pointPicker.execute().resource(this);
         line.p1 = p1;
-        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+        const [p2,] = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
         }).resource(this);
@@ -184,7 +185,7 @@ export class BoxCommand extends Command {
         const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
         rect.p2 = p2;
-        const p3 = await pointPicker.execute((p3: THREE.Vector3) => {
+        const [p3,] = await pointPicker.execute((p3: THREE.Vector3) => {
             rect.p3 = p3;
             rect.update();
         }).resource(this);
@@ -237,10 +238,10 @@ export class ScaleCommand extends Command {
         const objects = [...this.editor.selection.selectedSolids];
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const origin = await pointPicker.execute().resource(this);
+        const [origin,] = await pointPicker.execute().resource(this);
         line.p1 = origin;
 
-        const p2 = await pointPicker.execute((p2: THREE.Vector3) => {
+        const [p2,] = await pointPicker.execute((p2: THREE.Vector3) => {
             line.p2 = p2;
             line.update();
         }).resource(this);
@@ -520,8 +521,7 @@ export class ExtrudeCommand extends Command {
         extrude.direction = new THREE.Vector3(1, 1, 1);
 
         const pointPicker = new PointPicker(this.editor);
-
-        const p1 = await pointPicker.execute().resource(this);
+        const [p1,] = await pointPicker.execute().resource(this);
 
         await pointPicker.execute((p2: THREE.Vector3) => {
             extrude.direction = p2.clone().sub(p1);
@@ -530,5 +530,27 @@ export class ExtrudeCommand extends Command {
         }).resource(this);
 
         await extrude.commit();
+    }
+}
+
+export class MirrorCommand extends Command {
+    async execute(): Promise<void> {
+        const curves = [...this.editor.selection.selectedCurves];
+        const mirror = new MirrorFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        mirror.curve = curves[0];
+
+        const pointPicker = new PointPicker(this.editor);
+        const [p1, n] = await pointPicker.execute().resource(this);
+        pointPicker.restrictToPlaneThroughPoint(p1);
+        console.log(n);
+
+        mirror.origin = p1;
+
+        await pointPicker.execute((p2: THREE.Vector3) => {
+            mirror.normal = p2.clone().sub(p1).cross(n);
+            mirror.update();
+        }).resource(this);
+
+        await mirror.commit();
     }
 }

@@ -30,6 +30,8 @@ describe('commit', () => {
 
         extrude.contour = circle;
         extrude.direction = new THREE.Vector3(0,0,1);
+        extrude.distance1 = 1;
+        extrude.distance2 = 1;
         const result = await extrude.commit() as visual.SpaceItem;
 
         const bbox = new THREE.Box3().setFromObject(result);

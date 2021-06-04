@@ -15,8 +15,8 @@ export class PointPicker {
         this.mesh.renderOrder = 999;
     }
 
-    execute<T>(cb?: (pt: THREE.Vector3) => T): CancellablePromise<THREE.Vector3> {
-        return new CancellablePromise<THREE.Vector3>((resolve, reject) => {
+    execute<T>(cb?: (pt: THREE.Vector3) => T): CancellablePromise<[THREE.Vector3, THREE.Vector3]> {
+        return new CancellablePromise<[THREE.Vector3, THREE.Vector3]>((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const mesh = this.mesh;
             const editor = this.editor;
@@ -73,7 +73,7 @@ export class PointPicker {
                 }
 
                 const onPointerDown = () => {
-                    resolve(mesh.position.clone());
+                    resolve([mesh.position.clone(), constructionPlane.n]);
                     disposables.dispose();
                     editor.signals.pointPickerChanged.dispatch();
                 }

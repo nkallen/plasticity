@@ -175,7 +175,7 @@ export class AxisSnap extends Snap {
 }
 
 export class PlaneSnap extends Snap {
-    private readonly n: THREE.Vector3;
+    readonly n: THREE.Vector3;
 
     constructor(n: THREE.Vector3, p: THREE.Vector3 = new THREE.Vector3()) {
         const planeGeo = new THREE.PlaneGeometry(1000, 1000, 2, 2);

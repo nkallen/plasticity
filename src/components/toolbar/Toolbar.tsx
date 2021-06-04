@@ -27,6 +27,7 @@ import sphere from './img/sphere.svg';
 import union from './img/union.svg';
 import loft from './img/loft.svg';
 import extrude from './img/loft.svg';
+import mirror from './img/loft.svg';
 
 const icons = new Map<typeof Command, string>();
 icons.set(cmd.MoveCommand, move);
@@ -52,6 +53,7 @@ icons.set(cmd.CylinderCommand, cylinder);
 icons.set(cmd.BoxCommand, box);
 icons.set(cmd.LoftCommand, loft);
 icons.set(cmd.ExtrudeCommand, extrude);
+icons.set(cmd.MirrorCommand, mirror);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 
 const tooltips = new Map<typeof Command, string>();
@@ -78,6 +80,7 @@ tooltips.set(cmd.CylinderCommand, "Cylinder");
 tooltips.set(cmd.BoxCommand, "Box");
 tooltips.set(cmd.LoftCommand, "Loft");
 tooltips.set(cmd.ExtrudeCommand, "Extrude");
+tooltips.set(cmd.MirrorCommand, "Mirror");
 
 const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
