@@ -28,7 +28,7 @@ export class SelectionInteractionManager {
     private readonly hoverStrategy: HoverStrategy;
 
     constructor(
-        readonly selection: UndoableSelectionManager,
+        readonly selection: SelectionManager,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals
     ) {

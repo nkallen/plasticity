@@ -1,8 +1,8 @@
 import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyItem } from "../VisualModel";
-import { SelectionMode, SelectionStrategy, UndoableSelectionManager } from "./SelectionManager";
+import { SelectionManager, SelectionMode, SelectionStrategy } from "./SelectionManager";
 
 export class ClickStrategy implements SelectionStrategy {
-    constructor(private selection: UndoableSelectionManager) {
+    constructor(private selection: SelectionManager) {
     }
 
     emptyIntersection(): void {
