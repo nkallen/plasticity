@@ -80,8 +80,8 @@ export abstract class GeometryFactory extends Cancellable {
         const state = await this.state;
         switch (state) {
             case 'updated':
-                await this.doCancel();
             case 'none':
+                await this.doCancel();
             case 'cancelled':
             case 'failed':
                 this.state = Promise.resolve('cancelled');

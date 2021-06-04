@@ -1,16 +1,17 @@
 import * as THREE from "three";
-import c3d, { ThreeStates } from '../build/Release/c3d.node';
+import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { Clone, SnapMemento } from "./History";
 import { SpriteDatabase } from "./SpriteDatabase";
-import { CurveEdge, Solid, SpaceItem } from "./VisualModel";
+import * as visual from '../src/VisualModel';
 
 export class SnapManager {
     private readonly snaps = new Set<Snap>();
 
     private readonly begPoints = new Set<Snap>();
     private readonly midPoints = new Set<Snap>();
+    private readonly endPoints = new Set<Snap>();
 
     pickers: THREE.Object3D[] = [];
     snappers: THREE.Object3D[] = [];
@@ -56,22 +57,37 @@ export class SnapManager {
     }
 
     private update() {
-        const all = [...this.snaps, ...this.begPoints, ...this.midPoints];
+        const all = [...this.snaps, ...this.begPoints, ...this.midPoints, ...this.endPoints];
         this.pickers = all.map((s) => s.picker).filter(x => !!x) as THREE.Object3D[];
         this.snappers = all.map((s) => s.snapper);
     }
 
-    private add(item: SpaceItem): void {
-        if (item instanceof Solid) {
+    private add(item: visual.SpaceItem): void {
+        if (item instanceof visual.Solid) {
             for (const edge of item.edges) {
                 this.addEdge(edge);
             }
+        } else if (item instanceof visual.SpaceInstance) {
+            const inst = this.db.lookup(item);
+            const curve = inst.GetSpaceItem().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            const min = curve.PointOn(0);
+            const mid = curve.PointOn(0.5);
+            const max = curve.PointOn(1);
+            const begSnap = new PointSnap(min.x, min.y, min.z);
+            const midSnap = new PointSnap(mid.x, mid.y, mid.z);
+            const endSnap = new PointSnap(max.x, max.y, max.z);
+            this.begPoints.add(begSnap);
+            this.midPoints.add(midSnap);
+            this.endPoints.add(endSnap);
+            item.snaps.add(begSnap);
+            item.snaps.add(midSnap);
+            item.snaps.add(endSnap);
         }
 
         this.update();
     }
 
-    private addEdge(edge: CurveEdge) {
+    private addEdge(edge: visual.CurveEdge) {
         const model = this.db.lookupTopologyItem(edge) as c3d.Edge;
         const begPt = model.GetBegPoint();
         const begSnap = new PointSnap(begPt.x, begPt.y, begPt.z);
@@ -85,13 +101,20 @@ export class SnapManager {
         edge.snaps.add(begSnap);
     }
 
-    private delete(item: SpaceItem): void {
-        if (item instanceof Solid) {
+    private delete(item: visual.SpaceItem): void {
+        if (item instanceof visual.Solid) {
             for (const edge of item.edges) {
                 for (const snap of edge.snaps) {
                     this.begPoints.delete(snap);
                     this.midPoints.delete(snap);
+                    this.endPoints.delete(snap);
                 }
+            }
+        } else if (item instanceof visual.SpaceInstance) {
+            for (const snap of item.snaps) {
+                this.begPoints.delete(snap);
+                this.midPoints.delete(snap);
+                this.endPoints.delete(snap);
             }
         }
 

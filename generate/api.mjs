@@ -149,6 +149,11 @@ export default {
                 },
                 "bool IsClosed()",
                 "bool IsTouch()",
+                "double GetTMax()",
+                "double GetTMin()",
+                "double GetPeriod()",
+                "double IsPeriodic()",
+                { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn }
             ]
         },
         Contour3D: {

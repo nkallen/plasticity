@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import BoxFactory from '../src/commands/box/BoxFactory';
+import LineFactory from "../src/commands/line/LineFactory";
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
@@ -14,7 +15,6 @@ let snaps: SnapManager;
 let materials: MaterialDatabase;
 let sprites: Required<SpriteDatabase>;
 let signals: EditorSignals;
-let box: visual.Solid;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -31,7 +31,7 @@ test("initial state", () => {
     expect(snaps.pickers.length).toBe(1);
 });
 
-test("adding object", async () => {
+test("adding solid", async () => {
     const makeBox = new BoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();
     makeBox.p2 = new THREE.Vector3(1, 0, 0);
@@ -43,6 +43,21 @@ test("adding object", async () => {
     expect(snaps.pickers.length).toBe(25);
 
     db.removeItem(box);
+
+    expect(snaps.snappers.length).toBe(4);
+    expect(snaps.pickers.length).toBe(1);
+});
+
+test("adding curve", async () => {
+    const makeLine = new LineFactory(db, materials, signals);
+    makeLine.p1 = new THREE.Vector3();
+    makeLine.p2 = new THREE.Vector3(1, 0, 0);
+    const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+    expect(snaps.snappers.length).toBe(7);
+    expect(snaps.pickers.length).toBe(4);
+
+    db.removeItem(line);
 
     expect(snaps.snappers.length).toBe(4);
     expect(snaps.pickers.length).toBe(1);

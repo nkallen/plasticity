@@ -7,6 +7,7 @@ import * as visual from "../VisualModel";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
 import CircleFactory from './circle/CircleFactory';
+import ContourFactory from "./curve/ContourFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveGizmo, CurveGizmoEvent } from "./curve/CurveGizmo";
 import CylinderFactory from './cylinder/CylinderFactory';
@@ -160,6 +161,14 @@ export class CurveCommand extends Command {
                 break;
             }
         }
+    }
+}
+
+export class ContourCommand extends Command {
+    async execute(): Promise<void> {
+        const contour = new ContourFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        for (const curve of this.editor.selection.selectedCurves) contour.curves.push(curve);
+        await contour.commit();
     }
 }
 
@@ -560,7 +569,6 @@ export class MirrorCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         const [p1, n] = await pointPicker.execute().resource(this);
         pointPicker.restrictToPlaneThroughPoint(p1);
-        console.log(n);
 
         mirror.origin = p1;
 

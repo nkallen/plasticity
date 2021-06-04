@@ -54,6 +54,7 @@ icons.set(cmd.BoxCommand, box);
 icons.set(cmd.LoftCommand, loft);
 icons.set(cmd.ExtrudeCommand, extrude);
 icons.set(cmd.MirrorCommand, mirror);
+icons.set(cmd.ContourCommand, mirror);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 
 const tooltips = new Map<typeof Command, string>();
@@ -81,6 +82,7 @@ tooltips.set(cmd.BoxCommand, "Box");
 tooltips.set(cmd.LoftCommand, "Loft");
 tooltips.set(cmd.ExtrudeCommand, "Extrude");
 tooltips.set(cmd.MirrorCommand, "Mirror");
+tooltips.set(cmd.ContourCommand, "Contour");
 
 const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
@@ -162,16 +164,11 @@ export class Model {
             result.push(cmd.CutCommand);
         }
         if (selection.selectedCurves.size > 0) {
-            const cs = [...selection.selectedCurves];
-            for (const c of cs) {
-                const inst = db.lookup(c);
-                const curve = inst.GetSpaceItem().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-                console.log(curve.IsClosed(), curve.IsTouch());
-            }
             result.push(cmd.ExtrudeCommand);
         }
         if (selection.selectedCurves.size > 1) {
             result.push(cmd.LoftCommand);
+            result.push(cmd.ContourCommand);
         }
         return result;
     }

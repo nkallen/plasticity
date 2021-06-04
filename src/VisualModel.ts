@@ -34,6 +34,7 @@ class LOD extends THREE.LOD {
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
     readonly lod = new LOD();
+    readonly snaps = new Set<Snap>(); // FIXME I doubt these are cloned correctly (cf History)
 
     constructor() {
         super();
@@ -109,7 +110,7 @@ export class CurveEdge extends Edge {
     private readonly line: Line2;
     private readonly occludedLine: Line2;
     get child() { return this.line };
-    readonly snaps = new Set<Snap>();
+    readonly snaps = new Set<Snap>(); // FIXME I doubt these are cloned correctly (cf History)
 
     static build(edge: c3d.EdgeBuffer, material: LineMaterial, occludedMaterial: LineMaterial) {
         const geometry = new LineGeometry();

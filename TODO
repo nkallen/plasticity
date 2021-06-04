@@ -38,6 +38,7 @@ audit VisualModel to see if we can simplify the recursive raycasting. It was ori
 rethink the deep cloning.
   - perhaps objects that store references to visual.* can just use simple names instead and lookup from db on command 
   - maybe objects can be immutable; materials and highlighting can be a pre-render step
+  - note also that the snaps associated with edges & curves & items generally are not obviously cloned
 
 
 
