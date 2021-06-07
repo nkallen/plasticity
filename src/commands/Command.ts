@@ -554,3 +554,12 @@ export class MirrorCommand extends Command {
         await mirror.commit();
     }
 }
+
+export class DeleteCommand extends Command {
+    async execute(): Promise<void> {
+        const items = [...this.editor.selection.selectedCurves, ...this.editor.selection.selectedSolids];
+        const ps = items.map(i => this.editor.db.removeItem(i));
+        await Promise.all(ps);
+        return Promise.resolve();
+    }
+}

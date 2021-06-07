@@ -1,10 +1,14 @@
-Undo/redo
-    - selection history
+THIS WEEK:
 
-object history
-    
+delete objects
+polyline
+better snaps for making lines
+  - verify snapping to axes
+  - grid snapping
+
+FUTURE:
+
 put freeze on visual models
-
 
 bug: outlines broken by grid
 
@@ -14,6 +18,10 @@ audit all doCommit to ensure visibility is set to true on failure;
 visualize construction history of objects
 
 --
+
+Viewport week:
+- zoom/pan in orthogonal views
+- keybindings to create/remove viewports
 
 Gizmo week:
 - point-picker style move/etc.

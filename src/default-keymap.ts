@@ -21,6 +21,9 @@ export default {
         "r": "command:rotate",
         "s": "command:scale",
         "b": "command:fillet",
+        "x": "command:delete",
+        "delete": "command:delete",
+        "backspace": "command:delete",
 
         "escape": "command:abort",
         "enter": "command:finish",

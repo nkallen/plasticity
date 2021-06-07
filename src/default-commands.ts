@@ -19,5 +19,6 @@ export default (editor: Editor): void => {
         'command:cut': () => editor.execute(new cmd.CutCommand(editor)),
         'command:fillet': () => editor.execute(new cmd.FilletCommand(editor)),
         'command:modify-face': () => editor.execute(new cmd.OffsetFaceCommand(editor)),
+        'command:delete': () => editor.execute(new cmd.DeleteCommand(editor)),
     })
 }
