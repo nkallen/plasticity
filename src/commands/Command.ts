@@ -118,22 +118,16 @@ export class LineCommand extends Command {
 export class CurveCommand extends Command {
     async execute(): Promise<void> {
         const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
         let i = 0;
         while (true) {
             try {
-                const [point,] = await pointPicker.execute((p: THREE.Vector3) => {
-                    if (i == 0) {
-                        line.p1 = p;
-                    } else if (i == 1) {
-                        line.p2 = p;
-                        line.update();
-                    } else if (i == 2) {
-                        line.cancel();
-                    };
+                const [point,] = await pointPicker.execute(async (p: THREE.Vector3) => {
+                    curve.nextPoint = p;
+                    await curve.update();
                 }).resource(this);
+                curve.nextPoint = undefined;
                 curve.points.push(point);
                 await curve.update();
                 i++;

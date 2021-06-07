@@ -1,12 +1,17 @@
 THIS WEEK:
 
-delete objects
 polyline
 better snaps for making lines
   - verify snapping to axes
   - grid snapping
 
+BUG:
+
+cylinder not working in many cases
+
 FUTURE:
+
+box selection
 
 put freeze on visual models
 
