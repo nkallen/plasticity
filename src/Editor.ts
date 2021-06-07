@@ -91,6 +91,11 @@ export class Editor {
             this.keymaps.handleKeyboardEvent(event);
             console.log(event);
         });
+        document.addEventListener('contextmenu', event => {
+            // FIXME need to map ctrlKey->ctrl and fix the incorrect types.
+            // @ts-expect-error
+            this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('mouse2', event));
+        })
 
         const axes = new THREE.AxesHelper(10000);
         axes.renderOrder = 0;

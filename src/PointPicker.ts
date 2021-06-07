@@ -75,7 +75,8 @@ export class PointPicker {
                     };
                 }
 
-                const onPointerDown = () => {
+                const onPointerDown = (e: PointerEvent) => {
+                    if (e.button != 0) return;
                     const pos = mesh.position.clone();
                     if (this.firstPoint === undefined) {
                         this.firstPoint = pos;

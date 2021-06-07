@@ -40,6 +40,7 @@ export default {
 
         "escape": "command:abort",
         "enter": "command:finish",
+        "mouse2": "command:finish"
     },
 
     "ispace-workspace": {
