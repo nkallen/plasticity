@@ -9,13 +9,12 @@ Napi::Value SpaceInstance::Duplicate(const Napi::CallbackInfo &info)
     Napi::Env env = info.Env();
     MbSpaceInstance *instance = _underlying;
     MbSpaceItem *item = instance->SetSpaceItem();
-    MbSpaceInstance *duplicate;
     switch (item->Family())
     {
     case st_Curve3D: // FIXME add other cases
         MbCurve3D &curve = *((MbCurve3D *)item);
-        duplicate = new MbSpaceInstance(curve);
-        break;
+        MbCurve3D &idup = (MbCurve3D &)curve.Duplicate();
+        return SpaceInstance::NewInstance(env,
+            new MbSpaceInstance(idup));
     }
-    return SpaceInstance::NewInstance(env, duplicate);
 }

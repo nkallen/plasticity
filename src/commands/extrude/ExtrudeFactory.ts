@@ -50,6 +50,7 @@ export default class ExtrudeFactory extends GeometryFactory {
     }
 
     doCancel() {
+        this.temp?.cancel();
         return super.cancel();
     }
 }

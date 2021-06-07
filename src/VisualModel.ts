@@ -70,6 +70,7 @@ export class SpaceInstance<T extends Curve3D> extends Item {
 }
 
 export class Curve3D extends SpaceItem {
+    disposable = new CompositeDisposable();
     *[Symbol.iterator]() {
         for (const child of this.children) {
             yield child as CurveSegment;
@@ -266,6 +267,7 @@ export interface FaceGroup extends HasDisposable { }
 
 applyMixins(Curve3D, [HasDisposable]);
 applyMixins(Solid, [HasDisposable]);
+applyMixins(SpaceInstance, [HasDisposable]);
 applyMixins(FaceGroup, [HasDisposable]);
 applyMixins(CurveEdgeGroup, [HasDisposable]);
 
@@ -348,6 +350,7 @@ export class Curve3DBuilder {
 
     addCurveSegment(segment: CurveSegment) {
         this.curve3D.add(segment);
+        this.curve3D.disposable.add(new Disposable(() => segment.dispose()))
     }
 }
 
