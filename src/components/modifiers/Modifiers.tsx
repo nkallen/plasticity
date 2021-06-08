@@ -1,3 +1,4 @@
+import Command, * as cmd from '../../commands/Command';
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
@@ -5,6 +6,7 @@ import { Editor } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
 import { HasSelection } from '../../selection/SelectionManager';
 import * as visual from '../../VisualModel';
+import icons from '../toolbar/icons';
 
 export class Model {
     constructor(
@@ -97,7 +99,7 @@ export default (editor: Editor) => {
         }
 
         _item!: visual.Item;
-        set(item: visual.Item) {
+        set item(item: visual.Item) {
             this._item = item;
         }
 
@@ -117,7 +119,7 @@ export default (editor: Editor) => {
 
             const key = e.target.name as keyof c3d.SmoothValues;
             const value = Number(e.target.value) as c3d.SmoothValues[keyof c3d.SmoothValues];
-            this.change(key, value); 
+            this.change(key, value);
         }
 
         onClick(e: Event) {
@@ -140,65 +142,73 @@ export default (editor: Editor) => {
             const { distance1, distance2, conic, begLength, endLength, form, smoothCorner, prolong, keepCant, strict, equable } = this.parameters;
 
             render('', this)
-            render(<form>
-                <ul>
-                    <li>
-                        <label for="distance1">distance1</label>
-                        <input type="text" name="distance1" value={distance1} onChange={this.onChange}></input>
-                    </li>
-                    <li>
-                        <label for="distance2">distance2</label>
-                        <input type="text" name="distance2" value={distance2} onChange={this.onChange}></input>
-                    </li>
-                    <li>
-                        <label for="conic">conic</label>
-                        <input type="text" name="conic" value={conic} onChange={this.onChange}></input>
-                    </li>
-                    <li>
-                        <label for="begLength">begLength</label>
-                        <input type="text" name="begLength" value={begLength} onChange={this.onChange}></input>
-                    </li>
-                    <li>
-                        <label for="endLength">endLength</label>
-                        <input type="text" name="endLength" value={endLength} onChange={this.onChange}></input>
-                    </li>
-                    <li>
-                        <label for="form">form</label>
-                        <select name="form" value={form} onChange={this.onChange}>
-                            <option value="-1">Span</option>
-                            <option value="0">Fillet</option>
-                            <option value="1">Chamfer</option>
-                            <option value="2">Slant1</option>
-                            <option value="3">Slant2</option>
-                        </select>
-                    </li>
-                    <li>
-                        <label for="smoothCorner">smoothCorner</label>
-                        <select name="smoothCorner" value={smoothCorner} onChange={this.onChange}>
-                            <option value="0">Pointed</option>
-                            <option value="1">Either</option>
-                            <option value="2">Uniform</option>
-                            <option value="3">Sharp</option>
-                        </select>
-                    </li>
-                    <li>
-                        <label for="prolong">prolong</label>
-                        <input type="checkbox" name="prolong" checked={prolong} onClick={this.onClick}></input>
-                    </li>
-                    <li>
-                        <label for="keepCant">keepCant</label>
-                        <input type="checkbox" name="keepCant" value={keepCant} onClick={this.onClick}></input>
-                    </li>
-                    <li>
-                        <label for="distance1">strict</label>
-                        <input type="checkbox" name="strict" checked={strict} onClick={this.onClick}></input>
-                    </li>
-                    <li>
-                        <label for="equable">equable</label>
-                        <input type="checkbox" name="equable" checked={equable} onClick={this.onClick}></input>
-                    </li>
-                </ul>
-            </form>, this);
+            render(
+                <>
+                    <div class="header">
+                        <input type="checkbox" />
+                        <img title="test" src={icons.get(cmd.FilletCommand)}></img>
+                        <div class="foo">Fillet</div>
+                    </div>
+                    <form>
+                        <ul>
+                            <li>
+                                <label for="distance1">distance1</label>
+                                <input type="text" name="distance1" value={distance1} onChange={this.onChange}></input>
+                            </li>
+                            <li>
+                                <label for="distance2">distance2</label>
+                                <input type="text" name="distance2" value={distance2} onChange={this.onChange}></input>
+                            </li>
+                            <li>
+                                <label for="conic">conic</label>
+                                <input type="text" name="conic" value={conic} onChange={this.onChange}></input>
+                            </li>
+                            <li>
+                                <label for="begLength">begLength</label>
+                                <input type="text" name="begLength" value={begLength} onChange={this.onChange}></input>
+                            </li>
+                            <li>
+                                <label for="endLength">endLength</label>
+                                <input type="text" name="endLength" value={endLength} onChange={this.onChange}></input>
+                            </li>
+                            <li>
+                                <label for="form">form</label>
+                                <select name="form" value={form} onChange={this.onChange}>
+                                    <option value="-1">Span</option>
+                                    <option value="0">Fillet</option>
+                                    <option value="1">Chamfer</option>
+                                    <option value="2">Slant1</option>
+                                    <option value="3">Slant2</option>
+                                </select>
+                            </li>
+                            <li>
+                                <label for="smoothCorner">smoothCorner</label>
+                                <select name="smoothCorner" value={smoothCorner} onChange={this.onChange}>
+                                    <option value="0">Pointed</option>
+                                    <option value="1">Either</option>
+                                    <option value="2">Uniform</option>
+                                    <option value="3">Sharp</option>
+                                </select>
+                            </li>
+                            <li>
+                                <label for="prolong">prolong</label>
+                                <input type="checkbox" name="prolong" checked={prolong} onClick={this.onClick}></input>
+                            </li>
+                            <li>
+                                <label for="keepCant">keepCant</label>
+                                <input type="checkbox" name="keepCant" value={keepCant} onClick={this.onClick}></input>
+                            </li>
+                            <li>
+                                <label for="distance1">strict</label>
+                                <input type="checkbox" name="strict" checked={strict} onClick={this.onClick}></input>
+                            </li>
+                            <li>
+                                <label for="equable">equable</label>
+                                <input type="checkbox" name="equable" checked={equable} onClick={this.onClick}></input>
+                            </li>
+                        </ul>
+                    </form>
+                </>, this);
         }
     }
     customElements.define('ispace-creator', Creator);
