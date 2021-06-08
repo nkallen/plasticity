@@ -17,8 +17,7 @@ export type TopologyData = { model: c3d.TopologyItem, visual: Set<visual.Face | 
 
 export class GeometryDatabase {
     readonly temporaryObjects = new THREE.Scene();
-    private readonly drawModel = new Map<c3d.SimpleName, visual.Item>(); // FIXME combine these two
-    private readonly geometryModel = new Map<c3d.SimpleName, c3d.Item>();
+    private readonly geometryModel = new Map<c3d.SimpleName, { visual: visual.Item, model: c3d.Item }>(); // FIXME combine these two
     private readonly topologyModel = new Map<string, TopologyData>(); // parentId -> topologyId -> ...
     private readonly hidden = new Set<c3d.SimpleName>();
 
@@ -29,11 +28,10 @@ export class GeometryDatabase {
     private counter = 0;
     async addItem(model: c3d.Item): Promise<visual.SpaceItem> {
         const current = this.counter++;
-        this.geometryModel.set(current, model);
 
         const visual = await this.meshes(model, current, precision_distance);
 
-        this.drawModel.set(current, visual);
+        this.geometryModel.set(current, { visual, model });
 
         this.signals.objectAdded.dispatch(visual);
         this.signals.sceneGraphChanged.dispatch();
@@ -58,7 +56,6 @@ export class GeometryDatabase {
 
     removeItem(object: visual.Item) {
         const simpleName = object.simpleName;
-        this.drawModel.delete(simpleName);
         this.geometryModel.delete(simpleName);
         this.removeTopologyItems(object);
         this.hidden.delete(simpleName);
@@ -68,11 +65,9 @@ export class GeometryDatabase {
     }
 
     lookupItemById(id: c3d.SimpleName): { visual: visual.Item, model: c3d.Item } {
-        const model = this.geometryModel.get(id);
-        if (model === undefined) throw new Error(`invalid precondition: object ${id} missing from geometry model`);
-        const visual = this.drawModel.get(id);
-        if (visual === undefined) throw new Error(`invalid precondition: object ${id} missing from draw model`);
-        return { visual, model };
+        const result = this.geometryModel.get(id);
+        if (result === undefined) throw new Error(`invalid precondition: object ${id} missing from geometry model`);
+        return result;
     }
 
     // FIXME rethink error messages and consider using Family rather than isA for curve3d?
@@ -112,8 +107,8 @@ export class GeometryDatabase {
 
     find<T extends visual.Item>(klass: any): T[] {
         const result: T[] = [];
-        for (const item of this.drawModel.values()) {
-            if (item instanceof klass) {
+        for (const { visual } of this.geometryModel.values()) {
+            if (visual instanceof klass) {
                 // @ts-expect-error
                 result.push(item);
             }
@@ -121,9 +116,12 @@ export class GeometryDatabase {
         return result;
     }
 
-    get visibleObjects() {
-        const { drawModel, hidden } = this;
-        const difference = [...drawModel.values()].filter(x => !hidden.has(x.simpleName));
+    get visibleObjects(): Array<visual.Item> {
+        const { geometryModel, hidden } = this;
+        const difference = [];
+        for (const { visual } of geometryModel.values()) {
+            if (!hidden.has(visual.simpleName)) difference.push(visual);
+        }
         return difference;
     }
 
@@ -252,14 +250,12 @@ export class GeometryDatabase {
 
     saveToMemento(registry: Map<any, any>): GeometryMemento {
         return new GeometryMemento(
-            new Map(this.drawModel),
             new Map(this.geometryModel),
             new Map(this.topologyModel),
             new Set(this.hidden));
     }
 
     restoreFromMemento(m: GeometryMemento) {
-        (this.drawModel as GeometryDatabase['drawModel']) = m.drawModel;
         (this.geometryModel as GeometryDatabase['geometryModel']) = m.geometryModel;
         (this.topologyModel as GeometryDatabase['topologyModel']) = m.topologyModel;
         (this.hidden as GeometryDatabase['hidden']) = m.hidden;
