@@ -5,6 +5,7 @@ import RegionFactory from '../src/commands/region/RegionFactory';
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
+import { HighlightManager } from '../src/selection/HighlightManager';
 import { SelectionInteractionManager } from '../src/selection/SelectionInteraction';
 import { SelectionManager } from '../src/selection/SelectionManager';
 import * as visual from '../src/VisualModel';
@@ -293,19 +294,20 @@ describe('onPointerMove', () => {
             point: new THREE.Vector3(),
             object: edge
         });
+        const highlighter = new HighlightManager(db);
 
-        expect(edge.material).toBe(materials.line(edge));
+        expect(edge.child.material).toBe(materials.line(edge));
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(1);
 
         interactionManager.onPointerMove(intersections);
-        selectionManager.hover.highlight();
-        expect(edge.material).toBe(materials.hover(edge));
-        selectionManager.hover.unhighlight();
+        selectionManager.hover.highlight(highlighter);
+        expect(edge.child.material).toBe(materials.hover(edge));
+        selectionManager.hover.unhighlight(highlighter);
 
         interactionManager.onPointerMove([]);
-        selectionManager.hover?.highlight();
-        expect(edge.material).toBe(materials.line(edge));
-        selectionManager.hover?.unhighlight();
+        selectionManager.hover?.highlight(highlighter);
+        expect(edge.child.material).toBe(materials.line(edge));
+        selectionManager.hover?.unhighlight(highlighter);
     });
 })

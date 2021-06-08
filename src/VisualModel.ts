@@ -65,16 +65,6 @@ export class PlaneInstance<T extends PlaneItem> extends Item {
     private _useNominal3: undefined;
     get underlying() { return this.lod.children[0] as T }
     disposable = new CompositeDisposable();
-    get material() {
-        const firstChild = this.underlying as unknown as { material: any }
-        return firstChild.material;
-    };
-    set material(m: THREE.Material) {
-        for (const child of this.lod.children) {
-            const hasMaterial = child as THREE.Object3D & { material: any };
-            hasMaterial.material = m;
-        }
-    };
 }
 
 export class Curve3D extends SpaceItem {
@@ -87,14 +77,6 @@ export class Curve3D extends SpaceItem {
 
     get(i: number): CurveSegment {
         return this.children[i] as CurveSegment;
-    }
-
-    get material() { return (this.children[0] as CurveSegment).material }
-    set material(m: LineMaterial) {
-        for (const child of this.children) {
-            const seg = child as CurveSegment;
-            seg.child.material = m; // using child because to avoid LOD sync code from doing unneccessary work
-        }
     }
 }
 
@@ -132,7 +114,7 @@ export class Region extends PlaneItem {
     }
 }
 
-export abstract class TopologyItem<M extends THREE.Material | THREE.Material[] = THREE.Material | THREE.Material[]> extends THREE.Object3D {
+export abstract class TopologyItem extends THREE.Object3D {
     private _useNominal: undefined;
 
     get parentItem(): Item {
@@ -143,12 +125,9 @@ export abstract class TopologyItem<M extends THREE.Material | THREE.Material[] =
         }
         return result as Item;
     }
-
-    abstract get material(): M;
-    abstract set material(m: M);
 }
 
-export abstract class Edge extends TopologyItem<LineMaterial> { }
+export abstract class Edge extends TopologyItem { }
 
 export class CurveEdge extends Edge {
     private readonly line: Line2;
@@ -333,10 +312,6 @@ abstract class ObjectWrapper<T extends THREE.BufferGeometry = THREE.BufferGeomet
     abstract get parentItem(): Item;
     abstract child: THREE.Mesh<T, M>;
     get geometry() { return this.child.geometry };
-    get material() { return this.child.material };
-    set material(m: M) {
-        this.child.material = m;
-    };
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
         const is: THREE.Intersection[] = [];

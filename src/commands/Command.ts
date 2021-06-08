@@ -522,7 +522,7 @@ export class RemoveFaceCommand extends Command {
         removeFace.solid = parent;
         removeFace.faces = faces;
 
-        removeFace.commit();
+        await removeFace.commit();
     }
 }
 

@@ -7,6 +7,7 @@ import * as visual from './VisualModel';
 
 export class Memento {
     constructor(
+        readonly version: number,
         readonly db: GeometryMemento,
         readonly selection: SelectionMemento,
         readonly snaps: SnapMemento
@@ -46,7 +47,8 @@ export type StateChange = (f: () => void) => void;
 
 type OriginatorState = { tag: 'start' } | { tag: 'group', memento: Memento }
 export class EditorOriginator {
-    state: OriginatorState = { tag: 'start' }
+    private state: OriginatorState = { tag: 'start' }
+    private version = 0;
 
     constructor(
         readonly db: MementoOriginator<GeometryMemento>,
@@ -56,6 +58,7 @@ export class EditorOriginator {
 
     group(registry: Map<any, any>, fn: () => void) {
         const memento = new Memento(
+            this.version++,
             this.db.saveToMemento(registry),
             this.selection.saveToMemento(registry),
             this.snaps.saveToMemento(registry));
@@ -72,6 +75,7 @@ export class EditorOriginator {
         switch (this.state.tag) {
             case 'start':
                 return new Memento(
+                    this.version++,
                     this.db.saveToMemento(registry),
                     this.selection.saveToMemento(registry),
                     this.snaps.saveToMemento(registry));
