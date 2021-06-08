@@ -2,12 +2,15 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Cancel, CancellablePromise, Finish } from './util/Cancellable';
 import { Editor } from './Editor';
+import { AxisSnap, PointSnap, Snap } from './SnapManager';
 
 const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
 export class PointPicker {
-    editor: Editor;
-    mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
+    private readonly editor: Editor;
+    private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
+    private readonly _snaps = new Array<PointSnap>();
+    firstPoint?: THREE.Vector3;
 
     constructor(editor: Editor) {
         this.editor = editor;
@@ -46,12 +49,12 @@ export class PointPicker {
                     raycaster.setFromCamera(pointer, camera);
 
                     viewport.overlay.clear();
-                    const sprites = editor.snaps.pick(raycaster);
-                    for (const sprite of sprites) {
-                        viewport.overlay.add(sprite);
-                    }
+                    // display potential/nearby snapping positions
+                    const sprites = editor.snaps.pick(raycaster, this.snaps);
+                    for (const sprite of sprites) viewport.overlay.add(sprite);
 
-                    const snappers = editor.snaps.snap(raycaster, constructionPlane.snapper);
+                    // if within snap range, change point to snap position
+                    const snappers = editor.snaps.snap(raycaster, constructionPlane.snapper, this.snaps);
                     for (const [helper, point] of snappers) {
                         if (cb != null) cb(point);
                         mesh.position.copy(point);
@@ -73,8 +76,13 @@ export class PointPicker {
                 }
 
                 const onPointerDown = () => {
-                    resolve([mesh.position.clone(), constructionPlane.n]);
+                    const pos = mesh.position.clone();
+                    if (this.firstPoint === undefined) {
+                        this.firstPoint = pos;
+                    }
+                    resolve([pos, constructionPlane.n]);
                     disposables.dispose();
+                    this._snaps.push(new PointSnap(pos.x, pos.y, pos.z));
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
@@ -96,6 +104,15 @@ export class PointPicker {
             }
             return { cancel, finish };
         });
+    }
+
+    get snaps(): Snap[] {
+        let result: Snap[] = [...this._snaps];
+        if (this._snaps.length > 0) {
+            const last = this._snaps[this._snaps.length-1];
+            result = result.concat(last.axes);
+        }
+        return result;
     }
 
     restrictionPoint?: THREE.Vector3;

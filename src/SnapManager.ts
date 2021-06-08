@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import c3d from '../build/Release/c3d.node';
+import c3d, { ThreeStates } from '../build/Release/c3d.node';
 import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { Clone, SnapMemento } from "./History";
@@ -31,8 +31,11 @@ export class SnapManager {
         this.update();
     }
 
-    pick(raycaster: THREE.Raycaster): THREE.Object3D[] {
-        const pickerIntersections = raycaster.intersectObjects(this.pickers);
+    pick(raycaster: THREE.Raycaster, additional: Snap[] = []): THREE.Object3D[] {
+        const additionalPickers = [];
+        for (const a of additional) if (a.picker !== undefined) additionalPickers.push(a.picker);
+
+        const pickerIntersections = raycaster.intersectObjects([...this.pickers, ...additionalPickers]);
         const result = [];
         for (const intersection of pickerIntersections) {
             const sprite = this.hoverIndicatorFor(intersection);
@@ -41,8 +44,8 @@ export class SnapManager {
         return result;
     }
 
-    snap(raycaster: THREE.Raycaster, constructionPlane: THREE.Object3D): [THREE.Object3D, THREE.Vector3][] {
-        const snapperIntersections = raycaster.intersectObjects([constructionPlane, ...this.snappers]);
+    snap(raycaster: THREE.Raycaster, constructionPlane: THREE.Object3D, additional: Snap[] = []): [THREE.Object3D, THREE.Vector3][] {
+        const snapperIntersections = raycaster.intersectObjects([constructionPlane, ...this.snappers, ...additional.map(a => a.snapper)]);
         const result = [];
         for (const intersection of snapperIntersections) {
             const h = this.helperFor(intersection);
@@ -156,12 +159,22 @@ export class PointSnap extends Snap {
     project(intersection: THREE.Intersection): THREE.Vector3 {
         return this.projection;
     }
+
+    get axes() {
+        const o = this.projection.clone();
+        return [
+            new AxisSnap(new THREE.Vector3(1, 0, 0), o),
+            new AxisSnap(new THREE.Vector3(0, 1, 0), o),
+            new AxisSnap(new THREE.Vector3(0, 0, 1), o)];
+    }
 }
 
 export class AxisSnap extends Snap {
-    constructor(n: THREE.Vector3) {
+    constructor(n: THREE.Vector3, o = new THREE.Vector3()) {
         n = n.normalize().multiplyScalar(1000);
-        const points = [-n.x, -n.y, -n.z, n.x, n.y, n.z];
+        const points = [
+            o.x - n.x, o.y - n.y, o.z - n.z,
+            o.x + n.x, o.y + n.y, o.z + n.z];
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
         const snapper = new THREE.Line(geometry, new THREE.LineBasicMaterial());
