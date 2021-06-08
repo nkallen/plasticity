@@ -596,7 +596,7 @@ export default {
                 "MbeSmoothForm form",
                 "SmoothValues::CornerForm smoothCorner",
                 "bool prolong",
-                "ThreeStates keepCant",
+                "bool keepCant",
                 "bool strict",
                 "bool equable",
             ]

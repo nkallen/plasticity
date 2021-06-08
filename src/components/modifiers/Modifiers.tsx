@@ -108,12 +108,16 @@ export default (editor: Editor) => {
         }
 
         onChange(e: Event) {
-            if (!(e.target instanceof HTMLInputElement)) throw new Error("invalid precondition");
-            if (e.target.type !== 'text') throw new Error("invalid precondition");
+            if (e.target instanceof HTMLInputElement) {
+                if (e.target.type !== 'text') throw new Error("invalid precondition");
+            } else if (e.target instanceof HTMLSelectElement) {
+            } else {
+                throw new Error("invalid precondition");
+            }
 
             const key = e.target.name as keyof c3d.SmoothValues;
             const value = Number(e.target.value) as c3d.SmoothValues[keyof c3d.SmoothValues];
-            this.change(key, value);
+            this.change(key, value); 
         }
 
         onClick(e: Event) {
@@ -126,6 +130,7 @@ export default (editor: Editor) => {
         }
 
         private change<K extends keyof c3d.SmoothValues>(key: K, value: c3d.SmoothValues[K]): void {
+            console.log(key, value);
             this.parameters[key] = value;
             this.creator.SetParameters(this.parameters);
             editor.signals.creatorChanged.dispatch({ creator: this._creator, item: this.item })
@@ -159,11 +164,22 @@ export default (editor: Editor) => {
                     </li>
                     <li>
                         <label for="form">form</label>
-                        <input type="text" name="form" value={form}></input>
+                        <select name="form" value={form} onChange={this.onChange}>
+                            <option value="-1">Span</option>
+                            <option value="0">Fillet</option>
+                            <option value="1">Chamfer</option>
+                            <option value="2">Slant1</option>
+                            <option value="3">Slant2</option>
+                        </select>
                     </li>
                     <li>
                         <label for="smoothCorner">smoothCorner</label>
-                        <input type="text" name="smoothCorner" value={smoothCorner}></input>
+                        <select name="smoothCorner" value={smoothCorner} onChange={this.onChange}>
+                            <option value="0">Pointed</option>
+                            <option value="1">Either</option>
+                            <option value="2">Uniform</option>
+                            <option value="3">Sharp</option>
+                        </select>
                     </li>
                     <li>
                         <label for="prolong">prolong</label>
@@ -171,7 +187,7 @@ export default (editor: Editor) => {
                     </li>
                     <li>
                         <label for="keepCant">keepCant</label>
-                        <input type="text" name="keepCant" value={keepCant}></input>
+                        <input type="checkbox" name="keepCant" value={keepCant} onClick={this.onClick}></input>
                     </li>
                     <li>
                         <label for="distance1">strict</label>
