@@ -33,7 +33,6 @@ import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFact
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
-import { RebuildFactory } from "./rebuild/RebuildFactory";
 import RectFactory from './rect/RectFactory';
 import { RegionBooleanFactory } from "./region/RegionBooleanFactory";
 import RegionFactory from "./region/RegionFactory";

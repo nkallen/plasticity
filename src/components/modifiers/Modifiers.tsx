@@ -34,7 +34,6 @@ export class Model {
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
             const creator = model.SetCreator(i);
-            console.log(creator.IsA());
             result.push([i, creator.Cast<any>(creator.IsA())]);
         }
 
@@ -325,7 +324,6 @@ export default (editor: Editor) => {
     customElements.define('ispace-creator-fillet-solid', FilletCreator);
 
     for (const key of Object.values(map)) {
-        console.log(key);
         if (key == 'fillet-solid') continue;
         class Foo extends Creator<any, any> {};
         customElements.define(`ispace-creator-${key}`, Foo);
