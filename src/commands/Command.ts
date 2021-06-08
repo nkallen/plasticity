@@ -107,7 +107,9 @@ export class CircleCommand extends Command {
             circle.radius = radius;
             circle.update();
         }).resource(this);
-        const c = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        this.editor.signals.contoursChanged.dispatch();
     }
 }
 
@@ -212,6 +214,8 @@ export class CurveCommand extends Command {
                 break;
             }
         }
+
+        this.editor.signals.contoursChanged.dispatch();
     }
 }
 
@@ -245,6 +249,8 @@ export class RectCommand extends Command {
         }).resource(this);
 
         await makeRect.commit();
+
+        this.editor.signals.contoursChanged.dispatch();
     }
 }
 

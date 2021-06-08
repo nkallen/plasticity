@@ -18,7 +18,8 @@ import { SpriteDatabase } from "./SpriteDatabase";
 import { Cancel } from "./util/Cancellable";
 import { Helpers } from "./util/Helpers";
 import { SpaceItem, TopologyItem } from './VisualModel';
-''
+import ContourManager from './commands/ContourManager';
+
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
 export interface EditorSignals {
@@ -42,6 +43,7 @@ export interface EditorSignals {
     keybindingsRegistered: signals.Signal<string[]>;
     hovered: signals.Signal<THREE.Intersection[]>;
     historyChanged: signals.Signal;
+    contoursChanged: signals.Signal;
 }
 
 export class Editor {
@@ -68,6 +70,7 @@ export class Editor {
         keybindingsRegistered: new signals.Signal(),
         hovered: new signals.Signal(),
         historyChanged: new signals.Signal(),
+        contoursChanged: new signals.Signal(),
     }
 
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
@@ -82,6 +85,7 @@ export class Editor {
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
+    readonly contours = new ContourManager(this, this.signals);
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);
 

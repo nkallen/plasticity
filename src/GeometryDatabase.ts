@@ -108,6 +108,17 @@ export class GeometryDatabase {
         return result;
     }
 
+    find<T extends visual.Item>(klass: any): T[] {
+        const result: T[] = [];
+        for (const item of this.drawModel.values()) {
+            if (item instanceof klass) {
+                // @ts-expect-error
+                result.push(item);
+            }
+        }
+        return result;
+    }
+
     private async meshes(obj: c3d.Item, precision_distance: [number, number][]): Promise<visual.Item> {
         let builder;
         switch (obj.IsA()) {

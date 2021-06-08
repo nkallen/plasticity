@@ -15,7 +15,7 @@ export default class RegionFactory extends GeometryFactory {
 
     async doCommit() {
         const contours = [];
-        let placement_ = new c3d.Placement3D();
+        const placement_ = new c3d.Placement3D();
         for (const contour of this.contours) {
             const inst = this.db.lookup(contour);
             const item = inst.GetSpaceItem();
