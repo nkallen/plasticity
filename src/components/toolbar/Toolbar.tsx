@@ -89,7 +89,7 @@ export class Model {
         if (selection.selectedFaces.size > 0) {
             result.push(cmd.OffsetFaceCommand);
             result.push(cmd.DraftSolidCommand);
-            const face = [...selection.selectedFaces][0];
+            const face = selection.selectedFaces.first;
             const parent = face.parentItem as visual.Solid;
             const solid = db.lookup(parent);
             try {

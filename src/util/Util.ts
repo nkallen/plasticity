@@ -24,7 +24,15 @@ export function assertUnreachable(_x: never): never {
 }
 
 export class RefCounter<T> {
-    readonly counts = new Map<T, [number, CompositeDisposable]>();
+    readonly counts: Map<T, [number, CompositeDisposable]>;
+
+    constructor(from?: RefCounter<T>) {
+        if (from) {
+            this.counts = new Map(from.counts);
+        } else {
+            this.counts = new Map<T, [number, CompositeDisposable]>();
+        }
+    }
 
     has(item: T): boolean {
         return this.counts.has(item);

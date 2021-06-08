@@ -6,12 +6,6 @@ import { EditorSignals } from "./Editor";
 import porcelain from './img/matcap-porcelain-white.jpg';
 import { assertUnreachable } from "./util/Util";
 
-function hash(str: string) {
-    for (var i = 0, h = 9; i < str.length;)
-        h = Math.imul(h ^ str.charCodeAt(i++), 9 ** 9);
-    return h ^ h >>> 9
-};
-
 export default interface MaterialDatabase {
     line(o?: c3d.SpaceInstance): LineMaterial;
     lineDashed(): LineMaterial;
@@ -28,7 +22,7 @@ export default interface MaterialDatabase {
 
     lookup(o: c3d.Edge): LineMaterial;
     lookup(o: c3d.Face): THREE.Material;
-    lookup(o: c3d.TopologyItem): THREE.Material;
+    lookup(o: c3d.Edge | c3d.Face): THREE.Material;
 
     hover(object: visual.Face): THREE.Material;
     hover(object: visual.Edge): LineMaterial;

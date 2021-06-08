@@ -1,8 +1,8 @@
-import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
+import { TopologyData } from './GeometryDatabase';
 import { Snap } from './SnapManager';
-import { RefCounter, WeakValueMap } from './util/Util';
+import { RefCounter } from './util/Util';
 import * as visual from './VisualModel';
 
 export class Memento {
@@ -15,27 +15,29 @@ export class Memento {
 
 export class GeometryMemento {
     constructor(
-        readonly drawModel: Set<visual.SpaceItem>,
-        readonly geometryModel: Map<number, c3d.Item>,
-        readonly scene: THREE.Scene,
+        readonly drawModel: Map<c3d.SimpleName, visual.Item>,
+        readonly geometryModel: Map<c3d.SimpleName, c3d.Item>,
+        readonly topologyModel: Map<string, TopologyData>,
+        readonly hidden: Set<c3d.SimpleName>
     ) { }
 }
 
 export class SelectionMemento {
     constructor(
-        readonly selectedSolids: Set<visual.Solid>,
-        readonly selectedChildren: RefCounter<visual.SpaceItem>,
-        readonly selectedEdges: Set<visual.CurveEdge>,
-        readonly selectedFaces: Set<visual.Face>,
-        readonly selectedCurves: Set<visual.SpaceInstance<visual.Curve3D>>,
-        readonly selectedRegions: Set<visual.PlaneInstance<visual.Region>>,
+        readonly selectedSolidIds: Set<c3d.SimpleName>,
+        readonly selectedChildren: RefCounter<c3d.SimpleName>,
+        readonly selectedEdgeIds: Set<string>,
+        readonly selectedFaceIds: Set<string>,
+        readonly selectedCurveIds: Set<c3d.SimpleName>,
+        readonly selectedRegionIds: Set<c3d.SimpleName>,
     ) { }
 }
 
 export class SnapMemento {
     constructor(
         readonly begPoints: Set<Snap>,
-        readonly midPoints: Set<Snap>
+        readonly midPoints: Set<Snap>,
+        readonly endPoints: Set<Snap>
     ) { }
 }
 
@@ -132,77 +134,4 @@ export class History {
     restore(memento: Memento) {
         this.originator.restoreFromMemento(memento);
     }
-}
-
-export function Clone<T>(object: T, registry: Map<any, any>): T {
-    let result;
-    if (registry.has(object)) {
-        return registry.get(object);
-    } else if (object instanceof visual.Solid || object instanceof visual.SpaceInstance || object instanceof visual.PlaneInstance) {
-        if (object instanceof visual.Solid) {
-            result = new visual.Solid();
-            result.copy(object, false);
-        } else if (object instanceof visual.SpaceInstance) {
-            result = new visual.SpaceInstance();
-            result.copy(object, false);
-        } else if (object instanceof visual.PlaneInstance) {
-            result = new visual.PlaneInstance();
-            result.copy(object, false);
-        } else {
-            throw new Error("invalid precondition");
-        }
-        result.disposable = object.disposable;
-        for (const level of object.lod.levels) {
-            result.lod.addLevel(Clone(level.object, registry), level.distance);
-        }
-        result.userData = object.userData;
-    } else if (object instanceof visual.FaceGroup || object instanceof visual.CurveEdgeGroup || object instanceof visual.Curve3D || object instanceof visual.RecursiveGroup) {
-        result = object.clone(false);
-        for (const child of object.children) {
-            result.add(Clone(child, registry));
-        }
-    } else if (object instanceof visual.TopologyItem || object instanceof visual.CurveEdge || object instanceof visual.CurveSegment || object instanceof visual.Region) {
-        result = object.clone(false);
-        result.userData = object.userData;
-    } else if (object instanceof c3d.Item || object instanceof c3d.TopologyItem) {
-        result = object;
-    } else if (object instanceof THREE.AxesHelper) {
-        result = object.clone(); // FIXME shouldn't really do this, but add helpers just before render.
-    } else if (object instanceof RefCounter) {
-        result = new RefCounter();
-        const counts = new Map();
-        for (const [key, item] of object.counts) {
-            counts.set(Clone(key, registry), item);
-        }
-        (result.counts as RefCounter<T>['counts']) = counts;
-    } else if (object instanceof Snap) {
-        result = object;
-    } else if (object instanceof Set) {
-        result = new Set();
-        for (const item of object.values()) {
-            result.add(Clone(item, registry));
-        }
-    } else if (object instanceof Map) {
-        result = new Map();
-        for (const [key, item] of object) {
-            result.set(Clone(key, registry), Clone(item, registry));
-        }
-    } else if (object instanceof WeakValueMap) {
-        result = new WeakValueMap();
-        for (const [key, item] of object) {
-            result.set(key, Clone(item, registry));
-        }
-    } else if (object instanceof THREE.Scene) {
-        result = object.clone(false);
-        for (const child of object.children) {
-            result.add(Clone(child, registry));
-        }
-    } else if (typeof object === 'number') {
-        return object;
-    } else {
-        console.error(object);
-        throw new Error("Unsupported deep clone.");
-    }
-    registry.set(object, result);
-    return result as unknown as T;
 }

@@ -16,7 +16,7 @@ export default class LineFactory extends GeometryFactory {
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
         super(db, materials, signals);
         this.mesh = new Line2(new LineGeometry(), materials.line());
-        this.db.scene.add(this.mesh);
+        this.db.temporaryObjects.add(this.mesh);
     }
 
     async doUpdate() {
@@ -40,11 +40,11 @@ export default class LineFactory extends GeometryFactory {
         const point2 = new c3d.CartPoint3D(this.p2.x, this.p2.y, this.p2.z);
         const line = c3d.ActionCurve3D.Segment(point1, point2);
         const result = await this.db.addItem(new c3d.SpaceInstance(line)) as visual.SpaceInstance<visual.Curve3D>;
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
         return result;
     }
 
     doCancel() {
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
     }
 }

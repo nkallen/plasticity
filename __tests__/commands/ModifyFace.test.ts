@@ -25,7 +25,6 @@ beforeEach(() => {
 let solid: visual.Solid;
 
 beforeEach(async () => {
-    expect(db.scene.children.length).toBe(0);
     const makeBox = new BoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();
     makeBox.p2 = new THREE.Vector3(1, 0, 0);
@@ -36,22 +35,28 @@ beforeEach(async () => {
 
 describe('update', () => {
     test('push/pulls the visual face', async () => {
+        expect(db.temporaryObjects.children.length).toBe(0);
         const face = solid.faces.get(0);
         offsetFace.solid = solid;
         offsetFace.faces = [face];
         offsetFace.direction = new THREE.Vector3(0, 0, 1);
         await offsetFace.update();
+        expect(db.temporaryObjects.children.length).toBe(1);
     });
 });
 
 describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(1);
         const face = solid.faces.get(0);
         offsetFace.solid = solid;
         offsetFace.faces = [face];
         offsetFace.direction = new THREE.Vector3(0, 0, -1);
         expect(solid).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5));
         const offsetted = await offsetFace.commit();
-        expect(offsetted).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 1))
+        expect(offsetted).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 1));
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(1);
     })
 })

@@ -24,7 +24,6 @@ beforeEach(() => {
 let solid: visual.Solid;
 
 beforeEach(async () => {
-    expect(db.scene.children.length).toBe(0);
     const makeBox = new BoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();
     makeBox.p2 = new THREE.Vector3(1, 0, 0);
@@ -35,18 +34,22 @@ beforeEach(async () => {
 
 describe('update', () => {
     test('push/pulls the visual face', async () => {
+        expect(db.temporaryObjects.children.length).toBe(0);
         const face = solid.faces.get(2);
         draftSolid.solid = solid;
         draftSolid.faces = [face];
         draftSolid.angle = Math.PI / 8;
         draftSolid.axis = new THREE.Vector3(1, 0, 0);
         draftSolid.origin = new THREE.Vector3(0, 0, 0);
-        const offsetted = await draftSolid.update();
+        await draftSolid.update();
+        expect(db.temporaryObjects.children.length).toBe(1);
     });
 });
 
 describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(1);
         const face = solid.faces.get(2);
         draftSolid.solid = solid;
         draftSolid.faces = [face];
@@ -54,7 +57,10 @@ describe('commit', () => {
         draftSolid.axis = new THREE.Vector3(1, 0, 0);
         draftSolid.origin = new THREE.Vector3(0.5, 1, 0.5);
         expect(solid).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5));
+        await draftSolid.update();
         const offsetted = await draftSolid.commit();
         expect(offsetted).toHaveCentroidNear(new THREE.Vector3(0.5, -6.14, 0.73))
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(1);
     })
 })

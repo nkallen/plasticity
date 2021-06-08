@@ -1,9 +1,9 @@
 import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../VisualModel";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
-import { SelectionManager } from "./SelectionManager";
+import { ModifiesSelection } from "./SelectionManager";
 
 export class ClickStrategy implements SelectionStrategy {
-    constructor(private selection: SelectionManager) {}
+    constructor(private selection: ModifiesSelection) {}
 
     emptyIntersection(): void {
         this.selection.deselectAll();
@@ -28,7 +28,7 @@ export class ClickStrategy implements SelectionStrategy {
                 return true;
             }
             return false;
-        } else if (!this.selection.selectedChildren.has(parentItem)) {
+        } else if (!this.selection.hasSelectedChildren(parentItem)) {
             this.selection.selectSolid(parentItem);
             return true;
         }

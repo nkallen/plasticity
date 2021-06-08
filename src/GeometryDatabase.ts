@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
-import { Clone, GeometryMemento } from './History';
+import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { assertUnreachable } from './util/Util';
 import * as visual from './VisualModel';
@@ -13,26 +13,27 @@ export interface TemporaryObject {
     commit(): Promise<visual.SpaceItem>;
 }
 
-let counter = 0;
+export type TopologyData = { model: c3d.TopologyItem, visual: Set<visual.Face | visual.Edge> };
 
 export class GeometryDatabase {
-    readonly drawModel = new Set<visual.SpaceItem>();
-    readonly scene = new THREE.Scene();
-    private readonly geometryModel = new Map<number, c3d.Item>();
+    readonly temporaryObjects = new THREE.Scene();
+    private readonly drawModel = new Map<c3d.SimpleName, visual.Item>(); // FIXME combine these two
+    private readonly geometryModel = new Map<c3d.SimpleName, c3d.Item>();
+    private readonly topologyModel = new Map<string, TopologyData>(); // parentId -> topologyId -> ...
+    private readonly hidden = new Set<c3d.SimpleName>();
 
     constructor(
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals) { }
 
+    private counter = 0;
     async addItem(model: c3d.Item): Promise<visual.SpaceItem> {
-        const current = counter++;
+        const current = this.counter++;
         this.geometryModel.set(current, model);
 
-        const visual = await this.meshes(model, precision_distance);
-        visual.userData.simpleName = current;
+        const visual = await this.meshes(model, current, precision_distance);
 
-        this.scene.add(visual);
-        this.drawModel.add(visual);
+        this.drawModel.set(current, visual);
 
         this.signals.objectAdded.dispatch(visual);
         this.signals.sceneGraphChanged.dispatch();
@@ -40,36 +41,38 @@ export class GeometryDatabase {
     }
 
     async addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
-        const mesh = await this.meshes(object, [[0.005, 1]]);
-        this.scene.add(mesh);
+        const mesh = await this.meshes(object, -1, [[0.005, 1]]);
+        this.temporaryObjects.add(mesh);
         const that = this;
         return {
             cancel() {
                 mesh.dispose();
-                that.scene.remove(mesh);
+                that.temporaryObjects.remove(mesh);
             },
             commit() {
-                that.scene.remove(mesh);
+                that.temporaryObjects.remove(mesh);
                 return that.addItem(object);
             }
         }
     }
 
     removeItem(object: visual.Item) {
-        this.scene.remove(object);
-        this.drawModel.delete(object);
-        this.geometryModel.delete(object.userData.simpleName);
+        const simpleName = object.userData.simpleName;
+        this.drawModel.delete(simpleName);
+        this.geometryModel.delete(simpleName);
+        this.removeTopologyItems(object);
+        this.hidden.delete(simpleName);
 
         this.signals.objectRemoved.dispatch(object);
         this.signals.sceneGraphChanged.dispatch();
     }
 
-    private lookupItem(object: visual.Item): c3d.Item {
-        const simpleName = object.userData.simpleName;
-        if (!this.geometryModel.has(simpleName)) throw new Error(`invalid precondition: object ${simpleName} missing from geometry model`);
-
-        const item = this.geometryModel.get(object.userData.simpleName);
-        return item!;
+    lookupItemById(id: c3d.SimpleName): { visual: visual.Item, model: c3d.Item } {
+        const model = this.geometryModel.get(id);
+        if (model === undefined) throw new Error(`invalid precondition: object ${id} missing from geometry model`);
+        const visual = this.drawModel.get(id);
+        if (visual === undefined) throw new Error(`invalid precondition: object ${id} missing from draw model`);
+        return { visual, model };
     }
 
     // FIXME rethink error messages and consider using Family rather than isA for curve3d?
@@ -78,15 +81,20 @@ export class GeometryDatabase {
     lookup(object: visual.PlaneInstance<any>): c3d.PlaneInstance;
     lookup(object: visual.Item): c3d.Item;
     lookup(object: visual.Item): c3d.Item {
-        const item = this.lookupItem(object);
-        return item;
+        return this.lookupItemById(object.userData.simpleName).model;
+    }
+
+    lookupTopologyItemById(id: string): TopologyData {
+        const result = this.topologyModel.get(id);
+        if (result === undefined) throw new Error(`invalid precondition: object ${id} missing from topology model`);
+        return result;
     }
 
     lookupTopologyItem(object: visual.Face): c3d.Face;
     lookupTopologyItem(object: visual.Edge): c3d.Edge;
     lookupTopologyItem(object: visual.Edge | visual.Face): c3d.TopologyItem {
         const parent = object.parentItem;
-        const parentModel = this.lookupItem(parent);
+        const { model: parentModel } = this.lookupItemById(parent.userData.simpleName);
         if (!(parentModel instanceof c3d.Solid)) throw new Error("Invalid precondition");
         const solid = parentModel;
 
@@ -113,7 +121,13 @@ export class GeometryDatabase {
         return result;
     }
 
-    private async meshes(obj: c3d.Item, precision_distance: [number, number][]): Promise<visual.Item> {
+    get visibleObjects() {
+        const { drawModel, hidden } = this;
+        const difference = [...drawModel.values()].filter(x => !hidden.has(x.userData.simpleName));
+        return difference;
+    }
+
+    private async meshes(obj: c3d.Item, id: c3d.SimpleName, precision_distance: [number, number][]): Promise<visual.Item> {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
@@ -130,14 +144,15 @@ export class GeometryDatabase {
         }
 
         for (const [precision, distance] of precision_distance) {
-            await this.object2mesh(builder, obj, precision, distance);
+            await this.object2mesh(builder, obj, id, precision, distance);
         }
 
         const result = builder.build();
+        result.userData.simpleName = id;
         return result;
     }
 
-    private async object2mesh(builder: any, obj: c3d.Item, sag: number, distance?: number): Promise<void> {
+    private async object2mesh(builder: any, obj: c3d.Item, id: c3d.SimpleName, sag: number, distance?: number): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const note = new c3d.FormNote(true, true, true, false, false);
         const item = await obj.CreateMesh_async(stepData, note);
@@ -178,41 +193,75 @@ export class GeometryDatabase {
                 const lineMaterial = this.materials.line();
                 const polygons = mesh.GetEdges(true);
                 for (const edge of polygons) {
-                    const line = visual.CurveEdge.build(edge, lineMaterial, this.materials.lineDashed());
+                    const line = visual.CurveEdge.build(edge, id, lineMaterial, this.materials.lineDashed());
                     edges.addEdge(line);
+                    this.addTopologyItem(obj, line);
                 }
 
                 const faces = new visual.FaceGroupBuilder();
                 const grids = mesh.GetBuffers();
                 for (const grid of grids) {
                     const material = this.materials.mesh(grid, mesh.IsClosed());
-                    const face = visual.Face.build(grid, material);
+                    const face = visual.Face.build(grid, id, material);
                     faces.addFace(face);
+                    this.addTopologyItem(obj, face);
                 }
                 solid.addLOD(edges.build(), faces.build(), distance);
                 break;
             }
-            default: {
-                throw new Error("type not yet supported");
-            }
+            default: throw new Error("type not yet supported");
         }
+    }
+
+    private addTopologyItem<T extends visual.Face | visual.Edge>(parent: c3d.Item, t: T) {
+        if (!(parent instanceof c3d.Solid)) throw new Error("invalid precondition");
+
+        let topologyData = this.topologyModel.get(t.userData.simpleName);
+        let set;
+        if (topologyData === undefined) {
+            let model;
+            if (t instanceof visual.Face) {
+                model = parent.FindFaceByName(t.userData.name);
+            } else if (t instanceof visual.CurveEdge) {
+                model = parent.FindEdgeByName(t.userData.name);
+            } else throw new Error("invalid precondition");
+            set = new Set<visual.Face | visual.Edge>();
+            topologyData = { model, visual: set }
+            this.topologyModel.set(t.userData.simpleName, topologyData);
+        } else {
+            set = topologyData.visual;
+        }
+        set.add(t);
+    }
+
+    private removeTopologyItems(parent: visual.Item) {
+        parent.traverse(o => {
+            if (o instanceof visual.TopologyItem) {
+                this.topologyModel.delete(o.userData.simpleName);
+            }
+        })
+    }
+
+    hide(item: visual.Item) {
+        this.hidden.add(item.userData.simpleName);
+    }
+
+    unhide(item: visual.Item) {
+        this.hidden.delete(item.userData.simpleName);
     }
 
     saveToMemento(registry: Map<any, any>): GeometryMemento {
         return new GeometryMemento(
-            Clone(this.drawModel, registry),
-            Clone(this.geometryModel, registry),
-            Clone(this.scene, registry));
+            new Map(this.drawModel),
+            new Map(this.geometryModel),
+            new Map(this.topologyModel),
+            new Set(this.hidden));
     }
 
     restoreFromMemento(m: GeometryMemento) {
-        // .drawModel and .scene are both public; it's best to modify in place
-        // in case anyone has references to them. currently, we do this just for drawModel.
-
-        this.drawModel.clear();
-        for (const v of m.drawModel) this.drawModel.add(v);
-
-        (this.scene as GeometryDatabase['scene']) = m.scene;
+        (this.drawModel as GeometryDatabase['drawModel']) = m.drawModel;
         (this.geometryModel as GeometryDatabase['geometryModel']) = m.geometryModel;
+        (this.topologyModel as GeometryDatabase['topologyModel']) = m.topologyModel;
+        (this.hidden as GeometryDatabase['hidden']) = m.hidden;
     }
 }

@@ -35,7 +35,7 @@ export default class ElementarySolidFactory extends GeometryFactory {
     async doUpdate() {
         const { creator, control, duplicate, points } = this;
 
-        this.original.visible = false;
+        this.db.hide(this.original);
 
         for (const [index, point] of points.entries()) {
             control.SetPoint(index, new c3d.CartPoint3D(point.x, point.y, point.z));
@@ -58,6 +58,7 @@ export default class ElementarySolidFactory extends GeometryFactory {
     }
 
     doCancel() {
+        this.db.unhide(this.original);
         this.temp?.cancel();
     }
 }

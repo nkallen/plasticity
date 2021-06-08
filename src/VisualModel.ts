@@ -151,7 +151,7 @@ export class Region extends PlaneItem {
     }
 }
 
-export abstract class TopologyItem extends THREE.Object3D {
+export abstract class TopologyItem<M extends THREE.Material | THREE.Material[] = THREE.Material | THREE.Material[]> extends THREE.Object3D {
     private _useNominal: undefined;
 
     get parentItem(): Item {
@@ -162,9 +162,12 @@ export abstract class TopologyItem extends THREE.Object3D {
         }
         return result as Item;
     }
+
+    abstract get material(): M;
+    abstract set material(m: M);
 }
 
-export class Edge extends TopologyItem { }
+export abstract class Edge extends TopologyItem<LineMaterial> { }
 
 export class CurveEdge extends Edge {
     private readonly line: Line2;
@@ -172,32 +175,25 @@ export class CurveEdge extends Edge {
     get child() { return this.line };
     readonly snaps = new Set<Snap>(); // FIXME I doubt these are cloned correctly (cf History)
 
-    static build(edge: c3d.EdgeBuffer, material: LineMaterial, occludedMaterial: LineMaterial) {
+    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial) {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
         const occludedLine = new Line2(geometry, occludedMaterial);
         occludedLine.computeLineDistances();
-        return new CurveEdge(line, occludedLine, edge.name, edge.simpleName);
+        const result = new CurveEdge(line, occludedLine);
+        result.userData.name = edge.name;
+        result.userData.simpleName = `${parentId},${edge.simpleName}`;
+        return result;
     }
 
-    private constructor(line: Line2, occludedLine: Line2, name: c3d.Name, simpleName: number) {
+    private constructor(line: Line2, occludedLine: Line2) {
         super()
-        this.userData.name = name;
-        this.userData.simpleName = simpleName;
-        this.name = String(simpleName);
         this.add(line);
         this.line = line;
         this.occludedLine = occludedLine;
         this.add(occludedLine);
         occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
-    }
-
-    clone(recursive?: boolean): THREE.Object3D {
-        const line = this.line.clone(recursive) as Line2;
-        const occludedLine = this.occludedLine.clone(recursive) as Line2;
-
-        return new CurveEdge(line, occludedLine, this.userData.name, this.userData.simpleName);
     }
 }
 
@@ -228,13 +224,6 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
         if (!(result instanceof SpaceInstance)) throw "Invalid precondition";
         return result;
     }
-
-    clone(recursive?: boolean): THREE.Object3D {
-        const line = this.line.clone(recursive) as Line2;
-        const result = new CurveSegment(line, this.userData.name, this.userData.simpleName);
-        result.copy(this, recursive);
-        return result;
-    }
 }
 
 export class Face extends TopologyItem {
@@ -242,30 +231,23 @@ export class Face extends TopologyItem {
     private readonly mesh: THREE.Mesh;
     get child() { return this.mesh };
 
-    static build(grid: c3d.MeshBuffer, material: THREE.Material) {
+    static build(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material) {
         const geometry = new THREE.BufferGeometry();
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
         const mesh = new THREE.Mesh(geometry, material);
-        return new Face(mesh, grid.name, grid.simpleName);
+        const result =  new Face(mesh);
+        result.userData.name = grid.name;
+        result.userData.simpleName = `${parentId},${grid.simpleName}`
+        return result;
     }
 
-    private constructor(mesh: THREE.Mesh, name: c3d.Name, simpleName: number) {
+    private constructor(mesh: THREE.Mesh) {
         super()
         this.mesh = mesh;
-        this.userData.name = name;
-        this.userData.simpleName = simpleName;
-        this.name = String(simpleName);
         this.renderOrder = RenderOrder.Face;
         this.add(mesh);
-    }
-
-    clone(recursive?: boolean): THREE.Object3D {
-        const mesh = this.mesh.clone(recursive) as THREE.Mesh;
-        const result = new Face(mesh, this.userData.name, this.userData.simpleName);
-        result.copy(this, recursive);
-        return result;
     }
 }
 
@@ -365,23 +347,14 @@ applyMixins(RecursiveGroup, [RaycastsRecursively]);
  * different levels is a whole thing.
  */
 
-abstract class ObjectWrapper<T extends THREE.BufferGeometry, M extends THREE.Material>
+abstract class ObjectWrapper<T extends THREE.BufferGeometry = THREE.BufferGeometry, M extends THREE.Material | THREE.Material[] = THREE.Material | THREE.Material[]>
     extends THREE.Object3D {
     abstract get parentItem(): Item;
-    abstract child: THREE.Mesh;
-    get geometry(): T { return this.child.geometry as T };
-    get material(): M { return this.child.material as M };
+    abstract child: THREE.Mesh<T, M>;
+    get geometry() { return this.child.geometry };
+    get material() { return this.child.material };
     set material(m: M) {
-        const parent = this.parentItem;
-        const lod = parent.lod;
-        const twins = lod.getObjectByName(this.name);
-        if (!this.name) throw "invalid precondition";
-        lod.traverse(o => {
-            if (o.name === this.name) {
-                const q = o as this;
-                q.child.material = m;
-            }
-        })
+        this.child.material = m;
     };
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -395,10 +368,10 @@ abstract class ObjectWrapper<T extends THREE.BufferGeometry, M extends THREE.Mat
     }
 }
 
-export interface Face extends ObjectWrapper<THREE.BufferGeometry, THREE.Material> { }
+export interface Face extends ObjectWrapper { }
 export interface CurveEdge extends ObjectWrapper<LineGeometry, LineMaterial> { }
 export interface CurveSegment extends ObjectWrapper<LineGeometry, LineMaterial> { }
-export interface Region extends ObjectWrapper<THREE.BufferGeometry, THREE.Material> { }
+export interface Region extends ObjectWrapper { }
 
 applyMixins(Face, [ObjectWrapper]);
 applyMixins(CurveEdge, [ObjectWrapper]);
@@ -424,8 +397,6 @@ export class SurfaceBuilder {
     private readonly surface = new Surface();
 
     build() { return this.surface }
-
-
 }
 
 export class SolidBuilder {

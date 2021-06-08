@@ -76,7 +76,7 @@ export default class CurveFactory extends GeometryFactory {
     async doCommit() {
         const { points, mesh, type } = this;
         mesh.geometry.dispose();
-        this.db.scene.remove(mesh);
+        this.db.temporaryObjects.remove(mesh);
         this.temp?.cancel();
 
         const cartPoints = points.map(p => new c3d.CartPoint3D(p.x, p.y, p.z));
@@ -86,7 +86,7 @@ export default class CurveFactory extends GeometryFactory {
 
     doCancel() {
         this.mesh.geometry.dispose();
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
         this.temp?.cancel();
     }
 }

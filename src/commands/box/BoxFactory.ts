@@ -17,7 +17,7 @@ export default class BoxFactory extends GeometryFactory {
         const geometry = new THREE.BufferGeometry();
 
         this.mesh = new THREE.Mesh(geometry, materials.mesh());
-        this.db.scene.add(this.mesh);
+        this.db.temporaryObjects.add(this.mesh);
     }
 
     async doUpdate() {
@@ -37,7 +37,7 @@ export default class BoxFactory extends GeometryFactory {
     }
 
     async doCommit() {
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
         const { points: [p1, p2, p3, p4] } = this.clockwise();
 
         const points = [
@@ -71,6 +71,6 @@ export default class BoxFactory extends GeometryFactory {
     }
 
     doCancel() {
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
     }
 }

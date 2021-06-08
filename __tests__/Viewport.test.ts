@@ -62,7 +62,7 @@ beforeEach(async () => {
     editor = {
         db: db,
         viewports: [],
-        helpers: new Helpers(signals, selection),
+        helpers: new Helpers(signals),
         signals: signals,
         selection: selection,
         originator: originator,

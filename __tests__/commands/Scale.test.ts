@@ -36,7 +36,6 @@ describe('update', () => {
 
 describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {
-        expect(db.scene.children.length).toBe(0);
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3();
         makeSphere.radius = 1;

@@ -1,6 +1,6 @@
 import { EditorSignals } from "../Editor";
 import MaterialDatabase from "../MaterialDatabase";
-import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, SpaceItem, TopologyItem } from "../VisualModel";
+import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, Item, TopologyItem } from "../VisualModel";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { HasSelection } from "./SelectionManager";
 
@@ -18,7 +18,7 @@ export class HoverStrategy implements SelectionStrategy {
 
     curve3D(object: CurveSegment, parentCurve: SpaceInstance<Curve3D>): boolean {
         if (this.selection.mode.has(SelectionMode.Curve) && !this.selection.selectedCurves.has(parentCurve)) {
-            if (!this.selection.hover?.isEqual(object)) {
+            if (!this.selection.hover?.isEqual(parentCurve)) {
                 this.selection.hover?.dispose();
                 this.selection.hover = new MaterialHoverable(
                     parentCurve, this.materials.hover(object), this.signals);
@@ -29,7 +29,7 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     solid(object: TopologyItem, parentItem: Solid): boolean {
-        if (!this.selection.selectedSolids.has(parentItem) && !this.selection.selectedChildren.has(parentItem)) {
+        if (!this.selection.selectedSolids.has(parentItem) && !this.selection.hasSelectedChildren(parentItem)) {
             if (!this.selection.hover?.isEqual(parentItem)) {
                 this.selection.hover?.dispose();
                 this.selection.hover = new Hoverable(parentItem, this.signals);
@@ -66,10 +66,10 @@ export class HoverStrategy implements SelectionStrategy {
 }
 
 export class Hoverable {
-    protected readonly object: SpaceItem | TopologyItem;
+    protected readonly object: Item | TopologyItem;
     private readonly signals: EditorSignals;
 
-    constructor(object: SpaceItem | TopologyItem, signals: EditorSignals) {
+    constructor(object: Item | TopologyItem, signals: EditorSignals) {
         this.object = object;
         this.signals = signals;
         signals.objectHovered.dispatch(object);
@@ -79,7 +79,7 @@ export class Hoverable {
         this.signals.objectUnhovered.dispatch(this.object);
     }
 
-    isEqual(other: SpaceItem | TopologyItem): boolean {
+    isEqual(other: Item | TopologyItem): boolean {
         return this.object === other;
     }
 
@@ -87,7 +87,7 @@ export class Hoverable {
     unhighlight() { }
 }
 
-class MaterialHoverable<T extends (SpaceItem | TopologyItem) & { material: THREE.Material }> extends Hoverable {
+class MaterialHoverable<T extends SpaceInstance<Curve3D> | PlaneInstance<Region> | TopologyItem> extends Hoverable {
     protected readonly object: T;
     private readonly material: THREE.Material
 

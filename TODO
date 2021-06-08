@@ -2,6 +2,11 @@ THIS WEEK:
 
 transaction history
 
+- no one should call .userData.simpleName since it's prone to typos;
+- get rid of all material stuff in visual model
+- get rid of all clones
+- combine two in geomdatab
+
 - autogenerate creator html element
 - make more pretty
 - delete creator

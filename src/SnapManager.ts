@@ -1,10 +1,10 @@
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
+import * as visual from '../src/VisualModel';
 import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
-import { Clone, SnapMemento } from "./History";
+import { SnapMemento } from "./History";
 import { SpriteDatabase } from "./SpriteDatabase";
-import * as visual from '../src/VisualModel';
 
 export class SnapManager {
     private readonly snaps = new Set<Snap>();
@@ -100,7 +100,7 @@ export class SnapManager {
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
         this.endPoints.add(endSnap);
-        item.snaps.add(begSnap);
+        item.snaps.add(begSnap); // FIXME replace with refcounter?
         item.snaps.add(midSnap);
         item.snaps.add(endSnap);
     }
@@ -140,13 +140,15 @@ export class SnapManager {
 
     saveToMemento(registry: Map<any, any>): SnapMemento {
         return new SnapMemento(
-            Clone(this.begPoints, registry),
-            Clone(this.midPoints, registry));
+            new Set(this.begPoints),
+            new Set(this.midPoints),
+            new Set(this.endPoints));
     }
 
     restoreFromMemento(m: SnapMemento) {
         (this.begPoints as SnapManager['begPoints']) = m.begPoints;
         (this.midPoints as SnapManager['midPoints']) = m.midPoints;
+        (this.endPoints as SnapManager['endPoints']) = m.endPoints;
         this.update();
     }
 }
@@ -166,6 +168,10 @@ export abstract class Snap {
         this.snapper = snapper;
         this.picker = picker;
         this.helper = helper;
+
+        Object.freeze(snapper);
+        Object.freeze(picker);
+        Object.freeze(helper);
     }
 
     abstract project(intersection: THREE.Intersection): THREE.Vector3;

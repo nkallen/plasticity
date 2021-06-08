@@ -27,7 +27,7 @@ export class DraftSolidFactory extends GeometryFactory {
         const drafted = await c3d.ActionSolid.DraftSolid_async(model, c3d.CopyMode.Copy, placement, angle, faces_, c3d.FacePropagation.All, false, names);
         const temp = await this.db.addTemporaryItem(drafted);
 
-        solid.visible = false;
+        this.db.hide(solid);
         this.temp?.cancel();
         this.temp = temp;
     }
@@ -48,7 +48,7 @@ export class DraftSolidFactory extends GeometryFactory {
     }
 
     doCancel() {
-        this.solid.visible = true;
+        this.db.unhide(this.solid);
         this.temp?.cancel();
     }
 }

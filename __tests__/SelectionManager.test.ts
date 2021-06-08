@@ -32,7 +32,7 @@ describe('onClick', () => {
     let region: visual.PlaneInstance<visual.Region>;
 
     beforeEach(async () => {
-        expect(db.scene.children.length).toBe(0);
+        expect(db.temporaryObjects.children.length).toBe(0);
         const makeBox = new BoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
@@ -59,16 +59,13 @@ describe('onClick', () => {
             object: circle.underlying.get(0)
         });
 
-        expect(circle.material).toBe(materials.line(circle));
         expect(selectionManager.selectedCurves.size).toBe(0);
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(1);
-        expect(circle.material).toBe(materials.highlight(circle));
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(circle.material).toBe(materials.line(circle));
     });
 
 
@@ -80,16 +77,13 @@ describe('onClick', () => {
             object: region.underlying
         });
 
-        expect(region.material).toBe(materials.region());
         expect(selectionManager.selectedRegions.size).toBe(0);
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedRegions.size).toBe(1);
-        expect(region.material).toBe(materials.highlight(region));
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedRegions.size).toBe(0);
-        expect(region.material).toBe(materials.region());
     });
 
     test('saveToMemento & restoreFromMemento', () => {
@@ -100,24 +94,20 @@ describe('onClick', () => {
             object: circle.underlying.get(0)
         });
 
-        expect(circle.material).toBe(materials.line(circle));
         expect(selectionManager.selectedCurves.size).toBe(0);
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(1);
-        expect(circle.material).toBe(materials.highlight(circle));
 
         const memento = selectionManager.saveToMemento(new Map());
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(circle.material).toBe(materials.line(circle));
 
         selectionManager.restoreFromMemento(memento);
 
         expect(selectionManager.selectedCurves.size).toBe(1);
         circle = [...selectionManager.selectedCurves][0];
-        expect(circle.material).toBe(materials.highlight(circle));
     });
 
     test('clicking on a face selects the solid', () => {
@@ -129,7 +119,24 @@ describe('onClick', () => {
             object: face
         });
 
-        expect(face.material).toBe(materials.mesh(solid));
+        expect(selectionManager.selectedSolids.size).toBe(0);
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selectedSolids.size).toBe(1);
+
+        interactionManager.onClick([]);
+        expect(selectionManager.selectedSolids.size).toBe(0);
+        expect(selectionManager.selectedFaces.size).toBe(0);
+    });
+
+    test('clicking on a solid then the face selects the face', () => {
+        const face = solid.faces.get(0);
+        const intersections = [];
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: face
+        });
+
         expect(selectionManager.selectedSolids.size).toBe(0);
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(1);
@@ -137,13 +144,12 @@ describe('onClick', () => {
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedFaces.size).toBe(1);
-        expect(face.material).toBe(materials.highlight(solid));
 
         interactionManager.onClick([]);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedFaces.size).toBe(0);
-        expect(face.material).toBe(materials.mesh(solid));
     });
+
 
     test("clicking on an solid's topo item selects the topo item", () => {
         const intersections = [];
@@ -156,7 +162,6 @@ describe('onClick', () => {
 
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(0);
-        expect(edge.material).toBe(materials.line(edge));
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(1);
@@ -165,12 +170,10 @@ describe('onClick', () => {
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(1);
-        expect(edge.material).toBe(materials.highlight(edge));
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(0);
-        expect(edge.material).toBe(materials.line(edge));
     });
 
     test("delete removes the selection", () => {
@@ -191,7 +194,6 @@ describe('onClick', () => {
         selectionManager.delete(solid);
         expect(selectionManager.selectedSolids.size).toBe(0);
         expect(selectionManager.selectedEdges.size).toBe(0);
-        // expect(edge.material).toBe(materials.line(edge));
     });
 
     test("clicking on both a edge and a face selects the edge", () => {
@@ -249,7 +251,7 @@ describe('onPointerMove', () => {
     let solid: visual.Solid;
 
     beforeEach(async () => {
-        expect(db.scene.children.length).toBe(0);
+        expect(db.temporaryObjects.children.length).toBe(0);
         const makeBox = new BoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);

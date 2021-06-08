@@ -58,7 +58,7 @@ export default class FilletFactory extends GeometryFactory {
     async doUpdate() {
         const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
         const temp = await this.db.addTemporaryItem(result);
-        this.item.visible = false;
+        this.db.hide(this.item)
         this.temp?.cancel();
         this.temp = temp;
     }
@@ -72,7 +72,7 @@ export default class FilletFactory extends GeometryFactory {
     }
 
     doCancel() {
-        this.item.visible = true;
+        this.db.unhide(this.item)
         this.temp?.cancel();
     }
 

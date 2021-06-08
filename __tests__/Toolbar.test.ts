@@ -33,7 +33,7 @@ beforeEach(() => {
 test('when a solid is selected you get move/rotate/scale', () => {
     const solid = new visual.Solid();
 
-    selection.selectedSolids.add(solid);
+    selection.selectSolid(solid);
     expect(toolbar.commands).toEqual([
         MoveCommand, RotateCommand, ScaleCommand
     ])

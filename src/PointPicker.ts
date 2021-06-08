@@ -32,7 +32,7 @@ export class PointPicker {
             const disposables = new CompositeDisposable();
             const mesh = this.mesh;
             const editor = this.editor;
-            const scene = editor.db.scene;
+            const scene = editor.db.temporaryObjects;
             const raycaster = new THREE.Raycaster();
             // @ts-expect-error
             raycaster.params.Line.threshold = 0.1;

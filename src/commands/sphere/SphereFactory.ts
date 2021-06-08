@@ -16,7 +16,7 @@ export default class SphereFactory extends GeometryFactory {
         const geometry = new THREE.SphereGeometry(0, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
         this.mesh = new THREE.Mesh(geometry, materials.mesh());
-        this.db.scene.add(this.mesh);
+        this.db.temporaryObjects.add(this.mesh);
     }
 
     async doUpdate() {
@@ -35,11 +35,11 @@ export default class SphereFactory extends GeometryFactory {
         const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Sphere, names);
         const result = await this.db.addItem(sphere);
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
         return result;
     }
 
     doCancel() {
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
     }
 }

@@ -54,7 +54,7 @@ beforeEach(() => {
     viewport.camera.lookAt(0, 0, 0);
     editor = {
         viewports: [viewport],
-        helpers: new Helpers(signals, selection),
+        helpers: new Helpers(signals),
         registry: new CommandRegistry(),
         signals: signals,
         gizmos: gizmos,

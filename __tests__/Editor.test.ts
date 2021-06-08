@@ -45,7 +45,7 @@ class FastCommand extends Command {
     }
 }
 
-test.only('erroring commands are ok, allowing subsequent commands to procede', async () => {
+test('erroring commands are ok, allowing subsequent commands to procede', async () => {
     const command1 = new ErroringCommand(editor);
     const command2 = new FastCommand(editor);
 

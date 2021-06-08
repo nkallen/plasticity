@@ -49,7 +49,7 @@ abstract class ModifyFaceFactory extends GeometryFactory {
         const result = await c3d.ActionDirect.FaceModifiedSolid_async(solidModel, c3d.CopyMode.Copy, params, facesModel, this.names);
         const temp = await this.db.addTemporaryItem(result);
 
-        solid.visible = false;
+        this.db.hide(solid);
         this.temp?.cancel();
         this.temp = temp;
     }
@@ -68,7 +68,7 @@ abstract class ModifyFaceFactory extends GeometryFactory {
     }
 
     doCancel() {
-        this.solid.visible = true;
+        this.db.unhide(this.solid);
         this.temp?.cancel();
     }
 }

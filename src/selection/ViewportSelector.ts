@@ -52,7 +52,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
         const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         const point = new THREE.Vector2();
         point.fromArray(array);
-        const intersects = this.getIntersects(point, [...this.editor.db.drawModel]);
+        const intersects = this.getIntersects(point, [...this.editor.db.visibleObjects]);
         this.editor.signals.hovered.dispatch(intersects);
     }
 
@@ -63,7 +63,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
         this.onUpPosition.fromArray(array);
 
         if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
-            const intersects = this.getIntersects(this.onUpPosition, [...this.editor.db.drawModel]);
+            const intersects = this.getIntersects(this.onUpPosition, [...this.editor.db.visibleObjects]);
 
             const command = new ChangeSelectionCommand(this.editor, intersects);
             this.editor.enqueue(command);

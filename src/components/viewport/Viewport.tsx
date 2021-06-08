@@ -15,6 +15,7 @@ import { PlaneSnap } from "../../SnapManager";
 import { Helpers } from "../../util/Helpers";
 import { Solid, SpaceItem, TopologyItem } from "../../VisualModel";
 import { Pane } from '../pane/Pane';
+import * as visual from '../../VisualModel';
 
 const near = 0.01;
 const far = 1000;
@@ -42,7 +43,8 @@ export interface EditorLike extends selector.EditorLike {
     viewports: Viewport[],
     signals: EditorSignals,
     selection: SelectionManager,
-    originator: EditorOriginator
+    originator: EditorOriginator,
+    scene: THREE.Scene,
 }
 
 type Control = { enabled: boolean };
@@ -83,7 +85,7 @@ export class Model implements Viewport {
         this.composer = new EffectComposer(this.renderer, renderTarget);
         this.composer.setPixelRatio(window.devicePixelRatio);
 
-        this.renderPass = new RenderPass(editor.db.scene, this.camera);
+        this.renderPass = new RenderPass(editor.scene, this.camera);
         const overlayPass = new RenderPass(this.overlay, this.camera);
         const helpersPass = new RenderPass(editor.helpers.scene, this.camera);
         const copyPass = new ShaderPass(CopyShader);
@@ -93,14 +95,14 @@ export class Model implements Viewport {
         helpersPass.clear = false;
         helpersPass.clearDepth = true;
 
-        const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
+        const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
         outlinePassSelection.edgeStrength = 5;
         outlinePassSelection.edgeGlow = 0;
         outlinePassSelection.edgeThickness = 1.0;
         outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
         this.outlinePassSelection = outlinePassSelection;
 
-        const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
+        const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
         outlinePassHover.edgeStrength = 3;
         outlinePassHover.edgeGlow = 0;
         outlinePassHover.edgeThickness = 1.0;
@@ -148,7 +150,7 @@ export class Model implements Viewport {
         this.navigationControls.addEventListener('start', this.navigationStart);
 
         this.started = true;
-        this.render();
+        this.render(-1);
     }
 
     stop() {
@@ -178,31 +180,42 @@ export class Model implements Viewport {
         this.needsRender = true;
     }
 
-    render() {
+    lastFrameNumber = -1;
+
+    render(frameNumber: number) {
         if (!this.started) return;
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 
-        const resolution = new THREE.Vector2(this.offsetWidth, this.offsetHeight);
-        this.editor.signals.renderPrepared.dispatch({ camera: this.camera, resolution});
+        try {
+            // prepare the scene, once per frame:
+            if (frameNumber > this.lastFrameNumber) {
+                const scene = this.editor.scene;
+                scene.clear();
+                for (const v of this.editor.db.visibleObjects) {
+                    scene.add(v);
+                }
+                scene.add(this.editor.db.temporaryObjects);
 
-        if (this.grid) this.editor.db.scene.add(this.grid);
-        const oldFog = this.editor.db.scene.fog;
-        this.editor.db.scene.fog = fog;
-        this.editor.selection.hover?.highlight();
+                if (this.grid) this.editor.scene.add(this.grid);
+                const oldFog = this.editor.scene.fog;
+                this.editor.scene.fog = fog;
+                this.editor.selection.highlight();
+            }
 
-        // Undo history actually swaps out scenes; so objects that keep a reference to scenes should be updated before render
-        this.renderPass.scene = this.editor.db.scene;
-        this.outlinePassHover.renderScene = this.editor.db.scene;
-        this.outlinePassSelection.renderScene = this.editor.db.scene;
-        
-        this.composer.render();
+            const resolution = new THREE.Vector2(this.offsetWidth, this.offsetHeight);
+            this.editor.signals.renderPrepared.dispatch({ camera: this.camera, resolution });
+            this.composer.render();
 
-        this.editor.selection.hover?.unhighlight();
-        if (this.grid) this.editor.db.scene.remove(this.grid);
-        this.editor.db.scene.fog = oldFog;
-
-        this.needsRender = false;
+            if (frameNumber > this.lastFrameNumber) {
+                this.editor.selection.unhighlight();
+                if (this.grid) this.editor.scene.remove(this.grid);
+                // this.editor.scene.fog = oldFog;
+            }
+        } finally {
+            this.needsRender = false;
+            this.lastFrameNumber = frameNumber;
+        }
     }
 
     outlineSelection() {

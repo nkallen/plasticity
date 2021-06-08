@@ -21,7 +21,7 @@ export class Model {
         const { selection } = this;
         if (selection.selectedSolids.size == 0) throw new Error("invalid precondition");
 
-        const solid = selection.selectedSolids.values().next().value;
+        const solid = selection.selectedSolids.first;
         return solid;
     }
 
@@ -30,7 +30,7 @@ export class Model {
         if (selection.selectedSolids.size == 0) return [];
 
         const result = new Array<[number, c3d.FilletSolid]>();
-        const solid = selection.selectedSolids.values().next().value;
+        const solid = selection.selectedSolids.first!;
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
             const creator = model.SetCreator(i);

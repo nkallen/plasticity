@@ -17,7 +17,7 @@ export default class RectFactory extends GeometryFactory {
         super(db, materials, signals);
 
         this.mesh = new Line2(new LineGeometry(), materials.line());
-        this.db.scene.add(this.mesh);
+        this.db.temporaryObjects.add(this.mesh);
     }
 
     async doUpdate() {
@@ -51,7 +51,7 @@ export default class RectFactory extends GeometryFactory {
     }
 
     async doCommit() {
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
         const { p1, p2, p3, p4 } = this.orthogonal();
 
         const points = [
@@ -65,7 +65,7 @@ export default class RectFactory extends GeometryFactory {
     }
 
     doCancel() {
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
     }
 
     private orthogonal() {

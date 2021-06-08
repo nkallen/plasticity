@@ -17,7 +17,7 @@ export default class CylinderFactory extends GeometryFactory {
         const geometry = new THREE.CylinderGeometry(0, 0, 0, 32);
         this.mesh = new THREE.Mesh(geometry, materials.mesh());
         this.mesh.up = new THREE.Vector3(0, 1, 0);
-        this.db.scene.add(this.mesh);
+        this.db.temporaryObjects.add(this.mesh);
     }
 
     async doUpdate() {
@@ -31,7 +31,7 @@ export default class CylinderFactory extends GeometryFactory {
     }
 
     async doCommit() {
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
         const n = this.height.clone().sub(this.base);
         const z = -(n.x + n.y) / n.z
         const radius = this.base.clone().add(new THREE.Vector3(1, 1, z).normalize().multiplyScalar(this.radius.distanceTo(this.base)));
@@ -46,6 +46,6 @@ export default class CylinderFactory extends GeometryFactory {
     }
 
     doCancel() {
-        this.db.scene.remove(this.mesh);
+        this.db.temporaryObjects.remove(this.mesh);
     }
 }

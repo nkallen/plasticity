@@ -446,7 +446,9 @@ export default {
         Name: {
             rawHeader: "name_item.h",
             functions: [
-                "SimpleName Hash()"
+                "SimpleName Hash()",
+                "SimpleName GetFirstName()",
+                "SimpleName GetMainName()",
             ]
         },
         Path: {

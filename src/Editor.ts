@@ -27,10 +27,10 @@ THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 export interface EditorSignals {
     objectAdded: signals.Signal<visual.Item>;
     objectRemoved: signals.Signal<visual.Item>;
-    objectSelected: signals.Signal<visual.SpaceItem | visual.TopologyItem>;
-    objectDeselected: signals.Signal<visual.SpaceItem | visual.TopologyItem>;
-    objectHovered: signals.Signal<visual.SpaceItem | visual.TopologyItem>
-    objectUnhovered: signals.Signal<visual.SpaceItem | visual.TopologyItem>
+    objectSelected: signals.Signal<visual.Item | visual.TopologyItem>;
+    objectDeselected: signals.Signal<visual.Item | visual.TopologyItem>;
+    objectHovered: signals.Signal<visual.Item | visual.TopologyItem>
+    objectUnhovered: signals.Signal<visual.Item | visual.TopologyItem>
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
     sceneGraphChanged: signals.Signal;
     factoryUpdated: signals.Signal;
@@ -87,6 +87,7 @@ export class Editor {
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
     readonly selection = new SelectionManager(this.db, this.materials, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals);
+    readonly scene = new THREE.Scene();
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
     readonly contours = new ContourManager(this, this.signals);
@@ -118,12 +119,13 @@ export class Editor {
             this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('mouse2', event));
         })
 
+        // FIXME disappearing
         const axes = new THREE.AxesHelper(10000);
         axes.renderOrder = 0;
         const material = axes.material as THREE.Material;
         material.depthFunc = THREE.AlwaysDepth;
-        this.db.scene.add(axes);
-        this.db.scene.background = new THREE.Color(0x424242);
+        this.scene.add(axes);
+        this.scene.background = new THREE.Color(0x424242);
 
         const d = this.registry.add("ispace-workspace", {
             'undo': () => this.history.undo(),

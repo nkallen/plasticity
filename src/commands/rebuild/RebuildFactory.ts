@@ -16,7 +16,7 @@ export class RebuildFactory extends GeometryFactory {
 
         const temp = await this.db.addTemporaryItem(dup);
 
-        item.visible = false;
+        this.db.hide(item);
         this.temp?.cancel();
         this.temp = temp;
     }
@@ -33,6 +33,7 @@ export class RebuildFactory extends GeometryFactory {
     }
 
     doCancel() {
+        this.db.unhide(this.item);
         this.temp?.cancel();
     }
 }

@@ -28,41 +28,59 @@ beforeEach(() => {
 })
 
 test("addItem & lookup & removeItem", async () => {
-    expect(db.scene.children.length).toBe(0);
-    expect(db.drawModel.size).toBe(0);
-    
+    expect(db.visibleObjects.length).toBe(0);
+    expect(db.temporaryObjects.children.length).toBe(0);
+
     const v = await db.addItem(box) as visual.Solid;
     expect(db.lookup(v)).toBeTruthy();
-    expect(db.scene.children.length).toBe(1);
-    expect(db.drawModel.size).toBe(1);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(1);
 
     db.removeItem(v);
     expect(() => db.lookup(v)).toThrow();
-    expect(db.scene.children.length).toBe(0);
-    expect(db.drawModel.size).toBe(0);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(0);
 })
 
 test("saveToMemento & restoreFromMemento", async () => {
-    expect(db.scene.children.length).toBe(0);
-    expect(db.drawModel.size).toBe(0);
-    
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(0);
+
     const v = await db.addItem(box) as visual.Solid;
     expect(db.lookup(v)).toBeTruthy();
-    expect(db.scene.children.length).toBe(1);
-    expect(db.drawModel.size).toBe(1);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(1);
 
     const memento = db.saveToMemento(new Map());
 
     db.removeItem(v);
     expect(() => db.lookup(v)).toThrow();
-    expect(db.scene.children.length).toBe(0);
-    expect(db.drawModel.size).toBe(0);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(0);
 
     db.restoreFromMemento(memento);
 
     expect(db.lookup(v)).toBeTruthy();
-    expect(db.scene.children.length).toBe(1);
-    expect(db.drawModel.size).toBe(1);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(1);
+})
+
+test("hide & unhide", async () => {
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(0);
+
+    const v = await db.addItem(box) as visual.Solid;
+    expect(db.lookup(v)).toBeTruthy();
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(1);
+
+    db.hide(v);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(0);
+
+    db.unhide(v);
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(1);
 })
 
 test("lookupTopologyItem", async () => {
@@ -74,30 +92,50 @@ test("lookupTopologyItem", async () => {
 
 describe("addTemporaryItem", () => {
     test("cancel", async () => {
-        expect(db.scene.children.length).toBe(0);
-        expect(db.drawModel.size).toBe(0);
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(0);
 
         const temp = await db.addTemporaryItem(box);
-        expect(db.scene.children.length).toBe(1);
-        expect(db.drawModel.size).toBe(0);
+        expect(db.temporaryObjects.children.length).toBe(1);
+        expect(db.visibleObjects.length).toBe(0);
 
         temp.cancel();
 
-        expect(db.scene.children.length).toBe(0);
-        expect(db.drawModel.size).toBe(0);
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(0);
     });
 
     test("commit", async () => {
-        expect(db.scene.children.length).toBe(0);
-        expect(db.drawModel.size).toBe(0);
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(0);
 
         const temp = await db.addTemporaryItem(box);
-        expect(db.scene.children.length).toBe(1);
-        expect(db.drawModel.size).toBe(0);
+        expect(db.temporaryObjects.children.length).toBe(1);
+        expect(db.visibleObjects.length).toBe(0);
 
         await temp.commit();
 
-        expect(db.scene.children.length).toBe(1);
-        expect(db.drawModel.size).toBe(1);
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(1);
     })
+
+    test("lookupTopologyItemById", async () => {
+        const solid = await db.addItem(box) as visual.Solid;
+        expect(db.visibleObjects.length).toBe(1);
+
+        const faces = [];
+        solid.traverse(o => {
+            if (o instanceof visual.Face) faces.push(o);
+        })
+        expect(faces.length).toBe(3 * 6);
+
+        expect(db.lookupTopologyItem(faces[0])).toBeTruthy();
+        const { model, visual: v } = db.lookupTopologyItemById(faces[0].userData.simpleName);
+        expect(v.size).toBe(3);
+        expect(model).toBeInstanceOf(c3d.Face);
+
+        db.removeItem(solid);
+        expect(() => db.lookupTopologyItem(faces[0])).toThrow();
+        expect(() => db.lookupTopologyItemById(faces[0].userData.simpleName)).toThrow();
+    });
 });

@@ -29,14 +29,19 @@ describe('update', () => {
         rotate.axis = new THREE.Vector3(0, 0, 1);
         rotate.angle = Math.PI / 2;
         expect(item).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
+
         await rotate.update();
+
         expect(item).toHaveQuaternion(new THREE.Quaternion().setFromAxisAngle(rotate.axis, rotate.angle));
+        expect(db.temporaryObjects.children.length).toBe(0); // FIXME this is a weird implementation
     });
 });
 
 describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {
-        expect(db.scene.children.length).toBe(0);
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(0);
+
         const makeBox = new BoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
@@ -54,5 +59,8 @@ describe('commit', () => {
 
         expect(rotated).toBeInstanceOf(visual.Solid);
         expect(rotated).toHaveCentroidNear(new THREE.Vector3(-0.5, 0.5, 0.5));
+
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(1);
     })
 });
