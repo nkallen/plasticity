@@ -18,6 +18,7 @@ import { SpriteDatabase } from "./SpriteDatabase";
 import { Cancel } from "./util/Cancellable";
 import { Helpers } from "./util/Helpers";
 import { SpaceItem, TopologyItem } from './VisualModel';
+import Transactions from './Transactions';
 import ContourManager from './commands/ContourManager';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
@@ -88,6 +89,7 @@ export class Editor {
     readonly contours = new ContourManager(this, this.signals);
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);
+    readonly transactoins = new Transactions(this.db, this.signals);
 
     disposable = new CompositeDisposable();
 

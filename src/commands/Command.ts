@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../Editor';
-import { GeometryDatabase } from "../GeometryDatabase";
+import { GeometryDatabase, TemporaryObject } from "../GeometryDatabase";
 import MaterialDatabase from "../MaterialDatabase";
 import { PointPicker } from '../PointPicker';
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
@@ -11,6 +11,7 @@ import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
 import { SnapManager } from "../SnapManager";
 import { Cancel, CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
+import { Scheduler } from "../util/Scheduler";
 import * as visual from "../VisualModel";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
@@ -19,6 +20,7 @@ import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveGizmo, CurveGizmoEvent } from "./curve/CurveGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
+import { ElementarySolidGizmo } from "./elementary_solid/ElementarySolidGizmo";
 import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
@@ -690,6 +692,48 @@ export class DeleteCommand extends Command {
         const items = [...this.editor.selection.selectedCurves, ...this.editor.selection.selectedSolids, ...this.editor.selection.selectedRegions];
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
-        return Promise.resolve();
+    }
+}
+
+export class ModeCommand extends Command {
+    async execute(): Promise<void> {
+        const object = [...this.editor.selection.selectedSolids][0];
+        let model = this.editor.db.lookup(object);
+        // model = model.Duplicate().Cast<c3d.Solid>(c3d.SpaceType.Solid);
+
+        const l = model.GetCreatorsCount();
+        let recent = model.SetCreator(l - 1);
+        switch (recent.IsA()) {
+            case c3d.CreatorType.ElementarySolid:
+                const control = recent.GetBasisPoints();
+                const points = [];
+                for (let i = 0, l = control.Count(); i < l; i++) {
+                    const p = control.GetPoint(i);
+                    points.push(new THREE.Vector3(p.x, p.y, p.z));
+                }
+                const gizmo = new ElementarySolidGizmo(this.editor, points);
+                let temp: TemporaryObject;
+                const scheduler = new Scheduler(1, 1)
+                await gizmo.execute((point, index) => {
+                    scheduler.schedule(async () => {
+                        object.visible = false;
+
+                        control.SetPoint(index, new c3d.CartPoint3D(point.x, point.y, point.z));
+                        control.ResetIndex();
+                        recent.SetBasisPoints(control);
+                        model.RebuildItem(c3d.CopyMode.Copy, null);
+                        const _temp = await this.editor.db.addTemporaryItem(model);
+                        temp?.cancel();
+                        temp = _temp;
+                        console.log("finished");
+                    });
+                }).resource(this);
+                temp?.cancel();
+                this.editor.db.removeItem(object);
+                await this.editor.db.addItem(model);
+
+                // temp.commit();
+                break;
+        }
     }
 }

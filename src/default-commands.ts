@@ -21,6 +21,7 @@ export default (editor: Editor): void => {
         'command:fillet': () => editor.enqueue(new cmd.FilletCommand(editor)),
         'command:modify-face': () => editor.enqueue(new cmd.OffsetFaceCommand(editor)),
         'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),
+        'command:mode': () => editor.enqueue(new cmd.ModeCommand(editor)),
         'command:extrude': () => editor.enqueue(new cmd.ExtrudeCommand(editor)),
     })
 }

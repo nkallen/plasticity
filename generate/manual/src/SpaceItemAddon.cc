@@ -70,3 +70,11 @@ Napi::Value Item::Cast(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
 }
+
+// Napi::Value SpaceItem::Duplicate(const Napi::CallbackInfo &info)
+// {
+//     Napi::Env env = info.Env();
+//     MbSpaceItem *item = _underlying;
+//     MbSpaceItem * dup =  static_cast<MbSpaceItem *>( &item->Duplicate() );
+//     return SpaceItem::NewInstance(env, dup);
+// }

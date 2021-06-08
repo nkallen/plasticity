@@ -41,6 +41,7 @@ export default {
         SpaceItem: {
             rawHeader: "space_item.h",
             extends: "RefItem",
+            enum: 'SpaceType',
             dependencies: ["RefItem.h", "RegDuplicate.h", "RegTransform.h", "Matrix3D.h", "Vector3D.h", "Axis3D.h"],
             functions: [
                 "MbeSpaceType IsA()",
@@ -48,12 +49,55 @@ export default {
                 "void Transform(const MbMatrix3D & mat, MbRegTransform * iReg = NULL)",
                 "void Move(const MbVector3D & v, MbRegTransform * iReg = NULL)",
                 "void Rotate(const MbAxis3D & axis, double angle, MbRegTransform * iReg = NULL )",
+                "void Refresh()",
+                // { signature: "MbSpaceItem * Duplicate(MbRegDuplicate * iReg = NULL)", isManual: true },
+                // "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)",
+            ]
+        },
+        ControlData3D: {
+            rawHeader: "mb_data.h",
+            dependencies: ["CartPoint3D.h"],
+            functions: [
+                "size_t Count()",
+                { signature: "bool GetPoint(size_t i, MbCartPoint3D & p)", return: isErrorBool, p: isReturn },
+                "bool SetPoint(size_t i, MbCartPoint3D & p)",
+                "size_t TotalCount()",
+                "size_t ShareCount()",
+                "void ResetIndex()",
+            ],
+        },
+        Creator: {
+            rawHeader: "creator.h",
+            extends: "RefItem",
+            dependencies: ["RefItem.h", "ControlData3D.h"],
+            enum: 'CreatorType',
+            functions: [
+                "MbeCreatorType IsA()",
+                "MbeCreatorType Type()",
+                { signature: "MbCreator * Cast()", isManual: true },
+                { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
+                "void SetBasisPoints(const MbControlData3D & cd)",
+            ]
+        },
+        Transactions: {
+            rawHeader: "creator_transaction.h",
+            dependencies: ["Creator.h", "SpaceItem.h"],
+            functions: [
+                "size_t GetCreatorsCount()",
+                "const MbCreator * GetCreator(size_t ind)",
+                "MbCreator * SetCreator(size_t ind)",
+                "MbCreator * DetachCreator(size_t ind)",
+                "bool AddCreator(const MbCreator * creator, bool addSame = false)",
+                { signature: "bool GetCreators(RPArray<MbCreator> & creators)", creators: isReturn },
+                "bool DeleteCreator(size_t ind)",
+                "size_t GetActiveCreatorsCount()",
             ]
         },
         Item: {
             rawHeader: "model_item.h",
-            dependencies: ["Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "SpaceItem.h"],
-            extends: ["SpaceItem", "AttributeContainer"],
+            enum: "SpaceType",
+            dependencies: ["Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "SpaceItem.h", "Transactions.h", "Creator.h", "ControlData3D.h"],
+            extends: ["SpaceItem", "AttributeContainer", "Transactions"],
             functions: [
                 "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg = NULL)",
                 "SimpleName GetItemName()",
@@ -106,17 +150,14 @@ export default {
                 "MbFaceShell * shell, MbCreator * creator"
             ],
             functions: [
-                {
-                    signature: "void GetEdges(RPArray<MbCurveEdge> & edges)",
-                    edges: isReturn
-                },
-                {
-                    signature: "void GetFaces(RPArray<MbFace> & faces)",
-                    faces: isReturn
-                },
+                { signature: "void GetEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
+                { signature: "void GetFaces(RPArray<MbFace> & faces)", faces: isReturn },
                 "const MbFace * FindFaceByName(const MbName & name)",
                 "MbCurveEdge * FindEdgeByName(const MbName & name)",
                 "MbFaceShell * GetShell()",
+                { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
+                "void SetBasisPoints(const MbControlData3D & cd)",
+                { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, IProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool },
             ]
         },
         RegTransform: {
@@ -124,6 +165,7 @@ export default {
         },
         PlaneItem: {
             rawHeader: "plane_item.h",
+            enum: 'PlaneType',
             extends: "RefItem",
             dependencies: ["RefItem.h", "RegTransform.h", "Vector.h", "Surface.h", "Matrix.h"],
             functions: [
@@ -190,6 +232,7 @@ export default {
         },
         CartPoint3D: {
             rawHeader: "mb_cart_point3d.h",
+            dependencies: ["Vector3D.h"],
             initializers: [
                 "double xx, double yy, double zz"
             ],
@@ -197,6 +240,9 @@ export default {
                 "double x",
                 "double y",
                 "double z"
+            ],
+            functions: [
+                "MbCartPoint3D & Move(const MbVector3D & to)",
             ]
         },
         ElementarySurface: {
@@ -208,11 +254,6 @@ export default {
             rawHeader: "topology_faceset.h",
             extends: "TopItem",
             dependencies: ["TopItem.h"]
-        },
-        Creator: {
-            rawHeader: "creator.h",
-            extends: "RefItem",
-            dependencies: ["RefItem.h"]
         },
         ElementarySolid: {
             rawHeader: "cr_elementary_solid.h",
@@ -242,10 +283,9 @@ export default {
             ],
             functions: [
                 "const MbSpaceItem * GetSpaceItem()",
-                {
-                    signature: "MbSpaceItem * Duplicate(MbRegDuplicate * iReg = NULL)",
-                    isManual: true,
-                }
+                // "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)",
+                { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
+                "void SetBasisPoints(const MbControlData3D & cd)"
             ]
         },
         PlaneInstance: {
@@ -629,6 +669,11 @@ export default {
         RegionBooleanParams: {
             rawHeader: "region.h",
             initializers: ["RegionOperationType type, bool selfTouch = true, bool mergeCrvs = true "]
+        },
+        ElementarySolid: {
+            rawHeader: "cr_elementary_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
         }
     },
     modules: {
@@ -742,5 +787,6 @@ export default {
         "MbeFacePropagation",
         "RegionOperationType",
         "MbResultType",
+        "MbeCreatorType",
     ]
 }

@@ -34,8 +34,6 @@ test('enqueue cancels active commands and executes the most recent', async () =>
     expect(command3.state).toBe('None');
 });
 
-// FIXME add a test about exception handling
-
 class ErroringCommand extends Command {
     async execute(): Promise<void> {
         throw new Error("I'm an error");

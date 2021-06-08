@@ -126,6 +126,10 @@ class ClassDeclaration {
         return this.desc.jsClassName ?? this.cppClassName;
     }
 
+    get enum() {
+        return this.desc.enum;
+    }
+
     get functions() {
         const result = [];
         const functions = this.desc.functions ?? [];

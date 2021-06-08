@@ -170,7 +170,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     }
 
     onPointerDown(intersect: Intersector): void {
-        if (!this.mode) throw "invalid state";
+        if (!this.mode) throw new Error("invalid state");
         const mode = this.mode;
         if (mode.tag != 'screen') {
             const planeIntersect = intersect(mode.plane, true);
@@ -180,7 +180,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     }
 
     onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
-        if (!this.mode) throw "invalid state";
+        if (!this.mode) throw new Error("invalid state");
         switch (this.mode.tag) {
             case 'X':
             case 'Y':

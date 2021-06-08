@@ -1,4 +1,5 @@
 import { CompositeDisposable, Disposable } from "event-kit";
+import { PlaneSnap } from "../SnapManager";
 import * as THREE from "three";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
@@ -91,7 +92,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                         // position for many calculations, use the "lastPointerEvent" which is ALMOST always available.
                         const lastEvent = viewport.lastPointerEvent ?? new PointerEvent("pointermove");
                         const pointer = AbstractGizmo.getPointer(domElement, lastEvent);
-                        stateMachine.update(camera, pointer);
+                        stateMachine.update(viewport, pointer);
                         stateMachine.command(fn, () => {
                             viewport.disableControls();
                             domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
@@ -106,7 +107,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 // Next, the basic workflow for pointer events
                 const onPointerDown = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.update(camera, pointer);
+                    stateMachine.update(viewport, pointer);
                     stateMachine.pointerDown(() => {
                         viewport.disableControls();
                         domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
@@ -116,13 +117,13 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                 const onPointerMove = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.update(camera, pointer);
+                    stateMachine.update(viewport, pointer);
                     stateMachine.pointerMove();
                 }
 
                 const onPointerUp = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.update(camera, pointer);
+                    stateMachine.update(viewport, pointer);
                     stateMachine.pointerUp(() => {
                         disposables.dispose();
                         resolve();
@@ -131,7 +132,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
                 const onPointerHover = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.update(camera, pointer);
+                    stateMachine.update(viewport, pointer);
                     stateMachine.pointerHover();
                 }
 
@@ -196,7 +197,7 @@ export interface MovementInfo {
     pointStart2d: THREE.Vector2;
     pointEnd2d: THREE.Vector2;
 
-    // These are the mouse positions projected on to a plane parallel to the camera
+    // These are the mouse positions projected on to a plane facing the camera
     // but located at the gizmos position
     pointStart3d: THREE.Vector3;
     pointEnd3d: THREE.Vector3;
@@ -205,6 +206,8 @@ export interface MovementInfo {
     endRadius: THREE.Vector2;
     angle: number;
     center2d: THREE.Vector2;
+
+    constructionPlane: PlaneSnap;
 
     eye: THREE.Vector3;
 }
@@ -216,7 +219,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
     state: 'none' | 'hover' | 'dragging' | 'command' = 'none';
     private pointer!: Pointer;
 
-    private readonly plane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
+    private readonly cameraPlane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
+    constructionPlane!: PlaneSnap;
     eye = new THREE.Vector3();
     pointStart2d = new THREE.Vector2();
     pointEnd2d = new THREE.Vector2();
@@ -235,12 +239,14 @@ export class GizmoStateMachine<T> implements MovementInfo {
     ) { }
 
     private camera!: THREE.Camera;
-    update(camera: THREE.Camera, pointer: Pointer) {
+    update(viewport: Viewport, pointer: Pointer) {
+        const camera = viewport.camera;
         this.camera = camera;
         this.eye.copy(camera.position).sub(this.gizmo.position).normalize();
         this.gizmo.update(camera);
-        this.plane.quaternion.copy(camera.quaternion);
-        this.plane.updateMatrixWorld();
+        this.cameraPlane.quaternion.copy(camera.quaternion);
+        this.cameraPlane.updateMatrixWorld();
+        this.constructionPlane = viewport.constructionPlane;
         this.raycaster.setFromCamera(pointer, camera);
         this.pointer = pointer;
     }
@@ -248,7 +254,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
 
     begin(): void {
-        const intersection = this.intersector(this.plane, true);
+        const intersection = this.intersector(this.cameraPlane, true);
         if (!intersection) throw "corrupt intersection query";
 
         switch (this.state) {
@@ -302,7 +308,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 if (this.pointer.button !== -1) return;
             case 'command':
                 this.pointEnd2d.set(this.pointer.x, this.pointer.y);
-                const intersection = this.intersector(this.plane, true);
+                const intersection = this.intersector(this.cameraPlane, true);
                 if (!intersection) throw "corrupt intersection query";
                 this.pointEnd3d.copy(intersection.point);
                 this.endRadius.copy(this.pointEnd2d).sub(this.center2d).normalize();
