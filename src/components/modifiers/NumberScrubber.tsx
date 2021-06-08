@@ -17,6 +17,8 @@ export default (editor: Editor) => {
     type ScrubberState = { tag: 'none' } | { tag: 'cancel' } | { tag: 'down', downEvent: PointerEvent, startValue: number, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, startValue: number, currentValue: number, disposable: Disposable }
 
     class Scrubber extends HTMLElement {
+        static get observedAttributes() { return ['value']; }
+
         private state: ScrubberState = { tag: 'none' };
 
         constructor() {
@@ -54,7 +56,7 @@ export default (editor: Editor) => {
             e.target.blur();
             this.state = { tag: 'none' };
             this.render()
-    }
+        }
 
         finish(e: PointerEvent) {
             const event = new Event('finish');
@@ -185,6 +187,12 @@ export default (editor: Editor) => {
             }
 
             render(result, this);
+        }
+
+        attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+            switch (this.state.tag) {
+                case 'none': this.render();
+            }
         }
     }
     customElements.define('ispace-number-scrubber', Scrubber);

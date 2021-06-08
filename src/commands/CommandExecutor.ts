@@ -21,7 +21,7 @@ export class CommandExecutor {
 
     // Cancel any active commands and "enqueue" another.
     // Ensure commands are executed ATOMICALLY.
-    // Do not start a new command until the previous is fully completed,
+    // That is, do not start a new command until the previous is fully completed,
     // including any cancelation cleanup. (await this.execute(next))
     async enqueue(command: Command) {
         this.next = command;
@@ -63,6 +63,7 @@ export class CommandExecutor {
             this.history.add("Command", state);
         } catch (e) {
             if (e !== Cancel) throw e;
+            command.cancel();
         } finally {
             disposable.dispose();
         }

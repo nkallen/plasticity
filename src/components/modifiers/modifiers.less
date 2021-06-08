@@ -1,4 +1,6 @@
 ispace-modifiers {
+    overflow: auto;
+
     &>ol {
         margin: 11px;
         padding: 0;
@@ -12,7 +14,36 @@ ispace-modifiers {
         }
     }
 
-    ispace-creator-shell-creator, ispace-creator-ispace-simple-creator, ispace-creator-elementary-solid, ispace-creator-curve-extrusion-solid, ispace-creator-curve-revolution-solid, ispace-creator-curve-evolution-solid, ispace-creator-curve-loved-solid, ispace-creator-boolean-solid, ispace-creator-cutting-solid, ispace-creator-symmetry-solid, ispace-creator-hole-solid, ispace-creator-smooth-solid, ispace-creator-chamfer-solid, ispace-creator-fillet-solid, ispace-creator-full-fillet-solid, ispace-creator-shell-solid, ispace-creator-draft-solid, ispace-creator-rib-solid, ispace-creator-split-shell, ispace-creator-nurbs-block-solid, ispace-creator-face-modified-solid, ispace-creator-modified-nurbs-item, ispace-creator-nurbs-modification, ispace-creator-transformed-solid, ispace-creator-thin-shell-creator, ispace-creator-union-solid, ispace-creator-detach-solid, ispace-creator-duplication-solid, ispace-creator-reverse-creator, ispace-creator-divided-shell {
+    ispace-creator-shell-creator,
+    ispace-creator-ispace-simple-creator,
+    ispace-creator-elementary-solid,
+    ispace-creator-curve-extrusion-solid,
+    ispace-creator-curve-revolution-solid,
+    ispace-creator-curve-evolution-solid,
+    ispace-creator-curve-loved-solid,
+    ispace-creator-boolean-solid,
+    ispace-creator-cutting-solid,
+    ispace-creator-symmetry-solid,
+    ispace-creator-hole-solid,
+    ispace-creator-smooth-solid,
+    ispace-creator-chamfer-solid,
+    ispace-creator-fillet-solid,
+    ispace-creator-full-fillet-solid,
+    ispace-creator-shell-solid,
+    ispace-creator-draft-solid,
+    ispace-creator-rib-solid,
+    ispace-creator-split-shell,
+    ispace-creator-nurbs-block-solid,
+    ispace-creator-face-modified-solid,
+    ispace-creator-modified-nurbs-item,
+    ispace-creator-nurbs-modification,
+    ispace-creator-transformed-solid,
+    ispace-creator-thin-shell-creator,
+    ispace-creator-union-solid,
+    ispace-creator-detach-solid,
+    ispace-creator-duplication-solid,
+    ispace-creator-reverse-creator,
+    ispace-creator-divided-shell {
 
         padding: 6px;
 
@@ -42,52 +73,60 @@ ispace-modifiers {
                 line-height: 20px;
             }
         }
+    }
+}
 
-        form>ul {
-            list-style-type: none;
-            padding: 0;
+ispace-dialog {
+    overflow: auto;
+    margin: 11px;
+}
 
-            li {
-                position: relative;
-                display: flex;
-                flex-direction: row;
-                margin-top: 6px;
-                min-height: 26px;
+ispace-modifiers,
+ispace-dialog {
+    form ul {
+        list-style-type: none;
+        padding: 0;
 
-                label {
-                    width: 120px;
-                    margin-right: 4px;
-                    padding: 4px 4px 4px 0;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    display: inline-flex;
+        li {
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            margin-top: 6px;
+            min-height: 26px;
+
+            label {
+                width: 120px;
+                margin-right: 4px;
+                padding: 4px 4px 4px 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: inline-flex;
+            }
+
+            ispace-number-scrubber {
+                flex-grow: 1;
+                display: inline-flex;
+
+                &>input {
+                    &:focus {
+                        outline: none;
+                    }
                 }
 
-                ispace-number-scrubber {
+                &>span,
+                &>input {
+                    color: rgba(0, 0, 0, 0.85);
+                    background-color: hsl(150, 61%, 85%);
                     flex-grow: 1;
-                    display: inline-flex;
-
-                    &>input {
-                        &:focus {
-                            outline: none;
-                        }
-                    }
-
-                    &>span,
-                    &>input {
-                        color: rgba(0, 0, 0, 0.85);
-                        background-color: hsl(150, 61%, 85%);
-                        flex-grow: 1;
-                        margin: 3px;
-                        display: block;
-                        height: 20px;
-                        padding: 1px 7px;
-                        border-radius: 99px;
-                        border: none;
-                        line-height: 18px;
-                        cursor: pointer;
-                    }
+                    margin: 3px;
+                    display: block;
+                    height: 20px;
+                    padding: 1px 7px;
+                    border-radius: 99px;
+                    border: none;
+                    line-height: 18px;
+                    cursor: pointer;
                 }
             }
         }

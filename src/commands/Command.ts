@@ -9,7 +9,7 @@ import { PointPicker } from '../PointPicker';
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
 import { SnapManager } from "../SnapManager";
-import { Cancel, CancellableRegistor } from "../util/Cancellable";
+import { Cancel, CancellableRegistor, Finish } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 import * as visual from "../VisualModel";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
@@ -22,6 +22,7 @@ import CylinderFactory from './cylinder/CylinderFactory';
 import ElementarySolidFactory from "./elementary_solid/ElementarySolidFactory";
 import { ElementarySolidGizmo } from "./elementary_solid/ElementarySolidGizmo";
 import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
+import { FilletDialog } from "./fillet/FilletDialog";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
@@ -442,11 +443,24 @@ export class FilletCommand extends Command {
         const normal = curveEdge.EdgeNormal(0.5);
         const filletGizmo = new FilletGizmo(this.editor, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));
 
+        const filletDialog = new FilletDialog(fillet, this.editor.signals);
+        const dialog = filletDialog.execute(async params => {
+            await fillet.update();
+        }).resource(this);
+
         const max = new Max(fillet);
         max.start();
-        await filletGizmo.execute(async delta =>
-            max.exec(delta)
-        ).resource(this);
+
+        filletGizmo.execute(async delta => {
+            filletDialog.render();
+            await max.exec(delta)
+        }).resource(this);
+
+        try {
+            await dialog;
+        } catch (e) {
+            if (e !== Finish) throw e;
+        }
 
         const selection = await fillet.commit() as visual.Solid;
         this.editor.selection.selectSolid(selection);

@@ -6,6 +6,7 @@ import c3d from '../build/Release/c3d.node';
 import Command from './commands/Command';
 import { CommandExecutor } from "./commands/CommandExecutor";
 import ContourManager from './commands/ContourManager';
+import { AbstractDialog } from "./commands/fillet/FilletDialog";
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
 import { SelectionCommandManager } from "./commands/SelectionCommandManager";
 import CommandRegistry from "./components/atom/CommandRegistry";
@@ -47,6 +48,8 @@ export interface EditorSignals {
     historyChanged: signals.Signal;
     contoursChanged: signals.Signal;
     creatorChanged: signals.Signal<{ creator: c3d.Creator, item: visual.Item }>;
+    dialogAdded: signals.Signal<AbstractDialog<any>>;
+    dialogRemoved: signals.Signal;
 }
 
 export class Editor {
@@ -75,6 +78,8 @@ export class Editor {
         historyChanged: new signals.Signal(),
         contoursChanged: new signals.Signal(),
         creatorChanged: new signals.Signal(),
+        dialogAdded: new signals.Signal(),
+        dialogRemoved: new signals.Signal(),
     }
 
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);

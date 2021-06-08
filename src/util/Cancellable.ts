@@ -80,7 +80,7 @@ export abstract class CancellableRegistor {
     }
 }
 
-export class CancellablePromise<T> extends Cancellable {
+export class CancellablePromise<T> extends Cancellable implements PromiseLike<T> {
     static resolve() {
         return new CancellablePromise<void>((resolve, reject) => {
             resolve();
@@ -92,7 +92,7 @@ export class CancellablePromise<T> extends Cancellable {
 
     cancel!: () => void;
     finish!: () => void;
-    promise: Promise<T>;
+    private readonly promise: Promise<T>;
 
     constructor(executor: Executor<T>) {
         super();
@@ -104,7 +104,7 @@ export class CancellablePromise<T> extends Cancellable {
         });
     }
 
-    then(resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void): void {
-        this.promise.then(resolve, reject);
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2> {
+        return this.promise.then(onfulfilled, onrejected);
     }
 }

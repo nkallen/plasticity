@@ -7,6 +7,7 @@ import '../lib/c3d/enums';
 import license from '../license-key.json';
 import BoxFactory from './commands/box/BoxFactory';
 import SphereFactory from './commands/sphere/SphereFactory';
+import Dialog from './components/modifiers/Dialog';
 import Modifiers from './components/modifiers/Modifiers';
 import NumberScrubber from './components/modifiers/NumberScrubber';
 import './components/pane/Pane';
@@ -42,6 +43,7 @@ Toolbar(editor);
 Viewport(editor);
 Modifiers(editor);
 NumberScrubber(editor);
+Dialog(editor);
 
 const box = new BoxFactory(editor.db, editor.materials, editor.signals);
 box.p1 = new THREE.Vector3();
