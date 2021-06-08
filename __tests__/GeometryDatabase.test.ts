@@ -130,12 +130,12 @@ describe("addTemporaryItem", () => {
         expect(faces.length).toBe(3 * 6);
 
         expect(db.lookupTopologyItem(faces[0])).toBeTruthy();
-        const { model, visual: v } = db.lookupTopologyItemById(faces[0].userData.simpleName);
+        const { model, visual: v } = db.lookupTopologyItemById(faces[0].simpleName);
         expect(v.size).toBe(3);
         expect(model).toBeInstanceOf(c3d.Face);
 
         db.removeItem(solid);
         expect(() => db.lookupTopologyItem(faces[0])).toThrow();
-        expect(() => db.lookupTopologyItemById(faces[0].userData.simpleName)).toThrow();
+        expect(() => db.lookupTopologyItemById(faces[0].simpleName)).toThrow();
     });
 });

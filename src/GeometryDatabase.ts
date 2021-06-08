@@ -57,7 +57,7 @@ export class GeometryDatabase {
     }
 
     removeItem(object: visual.Item) {
-        const simpleName = object.userData.simpleName;
+        const simpleName = object.simpleName;
         this.drawModel.delete(simpleName);
         this.geometryModel.delete(simpleName);
         this.removeTopologyItems(object);
@@ -81,7 +81,7 @@ export class GeometryDatabase {
     lookup(object: visual.PlaneInstance<visual.Region>): c3d.PlaneInstance;
     lookup(object: visual.Item): c3d.Item;
     lookup(object: visual.Item): c3d.Item {
-        return this.lookupItemById(object.userData.simpleName).model;
+        return this.lookupItemById(object.simpleName).model;
     }
 
     lookupTopologyItemById(id: string): TopologyData {
@@ -94,7 +94,7 @@ export class GeometryDatabase {
     lookupTopologyItem(object: visual.Edge): c3d.Edge;
     lookupTopologyItem(object: visual.Edge | visual.Face): c3d.TopologyItem {
         const parent = object.parentItem;
-        const { model: parentModel } = this.lookupItemById(parent.userData.simpleName);
+        const { model: parentModel } = this.lookupItemById(parent.simpleName);
         if (!(parentModel instanceof c3d.Solid)) throw new Error("Invalid precondition");
         const solid = parentModel;
 
@@ -123,7 +123,7 @@ export class GeometryDatabase {
 
     get visibleObjects() {
         const { drawModel, hidden } = this;
-        const difference = [...drawModel.values()].filter(x => !hidden.has(x.userData.simpleName));
+        const difference = [...drawModel.values()].filter(x => !hidden.has(x.simpleName));
         return difference;
     }
 
@@ -216,7 +216,7 @@ export class GeometryDatabase {
     private addTopologyItem<T extends visual.Face | visual.Edge>(parent: c3d.Item, t: T) {
         if (!(parent instanceof c3d.Solid)) throw new Error("invalid precondition");
 
-        let topologyData = this.topologyModel.get(t.userData.simpleName);
+        let topologyData = this.topologyModel.get(t.simpleName);
         let set;
         if (topologyData === undefined) {
             let model;
@@ -227,7 +227,7 @@ export class GeometryDatabase {
             } else throw new Error("invalid precondition");
             set = new Set<visual.Face | visual.Edge>();
             topologyData = { model, visual: set }
-            this.topologyModel.set(t.userData.simpleName, topologyData);
+            this.topologyModel.set(t.simpleName, topologyData);
         } else {
             set = topologyData.visual;
         }
@@ -237,17 +237,17 @@ export class GeometryDatabase {
     private removeTopologyItems(parent: visual.Item) {
         parent.traverse(o => {
             if (o instanceof visual.TopologyItem) {
-                this.topologyModel.delete(o.userData.simpleName);
+                this.topologyModel.delete(o.simpleName);
             }
         })
     }
 
     hide(item: visual.Item) {
-        this.hidden.add(item.userData.simpleName);
+        this.hidden.add(item.simpleName);
     }
 
     unhide(item: visual.Item) {
-        this.hidden.delete(item.userData.simpleName);
+        this.hidden.delete(item.simpleName);
     }
 
     saveToMemento(registry: Map<any, any>): GeometryMemento {

@@ -39,6 +39,8 @@ export abstract class Item extends SpaceItem {
         super();
         this.add(this.lod);
     }
+
+    get simpleName(): c3d.SimpleName { return this.userData.simpleName }
 }
 
 export class Solid extends Item {
@@ -125,6 +127,8 @@ export abstract class TopologyItem extends THREE.Object3D {
         }
         return result as Item;
     }
+
+    get simpleName(): string { return this.userData.simpleName }
 }
 
 export abstract class Edge extends TopologyItem { }
