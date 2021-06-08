@@ -30,14 +30,9 @@ export abstract class PlaneItem extends THREE.Object3D {
     private _useNominal: undefined;
 }
 
-class LOD extends THREE.LOD {
-    clone(recursive?: boolean): THREE.Object3D { throw new Error("Don't call") }
-    copy(source: this, recursive?: boolean): this { throw new Error("Don't call") }
-}
-
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
-    readonly lod = new LOD();
+    readonly lod = new THREE.LOD();
     readonly snaps = new Set<Snap>(); // FIXME I doubt these are cloned correctly (cf History)
 
     constructor() {
@@ -47,6 +42,7 @@ export abstract class Item extends SpaceItem {
 }
 
 export class Solid extends Item {
+    private _useNominal3: undefined;
     disposable = new CompositeDisposable();
     get edges() { return this.lod.children[0].children[0] as CurveEdgeGroup }
     get faces() { return this.lod.children[0].children[1] as FaceGroup }
@@ -60,21 +56,13 @@ export class Solid extends Item {
 }
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
+    private _useNominal3: undefined;
     get underlying() { return this.lod.children[0] as T }
     disposable = new CompositeDisposable();
-    get material() {
-        const firstChild = this.underlying as unknown as { material: any }
-        return firstChild.material;
-    };
-    set material(m: LineMaterial) {
-        for (const child of this.lod.children) {
-            const hasMaterial = child as THREE.Object3D & { material: any };
-            hasMaterial.material = m;
-        }
-    };
 }
 
 export class PlaneInstance<T extends PlaneItem> extends Item {
+    private _useNominal3: undefined;
     get underlying() { return this.lod.children[0] as T }
     disposable = new CompositeDisposable();
     get material() {
@@ -141,13 +129,6 @@ export class Region extends PlaneItem {
         this.add(mesh);
         this.name = "name";
         this.disposable.add(new Disposable(() => this.mesh.geometry.dispose()))
-    }
-
-    clone(recursive?: boolean): THREE.Object3D {
-        const mesh = this.mesh.clone(recursive) as THREE.Mesh;
-        const result = new Region(mesh);
-        result.copy(this, recursive);
-        return result;
     }
 }
 

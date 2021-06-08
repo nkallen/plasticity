@@ -6,6 +6,7 @@ transaction history
 - get rid of all material stuff in visual model
 - get rid of all clones
 - combine two in geomdatab
+- fix snaps stored in visualmodel
 
 - autogenerate creator html element
 - make more pretty

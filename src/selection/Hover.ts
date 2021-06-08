@@ -1,6 +1,7 @@
-import { EditorSignals } from "../Editor";
 import MaterialDatabase from "../MaterialDatabase";
-import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, Item, TopologyItem } from "../VisualModel";
+import { EditorSignals } from "../Editor";
+import { Curve3D, CurveEdge, CurveSegment, Face, Item, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../VisualModel";
+import { HighlightManager } from "./HighlightManager";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { HasSelection } from "./SelectionManager";
 
@@ -20,8 +21,7 @@ export class HoverStrategy implements SelectionStrategy {
         if (this.selection.mode.has(SelectionMode.Curve) && !this.selection.selectedCurves.has(parentCurve)) {
             if (!this.selection.hover?.isEqual(parentCurve)) {
                 this.selection.hover?.dispose();
-                this.selection.hover = new MaterialHoverable(
-                    parentCurve, this.materials.hover(object), this.signals);
+                this.selection.hover = new Hoverable(parentCurve, this.materials, this.signals);
             }
             return true;
         }
@@ -32,7 +32,7 @@ export class HoverStrategy implements SelectionStrategy {
         if (!this.selection.selectedSolids.has(parentItem) && !this.selection.hasSelectedChildren(parentItem)) {
             if (!this.selection.hover?.isEqual(parentItem)) {
                 this.selection.hover?.dispose();
-                this.selection.hover = new Hoverable(parentItem, this.signals);
+                this.selection.hover = new Hoverable(parentItem, this.materials, this.signals);
             }
             return true;
         }
@@ -43,13 +43,13 @@ export class HoverStrategy implements SelectionStrategy {
         if (this.selection.mode.has(SelectionMode.Face) && object instanceof Face && !this.selection.selectedFaces.has(object)) {
             if (!this.selection.hover?.isEqual(object)) {
                 this.selection.hover?.dispose();
-                this.selection.hover = new MaterialHoverable(object, this.materials.hover(object), this.signals);
+                this.selection.hover = new Hoverable(object, this.materials, this.signals);
             }
             return true;
         } else if (this.selection.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selection.selectedEdges.has(object)) {
             if (!this.selection.hover?.isEqual(object)) {
                 this.selection.hover?.dispose();
-                this.selection.hover = new MaterialHoverable(object, this.materials.hover(object), this.signals);
+                this.selection.hover = new Hoverable(object, this.materials, this.signals);
             }
             return true;
         }
@@ -66,12 +66,11 @@ export class HoverStrategy implements SelectionStrategy {
 }
 
 export class Hoverable {
-    protected readonly object: Item | TopologyItem;
-    private readonly signals: EditorSignals;
-
-    constructor(object: Item | TopologyItem, signals: EditorSignals) {
-        this.object = object;
-        this.signals = signals;
+    constructor(
+        private readonly object: Item | TopologyItem,
+        private readonly materials: MaterialDatabase,
+        private readonly signals: EditorSignals
+    ) {
         signals.objectHovered.dispatch(object);
     }
 
@@ -80,30 +79,22 @@ export class Hoverable {
     }
 
     isEqual(other: Item | TopologyItem): boolean {
-        return this.object === other;
+        return this.object.userData.simpleName === other.userData.simpleName;
     }
 
-    highlight() { }
-    unhighlight() { }
-}
-
-class MaterialHoverable<T extends SpaceInstance<Curve3D> | PlaneInstance<Region> | TopologyItem> extends Hoverable {
-    protected readonly object: T;
-    private readonly material: THREE.Material
-
-    constructor(object: T, material: THREE.Material, signals: EditorSignals) {
-        super(object, signals);
-        this.object = object;
-        this.material = material;
+    highlight(highlighter: HighlightManager) {
+        if (this.object instanceof PlaneInstance || this.object instanceof SpaceInstance) {
+            highlighter.highlightItems([this.object.userData.simpleName], o => this.materials.hover(o));
+        } else if (this.object instanceof TopologyItem) {
+            highlighter.highlightTopologyItems([this.object.userData.simpleName], o => this.materials.hover(o));
+        }
     }
 
-    private previousMaterial: any;
-    highlight() {
-        this.previousMaterial = this.object.material;
-        this.object.material = this.material;
-    }
-
-    unhighlight() {
-        this.object.material = this.previousMaterial!;
+    unhighlight(highlighter: HighlightManager) {
+        if (this.object instanceof PlaneInstance || this.object instanceof SpaceInstance) {
+            highlighter.unhighlightItems([this.object.userData.simpleName]);
+        } else if (this.object instanceof TopologyItem) {
+            highlighter.unhighlightTopologyItems([this.object.userData.simpleName]);
+        }
     }
 }

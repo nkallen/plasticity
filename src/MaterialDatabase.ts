@@ -19,15 +19,20 @@ export default interface MaterialDatabase {
     highlight(o: c3d.SpaceInstance): LineMaterial;
     highlight(o: c3d.Face): THREE.Material;
     highlight(o: c3d.PlaneInstance): THREE.Material;
+    highlight(o: c3d.TopologyItem): THREE.Material;
+    highlight(o: c3d.Item): THREE.Material;
 
     lookup(o: c3d.Edge): LineMaterial;
     lookup(o: c3d.Face): THREE.Material;
     lookup(o: c3d.Edge | c3d.Face): THREE.Material;
 
-    hover(object: visual.Face): THREE.Material;
-    hover(object: visual.Edge): LineMaterial;
-    hover(object: visual.CurveSegment): LineMaterial;
-    hover(object: visual.Region): THREE.Material;
+    hover(o: c3d.Edge): LineMaterial;
+    hover(o: c3d.Curve3D): LineMaterial;
+    hover(o: c3d.SpaceInstance): LineMaterial;
+    hover(o: c3d.Face): THREE.Material;
+    hover(o: c3d.PlaneInstance): THREE.Material;
+    hover(o: c3d.TopologyItem): THREE.Material;
+    hover(o: c3d.Item): THREE.Material;
 }
 
 const line = new LineMaterial({ color: 0x000000, linewidth: 1.2 });
@@ -177,18 +182,24 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         }
     }
 
-    hover(object: visual.Face): THREE.Material;
-    hover(object: visual.Region): THREE.Material;
-    hover(object: visual.Edge): LineMaterial;
-    hover(object: visual.CurveSegment): LineMaterial;
-    hover(object: visual.Face | visual.Region | visual.Edge | visual.CurveSegment): THREE.Material {
-        if (object instanceof visual.Edge || object instanceof visual.CurveSegment) {
+    hover(o: c3d.Edge): LineMaterial;
+    hover(o: c3d.Curve3D): LineMaterial;
+    hover(o: c3d.SpaceInstance): LineMaterial;
+    hover(o: c3d.Face): THREE.Material;
+    hover(o: c3d.PlaneInstance): THREE.Material;
+    hover(o: c3d.TopologyItem): THREE.Material;
+    hover(o: c3d.Item): THREE.Material;
+    hover(o: any): THREE.Material {
+        if (o instanceof c3d.Curve3D || o instanceof c3d.Edge)
             return line_hovered;
-        } else if (object instanceof visual.Face) {
+        else if (o instanceof c3d.Face)
             return mesh_hovered;
-        } else if (object instanceof visual.Region) {
+        else if (o instanceof c3d.SpaceInstance)
+            return line_hovered;
+        else if (o instanceof c3d.PlaneInstance)
             return region_hovered;
+        else {
+            throw new Error(`not yet implemented: ${o.constructor}`);
         }
-        assertUnreachable(object);
     }
 }

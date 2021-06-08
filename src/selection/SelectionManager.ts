@@ -8,6 +8,7 @@ import { SelectionMemento } from '../History';
 import MaterialDatabase from '../MaterialDatabase';
 import { RefCounter } from '../util/Util';
 import * as visual from '../VisualModel';
+import { HighlightManager } from './HighlightManager';
 import { Hoverable } from './Hover';
 import { ItemSelection, TopologyItemSelection } from './Selection';
 import { SelectionMode } from './SelectionInteraction';
@@ -52,6 +53,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
     private readonly parentsWithSelectedChildren = new RefCounter<c3d.SimpleName>();
 
     hover?: Hoverable = undefined;
+    private readonly highlighter = new HighlightManager(this.db);
 
     constructor(
         readonly db: GeometryDatabase,
@@ -179,69 +181,31 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         } else if (item instanceof visual.PlaneInstance) {
             this.selectedRegionIds.delete(item.userData.simpleName);
         }
+        this.hover?.dispose();
+        this.hover = undefined;
         this.signals.objectDeselected.dispatch(item);
     }
 
     highlight() {
         const { selectedEdgeIds, selectedFaceIds, selectedCurveIds, selectedRegionIds } = this;
         for (const collection of [selectedEdgeIds, selectedFaceIds]) {
-            for (const id of collection) {
-                const { visual, model } = this.db.lookupTopologyItemById(id);
-                // @ts-expect-error("Typescript bug fails to correctly infer types")
-                const newMaterial = this.materials.highlight(model);
-                for (const v of visual) {
-                    v.traverse(o => {
-                        if (o instanceof Line2 || o instanceof THREE.Mesh) {
-                            o.userData.oldMaterial = o.material;
-                            o.material = newMaterial;
-                        }
-                    })
-                }
-            }
+            this.highlighter.highlightTopologyItems(collection, m => this.materials.highlight(m));
         }
         for (const collection of [selectedCurveIds, selectedRegionIds]) {
-            for (const id of collection) {
-                const { visual: v, model } = this.db.lookupItemById(id);
-                if (!(model instanceof visual.PlaneInstance || model instanceof visual.SpaceInstance)) throw new Error("invalid precondition");
-                const newMaterial = this.materials.highlight(model);
-                v.traverse(o => {
-                    if (o instanceof Line2 || o instanceof THREE.Mesh) {
-                        o.userData.oldMaterial = o.material;
-                        o.material = newMaterial;
-                    }
-                })
-            }
+            this.highlighter.highlightItems(collection, m => this.materials.highlight(m));
+
         }
-        this.hover?.highlight();
+        this.hover?.highlight(this.highlighter);
     }
 
     unhighlight() {
-        this.hover?.unhighlight();
+        this.hover?.unhighlight(this.highlighter);
         const { selectedEdgeIds, selectedFaceIds, selectedCurveIds, selectedRegionIds } = this;
         for (const collection of [selectedEdgeIds, selectedFaceIds]) {
-            for (const id of collection) {
-                const { visual } = this.db.lookupTopologyItemById(id);
-                for (const v of visual) {
-                    v.traverse(o => {
-                        if (o instanceof Line2 || o instanceof THREE.Mesh) {
-                            o.material = o.userData.oldMaterial;
-                            delete o.userData.oldMaterial;
-                        }
-                    })
-                }
-            }
+            this.highlighter.unhighlightTopologyItems(collection);
         }
         for (const collection of [selectedCurveIds, selectedRegionIds]) {
-            for (const id of collection) {
-                const { visual: v, model } = this.db.lookupItemById(id);
-                if (!(model instanceof visual.PlaneInstance || model instanceof visual.SpaceInstance)) throw new Error("invalid precondition");
-                v.traverse(o => {
-                    if (o instanceof Line2 || o instanceof THREE.Mesh) {
-                        o.material = o.userData.oldMaterial;
-                        delete o.userData.oldMaterial;
-                    }
-                })
-            }
+            this.highlighter.unhighlightItems(collection);
         }
     }
 
