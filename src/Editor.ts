@@ -134,11 +134,11 @@ export class Editor {
     // Ensure commands are executed ATOMICALLY.
     // Do not start a new command until the previous is fully completed,
     // including any cancelation cleanup. (await this.execute(next))
-    enqueue(command: Command) {
+    async enqueue(command: Command) {
         const active = this.active;
         this.next = command;
         if (active) active.cancel();
-        else this.dequeue();
+        else await this.dequeue();
     }
 
     private async dequeue() {
@@ -150,8 +150,11 @@ export class Editor {
             if (this.active) throw new Error("invalid precondition");
             this.active = next;
             this.next = undefined;
-            await this.execute(next);
-            this.active = undefined;
+            try {
+                await this.execute(next);
+            } finally {
+                this.active = undefined;
+            }
         }
 
         const command = this.selectionGizmo.commandFor(next);

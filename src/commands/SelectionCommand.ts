@@ -1,10 +1,9 @@
 import * as THREE from 'three';
 import * as gizmo from '../commands/AbstractGizmo';
 import * as cmd from '../commands/Command';
-import Command, { ExtrudeRegionCommand } from '../commands/Command';
+import Command, { ExtrudeRegionCommand, FilletCommand, OffsetFaceCommand } from '../commands/Command';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
-import { HasSelection } from '../selection/SelectionManager';
 import { ChangeSelectionCommand } from './CommandLike';
 
 export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
@@ -23,6 +22,10 @@ export class SelectionCommandManager {
             const command = new ExtrudeRegionCommand(this.editor);
             command.point = point;
             return command;
+        } else if (this.editor.selection.selectedFaces.size > 0) {
+            return new OffsetFaceCommand(this.editor);
+        } else if (this.editor.selection.selectedEdges.size > 0) {
+            return new FilletCommand(this.editor)
         }
     }
 }

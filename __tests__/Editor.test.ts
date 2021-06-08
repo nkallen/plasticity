@@ -3,7 +3,7 @@
  */
 jest.mock('atom-keymap');
 
-import { CircleCommand } from '../src/commands/Command';
+import Command, { CircleCommand } from '../src/commands/Command';
 import { Editor } from '../src/Editor';
 import './matchers';
 
@@ -32,4 +32,28 @@ test('enqueue cancels active commands and executes the most recent', async () =>
     expect(command1.state).toBe('Cancelled');
     expect(command2.state).toBe('None');
     expect(command3.state).toBe('None');
+});
+
+// FIXME add a test about exception handling
+
+class ErroringCommand extends Command {
+    async execute(): Promise<void> {
+        throw new Error("I'm an error");
+    }
+}
+
+class FastCommand extends Command {
+    async execute(): Promise<void> {
+    }
+}
+
+test.only('erroring commands are ok, allowing subsequent commands to procede', async () => {
+    const command1 = new ErroringCommand(editor);
+    const command2 = new FastCommand(editor);
+
+    await expect(editor.enqueue(command1)).rejects.toThrow("I'm an error")
+    await editor.enqueue(command2);
+
+    expect(command1.state).toBe('None');
+    expect(command2.state).toBe('None');
 });
