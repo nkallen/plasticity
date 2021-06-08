@@ -44,6 +44,7 @@ export class SelectionInteractionManager {
             return;
         }
 
+        // FIXME add sort order in visualmodel rather than adhoc here
         intersections.sort((i1, i2) => {
             const a = i1.object, b = i2.object;
             if (a instanceof visual.CurveEdge && b instanceof visual.Face) {

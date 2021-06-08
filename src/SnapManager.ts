@@ -46,6 +46,7 @@ export class SnapManager {
 
     snap(raycaster: THREE.Raycaster, constructionPlane: THREE.Object3D, additional: Snap[] = []): [THREE.Object3D, THREE.Vector3][] {
         const snapperIntersections = raycaster.intersectObjects([constructionPlane, ...this.snappers, ...additional.map(a => a.snapper)]);
+        snapperIntersections.sort((s1, s2) => s1.object.userData.sort - s2.object.userData.sort);
         const result = [];
         for (const intersection of snapperIntersections) {
             const h = this.helperFor(intersection);
@@ -154,6 +155,7 @@ export class PointSnap extends Snap {
 
         super(snapper, picker);
         this.projection = new THREE.Vector3(x, y, z);
+        snapper.userData.sort = 0;
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -180,6 +182,7 @@ export class AxisSnap extends Snap {
         const snapper = new THREE.Line(geometry, new THREE.LineBasicMaterial());
 
         super(snapper, undefined, snapper);
+        snapper.userData.sort = 1;
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -197,6 +200,7 @@ export class PlaneSnap extends Snap {
         mesh.position.copy(p);
         super(mesh);
         this.n = n;
+        mesh.userData.sort = 2;
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
