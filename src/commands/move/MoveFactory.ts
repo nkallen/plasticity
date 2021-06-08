@@ -30,12 +30,11 @@ export default class MoveFactory extends GeometryFactory {
         const result = [];
         for (const item of this.items) {
             const model = this.db.lookup(item);
-            this.db.removeItem(item);
 
             const delta = this.p2.clone().sub(this.p1);
             const vec = new c3d.Vector3D(delta.x, delta.y, delta.z);
             model.Move(vec);
-            result.push(this.db.addItem(model));
+            result.push(this.db.addItem(model).then(x => { this.db.removeItem(item); return x }));
         }
         return Promise.all(result);
     }
