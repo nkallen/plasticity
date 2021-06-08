@@ -38,6 +38,10 @@ export interface EditorLike {
     gizmos: GizmoMaterialDatabase
 }
 
+export interface GizmoLike<CB> {
+    execute(cb: CB): CancellablePromise<void>;
+}
+
 export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {
     handle: THREE.Object3D;
     picker: THREE.Object3D;

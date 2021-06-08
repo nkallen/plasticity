@@ -1,12 +1,15 @@
-import Command, * as cmd from '../../commands/Command';
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
+import * as cmd from '../../commands/Command';
+import { RebuildCommand } from '../../commands/CommandLike';
 import { Editor } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
 import { HasSelection } from '../../selection/SelectionManager';
+import { Cancel, CancellablePromise, Finish } from '../../util/Cancellable';
 import * as visual from '../../VisualModel';
 import icons from '../toolbar/icons';
+import { ChangeEvent } from './NumberScrubber';
 
 export class Model {
     constructor(
@@ -26,13 +29,13 @@ export class Model {
         const { db, selection } = this;
         if (selection.selectedSolids.size == 0) return [];
 
-        const result = [];
+        const result = new Array<[number, c3d.FilletSolid]>();
         const solid = selection.selectedSolids.values().next().value;
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
-            const creator = model.GetCreator(i);
+            const creator = model.SetCreator(i);
             if (creator.IsA() == c3d.CreatorType.FilletSolid) {
-                result.push(creator.Cast<c3d.FilletSolid>(c3d.CreatorType.FilletSolid));
+                result.push([i, creator.Cast<c3d.FilletSolid>(c3d.CreatorType.FilletSolid)]);
             }
         }
 
@@ -58,11 +61,11 @@ export default (editor: Editor) => {
 
         render() {
             const result = <ol>
-                {this.model.creators.map(c => {
-                    const x = c.GetParameters();
+                {this.model.creators.map(([i, c]) => {
+                    const params = c.GetParameters();
                     const Z = "ispace-creator"
                     return <li>
-                        <Z parameters={x} creator={c} item={this.model.item}></Z>
+                        <Z parameters={params} index={i} item={this.model.item}></Z>
                     </li>
                 })}
             </ol>;
@@ -75,28 +78,31 @@ export default (editor: Editor) => {
     }
     customElements.define('ispace-modifiers', Modifiers);
 
+    type CreatorState = { tag: 'none' } | { tag: 'updating', cb?: () => void, creator: c3d.FilletSolid, resolve: (value: void | PromiseLike<void>) => void, reject: (value: void | PromiseLike<void>) => void }
+
     class Creator extends HTMLElement {
+        private state: CreatorState = { tag: 'none' };
+
         constructor() {
             super();
             this.render = this.render.bind(this);
             this.onClick = this.onClick.bind(this);
             this.onChange = this.onChange.bind(this);
+            this.onScrub = this.onScrub.bind(this);
+            this.onFinish = this.onFinish.bind(this);
         }
 
-        _creator!: c3d.FilletSolid;
-        set creator(creator: c3d.FilletSolid) {
-            this._creator = creator;
+        _index!: number;
+        set index(index: number) {
+            this._index = index;
         }
-        get creator() { return this._creator };
+        get index() { return this._index }
 
         _parameters!: c3d.SmoothValues;
         set parameters(p: c3d.SmoothValues) {
             this._parameters = p;
         }
-
-        get parameters() {
-            return this._parameters;
-        }
+        get parameters() { return this._parameters }
 
         _item!: visual.Item;
         set item(item: visual.Item) {
@@ -119,7 +125,7 @@ export default (editor: Editor) => {
 
             const key = e.target.name as keyof c3d.SmoothValues;
             const value = Number(e.target.value) as c3d.SmoothValues[keyof c3d.SmoothValues];
-            this.change(key, value);
+            this.commit(key, value);
         }
 
         onClick(e: Event) {
@@ -128,20 +134,70 @@ export default (editor: Editor) => {
 
             const key = e.target.name as keyof c3d.SmoothValues;
             const value = e.target.checked as c3d.SmoothValues[keyof c3d.SmoothValues];
-            this.change(key, value);
+            this.commit(key, value);
         }
 
-        private change<K extends keyof c3d.SmoothValues>(key: K, value: c3d.SmoothValues[K]): void {
-            console.log(key, value);
+        private commit<K extends keyof c3d.SmoothValues>(key: K, value: c3d.SmoothValues[K]): void {
+            const command = new RebuildCommand(editor, this.item, {
+                execute<T>(cb?: () => T): CancellablePromise<void> {
+                    return CancellablePromise.resolve();
+                }
+            });
+            editor.enqueue(command);
+            const creator = command.dup.SetCreator(this.index).Cast<c3d.FilletSolid>(c3d.CreatorType.FilletSolid);
             this.parameters[key] = value;
-            this.creator.SetParameters(this.parameters);
-            editor.signals.creatorChanged.dispatch({ creator: this._creator, item: this.item })
+            creator.SetParameters(this.parameters);
+        }
+
+        private update<K extends keyof c3d.SmoothValues>(key: K, value: c3d.SmoothValues[K]): void {
+            switch (this.state.tag) {
+                case 'none': {
+                    const that = this;
+                    const command = new RebuildCommand(editor, this.item, {
+                        execute(cb?: () => void): CancellablePromise<void> {
+                            return new CancellablePromise<void>((resolve, reject) => {
+                                const cancel = () => reject(Cancel);
+                                const finish = () => reject(Finish);
+
+                                const creator = command.dup.SetCreator(that.index).Cast<c3d.FilletSolid>(c3d.CreatorType.FilletSolid);
+                                creator.SetParameters(that.parameters);
+                                that.state = { tag: 'updating', cb, resolve, reject, creator };
+                                if (cb) cb();
+                                return { cancel, finish };
+                            });
+                        }
+                    });
+                    editor.enqueue(command);
+                    break;
+                }
+                case 'updating':
+                    const creator = this.state.creator;
+                    this.parameters[key] = value;
+                    creator.SetParameters(this.parameters);
+                    if (this.state.cb) this.state.cb();
+            }
+        }
+
+        onScrub(e: ChangeEvent) {
+            if (!(e.target instanceof HTMLElement)) throw new Error("invalid precondition");
+            const key = e.target.getAttribute('name') as keyof c3d.SmoothValues;
+            const value = Number(e.target.getAttribute('value') ?? '0');
+            this.update(key, value);
+        }
+
+        onFinish(e: Event) {
+            switch (this.state.tag) {
+                case 'updating':
+                    this.state.resolve();
+                    break;
+                default:
+                    throw new Error("invalid state");
+            }
         }
 
         render() {
             const { distance1, distance2, conic, begLength, endLength, form, smoothCorner, prolong, keepCant, strict, equable } = this.parameters;
 
-            render('', this)
             render(
                 <>
                     <div class="header">
@@ -153,7 +209,7 @@ export default (editor: Editor) => {
                         <ul>
                             <li>
                                 <label for="distance1">distance1</label>
-                                <input type="text" name="distance1" value={distance1} onChange={this.onChange}></input>
+                                <ispace-number-scrubber name="distance1" value={distance1} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="distance2">distance2</label>
@@ -212,4 +268,5 @@ export default (editor: Editor) => {
         }
     }
     customElements.define('ispace-creator', Creator);
+
 }

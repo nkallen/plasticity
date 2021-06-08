@@ -5,7 +5,6 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import Command from './commands/Command';
 import ContourManager from './commands/ContourManager';
-import { CreatorCommandManager } from "./commands/CreatorCommandManager";
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
 import { SelectionCommandManager } from "./commands/SelectionCommandManager";
 import CommandRegistry from "./components/atom/CommandRegistry";
@@ -90,7 +89,6 @@ export class Editor {
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
-    readonly creator = new CreatorCommandManager(this);
     readonly contours = new ContourManager(this, this.signals);
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);

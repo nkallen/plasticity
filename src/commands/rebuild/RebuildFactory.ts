@@ -5,16 +5,7 @@ import { GeometryFactory } from '../Factory';
 
 export class RebuildFactory extends GeometryFactory {
     dup!: c3d.Item;
-    _item!: visual.Item;
-
-    set item(item: visual.Item) {
-        this._item = item;
-        const { db } = this;
-        const model = db.lookup(item);
-        this.dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
-    }
-
-    get item() { return this._item }
+    item!: visual.Item;
 
     private temp?: TemporaryObject;
 

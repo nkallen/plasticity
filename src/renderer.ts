@@ -1,20 +1,22 @@
 import Stats from 'stats.js';
 import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
-import '../lib/c3d/enums';
 // import '../build/Release/c3d.dll'; // On windows, this will copy the file into the webpack bundle
 import '../build/Release/libc3d.dylib'; // On mac
+import '../lib/c3d/enums';
 import license from '../license-key.json';
 import BoxFactory from './commands/box/BoxFactory';
 import SphereFactory from './commands/sphere/SphereFactory';
+import Modifiers from './components/modifiers/Modifiers';
+import NumberScrubber from './components/modifiers/NumberScrubber';
+import './components/pane/Pane';
 import Toolbar from './components/toolbar/Toolbar';
+import Viewport from './components/viewport/Viewport';
 import './css/index.less';
 import registerDefaultCommands from './default-commands';
 import keymap from "./default-keymap";
 import { Editor } from './Editor';
-import './components/pane/Pane';
-import Viewport from './components/viewport/Viewport';
-import Modifiers from './components/modifiers/Modifiers';
+
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
 const editor = new Editor();
@@ -37,6 +39,7 @@ requestAnimationFrame(function loop() {
 Toolbar(editor);
 Viewport(editor);
 Modifiers(editor);
+NumberScrubber(editor);
 
 const box = new BoxFactory(editor.db, editor.materials, editor.signals);
 box.p1 = new THREE.Vector3();
