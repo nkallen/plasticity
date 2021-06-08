@@ -110,7 +110,6 @@ export class Region extends PlaneItem {
         this.mesh = mesh;
         this.renderOrder = RenderOrder.Face;
         this.add(mesh);
-        this.name = "name";
         this.disposable.add(new Disposable(() => this.mesh.geometry.dispose()))
     }
 }
@@ -177,7 +176,6 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
         this.line = line;
         this.userData.name = name;
         this.userData.simpleName = simpleName;
-        this.name = String(simpleName)
         this.renderOrder = RenderOrder.CurveSegment;
     }
 

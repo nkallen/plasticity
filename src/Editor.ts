@@ -4,6 +4,7 @@ import signals from "signals";
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import Command from './commands/Command';
+import { CommandExecutor } from "./commands/CommandExecutor";
 import ContourManager from './commands/ContourManager';
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
 import { SelectionCommandManager } from "./commands/SelectionCommandManager";
@@ -18,7 +19,6 @@ import { HasSelection, SelectionManager } from "./selection/SelectionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import Transactions from './Transactions';
-import { Cancel } from "./util/Cancellable";
 import { Helpers } from "./util/Helpers";
 import * as visual from './VisualModel';
 
@@ -94,6 +94,7 @@ export class Editor {
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);
     readonly transactoins = new Transactions(this.db, this.signals);
+    readonly executor = new CommandExecutor(this.selectionGizmo, this.registry, this.signals, this.originator, this.history, this.selection);
 
     disposable = new CompositeDisposable();
 
@@ -128,65 +129,26 @@ export class Editor {
         this.scene.background = new THREE.Color(0x424242);
 
         const d = this.registry.add("ispace-workspace", {
-            'undo': () => this.history.undo(),
-            'redo': () => this.history.redo()
+            'undo': () => this.undo(),
+            'redo': () => this.redo()
         });
         this.disposable.add(d);
     }
 
-    private active?: Command;
-    private next?: Command;
-
-    // Cancel any active commands and "enqueue" another.
-    // Ensure commands are executed ATOMICALLY.
-    // Do not start a new command until the previous is fully completed,
-    // including any cancelation cleanup. (await this.execute(next))
     async enqueue(command: Command) {
-        const active = this.active;
-        this.next = command;
-        if (active) active.cancel();
-        else await this.dequeue();
+        await this.executor.enqueue(command);
     }
 
-    private async dequeue() {
-        if (!this.next) throw new Error("Invalid precondition");
-
-        let next!: Command;
-        while (this.next) {
-            next = this.next;
-            if (this.active) throw new Error("invalid precondition");
-            this.active = next;
-            this.next = undefined;
-            try {
-                await this.execute(next);
-            } finally {
-                this.active = undefined;
-            }
-        }
-
-        const command = this.selectionGizmo.commandFor(next);
-        if (command) this.enqueue(command);
+    private async undo() {
+        this.executor.cancelActiveCommand();
+        this.history.undo();
+        this.executor.enqueueDefaultCommand();
     }
 
-    private async execute(command: Command) {
-        const disposable = this.registry.add('ispace-viewport', {
-            'command:finish': () => command.finish(),
-            'command:abort': () => command.cancel(),
-        });
-        const state = this.originator.saveToMemento(new Map());
-        try {
-            let selectionChanged = false;
-            this.signals.objectSelected.addOnce(() => selectionChanged = true);
-            this.signals.objectDeselected.addOnce(() => selectionChanged = true);
-            await command.execute();
-            if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
-            this.history.add("Command", state);
-        } catch (e) {
-            this.history.restore(state);
-            if (e !== Cancel) throw e;
-        } finally {
-            disposable.dispose();
-        }
+    private redo() {
+        this.executor.cancelActiveCommand();
+        this.history.redo();
+        this.executor.enqueueDefaultCommand();
     }
 
     onWindowResize() {

@@ -15,7 +15,7 @@ export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
 export class SelectionCommandManager {
     constructor(private readonly editor: EditorLike) { }
 
-    commandFor(command: Command): Command | undefined {
+    commandFor(command?: Command): Command | undefined {
         const point = command instanceof ChangeSelectionCommand ? command.intersection?.point : new THREE.Vector3();
 
         if (this.editor.selection.selectedRegions.size > 0) {
