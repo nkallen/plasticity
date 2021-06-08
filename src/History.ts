@@ -29,6 +29,7 @@ export class SelectionMemento {
         readonly selectedEdges: Set<visual.CurveEdge>,
         readonly selectedFaces: Set<visual.Face>,
         readonly selectedCurves: Set<visual.SpaceInstance<visual.Curve3D>>,
+        readonly selectedRegions: Set<visual.PlaneInstance<visual.Region>>,
     ) { }
 }
 

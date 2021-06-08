@@ -81,18 +81,30 @@ export abstract class CancellableRegistor {
 }
 
 export class CancellablePromise<T> extends Cancellable {
+    static resolve() {
+        return new CancellablePromise<void>((resolve, reject) => {
+            resolve();
+            const cancel = () => {}
+            const finish = () => {}
+            return { cancel, finish };
+        });
+    }
+
     cancel!: () => void;
     finish!: () => void;
-    executor: Executor<T>;
+    promise: Promise<T>;
 
     constructor(executor: Executor<T>) {
         super();
-        this.executor = executor;
+        const that = this;
+        this.promise = new Promise<T>((resolve, reject) => {
+            const { cancel, finish } = executor(resolve, reject);
+            that.cancel = cancel;
+            that.finish = finish;
+        });
     }
 
     then(resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void): void {
-        const { cancel, finish } = this.executor(resolve, reject);
-        this.cancel = cancel;
-        this.finish = finish;
+        this.promise.then(resolve, reject);
     }
 }

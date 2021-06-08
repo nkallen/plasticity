@@ -210,7 +210,9 @@ export default (editor: Editor) => {
             const CommandName = name + 'Command' as CommandName;
             const klass = cmd[CommandName] as GConstructor<Command>;
             if (klass == null) throw `${name} is invalid`;
-            this.addEventListener('click', e => editor.execute(new klass(editor)));
+            this.addEventListener('click', e => {
+                editor.enqueue(new klass(editor))
+            });
             const command = cmd[CommandName];
             const tooltip = tooltips.get(command);
             if (!tooltip) throw "no matching tooltip for command " + CommandName;
@@ -247,7 +249,7 @@ export default (editor: Editor) => {
                     {this.model.commands.map(command => {
                         const tooltip = tooltips.get(command);
                         if (!tooltip) throw "invalid tooltip for " + command;
-                        return <button onClick={_ => editor.execute(new command(editor))}>
+                        return <button onClick={_ => editor.enqueue(new command(editor))}>
                             <img title={command.title} src={icons.get(command)}></img>
                             <ispace-tooltip command={`command:${command.title}`}>{tooltip}</ispace-tooltip>
                         </button>

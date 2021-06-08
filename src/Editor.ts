@@ -15,7 +15,7 @@ import { SelectionInteractionManager } from "./selection/SelectionInteraction";
 import { HasSelection, SelectionManager } from "./selection/SelectionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
-import { Cancel } from "./util/Cancellable";
+import { Cancel, CancellablePromise } from "./util/Cancellable";
 import { Helpers } from "./util/Helpers";
 import { SpaceItem, TopologyItem } from './VisualModel';
 
@@ -123,36 +123,47 @@ export class Editor {
         this.disposable.add(d);
     }
 
-    private activeCommand?: Command;
+    private active?: Command;
+    private next?: Command;
 
-    async execute(command: Command, silent = false) {
-        this.cancel();
-        this.activeCommand = command;
+    enqueue(command: Command) {
+        const active = this.active;
+        this.next = command;
+        if (active) active.cancel();
+        else this.dequeue();
+    }
 
-        await Promise.resolve(); // Ensure any async behavior as a result of cancelling the last command finishes before starting a new command.
+    private async dequeue() {
+        if (!this.next) throw new Error("Invalid precondition");
 
-        if (!silent) this.signals.commandStarted.dispatch(command);
+        let next!: Command;
+        while (this.next) {
+            next = this.next;
+            if (this.active) throw new Error("invalid precondition");
+            this.active = next;
+            this.next = undefined;
+            await this.execute(next);
+            this.active = undefined;
+        }
 
+        const command = this.selectionGizmo.commandFor(next);
+        if (command) this.enqueue(command);
+    }
+
+    private async execute(command: Command) {
         const disposable = this.registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
         });
         try {
             const state = this.originator.saveToMemento(new Map());
-            await command.executeSafely();
+            await command.execute();
             this.history.add("Command", state);
         } catch (e) {
             if (e !== Cancel) throw e;
         } finally {
             disposable.dispose();
-            this.activeCommand = undefined;
-            if (!silent) this.signals.commandEnded.dispatch();
         }
-    }
-
-    cancel() {
-        this.activeCommand?.cancel();
-        this.activeCommand = undefined;
     }
 
     onWindowResize() {

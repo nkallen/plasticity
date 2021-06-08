@@ -17,9 +17,19 @@ afterEach(() => {
     editor.disposable.dispose();
 });
 
-test('execute', async () => {
+test('enqueue cancels active commands and executes the most recent', async () => {
     const command1 = new CircleCommand(editor);
     const command2 = new CircleCommand(editor);
-    editor.execute(command1);
-    editor.execute(command2);
+    const command3 = new CircleCommand(editor);
+
+    editor.enqueue(command1);
+    await Promise.resolve();
+    editor.enqueue(command2);
+    await Promise.resolve();
+    editor.enqueue(command3);
+    await Promise.resolve();
+
+    expect(command1.state).toBe('Cancelled');
+    expect(command2.state).toBe('None');
+    expect(command3.state).toBe('None');
 });

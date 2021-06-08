@@ -175,6 +175,7 @@ export class SelectionManager implements HasSelection {
             Clone(this.selectedEdges, registry),
             Clone(this.selectedFaces, registry),
             Clone(this.selectedCurves, registry),
+            Clone(this.selectedRegions, registry),
         );
     }
 
@@ -184,5 +185,8 @@ export class SelectionManager implements HasSelection {
         (this.selectedEdges as SelectionManager['selectedEdges']) = m.selectedEdges;
         (this.selectedFaces as SelectionManager['selectedFaces']) = m.selectedFaces;
         (this.selectedCurves as SelectionManager['selectedCurves']) = m.selectedCurves;
+        (this.selectedRegions as SelectionManager['selectedRegions']) = m.selectedRegions;
+
+        this.signals.selectionChanged.dispatch({ selection: this });
     }
 }

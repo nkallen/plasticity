@@ -13,6 +13,8 @@ export class ChangeSelectionCommand extends Command {
         super(editor);
     }
 
+    intersection?: THREE.Intersection;
+
     async execute(): Promise<void> {
         const intersection = this.editor.selectionInteraction.onClick(this.intersections);
         let point;
@@ -21,5 +23,6 @@ export class ChangeSelectionCommand extends Command {
             point = intersection.point;
         }
         this.editor.signals.selectionChanged.dispatch({ selection, point });
+        this.intersection = intersection;
     }
 }

@@ -5,7 +5,7 @@ import { EditorOriginator } from "../History";
 
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,
-    execute(command: Command, silent: boolean): Promise<void>;
+    enqueue(command: Command, silent?: boolean): void;
 }
 
 export class ViewportSelector extends THREE.EventDispatcher {
@@ -66,7 +66,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
             const intersects = this.getIntersects(this.onUpPosition, [...this.editor.db.drawModel]);
 
             const command = new ChangeSelectionCommand(this.editor, intersects);
-            this.editor.execute(command, true);
+            this.editor.enqueue(command);
         }
 
         document.removeEventListener('pointerup', this.onPointerUp, false);
