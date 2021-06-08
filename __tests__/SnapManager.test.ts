@@ -48,7 +48,7 @@ test("adding solid", async () => {
     expect(snaps.pickers.length).toBe(1);
 });
 
-test("adding curve", async () => {
+test("adding & removing curve", async () => {
     const makeLine = new LineFactory(db, materials, signals);
     makeLine.p1 = new THREE.Vector3();
     makeLine.p2 = new THREE.Vector3(1, 0, 0);

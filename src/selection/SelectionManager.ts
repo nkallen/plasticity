@@ -222,7 +222,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
 
     restoreFromMemento(m: SelectionMemento) {
         (this.selectedSolidIds as SelectionManager['selectedSolidIds']) = m.selectedSolidIds;
-        (this.parentsWithSelectedChildren as SelectionManager['parentsWithSelectedChildren']) = m.selectedChildren;
+        (this.parentsWithSelectedChildren as SelectionManager['parentsWithSelectedChildren']) = m.parentsWithSelectedChildren;
         (this.selectedEdgeIds as SelectionManager['selectedEdgeIds']) = m.selectedEdgeIds;
         (this.selectedFaceIds as SelectionManager['selectedFaceIds']) = m.selectedFaceIds;
         (this.selectedCurveIds as SelectionManager['selectedCurveIds']) = m.selectedCurveIds;

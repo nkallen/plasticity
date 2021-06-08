@@ -106,14 +106,13 @@ export class GeometryDatabase {
     }
 
     find<T extends visual.Item>(klass: any): T[] {
-        const result: T[] = [];
+        const result: visual.Item[] = [];
         for (const { visual } of this.geometryModel.values()) {
             if (visual instanceof klass) {
-                // @ts-expect-error
-                result.push(item);
+                result.push(visual);
             }
         }
-        return result;
+        return result as T[];
     }
 
     get visibleObjects(): Array<visual.Item> {

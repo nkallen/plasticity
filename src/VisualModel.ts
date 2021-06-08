@@ -33,7 +33,6 @@ export abstract class PlaneItem extends THREE.Object3D {
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
     readonly lod = new THREE.LOD();
-    readonly snaps = new Set<Snap>(); // FIXME I doubt these are cloned correctly (cf History)
 
     constructor() {
         super();
@@ -137,7 +136,6 @@ export class CurveEdge extends Edge {
     private readonly line: Line2;
     private readonly occludedLine: Line2;
     get child() { return this.line };
-    readonly snaps = new Set<Snap>(); // FIXME I doubt these are cloned correctly (cf History)
 
     static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial) {
         const geometry = new LineGeometry();
@@ -191,7 +189,6 @@ export class CurveSegment extends SpaceItem { // This doesn't correspond to a re
 }
 
 export class Face extends TopologyItem {
-    readonly snaps = new Set<Snap>();
     private readonly mesh: THREE.Mesh;
     get child() { return this.mesh };
 

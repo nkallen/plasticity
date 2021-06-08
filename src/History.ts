@@ -25,7 +25,7 @@ export class GeometryMemento {
 export class SelectionMemento {
     constructor(
         readonly selectedSolidIds: Set<c3d.SimpleName>,
-        readonly selectedChildren: RefCounter<c3d.SimpleName>,
+        readonly parentsWithSelectedChildren: RefCounter<c3d.SimpleName>,
         readonly selectedEdgeIds: Set<string>,
         readonly selectedFaceIds: Set<string>,
         readonly selectedCurveIds: Set<c3d.SimpleName>,
@@ -35,6 +35,7 @@ export class SelectionMemento {
 
 export class SnapMemento {
     constructor(
+        readonly garbageDisposal: RefCounter<c3d.SimpleName>,
         readonly begPoints: Set<Snap>,
         readonly midPoints: Set<Snap>,
         readonly endPoints: Set<Snap>

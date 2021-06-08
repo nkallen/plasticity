@@ -1,3 +1,4 @@
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import * as visual from '../src/VisualModel';
@@ -5,26 +6,30 @@ import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { SnapMemento } from "./History";
 import { SpriteDatabase } from "./SpriteDatabase";
+import { RefCounter } from "./util/Util";
 
 export class SnapManager {
-    private readonly snaps = new Set<Snap>();
+    private readonly basicSnaps = new Set<Snap>();
 
     private readonly begPoints = new Set<Snap>();
     private readonly midPoints = new Set<Snap>();
     private readonly endPoints = new Set<Snap>();
+    private readonly garbageDisposal = new RefCounter<c3d.SimpleName>();
 
     pickers: THREE.Object3D[] = [];
     snappers: THREE.Object3D[] = [];
 
+
     constructor(
         private readonly db: GeometryDatabase,
         private readonly sprites: SpriteDatabase,
-        signals: EditorSignals) {
-        this.snaps.add(originSnap);
-        this.snaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)));
-        this.snaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)));
-        this.snaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)));
-        Object.freeze(this.snaps);
+        signals: EditorSignals
+    ) {
+        this.basicSnaps.add(originSnap);
+        this.basicSnaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)));
+        this.basicSnaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)));
+        this.basicSnaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)));
+        Object.freeze(this.basicSnaps);
 
         signals.objectAdded.add(item => this.add(item));
         signals.objectRemoved.add(item => this.delete(item));
@@ -57,35 +62,40 @@ export class SnapManager {
     }
 
     private update() {
-        const all = [...this.snaps, ...this.begPoints, ...this.midPoints, ...this.endPoints];
+        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.endPoints];
         this.pickers = all.map((s) => s.picker).filter(x => !!x) as THREE.Object3D[];
         this.snappers = all.map((s) => s.snapper);
     }
 
     private add(item: visual.Item): void {
+        const disposable = new CompositeDisposable();
         if (item instanceof visual.Solid) {
             for (const edge of item.edges) {
-                this.addEdge(edge); // FIXME maybe lookup edges in a more efficient way
+                const d = this.addEdge(edge);
+                disposable.add(d);
             }
         } else if (item instanceof visual.SpaceInstance) {
-            this.addCurve(item);
+            const d = this.addCurve(item);
+            disposable.add(d);
         }
 
+        this.garbageDisposal.incr(item.simpleName, disposable);
         this.update();
     }
 
     private addEdge(edge: visual.CurveEdge) {
         const model = this.db.lookupTopologyItem(edge) as c3d.Edge;
         const begPt = model.GetBegPoint();
-        const begSnap = new PointSnap(begPt.x, begPt.y, begPt.z);
-        this.begPoints.add(begSnap);
-
         const midPt = model.Point(0.5);
+        const begSnap = new PointSnap(begPt.x, begPt.y, begPt.z);
         const midSnap = new PointSnap(midPt.x, midPt.y, midPt.z);
-        this.midPoints.add(midSnap);
 
-        edge.snaps.add(midSnap);
-        edge.snaps.add(begSnap);
+        this.begPoints.add(begSnap);
+        this.midPoints.add(midSnap);
+        return new Disposable(() => {
+            this.begPoints.delete(begSnap);
+            this.midPoints.delete(midSnap);
+        });
     }
 
     private addCurve(item: visual.SpaceInstance<visual.Curve3D>) {
@@ -100,28 +110,15 @@ export class SnapManager {
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
         this.endPoints.add(endSnap);
-        item.snaps.add(begSnap); // FIXME replace with refcounter?
-        item.snaps.add(midSnap);
-        item.snaps.add(endSnap);
+        return new Disposable(() => {
+            this.begPoints.delete(begSnap);
+            this.midPoints.delete(midSnap);
+            this.endPoints.delete(endSnap);
+        });
     }
 
-    private delete(item: visual.SpaceItem): void {
-        if (item instanceof visual.Solid) {
-            for (const edge of item.edges) {
-                for (const snap of edge.snaps) {
-                    this.begPoints.delete(snap);
-                    this.midPoints.delete(snap);
-                    this.endPoints.delete(snap);
-                }
-            }
-        } else if (item instanceof visual.SpaceInstance) {
-            for (const snap of item.snaps) {
-                this.begPoints.delete(snap);
-                this.midPoints.delete(snap);
-                this.endPoints.delete(snap);
-            }
-        }
-
+    private delete(item: visual.Item): void {
+        this.garbageDisposal.delete(item.simpleName);
         this.update();
     }
 
@@ -140,6 +137,7 @@ export class SnapManager {
 
     saveToMemento(registry: Map<any, any>): SnapMemento {
         return new SnapMemento(
+            new RefCounter(this.garbageDisposal),
             new Set(this.begPoints),
             new Set(this.midPoints),
             new Set(this.endPoints));
