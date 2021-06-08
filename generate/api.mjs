@@ -687,11 +687,141 @@ export default {
                 "void SetParameters(const SmoothValues & params)",
             ]
         },
+        SimpleCreator: {
+            rawHeader: "cr_simple_creator.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        CurveSweptSolid: {
+            rawHeader: "cr_swept_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"],
+        },
+        CurveExtrusionSolid: {
+            rawHeader: "cr_extrusion_solid.h",
+            extends: "CurveSweptSolid",
+            dependencies: ["CurveSweptSolid.h"],
+        },
+        CurveRevolutionSolid: {
+            rawHeader: "cr_revolution_solid.h",
+            extends: "CurveSweptSolid",
+            dependencies: ["CurveSweptSolid.h"],
+        },
+        CurveEvolutionSolid: {
+            rawHeader: "cr_evolution_solid.h",
+            extends: "CurveSweptSolid",
+            dependencies: ["CurveSweptSolid.h"],
+        },
+        CurveLoftedSolid: {
+            rawHeader: "cr_lofted_solid.h",
+            extends: "CurveSweptSolid",
+            dependencies: ["CurveSweptSolid.h"],
+        },
+        BooleanSolid: {
+            rawHeader: "cr_boolean_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"],
+        },
+        CuttingSolid: {
+            rawHeader: "cr_cutting_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"],
+        },
+        SymmetrySolid: {
+            rawHeader: "cr_symmetry_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"],
+        },
+        HoleSolid: {
+            rawHeader: "cr_hole_solid.h",
+            extends: "CurveSweptSolid",
+            dependencies: ["CurveSweptSolid.h"],
+        },
+        ChamferSolid: {
+            rawHeader: "cr_chamfer_solid.h",
+            extends: "SmoothSolid",
+            dependencies: ["SmoothSolid.h"],
+        },
         FilletSolid: {
             rawHeader: "cr_fillet_solid.h",
             extends: "SmoothSolid",
             dependencies: ["SmoothSolid.h"]
-        }
+        },
+        ShellSolid: {
+            rawHeader: "cr_thin_shell_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        DraftSolid: {
+            rawHeader: "cr_draft_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        RibSolid: {
+            rawHeader: "cr_rib_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        SplitShell: {
+            rawHeader: "cr_split_shell.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        NurbsBlockSolid: {
+            rawHeader: "cr_nurbs_block_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        FaceModifiedSolid: {
+            rawHeader: "cr_modified_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        ModifiedNurbsItem: {
+            rawHeader: "cr_modified_nurbs_.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        ShellSolid: {
+            rawHeader: "cr_thin_shell_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        // NurbsModification: {
+        //     rawHeader: "cr_thin_shell_solid.h",
+        //     extends: "Creator",
+        //     dependencies: ["Creator.h"]
+        // },
+        TransformedSolid: {
+            rawHeader: "cr_transformed_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        ThinShellCreator: {
+            rawHeader: "cr_thin_sheet.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        UnionSolid: {
+            rawHeader: "cr_union_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        DetachSolid: {
+            rawHeader: "cr_detach_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        DuplicationSolid: {
+            rawHeader: "cr_duplication_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
+        ReverseCreator: {
+            rawHeader: "cr_simple_creator.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
     },
     modules: {
         Enabler: {

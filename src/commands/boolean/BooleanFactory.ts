@@ -32,6 +32,7 @@ abstract class BooleanFactory extends GeometryFactory {
 
     async doUpdate() { }
 }
+
 export class UnionFactory extends BooleanFactory {
     operationType = c3d.OperationType.Union;
 }
