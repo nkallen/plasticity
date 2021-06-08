@@ -481,7 +481,7 @@ export class OffsetFaceCommand extends Command {
 
         await gizmo.execute(delta => {
             offsetFace.schedule(async () => {
-                offsetFace.transaction('direction', async () => {
+                await offsetFace.transaction('direction', async () => {
                     offsetFace.direction = new THREE.Vector3(delta, 0, 0);
                     await offsetFace.update();
                 });
@@ -576,7 +576,7 @@ export class ActionFaceCommand extends Command {
 
         await gizmo.execute(delta => {
             actionFace.schedule(async () => {
-                actionFace.transaction('direction', async () => {
+                await actionFace.transaction('direction', async () => {
                     actionFace.direction = delta;
                     await actionFace.update();
                 });
@@ -606,7 +606,7 @@ export class FilletFaceCommand extends Command {
 
         await gizmo.execute((delta) => {
             refilletFace.schedule(async () => {
-                refilletFace.transaction('direction', async () => {
+                await refilletFace.transaction('direction', async () => {
                     refilletFace.direction = new THREE.Vector3(delta, 0, 0);
                     await refilletFace.update();
                 });

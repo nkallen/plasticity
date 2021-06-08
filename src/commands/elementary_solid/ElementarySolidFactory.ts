@@ -49,7 +49,7 @@ export default class ElementarySolidFactory extends GeometryFactory {
     }
 
     async doCommit() {
-        const { original, creator, control, duplicate, points } = this;
+        const { original, duplicate } = this;
 
         this.db.removeItem(original);
         const result = await this.db.addItem(duplicate);
