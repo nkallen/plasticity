@@ -1,11 +1,13 @@
 /**
  * The classes here represent promise-like object that can be cancelled or "finished" earlier than it would normally
  * terminate. For example, a promise that resolves when a user drags a gizmo from point a to b can be canceled by
- * the user hitting escape. It might be finished by hitting return.
+ * the user hitting ESCAPE. It might be finished by hitting ENTER.
  * 
  * All cancellable objects should be "registered" meaning that if multiple cancellable promises are simultaneously
  * running, the Registor can cancel them all.
  */
+
+import { Disposable } from "event-kit";
 
 export abstract class Cancellable {
     abstract cancel(): void;
@@ -22,8 +24,22 @@ export abstract class Cancellable {
     }
 }
 
-export const Cancel = {};
-export const Finish = {};
+export class CancellableDisposable extends Cancellable {
+    constructor(private readonly disposable: Disposable) {
+        super();
+    }
+
+    cancel() {
+        this.disposable.dispose();
+    }
+
+    finish() {
+        this.cancel();
+    }
+}
+
+export const Cancel = { tag: 'Cancel' };
+export const Finish = { tag: 'Finish' };
 
 type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => { cancel: (() => void), finish: (() => void) };
 

@@ -7,6 +7,7 @@ better snaps for making lines
 
 BUG:
 
+both point picker and abstract gizmo take callbacks that should be async, because they call update which is potentially async
 cylinder not working in many cases
 
 FUTURE:

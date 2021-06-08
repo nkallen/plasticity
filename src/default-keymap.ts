@@ -16,6 +16,16 @@ export default {
         "s": "gizmo:rotate:screen",
     },
 
+    "ispace-viewport[gizmo='curve']": {
+        "1": "gizmo:curve:line-segment",
+        "2": "gizmo:curve:arc",
+        "3": "gizmo:curve:polyline",
+        "4": "gizmo:curve:nurbs",
+        "5": "gizmo:curve:hermite",
+        "6": "gizmo:curve:bezier",
+        "7": "gizmo:curve:cubic-spline",
+    },
+
     "ispace-viewport": {
         "g": "command:move",
         "r": "command:rotate",

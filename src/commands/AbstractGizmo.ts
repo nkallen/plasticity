@@ -98,7 +98,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     });
                     disposables.add(disp);
                 }
-                this.editor.signals.keybindingsRegistered.dispatch(commands);
+                this.editor.signals.keybindingsRegistered.dispatch(commands); // FIXME I'm skeptical this belongs in a loop
                 disposables.add(new Disposable(() => this.editor.signals.keybindingsRegistered.dispatch([])));
 
                 // Next, the basic workflow for pointer events

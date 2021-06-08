@@ -1,17 +1,21 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { CancellableRegistor, Finish } from "../util/Cancellable";
 import { Editor } from '../Editor';
 import { PointPicker } from '../PointPicker';
+import { Cancel, CancellableRegistor } from "../util/Cancellable";
 import * as visual from "../VisualModel";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
 import CircleFactory from './circle/CircleFactory';
 import CurveFactory from "./curve/CurveFactory";
+import { CurveGizmo } from "./curve/CurveGizmo";
 import CylinderFactory from './cylinder/CylinderFactory';
+import ExtrudeFactory from "./extrude/ExtrudeFactory";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import LineFactory from './line/LineFactory';
+import LoftFactory from "./loft/LoftFactory";
+import MirrorFactory from "./mirror/MirrorFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
@@ -21,9 +25,6 @@ import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
-import LoftFactory from "./loft/LoftFactory";
-import ExtrudeFactory from "./extrude/ExtrudeFactory";
-import MirrorFactory from "./mirror/MirrorFactory";
 
 export default abstract class Command extends CancellableRegistor {
     editor: Editor;
@@ -119,6 +120,12 @@ export class CurveCommand extends Command {
     async execute(): Promise<void> {
         const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
+        const keyboard = new CurveGizmo(this.editor);
+        keyboard.execute((type: number) => {
+            curve.type = type;
+            curve.update();
+        }).resource(this);
+
         const pointPicker = new PointPicker(this.editor);
         let i = 0;
         while (true) {
@@ -132,7 +139,7 @@ export class CurveCommand extends Command {
                 await curve.update();
                 i++;
             } catch (e) {
-                if (e !== Finish) throw e;
+                if (e !== Cancel) throw e;
                 break;
             }
         }

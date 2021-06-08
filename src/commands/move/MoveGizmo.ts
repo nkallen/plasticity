@@ -25,8 +25,6 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     private readonly circle: THREE.Mesh;
     private readonly torus: THREE.Mesh;
 
-    static commands = ["gizmo:move:x", "gizmo:move:y"];
-
     constructor(editor: Editor, p1: THREE.Vector3) {
         const materials = editor.gizmos;
 

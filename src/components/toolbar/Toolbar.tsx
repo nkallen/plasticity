@@ -96,6 +96,13 @@ keybindings.set("gizmo:rotate:z", "Z axis");
 keybindings.set("gizmo:rotate:screen", "Screen space");
 keybindings.set("command:abort", "Abort");
 keybindings.set("command:finish", "Finish");
+keybindings.set("gizmo:curve:line-segment", "Line segment");
+keybindings.set("gizmo:curve:arc", "Arc");
+keybindings.set("gizmo:curve:polyline", "Polyline");
+keybindings.set("gizmo:curve:nurbs", "NURBS");
+keybindings.set("gizmo:curve:hermite", "Hermite");
+keybindings.set("gizmo:curve:bezier", "Bezier");
+keybindings.set("gizmo:curve:cubic-spline", "Cubic spline");
 
 export class Model {
     constructor(
