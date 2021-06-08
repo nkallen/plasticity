@@ -29,7 +29,7 @@ export class Model {
         const { db, selection } = this;
         if (selection.selectedSolids.size == 0) return [];
 
-        const result = new Array<[number, c3d.FilletSolid]>();
+        const result = new Array<[number, c3d.Creator]>();
         const solid = selection.selectedSolids.first!;
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
@@ -62,10 +62,9 @@ export default (editor: Editor) => {
         render() {
             const result = <ol>
                 {this.model.creators.map(([i, c]) => {
-                    const params = c.GetParameters();
                     const Z = "ispace-creator"
                     return <li>
-                        <Z parameters={params} index={i} item={this.model.item}></Z>
+                        <Z creator={c} index={i} item={this.model.item}></Z>
                     </li>
                 })}
             </ol>;
@@ -98,11 +97,11 @@ export default (editor: Editor) => {
         }
         get index() { return this._index }
 
-        _parameters!: c3d.SmoothValues;
-        set parameters(p: c3d.SmoothValues) {
-            this._parameters = p;
+        _creator!: c3d.Creator;
+        set creator(p: c3d.Creator) {
+            this._creator = p;
         }
-        get parameters() { return this._parameters }
+        get creator() { return this._creator }
 
         _item!: visual.Item;
         set item(item: visual.Item) {
@@ -146,8 +145,9 @@ export default (editor: Editor) => {
             });
             editor.enqueue(command);
             const creator = command.dup.SetCreator(this.index).Cast<c3d.FilletSolid>(c3d.CreatorType.FilletSolid);
-            this.parameters[key] = value;
-            creator.SetParameters(this.parameters);
+            const parameters = creator.GetParameters();
+            parameters[key] = value;
+            creator.SetParameters(parameters);
         }
 
         private update<K extends keyof c3d.SmoothValues>(key: K, value: c3d.SmoothValues[K]): void {
@@ -161,7 +161,8 @@ export default (editor: Editor) => {
                                 const finish = () => reject(Finish);
 
                                 const creator = command.dup.SetCreator(that.index).Cast<c3d.FilletSolid>(c3d.CreatorType.FilletSolid);
-                                creator.SetParameters(that.parameters);
+                                const parameters = creator.GetParameters();
+                                parameters[key] = value;
                                 that.state = { tag: 'updating', cb, resolve, reject, creator };
                                 try { if (cb) cb() }
                                 catch (e) { console.error(e) }
@@ -174,8 +175,9 @@ export default (editor: Editor) => {
                 }
                 case 'updating':
                     const creator = this.state.creator;
-                    this.parameters[key] = value;
-                    creator.SetParameters(this.parameters);
+                    const parameters = creator.GetParameters();
+                    parameters[key] = value;
+                    creator.SetParameters(parameters);
                     try { if (this.state.cb) this.state.cb() }
                     catch (e) { console.error(e) }
             }
@@ -200,7 +202,9 @@ export default (editor: Editor) => {
         }
 
         render() {
-            const { distance1, distance2, conic, begLength, endLength, form, smoothCorner, prolong, keepCant, strict, equable } = this.parameters;
+            const creator = this.creator as c3d.FilletSolid;
+            const parameters = creator.GetParameters();
+            const { distance1, distance2, conic, begLength, endLength, form, smoothCorner, prolong, keepCant, strict, equable } = parameters;
 
             render(
                 <>
