@@ -3,7 +3,7 @@ import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
 import { Clone, GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
-import { assertUnreachable, WeakValueMap } from './util/Util';
+import { assertUnreachable } from './util/Util';
 import * as visual from './VisualModel';
 
 const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];
@@ -19,7 +19,6 @@ export class GeometryDatabase {
     readonly drawModel = new Set<visual.SpaceItem>();
     readonly scene = new THREE.Scene();
     private readonly geometryModel = new Map<number, c3d.Item>();
-    private readonly name2topologyItem = new WeakValueMap<c3d.SimpleName, visual.TopologyItem>();
 
     constructor(
         private readonly materials: MaterialDatabase,
@@ -103,12 +102,6 @@ export class GeometryDatabase {
         assertUnreachable(object);
     }
 
-    lookupByName(name: c3d.Name): visual.TopologyItem {
-        const result = this.name2topologyItem.get(name.Hash());
-        if (!result) throw new Error("item not found");
-        return result;
-    }
-
     find<T extends visual.Item>(klass: any): T[] {
         const result: T[] = [];
         for (const item of this.drawModel.values()) {
@@ -186,7 +179,6 @@ export class GeometryDatabase {
                 const polygons = mesh.GetEdges(true);
                 for (const edge of polygons) {
                     const line = visual.CurveEdge.build(edge, lineMaterial, this.materials.lineDashed());
-                    this.name2topologyItem.set(edge.name.Hash(), line);
                     edges.addEdge(line);
                 }
 
@@ -195,7 +187,6 @@ export class GeometryDatabase {
                 for (const grid of grids) {
                     const material = this.materials.mesh(grid, mesh.IsClosed());
                     const face = visual.Face.build(grid, material);
-                    this.name2topologyItem.set(grid.name.Hash(), face);
                     faces.addFace(face);
                 }
                 solid.addLOD(edges.build(), faces.build(), distance);
@@ -211,8 +202,7 @@ export class GeometryDatabase {
         return new GeometryMemento(
             Clone(this.drawModel, registry),
             Clone(this.geometryModel, registry),
-            Clone(this.scene, registry),
-            Clone(this.name2topologyItem, registry))
+            Clone(this.scene, registry));
     }
 
     restoreFromMemento(m: GeometryMemento) {
@@ -224,6 +214,5 @@ export class GeometryDatabase {
 
         (this.scene as GeometryDatabase['scene']) = m.scene;
         (this.geometryModel as GeometryDatabase['geometryModel']) = m.geometryModel;
-        (this.name2topologyItem as GeometryDatabase['name2topologyItem']) = m.name2topologyItem;
     }
 }

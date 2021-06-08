@@ -18,7 +18,6 @@ export class GeometryMemento {
         readonly drawModel: Set<visual.SpaceItem>,
         readonly geometryModel: Map<number, c3d.Item>,
         readonly scene: THREE.Scene,
-        readonly name2topologyItem: WeakValueMap<c3d.SimpleName, visual.TopologyItem>
     ) { }
 }
 
