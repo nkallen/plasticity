@@ -25,19 +25,19 @@ export class GeometryDatabase {
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals) { }
 
-    async addItem(object: c3d.Item): Promise<visual.SpaceItem> {
+    async addItem(model: c3d.Item): Promise<visual.SpaceItem> {
         const current = counter++;
-        this.geometryModel.set(current, object);
+        this.geometryModel.set(current, model);
 
-        const mesh = await this.meshes(object, precision_distance);
-        mesh.userData.simpleName = current;
+        const visual = await this.meshes(model, precision_distance);
+        visual.userData.simpleName = current;
 
-        this.scene.add(mesh);
-        this.drawModel.add(mesh);
+        this.scene.add(visual);
+        this.drawModel.add(visual);
 
-        this.signals.objectAdded.dispatch(mesh); // FIXME dispatch object and mesh, since snapmanager is just looking up the object immediately afterward
+        this.signals.objectAdded.dispatch(visual);
         this.signals.sceneGraphChanged.dispatch();
-        return mesh;
+        return visual;
     }
 
     async addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
@@ -128,8 +128,11 @@ export class GeometryDatabase {
             case c3d.SpaceType.PlaneInstance:
                 builder = new visual.PlaneInstanceBuilder();
                 break;
-            default:
+            case c3d.SpaceType.Solid:
                 builder = new visual.SolidBuilder();
+                break;
+            default:
+                throw new Error("type not yet supported");
         }
 
         for (const [precision, distance] of precision_distance) {
@@ -175,7 +178,7 @@ export class GeometryDatabase {
             //     const points = new THREE.Points(geometry, this.materials.point(obj));
             //     return points;
             // }
-            default: {
+            case c3d.SpaceType.Solid: {
                 const solid = builder as visual.SolidBuilder;
                 const edges = new visual.CurveEdgeGroupBuilder();
                 const lineMaterial = this.materials.line();
@@ -195,6 +198,10 @@ export class GeometryDatabase {
                     faces.addFace(face);
                 }
                 solid.addLOD(edges.build(), faces.build(), distance);
+                break;
+            }
+            default: {
+                throw new Error("type not yet supported");
             }
         }
     }

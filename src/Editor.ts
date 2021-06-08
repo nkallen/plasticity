@@ -26,8 +26,8 @@ import * as visual from './VisualModel';
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
 export interface EditorSignals {
-    objectAdded: signals.Signal<visual.SpaceItem>;
-    objectRemoved: signals.Signal<visual.SpaceItem>;
+    objectAdded: signals.Signal<visual.Item>;
+    objectRemoved: signals.Signal<visual.Item>;
     objectSelected: signals.Signal<visual.SpaceItem | visual.TopologyItem>;
     objectDeselected: signals.Signal<visual.SpaceItem | visual.TopologyItem>;
     objectHovered: signals.Signal<visual.SpaceItem | visual.TopologyItem>
@@ -175,7 +175,11 @@ export class Editor {
         });
         try {
             const state = this.originator.saveToMemento(new Map());
+            let selectionChanged = false;
+            this.signals.objectSelected.addOnce(() => selectionChanged = true);
+            this.signals.objectDeselected.addOnce(() => selectionChanged = true);
             await command.execute();
+            if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
             this.history.add("Command", state);
         } catch (e) {
             if (e !== Cancel) throw e;

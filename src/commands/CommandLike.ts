@@ -19,12 +19,7 @@ export class ChangeSelectionCommand extends Command {
 
     async execute(): Promise<void> {
         const intersection = this.editor.selectionInteraction.onClick(this.intersections);
-        let point;
-        const selection = this.editor.selection;
-        if (intersection) {
-            point = intersection.point;
-        }
-        this.editor.signals.selectionChanged.dispatch({ selection, point });
+        const point = intersection?.point;
         this.intersection = intersection;
     }
 }
@@ -34,6 +29,7 @@ export class RebuildCommand extends Command {
         const object = this.editor.selection.selectedSolids.values().next().value;
         const factory = new RebuildFactory(this.editor.db, this.editor.materials, this.editor.signals);
         factory.item = object;
-        await factory.commit();
+        const selection = await factory.commit() as visual.Solid;
+        this.editor.selection.selectSolid(selection);
     }
 }

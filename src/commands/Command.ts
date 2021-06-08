@@ -457,7 +457,8 @@ export class FilletCommand extends Command {
             max.exec(delta)
         ).resource(this);
 
-        await fillet.commit();
+        const selection = await fillet.commit() as visual.Solid;
+        this.editor.selection.selectSolid(selection);
     }
 }
 
@@ -720,14 +721,5 @@ export class ModeCommand extends Command {
 
                 break;
         }
-    }
-}
-
-export class RebuildCommand extends Command {
-    async execute(): Promise<void> {
-        const object = this.editor.selection.selectedSolids.values().next().value;
-        const factory = new RebuildFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        factory.item = object;
-        
     }
 }

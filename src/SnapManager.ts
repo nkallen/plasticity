@@ -62,10 +62,10 @@ export class SnapManager {
         this.snappers = all.map((s) => s.snapper);
     }
 
-    private add(item: visual.SpaceItem): void {
+    private add(item: visual.Item): void {
         if (item instanceof visual.Solid) {
             for (const edge of item.edges) {
-                this.addEdge(edge);
+                this.addEdge(edge); // FIXME maybe lookup edges in a more efficient way
             }
         } else if (item instanceof visual.SpaceInstance) {
             this.addCurve(item);

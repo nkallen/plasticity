@@ -77,13 +77,15 @@ export default (editor: Editor) => {
         constructor() {
             super();
             this.render = this.render.bind(this);
-            this.update = this.update.bind(this);
+            this.onClick = this.onClick.bind(this);
+            this.onChange = this.onChange.bind(this);
         }
 
         _creator!: c3d.FilletSolid;
         set creator(creator: c3d.FilletSolid) {
             this._creator = creator;
         }
+        get creator() { return this._creator };
 
         _parameters!: c3d.SmoothValues;
         set parameters(p: c3d.SmoothValues) {
@@ -105,40 +107,55 @@ export default (editor: Editor) => {
             this.render();
         }
 
-        update(e: Event) {
+        onChange(e: Event) {
             if (!(e.target instanceof HTMLInputElement)) throw new Error("invalid precondition");
+            if (e.target.type !== 'text') throw new Error("invalid precondition");
 
-            // type t = keyof c3d.SmoothValues
-            // const x = e.target.name as unknown as t;
-            this.parameters.prolong = e.target.checked;
-            this._creator.SetParameters(this.parameters);
+            const key = e.target.name as keyof c3d.SmoothValues;
+            const value = Number(e.target.value) as c3d.SmoothValues[keyof c3d.SmoothValues];
+            this.change(key, value);
+        }
+
+        onClick(e: Event) {
+            if (!(e.target instanceof HTMLInputElement)) throw new Error("invalid precondition");
+            if (e.target.type !== 'checkbox') throw new Error("invalid precondition");
+
+            const key = e.target.name as keyof c3d.SmoothValues;
+            const value = e.target.checked as c3d.SmoothValues[keyof c3d.SmoothValues];
+            this.change(key, value);
+        }
+
+        private change<K extends keyof c3d.SmoothValues>(key: K, value: c3d.SmoothValues[K]): void {
+            this.parameters[key] = value;
+            this.creator.SetParameters(this.parameters);
             editor.signals.creatorChanged.dispatch({ creator: this._creator, item: this.item })
         }
 
         render() {
             const { distance1, distance2, conic, begLength, endLength, form, smoothCorner, prolong, keepCant, strict, equable } = this.parameters;
 
+            render('', this)
             render(<form>
                 <ul>
                     <li>
                         <label for="distance1">distance1</label>
-                        <input type="text" name="distance1" value={distance1}></input>
+                        <input type="text" name="distance1" value={distance1} onChange={this.onChange}></input>
                     </li>
                     <li>
                         <label for="distance2">distance2</label>
-                        <input type="text" name="distance2" value={distance2}></input>
+                        <input type="text" name="distance2" value={distance2} onChange={this.onChange}></input>
                     </li>
                     <li>
                         <label for="conic">conic</label>
-                        <input type="text" name="conic" value={conic}></input>
+                        <input type="text" name="conic" value={conic} onChange={this.onChange}></input>
                     </li>
                     <li>
                         <label for="begLength">begLength</label>
-                        <input type="text" name="begLength" value={begLength}></input>
+                        <input type="text" name="begLength" value={begLength} onChange={this.onChange}></input>
                     </li>
                     <li>
                         <label for="endLength">endLength</label>
-                        <input type="text" name="endLength" value={endLength}></input>
+                        <input type="text" name="endLength" value={endLength} onChange={this.onChange}></input>
                     </li>
                     <li>
                         <label for="form">form</label>
@@ -150,7 +167,7 @@ export default (editor: Editor) => {
                     </li>
                     <li>
                         <label for="prolong">prolong</label>
-                        <input type="checkbox" name="prolong" checked={prolong} onClick={this.update}></input>
+                        <input type="checkbox" name="prolong" checked={prolong} onClick={this.onClick}></input>
                     </li>
                     <li>
                         <label for="keepCant">keepCant</label>
@@ -158,11 +175,11 @@ export default (editor: Editor) => {
                     </li>
                     <li>
                         <label for="distance1">strict</label>
-                        <input type="checkbox" name="strict" checked={strict}></input>
+                        <input type="checkbox" name="strict" checked={strict} onClick={this.onClick}></input>
                     </li>
                     <li>
                         <label for="equable">equable</label>
-                        <input type="checkbox" name="equable" checked={equable}></input>
+                        <input type="checkbox" name="equable" checked={equable} onClick={this.onClick}></input>
                     </li>
                 </ul>
             </form>, this);

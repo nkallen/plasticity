@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from '../../GeometryDatabase';
 import * as visual from '../../VisualModel';
@@ -12,8 +11,7 @@ export class RebuildFactory extends GeometryFactory {
         this._item = item;
         const { db } = this;
         const model = db.lookup(item);
-        // this.dup = model.Duplicate().Cast<c3d.Item>(c3d.SpaceType.Item);
-        this.dup = model;
+        this.dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
     }
 
     get item() { return this._item }
