@@ -1,4 +1,6 @@
 import Command, * as cmd from "./Command";
+import * as visual from "../VisualModel";
+import { RebuildFactory } from "./rebuild/RebuildFactory";
 
 /**
  * These aren't typical commands, with a set of steps and gizmos to perform a geometrical operation.
@@ -24,5 +26,14 @@ export class ChangeSelectionCommand extends Command {
         }
         this.editor.signals.selectionChanged.dispatch({ selection, point });
         this.intersection = intersection;
+    }
+}
+
+export class RebuildCommand extends Command {
+    async execute(): Promise<void> {
+        const object = this.editor.selection.selectedSolids.values().next().value;
+        const factory = new RebuildFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        factory.item = object;
+        await factory.commit();
     }
 }

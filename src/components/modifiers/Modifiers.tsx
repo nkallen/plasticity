@@ -1,16 +1,24 @@
-import c3d from '../../../build/Release/c3d.node';
-import Command, * as cmd from '../../commands/Command';
-import { Editor } from '../../Editor';
 import { CompositeDisposable, Disposable } from 'event-kit';
+import { render } from 'preact';
+import c3d from '../../../build/Release/c3d.node';
+import { Editor } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
 import { HasSelection } from '../../selection/SelectionManager';
-import { render, createRef } from 'preact';
+import * as visual from '../../VisualModel';
 
 export class Model {
     constructor(
         private readonly selection: HasSelection,
         private readonly db: GeometryDatabase
     ) { }
+
+    get item() {
+        const { selection } = this;
+        if (selection.selectedSolids.size == 0) throw new Error("invalid precondition");
+
+        const solid = selection.selectedSolids.values().next().value;
+        return solid;
+    }
 
     get creators() {
         const { db, selection } = this;
@@ -50,12 +58,9 @@ export default (editor: Editor) => {
             const result = <ol>
                 {this.model.creators.map(c => {
                     const x = c.GetParameters();
-                    const { distance1, distance2, conic, begLength, endLength, form, smoothCorner, prolong, keepCant, strict, equable } = x;
-                    const y = { distance1, distance2, conic, begLength, endLength, form, smoothCorner, prolong, keepCant, strict, equable };
-                    console.log(y);
                     const Z = "ispace-creator"
                     return <li>
-                        <Z parameters={x}></Z>
+                        <Z parameters={x} creator={c} item={this.model.item}></Z>
                     </li>
                 })}
             </ol>;
@@ -69,8 +74,18 @@ export default (editor: Editor) => {
     customElements.define('ispace-modifiers', Modifiers);
 
     class Creator extends HTMLElement {
-        _parameters!: c3d.SmoothValues;
+        constructor() {
+            super();
+            this.render = this.render.bind(this);
+            this.update = this.update.bind(this);
+        }
 
+        _creator!: c3d.FilletSolid;
+        set creator(creator: c3d.FilletSolid) {
+            this._creator = creator;
+        }
+
+        _parameters!: c3d.SmoothValues;
         set parameters(p: c3d.SmoothValues) {
             this._parameters = p;
         }
@@ -79,8 +94,25 @@ export default (editor: Editor) => {
             return this._parameters;
         }
 
+        _item!: visual.Item;
+        set(item: visual.Item) {
+            this._item = item;
+        }
+
+        get item() { return this._item }
+
         connectedCallback() {
             this.render();
+        }
+
+        update(e: Event) {
+            if (!(e.target instanceof HTMLInputElement)) throw new Error("invalid precondition");
+
+            // type t = keyof c3d.SmoothValues
+            // const x = e.target.name as unknown as t;
+            this.parameters.prolong = e.target.checked;
+            this._creator.SetParameters(this.parameters);
+            editor.signals.creatorChanged.dispatch({ creator: this._creator, item: this.item })
         }
 
         render() {
@@ -118,7 +150,7 @@ export default (editor: Editor) => {
                     </li>
                     <li>
                         <label for="prolong">prolong</label>
-                        <input type="checkbox" name="prolong" checked={prolong}></input>
+                        <input type="checkbox" name="prolong" checked={prolong} onClick={this.update}></input>
                     </li>
                     <li>
                         <label for="keepCant">keepCant</label>

@@ -2,9 +2,12 @@ import KeymapManager from "atom-keymap";
 import { CompositeDisposable, Disposable } from "event-kit";
 import signals from "signals";
 import * as THREE from "three";
+import c3d from '../../../build/Release/c3d.node';
 import Command from './commands/Command';
+import ContourManager from './commands/ContourManager';
+import { CreatorCommandManager } from "./commands/CreatorCommandManager";
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
-import { SelectionCommandManager } from "./commands/SelectionCommand";
+import { SelectionCommandManager } from "./commands/SelectionCommandManager";
 import CommandRegistry from "./components/atom/CommandRegistry";
 import TooltipManager from "./components/atom/tooltip-manager";
 import { Viewport } from "./components/viewport/Viewport";
@@ -15,21 +18,20 @@ import { SelectionInteractionManager } from "./selection/SelectionInteraction";
 import { HasSelection, SelectionManager } from "./selection/SelectionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
+import Transactions from './Transactions';
 import { Cancel } from "./util/Cancellable";
 import { Helpers } from "./util/Helpers";
-import { SpaceItem, TopologyItem } from './VisualModel';
-import Transactions from './Transactions';
-import ContourManager from './commands/ContourManager';
+import * as visual from './VisualModel';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
 export interface EditorSignals {
-    objectAdded: signals.Signal<SpaceItem>;
-    objectRemoved: signals.Signal<SpaceItem>;
-    objectSelected: signals.Signal<SpaceItem | TopologyItem>;
-    objectDeselected: signals.Signal<SpaceItem | TopologyItem>;
-    objectHovered: signals.Signal<SpaceItem | TopologyItem>
-    objectUnhovered: signals.Signal<SpaceItem | TopologyItem>
+    objectAdded: signals.Signal<visual.SpaceItem>;
+    objectRemoved: signals.Signal<visual.SpaceItem>;
+    objectSelected: signals.Signal<visual.SpaceItem | visual.TopologyItem>;
+    objectDeselected: signals.Signal<visual.SpaceItem | visual.TopologyItem>;
+    objectHovered: signals.Signal<visual.SpaceItem | visual.TopologyItem>
+    objectUnhovered: signals.Signal<visual.SpaceItem | visual.TopologyItem>
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
     sceneGraphChanged: signals.Signal;
     factoryUpdated: signals.Signal;
@@ -45,6 +47,7 @@ export interface EditorSignals {
     hovered: signals.Signal<THREE.Intersection[]>;
     historyChanged: signals.Signal;
     contoursChanged: signals.Signal;
+    creatorChanged: signals.Signal<{ creator: c3d.Creator, item: visual.Item }>;
 }
 
 export class Editor {
@@ -72,6 +75,7 @@ export class Editor {
         hovered: new signals.Signal(),
         historyChanged: new signals.Signal(),
         contoursChanged: new signals.Signal(),
+        creatorChanged: new signals.Signal(),
     }
 
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
@@ -86,6 +90,7 @@ export class Editor {
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
+    readonly creator = new CreatorCommandManager(this);
     readonly contours = new ContourManager(this, this.signals);
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);

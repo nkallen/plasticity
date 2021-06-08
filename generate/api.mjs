@@ -96,12 +96,13 @@ export default {
         Item: {
             rawHeader: "model_item.h",
             enum: "SpaceType",
-            dependencies: ["Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "SpaceItem.h", "Transactions.h", "Creator.h", "ControlData3D.h"],
+            dependencies: ["ProgressIndicator.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "SpaceItem.h", "Transactions.h", "Creator.h", "ControlData3D.h"],
             extends: ["SpaceItem", "AttributeContainer", "Transactions"],
             functions: [
                 "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg = NULL)",
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
+                { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, ProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool, progInd: { isRaw: true } },
             ],
         },
         TopItem: {
@@ -145,7 +146,7 @@ export default {
         Solid: {
             rawHeader: "solid.h",
             extends: "Item",
-            dependencies: ["StepData.h", "FormNote.h", "Item.h", "CurveEdge.h", "Face.h", "FaceShell.h", "Creator.h", "ProgressIndicator.h"],
+            dependencies: ["StepData.h", "FormNote.h", "Item.h", "CurveEdge.h", "Face.h", "FaceShell.h", "Creator.h"],
             initializers: [
                 "MbFaceShell * shell, MbCreator * creator"
             ],
@@ -157,7 +158,6 @@ export default {
                 "MbFaceShell * GetShell()",
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
                 "void SetBasisPoints(const MbControlData3D & cd)",
-                { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, ProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool, progInd: { isRaw: true } },
             ]
         },
         RegTransform: {
