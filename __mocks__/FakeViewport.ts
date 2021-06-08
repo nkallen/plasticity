@@ -18,14 +18,14 @@ export class FakeViewport extends HTMLElement implements Viewport {
 
     renderer = { domElement: canvas, render: (): void => { }, setSize: () => { } };
     camera = new THREE.PerspectiveCamera();
-    constructionPlane: PlaneSnap;
+    constructionPlane = new PlaneSnap(new THREE.Vector3(0,0,1));
     enableControls(): void {
         this.controlsEnabled = true;
     }
     disableControls(): void {
         this.controlsEnabled = false;
     }
-    overlay: THREE.Scene;
+    overlay = new THREE.Scene();
     lastPointerEvent = new MouseEvent('pointermove') as PointerEvent;
 }
 customElements.define('ispace-viewport', FakeViewport);

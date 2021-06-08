@@ -9,13 +9,12 @@ import { EditorSignals } from '../../Editor';
 import { GeometryDatabase } from "../../GeometryDatabase";
 import { EditorOriginator } from "../../History";
 import { SelectionManager } from "../../selection/SelectionManager";
-import { ViewportSelector } from '../../selection/ViewportSelector';
 import * as selector from '../../selection/ViewportSelector';
+import { ViewportSelector } from '../../selection/ViewportSelector';
 import { PlaneSnap } from "../../SnapManager";
 import { Helpers } from "../../util/Helpers";
 import { Solid, SpaceItem, TopologyItem } from "../../VisualModel";
 import { Pane } from '../pane/Pane';
-import * as visual from '../../VisualModel';
 
 const near = 0.01;
 const far = 1000;

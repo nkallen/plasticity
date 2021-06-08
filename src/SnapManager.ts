@@ -166,10 +166,6 @@ export abstract class Snap {
         this.snapper = snapper;
         this.picker = picker;
         this.helper = helper;
-
-        Object.freeze(snapper);
-        Object.freeze(picker);
-        Object.freeze(helper);
     }
 
     abstract project(intersection: THREE.Intersection): THREE.Vector3;

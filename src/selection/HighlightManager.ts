@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import * as visual from '../VisualModel';
 import c3d from '../../build/Release/c3d.node';
 import { GeometryDatabase } from "../GeometryDatabase";
 
@@ -55,7 +54,9 @@ export class HighlightManager {
     unhighlightItems(collection: Iterable<c3d.SimpleName>) {
         for (const id of collection) {
             const { visual: v, model } = this.db.lookupItemById(id);
-            if (!(model instanceof visual.PlaneInstance || model instanceof visual.SpaceInstance)) throw new Error("invalid precondition");
+            if (!(model instanceof c3d.PlaneInstance || model instanceof c3d.SpaceInstance)) {
+                throw new Error("invalid precondition");
+            }
             v.traverse(o => {
                 if (o instanceof Line2 || o instanceof THREE.Mesh) {
                     o.material = o.userData.oldMaterial;
