@@ -44,6 +44,7 @@ declare module "*c3d.node" {
         style: number;
         simpleName: number;
         name: Name;
+        i: number;
     }
 
     declare interface EdgeBuffer {
@@ -51,6 +52,7 @@ declare module "*c3d.node" {
         style: number;
         simpleName: number;
         name: Name;
+        i: number;
     }
 
     declare enum ESides {

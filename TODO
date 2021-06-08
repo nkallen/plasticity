@@ -35,8 +35,6 @@ draft solid
 
 box selection
 
-put freeze on visual models
-
 bug: outlines broken by grid
 
 audit all doCommit to ensure visibility is set to true on failure;

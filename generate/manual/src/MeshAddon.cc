@@ -1,7 +1,7 @@
 #include "../include/Mesh.h"
 #include "../include/Name.h"
 
-Napi::Object getBuffer(const Napi::CallbackInfo &info, const MbGrid *grid)
+Napi::Object getBuffer(const Napi::CallbackInfo &info, const size_t i, const MbGrid *grid)
 {
     Napi::Env env = info.Env();
     Napi::Object result = Napi::Object::New(env);
@@ -18,6 +18,7 @@ Napi::Object getBuffer(const Napi::CallbackInfo &info, const MbGrid *grid)
 
     result.Set(Napi::String::New(env, "style"), Napi::Number::New(env, grid->GetStyle()));
     result.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, grid->GetPrimitiveName()));
+    result.Set(Napi::String::New(env, "i"), Napi::Number::New(env, i));
 
     const MbTopItem *top = grid->TopItem();
     if (top != NULL)
@@ -44,7 +45,7 @@ Napi::Value Mesh::GetBuffers(const Napi::CallbackInfo &info)
             {
                 if (!grid->IsVisible())
                     continue;
-                result[j++] = getBuffer(info, grid);
+                result[j++] = getBuffer(info, i, grid);
             }
         }
     }

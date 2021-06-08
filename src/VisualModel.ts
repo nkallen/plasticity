@@ -145,6 +145,7 @@ export class CurveEdge extends Edge {
         const result = new CurveEdge(line, occludedLine);
         result.userData.name = edge.name;
         result.userData.simpleName = `${parentId},${edge.simpleName}`;
+        // result.userData.index = edge.i;
         return result;
     }
 
@@ -198,7 +199,8 @@ export class Face extends TopologyItem {
         const mesh = new THREE.Mesh(geometry, material);
         const result =  new Face(mesh);
         result.userData.name = grid.name;
-        result.userData.simpleName = `${parentId},${grid.simpleName}`
+        result.userData.simpleName = `${parentId},${grid.i}`
+        result.userData.index = grid.i;
         return result;
     }
 

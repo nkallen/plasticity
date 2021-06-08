@@ -157,16 +157,16 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         for (const collection of [this.selectedEdgeIds, this.selectedFaceIds]) {
             for (const id of collection) {
                 collection.delete(id);
-                const { visual } = this.db.lookupTopologyItemById(id);
-                this.signals.objectDeselected.dispatch(visual.entries().next().value);
+                const { view } = this.db.lookupTopologyItemById(id);
+                this.signals.objectDeselected.dispatch(view.entries().next().value);
             }
         }
 
         for (const collection of [this.selectedSolidIds, this.selectedCurveIds, this.selectedRegionIds]) {
             for (const id of collection) {
                 collection.delete(id);
-                const { visual } = this.db.lookupItemById(id);
-                this.signals.objectDeselected.dispatch(visual);
+                const { view } = this.db.lookupItemById(id);
+                this.signals.objectDeselected.dispatch(view);
             }
         }
         this.parentsWithSelectedChildren.clear();
@@ -193,7 +193,6 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         }
         for (const collection of [selectedCurveIds, selectedRegionIds]) {
             this.highlighter.highlightItems(collection, m => this.materials.highlight(m));
-
         }
         this.hover?.highlight(this.highlighter);
     }

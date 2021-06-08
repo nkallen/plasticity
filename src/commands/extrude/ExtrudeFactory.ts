@@ -11,7 +11,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory {
 
     private temp?: TemporaryObject;
 
-    names = new c3d.SNameMaker(c3d.CreatorType.CurveLoftedSolid, c3d.ESides.SideNone, 0);
+    names = new c3d.SNameMaker(c3d.CreatorType.CurveExtrusionSolid, c3d.ESides.SideNone, 0);
 
     protected abstract contours: c3d.Contour[];
     protected abstract surface: c3d.Surface;

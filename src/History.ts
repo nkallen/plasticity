@@ -16,7 +16,7 @@ export class Memento {
 
 export class GeometryMemento {
     constructor(
-        readonly geometryModel: Map<c3d.SimpleName, { visual: visual.Item, model: c3d.Item }>,
+        readonly geometryModel: Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>,
         readonly topologyModel: Map<string, TopologyData>,
         readonly hidden: Set<c3d.SimpleName>
     ) { }

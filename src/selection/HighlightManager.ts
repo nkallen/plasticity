@@ -10,9 +10,9 @@ export class HighlightManager {
 
     highlightTopologyItems(collection: Iterable<string>, mat: (c: c3d.TopologyItem) => THREE.Material) {
         for (const id of collection) {
-            const { visual, model } = this.db.lookupTopologyItemById(id);
+            const { view, model } = this.db.lookupTopologyItemById(id);
             const newMaterial = mat(model);
-            for (const v of visual) {
+            for (const v of view) {
                 v.traverse(o => {
                     if (o instanceof Line2 || o instanceof THREE.Mesh) {
                         o.userData.oldMaterial = o.material;
@@ -25,8 +25,8 @@ export class HighlightManager {
 
     unhighlightTopologyItems(collection: Iterable<string>) {
         for (const id of collection) {
-            const { visual } = this.db.lookupTopologyItemById(id);
-            for (const v of visual) {
+            const { view } = this.db.lookupTopologyItemById(id);
+            for (const v of view) {
                 v.traverse(o => {
                     if (o instanceof Line2 || o instanceof THREE.Mesh) {
                         o.material = o.userData.oldMaterial;
@@ -39,10 +39,10 @@ export class HighlightManager {
 
     highlightItems(collection: Iterable<c3d.SimpleName>, mat: (c: c3d.Item) => THREE.Material) {
         for (const id of collection) {
-            const { visual: v, model } = this.db.lookupItemById(id);
+            const { view, model } = this.db.lookupItemById(id);
             if (!(model instanceof c3d.PlaneInstance || model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
             const newMaterial = mat(model);
-            v.traverse(o => {
+            view.traverse(o => {
                 if (o instanceof Line2 || o instanceof THREE.Mesh) {
                     o.userData.oldMaterial = o.material;
                     o.material = newMaterial;
@@ -53,11 +53,11 @@ export class HighlightManager {
 
     unhighlightItems(collection: Iterable<c3d.SimpleName>) {
         for (const id of collection) {
-            const { visual: v, model } = this.db.lookupItemById(id);
+            const { view, model } = this.db.lookupItemById(id);
             if (!(model instanceof c3d.PlaneInstance || model instanceof c3d.SpaceInstance)) {
                 throw new Error("invalid precondition");
             }
-            v.traverse(o => {
+            view.traverse(o => {
                 if (o instanceof Line2 || o instanceof THREE.Mesh) {
                     o.material = o.userData.oldMaterial;
                     delete o.userData.oldMaterial;

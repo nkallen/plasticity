@@ -13,11 +13,11 @@ export interface TemporaryObject {
     commit(): Promise<visual.SpaceItem>;
 }
 
-export type TopologyData = { model: c3d.TopologyItem, visual: Set<visual.Face | visual.Edge> };
+export type TopologyData = { model: c3d.TopologyItem, view: Set<visual.Face | visual.Edge> };
 
 export class GeometryDatabase {
     readonly temporaryObjects = new THREE.Scene();
-    private readonly geometryModel = new Map<c3d.SimpleName, { visual: visual.Item, model: c3d.Item }>(); // FIXME combine these two
+    private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>(); // FIXME combine these two
     private readonly topologyModel = new Map<string, TopologyData>(); // parentId -> topologyId -> ...
     private readonly hidden = new Set<c3d.SimpleName>();
 
@@ -29,13 +29,20 @@ export class GeometryDatabase {
     async addItem(model: c3d.Item): Promise<visual.SpaceItem> {
         const current = this.counter++;
 
-        const visual = await this.meshes(model, current, precision_distance);
+        const view = await this.meshes(model, current, precision_distance);
 
-        this.geometryModel.set(current, { visual, model });
+        this.geometryModel.set(current, { view, model });
+        if (view instanceof visual.Solid) {
+            view.traverse(t => {
+                if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
+                    this.addTopologyItem(model, t);
+                }
+            })
+        }
 
-        this.signals.objectAdded.dispatch(visual);
+        this.signals.objectAdded.dispatch(view);
         this.signals.sceneGraphChanged.dispatch();
-        return visual;
+        return view;
     }
 
     async addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
@@ -64,7 +71,7 @@ export class GeometryDatabase {
         this.signals.sceneGraphChanged.dispatch();
     }
 
-    lookupItemById(id: c3d.SimpleName): { visual: visual.Item, model: c3d.Item } {
+    lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item } {
         const result = this.geometryModel.get(id);
         if (result === undefined) throw new Error(`invalid precondition: object ${id} missing from geometry model`);
         return result;
@@ -98,7 +105,7 @@ export class GeometryDatabase {
             if (!result) throw new Error("cannot find edge");
             return result;
         } else if (object instanceof visual.Face) {
-            const result = solid.FindFaceByName(object.userData.name);
+            const result = solid.GetFace(object.userData.index);
             if (!result) throw new Error("cannot find face");
             return result;
         }
@@ -107,7 +114,7 @@ export class GeometryDatabase {
 
     find<T extends visual.Item>(klass: any): T[] {
         const result: visual.Item[] = [];
-        for (const { visual } of this.geometryModel.values()) {
+        for (const { view: visual } of this.geometryModel.values()) {
             if (visual instanceof klass) {
                 result.push(visual);
             }
@@ -118,7 +125,7 @@ export class GeometryDatabase {
     get visibleObjects(): Array<visual.Item> {
         const { geometryModel, hidden } = this;
         const difference = [];
-        for (const { visual } of geometryModel.values()) {
+        for (const { view: visual } of geometryModel.values()) {
             if (!hidden.has(visual.simpleName)) difference.push(visual);
         }
         return difference;
@@ -192,7 +199,6 @@ export class GeometryDatabase {
                 for (const edge of polygons) {
                     const line = visual.CurveEdge.build(edge, id, lineMaterial, this.materials.lineDashed());
                     edges.addEdge(line);
-                    this.addTopologyItem(obj, line);
                 }
 
                 const faces = new visual.FaceGroupBuilder();
@@ -201,7 +207,6 @@ export class GeometryDatabase {
                     const material = this.materials.mesh(grid, mesh.IsClosed());
                     const face = visual.Face.build(grid, id, material);
                     faces.addFace(face);
-                    this.addTopologyItem(obj, face);
                 }
                 solid.addLOD(edges.build(), faces.build(), distance);
                 break;
@@ -214,21 +219,21 @@ export class GeometryDatabase {
         if (!(parent instanceof c3d.Solid)) throw new Error("invalid precondition");
 
         let topologyData = this.topologyModel.get(t.simpleName);
-        let set;
+        let views;
         if (topologyData === undefined) {
             let model;
             if (t instanceof visual.Face) {
-                model = parent.FindFaceByName(t.userData.name);
+                model = parent.GetFace(t.userData.index);
             } else if (t instanceof visual.CurveEdge) {
                 model = parent.FindEdgeByName(t.userData.name);
             } else throw new Error("invalid precondition");
-            set = new Set<visual.Face | visual.Edge>();
-            topologyData = { model, visual: set }
+            views = new Set<visual.Face | visual.Edge>();
+            topologyData = { model, view: views }
             this.topologyModel.set(t.simpleName, topologyData);
         } else {
-            set = topologyData.visual;
+            views = topologyData.view;
         }
-        set.add(t);
+        views.add(t);
     }
 
     private removeTopologyItems(parent: visual.Item) {

@@ -27,12 +27,12 @@ abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem, S 
 
 export class ItemSelection<T extends visual.Item> extends AbstractSelection<T, c3d.SimpleName> {
     lookupById(id: c3d.SimpleName) {
-        return this.db.lookupItemById(id).visual as T;
+        return this.db.lookupItemById(id).view as T;
     }
 }
 
 export class TopologyItemSelection<T extends visual.TopologyItem> extends AbstractSelection<T, string> {
     lookupById(id: string) {
-        return this.db.lookupTopologyItemById(id).visual.values().next().value;
+        return this.db.lookupTopologyItemById(id).view.values().next().value;
     }
 }
