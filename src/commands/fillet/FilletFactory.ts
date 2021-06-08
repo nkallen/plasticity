@@ -149,7 +149,7 @@ export class Max {
                 break;
             case 'computed':
                 if (delta >= this.state.value) {
-                    console.warn("skipping work because delta exceeds max", delta, this.state.value);
+                    console.warn("skipping work because delta exceeds max");
                 } else {
                     this.state = { tag: 'found', value: this.state.value }
                     await this.exec(delta);

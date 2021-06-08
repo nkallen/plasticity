@@ -171,8 +171,8 @@ export class Editor {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
         });
+        const state = this.originator.saveToMemento(new Map());
         try {
-            const state = this.originator.saveToMemento(new Map());
             let selectionChanged = false;
             this.signals.objectSelected.addOnce(() => selectionChanged = true);
             this.signals.objectDeselected.addOnce(() => selectionChanged = true);
@@ -180,6 +180,7 @@ export class Editor {
             if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
             this.history.add("Command", state);
         } catch (e) {
+            this.history.restore(state);
             if (e !== Cancel) throw e;
         } finally {
             disposable.dispose();

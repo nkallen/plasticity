@@ -70,7 +70,6 @@ export class Model implements Viewport {
 
         rendererDomElement.setAttribute("tabindex", "1");
         rendererDomElement.addEventListener('pointermove', e => {
-            rendererDomElement.focus();
             this.lastPointerEvent = e;
         });
 

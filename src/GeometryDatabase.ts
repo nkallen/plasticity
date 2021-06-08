@@ -65,9 +65,9 @@ export class GeometryDatabase {
     }
 
     private lookupItem(object: visual.Item): c3d.Item {
-        if (!this.geometryModel.has(object.userData.simpleName)) {
-            throw new Error("invalid precondition");
-        }
+        const simpleName = object.userData.simpleName;
+        if (!this.geometryModel.has(simpleName)) throw new Error(`invalid precondition: object ${simpleName} missing from geometry model`);
+
         const item = this.geometryModel.get(object.userData.simpleName);
         return item!;
     }

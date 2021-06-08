@@ -14,7 +14,7 @@ export class ChangeEvent extends Event {
 }
 
 export default (editor: Editor) => {
-    type ScrubberState = { tag: 'none' } | { tag: 'down', downEvent: PointerEvent, startValue: number, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, startValue: number, currentValue: number, disposable: Disposable }
+    type ScrubberState = { tag: 'none' } | { tag: 'cancel' } | { tag: 'down', downEvent: PointerEvent, startValue: number, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, startValue: number, currentValue: number, disposable: Disposable }
 
     class Scrubber extends HTMLElement {
         private state: ScrubberState = { tag: 'none' };
@@ -43,6 +43,13 @@ export default (editor: Editor) => {
             this.dispatchEvent(event);
         }
 
+        cancel() {
+            this.state = { tag: 'cancel' }
+            this.render();
+            const event = new Event('cancel');
+            this.dispatchEvent(event);
+        }
+
         onPointerMove(e: PointerEvent) {
             switch (this.state.tag) {
                 case 'down': {
@@ -56,7 +63,6 @@ export default (editor: Editor) => {
                     ) {
                         this.state = { tag: 'dragging', downEvent, disposable, startValue, startEvent: e, currentValue: startValue }
                     }
-
                     break;
                 }
                 case 'dragging':
@@ -72,11 +78,13 @@ export default (editor: Editor) => {
 
                     this.state.currentValue += delta * Math.pow(10, -precision);
                     const value = this.state.currentValue;
-                    this.change(value);
-                    this.state.startEvent = e;
-
+                    try { this.change(value) }
+                    catch (e) { console.error(e) }
+                    finally {
+                        this.state.startEvent = e;
+                    }
                     break;
-                default: throw new Error("invalid state");
+                default: throw new Error('invalid state: ' + this.state.tag);
             }
         }
 
@@ -100,29 +108,33 @@ export default (editor: Editor) => {
 
                     this.state = { tag: 'down', downEvent: e, disposable: disposables, startValue: startValue };
                     break;
-                default: throw new Error("invalid state");
+                default: throw new Error('invalid state: ' + this.state.tag);
             }
         }
 
         onPointerUp(e: PointerEvent) {
             switch (this.state.tag) {
                 case 'down': {
-                    // this.oncancel();
                     const { downEvent, disposable } = this.state;
                     if (e.pointerId !== downEvent.pointerId) return;
                     disposable.dispose();
                     this.state = { tag: 'none' };
+                    this.cancel();
                     break;
                 }
                 case 'dragging':
                     const { downEvent, disposable } = this.state;
                     if (e.pointerId !== downEvent.pointerId) return;
 
-                    this.finish(e);
-                    disposable.dispose();
-                    this.state = { tag: 'none' };
+                    try { this.finish(e) }
+                    catch (e) { console.error(e) }
+                    finally {
+                        disposable.dispose();
+                        this.state = { tag: 'none' };
+                    }
                     break;
-                default: throw new Error("invalid state");
+                default: throw new Error('invalid state: ' + this.state.tag);
+
             }
 
         }
@@ -134,13 +146,25 @@ export default (editor: Editor) => {
             const displayValue = startValue.toFixed(precisionDigits);
             const decimalIndex = stringValue.lastIndexOf(".");
             const rawPrecisionDigits = decimalIndex >= 0 ? stringValue.length - decimalIndex - 1 : 0;
+            const full = `${displayValue}${precisionDigits < rawPrecisionDigits ? '...' : ''}`;
 
-            render(
-                <span class="number-scrubber" onPointerDown={this.onPointerDown}>
-                    <span class="prefix"></span>
-                    <span class="value">{displayValue}{precisionDigits < rawPrecisionDigits ? '...' : ''}</span>
-                    <span class="suffix"></span>
-                </span>, this);
+            let result;
+            switch (this.state.tag) {
+                case 'none':
+                case 'dragging':
+                    result = <span class="number-scrubber" onPointerDown={this.onPointerDown}>
+                        <span class="prefix"></span>
+                        <span class="value">{full}</span>
+                        <span class="suffix"></span>
+                    </span>
+                    break;
+                case 'cancel':
+                    result = <input type="text" value={displayValue} ref={i => i?.focus()} />
+                    break;
+                default: throw new Error('invalid state: ' + this.state.tag);
+            }
+
+            render(result, this);
         }
     }
     customElements.define('ispace-number-scrubber', Scrubber);

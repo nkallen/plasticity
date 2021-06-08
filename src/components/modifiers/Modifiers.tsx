@@ -162,7 +162,8 @@ export default (editor: Editor) => {
                                 const creator = command.dup.SetCreator(that.index).Cast<c3d.FilletSolid>(c3d.CreatorType.FilletSolid);
                                 creator.SetParameters(that.parameters);
                                 that.state = { tag: 'updating', cb, resolve, reject, creator };
-                                if (cb) cb();
+                                try { if (cb) cb() }
+                                catch (e) { console.error(e) }
                                 return { cancel, finish };
                             });
                         }
@@ -174,7 +175,8 @@ export default (editor: Editor) => {
                     const creator = this.state.creator;
                     this.parameters[key] = value;
                     creator.SetParameters(this.parameters);
-                    if (this.state.cb) this.state.cb();
+                    try { if (this.state.cb) this.state.cb() }
+                    catch (e) { console.error(e) }
             }
         }
 
@@ -189,6 +191,7 @@ export default (editor: Editor) => {
             switch (this.state.tag) {
                 case 'updating':
                     this.state.resolve();
+                    this.state = { tag: 'none' };
                     break;
                 default:
                     throw new Error("invalid state");
@@ -203,7 +206,7 @@ export default (editor: Editor) => {
                     <div class="header">
                         <input type="checkbox" />
                         <img title="test" src={icons.get(cmd.FilletCommand)}></img>
-                        <div class="foo">Fillet</div>
+                        <div class="name">Fillet</div>
                     </div>
                     <form>
                         <ul>
@@ -213,19 +216,19 @@ export default (editor: Editor) => {
                             </li>
                             <li>
                                 <label for="distance2">distance2</label>
-                                <input type="text" name="distance2" value={distance2} onChange={this.onChange}></input>
+                                <ispace-number-scrubber name="distance2" value={distance2} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="conic">conic</label>
-                                <input type="text" name="conic" value={conic} onChange={this.onChange}></input>
+                                <ispace-number-scrubber name="conic" value={conic} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="begLength">begLength</label>
-                                <input type="text" name="begLength" value={begLength} onChange={this.onChange}></input>
+                                <ispace-number-scrubber name="begLength" value={begLength} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="endLength">endLength</label>
-                                <input type="text" name="endLength" value={endLength} onChange={this.onChange}></input>
+                                <ispace-number-scrubber name="endLength" value={endLength} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="form">form</label>
@@ -255,7 +258,7 @@ export default (editor: Editor) => {
                                 <input type="checkbox" name="keepCant" value={keepCant} onClick={this.onClick}></input>
                             </li>
                             <li>
-                                <label for="distance1">strict</label>
+                                <label for="strict">strict</label>
                                 <input type="checkbox" name="strict" checked={strict} onClick={this.onClick}></input>
                             </li>
                             <li>

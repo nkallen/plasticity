@@ -1,5 +1,7 @@
 ispace-modifiers {
     &>ol {
+        margin: 11px;
+        padding: 0;
         list-style-type: none;
 
         &>li {
@@ -35,7 +37,7 @@ ispace-modifiers {
                 width: 20px;
             }
 
-            .foo {
+            .name {
                 flex-grow: 1;
                 line-height: 20px;
             }
@@ -59,31 +61,30 @@ ispace-modifiers {
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                }
-
-                input {
-                    // display: block;
-                    // flex-grow: 1;
-                    // width: calc(100% - 120px);
+                    display: inline-flex;
                 }
 
                 ispace-number-scrubber {
-                    flex: 0 1 120px;
-                    margin: 3px;
+                    flex-grow: 1;
                     display: inline-flex;
-                    height: 20px;
-                    padding: 1px 7px;
-                    border-radius: 99px;
 
-                    .number-scrubber {
+                    &>input {
+                        &:focus {
+                            outline: none;
+                        }
+                    }
+
+                    &>span,
+                    &>input {
                         color: rgba(0, 0, 0, 0.85);
                         background-color: hsl(150, 61%, 85%);
-                        flex: 0 1 120px;
+                        flex-grow: 1;
                         margin: 3px;
-                        display: inline-flex;
+                        display: block;
                         height: 20px;
                         padding: 1px 7px;
                         border-radius: 99px;
+                        border: none;
                         line-height: 18px;
                         cursor: pointer;
                     }

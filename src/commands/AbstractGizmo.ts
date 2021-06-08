@@ -76,7 +76,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         return new CancellablePromise<void>((resolve, reject) => {
             for (const viewport of this.editor.viewports) {
                 const renderer = viewport.renderer;
-                const camera = viewport.camera;
                 const domElement = renderer.domElement;
 
                 viewport.setAttribute("gizmo", this.title); // for gizmo-specific keyboard command selectors

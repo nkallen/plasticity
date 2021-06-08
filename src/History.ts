@@ -129,6 +129,10 @@ export class History {
 
         return true;
     }
+
+    restore(memento: Memento) {
+        this.originator.restoreFromMemento(memento);
+    }
 }
 
 export function Clone<T>(object: T, registry: Map<any, any>): T {

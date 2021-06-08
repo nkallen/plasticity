@@ -1,26 +1,31 @@
 .pane-item {
     .panel {
-      border-color: fadeout(@inset-panel-border-color, 30%);
+        border-color: fadeout(@inset-panel-border-color, 30%);
     }
-  }
-  
-  ispace-pane-container {
+}
+
+ispace-pane-container {
     ispace-pane {
-      background-color: lighten(@app-background-color, 4%);
-  
-      &:focus {
-        background-color: @app-background-color;
-      }
+        background-color: lighten(@app-background-color, 4%);
+
+        &:focus {
+            background-color: @app-background-color;
+        }
     }
-  
-    ispace-pane-axis.horizontal > * {
-      border-right: 1px solid @pane-item-border-color;
-      &:last-child { border-right: none; }
+
+    ispace-pane-axis.horizontal>* {
+        border-right: 1px solid @pane-item-border-color;
+
+        &:last-child {
+            border-right: none;
+        }
     }
-  
-    ispace-pane-axis.vertical > * {
-      border-bottom: 1px solid @pane-item-border-color;
-      &:last-child { border-bottom: none; }
+
+    ispace-pane-axis.vertical>* {
+        border-bottom: 1px solid @pane-item-border-color;
+
+        &:last-child {
+            border-bottom: none;
+        }
     }
-  }
-  
+}
