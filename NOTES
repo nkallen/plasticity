@@ -1,0 +1,13 @@
+Suppose an edge is selected and a fillet command is on the stack;
+
+ViewportSelector
+    onPointerHover(event: PointerEvent): void {
+        const intersects = this.getIntersects(point, [...this.editor.db.drawModel]);
+        this.editor.signals.hovered.dispatch(intersects);
+    }
+
+This captures a reference to the current object at t1;
+It dispatches;
+Dispatch cancels the fillet command;
+  - this restores to a copy of state before fillet was started. View objects are cloned here though
+It initiates the ChangeSelection command, but with a reference to object that is no longer pointer eq

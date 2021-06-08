@@ -20,9 +20,11 @@ import { Editor } from './Editor';
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
 const editor = new Editor();
+Object.defineProperty(window, 'editor', editor); // Make available to debug console
+
 const stats = new Stats();
 stats.showPanel(1);
-// document.body.appendChild(stats.dom);
+document.body.appendChild(stats.dom);
 
 editor.keymaps.add('/default', keymap);
 editor.registry.add("ispace-workspace", {

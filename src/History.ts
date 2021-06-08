@@ -172,7 +172,7 @@ export function Clone<T>(object: T, registry: Map<any, any>): T {
     } else if (object instanceof RefCounter) {
         result = new RefCounter();
         const counts = new Map();
-        for (const [key, item] of result.counts) {
+        for (const [key, item] of object.counts) {
             counts.set(Clone(key, registry), item);
         }
         (result.counts as RefCounter<T>['counts']) = counts;
