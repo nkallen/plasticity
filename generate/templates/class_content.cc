@@ -70,7 +70,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
 
 Napi::Object <%- klass.cppClassName %>::NewInstance(Napi::Env env, <%- klass.rawClassName %> *underlying) {
     Napi::Object obj = env.GetInstanceData<Napi::ObjectReference>()->Value();
-    Napi::Value value = obj.Get("<%- klass.cppClassName %>");
+    Napi::Value value = obj.Get("<%- klass.jsClassName %>");
     Napi::Function f = value.As<Napi::Function>();
     Napi::FunctionReference* constructor = new Napi::FunctionReference();
     *constructor = Napi::Weak(f);

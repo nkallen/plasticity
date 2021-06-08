@@ -3,6 +3,7 @@
 
 #include "../include/Creator.h"
 #include "../include/ElementarySolid.h"
+#include "../include/FilletSolid.h"
 
 Napi::Value cast(MbCreator * _underlying, const Napi::CallbackInfo &info)
 {
@@ -32,6 +33,8 @@ Napi::Value cast(MbCreator * _underlying, const Napi::CallbackInfo &info)
     {
     case ct_ElementarySolid:
         return ElementarySolid::NewInstance(env, (MbElementarySolid *)(_underlying));
+    case ct_FilletSolid:
+        return FilletSolid::NewInstance(env, (MbFilletSolid *)(_underlying));
     }
 }
 

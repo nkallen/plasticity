@@ -673,7 +673,21 @@ export default {
         ElementarySolid: {
             rawHeader: "cr_elementary_solid.h",
             extends: "Creator",
-            dependencies: ["Creator.h"]
+            dependencies: ["Creator.h"],
+        },
+        SmoothSolid: {
+            rawHeader: "cr_smooth_solid.h",
+            extends: "Creator",
+            dependencies: ["Creator.h", "_SmoothValues.h",],
+            functions: [
+                { signature: "void GetParameters(SmoothValues & params)", params: isReturn },
+                "void SetParameters(const SmoothValues & params)",
+            ]
+        },
+        FilletSolid: {
+            rawHeader: "cr_fillet_solid.h",
+            extends: "SmoothSolid",
+            dependencies: ["SmoothSolid.h"]
         }
     },
     modules: {

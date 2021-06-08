@@ -5,3 +5,11 @@ export declare global {
         }
     }
 }
+
+export declare global {
+    export namespace preact.createElement.JSX {
+        export interface IntrinsicElements {
+            'ispace-creator': any;
+        }
+    }
+}

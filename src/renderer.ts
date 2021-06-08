@@ -14,12 +14,13 @@ import keymap from "./default-keymap";
 import { Editor } from './Editor';
 import './components/pane/Pane';
 import Viewport from './components/viewport/Viewport';
+import Modifiers from './components/modifiers/Modifiers';
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
 const editor = new Editor();
 const stats = new Stats();
 stats.showPanel(1);
-document.body.appendChild(stats.dom);
+// document.body.appendChild(stats.dom);
 
 editor.keymaps.add('/default', keymap);
 editor.registry.add("ispace-workspace", {
@@ -35,6 +36,7 @@ requestAnimationFrame(function loop() {
 
 Toolbar(editor);
 Viewport(editor);
+Modifiers(editor);
 
 const box = new BoxFactory(editor.db, editor.materials, editor.signals);
 box.p1 = new THREE.Vector3();
