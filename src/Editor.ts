@@ -2,7 +2,7 @@ import KeymapManager from "atom-keymap";
 import { CompositeDisposable, Disposable } from "event-kit";
 import signals from "signals";
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
+import c3d from '../build/Release/c3d.node';
 import Command from './commands/Command';
 import ContourManager from './commands/ContourManager';
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";

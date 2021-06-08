@@ -3,6 +3,8 @@
 
 #include "../include/<%- klass.cppClassName %>.h"
 
+#include "tool_mutex.h"
+
 Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "<%- klass.jsClassName %>", {
         <%_ for (const func of klass.functions) { _%>

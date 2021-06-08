@@ -28,6 +28,9 @@
   "config": {
     "forge": {
       "packagerConfig": {},
+      "electronRebuildConfig": {
+          "mode": "parallel"
+      },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",

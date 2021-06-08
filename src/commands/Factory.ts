@@ -4,6 +4,7 @@ import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
 import * as visual from '../VisualModel';
 import { Scheduler } from '../util/Scheduler';
+import c3d from '../../build/Release/c3d.node';
 
 type State = 'none' | 'updated' | 'failed' | 'cancelled' | 'committed'
 
@@ -40,7 +41,9 @@ export abstract class GeometryFactory extends Cancellable {
             case 'failed':
             case 'updated':
                 try {
+                    c3d.Mutex.EnterParallelRegion();
                     await this.doUpdate();
+                    c3d.Mutex.ExitParallelRegion();
                     this.signals.factoryUpdated.dispatch();
                     this.state = Promise.resolve('updated');
                 } catch (e) {
@@ -60,7 +63,9 @@ export abstract class GeometryFactory extends Cancellable {
             case 'none':
             case 'updated':
                 try {
+                    c3d.Mutex.EnterParallelRegion();
                     const result = await this.doCommit();
+                    c3d.Mutex.ExitParallelRegion();
                     this.state = Promise.resolve('committed');
                     this.signals.factoryCommitted.dispatch();
                     return result;

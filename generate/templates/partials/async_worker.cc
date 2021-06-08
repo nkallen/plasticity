@@ -24,6 +24,8 @@
         <%_ } _%> {};
 
     void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::Execute() {
+        EnterParallelRegion();
+
         <%_ for (const _return of func.outParams) { _%>
             <% if (_return.shouldAlloc) { _%>
             <%- _return.rawType %> *<%- _return.name %> = new <%- _return.rawType %>;
@@ -77,6 +79,8 @@
             SetError(msg.str());
         }
         <%_ } _%>
+
+        ExitParallelRegion();
     }
 
     void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::Resolve(Napi::Promise::Deferred const &deferred) {

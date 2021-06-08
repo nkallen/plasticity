@@ -784,6 +784,13 @@ export default {
                 // { signature: "bool CreateBooleanResultRegions(RPArray<MbContour> & contours1, RPArray<MbContour> & contours2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
                 { signature: "bool CreateBooleanResultRegions(MbRegion & region1, MbRegion & region2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
             ]
+        },
+        Mutex: {
+            rawHeader: "tool_mutex.h",
+            functions: [
+                "void EnterParallelRegion()",
+                "void ExitParallelRegion()"
+            ]
         }
     },
     enums: [

@@ -4,6 +4,8 @@
 #include "../include/<%- klass.cppClassName %>.h"
 #include "../include/Error.h"
 
+#include "tool_mutex.h"
+
 Napi::Object <%- klass.cppClassName %>::Init(Napi::Env env, Napi::Object exports) {
     Napi::Object object = Napi::Object::New(env);
 

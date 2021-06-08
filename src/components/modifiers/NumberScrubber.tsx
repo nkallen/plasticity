@@ -25,18 +25,36 @@ export default (editor: Editor) => {
             this.onPointerDown = this.onPointerDown.bind(this);
             this.onPointerMove = this.onPointerMove.bind(this);
             this.onPointerUp = this.onPointerUp.bind(this);
+            this.change = this.change.bind(this);
         }
 
         connectedCallback() {
             this.render();
         }
 
-        change(value: number) {
+        scrub(value: number) {
             this.setAttribute("value", String(value));
             this.render();
-            const event = new ChangeEvent('change', value);
+            const event = new ChangeEvent('scrub', value);
             this.dispatchEvent(event);
         }
+
+        change(e: Event) {
+            if (!(e.target instanceof HTMLInputElement)) throw new Error("invalid precondtion");
+            e.stopPropagation();
+
+            const value = e.target.value;
+
+            const num = Number(value);
+            if (num !== NaN) {
+                this.setAttribute('value', value);
+                const event = new ChangeEvent('change', num);
+                this.dispatchEvent(event);
+            }
+            e.target.blur();
+            this.state = { tag: 'none' };
+            this.render()
+    }
 
         finish(e: PointerEvent) {
             const event = new Event('finish');
@@ -78,7 +96,7 @@ export default (editor: Editor) => {
 
                     this.state.currentValue += delta * Math.pow(10, -precision);
                     const value = this.state.currentValue;
-                    try { this.change(value) }
+                    try { this.scrub(value) }
                     catch (e) { console.error(e) }
                     finally {
                         this.state.startEvent = e;
@@ -148,6 +166,8 @@ export default (editor: Editor) => {
             const rawPrecisionDigits = decimalIndex >= 0 ? stringValue.length - decimalIndex - 1 : 0;
             const full = `${displayValue}${precisionDigits < rawPrecisionDigits ? '...' : ''}`;
 
+            const that = this;
+            const onBlur = () => { that.state = { tag: 'none' }; that.render() };
             let result;
             switch (this.state.tag) {
                 case 'none':
@@ -159,7 +179,7 @@ export default (editor: Editor) => {
                     </span>
                     break;
                 case 'cancel':
-                    result = <input type="text" value={displayValue} ref={i => i?.focus()} />
+                    result = <input type="text" value={displayValue} ref={i => i?.focus()} onBlur={onBlur} onChange={this.change} />
                     break;
                 default: throw new Error('invalid state: ' + this.state.tag);
             }

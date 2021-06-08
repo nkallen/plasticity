@@ -119,12 +119,13 @@ export default (editor: Editor) => {
             if (e.target instanceof HTMLInputElement) {
                 if (e.target.type !== 'text') throw new Error("invalid precondition");
             } else if (e.target instanceof HTMLSelectElement) {
+            } else if (e.target instanceof HTMLElement && e.target.tagName == 'ISPACE-NUMBER-SCRUBBER') {
             } else {
                 throw new Error("invalid precondition");
             }
 
-            const key = e.target.name as keyof c3d.SmoothValues;
-            const value = Number(e.target.value) as c3d.SmoothValues[keyof c3d.SmoothValues];
+            const key = e.target.getAttribute('name') as keyof c3d.SmoothValues;
+            const value = Number(e.target.getAttribute('value')) as c3d.SmoothValues[keyof c3d.SmoothValues];
             this.commit(key, value);
         }
 
@@ -208,27 +209,27 @@ export default (editor: Editor) => {
                         <img title="test" src={icons.get(cmd.FilletCommand)}></img>
                         <div class="name">Fillet</div>
                     </div>
-                    <form>
+                    <form onSubmit={e => { e.preventDefault(); return false }}>
                         <ul>
                             <li>
                                 <label for="distance1">distance1</label>
-                                <ispace-number-scrubber name="distance1" value={distance1} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
+                                <ispace-number-scrubber name="distance1" value={distance1} onchange={this.onChange} onscrub={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="distance2">distance2</label>
-                                <ispace-number-scrubber name="distance2" value={distance2} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
+                                <ispace-number-scrubber name="distance2" value={distance2} onchange={this.onChange} onscrub={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="conic">conic</label>
-                                <ispace-number-scrubber name="conic" value={conic} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
+                                <ispace-number-scrubber name="conic" value={conic} onchange={this.onChange} onscrub={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="begLength">begLength</label>
-                                <ispace-number-scrubber name="begLength" value={begLength} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
+                                <ispace-number-scrubber name="begLength" value={begLength} onchange={this.onChange} onscrub={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="endLength">endLength</label>
-                                <ispace-number-scrubber name="endLength" value={endLength} onchange={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
+                                <ispace-number-scrubber name="endLength" value={endLength} onchange={this.onChange} onscrub={this.onScrub} onfinish={this.onFinish}></ispace-number-scrubber>
                             </li>
                             <li>
                                 <label for="form">form</label>
