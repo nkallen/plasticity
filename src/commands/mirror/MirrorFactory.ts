@@ -26,7 +26,8 @@ export default class MirrorFactory extends GeometryFactory {
     async doCommit() {
         const { origin, normal } = this;
         const model = this.db.lookup(this.curve);
-        const transformed = model.Duplicate() as c3d.SpaceInstance;
+        const transformed_ = model.Duplicate();
+        const transformed = transformed_.Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
         const mat = new c3d.Matrix3D();
         mat.Symmetry(new c3d.CartPoint3D(origin.x, origin.y, origin.z), new c3d.Vector3D(normal.x, normal.y, normal.z));
         transformed.Transform(mat);

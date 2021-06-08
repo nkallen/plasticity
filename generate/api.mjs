@@ -51,7 +51,7 @@ export default {
                 "void Rotate(const MbAxis3D & axis, double angle, MbRegTransform * iReg = NULL )",
                 "void Refresh()",
                 // { signature: "MbSpaceItem * Duplicate(MbRegDuplicate * iReg = NULL)", isManual: true },
-                // "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)",
+                "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)",
             ]
         },
         ControlData3D: {

@@ -66,25 +66,25 @@ test("basic drag interaction", () => {
     const cb = () => { };
     const sm = new GizmoStateMachine(gizmo, signals, cb);
 
-    sm.update(viewport.camera, { x: 0, y: 0, button: 0 });
+    sm.update(viewport, { x: 0, y: 0, button: 0 });
     sm.pointerHover();
     expect(sm.state).toBe('hover');
 
-    sm.update(viewport.camera, { x: 0, y: 0, button: 0 });
+    sm.update(viewport, { x: 0, y: 0, button: 0 });
     const onPointerDown = jest.spyOn(gizmo, 'onPointerDown');
     expect(onPointerDown).toHaveBeenCalledTimes(0);
     sm.pointerDown(() => { });
     expect(sm.state).toBe('dragging');
     expect(onPointerDown).toHaveBeenCalledTimes(1);
 
-    sm.update(viewport.camera, { x: 0.6, y: 0.6, button: -1 });
+    sm.update(viewport, { x: 0.6, y: 0.6, button: -1 });
     const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
     expect(onPointerMove).toHaveBeenCalledTimes(0);
     sm.pointerMove();
     expect(sm.state).toBe('dragging');
     expect(onPointerMove).toHaveBeenCalledTimes(1);
 
-    sm.update(viewport.camera, { x: 0.6, y: 0.6, button: 0 });
+    sm.update(viewport, { x: 0.6, y: 0.6, button: 0 });
     sm.pointerUp(() => { });
     expect(sm.state).toBe('none');
 });

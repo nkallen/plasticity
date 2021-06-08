@@ -57,7 +57,7 @@
         <%_ } else { _%>
             <%_ for (const arg of func.returns) { _%>
                 <%_  if (!arg.isPrimitive && arg.isOnStack) { _%>
-                this-><%- arg.name %> = new <%- arg.rawType %>(<%- arg.name %>);
+                this-><%- arg.name %> = (<%- arg.rawType %> *)&(<%- arg.name %>);
                 <%_ } else { _%>
                 this-><%- arg.name %> = <%- arg.name %>;
                 <%_ } _%>

@@ -9,7 +9,7 @@
     }
     _to = arr_<%- arg.name %>;
 <%_ } else if (!skipCopy && arg.isOnStack) { _%>
-    _to = <%- arg.cppType %>::NewInstance(env, new <%- arg.rawType %>(<%- arg.name %>));
+    _to = <%- arg.cppType %>::NewInstance(env, (<%- arg.rawType %> *)&(<%- arg.name %>));
 <%_ } else { _%>
     if (<%- arg.name %> != NULL) {
         _to = <%- arg.cppType %>::NewInstance(env, <% if (arg.const) { _%>(<%- arg.rawType %> *)<%_ } _%><%- arg.name %>);
