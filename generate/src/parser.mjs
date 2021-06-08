@@ -323,7 +323,7 @@ class ParamDeclaration extends TypeDeclaration {
     }
 
     get shouldAlloc() {
-        return this.isReturn && this.ref == "&"
+        return (this.isReturn && this.ref == "&") || (this.isReturn && this.isArray)
     }
 }
 

@@ -19,9 +19,9 @@
     <% if (arg.isCppString2CString) { _%>
     <%- arg.name %>.c_str(), <%- arg.name %>.length()
     <%_ } else if (arg.shouldAlloc) { _%>
-    *<%- arg.name %>
+    <%- arg.isPointer ? '' : '*' %><%- arg.name %>
     <%_ } else if (arg.isOptional) { _%>
-    info.Length() == <%- arg.cppIndex %> || info[<%- arg.cppIndex %>].IsNull() ? <%- arg.default %> : <%- arg.name %>
+    info.Length() == <%- arg.jsIndex %> || info[<%- arg.jsIndex %>].IsNull() ? <%- arg.default %> : <%- arg.name %>
     <%_ } else { _%>
     <%- arg.name %>
     <%_ } _%>

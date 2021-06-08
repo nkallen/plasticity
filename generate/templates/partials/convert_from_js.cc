@@ -1,11 +1,11 @@
 <%_ if (arg.rawType == "double") { _%>
-    <%- arg.const %> double <%- arg.name %> = info[<%- arg.cppIndex %>].ToNumber().DoubleValue();
+    <%- arg.const %> double <%- arg.name %> = info[<%- arg.jsIndex %>].ToNumber().DoubleValue();
 <%_ } else if (arg.isNumber) { _%>
-    <%- arg.const %> int <%- arg.name %> = info[<%- arg.cppIndex %>].ToNumber().Int64Value();
+    <%- arg.const %> int <%- arg.name %> = info[<%- arg.jsIndex %>].ToNumber().Int64Value();
 <%_ } else if (arg.rawType == "bool") { _%>
-    <%- arg.const %> bool <%- arg.name %> = info[<%- arg.cppIndex %>].ToBoolean();
+    <%- arg.const %> bool <%- arg.name %> = info[<%- arg.jsIndex %>].ToBoolean();
 <%_ } else if (arg.jsType == "Array") { _%>
-    const Napi::Array <%- arg.name %>_ = Napi::Array(env, info[<%- arg.cppIndex %>]);
+    const Napi::Array <%- arg.name %>_ = Napi::Array(env, info[<%- arg.jsIndex %>]);
     <%- arg.rawType %> <%- (_return == 'promise' || arg.ref == '*') ? '*' : '' %> <%- arg.name %> = <%- (_return == 'promise' || arg.ref == '*') ? 'new' : '' %> <%- arg.rawType %>(<%- arg.name %>_.Length(), 1);
     for (size_t i = 0; i < <%- arg.name %>_.Length(); i++) {
         if (<%- arg.name %>_[i].IsNull() || <%- arg.name %>_[i].IsUndefined()) {
@@ -26,20 +26,20 @@
         }
     }
 <%_ } else if (arg.isCppString2CString) { _%>
-    const std::string <%- arg.name %> = info[<%- arg.cppIndex %>].ToString().Utf8Value();
+    const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString().Utf8Value();
 <%_ } else if (arg.isEnum) { _%>
-    const <%- arg.rawType %> <%- arg.name %> = static_cast<<%- arg.rawType %>>(info[<%- arg.cppIndex %>].ToNumber().Uint32Value());
+    const <%- arg.rawType %> <%- arg.name %> = static_cast<<%- arg.rawType %>>(info[<%- arg.jsIndex %>].ToNumber().Uint32Value());
 <%_ } else { _%>
     <%_ if (arg.isOptional || arg.isNullable) { _%>
         <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = NULL;
-        if (!(info[<%- arg.cppIndex %>].IsNull() || info[<%- arg.cppIndex %>].IsUndefined())) {
-            const <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.cppIndex %>].ToObject());
-            <%- arg.name %> = <%- arg.name %>_->_underlying;
+        if (!(info[<%- arg.jsIndex %>].IsNull() || info[<%- arg.jsIndex %>].IsUndefined())) {
+            <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject());
+                <%- arg.name %> = <%- arg.name %>_ <%_ if (!arg.isRaw) { _%> ->_underlying <%_ }  _%>;
         } else {
             <%- arg.name %> = NULL;
         }
     <%_ } else { _%>
-        if (info[<%- arg.cppIndex %>].IsNull() || info[<%- arg.cppIndex %>].IsUndefined()) {
+        if (info[<%- arg.jsIndex %>].IsNull() || info[<%- arg.jsIndex %>].IsUndefined()) {
             <%_ if (_return == 'value') { _%>
                 Napi::Error::New(env, "Passed null for non-optional parameter '<%- arg.name %>'").ThrowAsJavaScriptException();
                 return env.Undefined();
@@ -51,11 +51,9 @@
                 return;
             <%_ } _%>
         }
-        const <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.cppIndex %>].ToObject());
-        <%_ if (arg.isPointer) { _%>
-            <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = <%- arg.name %>_->_underlying;
-        <%_ } else { _%>
-            <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = *<%- arg.name %>_->_underlying;
-        <%_ } _%>
+        const <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject());
+        
+        <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = <%_ if (!arg.isPointer) { _%>*<%_ } _%><%- arg.name %>_->_underlying;
+        
     <%_ } _%>
 <%_ } _%>

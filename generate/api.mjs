@@ -145,7 +145,7 @@ export default {
         Solid: {
             rawHeader: "solid.h",
             extends: "Item",
-            dependencies: ["StepData.h", "FormNote.h", "Item.h", "CurveEdge.h", "Face.h", "FaceShell.h", "Creator.h"],
+            dependencies: ["StepData.h", "FormNote.h", "Item.h", "CurveEdge.h", "Face.h", "FaceShell.h", "Creator.h", "ProgressIndicator.h"],
             initializers: [
                 "MbFaceShell * shell, MbCreator * creator"
             ],
@@ -157,7 +157,7 @@ export default {
                 "MbFaceShell * GetShell()",
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
                 "void SetBasisPoints(const MbControlData3D & cd)",
-                { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, IProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool },
+                { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, ProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool, progInd: { isRaw: true } },
             ]
         },
         RegTransform: {

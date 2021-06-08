@@ -39,7 +39,7 @@
             <% if (arg.isCppString2CString) { _%>
             <%- arg.name %>, <%- arg.name %>_length
             <%_ } else if (arg.shouldAlloc) { _%>
-            *<%- arg.name %>
+            <%- arg.isPointer ? '' : '*' %><%- arg.name %>
             <%_ } else { _%>
             <%- arg.name %>
             <%_ } _%>
