@@ -23,5 +23,7 @@ export default (): EditorSignals => {
         hovered: new signals.Signal(),
         historyChanged: new signals.Signal(),
         selectionChanged: new signals.Signal(),
+        contoursChanged: new signals.Signal(),
+        creatorChanged: new signals.Signal(),
     }
 }

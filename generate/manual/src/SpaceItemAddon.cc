@@ -7,7 +7,7 @@
 #include "../include/Mesh.h"
 #include "../include/SpaceInstance.h"
 
-Napi::Value cast(MbSpaceItem * _underlying, const Napi::CallbackInfo &info)
+Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     if (info.Length() != 1)
@@ -58,6 +58,11 @@ Napi::Value cast(MbSpaceItem * _underlying, const Napi::CallbackInfo &info)
         // default:
         //     Napi::Error::New(env, "Invalid cast parameter").ThrowAsJavaScriptException();
         //     return env.Undefined();
+    case st_Item:
+        return Item::NewInstance(env, (MbItem *)(_underlying));
+    default:
+        Napi::Error::New(env, "Invalid cast parameter").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 }
 
