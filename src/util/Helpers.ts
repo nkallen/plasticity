@@ -4,7 +4,7 @@ import { EditorSignals } from '../Editor';
 import { OffsetFaceGizmo } from '../commands/modifyface/OffsetFaceGizmo';
 import * as gizmo from '../commands/AbstractGizmo';
 import { CancellablePromise } from './Cancellable';
-import ExtrudeFactory, { ExtrudeFactory2 } from '../commands/extrude/ExtrudeFactory';
+import ExtrudeFactory, { RegionExtrudeFactory } from '../commands/extrude/ExtrudeFactory';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
 
@@ -53,12 +53,11 @@ export class Helpers {
         this.p?.cancel();
         if (selection.selectedRegions.size > 0) {
             const region = [...selection.selectedRegions][0];
-            const extrude = new ExtrudeFactory2(this.editor.db, this.editor.materials, this.editor.signals);
+            const extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals);
             extrude.region = region;
             extrude.direction = normal;
             const gizmo = new OffsetFaceGizmo(editor, point ?? new THREE.Vector3(), normal);
             const p = gizmo.execute(delta => {
-                console.log(delta);
                 extrude.distance1 = delta;
                 extrude.update();
             });
