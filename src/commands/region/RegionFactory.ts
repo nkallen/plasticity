@@ -18,7 +18,6 @@ export default class RegionFactory extends GeometryFactory {
         const regions = c3d.ActionRegion.MakeRegions([contour], true, false);
         const result = [];
         for (const region of regions) {
-            console.log(region);
             result.push(this.db.addItem(new c3d.PlaneInstance(region, placement)));
         }
         return Promise.all(result);

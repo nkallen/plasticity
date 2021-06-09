@@ -1,4 +1,5 @@
 import { Disposable } from 'event-kit';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
@@ -6,7 +7,7 @@ import { Clone, SelectionMemento, StateChange } from '../History';
 import MaterialDatabase from '../MaterialDatabase';
 import { RefCounter } from '../util/Util';
 import * as visual from '../VisualModel';
-import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, TopologyItem } from '../VisualModel';
+import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../VisualModel';
 import { ClickStrategy } from './Click';
 import { Hoverable, HoverStrategy } from './Hover';
 
@@ -19,6 +20,7 @@ export interface SelectionStrategy {
     solid(object: TopologyItem, parentItem: Solid): boolean;
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean;
     curve3D(object: CurveSegment, parentItem: SpaceInstance<Curve3D>): boolean;
+    region(object: Region, parentItem: PlaneInstance<Region>): boolean;
     invalidIntersection(): void;
 }
 
@@ -68,6 +70,12 @@ export class SelectionInteractionManager {
             } else if (object instanceof CurveSegment) {
                 const parentItem = object.parentItem;
                 if (strategy.curve3D(object, parentItem)) return;
+            } else if (object instanceof Region) {
+                const parentItem = object.parentItem;
+                if (strategy.region(object, parentItem)) return;
+            } else {
+                console.error(object);
+                throw new Error("Invalid precondition");
             }
         }
     }
@@ -87,6 +95,7 @@ export interface HasSelection {
     readonly selectedSolids: ReadonlySet<Solid>;
     readonly selectedEdges: ReadonlySet<CurveEdge>;
     readonly selectedFaces: ReadonlySet<Face>;
+    readonly selectedRegions: ReadonlySet<PlaneInstance<Region>>;
     readonly selectedCurves: ReadonlySet<SpaceInstance<Curve3D>>;
     hover?: Hoverable;
     readonly selectedChildren: RefCounter<visual.SpaceItem>;
@@ -98,6 +107,7 @@ export class SelectionManager implements HasSelection {
     readonly selectedSolids = new Set<Solid>();
     readonly selectedEdges = new Set<CurveEdge>();
     readonly selectedFaces = new Set<Face>();
+    readonly selectedRegions = new Set<PlaneInstance<Region>>();
     readonly selectedCurves = new Set<SpaceInstance<Curve3D>>();
 
     // selectedChildren is the set of solids that have actively selected topological items;
@@ -131,6 +141,21 @@ export class SelectionManager implements HasSelection {
         object.material = this.materials.highlight(model);
         this.selectedChildren.incr(parentItem,
             new Disposable(() => this.selectedFaces.delete(object)));
+        this.signals.objectSelected.dispatch(object);
+    }
+
+    deselectRegion(object: PlaneInstance<Region>) {
+        this.selectedRegions.delete(object);
+        object.material = this.materials.region();
+        this.signals.objectDeselected.dispatch(object);
+    }
+
+    selectRegion(object: PlaneInstance<Region>) {
+        const model = this.db.lookup(object);
+        this.hover?.dispose();
+        this.hover = undefined;
+        this.selectedRegions.add(object);
+        object.material = this.materials.highlight(model);
         this.signals.objectSelected.dispatch(object);
     }
 
@@ -203,6 +228,11 @@ export class SelectionManager implements HasSelection {
             const model = this.db.lookup(curve);
             curve.material = this.materials.line(model);
             this.signals.objectDeselected.dispatch(curve);
+        }
+        for (const region of this.selectedRegions) {
+            this.selectedRegions.delete(region);
+            region.material = this.materials.region();
+            this.signals.objectDeselected.dispatch(region);
         }
         this.selectedChildren.clear();
     }

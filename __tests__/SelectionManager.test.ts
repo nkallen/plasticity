@@ -1,17 +1,18 @@
 import * as THREE from 'three';
 import BoxFactory from '../src/commands/box/BoxFactory';
-import LineFactory from '../src/commands/line/LineFactory';
-import { Editor, EditorSignals } from '../src/Editor';
+import CircleFactory from '../src/commands/circle/CircleFactory';
+import RegionFactory from '../src/commands/region/RegionFactory';
+import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
-import { SelectionInteractionManager, SelectionManager, UndoableSelectionManager } from '../src/selection/SelectionManager';
+import { SelectionInteractionManager, UndoableSelectionManager } from '../src/selection/SelectionManager';
 import * as visual from '../src/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
 
 let db: GeometryDatabase;
-let materials: Required<MaterialDatabase>;
+let materials: MaterialDatabase;
 let signals: EditorSignals;
 let selectionManager: UndoableSelectionManager;
 let interactionManager: SelectionInteractionManager;
@@ -26,7 +27,8 @@ beforeEach(() => {
 
 describe('onClick', () => {
     let solid: visual.Solid;
-    let line: visual.SpaceInstance<visual.Curve3D>;
+    let circle: visual.SpaceInstance<visual.Curve3D>;
+    let region: visual.PlaneInstance<visual.Region>;
 
     beforeEach(async () => {
         expect(db.scene.children.length).toBe(0);
@@ -37,10 +39,15 @@ describe('onClick', () => {
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
         solid = await makeBox.commit() as visual.Solid;
 
-        const makeLine = new LineFactory(db, materials, signals);
-        makeLine.p1 = new THREE.Vector3();
-        makeLine.p2 = new THREE.Vector3(1, 1, 0);
-        line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const makeCircle = new CircleFactory(db, materials, signals);
+        makeCircle.center = new THREE.Vector3();
+        makeCircle.radius = 1;
+        circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeRegion = new RegionFactory(db, materials, signals);
+        makeRegion.contour = circle;
+        const regions = await makeRegion.commit();
+        region = regions[0];
     });
 
     test('clicking on a curve selects the curve', () => {
@@ -48,19 +55,40 @@ describe('onClick', () => {
         intersections.push({
             distance: 1,
             point: new THREE.Vector3(),
-            object: line.underlying.get(0)
+            object: circle.underlying.get(0)
         });
 
-        expect(line.material).toBe(materials.line(line));
+        expect(circle.material).toBe(materials.line(circle));
         expect(selectionManager.selectedCurves.size).toBe(0);
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(1);
-        expect(line.material).toBe(materials.highlight(line));
+        expect(circle.material).toBe(materials.highlight(circle));
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(line.material).toBe(materials.line(line));
+        expect(circle.material).toBe(materials.line(circle));
+    });
+
+
+    test('clicking on a region selects the region', () => {
+        const intersections = [];
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: region.underlying
+        });
+
+        expect(region.material).toBe(materials.region());
+        expect(selectionManager.selectedRegions.size).toBe(0);
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selectedRegions.size).toBe(1);
+        expect(region.material).toBe(materials.highlight(region));
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selectedRegions.size).toBe(0);
+        expect(region.material).toBe(materials.region());
     });
 
     test('saveToMemento & restoreFromMemento', () => {
@@ -68,27 +96,27 @@ describe('onClick', () => {
         intersections.push({
             distance: 1,
             point: new THREE.Vector3(),
-            object: line.underlying.get(0)
+            object: circle.underlying.get(0)
         });
 
-        expect(line.material).toBe(materials.line(line));
+        expect(circle.material).toBe(materials.line(circle));
         expect(selectionManager.selectedCurves.size).toBe(0);
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(1);
-        expect(line.material).toBe(materials.highlight(line));
+        expect(circle.material).toBe(materials.highlight(circle));
 
         const memento = selectionManager.saveToMemento(new Map());
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(line.material).toBe(materials.line(line));
+        expect(circle.material).toBe(materials.line(circle));
 
         selectionManager.restoreFromMemento(memento);
 
         expect(selectionManager.selectedCurves.size).toBe(1);
-        line = [...selectionManager.selectedCurves][0];
-        expect(line.material).toBe(materials.highlight(line));
+        circle = [...selectionManager.selectedCurves][0];
+        expect(circle.material).toBe(materials.highlight(circle));
     });
 
     test('clicking on a face selects the solid', () => {

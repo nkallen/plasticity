@@ -151,7 +151,7 @@ export class GeometryDatabase {
                 const grids = mesh.GetBuffers();
                 if (grids.length != 1) throw new Error("Invalid precondition");
                 const grid = grids[0];
-                const material = this.materials.region(grid);
+                const material = this.materials.region();
                 const region = visual.Region.build(grid, material);
                 instance.addLOD(region, distance);
                 break;

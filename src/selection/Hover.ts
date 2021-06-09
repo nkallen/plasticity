@@ -1,6 +1,6 @@
 import { EditorSignals } from "../Editor";
 import MaterialDatabase from "../MaterialDatabase";
-import { Curve3D, CurveEdge, CurveSegment, Face, Solid, SpaceInstance, SpaceItem, TopologyItem } from "../VisualModel";
+import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, SpaceItem, TopologyItem } from "../VisualModel";
 import { HasSelection, SelectionMode, SelectionStrategy } from "./SelectionManager";
 
 export class HoverStrategy implements SelectionStrategy {
@@ -55,6 +55,14 @@ export class HoverStrategy implements SelectionStrategy {
                 this.selection.hover?.dispose();
                 this.selection.hover = new MaterialHoverable(object, this.materials.hover(object), this.signals);
             }
+            return true;
+        }
+        return false;
+    }
+
+    region(object: Region, parentItem: PlaneInstance<Region>): boolean {
+        if (this.selection.mode.has(SelectionMode.Face)) {
+            if (this.selection.selectedRegions.has(parentItem)) { }
             return true;
         }
         return false;

@@ -18,12 +18,13 @@ export default interface MaterialDatabase {
     setResolution(size: THREE.Vector2): void;
     point(o?: c3d.Item): THREE.Material;
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material;
-    region(o?: c3d.MeshBuffer): THREE.Material;
+    region(): THREE.Material;
 
     highlight(o: c3d.Edge): LineMaterial;
     highlight(o: c3d.Curve3D): LineMaterial;
-    highlight(o: c3d.Face): THREE.Material;
     highlight(o: c3d.SpaceInstance): LineMaterial;
+    highlight(o: c3d.Face): THREE.Material;
+    highlight(o: c3d.PlaneInstance): THREE.Material;
 
     lookup(o: c3d.Edge): LineMaterial;
     lookup(o: c3d.Face): THREE.Material;
@@ -32,6 +33,7 @@ export default interface MaterialDatabase {
     hover(object: visual.Face): THREE.Material;
     hover(object: visual.Edge): LineMaterial;
     hover(object: visual.CurveSegment): LineMaterial;
+    hover(object: visual.Region): THREE.Material;
 }
 
 const line = new LineMaterial({ color: 0x000000, linewidth: 1.2 });
@@ -79,6 +81,18 @@ region.fog = false;
 region.color.setHex(0x8dd9f2)
 region.opacity = 0.1;
 region.transparent = true;
+
+const region_hovered = new THREE.MeshBasicMaterial();
+region_hovered.fog = false;
+region_hovered.color.setHex(0x8dd9f2)
+region_hovered.opacity = 0.5;
+region_hovered.transparent = true;
+
+const region_highlighted = new THREE.MeshBasicMaterial();
+region_highlighted.fog = false;
+region_highlighted.color.setHex(0x8dd9f2)
+region_highlighted.opacity = 0.9;
+region_highlighted.transparent = true;
 
 export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();
@@ -130,21 +144,24 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         return material;
     }
 
-    region(o: c3d.MeshBuffer): THREE.Material {
+    region(): THREE.Material {
         return region;
     }
 
     highlight(o: c3d.Edge): LineMaterial;
     highlight(o: c3d.Curve3D): LineMaterial;
     highlight(o: c3d.Face): THREE.Material;
+    highlight(o: c3d.PlaneInstance): THREE.Material;
     highlight(o: c3d.SpaceInstance): LineMaterial;
-    highlight(o: c3d.TopologyItem | c3d.Curve3D | c3d.SpaceInstance): THREE.Material {
+    highlight(o: any): THREE.Material {
         if (o instanceof c3d.Curve3D || o instanceof c3d.Edge)
             return line_highlighted;
         else if (o instanceof c3d.Face)
             return mesh_highlighted;
         else if (o instanceof c3d.SpaceInstance)
             return line_highlighted;
+        else if (o instanceof c3d.PlaneInstance)
+            return region_highlighted;
         else {
             throw new Error(`not yet implemented: ${o.constructor}`);
         }
@@ -167,13 +184,16 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     }
 
     hover(object: visual.Face): THREE.Material;
+    hover(object: visual.Region): THREE.Material;
     hover(object: visual.Edge): LineMaterial;
     hover(object: visual.CurveSegment): LineMaterial;
-    hover(object: visual.Face | visual.Edge | visual.CurveSegment): THREE.Material {
+    hover(object: visual.Face | visual.Region | visual.Edge | visual.CurveSegment): THREE.Material {
         if (object instanceof visual.Edge || object instanceof visual.CurveSegment) {
             return line_hovered;
         } else if (object instanceof visual.Face) {
             return mesh_hovered;
+        } else if (object instanceof visual.Region) {
+            return region_hovered;
         }
         assertUnreachable(object);
     }

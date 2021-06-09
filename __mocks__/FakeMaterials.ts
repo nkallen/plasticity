@@ -8,6 +8,7 @@ const line = new LineMaterial();
 const highlight = new LineMaterial();
 const hover = new LineMaterial();
 const mesh = new THREE.Material();
+const region = new THREE.Material();
 
 export class FakeMaterials implements MaterialDatabase {
     get(_o: c3d.Item): THREE.Material {
@@ -25,6 +26,9 @@ export class FakeMaterials implements MaterialDatabase {
     }
     mesh(_o?: c3d.Item | c3d.MeshBuffer, _doubleSided?: boolean): THREE.Material {
         return mesh;
+    }
+    region(): THREE.Material {
+        return region;
     }
     highlight(_o:  c3d.TopologyItem | c3d.SpaceInstance): LineMaterial {
         return highlight;

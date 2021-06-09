@@ -75,7 +75,18 @@ export class SpaceInstance<T extends SpaceItem> extends Item {
 }
 
 export class PlaneInstance<T extends PlaneItem> extends Item {
+    get underlying() { return this.lod.children[0] as T }
     disposable = new CompositeDisposable();
+    get material() {
+        const firstChild = this.underlying as unknown as { material: any }
+        return firstChild.material;
+    };
+    set material(m: THREE.Material) {
+        for (const child of this.lod.children) {
+            const hasMaterial = child as THREE.Object3D & { material: any };
+            hasMaterial.material = m;
+        }
+    };
 }
 
 export class Curve3D extends SpaceItem {
@@ -105,6 +116,7 @@ export class Surface extends SpaceItem {
 
 export class Region extends PlaneItem {
     private readonly mesh: THREE.Mesh;
+    get child() { return this.mesh };
     disposable = new CompositeDisposable();
 
     static build(grid: c3d.MeshBuffer, material: THREE.Material) {
@@ -116,11 +128,18 @@ export class Region extends PlaneItem {
         return new Region(mesh);
     }
 
+    get parentItem(): PlaneInstance<Region> {
+        const result = this.parent!.parent as PlaneInstance<Region>;
+        if (!(result instanceof PlaneInstance)) throw new Error("Invalid precondition");
+        return result;
+    }
+
     private constructor(mesh: THREE.Mesh) {
         super()
         this.mesh = mesh;
         this.renderOrder = RenderOrder.Face;
         this.add(mesh);
+        this.name = "name";
         this.disposable.add(new Disposable(() => this.mesh.geometry.dispose()))
     }
 
@@ -311,6 +330,7 @@ export interface FaceGroup extends HasDisposable { }
 applyMixins(Curve3D, [HasDisposable]);
 applyMixins(Solid, [HasDisposable]);
 applyMixins(SpaceInstance, [HasDisposable]);
+applyMixins(PlaneInstance, [HasDisposable]);
 applyMixins(FaceGroup, [HasDisposable]);
 applyMixins(CurveEdgeGroup, [HasDisposable]);
 
@@ -333,6 +353,7 @@ applyMixins(Solid, [RaycastsRecursively]);
 applyMixins(FaceGroup, [RaycastsRecursively]);
 applyMixins(CurveEdgeGroup, [RaycastsRecursively]);
 applyMixins(SpaceInstance, [RaycastsRecursively]);
+applyMixins(PlaneInstance, [RaycastsRecursively]);
 applyMixins(Curve3D, [RaycastsRecursively]);
 
 export class RecursiveGroup extends THREE.Group { }
@@ -377,10 +398,12 @@ abstract class ObjectWrapper<T extends THREE.BufferGeometry, M extends THREE.Mat
 export interface Face extends ObjectWrapper<THREE.BufferGeometry, THREE.Material> { }
 export interface CurveEdge extends ObjectWrapper<LineGeometry, LineMaterial> { }
 export interface CurveSegment extends ObjectWrapper<LineGeometry, LineMaterial> { }
+export interface Region extends ObjectWrapper<THREE.BufferGeometry, THREE.Material> { }
 
 applyMixins(Face, [ObjectWrapper]);
 applyMixins(CurveEdge, [ObjectWrapper]);
 applyMixins(CurveSegment, [ObjectWrapper]);
+applyMixins(Region, [ObjectWrapper]);
 
 /**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.
