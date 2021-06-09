@@ -8,7 +8,8 @@ export default {
             freeFunctionName: "DeleteItem",
             protectedDestructor: true,
             functions: [
-                "refcount_t GetUseCount()"
+                "refcount_t GetUseCount()",
+                "void AddRef()",
             ]
         },
         Model: {

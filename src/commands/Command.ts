@@ -135,17 +135,21 @@ export class CurveCommand extends Command {
         }).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
-        let i = 0;
         while (true) {
             try {
                 const [point,] = await pointPicker.execute(async (p: THREE.Vector3) => {
                     curve.nextPoint = p;
+                    curve.closed = curve.points.length >= 2 && p.distanceToSquared(curve.startPoint) < 10e-6;
                     await curve.update();
                 }).resource(this);
+                if (curve.points.length >= 2 && point.distanceToSquared(curve.startPoint) < 10e-6) {
+                    curve.closed = true;
+                    this.finish();
+                    break;
+                }
                 curve.nextPoint = undefined;
                 curve.points.push(point);
                 await curve.update();
-                i++;
             } catch (e) {
                 if (e !== Cancel) throw e;
                 break;

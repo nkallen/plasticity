@@ -12,8 +12,11 @@ export default class CurveFactory extends GeometryFactory {
     private mesh: Line2;
     type = c3d.SpaceType.Hermit3D;
     private temp?: TemporaryObject;
+    closed = false;
 
     nextPoint?: THREE.Vector3;
+
+    get startPoint() { return this.points[0] }
 
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
         super(db, materials, signals);
@@ -51,7 +54,7 @@ export default class CurveFactory extends GeometryFactory {
         try {
             const cartPoints = points.map(p => new c3d.CartPoint3D(p.x, p.y, p.z));
             if (nextPoint !== undefined) cartPoints.push(new c3d.CartPoint3D(nextPoint.x, nextPoint.y, nextPoint.z));
-            const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, false, type);
+            const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);
             temp = await this.db.addTemporaryItem(new c3d.SpaceInstance(curve));
         } catch (e) {
             console.log(e);
@@ -67,7 +70,7 @@ export default class CurveFactory extends GeometryFactory {
         this.temp?.cancel();
 
         const cartPoints = points.map(p => new c3d.CartPoint3D(p.x, p.y, p.z));
-        const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, false, type);
+        const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);
         return this.db.addItem(new c3d.SpaceInstance(curve));
     }
 

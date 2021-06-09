@@ -111,7 +111,7 @@ export class Editor {
         const disposable = this.registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
-        })
+        });
         try {
             const state = this.originator.saveToMemento(new Map());
             await command.execute();

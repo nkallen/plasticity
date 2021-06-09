@@ -5,6 +5,7 @@ import { GeometryDatabase } from '../../GeometryDatabase';
 import MaterialDatabase from '../../MaterialDatabase';
 import * as visual from "../../VisualModel";
 import { GeometryFactory } from '../Factory';
+import ContourFactory from "./ContourFactory";
 import CurveFactory from "./CurveFactory";
 
 export default class CurveAndContourFactory extends GeometryFactory {
@@ -17,6 +18,8 @@ export default class CurveAndContourFactory extends GeometryFactory {
     get nextPoint() { return this.currentFactory.nextPoint }
     set nextPoint(p: THREE.Vector3 | undefined) { this.currentFactory.nextPoint = p}
     set type(t: number) { this.currentFactory.type = t}
+    get startPoint() { return this.currentFactory.startPoint }
+    set closed(c: boolean) { this.currentFactory.closed = c }
 
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
         super(db, materials, signals);
@@ -49,7 +52,16 @@ export default class CurveAndContourFactory extends GeometryFactory {
         for (const f of this.factories) {
             ps.push(f.commit() as Promise<visual.SpaceInstance<visual.Curve3D>>);
         }
-        return Promise.all(ps);
+        const curves = await Promise.all(ps);
+        const contour = new ContourFactory(this.db, this.materials, this.signals);
+        for (const curve of curves) {
+            contour.curves.push(curve);
+        }
+        const result = await contour.commit();
+        for (const curve of curves) {
+            this.db.removeItem(curve);
+        }
+        return result;
     }
 
     doCancel() {
