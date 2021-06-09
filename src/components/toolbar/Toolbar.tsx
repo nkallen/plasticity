@@ -23,6 +23,7 @@ import loft from './img/loft.svg';
 import extrude from './img/extrude.svg';
 import move from './img/move.svg';
 import offsetFace from './img/offset-face.svg';
+import draftSolid from './img/rotate.svg';
 import rect from './img/rect.svg';
 import rotate from './img/rotate.svg';
 import scale from './img/scale.svg';
@@ -39,6 +40,7 @@ icons.set(cmd.DifferenceCommand, difference);
 icons.set(cmd.UnionCommand, union);
 icons.set(cmd.CutCommand, cut);
 icons.set(cmd.OffsetFaceCommand, offsetFace);
+icons.set(cmd.DraftSolidCommand, draftSolid);
 icons.set(cmd.RemoveFaceCommand, trash);
 icons.set(cmd.CreateFaceCommand, offsetFace);
 icons.set(cmd.ActionFaceCommand, move);
@@ -67,6 +69,7 @@ tooltips.set(cmd.DifferenceCommand, "Boolean difference");
 tooltips.set(cmd.UnionCommand, "Boolean union");
 tooltips.set(cmd.CutCommand, "Cut solid with curve");
 tooltips.set(cmd.OffsetFaceCommand, "Offset face");
+tooltips.set(cmd.DraftSolidCommand, "Draft solid");
 tooltips.set(cmd.RemoveFaceCommand, "Delete face");
 tooltips.set(cmd.CreateFaceCommand, "Copy face");
 tooltips.set(cmd.ActionFaceCommand, "Move face");
@@ -131,6 +134,7 @@ export class Model {
         }
         if (selection.selectedFaces.size > 0) {
             result.push(cmd.OffsetFaceCommand);
+            result.push(cmd.DraftSolidCommand);
             const face = [...selection.selectedFaces][0];
             const parent = face.parentItem as visual.Solid;
             const solid = db.lookup(parent);

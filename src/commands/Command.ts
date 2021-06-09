@@ -18,6 +18,7 @@ import { FilletGizmo } from './fillet/FilletGizmo';
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import MirrorFactory from "./mirror/MirrorFactory";
+import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
@@ -430,6 +431,34 @@ export class OffsetFaceCommand extends Command {
         await offsetFace.commit();
     }
 }
+
+
+export class DraftSolidCommand extends Command {
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selectedFaces];
+        const parent = faces[0].parentItem as visual.Solid
+
+        const face = faces[0];
+        const faceModel = this.editor.db.lookupTopologyItem(face);
+        const point_ = faceModel.Point(0.5, 0.5);
+        const point = new THREE.Vector3(point_.x, point_.y, point_.z);
+        const gizmo = new RotateGizmo(this.editor, point);
+
+        const draftSolid = new DraftSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        draftSolid.solid = parent;
+        draftSolid.faces = faces;
+        draftSolid.origin = point;
+        
+        await gizmo.execute((axis, angle) => {
+            draftSolid.axis = axis;
+            draftSolid.angle = angle;
+            draftSolid.update();
+        }).resource(this);
+
+        await draftSolid.commit();
+    }
+}
+
 
 export class RemoveFaceCommand extends Command {
     async execute(): Promise<void> {

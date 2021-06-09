@@ -26,7 +26,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         const radius = 0.85;
         {
             const geometry = new LineGeometry();
-            geometry.setPositions(CircleGeometry(radius, 32));
+            geometry.setPositions(CircleGeometry(radius, 64));
             const circle = new Line2(geometry, editor.gizmos.lineRed);
             circle.rotation.set(0, -Math.PI / 2, 0);
             handle.add(circle);
@@ -40,7 +40,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
 
         {
             const geometry = new LineGeometry();
-            geometry.setPositions(CircleGeometry(radius, 32));
+            geometry.setPositions(CircleGeometry(radius, 64));
             const circle = new Line2(geometry, editor.gizmos.lineGreen);
             circle.rotation.set(-Math.PI / 2, 0, 0);
             handle.add(circle);
@@ -54,7 +54,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
 
         {
             const geometry = new LineGeometry();
-            geometry.setPositions(CircleGeometry(radius, 32));
+            geometry.setPositions(CircleGeometry(radius, 64));
             const circle = new Line2(geometry, editor.gizmos.lineBlue);
             circle.rotation.set(0, 0, -Math.PI / 2);
             handle.add(circle);
@@ -69,7 +69,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         const { circle, torus } = (() => {
             const radius = 1;
             const geometry = new LineGeometry();
-            geometry.setPositions(CircleGeometry(radius, 32));
+            geometry.setPositions(CircleGeometry(radius, 64));
             const circle = new Line2(geometry, materials.line);
             handle.add(circle);
 
@@ -84,7 +84,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         const helper = new THREE.Mesh(planeGeometry, materials.occlude);
         helper.renderOrder = -1;
 
-        super("rotate", editor, { handle: handle, picker: picker });
+        super("rotate", editor, { handle: handle, picker: picker, helper: helper });
 
         this.circle = circle;
         this.torus = torus;

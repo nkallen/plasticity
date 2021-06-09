@@ -1,10 +1,10 @@
 THIS WEEK:
 
-test case for contour curve failing to extrude;
-
-
-join curves
-fillet curve thingy
+Draft solid
+Auto push/pull gizmo
+Auto fillet gizmo
+Auto extrude gizmo
+transaction history
 
 
 BUG:
@@ -14,8 +14,13 @@ cylinder not working in many cases
 
 FUTURE:
 
+dialog box for settings
+modifiers
+
+test case for contour curve failing to extrude;
+fillet curve thingy
+
 right click repeat
-right click enter
 
 draft solid
 

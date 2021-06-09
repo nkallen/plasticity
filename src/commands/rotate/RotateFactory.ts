@@ -38,12 +38,12 @@ export default class RotateFactory extends GeometryFactory {
         const { items, axis, angle, point } = this;
         for (const item of items) {
             const model = this.db.lookup(item);
-            this.db.removeItem(item);
 
             const p = new c3d.CartPoint3D(point.x, point.y, point.z);
             const v = new c3d.Vector3D(axis.x, axis.y, axis.z);
             const axi = new c3d.Axis3D(p, v);
             model.Rotate(axi, angle);
+            this.db.removeItem(item);
             result.push(this.db.addItem(model));
         }
         return Promise.all(result);

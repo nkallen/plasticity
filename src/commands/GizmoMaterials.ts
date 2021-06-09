@@ -56,27 +56,27 @@ export class GizmoMaterialDatabase {
 
     readonly line = new LineMaterial(Object.assign({
         color: 0xffffff,
-        linewidth: 2,
+        linewidth: 3,
     }, depthInfo));
 
     readonly lineRed = new LineMaterial(Object.assign({
         color: 0xff0000,
-        linewidth: 2,
+        linewidth: 3,
     }, depthInfo));
 
     readonly lineGreen = new LineMaterial(Object.assign({
         color: 0x00ff00,
-        linewidth: 2,
+        linewidth: 3,
     }, depthInfo));
 
     readonly lineBlue = new LineMaterial(Object.assign({
         color: 0x0000ff,
-        linewidth: 2,
+        linewidth: 3,
     }, depthInfo));
 
     readonly lineYellow = new LineMaterial(Object.assign({
         color: 0xffff00,
-        linewidth: 2,
+        linewidth: 3,
     }, depthInfo));
 
     private readonly lines = [this.line, this.lineRed, this.lineGreen, this.lineBlue, this.lineYellow];
