@@ -48,19 +48,23 @@ abstract class AbstractExtrudeFactory extends GeometryFactory {
 }
 
 export default class ExtrudeFactory extends AbstractExtrudeFactory {
-    curve!: visual.SpaceInstance<visual.Curve3D>;
+    curves!: visual.SpaceInstance<visual.Curve3D>[];
     direction!: THREE.Vector3;
 
     protected get contours() {
-        const inst = this.db.lookup(this.curve);
-        const item = inst.GetSpaceItem();
-        const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-        const { curve2d } = curve.GetPlaneCurve(false);
-        return [new c3d.Contour([curve2d], true)];
+        const result: c3d.Contour[] = [];
+        for (const curve of this.curves) {
+            const inst = this.db.lookup(curve);
+            const item = inst.GetSpaceItem();
+            const model = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            const { curve2d } = model.GetPlaneCurve(false);
+            result.push(new c3d.Contour([curve2d], true));
+        }
+        return result;
     }
 
     protected get surface() {
-        const inst = this.db.lookup(this.curve);
+        const inst = this.db.lookup(this.curves[0]);
         const item = inst.GetSpaceItem();
         const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
         const { placement } = curve.GetPlaneCurve(false);

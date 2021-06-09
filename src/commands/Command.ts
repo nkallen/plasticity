@@ -628,7 +628,7 @@ export class ExtrudeCommand extends Command {
     async execute(): Promise<void> {
         const curves = [...this.editor.selection.selectedCurves];
         const extrude = new ExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
-        extrude.curve = curves[0];
+        extrude.curves = curves;
 
         const pointPicker = new PointPicker(this.editor);
         const [p1,] = await pointPicker.execute().resource(this);
