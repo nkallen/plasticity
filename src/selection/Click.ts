@@ -3,14 +3,11 @@ import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { SelectionManager } from "./SelectionManager";
 
 export class ClickStrategy implements SelectionStrategy {
-    constructor(private selection: SelectionManager) {
-    }
+    constructor(private selection: SelectionManager) {}
 
     emptyIntersection(): void {
         this.selection.deselectAll();
     }
-
-    invalidIntersection(): void { }
 
     curve3D(object: CurveSegment, parentItem: SpaceInstance<Curve3D>): boolean {
         if (this.selection.mode.has(SelectionMode.Curve)) {

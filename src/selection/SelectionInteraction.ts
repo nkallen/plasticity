@@ -16,7 +16,6 @@ export interface SelectionStrategy {
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean;
     curve3D(object: CurveSegment, parentItem: SpaceInstance<Curve3D>): boolean;
     region(object: Region, parentItem: PlaneInstance<Region>): boolean;
-    invalidIntersection(): void;
 }
 
 // Handles click and hovering logic

@@ -16,11 +16,6 @@ export class HoverStrategy implements SelectionStrategy {
         this.selection.hover = undefined;
     }
 
-    invalidIntersection(): void {
-        this.selection.hover?.dispose();
-        this.selection.hover = undefined;
-    }
-
     curve3D(object: CurveSegment, parentCurve: SpaceInstance<Curve3D>): boolean {
         if (this.selection.mode.has(SelectionMode.Curve) && !this.selection.selectedCurves.has(parentCurve)) {
             if (!this.selection.hover?.isEqual(object)) {
