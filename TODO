@@ -19,6 +19,11 @@ audit all doCommit to ensure visibility is set to true on failure;
 
 visualize construction history of objects
 
+go through all factories and see if you can return more specific types from doCommit, like:
+    -  Promise<visual.SpaceInstance<visual.Curve3D>> 
+
+audit VisualModel to see if we can simplify the recursive raycasting. It was originally introduced for LODs, but maybe it can be done with deep raycasting and hit filtering.
+
 --
 
 Viewport week:
