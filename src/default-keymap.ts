@@ -32,6 +32,7 @@ export default {
         "r": "command:rotate",
         "s": "command:scale",
         "b": "command:fillet",
+        "e": "command:extrude",
         "x": "command:delete",
         "delete": "command:delete",
         "backspace": "command:delete",
