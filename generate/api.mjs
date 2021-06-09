@@ -124,15 +124,19 @@ export default {
         PlaneItem: {
             rawHeader: "plane_item.h",
             extends: "RefItem",
-            dependencies: ["RefItem.h"],
+            dependencies: ["RefItem.h", "RegTransform.h", "Vector.h", "Surface.h"],
             functions: [
                 { signature: "MbPlaneItem * Cast()", isManual: true },
+                { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn }
             ]
         },
         Curve: {
             rawHeader: "curve.h",
             extends: "PlaneItem",
             dependencies: ["PlaneItem.h"],
+            functions: [
+                "void Inverse(MbRegTransform * iReg = NULL)"
+            ],
         },
         Contour: {
             rawHeader: "cur_contour.h",
@@ -171,7 +175,8 @@ export default {
             extends: "Surface",
             dependencies: ["CartPoint3D.h", "Surface.h"],
             initializers: [
-                "const MbCartPoint3D & c0, const MbCartPoint3D & c1, const MbCartPoint3D & c2"
+                "const MbCartPoint3D & c0, const MbCartPoint3D & c1, const MbCartPoint3D & c2",
+                "const MbPlacement3D & placement, double distance"
             ]
         },
         CartPoint: {
@@ -294,6 +299,16 @@ export default {
                 "const MbCartPoint3D & p1, const MbCartPoint3D & p2"
             ]
         },
+        Vector: {
+            rawHeader: "mb_vector.h",
+            initializers: [
+                "double xx, double yy"
+            ],
+            fields: [
+                "double x",
+                "double y",
+            ]
+        },
         Vector3D: {
             rawHeader: "mb_vector3d.h",
             dependencies: ["CartPoint3D.h"],
@@ -332,6 +347,7 @@ export default {
                 "void SetAxisY(const MbVector3D & a)",
                 "void SetAxisZ(const MbVector3D & a)",
                 "const MbCartPoint3D & GetOrigin()",
+                "void SetOrigin(const MbCartPoint3D & o)",
                 "const MbVector3D & GetAxisZ()",
                 "const MbVector3D & GetAxisY()",
                 "const MbVector3D & GetAxisX()",
@@ -593,10 +609,11 @@ export default {
         SweptData: {
             dependencies: ["Placement3D.h", "Contour.h"],
             rawHeader: "op_swept_parameter.h",
-            initializers: ["", "const MbPlacement3D &place, MbContour &contour"]
+            initializers: ["", "const MbPlacement3D & place, MbContour & contour", "MbSurface &	_surface, RPArray<MbContour> & _contours"]
         },
         RegionBooleanParams: {
-            rawHeader: "region.h"
+            rawHeader: "region.h",
+            initializers: ["RegionOperationType type, bool selfTouch = true, bool mergeCrvs = true "]
         }
     },
     modules: {
@@ -690,7 +707,8 @@ export default {
             functions: [
                 { signature: "void GetCorrectRegions(const RPArray<MbContour> & contours, bool sameContours, RPArray<MbRegion> & regions)", regions: isReturn },
                 { signature: "void MakeRegions(RPArray<MbContour> & contours, bool useSelfIntCntrs, bool sameContours, RPArray<MbRegion> & regions)", regions: isReturn },
-                // "bool CreateBooleanResultRegions(RPArray<MbContour> & contours1, RPArray<MbContour> & contours2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)"
+                // { signature: "bool CreateBooleanResultRegions(RPArray<MbContour> & contours1, RPArray<MbContour> & contours2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
+                { signature: "bool CreateBooleanResultRegions(MbRegion & region1, MbRegion & region2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
             ]
         }
     },
@@ -707,5 +725,7 @@ export default {
         "ElementaryShellType",
         "OperationType",
         "MbeFacePropagation",
+        "RegionOperationType",
+        "MbResultType",
     ]
 }

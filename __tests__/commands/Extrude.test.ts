@@ -61,7 +61,7 @@ describe('Extrude Region', () => {
             makeCircle.center = new THREE.Vector3();
             makeCircle.radius = 1;
             const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
-            makeRegion.contour = circle;
+            makeRegion.contours = [circle];
             const items = await makeRegion.commit() as visual.PlaneInstance<visual.Region>;
             const region = items[0];
 

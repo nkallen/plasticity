@@ -34,6 +34,7 @@ class TypeRegistry {
         if (rawType == "MbResultType") {
             return {
                 rawType: "MbResultType",
+                jsType: "Resultype",
                 isErrorCode: true
             }
         }

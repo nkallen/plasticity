@@ -15,10 +15,10 @@ import { SelectionInteractionManager } from "./selection/SelectionInteraction";
 import { HasSelection, SelectionManager } from "./selection/SelectionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
-import { Cancel, CancellablePromise } from "./util/Cancellable";
+import { Cancel } from "./util/Cancellable";
 import { Helpers } from "./util/Helpers";
 import { SpaceItem, TopologyItem } from './VisualModel';
-
+''
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
 export interface EditorSignals {
@@ -126,6 +126,10 @@ export class Editor {
     private active?: Command;
     private next?: Command;
 
+    // Cancel any active commands and "enqueue" another.
+    // Ensure commands are executed ATOMICALLY.
+    // Do not start a new command until the previous is fully completed,
+    // including any cancelation cleanup. (await this.execute(next))
     enqueue(command: Command) {
         const active = this.active;
         this.next = command;

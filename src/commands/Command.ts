@@ -32,7 +32,7 @@ import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
 import RectFactory from './rect/RectFactory';
-import RegionFactory from "./region/RegionFactory";
+import RegionFactory, { RegionBooleanFactory } from "./region/RegionFactory";
 import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
@@ -108,8 +108,24 @@ export class CircleCommand extends Command {
         }).resource(this);
         const c = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
+        // const region = new RegionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        // region.contour = c;
+        // await region.commit();
+    }
+}
+
+export class RegionCommand extends Command {
+    async execute(): Promise<void> {
         const region = new RegionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
-        region.contour = c;
+        region.contours = [...this.editor.selection.selectedCurves];
+        await region.commit();
+    }
+}
+
+export class RegionBooleanCommand extends Command {
+    async execute(): Promise<void> {
+        const region = new RegionBooleanFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        region.regions = [...this.editor.selection.selectedRegions];
         await region.commit();
     }
 }
@@ -666,7 +682,7 @@ export class MirrorCommand extends Command {
 
 export class DeleteCommand extends Command {
     async execute(): Promise<void> {
-        const items = [...this.editor.selection.selectedCurves, ...this.editor.selection.selectedSolids];
+        const items = [...this.editor.selection.selectedCurves, ...this.editor.selection.selectedSolids, ...this.editor.selection.selectedRegions];
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
         return Promise.resolve();

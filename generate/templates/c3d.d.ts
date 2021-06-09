@@ -360,4 +360,11 @@ declare module "*c3d.node" {
         FreeItem          = 600,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
       
       };
+
+      declare enum RegionOperationType {
+        Intersect = -2,  ///< \ru Операция пересечение. \en Intersection operation. 
+        Difference = -1, ///< \ru Операция разность. \en Subtraction operation. 
+        Unknown = 0,     ///< \ru Неопределенная операция. \en Undefined operation. 
+        Union = 1,       ///< \ru Операция объединение. \en Union operation. 
+      };
 }

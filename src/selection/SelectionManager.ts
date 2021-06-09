@@ -2,7 +2,7 @@ import { Disposable } from 'event-kit';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
-import { Clone, SelectionMemento, StateChange } from '../History';
+import { Clone, SelectionMemento } from '../History';
 import MaterialDatabase from '../MaterialDatabase';
 import { RefCounter } from '../util/Util';
 import * as visual from '../VisualModel';
@@ -161,11 +161,12 @@ export class SelectionManager implements HasSelection {
         if (item instanceof visual.Solid) {
             this.selectedSolids.delete(item);
             this.selectedChildren.delete(item);
-            this.signals.objectDeselected.dispatch(item);
         } else if (item instanceof visual.SpaceInstance) {
             this.selectedCurves.delete(item);
-            this.signals.objectDeselected.dispatch(item);
+        } else if (item instanceof visual.PlaneInstance) {
+            this.selectedRegions.delete(item);
         }
+        this.signals.objectDeselected.dispatch(item);
     }
 
     saveToMemento(registry: Map<any, any>) {

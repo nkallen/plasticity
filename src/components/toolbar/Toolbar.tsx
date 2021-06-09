@@ -57,6 +57,8 @@ icons.set(cmd.LoftCommand, loft);
 icons.set(cmd.ExtrudeCommand, extrude);
 icons.set(cmd.MirrorCommand, mirror);
 icons.set(cmd.JoinCurvesCommand, mirror);
+icons.set(cmd.RegionCommand, mirror);
+icons.set(cmd.RegionBooleanCommand, mirror);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 
 const tooltips = new Map<typeof Command, string>();
@@ -85,7 +87,9 @@ tooltips.set(cmd.BoxCommand, "Box");
 tooltips.set(cmd.LoftCommand, "Loft");
 tooltips.set(cmd.ExtrudeCommand, "Extrude");
 tooltips.set(cmd.MirrorCommand, "Mirror");
-tooltips.set(cmd.JoinCurvesCommand, "Contour");
+tooltips.set(cmd.JoinCurvesCommand, "Join curves");
+tooltips.set(cmd.RegionCommand, "Region");
+tooltips.set(cmd.RegionBooleanCommand, "Region Boolean");
 
 const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
@@ -170,10 +174,14 @@ export class Model {
         }
         if (selection.selectedCurves.size > 0) {
             result.push(cmd.ExtrudeCommand);
+            result.push(cmd.RegionCommand);
         }
         if (selection.selectedCurves.size > 1) {
             result.push(cmd.LoftCommand);
             result.push(cmd.JoinCurvesCommand);
+        }
+        if (selection.selectedRegions.size > 1) {
+            result.push(cmd.RegionBooleanCommand);
         }
         return result;
     }

@@ -345,6 +345,232 @@ export enum PlaneType {
 
 };
 
+export enum RegionOperationType {
+    Intersect = -2,  ///< \ru Операция пересечение. \en Intersection operation. 
+    Difference = -1, ///< \ru Операция разность. \en Subtraction operation. 
+    Unknown = 0,     ///< \ru Неопределенная операция. \en Undefined operation. 
+    Union = 1,       ///< \ru Операция объединение. \en Union operation. 
+};
+
+
+export enum ResultType {
+    Success = 0,                 ///< \ru Нормальная работа. \en Normal work. 
+
+    // \ru Типы ошибок образующих контуров \en Generating contours error types 
+    Empty,                       ///< \ru Пустой результат. \en Empty result. 
+    ToManyAxis,                  ///< \ru Слишком много осей. \en Too many axes. 
+    ToFewAxis,                   ///< \ru Не хватает осей. \en Too few axes. 
+    ToManyContours,              ///< \ru Слишком много контуров. \en Too many contours. 
+    Stars,                       ///< \ru Есть "звезда". \en Has "star". 
+    SelfIntersection,            ///< \ru Самопересечение контура. \en Contour is self-intersecting. 
+    SelfIntWhenExtended,         ///< \ru Самопересечение в продолжении контура. \en Contour extension is self-intersecting. 
+    Intersection,                ///< \ru Пересечение контуров. \en Contours intersection. 
+    NoIntersectSolid,            ///< \ru Образующий контур не пересекает тела. \en Generating contour does not intersect solids. 
+    NoIntersectSection,          ///< \ru Образующий контур не пересекает сечения (для операции построения тела по сечениям). \en Generating contour does not intersect sections (for loft solid construction operation). 
+    LibNotFound,                 ///< \ru Фрагмент не найден в библиотеке. \en Fragment is not found in library. 
+    MustBeClosed,                ///< \ru Должен быть замкнут. \en Must be closed. 
+    MustBeOpen,                  ///< \ru Должен быть разомкнут. \en Must be opened. 
+    AxisIntersection,            ///< \ru Пересечение с осью. \en Intersection with axis. 
+    DegenerateAxis,              ///< \ru Вырожденная ось. \en Degenerate axis. 
+
+    // \ru Tипы ошибок тела \en Solid error types 
+    MultiSolid,                  ///< \ru Тело состоит из отдельных частей. \en Solid consists of separate parts. 
+    CurveError,                  ///< \ru Ошибочная кривая. \en Wrong curve. 
+    ContourError,                ///< \ru Ошибочный контур. \en Wrong contour. 
+    SurfaceError,                ///< \ru Ошибочная поверхность. \en Wrong surface. 
+    SolidError,                  ///< \ru Ошибочное тело. \en Wrong solid. 
+    ParameterError,              ///< \ru Ошибочный параметр. \en Wrong parameter. 
+    ThicknessError,              ///< \ru Неправильно задана толщина. \en Wrong  thickness. 
+    NoSequenceCurveAndSections,  ///< \ru Не последовательное расположение сечений вдоль кривой (для операции построения тела по сечениям). \en Non-sequential arrangement of sections along the curve (for loft solid construction operation). 
+    SelfIntersect,               ///< \ru Объект самопересекается. \en Self-intersecting object. 
+    NoIntersect,                 ///< \ru Объекты не пересекаются. \en Objects are not crossed. 
+    OffsetIntersectError,        ///< \ru Невозможно построить эквидистанту с данными параметрами. \en Cannot create offset with the given parameters. 
+    BooleanError,                ///< \ru Ошибка в булевой операции. \en Boolean operation error. 
+    NoEdges,                     ///< \ru Ребра не найдены. \en Edges not found. 
+    PrepareError,                ///< \ru Ошибка при подготовке операции. \en Operation preparation error. 
+    ChamferError,                ///< \ru Ошибка при создании фаски ребра. \en Error at creating chamfer of edge. 
+    FilletError,                 ///< \ru Ошибка при создании скругления ребра. \en Error at creating fillet of edge. 
+    PartlyChamfer,               ///< \ru Созданы фаски не на всех ребрах. \en Chamfers are created not for all the edges. 
+    PartlyFillet,                ///< \ru Скруглены не все ребра. \en Fillets are created not for all the edges. 
+    ChamferSurfaceError,         ///< \ru Ошибка при создании поверхности фаски ребра. \en Error of a chamfer surface creation for an edge. 
+    FilletSurfaceError,          ///< \ru Ошибка при создании поверхности скругления ребра. \en Error of a fillet surface creation for an edge. 
+    TooLargeChamfer,             ///< \ru Слишком большие катеты фаски. \en Too big cathetuses of chamfer. 
+    TooLargeFillet,              ///< \ru Слишком большой радиус скругления. \en Too big radius of chamfer. 
+    SemiChamfer,                 ///< \ru Фаски построены не для всех ребер. \en Chamfers are created not for all the edges. 
+    SemiFillet,                  ///< \ru Скруглены не все ребра. \en Fillets are created not for all the edges. 
+    CuttingError,                ///< \ru Ошибка резки поверхностью. \en Error cutting by surface. 
+    ThinError,                   ///< \ru Ошибка при создании тонкостенного тела. \en Error of a thin-walled solid creation. 
+    OffsetError,                 ///< \ru Слишком большая толщина стенки при создании тонкостенного тела. \en Too big wall thickness while creating thin-walled solid. 
+    FaceError,                   ///< \ru Ошибочная грань. \en Wrong face. 
+    RibError,                    ///< \ru Неизвестная ошибка постановки ребра жесткости. \en Unknown error at rib statement. 
+    DraftError,                  ///< \ru Неизвестная ошибка уклона граней тела. \en Unknown error of inclining of solid faces. 
+    NoObjectForDirection,        ///< \ru В выбранном направлении отсутствует поверхность. \en No surface in the choosen direction. 
+    AbsorptionSolid,             ///< \ru Локальное тело поглощает результат. \en Local solid absorbs result. 
+    Error,                       ///< \ru Неизвестная ошибка. \en Unknown error. 
+    None,                        ///< \ru Нет сообщений. \en No messages. 
+    Intersect,                   ///< \ru Объекты пересекаются. \en Objects are crossed. 
+    InvalidType,                 ///< \ru Ненадлежащий тип кривой. \en Wrong type of curve. 
+    NoConvertTextToNurbs,        ///< \ru Преобразование текста выполнить невозможно. \en Unable to convert text. 
+    SplitWireNotSplitFace,       ///< \ru Контур не разбивает ни одну из граней или совпадает с кромкой грани. \en The contour does not split any face or coincides with a face boundary. 
+    SplitWireNotIntersectFace,   ///< \ru Контур не пересекает выбранное множество граней или совпадает с кромкой грани. \en The contour does not intersect selected set of faces or coincides with a face boundary. 
+    MustBeOnlyOnePoint,          ///< \ru Для данной операции в эскизе должна быть только одна точка. \en There must be only one point in sketch for current operation. 
+    InvalidPoleUsage,            ///< \ru Эскиз с одной точкой может использоваться только для крайнего сечения. \en Sketch with one point can be used only for the last section. 
+    ThinWithPole,                ///< \ru Построение тонкой стенки невозможно, если одно из сечений представляет собой точку. \en Creation of a thin wall is impossible if one of sections represents a point. 
+    TopologyError,               ///< \ru Ошибочная топология. \en Wrong topology. 
+
+    // \ru Начало "нездорового" диапазона ошибок, НИКОГДА НЕ ВЗВОДИТЬ ЭТУ ОШИБКУ \en Beginning of "unhealthy" range of errors, NEVER TO RAISE THIS ERROR 
+    BeginOfInvalidRange,
+
+    // \ru K8+из 3Д, там хранить нельзя так как они записываются и потом читаются \en K8+from 3D, it is forbidden to store there since they register and then are read 
+    ErBodyCloosed = TopologyError + 2,   ///< \ru Тело детали не определено. \en Solid of part is undefined. 
+    OneEdge = ErBodyCloosed + 2,   ///< \ru У выбранного угла нет общего ребра. \en The selected corner has no common edge. 
+    SomeEdge = OneEdge + 1,         ///< \ru У одного из выбранных углов нет общего ребра. \en One of chosen corners has no common edge. 
+    NoSuitedSketch = OneEdge,             ///< \ru Неподходящий эскиз для операции. \en Improper sketch for operation. 
+    // \ru K12 SketchNoSheet  = OneEdge,      // Эскиз должен располагаться только на внешней или внутренней плоской грани листового тела \en K12 SketchNoSheet  = OneEdge,      // Sketch should be located only on inner or outer flat face of a sheet solid 
+    SketchNoProj = OneEdge + 1,         ///< \ru Эскиз не проецируется на базовую грань. \en Sketch cannot be projected on a basic face. 
+    NoSheetFace = OneEdge,             ///< 
+    ErHeight = OneEdge,             ///< \ru Полный размер высоты должен быть больше толщины листового материала. \en Full size of height has to be greater than thickness of a sheet material. 
+    ErSketch = ErHeight + 1,        ///< \ru Эскиз должен располагаться только на внешней или внутренней плоской грани листового тела. \en Sketch should be located only on inner or outer flat face of a sheet solid. 
+    UpdatePlaceWrong = TopologyError + 2,
+    ErDegree = TopologyError + 2,
+
+    // \ru Окончание "нездорового" диапазона ошибок, НИКОГДА НЕ ВЗВОДИТЬ ЭТУ ОШИБКУ \en Ending of "unhealthy" range of errors, NEVER TO RAISE THIS ERROR  
+    EndOfInvalidRange = BeginOfInvalidRange + 20,
+
+    NoObjectInDirNormal,         ///< \ru Нет объекта в прямом направлении. \en No object in forward direction. 
+    NoObjectInDirReverse,        ///< \ru Нет объекта в обратном направлении. \en No object in reverse direction. 
+    SolidAffectedByBoolean,      ///< \ru Тела изменены булевой операцией. \en Solids changed by boolean operation. 
+    HaveDegenerateSegment,       ///< \ru Кривая содержит сегменты нулевой длины. \en Curve has segments with zero length. 
+    NotAllSourcesFound,          ///< \ru Не найдены одна или несколько исходных операций. \en One or several source operations are not found. 
+    InvalidEmptyContour,         ///< \ru Контур состоит из 2 отрезков, проходящих друг по другу. \en Contour consists of two segments passing through each other. 
+
+    UnnecessaryVariables,        ///< \ru Избыточное количество переменных. \en Excessive variables. 
+    DomainMismatch,              ///< \ru Область определения не соответствует заданным значениям. \en Domain doesn't match to given values. 
+    UnknownTranslatorError,      ///< \ru Неизвестная ошибка при работе транслятора. \en Unknown translator error. 
+    UnknownParserError,          ///< \ru Неизвестная ошибка при работе синтаксического анализатора. \en Unknown parser error. 
+    UnknownSymbol,               ///< \ru В строке присутствует неизвестный символ. \en String contains unknown symbol. 
+    NoClosingBracket,            ///< \ru Не хватает закрывающей скобки. \en Missed closing bracket. 
+    NoOpeningBracket,            ///< \ru Не хватает открывающей скобки. \en Missed opening bracket. 
+    ImpossibleOperation,         ///< \ru Невозможная операция. \en Impossible operation. 
+    LostObject,                  ///< \ru Операция потеряла опорные объекты. \en Operation lost support object. 
+    NotAllBendsProcessed,        ///< \ru Не все сгибы согнуты/разогнуты. \en Not all bends are bent/unbent. 
+    ValueScalingError,           ///< \ru Масштабирование с заданным коэффициентом невозможно. \en Scaling with the given factor is impossible. 
+    RatioScalingError,           ///< \ru Масштабирование с заданным соотношением коэффициентов невозможно. \en Scaling with given factors ratio is impossible. 
+    MultiSolidDeflected,         ///< \ru Данная операция не применима к телам из частей. \en Current operation cannot be applied to solids consisting of parts. 
+    MultiSolidDefused,           ///< \ru Результатом данной операции не может быть тело из частей. \en Result of current operation cannot be a solid consisting of parts. 
+    TransitionError,             ///< \ru Перестало выполняться граничное условие сопряжения. \en The boundary condition of conjugation is not satisfied. 
+    MeshCrossingError,           ///< \ru Точки пересечения кривых не образуют регулярной сетки. \en Points of curves intersection don't form a regular mesh. 
+    ClosedError,                 ///< \ru Нельзя выполнить замыкание. \en Impossible to carry out closure. 
+    TooGreatCurve,               ///< \ru Кривая, через которую происходит сопряжение, больше, чем сама поверхность. \en Curve to conjugate through is bigger than surface. 
+    ClosedOrUnClosedError,       ///< \ru Все кривые должны быть либо замкнуты, либо разомкнуты. \en All the curves must be closed or open simultaneously. 
+    SketchNoSheet,               ///< \ru Эскиз должен располагаться только на внешней или внутренней плоской грани листового тела. \en Sketch should be located only on inner or outer flat face of a sheet solid. 
+    BadSketch,                   ///< \ru Эскиз не удовлетворяет требованиям операции. \en Sketch doesn't meet the operation requirements. 
+    ConnectionError,             ///< \ru Нарушена связность объектов. \en Broken connectivity of objects. 
+    MeshSmoothError,             ///< \ru В точках пересечения кривые из противоположных семейств касаются. \en Intersection points are tangent points of curves from opposite families. 
+    NoIntersectContour,          ///< \ru Нет контуров пересечения. \en No intersection contours. 
+    ErShMtHeight,                ///< \ru Полный размер высоты должен быть больше толщины листового материала. \en Full size of height has to be greater than thickness of a sheet material. 
+    DegenerateSurface,           ///< \ru Поверхность вырождена. \en Degenerate surface. 
+    SurfaceEdgesIntersect,       ///< \ru Невозможно создать поверхность: нарушен порядок внутренних ребер разбиения. \en Cannot create surface: broken order of internal edges of splitting. 
+    TooLargeExtension,           ///< \ru Величина удлинения слишком велика. \en Too large extension. 
+    TooSmallExtension,           ///< \ru Величина удлинения слишком мала. \en Too small extension. 
+    VertexExtensionError,        ///< \ru Не удалось продлить поверхность до данной вершины. \en Cannot extend the surface up to a given vertex. 
+    SurfaceExtensionError,       ///< \ru Не удалось продлить поверхность до данной поверхности. \en Cannot extend surface to a given surface. 
+    NoEdgesConection,            ///< \ru Ребра не образуют связную цепочку. \en Edges are not connected. 
+    TooManyPoints,               ///< \ru Большое количество точек. Уменьшите количество. \en Too many points. Reduce them. 
+    TooManyPoints_1,             ///< \ru Слишком большое количество точек. \en Too many points. 
+    DirectionExtensionError,     ///< \ru Не удалось продлить поверхность в данном направлении. \en Cannot extend surface in the given direction. 
+    ExtensionPoleError,          ///< \ru Грань содержит полюс: укажите другую кромку или выберите другой тип продления. \en Face contains a pole: specify another boundary or select another extension type. 
+    MustBeOpenOrClosed,          ///< \ru Контуры должны быть либо все замкнуты, либо все разомкнуты. \en All the contours must be closed or open simultaneously. 
+    TooComplicatedItemsSet,      ///< \ru Слишком сложный набор элементов для обработки. \en Too complicated set of elemnts to process. 
+    NoAxesIntersection,          ///< \ru Оси не пересекаются. \en Axes are not crossed. 
+    TooFarItems,                 ///< \ru Объекты слишком далеко. \en Objects too far. 
+    ProcessIsStopped,            ///< \ru Процесс остановлен. \en Process is stopped. 
+    ContourSweptError,           ///< \ru Контур невозможно использовать для заданного перемещения. \en Contour cannot be used for given movement. 
+    SomeContourError,            ///< \ru Один из контуров невозможно использовать для заданного построения. \en Contour cannot be used for given construction. 
+    SplitWireNotAllFaces,        ///< \ru Линии разъема (ребра пересечения) созданы не на всех выбранных гранях или не доходят до границ граней. \en Parting lines (cross edges) created not on all selected faces or do not reach the boundaries of the faces.
+    GeneratrixColinearGuide,     ///< \ru В некоторых точках образующая параллельна направляющей. \en Generatrix parallel to the giude at some points. 
+    NotEnoughMemory,             ///< \ru Недостаточно памяти. \en Not enough memory. 
+    BorderColinearCurve,         ///< \ru Направление боковой границы параллельно касательной на конце образующей кривой. \en Direction of lateral border is parallel to a tangent at the end of a guide curve. 
+    ObjectNotFound,              ///< \ru Объект не найден. \en Object not found. 
+    PoleBrokenError,             ///< \ru В сплайновой поверхности часть точек из полюса передвинута, часть осталась совпадающей. \en Some points of spline surface moved from pole, some remained coincident. 
+    ApproxError,                 ///< \ru Аппроксимация не выполнена. \en No approximation performed. 
+    AccuracyError,               ///< \ru Не выполнены условия по точности построения. \en The construction accuracy conditions are not satisfied. 
+    BadVariable,                 ///< \ru Ошибочное значение переменной. \en Wrong value of variable. 
+    BadEdgesForChamfer,          ///< \ru Невозможно построить фаску на указанных ребрах. \en Cannot create chamfer on specified edges. 
+    RevokeStopFillet,            ///< \ru Остановка скругления невозможна, скругление выполнено без остановки. \en Can't stop fillet, the fillet without stopping was done.
+    AdjacentTransitionError,     ///< \ru Не согласованы сопряжения на смежных границах. \en The boundary condition of conjugation is not satisfied along adjacent boundaries. 
+    ObjectAccessDenied,          ///< \ru Доступ к объекту запрещен. \en Access to the object is denied. 
+    TooManySegments,             ///< \ru Количество сегментов слишком велико. \en The number of segments is too large.
+    GapShiftError,               ///< \ru Недопустимое положение зазора обечайки. \en Wrong gapShift parameter value.
+    CutBySilhouetteError,        ///< \ru Силуэтная грани линия не разрезает грань. \en Silhouette curve of face do not cut the face.
+    DegeneratedProjection,       ///< \ru Вырожденная проекция опорного объекта. \en The projection is degenerated for the reference object.
+    NotAllContoursUsed,          ///< \ru Использованы не все контура (кривые). \en Not all contours (curves) were used.
+    ChangedParameter,            ///< \ru Параметр операции был изменен. \en Parameter was changed.
+    NotAllObjectsUsed,           ///< \ru Использованы не все объекты. \en Not all objects were used.
+    ZeroJumperError,             ///< \ru Ошибка из-за образования перемычки нулевой толщины. \en Zero jumper error.
+    FullFilletError,             ///< \ru Ошибка при создании скругления грани. \en Error at creating full fillet. 
+
+    // \ru Ошибки построения плавных сплайнов. \en Build failure of fair splines. 
+    IncorrectData,               ///<  1 \ru Некорректные данные. \en Incorrect data.
+    IncorrectPolylines,          ///<  2 \ru Некорректные формы ломаных / направления касательных. \en Incorrect polylines / tangent directions.
+    IncorrectStructure,          ///<  3 \ru Некорректная структура ломаной с прямолинейными участками. \en Incorrect structure of 3d poly with straight sites.
+    TooFewPoints,                ///<  4 \ru Слишком мало точек. \en Too few points.
+    CoincidentPoints,            ///<  5 \ru Совпадение точек. \en Coincidence of points.
+    TooSharpAngle,               ///<  6 \ru Слишком острый угол между сегментами ломаной. \en Too acute angle between segments of polyline.
+    ReverseMotion,               ///<  7 \ru Обратный ход сегмента. \en Return motion of segment.
+    SharpTorsion,                ///<  8 \ru Резкое кручение ломаной. \en Sharp torsion of spatial polyline.
+    IncorrectFirstDirection,     ///<  9 \ru Некорректное направление касательной в начальной точке. \en Incorrect direction of first tangent vector.
+    IncorrectLastDirection,      ///< 10 \ru Некорректное направление касательной в конечной точке. \en Incorrect direction of last tangent vector.
+    FirstTangentVector,          ///< 11 \ru Первая касательная задана к прямолинейному участку. \en First tangent vector is set to a rectilinear site of a polyline.
+    LastTangentVector,           ///< 12 \ru Последняя касательная задана к прямолинейному участку. \en Last tangent vector is set to a rectilinear site of a polyline.
+    TangentVectorsUnsuitable,    ///< 13 \ru Касательные векторы не корректны для локально-выпуклого участка. \en Tangent vectors are not suitable to convex shape of curve.
+    IncorrectBezier,             ///< 14 \ru Некорректная структура исходной кривой Безье. \en Incorrect structure of the initial Bezier curve.
+    NoIntersection,              ///< 15 \ru Нет пересечения касательных. Некорректная структура ломаной. \en No intersection of tangents. Incorrect structure of polyline.
+    CriticalConfiguration,       ///< 16 \ru Критическая конфигурация для B-сплайновой аппроксимации. \en Critical configuration for B-Spline approximation.
+    IncorrectInitialData,        ///< 17 \ru Некорректные исходные данные. \en Incorrect initial data.
+    NotImplemented,              ///< 18 \ru Данная команда не реализована. \en This command is not implemented.
+    InsufficientMemory,          ///< 19 \ru Недостаточно памяти. \en Insufficient memory. 
+    IncorrectFirstTangent,       ///< 20 \ru Некорректное направление первой касательной. \en Incorrect direction of first tangent.  
+    IncorrectLastTangent,        ///< 21 \ru Некорректное направление последней касательной. \en Incorrect direction of last tangent.  
+    StraightenLastSite,          ///< 22 \ru Конечный прямолинейный участок. Касательный вектор не нужен. \en Straighten last site. Last tangent Ignored.  
+    IncorrectPolylineStructure,  ///< 23 \ru Некорректная структура ломаной с прямолинейными участками. \en Incorrect structure of polyline with straight sites.
+    IncorrectDataStructure,      ///< 24 \ru Некорректная структура данных в модели. \en Incorrect data structure in the model.
+    ObjectIsNotPolyline,         ///< 25 \ru Объект - не пространственная ломаная. \en Object is not a 3D polyline.
+    MissingKnots,                ///< 26 \ru Отсутствует вектор узлов. \en Missing knots vector.
+    ClosedSpline,                ///< 27 \ru Замкнутый сплайн во внешнем файле. \en Closed spline in an external file.
+    ObjectNotSelected,           ///< 28 \ru Не выбран нужный объект. \en Object is not selected.
+    Reserved1,                   ///< 29 \ru Зарезервировано. \en Reserved.
+    Reserved2,                   ///< 30 \ru Зарезервировано. \en Reserved.
+    TooFewStartPoints,           ///< 31 \ru Слишком мало точек на выпуклом участке начального участка. \en Too few points on convex start site of curve.
+    BanClosedConfiguration,      ///< 32 \ru Запрет на замкнутую конфигурацию при количестве точек < 5. \en A ban on a closed configuration when the number of points < 5.
+    IncorrectDeterminant,        ///< 33 \ru Некорректная структура исходного геометрического определителя. \en Incorrect structure of the initial geometric determinant.
+    DimensionsPointsArrays,      ///< 34 \ru Размеры массивов точек. \en Dimensions of points arrays.
+    TangentsNotIntersect,        ///< 35 \ru Касательные не пересекаются. \en Tangents do not intersect.
+    PointsCoincided,             ///< 36 \ru Точки совпадают. \en Points coincide.
+    FewPointsForClosed,          ///< 37 \ru Мало точек для замкнутой ломаной. \en Few points for a closed polyline.
+    TooFewPointsOnSite,          ///< 38 \ru Слишком мало точек на выпуклом участке. \en Too few points on convex end site of curve.
+    PointsOnLine,                ///< 39 \ru Точки на прямой. \en Points on the straight line.
+    TooManyApexes,               ///< 40 \ru Слишком много точек. \en Too many points.
+    SiteNotConvex,               ///< 41 \ru Трехсегментный участок не выпуклый. \en Three-linked site is not convex.
+    CurvatureRange,              ///< 42 \ru Кривизна за пределами допустимого диапазона. \en Curvatute out of range.
+    ObjectNotHermiteGD,          ///< 43 \ru Объект не ГО Эрмита. \en The object is not Hermite GD.
+    ObjectNotNURBS,              ///< 44 \ru Объект не NURBzS. \en The object is not NURBzS.
+    DerivativeContinuityErr,     ///< 45 \ru Ошибка обеспечения непрерывности производной. \en Error ensuring derivative continuity.
+    NotEnoughBuildData,          ///< 46 \ru Недостаточно данных для построения. \en Not enough data to build.
+    InternalError,               ///< 47 \ru Неизвестная ошибка. \en Unknown error.
+
+    DerivativeGap = 198,         ///<  \ru Отсутствует непрерывность производной кривой по параметру. \en There is no continuity of the curve derivatives.
+    DerivativeGapU,              ///<  \ru Отсутствует непрерывность производной поверхности по первому параметру. \en There is no continuity of the surface derivatives on first parameter.
+    DerivativeGapV,              ///<  \ru Отсутствует непрерывность производной поверхности по второму параметру. \en There is no continuity of the surface derivatives on second parameter.
+
+    ContourGapError,             ///<  \ru В контуре есть разрывы между сегментами. \en There are gaps between the segments in the contour.
+    ContourSegmentsOverlapError, ///<  \ru В контуре есть наложения сегментов. \en There are segment overlays in the contour.
+    ContourSegmentsNoTangentJoint,///< \en В контуре есть сегменты с не гладкой стыковкой. \ru In the contour there are segments with a non - smooth connection.
+
+    // \ru !!! СТРОКИ ВСТАВЛЯТЬ СТРОГО ПЕРЕД ЭТОЙ СТРОКОЙ !!!! \en !!! INSERT LINES STRICTLY BEFORE THIS LINE !!!! 
+    ErrorTotal           // \ru НИЖЕ НЕ ДОБАВЛЯТЬ! \en DON'T ADD BELOW! 
+}
+
 Object.assign(c3d, {
     ESides: ESides,
     StepType: StepType,
@@ -359,4 +585,6 @@ Object.assign(c3d, {
     ModifyingType: ModifyingType,
     FacePropagation: FacePropagation,
     PlaneType: PlaneType,
+    RegionOperationType: RegionOperationType,
+    ResultType: ResultType,
 });

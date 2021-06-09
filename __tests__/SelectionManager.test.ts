@@ -46,7 +46,7 @@ describe('onClick', () => {
         circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const makeRegion = new RegionFactory(db, materials, signals);
-        makeRegion.contour = circle;
+        makeRegion.contours = [circle];
         const regions = await makeRegion.commit();
         region = regions[0];
     });
