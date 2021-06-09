@@ -21,7 +21,21 @@ export interface HasSelection {
     readonly selectedChildren: RefCounter<visual.SpaceItem>;
 }
 
-export class SelectionManager implements HasSelection {
+export interface ModifiesSelection {
+    deselectFace(object: Face, parentItem: Solid): void;
+    selectFace(object: Face, parentItem: Solid): void;
+    deselectRegion(object: PlaneInstance<Region>): void;
+    selectRegion(object: PlaneInstance<Region>): void;
+    deselectEdge(object: CurveEdge, parentItem: Solid): void;
+    selectEdge(object: CurveEdge, parentItem: Solid): void;
+    deselectSolid(solid: Solid): void;
+    selectSolid(solid: Solid): void;
+    deselectCurve(curve: SpaceInstance<Curve3D>): void;
+    selectCurve(curve: SpaceInstance<Curve3D>): void;
+    deselectAll(): void;
+}
+
+export class SelectionManager implements HasSelection, ModifiesSelection {
     readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face]);
 
     readonly selectedSolids = new Set<Solid>();

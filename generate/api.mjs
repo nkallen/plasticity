@@ -124,10 +124,11 @@ export default {
         PlaneItem: {
             rawHeader: "plane_item.h",
             extends: "RefItem",
-            dependencies: ["RefItem.h", "RegTransform.h", "Vector.h", "Surface.h"],
+            dependencies: ["RefItem.h", "RegTransform.h", "Vector.h", "Surface.h", "Matrix.h"],
             functions: [
                 { signature: "MbPlaneItem * Cast()", isManual: true },
-                { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn }
+                { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn },
+                "void Transform(const MbMatrix & matr, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)"
             ]
         },
         Curve: {
@@ -335,6 +336,11 @@ export default {
                 "void Move(const MbVector3D & to)",
             ]
         },
+        Placement: {
+            rawHeader: "mb_placement.h",
+            dependencies: ["CartPoint.h", "Vector.h"],
+            initializers: ["const MbCartPoint & o, const MbVector & x, const MbVector & y"],
+        },
         Placement3D: {
             rawHeader: "mb_placement3d.h",
             dependencies: ["Axis3D.h", "Vector3D.h"],
@@ -401,6 +407,11 @@ export default {
         },
         Path: {
             rawHeader: "name_item.h"
+        },
+        Matrix: {
+            rawHeader: "mb_matrix.h",
+            dependencies: ["Placement.h"],
+            initializers: ["const MbPlacement & place"]
         },
         Matrix3D: {
             rawHeader: "mb_matrix3d.h",

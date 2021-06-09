@@ -7,7 +7,7 @@ import { GeometryDatabase } from "../GeometryDatabase";
 import MaterialDatabase from "../MaterialDatabase";
 import { PointPicker } from '../PointPicker';
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
-import { HasSelection } from "../selection/SelectionManager";
+import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
 import { SnapManager } from "../SnapManager";
 import { Cancel, CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
@@ -53,7 +53,7 @@ export interface EditorLike {
     snaps: SnapManager,
     helpers: Helpers,
     registry: CommandRegistry,
-    selection: HasSelection,
+    selection: HasSelection & ModifiesSelection,
     gizmos: GizmoMaterialDatabase,
     selectionInteraction: SelectionInteractionManager
 }
@@ -657,6 +657,7 @@ export class ExtrudeRegionCommand extends Command {
         }).resource(this);
 
         await extrude.commit();
+        this.editor.selection.deselectRegion(regions[0]);
     }
 }
 
