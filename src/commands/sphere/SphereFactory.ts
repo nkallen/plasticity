@@ -27,7 +27,6 @@ export default class SphereFactory extends GeometryFactory {
     }
 
     async doCommit() {
-        this.db.scene.remove(this.mesh);
         const points = [
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z),
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z + 1),
@@ -35,7 +34,9 @@ export default class SphereFactory extends GeometryFactory {
         ];
         const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Sphere, names);
-        return this.db.addItem(sphere);
+        const result = await this.db.addItem(sphere);
+        this.db.scene.remove(this.mesh);
+        return result;
     }
 
     doCancel() {
