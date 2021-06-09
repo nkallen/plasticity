@@ -20,8 +20,8 @@ export default (): EditorSignals => {
         commandStarted: new signals.Signal(),
         commandEnded: new signals.Signal(),
         keybindingsRegistered: new signals.Signal(),
-        clicked: new signals.Signal(),
         hovered: new signals.Signal(),
         historyChanged: new signals.Signal(),
+        selectionChanged: new signals.Signal(),
     }
 }

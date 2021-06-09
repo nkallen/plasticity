@@ -1,13 +1,20 @@
+import { SelectionInteractionManager } from "../selection/SelectionInteraction";
+import { HasSelection } from "../selection/SelectionManager";
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { Editor } from '../Editor';
+import CommandRegistry from "../components/atom/CommandRegistry";
+import { Viewport } from "../components/viewport/Viewport";
+import { EditorSignals } from '../Editor';
+import { GeometryDatabase } from "../GeometryDatabase";
+import MaterialDatabase from "../MaterialDatabase";
 import { PointPicker } from '../PointPicker';
+import { SnapManager } from "../SnapManager";
 import { Cancel, CancellableRegistor } from "../util/Cancellable";
+import { Helpers } from "../util/Helpers";
 import * as visual from "../VisualModel";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
 import CircleFactory from './circle/CircleFactory';
-import ContourFactory from "./curve/ContourFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveGizmo, CurveGizmoEvent } from "./curve/CurveGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -15,6 +22,7 @@ import CylinderFactory from './cylinder/CylinderFactory';
 import ExtrudeFactory from "./extrude/ExtrudeFactory";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
+import { GizmoMaterialDatabase } from "./GizmoMaterials";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import MirrorFactory from "./mirror/MirrorFactory";
@@ -30,16 +38,26 @@ import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
 
-export default abstract class Command extends CancellableRegistor {
-    editor: Editor;
+export interface EditorLike {
+    db: GeometryDatabase,
+    signals: EditorSignals,
+    materials: MaterialDatabase,
+    viewports: Viewport[],
+    snaps: SnapManager,
+    helpers: Helpers,
+    registry: CommandRegistry,
+    selection: HasSelection,
+    gizmos: GizmoMaterialDatabase,
+    selectionInteraction: SelectionInteractionManager
+}
 
+export default abstract class Command extends CancellableRegistor {
     static get title() {
         return this.name.replace(/Command/, '').toLowerCase();
     }
 
-    constructor(editor: Editor) {
+    constructor(protected readonly editor: EditorLike) {
         super();
-        this.editor = editor;
     }
 
     abstract execute(): Promise<void>;
@@ -622,5 +640,14 @@ export class DeleteCommand extends Command {
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
         return Promise.resolve();
+    }
+}
+
+export class ChangeSelectionCommand extends Command {
+    intersections!: THREE.Intersection[];
+
+    async execute(): Promise<void> {
+        this.editor.selectionInteraction.onClick(this.intersections);
+        this.editor.signals.selectionChanged.dispatch(this.editor.selection);
     }
 }

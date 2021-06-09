@@ -10,7 +10,7 @@ import { GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import { SelectionInteractionManager } from "./selection/SelectionInteraction";
-import { UndoableSelectionManager } from './selection/SelectionManager';
+import { HasSelection, SelectionManager } from "./selection/SelectionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import { Cancel } from "./util/Cancellable";
@@ -26,6 +26,7 @@ export interface EditorSignals {
     objectDeselected: signals.Signal<SpaceItem | TopologyItem>;
     objectHovered: signals.Signal<SpaceItem | TopologyItem>
     objectUnhovered: signals.Signal<SpaceItem | TopologyItem>
+    selectionChanged: signals.Signal<HasSelection>;
     sceneGraphChanged: signals.Signal;
     factoryUpdated: signals.Signal;
     factoryCommitted: signals.Signal;
@@ -37,7 +38,6 @@ export interface EditorSignals {
     commandStarted: signals.Signal<Command>;
     commandEnded: signals.Signal;
     keybindingsRegistered: signals.Signal<string[]>;
-    clicked: signals.Signal<THREE.Intersection[]>;
     hovered: signals.Signal<THREE.Intersection[]>;
     historyChanged: signals.Signal;
 }
@@ -50,6 +50,7 @@ export class Editor {
         objectRemoved: new signals.Signal(),
         objectSelected: new signals.Signal(),
         objectDeselected: new signals.Signal(),
+        selectionChanged: new signals.Signal(),
         objectHovered: new signals.Signal(),
         objectUnhovered: new signals.Signal(),
         sceneGraphChanged: new signals.Signal(),
@@ -63,7 +64,6 @@ export class Editor {
         commandStarted: new signals.Signal(),
         commandEnded: new signals.Signal(),
         keybindingsRegistered: new signals.Signal(),
-        clicked: new signals.Signal(),
         hovered: new signals.Signal(),
         historyChanged: new signals.Signal(),
     }
@@ -77,7 +77,7 @@ export class Editor {
     readonly keymaps = new KeymapManager();
     readonly helpers = new Helpers(this.signals);
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
-    readonly selection = new UndoableSelectionManager(this.db, this.materials, this.signals, this.changeState.bind(this));
+    readonly selection = new SelectionManager(this.db, this.materials, this.signals);
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);
@@ -127,12 +127,6 @@ export class Editor {
             disposable.dispose();
             this.signals.commandEnded.dispatch();
         }
-    }
-
-    changeState(f: () => void): void {
-        const state = this.originator.saveToMemento(new Map());
-        f();
-        this.history.add("Command", state);
     }
 
     onWindowResize() {

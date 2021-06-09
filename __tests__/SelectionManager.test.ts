@@ -6,7 +6,7 @@ import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';
 import { SelectionInteractionManager } from '../src/selection/SelectionInteraction';
-import { UndoableSelectionManager } from '../src/selection/SelectionManager';
+import { SelectionManager } from '../src/selection/SelectionManager';
 import * as visual from '../src/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
@@ -15,14 +15,14 @@ import './matchers';
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
-let selectionManager: UndoableSelectionManager;
+let selectionManager: SelectionManager;
 let interactionManager: SelectionInteractionManager;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
-    selectionManager = new UndoableSelectionManager(db, materials, signals, f => f());
+    selectionManager = new SelectionManager(db, materials, signals);
     interactionManager = new SelectionInteractionManager(selectionManager, materials, signals);
 });
 

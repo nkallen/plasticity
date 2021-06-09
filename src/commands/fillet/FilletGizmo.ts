@@ -2,14 +2,14 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
-import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
+import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "../AbstractGizmo";
 
 const sphereGeometry = new THREE.SphereGeometry(0.1);
 const lineGeometry = new LineGeometry();
 lineGeometry.setPositions([0, 0, 0, 0, 1, 0]);
 
 export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
-    constructor(editor: Editor, point: THREE.Vector3, normal: THREE.Vector3) {
+    constructor(editor: EditorLike, point: THREE.Vector3, normal: THREE.Vector3) {
         const materials = editor.gizmos;
 
         const sphere = new THREE.Mesh(sphereGeometry, materials.yellow);

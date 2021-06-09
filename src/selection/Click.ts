@@ -57,9 +57,9 @@ export class ClickStrategy implements SelectionStrategy {
     region(object: Region, parentItem: PlaneInstance<Region>): boolean {
         if (this.selection.mode.has(SelectionMode.Face)) {
             if (this.selection.selectedRegions.has(parentItem)) {
-                this.selection.deselectRegion(parentItem)
+                this.selection.deselectRegion(parentItem);
             } else {
-                this.selection.selectRegion(parentItem)
+                this.selection.selectRegion(parentItem);
             }
             return true;
         }

@@ -5,6 +5,7 @@ import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../Editor';
 import { Cancel, CancellablePromise, Finish } from "../util/Cancellable";
 import { Helper, Helpers } from "../util/Helpers";
+import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
 /**
  * Gizmos are the graphical tools used to run commands, such as move/rotate/fillet, etc.
@@ -33,6 +34,7 @@ export interface EditorLike {
     viewports: Viewport[],
     signals: EditorSignals,
     registry: CommandRegistry,
+    gizmos: GizmoMaterialDatabase
 }
 
 export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {

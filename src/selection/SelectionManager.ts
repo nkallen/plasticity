@@ -167,45 +167,6 @@ export class SelectionManager implements HasSelection {
             this.signals.objectDeselected.dispatch(item);
         }
     }
-}
-
-export class UndoableSelectionManager extends SelectionManager {
-    constructor(
-        db: GeometryDatabase,
-        materials: MaterialDatabase,
-        signals: EditorSignals,
-        readonly stateChange: StateChange
-    ) { 
-        super(db, materials, signals);
-    }
-
-    deselectFace(object: Face, parentItem: Solid) {
-        this.stateChange(() => super.deselectFace(object, parentItem));
-    }
-    selectFace(object: Face, parentItem: Solid) {
-        this.stateChange(() => super.selectFace(object, parentItem));
-    }
-    deselectEdge(object: CurveEdge, parentItem: Solid) {
-        this.stateChange(() => super.deselectEdge(object, parentItem));
-    }
-    selectEdge(object: CurveEdge, parentItem: Solid) {
-        this.stateChange(() => super.selectEdge(object, parentItem));
-    }
-    deselectSolid(solid: Solid) {
-        this.stateChange(() => super.deselectSolid(solid));
-    }
-    selectSolid(solid: Solid) {
-        this.stateChange(() => super.selectSolid(solid));
-    }
-    deselectCurve(curve: SpaceInstance<Curve3D>) {
-        this.stateChange(() => super.deselectCurve(curve));
-    }
-    selectCurve(curve: SpaceInstance<Curve3D>) {
-        this.stateChange(() => super.selectCurve(curve));
-    }
-    deselectAll(): void {
-        this.stateChange(() => super.deselectAll());
-    }
 
     saveToMemento(registry: Map<any, any>) {
         return new SelectionMemento(

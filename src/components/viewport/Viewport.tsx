@@ -10,6 +10,7 @@ import { GeometryDatabase } from "../../GeometryDatabase";
 import { EditorOriginator } from "../../History";
 import { SelectionManager } from "../../selection/SelectionManager";
 import { ViewportSelector } from '../../selection/ViewportSelector';
+import * as selector from '../../selection/ViewportSelector';
 import { PlaneSnap } from "../../SnapManager";
 import { Helpers } from "../../util/Helpers";
 import { Solid, SpaceItem, TopologyItem } from "../../VisualModel";
@@ -35,7 +36,7 @@ export interface Viewport {
     start(): void;
 }
 
-export interface EditorLike {
+export interface EditorLike extends selector.EditorLike {
     db: GeometryDatabase,
     helpers: Helpers,
     viewports: Viewport[],
@@ -73,7 +74,7 @@ export class Model implements Viewport {
             this.lastPointerEvent = e;
         });
 
-        this.selector = new ViewportSelector(editor.db.drawModel, camera, this.renderer.domElement, editor.originator, editor.signals);
+        this.selector = new ViewportSelector(camera, this.renderer.domElement, editor);
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
         const size = this.renderer.getSize(new THREE.Vector2());
@@ -127,15 +128,14 @@ export class Model implements Viewport {
         this.controls.add(this.navigationControls);
     }
 
+    private started = false;
     start() {
-        this.editor.signals.objectSelected.add(this.outlineSelection);
-        this.editor.signals.objectDeselected.add(this.outlineSelection);
+        this.editor.signals.selectionChanged.add(this.outlineSelection);
         this.editor.signals.historyChanged.add(this.outlineSelection);
         this.editor.signals.objectHovered.add(this.outlineHover);
         this.editor.signals.objectUnhovered.add(this.outlineUnhover);
 
-        this.editor.signals.objectSelected.add(this.setNeedsRender);
-        this.editor.signals.objectDeselected.add(this.setNeedsRender);
+        this.editor.signals.selectionChanged.add(this.setNeedsRender);
         this.editor.signals.sceneGraphChanged.add(this.setNeedsRender);
         this.editor.signals.factoryUpdated.add(this.setNeedsRender);
         this.editor.signals.pointPickerChanged.add(this.setNeedsRender);
@@ -148,7 +148,30 @@ export class Model implements Viewport {
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);
 
+        this.started = true;
         this.render();
+    }
+
+    stop() {
+        this.editor.signals.selectionChanged.remove(this.outlineSelection);
+        this.editor.signals.historyChanged.remove(this.outlineSelection);
+        this.editor.signals.objectHovered.remove(this.outlineHover);
+        this.editor.signals.objectUnhovered.remove(this.outlineUnhover);
+
+        this.editor.signals.selectionChanged.remove(this.setNeedsRender);
+        this.editor.signals.sceneGraphChanged.remove(this.setNeedsRender);
+        this.editor.signals.factoryUpdated.remove(this.setNeedsRender);
+        this.editor.signals.pointPickerChanged.remove(this.setNeedsRender);
+        this.editor.signals.gizmoChanged.remove(this.setNeedsRender);
+        this.editor.signals.objectHovered.remove(this.setNeedsRender);
+        this.editor.signals.objectUnhovered.remove(this.setNeedsRender);
+        this.editor.signals.objectAdded.remove(this.setNeedsRender);
+        this.editor.signals.historyChanged.remove(this.setNeedsRender);
+
+        this.navigationControls.removeEventListener('change', this.setNeedsRender);
+        this.navigationControls.removeEventListener('start', this.navigationStart);
+
+        this.started = false;
     }
 
     private needsRender = true;
@@ -157,6 +180,7 @@ export class Model implements Viewport {
     }
 
     render() {
+        if (!this.started) return;
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 

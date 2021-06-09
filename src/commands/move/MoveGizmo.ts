@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Editor } from '../../Editor';
 import { CircleGeometry } from "../../util/Util";
-import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
+import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "../AbstractGizmo";
 
 const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, 0.1, 12, 1, false);
 const lineGeometry = new LineGeometry();
@@ -25,7 +25,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     private readonly circle: THREE.Mesh;
     private readonly torus: THREE.Mesh;
 
-    constructor(editor: Editor, p1: THREE.Vector3) {
+    constructor(editor: EditorLike, p1: THREE.Vector3) {
         const materials = editor.gizmos;
 
         const handle = new THREE.Group();

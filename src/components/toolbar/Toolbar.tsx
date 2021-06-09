@@ -232,13 +232,12 @@ export default (editor: Editor) => {
         }
 
         connectedCallback() {
-            editor.signals.objectSelected.add(this.update);
-            editor.signals.objectDeselected.add(this.update);
+            editor.signals.selectionChanged.add(this.update);
 
             this.render();
         }
 
-        update(object: THREE.Object3D) {
+        update(object: HasSelection) {
             this.render();
         }
 
@@ -262,8 +261,7 @@ export default (editor: Editor) => {
         }
 
         disconnectedCallback() {
-            editor.signals.objectSelected.remove(this.update);
-            editor.signals.objectDeselected.remove(this.update);
+            editor.signals.selectionChanged.remove(this.update);
         }
     }
     customElements.define('ispace-toolbar', Toolbar);

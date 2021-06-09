@@ -1,9 +1,8 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { Editor } from '../../Editor';
 import { CircleGeometry } from "../../util/Util";
-import { AbstractGizmo, Intersector, MovementInfo } from "../AbstractGizmo";
+import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "../AbstractGizmo";
 
 type State = 'X' | 'Y' | 'Z' | 'screen';
 type Mode = {
@@ -17,7 +16,7 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
     private readonly torus: THREE.Mesh;
     private readonly plane: THREE.Mesh;
 
-    constructor(editor: Editor, p1: THREE.Vector3) {
+    constructor(editor: EditorLike, p1: THREE.Vector3) {
         const materials = editor.gizmos;
 
         const handle = new THREE.Group();

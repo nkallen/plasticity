@@ -1,18 +1,27 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
+import { Viewport } from './components/viewport/Viewport';
+import { EditorSignals } from './Editor';
+import { GeometryDatabase } from './GeometryDatabase';
+import { PointSnap, Snap, SnapManager } from './SnapManager';
 import { Cancel, CancellablePromise, Finish } from './util/Cancellable';
-import { Editor } from './Editor';
-import { AxisSnap, PointSnap, Snap } from './SnapManager';
 
 const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
+interface EditorLike {
+    db: GeometryDatabase,
+    viewports: Viewport[],
+    snaps: SnapManager,
+    signals: EditorSignals
+}
+
 export class PointPicker {
-    private readonly editor: Editor;
+    private readonly editor: EditorLike;
     private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
     private readonly _snaps = new Array<PointSnap>();
     firstPoint?: THREE.Vector3;
 
-    constructor(editor: Editor) {
+    constructor(editor: EditorLike) {
         this.editor = editor;
         this.mesh.material.depthTest = false;
         this.mesh.renderOrder = 999;

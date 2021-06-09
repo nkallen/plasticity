@@ -1,7 +1,12 @@
-import { EditorOriginator } from "../History";
 import * as THREE from "three";
-import { EditorSignals } from "../Editor";
-import * as visual from "../VisualModel";
+import * as cmd from "../commands/Command";
+import Command, { ChangeSelectionCommand } from "../commands/Command";
+import { EditorOriginator } from "../History";
+
+export interface EditorLike extends cmd.EditorLike {
+    originator: EditorOriginator,
+    execute(command: Command): Promise<void>;
+}
 
 export class ViewportSelector extends THREE.EventDispatcher {
     private readonly raycaster = new THREE.Raycaster();
@@ -14,11 +19,9 @@ export class ViewportSelector extends THREE.EventDispatcher {
 
     // FIXME add dispose
     constructor(
-        private readonly drawModel: Set<visual.SpaceItem>,
         private readonly camera: THREE.Camera,
         private readonly domElement: HTMLElement,
-        private readonly originator: EditorOriginator,
-        private readonly signals: EditorSignals
+        private readonly editor: EditorLike,
     ) {
         super();
 
@@ -49,8 +52,8 @@ export class ViewportSelector extends THREE.EventDispatcher {
         const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         const point = new THREE.Vector2();
         point.fromArray(array);
-        const intersects = this.getIntersects(point, [...this.drawModel]);
-        this.signals.hovered.dispatch(intersects);
+        const intersects = this.getIntersects(point, [...this.editor.db.drawModel]);
+        this.editor.signals.hovered.dispatch(intersects);
     }
 
     onPointerUp(event: PointerEvent): void {
@@ -60,11 +63,11 @@ export class ViewportSelector extends THREE.EventDispatcher {
         this.onUpPosition.fromArray(array);
 
         if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
-            const intersects = this.getIntersects(this.onUpPosition, [...this.drawModel]);
+            const intersects = this.getIntersects(this.onUpPosition, [...this.editor.db.drawModel]);
 
-            this.originator.group(new Map(), () => {
-                this.signals.clicked.dispatch(intersects);
-            });
+            const command = new ChangeSelectionCommand(this.editor);
+            command.intersections = intersects;
+            this.editor.execute(command);
         }
 
         document.removeEventListener('pointerup', this.onPointerUp, false);

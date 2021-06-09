@@ -19,7 +19,7 @@ import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 
 let db: GeometryDatabase;
-let materials: Required<MaterialDatabase>;
+let materials: MaterialDatabase;
 let signals: EditorSignals;
 let viewport: Model;
 let editor: EditorLike;
@@ -49,6 +49,8 @@ class FakeWebGLRenderer implements THREE.Renderer {
     setRenderTarget() { }
     clear() { }
     clearDepth() { }
+    getClearColor() { }
+    getClearAlpha() { }
 }
 
 beforeEach(async () => {
@@ -64,6 +66,8 @@ beforeEach(async () => {
         signals: signals,
         selection: selection,
         originator: originator,
+        materials: materials,
+        selectionInteraction: interaction
     };
     const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
@@ -82,11 +86,17 @@ beforeEach(async () => {
     viewport.start();
 });
 
+afterEach(async () => {
+    viewport.stop();
+});
+
 test("item selected", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
     interaction.onClick([{object: sphere.faces.get(0), distance: 1, point: new THREE.Vector3()}]);
+    signals.selectionChanged.dispatch(selection);
     expect(viewport.outlinePassSelection.selectedObjects).toEqual(sphere.outline);
     interaction.onClick([]);
+    signals.selectionChanged.dispatch(selection);
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
 });
 

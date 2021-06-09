@@ -31,7 +31,6 @@ export class SelectionInteractionManager {
         this.clickStrategy = new ClickStrategy(selection);
         this.hoverStrategy = new HoverStrategy(selection, materials, signals);
 
-        signals.clicked.add((intersections) => this.onClick(intersections));
         signals.hovered.add((intersections) => this.onPointerMove(intersections));
     }
 

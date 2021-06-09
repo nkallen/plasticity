@@ -13,6 +13,10 @@ export class Helpers {
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(([camera]) => this.update(camera));
+        signals.selectionChanged.add(this.selectionChanged);
+
+        this.update = this.update.bind(this);
+        this.selectionChanged = this.selectionChanged.bind(this);
     }
 
     add(...object: Helper[]) {
@@ -28,5 +32,9 @@ export class Helpers {
             const helper = child as Helper;
             helper.update(camera);
         }
+    }
+
+    selectionChanged() {
+        // console.log("selection changed");
     }
 }
