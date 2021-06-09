@@ -114,7 +114,8 @@ keybindings.set("gizmo:curve:undo", "Undo");
 export class Model {
     constructor(
         private readonly selection: HasSelection,
-        private readonly db: GeometryDatabase) { }
+        private readonly db: GeometryDatabase
+    ) { }
 
     get commands() {
         const result = [];

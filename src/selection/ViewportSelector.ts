@@ -1,11 +1,11 @@
 import * as THREE from "three";
-import * as cmd from "../commands/Command";
-import Command, { ChangeSelectionCommand } from "../commands/Command";
+import Command, * as cmd from "../commands/Command";
+import { ChangeSelectionCommand } from "../commands/CommandLike";
 import { EditorOriginator } from "../History";
 
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,
-    execute(command: Command): Promise<void>;
+    execute(command: Command, silent: boolean): Promise<void>;
 }
 
 export class ViewportSelector extends THREE.EventDispatcher {
@@ -65,9 +65,8 @@ export class ViewportSelector extends THREE.EventDispatcher {
         if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
             const intersects = this.getIntersects(this.onUpPosition, [...this.editor.db.drawModel]);
 
-            const command = new ChangeSelectionCommand(this.editor);
-            command.intersections = intersects;
-            this.editor.execute(command);
+            const command = new ChangeSelectionCommand(this.editor, intersects);
+            this.editor.execute(command, true);
         }
 
         document.removeEventListener('pointerup', this.onPointerUp, false);

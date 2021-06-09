@@ -44,6 +44,10 @@ export const Finish = { tag: 'Finish' };
 type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => { cancel: (() => void), finish: (() => void) };
 
 type State = 'None' | 'Cancelled' | 'Finished';
+
+// An object that has a collection of cancellable resources
+// This is used for Commands, which have factories, gizmos, etc. which
+// can be cancelled / finished /etc.
 export abstract class CancellableRegistor {
     private readonly resources: Cancellable[] = [];
     private _finally?: Cancellable;

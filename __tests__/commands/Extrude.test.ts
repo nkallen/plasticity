@@ -66,7 +66,6 @@ describe('Extrude Region', () => {
             const region = items[0];
 
             extrudeRegion.region = region;
-            extrudeRegion.direction = new THREE.Vector3(0, 0, 1);
             extrudeRegion.distance1 = 1;
             extrudeRegion.distance2 = 1;
             const result = await extrudeRegion.commit() as visual.SpaceItem;

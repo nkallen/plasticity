@@ -4,6 +4,7 @@ import signals from "signals";
 import * as THREE from "three";
 import Command from './commands/Command';
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
+import { SelectionCommandManager } from "./commands/SelectionCommand";
 import CommandRegistry from "./components/atom/CommandRegistry";
 import TooltipManager from "./components/atom/tooltip-manager";
 import { Viewport } from "./components/viewport/Viewport";
@@ -78,8 +79,9 @@ export class Editor {
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
     readonly selection = new SelectionManager(this.db, this.materials, this.signals);
-    readonly helpers: Helpers = new Helpers(this.signals, this);
+    readonly helpers: Helpers = new Helpers(this.signals);
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
+    readonly selectionGizmo = new SelectionCommandManager(this);
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);
 
@@ -121,15 +123,15 @@ export class Editor {
         this.disposable.add(d);
     }
 
-    activeCommand?: Command;
+    private activeCommand?: Command;
 
-    async execute(command: Command) {
-        if (this.activeCommand) this.activeCommand.cancel();
+    async execute(command: Command, silent = false) {
+        this.cancel();
         this.activeCommand = command;
 
         await Promise.resolve(); // Ensure any async behavior as a result of cancelling the last command finishes before starting a new command.
 
-        this.signals.commandStarted.dispatch(command);
+        if (!silent) this.signals.commandStarted.dispatch(command);
 
         const disposable = this.registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
@@ -144,8 +146,13 @@ export class Editor {
         } finally {
             disposable.dispose();
             this.activeCommand = undefined;
-            this.signals.commandEnded.dispatch();
+            if (!silent) this.signals.commandEnded.dispatch();
         }
+    }
+
+    cancel() {
+        this.activeCommand?.cancel();
+        this.activeCommand = undefined;
     }
 
     onWindowResize() {

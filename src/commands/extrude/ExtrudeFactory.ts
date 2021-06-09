@@ -1,19 +1,20 @@
-import { TemporaryObject } from '../../GeometryDatabase';
+import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../../src/VisualModel';
+import { TemporaryObject } from '../../GeometryDatabase';
 import { GeometryFactory } from '../Factory';
 
 abstract class AbstractExtrudeFactory extends GeometryFactory {
     distance1!: number;
     distance2 = 0;
-    direction!: THREE.Vector3;
+    abstract direction: THREE.Vector3;
 
     private temp?: TemporaryObject;
 
     names = new c3d.SNameMaker(c3d.CreatorType.CurveLoftedSolid, c3d.ESides.SideNone, 0);
 
-    abstract contour: c3d.Contour;
-    abstract placement: c3d.Placement3D;
+    protected abstract contour: c3d.Contour;
+    protected abstract placement: c3d.Placement3D;
 
     async doUpdate() {
         const { contour, placement, direction, names } = this;
@@ -48,8 +49,9 @@ abstract class AbstractExtrudeFactory extends GeometryFactory {
 
 export default class ExtrudeFactory extends AbstractExtrudeFactory {
     curve!: visual.SpaceInstance<visual.Curve3D>;
+    direction!: THREE.Vector3;
 
-    get contour() {
+    protected get contour() {
         const inst = this.db.lookup(this.curve);
         const item = inst.GetSpaceItem();
         const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
@@ -57,7 +59,7 @@ export default class ExtrudeFactory extends AbstractExtrudeFactory {
         return new c3d.Contour([curve2d], true);
     }
 
-    get placement() {
+    protected get placement() {
         const inst = this.db.lookup(this.curve);
         const item = inst.GetSpaceItem();
         const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
@@ -69,15 +71,22 @@ export default class ExtrudeFactory extends AbstractExtrudeFactory {
 export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     region!: visual.PlaneInstance<visual.Region>;
 
-    get contour() {
+    protected get contour() {
         const inst = this.db.lookup(this.region);
         const item = inst.GetPlaneItem();
         const region = item.Cast<c3d.Region>(c3d.PlaneType.Region);
         return region.GetOutContour();
     }
 
-    get placement() {
+    protected get placement() {
         const inst = this.db.lookup(this.region);
         return inst.GetPlacement();
+    }
+
+    get direction() {
+        const placement = this.placement;
+        const z = placement.GetAxisZ();
+        const normal = new THREE.Vector3(z.x, z.y, z.z);
+        return normal;
     }
 }

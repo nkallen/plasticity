@@ -41,8 +41,7 @@ import SphereFactory from './sphere/SphereFactory';
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
  * operations, like creating a cylinder. But they also encapsulate any state change that needs to be atomic,
- * for the purposes of UNDO. Thus, selection changes, which aren't a workflow per-se, are represented as commands
- * too.
+ * for the purposes of UNDO.
  */
 
 export interface EditorLike {
@@ -449,6 +448,7 @@ export class OffsetFaceCommand extends Command {
         offsetFace.solid = parent;
         offsetFace.faces = faces;
 
+        // FIXME move this and things like it into the factory
         const faceModel = this.editor.db.lookupTopologyItem(face);
         const normal_ = faceModel.Normal(0.5, 0.5);
         const normal = new THREE.Vector3(normal_.x, normal_.y, normal_.z);
@@ -627,15 +627,14 @@ export class ExtrudeCommand extends Command {
 }
 
 export class ExtrudeRegionCommand extends Command {
+    point?: THREE.Vector3
+
     async execute(): Promise<void> {
         const regions = [...this.editor.selection.selectedRegions];
         const extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         extrude.region = regions[0];
-        const normal = new THREE.Vector3(0, 0, 1);
-        extrude.direction = normal;
-        const point = undefined;
-        const gizmo = new OffsetFaceGizmo(this.editor, point ?? new THREE.Vector3(), normal);
-        const distance = await gizmo.execute(delta => {
+        const gizmo = new OffsetFaceGizmo(this.editor, this.point ?? new THREE.Vector3(), extrude.direction);
+        await gizmo.execute(delta => {
             extrude.distance1 = delta;
             extrude.update();
         }).resource(this);
@@ -671,19 +670,5 @@ export class DeleteCommand extends Command {
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
         return Promise.resolve();
-    }
-}
-
-export class ChangeSelectionCommand extends Command {
-    intersections!: THREE.Intersection[];
-
-    async execute(): Promise<void> {
-        const intersection = this.editor.selectionInteraction.onClick(this.intersections);
-        let point;
-        const selection = this.editor.selection;
-        if (intersection) {
-            point = intersection.point;
-        }
-        this.editor.signals.selectionChanged.dispatch({ selection, point });
     }
 }
