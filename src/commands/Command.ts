@@ -68,6 +68,14 @@ export default abstract class Command extends CancellableRegistor {
     }
 
     abstract execute(): Promise<void>;
+
+    // Commands are enqueued before execution because of all the of promises;
+    // It is possible to enqueue a command and cancel it before it's executed (e.g., if two commands are executed quickly).
+    async executeSafely() {
+        if (this.state !== 'None') throw Cancel;
+
+        return this.execute();
+    }
 }
 
 export class SphereCommand extends Command {
@@ -94,8 +102,7 @@ export class CircleCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         const [p1,] = await pointPicker.execute().resource(this);
         circle.center = p1;
-
-        await pointPicker.execute((p2: THREE.Vector3) => {
+        await pointPicker.execute(p2 => {
             const radius = p1.distanceTo(p2);
             circle.radius = radius;
             circle.update();

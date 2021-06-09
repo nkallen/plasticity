@@ -1,4 +1,5 @@
 import KeymapManager from "atom-keymap";
+import { CompositeDisposable, Disposable } from "event-kit";
 import signals from "signals";
 import * as THREE from "three";
 import Command from './commands/Command';
@@ -82,10 +83,18 @@ export class Editor {
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);
 
+    disposable = new CompositeDisposable();
+
     constructor() {
-        // FIXME dispose of these:
-        window.addEventListener('resize', this.onWindowResize.bind(this), false);
-        window.addEventListener('load', this.onWindowLoad.bind(this), false);
+        this.onWindowResize = this.onWindowResize.bind(this);
+        this.onWindowLoad = this.onWindowLoad.bind(this);
+
+        window.addEventListener('resize', this.onWindowResize, false);
+        window.addEventListener('load', this.onWindowLoad, false);
+
+        this.disposable.add(new Disposable(() => window.removeEventListener('resize', this.onWindowResize)));
+        this.disposable.add(new Disposable(() => window.removeEventListener('load', this.onWindowLoad)));
+
         this.registry.attach(window);
         this.keymaps.defaultTarget = document.body;
         document.addEventListener('keydown', event => {
@@ -105,26 +114,34 @@ export class Editor {
         this.db.scene.add(axes);
         this.db.scene.background = new THREE.Color(0x424242);
 
-        this.registry.add("ispace-workspace", {
+        const d = this.registry.add("ispace-workspace", {
             'undo': () => this.history.undo(),
             'redo': () => this.history.redo()
         });
+        this.disposable.add(d);
     }
 
+    activeCommand?: Command;
+
     async execute(command: Command) {
+        if (this.activeCommand) this.activeCommand.cancel();
+        this.activeCommand = command;
+        await Promise.resolve(); // Ensure any async behavior as a result of cancelling the last command finishes before starting a new command.
         this.signals.commandStarted.dispatch(command);
+
         const disposable = this.registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
         });
         try {
             const state = this.originator.saveToMemento(new Map());
-            await command.execute();
+            await command.executeSafely();
             this.history.add("Command", state);
         } catch (e) {
             if (e !== Cancel) throw e;
         } finally {
             disposable.dispose();
+            this.activeCommand = undefined;
             this.signals.commandEnded.dispatch();
         }
     }

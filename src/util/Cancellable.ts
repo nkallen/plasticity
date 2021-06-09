@@ -43,15 +43,18 @@ export const Finish = { tag: 'Finish' };
 
 type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => { cancel: (() => void), finish: (() => void) };
 
+type State = 'None' | 'Cancelled' | 'Finished';
 export abstract class CancellableRegistor {
     private readonly resources: Cancellable[] = [];
     private _finally?: Cancellable;
+    state: State = 'None';
 
     cancel(): void {
         for (const resource of this.resources) {
             resource.cancel();
         }
         this._finally?.cancel();
+        this.state = 'Cancelled';
     }
 
     finish(): void {
@@ -59,6 +62,7 @@ export abstract class CancellableRegistor {
         for (const resource of this.resources) {
             resource.cancel();
         }
+        this.state = 'Finished';
     }
 
     resource<T extends Cancellable>(x: T): T {
