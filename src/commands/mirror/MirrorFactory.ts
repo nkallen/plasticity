@@ -39,6 +39,5 @@ export default class MirrorFactory extends GeometryFactory {
 
     doCancel() {
         this.temp?.cancel();
-        return super.cancel();
     }
 }

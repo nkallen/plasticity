@@ -19,7 +19,7 @@ const createWindow = (): void => {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         height: 1400,
-        width: 1000,
+        width: 1400,
         x: 0,
         y: 0,
         show: false,
@@ -35,7 +35,7 @@ const createWindow = (): void => {
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
     // Open the DevTools.
-    // mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
 
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.show();

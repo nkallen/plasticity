@@ -41,6 +41,5 @@ export default class LoftFactory extends GeometryFactory {
     }
 
     doCancel() {
-        return super.cancel();
     }
 }

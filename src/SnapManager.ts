@@ -68,20 +68,7 @@ export class SnapManager {
                 this.addEdge(edge);
             }
         } else if (item instanceof visual.SpaceInstance) {
-            const inst = this.db.lookup(item);
-            const curve = inst.GetSpaceItem().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            const min = curve.PointOn(0);
-            const mid = curve.PointOn(0.5);
-            const max = curve.PointOn(1);
-            const begSnap = new PointSnap(min.x, min.y, min.z);
-            const midSnap = new PointSnap(mid.x, mid.y, mid.z);
-            const endSnap = new PointSnap(max.x, max.y, max.z);
-            this.begPoints.add(begSnap);
-            this.midPoints.add(midSnap);
-            this.endPoints.add(endSnap);
-            item.snaps.add(begSnap);
-            item.snaps.add(midSnap);
-            item.snaps.add(endSnap);
+            this.addCurve(item);
         }
 
         this.update();
@@ -99,6 +86,23 @@ export class SnapManager {
 
         edge.snaps.add(midSnap);
         edge.snaps.add(begSnap);
+    }
+
+    private addCurve(item: visual.SpaceInstance<visual.Curve3D>) {
+        const inst = this.db.lookup(item);
+        const curve = inst.GetSpaceItem().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+        const min = curve.PointOn(curve.GetTMin());
+        const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
+        const max = curve.PointOn(curve.GetTMax());
+        const begSnap = new PointSnap(min.x, min.y, min.z);
+        const midSnap = new PointSnap(mid.x, mid.y, mid.z);
+        const endSnap = new PointSnap(max.x, max.y, max.z);
+        this.begPoints.add(begSnap);
+        this.midPoints.add(midSnap);
+        this.endPoints.add(endSnap);
+        item.snaps.add(begSnap);
+        item.snaps.add(midSnap);
+        item.snaps.add(endSnap);
     }
 
     private delete(item: visual.SpaceItem): void {

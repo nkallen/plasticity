@@ -28,7 +28,6 @@ abstract class BooleanFactory extends GeometryFactory {
     }
 
     doCancel() {
-        return super.cancel();
     }
 
     async doUpdate() { }
@@ -55,6 +54,7 @@ export class CutFactory extends GeometryFactory {
         const item = instance.GetSpaceItem();
         const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
         const { curve2d, placement } = curve.GetPlaneCurve(false);
+        if (!curve2d || !placement) throw new Error("invalid curve");
         const contour = new c3d.Contour([curve2d], true);
 
         const names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
@@ -72,7 +72,6 @@ export class CutFactory extends GeometryFactory {
     }
 
     doCancel() {
-        return super.cancel();
     }
 
     async doUpdate() { }

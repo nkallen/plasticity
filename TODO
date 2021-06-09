@@ -1,6 +1,5 @@
 THIS WEEK:
 
-Draft solid
 Auto push/pull gizmo
 Auto fillet gizmo
 Auto extrude gizmo
@@ -11,6 +10,12 @@ BUG:
 
 both point picker and abstract gizmo take callbacks that should be async, because they call update which is potentially async
 cylinder not working in many cases
+
+BUGS for c3d
+- crashes when extruding composite curve
+- lots of push pull grow/shrink crashes
+- figure 8 intersection hangs
+
 
 FUTURE:
 

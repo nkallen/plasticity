@@ -44,7 +44,6 @@ export class DraftSolidFactory extends GeometryFactory {
         const drafted = await c3d.ActionSolid.DraftSolid_async(model, c3d.CopyMode.Copy, placement, angle, faces_, c3d.FacePropagation.All, false, names);
         const result = await this.db.addItem(drafted);
         this.db.removeItem(solid);
-        console.log(origin,axis,angle);
         return result;
     }
 

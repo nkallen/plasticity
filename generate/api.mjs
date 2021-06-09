@@ -1,5 +1,6 @@
 const isReturn = { isReturn: true };
 const isNullable = { isNullable: true };
+const isErrorBool = { isErrorBool: true };
 
 export default {
     classes: {
@@ -145,7 +146,8 @@ export default {
             functions: [
                 {
                     signature: "bool GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & placement, bool saveParams, VERSION version = Math::DefaultMathVersion())",
-                    placement: isReturn
+                    placement: isReturn,
+                    return: isErrorBool,
                 },
                 "bool IsClosed()",
                 "bool IsTouch()",
@@ -406,7 +408,7 @@ export default {
                 {
                     signature: "bool EdgeNormal(double t, MbVector3D & p)",
                     p: isReturn,
-                    return: { isErrorBool: true }
+                    return: isErrorBool
                 },
                 // "const MbSurfaceIntersectionCurve & GetIntersectionCurve()",
                 "MbFace * GetFacePlus()",
@@ -434,17 +436,17 @@ export default {
                 {
                     signature: "bool GetPlacement(MbPlacement3D * result)",
                     result: isReturn,
-                    return: { isErrorBool: true }
+                    return: isErrorBool
                 },
                 {
                     signature: "bool GetControlPlacement(MbPlacement3D & result)",
                     result: isReturn,
-                    return: { isErrorBool: true }
+                    return: isErrorBool
                 },
                 {
                     signature: "bool GetSurfacePlacement(MbPlacement3D & result)",
                     result: isReturn,
-                    return: { isErrorBool: true }
+                    return: isErrorBool
                 },
                 { signature: "MbeSpaceType IsA()", isManual: true }
             ]
