@@ -24,6 +24,7 @@ export default {
         "5": "gizmo:curve:hermite",
         "6": "gizmo:curve:bezier",
         "7": "gizmo:curve:cubic-spline",
+        "space": "gizmo:curve:add-curve",
     },
 
     "ispace-viewport": {

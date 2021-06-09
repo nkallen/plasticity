@@ -1,5 +1,10 @@
 THIS WEEK:
 
+close curve
+undo curve edit
+join curves
+fillet curve thingy
+
 
 BUG:
 
@@ -7,6 +12,8 @@ both point picker and abstract gizmo take callbacks that should be async, becaus
 cylinder not working in many cases
 
 FUTURE:
+
+draft solid
 
 box selection
 
@@ -23,6 +30,12 @@ go through all factories and see if you can return more specific types from doCo
     -  Promise<visual.SpaceInstance<visual.Curve3D>> 
 
 audit VisualModel to see if we can simplify the recursive raycasting. It was originally introduced for LODs, but maybe it can be done with deep raycasting and hit filtering.
+
+rethink the deep cloning.
+  - perhaps objects that store references to visual.* can just use simple names instead and lookup from db on command 
+  - maybe objects can be immutable; materials and highlighting can be a pre-render step
+
+
 
 --
 

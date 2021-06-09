@@ -9,6 +9,7 @@ const map: Record<string, number> = {
     'gizmo:curve:hermite': c3d.SpaceType.Hermit3D,
     'gizmo:curve:bezier': c3d.SpaceType.Bezier3D,
     'gizmo:curve:cubic-spline': c3d.SpaceType.CubicSpline3D,
+    'gizmo:curve:add-curve': -1,
 }
 
 const commands = new Array<string>();
@@ -16,12 +17,18 @@ for (const key in map) {
     commands.push(key);
 }
 
-export class CurveGizmo extends CommandKeyboardInput<(n: number) => void> {
+export type CurveGizmoEvent = { tag: 'type', type: number } | { tag: 'add-curve' }
+
+export class CurveGizmo extends CommandKeyboardInput<(e: CurveGizmoEvent) => void> {
     constructor(editor: EditorLike) {
         super('curve', editor, commands);
     }
 
-    resolve(cb: (n: number) => void, command: string) {
-        cb(map[command]);
+    resolve(cb: (e: CurveGizmoEvent) => void, command: string) {
+        if (command === 'gizmo:curve:add-curve') {
+            cb({ tag: 'add-curve' });
+        } else {
+            cb({ tag: 'type', type: map[command] });
+        }
     }
 }

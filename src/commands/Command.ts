@@ -7,8 +7,9 @@ import * as visual from "../VisualModel";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
 import CircleFactory from './circle/CircleFactory';
+import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import CurveFactory from "./curve/CurveFactory";
-import { CurveGizmo } from "./curve/CurveGizmo";
+import { CurveGizmo, CurveGizmoEvent } from "./curve/CurveGizmo";
 import CylinderFactory from './cylinder/CylinderFactory';
 import ExtrudeFactory from "./extrude/ExtrudeFactory";
 import FilletFactory, { Max } from './fillet/FilletFactory';
@@ -118,12 +119,19 @@ export class LineCommand extends Command {
 
 export class CurveCommand extends Command {
     async execute(): Promise<void> {
-        const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const curve = new CurveAndContourFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
         const keyboard = new CurveGizmo(this.editor);
-        keyboard.execute((type: number) => {
-            curve.type = type;
-            curve.update();
+        keyboard.execute((e: CurveGizmoEvent) => {
+            switch (e.tag) {
+                case 'type':
+                    curve.type = e.type;
+                    curve.update();
+                    break;
+                case 'add-curve':
+                    curve.push();
+                    break;
+            }
         }).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
