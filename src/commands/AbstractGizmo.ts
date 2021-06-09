@@ -156,6 +156,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         });
     }
 
+    // Scale the gizmo so it has a uniform size regardless of camera position/zoom
     update(camera: THREE.Camera) {
         let factor;
         if (camera instanceof THREE.OrthographicCamera) {

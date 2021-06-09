@@ -1,7 +1,8 @@
 import { EditorSignals } from "../Editor";
 import MaterialDatabase from "../MaterialDatabase";
 import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, SpaceItem, TopologyItem } from "../VisualModel";
-import { HasSelection, SelectionMode, SelectionStrategy } from "./SelectionManager";
+import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
+import { HasSelection } from "./SelectionManager";
 
 export class HoverStrategy implements SelectionStrategy {
     constructor(
