@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { NumberKeyframeTrack } from 'three';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
 import { Clone, GeometryMemento } from './History';
@@ -113,6 +114,9 @@ export class GeometryDatabase {
             case c3d.SpaceType.SpaceInstance:
                 builder = new visual.SpaceInstanceBuilder();
                 break;
+            case c3d.SpaceType.PlaneInstance:
+                builder = new visual.PlaneInstanceBuilder();
+                break;
             default:
                 builder = new visual.SolidBuilder();
         }
@@ -143,6 +147,16 @@ export class GeometryDatabase {
                 instance.addLOD(curve3D.build(), distance);
                 break;
             }
+            case c3d.SpaceType.PlaneInstance: {
+                const instance = builder as visual.PlaneInstanceBuilder<visual.Region>;
+                const grids = mesh.GetBuffers();
+                if (grids.length != 1) throw new Error("Invalid precondition");
+                const grid = grids[0];
+                const material = this.materials.region(grid);
+                const region = visual.Region.build(grid, material);
+                instance.addLOD(region, distance);
+                break;
+            }
             // case c3d.SpaceType.Point3D: {
             //     const apexes = mesh.GetApexes();
             //     const geometry = new THREE.BufferGeometry();
@@ -170,7 +184,6 @@ export class GeometryDatabase {
                     faces.addFace(face);
                 }
                 solid.addLOD(edges.build(), faces.build(), distance);
-                break;
             }
         }
     }

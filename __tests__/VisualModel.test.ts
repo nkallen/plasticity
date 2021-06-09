@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { Curve } from "three";
 import LineFactory from "../src/commands/line/LineFactory";
 import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorSignals } from "../src/Editor";
@@ -22,7 +23,7 @@ beforeEach(() => {
     makeLine = new LineFactory(db, materials, signals);
 });
 
-test('construction', () => {
+test('constructs solids', () => {
     const makeEdges = new visual.CurveEdgeGroupBuilder();
     const edge = visual.CurveEdge.build({ position: [1, 2, 3] }, materials.line(), materials.lineDashed());
     makeEdges.addEdge(edge);
@@ -34,6 +35,14 @@ test('construction', () => {
     const makeSolid = new visual.SolidBuilder();
     makeSolid.addLOD(makeEdges.build(), makeFaces.build());
     const solid = makeSolid.build();
+});
+
+test('constructs curves', () => {
+    const makeSpaceInstance = new visual.SpaceInstanceBuilder();
+    const makeCurve = new visual.Curve3DBuilder();
+    const line = visual.CurveSegment.build({ position: [1, 2, 3] }, materials.line());
+    makeCurve.addCurveSegment(line);
+    makeSpaceInstance.addLOD(makeCurve.build())
 });
 
 describe('materials are consistent across LODs', () => {
@@ -77,7 +86,7 @@ describe('materials are consistent across LODs', () => {
         expect(face2.material).toBe(materials.highlight(face2));
     });
 
-    test("curve3d", async () =>  {
+    test("curve3d", async () => {
         makeLine.p1 = new THREE.Vector3();
         makeLine.p2 = new THREE.Vector3(1, 1, 0);
         const inst = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;

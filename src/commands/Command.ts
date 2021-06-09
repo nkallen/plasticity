@@ -24,6 +24,7 @@ import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
 import RectFactory from './rect/RectFactory';
+import RegionFactory from "./region/RegionFactory";
 import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
@@ -74,7 +75,11 @@ export class CircleCommand extends Command {
             circle.radius = radius;
             circle.update();
         }).resource(this);
-        await circle.commit();
+        const c = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const region = new RegionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        region.contour = c;
+        await region.commit();
     }
 }
 

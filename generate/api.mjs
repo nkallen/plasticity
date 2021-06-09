@@ -237,6 +237,19 @@ export default {
                 }
             ]
         },
+        PlaneInstance: {
+            rawHeader: "plane_instance.h",
+            extends: "Item",
+            dependencies: ["Item.h", "PlaneItem.h", "Placement3D.h"],
+            initializers: [
+                "const MbPlaneItem & item, const MbPlacement3D & placement"
+            ],
+        },
+        Region: {
+            rawHeader: "region.h",
+            extends: "PlaneItem",
+            dependencies: ["PlaneItem.h"]
+        },
         Direction: {
             rawHeader: "mb_vector.h",
             initializers: [
@@ -566,6 +579,9 @@ export default {
             dependencies: ["Placement3D.h", "Contour.h"],
             rawHeader: "op_swept_parameter.h",
             initializers: ["", "const MbPlacement3D &place, MbContour &contour"]
+        },
+        RegionBooleanParams: {
+            rawHeader: "region.h"
         }
     },
     modules: {
@@ -651,6 +667,15 @@ export default {
                 "MbResultType AddCurveToContour(MbCurve3D & curve, MbCurve3D & contour, bool toEnd)",
                 { signature: "MbResultType CreateContours(RPArray<MbCurve3D> & curves, double metricEps, RPArray<MbContour3D> & result, bool onlySmoothConnected = false, VERSION version = Math::DefaultMathVersion())", result: isReturn },
                 // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
+            ]
+        },
+        ActionRegion: {
+            rawHeader: "region.h",
+            dependencies: ["Region.h", "Contour.h", "RegionBooleanParams.h"],
+            functions: [
+                { signature: "void GetCorrectRegions(const RPArray<MbContour> & contours, bool sameContours, RPArray<MbRegion> & regions)", regions: isReturn },
+                { signature: "void MakeRegions(RPArray<MbContour> & contours, bool useSelfIntCntrs, bool sameContours, RPArray<MbRegion> & regions)", regions: isReturn },
+                // "bool CreateBooleanResultRegions(RPArray<MbContour> & contours1, RPArray<MbContour> & contours2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)"
             ]
         }
     },

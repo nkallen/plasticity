@@ -18,6 +18,7 @@ export default interface MaterialDatabase {
     setResolution(size: THREE.Vector2): void;
     point(o?: c3d.Item): THREE.Material;
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material;
+    region(o?: c3d.MeshBuffer): THREE.Material;
 
     highlight(o: c3d.Edge): LineMaterial;
     highlight(o: c3d.Curve3D): LineMaterial;
@@ -73,6 +74,12 @@ mesh_hovered.polygonOffset = true;
 mesh_hovered.polygonOffsetFactor = 0.1;
 mesh_hovered.polygonOffsetUnits = 1;
 
+const region = new THREE.MeshBasicMaterial();
+region.fog = false;
+region.color.setHex(0x8dd9f2)
+region.opacity = 0.1;
+region.transparent = true;
+
 export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();
     private readonly lines = [line, line_dashed, line_highlighted, line_hovered];
@@ -123,6 +130,9 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         return material;
     }
 
+    region(o: c3d.MeshBuffer): THREE.Material {
+        return region;
+    }
 
     highlight(o: c3d.Edge): LineMaterial;
     highlight(o: c3d.Curve3D): LineMaterial;

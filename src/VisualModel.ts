@@ -26,6 +26,10 @@ export abstract class SpaceItem extends THREE.Object3D {
     private _useNominal: undefined;
 }
 
+export abstract class PlaneItem extends THREE.Object3D {
+    private _useNominal: undefined;
+}
+
 class LOD extends THREE.LOD {
     clone(recursive?: boolean): THREE.Object3D { throw new Error("Don't call") }
     copy(source: this, recursive?: boolean): this { throw new Error("Don't call") }
@@ -55,7 +59,7 @@ export class Solid extends Item {
     }
 }
 
-export class SpaceInstance<T extends Curve3D> extends Item {
+export class SpaceInstance<T extends SpaceItem> extends Item {
     get underlying() { return this.lod.children[0] as T }
     disposable = new CompositeDisposable();
     get material() {
@@ -68,6 +72,10 @@ export class SpaceInstance<T extends Curve3D> extends Item {
             hasMaterial.material = m;
         }
     };
+}
+
+export class PlaneInstance<T extends PlaneItem> extends Item {
+    disposable = new CompositeDisposable();
 }
 
 export class Curve3D extends SpaceItem {
@@ -88,6 +96,32 @@ export class Curve3D extends SpaceItem {
             const seg = child as CurveSegment;
             seg.child.material = m; // using child because to avoid LOD sync code from doing unneccessary work
         }
+    }
+}
+
+export class Surface extends SpaceItem {
+    disposable = new CompositeDisposable();
+}
+
+export class Region extends PlaneItem {
+    private readonly mesh: THREE.Mesh;
+    disposable = new CompositeDisposable();
+
+    static build(grid: c3d.MeshBuffer, material: THREE.Material) {
+        const geometry = new THREE.BufferGeometry();
+        geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
+        geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
+        // geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3)); // FIXME
+        const mesh = new THREE.Mesh(geometry, material);
+        return new Region(mesh);
+    }
+
+    private constructor(mesh: THREE.Mesh) {
+        super()
+        this.mesh = mesh;
+        this.renderOrder = RenderOrder.Face;
+        this.add(mesh);
+        this.disposable.add(new Disposable(() => this.mesh.geometry.dispose()))
     }
 }
 
@@ -248,6 +282,7 @@ abstract class GeometryDisposable<T extends THREE.BufferGeometry> {
 }
 
 export interface SpaceItem extends DisposableLike { }
+export interface PlaneItem extends DisposableLike { }
 
 export interface Face extends GeometryDisposable<THREE.BufferGeometry> { }
 export interface CurveEdge extends GeometryDisposable<LineGeometry> { }
@@ -355,6 +390,14 @@ export class Curve3DBuilder {
     }
 }
 
+export class SurfaceBuilder {
+    private readonly surface = new Surface();
+
+    build() { return this.surface }
+
+
+}
+
 export class SolidBuilder {
     private readonly solid = new Solid();
 
@@ -372,7 +415,7 @@ export class SolidBuilder {
     }
 }
 
-export class SpaceInstanceBuilder<T extends Curve3D> {
+export class SpaceInstanceBuilder<T extends SpaceItem> {
     private readonly instance = new SpaceInstance<T>();
 
     addLOD(t: T, distance?: number) {
@@ -381,6 +424,19 @@ export class SpaceInstanceBuilder<T extends Curve3D> {
     }
 
     build(): SpaceInstance<T> {
+        return this.instance;
+    }
+}
+
+export class PlaneInstanceBuilder<T extends PlaneItem> {
+    private readonly instance = new PlaneInstance<T>();
+
+    addLOD(t: T, distance?: number) {
+        this.instance.lod.addLevel(t, distance);
+        this.instance.disposable.add(new Disposable(() => t.dispose()));
+    }
+
+    build(): PlaneInstance<T> {
         return this.instance;
     }
 }
