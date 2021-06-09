@@ -34,7 +34,7 @@ export class SelectionInteractionManager {
         signals.hovered.add((intersections) => this.onPointerMove(intersections));
     }
 
-    private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy) {
+    private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy): THREE.Intersection | undefined {
         if (intersections.length == 0) {
             strategy.emptyIntersection();
             return;
@@ -57,15 +57,15 @@ export class SelectionInteractionManager {
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
                 if (this.selection.mode.has(SelectionMode.Solid)) {
-                    if (strategy.solid(object, parentItem as Solid)) return;
+                    if (strategy.solid(object, parentItem as Solid)) return intersection;
                 }
-                if (strategy.topologicalItem(object, parentItem as Solid)) return;
+                if (strategy.topologicalItem(object, parentItem as Solid)) return intersection;
             } else if (object instanceof CurveSegment) {
                 const parentItem = object.parentItem;
-                if (strategy.curve3D(object, parentItem)) return;
+                if (strategy.curve3D(object, parentItem)) return intersection;
             } else if (object instanceof Region) {
                 const parentItem = object.parentItem;
-                if (strategy.region(object, parentItem)) return;
+                if (strategy.region(object, parentItem)) return intersection;
             } else {
                 console.error(object);
                 throw new Error("Invalid precondition");
@@ -73,8 +73,8 @@ export class SelectionInteractionManager {
         }
     }
 
-    onClick(intersections: THREE.Intersection[]): void {
-        this.onIntersection(intersections, this.clickStrategy);
+    onClick(intersections: THREE.Intersection[]): THREE.Intersection | undefined {
+        return this.onIntersection(intersections, this.clickStrategy);
     }
 
     onPointerMove(intersections: THREE.Intersection[]): void {

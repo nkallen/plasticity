@@ -15,7 +15,7 @@ declare module "*c3d.node" {
             <%_ } %>
             <%_ for (const func of c.nonInheritedFunctions.concat(c.implements)) { _%>
                 <%_ if (func.name == 'Cast') { _%>
-                    Cast<T extends SpaceItem>(t: SpaceType): T;
+                    Cast<T extends <%- c.jsClassName %>>(t: <%- c.jsClassName == 'PlaneItem' ? 'PlaneType' : 'SpaceType' %>): T;
                 <%_ } else { _%>
                     <%- include('sync_function.d.ts', { func: func }) %>
                 <%_ } _%>
@@ -318,4 +318,46 @@ declare module "*c3d.node" {
         SmoothlyJointed = 4,  ///< \ru Прохождение по гладкостыкующимся граням через прямолинейные ребра. \en Movement on smooth-joint faces through straight edges. //-V112 
     };
 
+    declare enum PlaneType {
+
+        Undefined         =   0,  ///< \ru Неизвестный объект. \en Unknown object. 
+        PlaneItem         =   1,  ///< \ru Произвольный двумерный объект. \en Arbitrary two-dimensional object. \n 
+      
+        // \ru Типы кривых. \en Types of curves.
+        Curve             = 201,  ///< \ru Произвольная кривая. \en Arbitrary curve. 
+        Line              = 202,  ///< \ru Прямая. \en Line. 
+        LineSegment       = 203,  ///< \ru Отрезок. \en Segment. 
+        Arc               = 204,  ///< \ru Окружность или эллипс или дуга окружности или дуга эллипсa. \en Circle or ellipse or arc of circle or arc of ellipse. 
+        Cosinusoid        = 205,  ///< \ru Кривая-косинусоида. \en Cosine curve. 
+        PolyCurve         = 206,  ///< \ru Сплайновая кривая. \en Spline curve. 
+        Polyline          = 207,  ///< \ru Полилиния. \en Polyline. 
+        Bezier            = 208,  ///< \ru Безье-сплайн. \en Bezier spline. 
+        Hermit            = 209,  ///< \ru Составной кубический сплайн Эрмита. \en Composite cubic Hermite spline. 
+        Nurbs             = 210,  ///< \ru NURBS кривая. \en NURBS-curve. 
+        CubicSpline       = 211,  ///< \ru Кубический сплайн. \en Cubic spline. 
+        TrimmedCurve      = 212,  ///< \ru Усеченная кривая. \en Trimmed curve. 
+        OffsetCurve       = 213,  ///< \ru Эквидистантная продленная кривая. \en Extended offset curve. 
+        ReparamCurve      = 214,  ///< \ru Репараметризованная кривая. \en Reparametrized curve. 
+        PointCurve        = 215,  ///< \ru Кривая - точка. \en Point-curve. 
+        CharacterCurve    = 216,  ///< \ru Кривая, координатные функции которой заданы в символьном виде. \en Functionally defined curve. 
+        ProjCurve         = 217,  ///< \ru Проекционная кривая. \en Projection curves. 
+        SweptImageCurve   = 218,  ///< \ru Образ трехмерной кривой на поверхности при движении по направляющей. \en Image of three-dimensional curve on surface while moving along a guide curve. 
+        TransformedCurve  = 219,  ///< \ru Трансформированная кривая. \en Transformed curve. 
+        ConeBendedCurve   = 220,  ///< \ru Кривая в параметрической области конуса, соответствующая кривой в параметрической области плоскости при коническом сгибе. \en Curve in parametric region of a cone corresponding to curve in parametric region of plane at a conic bend. 
+        ConeUnbendedCurve = 221,  ///< \ru Кривая в параметрической области плоскости, соответствующая кривой в параметрической области конуса при коническом сгибе. \en Curve in parametric region of a plane corresponding to curve in parametric region of a cone at conic bend. 
+      
+        // \ru Типы сложных кривых. \en Types of complex curves.
+        Contour           = 301,  ///< \ru Контур - составная кривая. \en Contour - composite curve. 
+        ContourWithBreaks = 302,  ///< \ru Контур с разрывами . \en Contour with discontinuities. 
+        FreeCurve         = 400,  ///< \ru Тип для кривых, созданных пользователем. \en User-defined curve. \n 
+      
+        // \ru Типы сложных объектов. \en Types of complex objects. 
+        Multiline         = 401,  ///< \ru Мультилиния. \en Multiline. 
+      
+        // \ru Типы других объектов. \en Types of other objects. 
+        Region            = 501,  ///< \ru Регион. \en Region. 
+      
+        FreeItem          = 600,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
+      
+      };
 }

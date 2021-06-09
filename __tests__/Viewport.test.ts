@@ -62,7 +62,7 @@ beforeEach(async () => {
     editor = {
         db: db,
         viewports: [],
-        helpers: new Helpers(signals),
+        helpers: new Helpers(signals, selection),
         signals: signals,
         selection: selection,
         originator: originator,
@@ -92,17 +92,19 @@ afterEach(async () => {
 
 test("item selected", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
-    interaction.onClick([{object: sphere.faces.get(0), distance: 1, point: new THREE.Vector3()}]);
-    signals.selectionChanged.dispatch(selection);
+    const point = new THREE.Vector3();
+    interaction.onClick([{object: sphere.faces.get(0), distance: 1, point}]);
+    signals.selectionChanged.dispatch({selection, point});
     expect(viewport.outlinePassSelection.selectedObjects).toEqual(sphere.outline);
     interaction.onClick([]);
-    signals.selectionChanged.dispatch(selection);
+    signals.selectionChanged.dispatch({selection, point});
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
 });
 
 test("item hovered", () => {
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
-    interaction.onPointerMove([{object: sphere.faces.get(0), distance: 1, point: new THREE.Vector3()}]);
+    const point = new THREE.Vector3();
+    interaction.onPointerMove([{object: sphere.faces.get(0), distance: 1, point}]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual(sphere.outline);
     interaction.onPointerMove([]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);

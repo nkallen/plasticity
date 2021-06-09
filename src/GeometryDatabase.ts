@@ -75,6 +75,7 @@ export class GeometryDatabase {
     // FIXME rethink error messages and consider using Family rather than isA for curve3d?
     lookup(object: visual.Solid): c3d.Solid;
     lookup(object: visual.SpaceInstance<any>): c3d.SpaceInstance;
+    lookup(object: visual.PlaneInstance<any>): c3d.PlaneInstance;
     lookup(object: visual.Item): c3d.Item;
     lookup(object: visual.Item): c3d.Item {
         const item = this.lookupItem(object);

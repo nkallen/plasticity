@@ -124,7 +124,10 @@ export default {
         PlaneItem: {
             rawHeader: "plane_item.h",
             extends: "RefItem",
-            dependencies: ["RefItem.h"]
+            dependencies: ["RefItem.h"],
+            functions: [
+                { signature: "MbPlaneItem * Cast()", isManual: true },
+            ]
         },
         Curve: {
             rawHeader: "curve.h",
@@ -244,11 +247,23 @@ export default {
             initializers: [
                 "const MbPlaneItem & item, const MbPlacement3D & placement"
             ],
+            functions: [
+                "const MbPlacement3D & GetPlacement()",
+                "size_t PlaneItemsCount()",
+                "const MbPlaneItem * GetPlaneItem(size_t ind = 0)",
+            ]
         },
         Region: {
             rawHeader: "region.h",
             extends: "PlaneItem",
-            dependencies: ["PlaneItem.h"]
+            dependencies: ["PlaneItem.h", "Contour.h"],
+            functions: [
+                { signature: "void DetachContours(RPArray<MbContour> & dstContours)", dstContours: isReturn },
+                "size_t GetContoursCount()",
+                "MbContour * SetContour(size_t k)",
+                "const MbContour * GetContour(size_t k)",
+                "const MbContour * GetOutContour()",
+            ]
         },
         Direction: {
             rawHeader: "mb_vector.h",

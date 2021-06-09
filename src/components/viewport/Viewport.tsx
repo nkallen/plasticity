@@ -184,7 +184,8 @@ export class Model implements Viewport {
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 
-        this.editor.signals.renderPrepared.dispatch([this.camera, new THREE.Vector2(this.offsetWidth, this.offsetHeight)]);
+        const resolution = new THREE.Vector2(this.offsetWidth, this.offsetHeight);
+        this.editor.signals.renderPrepared.dispatch({ camera: this.camera, resolution});
 
         if (this.grid) this.editor.db.scene.add(this.grid);
         const oldFog = this.editor.db.scene.fog;

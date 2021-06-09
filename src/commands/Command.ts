@@ -38,6 +38,13 @@ import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
 
+/**
+ * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
+ * operations, like creating a cylinder. But they also encapsulate any state change that needs to be atomic,
+ * for the purposes of UNDO. Thus, selection changes, which aren't a workflow per-se, are represented as commands
+ * too.
+ */
+
 export interface EditorLike {
     db: GeometryDatabase,
     signals: EditorSignals,
@@ -442,7 +449,7 @@ export class OffsetFaceCommand extends Command {
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
         const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
 
-        await gizmo.execute((delta) => {
+        await gizmo.execute(delta => {
             offsetFace.schedule(async () => {
                 offsetFace.transaction('direction', async () => {
                     offsetFace.direction = new THREE.Vector3(delta, 0, 0);
@@ -471,7 +478,7 @@ export class DraftSolidCommand extends Command {
         draftSolid.solid = parent;
         draftSolid.faces = faces;
         draftSolid.origin = point;
-        
+
         await gizmo.execute((axis, angle) => {
             draftSolid.axis = axis;
             draftSolid.angle = angle;
@@ -598,12 +605,11 @@ export class ExtrudeCommand extends Command {
         const curves = [...this.editor.selection.selectedCurves];
         const extrude = new ExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
         extrude.contour = curves[0];
-        extrude.direction = new THREE.Vector3(1, 1, 1);
 
         const pointPicker = new PointPicker(this.editor);
         const [p1,] = await pointPicker.execute().resource(this);
 
-        await pointPicker.execute((p2: THREE.Vector3) => {
+        await pointPicker.execute(p2 => {
             extrude.direction = p2.clone().sub(p1);
             extrude.distance1 = extrude.direction.length();
             extrude.update();
@@ -647,7 +653,12 @@ export class ChangeSelectionCommand extends Command {
     intersections!: THREE.Intersection[];
 
     async execute(): Promise<void> {
-        this.editor.selectionInteraction.onClick(this.intersections);
-        this.editor.signals.selectionChanged.dispatch(this.editor.selection);
+        const intersection = this.editor.selectionInteraction.onClick(this.intersections);
+        let point;
+        const selection = this.editor.selection;
+        if (intersection) {
+            point = intersection.point;
+        }
+        this.editor.signals.selectionChanged.dispatch({ selection, point });
     }
 }

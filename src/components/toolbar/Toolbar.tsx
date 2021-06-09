@@ -237,7 +237,7 @@ export default (editor: Editor) => {
             this.render();
         }
 
-        update(object: HasSelection) {
+        update() {
             this.render();
         }
 

@@ -82,7 +82,7 @@ export class GizmoMaterialDatabase {
     private readonly lines = [this.line, this.lineRed, this.lineGreen, this.lineBlue, this.lineYellow];
 
     constructor(signals: EditorSignals) {
-        signals.renderPrepared.add(([, resolution]) => this.setResolution(resolution));
+        signals.renderPrepared.add(({resolution}) => this.setResolution(resolution));
     }
 
     // A quirk of three.js is that to render lines with any thickness, you need to use

@@ -99,7 +99,7 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     private readonly lines = [line, line_dashed, line_highlighted, line_hovered];
 
     constructor(signals: EditorSignals) {
-        signals.renderPrepared.add(([, resolution]) => this.setResolution(resolution));
+        signals.renderPrepared.add(({resolution}) => this.setResolution(resolution));
     }
 
     private get(o: c3d.Item): THREE.Material | undefined {

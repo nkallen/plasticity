@@ -26,7 +26,7 @@ export interface EditorSignals {
     objectDeselected: signals.Signal<SpaceItem | TopologyItem>;
     objectHovered: signals.Signal<SpaceItem | TopologyItem>
     objectUnhovered: signals.Signal<SpaceItem | TopologyItem>
-    selectionChanged: signals.Signal<HasSelection>;
+    selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
     sceneGraphChanged: signals.Signal;
     factoryUpdated: signals.Signal;
     factoryCommitted: signals.Signal;
@@ -34,7 +34,7 @@ export interface EditorSignals {
     gizmoChanged: signals.Signal;
     windowResized: signals.Signal;
     windowLoaded: signals.Signal;
-    renderPrepared: signals.Signal<[THREE.Camera, THREE.Vector2]>;
+    renderPrepared: signals.Signal<{ camera: THREE.Camera, resolution: THREE.Vector2 }>;
     commandStarted: signals.Signal<Command>;
     commandEnded: signals.Signal;
     keybindingsRegistered: signals.Signal<string[]>;
@@ -75,9 +75,9 @@ export class Editor {
     readonly snaps = new SnapManager(this.db, this.sprites, this.signals);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
-    readonly helpers = new Helpers(this.signals);
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
     readonly selection = new SelectionManager(this.db, this.materials, this.signals);
+    readonly helpers: Helpers = new Helpers(this.signals, this);
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);
