@@ -123,6 +123,13 @@ export class Region extends PlaneItem {
         this.add(mesh);
         this.disposable.add(new Disposable(() => this.mesh.geometry.dispose()))
     }
+
+    clone(recursive?: boolean): THREE.Object3D {
+        const mesh = this.mesh.clone(recursive) as THREE.Mesh;
+        const result = new Region(mesh);
+        result.copy(this, recursive);
+        return result;
+    }
 }
 
 export abstract class TopologyItem extends THREE.Object3D {

@@ -134,13 +134,18 @@ export function Clone<T>(object: T, registry: Map<any, any>): T {
     let result;
     if (registry.has(object)) {
         return registry.get(object);
-    } else if (object instanceof visual.Solid || object instanceof visual.SpaceInstance) {
+    } else if (object instanceof visual.Solid || object instanceof visual.SpaceInstance || object instanceof visual.PlaneInstance) {
         if (object instanceof visual.Solid) {
             result = new visual.Solid();
             result.copy(object, false);
-        } else {
+        } else if (object instanceof visual.SpaceInstance) {
             result = new visual.SpaceInstance();
             result.copy(object, false);
+        } else if (object instanceof visual.PlaneInstance) {
+            result = new visual.PlaneInstance();
+            result.copy(object, false);
+        } else {
+            throw new Error("invalid precondition");
         }
         result.disposable = object.disposable;
         for (const level of object.lod.levels) {
@@ -152,7 +157,7 @@ export function Clone<T>(object: T, registry: Map<any, any>): T {
         for (const child of object.children) {
             result.add(Clone(child, registry));
         }
-    } else if (object instanceof visual.TopologyItem || object instanceof visual.CurveEdge || object instanceof visual.CurveSegment) {
+    } else if (object instanceof visual.TopologyItem || object instanceof visual.CurveEdge || object instanceof visual.CurveSegment || object instanceof visual.Region) {
         result = object.clone(false);
         result.userData = object.userData;
     } else if (object instanceof c3d.Item || object instanceof c3d.TopologyItem) {

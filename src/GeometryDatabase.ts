@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { NumberKeyframeTrack } from 'three';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
 import { Clone, GeometryMemento } from './History';
