@@ -1,5 +1,3 @@
-import { SelectionInteractionManager } from "../selection/SelectionInteraction";
-import { HasSelection } from "../selection/SelectionManager";
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from "../components/atom/CommandRegistry";
@@ -8,6 +6,8 @@ import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from "../GeometryDatabase";
 import MaterialDatabase from "../MaterialDatabase";
 import { PointPicker } from '../PointPicker';
+import { SelectionInteractionManager } from "../selection/SelectionInteraction";
+import { HasSelection } from "../selection/SelectionManager";
 import { SnapManager } from "../SnapManager";
 import { Cancel, CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
@@ -19,7 +19,7 @@ import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveGizmo, CurveGizmoEvent } from "./curve/CurveGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
-import ExtrudeFactory from "./extrude/ExtrudeFactory";
+import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
@@ -619,6 +619,24 @@ export class ExtrudeCommand extends Command {
         await pointPicker.execute(p2 => {
             extrude.direction = p2.clone().sub(p1);
             extrude.distance1 = extrude.direction.length();
+            extrude.update();
+        }).resource(this);
+
+        await extrude.commit();
+    }
+}
+
+export class ExtrudeRegionCommand extends Command {
+    async execute(): Promise<void> {
+        const regions = [...this.editor.selection.selectedRegions];
+        const extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        extrude.region = regions[0];
+        const normal = new THREE.Vector3(0, 0, 1);
+        extrude.direction = normal;
+        const point = undefined;
+        const gizmo = new OffsetFaceGizmo(this.editor, point ?? new THREE.Vector3(), normal);
+        const distance = await gizmo.execute(delta => {
+            extrude.distance1 = delta;
             extrude.update();
         }).resource(this);
 

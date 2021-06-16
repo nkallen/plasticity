@@ -228,16 +228,12 @@ export default (editor: Editor) => {
 
         constructor() {
             super();
-            this.update = this.update.bind(this);
+            this.render = this.render.bind(this);
         }
 
         connectedCallback() {
-            editor.signals.selectionChanged.add(this.update);
+            editor.signals.selectionChanged.add(this.render);
 
-            this.render();
-        }
-
-        update() {
             this.render();
         }
 
@@ -261,7 +257,7 @@ export default (editor: Editor) => {
         }
 
         disconnectedCallback() {
-            editor.signals.selectionChanged.remove(this.update);
+            editor.signals.selectionChanged.remove(this.render);
         }
     }
     customElements.define('ispace-toolbar', Toolbar);

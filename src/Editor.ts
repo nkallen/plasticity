@@ -126,7 +126,9 @@ export class Editor {
     async execute(command: Command) {
         if (this.activeCommand) this.activeCommand.cancel();
         this.activeCommand = command;
+
         await Promise.resolve(); // Ensure any async behavior as a result of cancelling the last command finishes before starting a new command.
+
         this.signals.commandStarted.dispatch(command);
 
         const disposable = this.registry.add('ispace-viewport', {
