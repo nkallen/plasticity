@@ -36,7 +36,7 @@ describe('Extrude Curve', () => {
             makeCircle.radius = 1;
             const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            extrude.curve = circle;
+            extrude.curves = [circle];
             extrude.direction = new THREE.Vector3(0, 0, 1);
             extrude.distance1 = 1;
             extrude.distance2 = 1;

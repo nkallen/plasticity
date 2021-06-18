@@ -10,7 +10,8 @@ export default class RegionFactory extends GeometryFactory {
 
     validate() {
         // FIXME check all placements have the same orientation
-    }
+            //                 else if ( place->GetAxisZ().Colinear( instPlace.GetAxisZ() ) )
+        }
 
     async doCommit() {
         const contours = [];
@@ -22,18 +23,14 @@ export default class RegionFactory extends GeometryFactory {
             const { curve2d, placement } = curve.GetPlaneCurve(false);
 
             // Apply an 2d placement to the curve, so that any future booleans work
-            const origin = placement.GetOrigin();
-            const x = placement.GetAxisX();
-            const y = placement.GetAxisY();
-            const placement2d = new c3d.Placement(new c3d.CartPoint(origin.x, origin.y), new c3d.Vector(x.x, x.y), new c3d.Vector(y.x, y.y));
-            const matrix = new c3d.Matrix(placement2d);
+            const matrix = placement.GetMatrixToPlace(placement_);
             curve2d.Transform(matrix);
 
             const model = new c3d.Contour([curve2d], true);
             contours.push(model)
         }
 
-        const regions = c3d.ActionRegion.MakeRegions(contours, true, false);
+        const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
         const result = [];
         for (const region of regions) {
             result.push(this.db.addItem(new c3d.PlaneInstance(region, placement_!)));

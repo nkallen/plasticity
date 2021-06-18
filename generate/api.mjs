@@ -1,6 +1,7 @@
 const isReturn = { isReturn: true };
 const isNullable = { isNullable: true };
 const isErrorBool = { isErrorBool: true };
+const ignore = { ignore: true };
 
 export default {
     classes: {
@@ -157,6 +158,7 @@ export default {
                     placement: isReturn,
                     return: isErrorBool,
                 },
+                "bool IsPlanar()",
                 "bool IsClosed()",
                 "bool IsTouch()",
                 "double GetTMax()",
@@ -269,6 +271,7 @@ export default {
                 "MbContour * SetContour(size_t k)",
                 "const MbContour * GetContour(size_t k)",
                 "const MbContour * GetOutContour()",
+                "bool SetCorrect()",
             ]
         },
         Direction: {
@@ -343,7 +346,7 @@ export default {
         },
         Placement3D: {
             rawHeader: "mb_placement3d.h",
-            dependencies: ["Axis3D.h", "Vector3D.h"],
+            dependencies: ["Axis3D.h", "Vector3D.h", "Matrix.h"],
             initializers: [""],
             functions: [
                 "MbPlacement3D & Move(const MbVector3D & to)",
@@ -357,6 +360,7 @@ export default {
                 "const MbVector3D & GetAxisZ()",
                 "const MbVector3D & GetAxisY()",
                 "const MbVector3D & GetAxisX()",
+                { signature: "bool GetMatrixToPlace(const MbPlacement3D & p, MbMatrix & matrix, double eps = Math::angleRegion)", matrix: isReturn, return: ignore },
             ]
         },
         FormNote: {

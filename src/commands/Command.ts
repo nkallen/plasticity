@@ -108,10 +108,6 @@ export class CircleCommand extends Command {
             circle.update();
         }).resource(this);
         const c = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        // const region = new RegionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
-        // region.contour = c;
-        // await region.commit();
     }
 }
 
@@ -174,23 +170,23 @@ export class LineCommand extends Command {
 
 export class CurveCommand extends Command {
     async execute(): Promise<void> {
-        const curve = new CurveAndContourFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const makeCurve = new CurveAndContourFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
 
         const pointPicker = new PointPicker(this.editor);
         const keyboard = new CurveGizmo(this.editor);
         keyboard.execute((e: CurveGizmoEvent) => {
             switch (e.tag) {
                 case 'type':
-                    curve.type = e.type;
-                    curve.update();
+                    makeCurve.type = e.type;
+                    makeCurve.update();
                     break;
                 case 'add-curve':
-                    curve.push();
+                    makeCurve.push();
                     break;
                 case 'undo':
                     pointPicker.undo(); // FIXME in theory the overlay needs to be updated;
-                    curve.undo();
-                    curve.update();
+                    makeCurve.undo();
+                    makeCurve.update();
                     break;
             }
         }).resource(this);
@@ -198,19 +194,19 @@ export class CurveCommand extends Command {
         while (true) {
             try {
                 const [point,] = await pointPicker.execute(async (p: THREE.Vector3) => {
-                    curve.nextPoint = p;
-                    if (!curve.isValid) return;
-                    curve.closed = curve.wouldBeClosed(p);
-                    await curve.update();
+                    makeCurve.nextPoint = p;
+                    if (!makeCurve.isValid) return;
+                    makeCurve.closed = makeCurve.wouldBeClosed(p);
+                    await makeCurve.update();
                 }).resource(this);
-                if (curve.wouldBeClosed(point)) {
-                    curve.closed = true;
+                if (makeCurve.wouldBeClosed(point)) {
+                    makeCurve.closed = true;
                     this.finish();
                     break;
                 }
-                curve.nextPoint = undefined;
-                curve.points.push(point);
-                await curve.update();
+                makeCurve.nextPoint = undefined;
+                makeCurve.points.push(point);
+                await makeCurve.update();
             } catch (e) {
                 if (e !== Cancel) throw e;
                 break;
@@ -240,14 +236,15 @@ export class RectCommand extends Command {
         }).resource(this);
         await line.cancel();
 
-        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
-        rect.p1 = p1;
-        rect.p2 = p2;
+        const makeRect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        makeRect.p1 = p1;
+        makeRect.p2 = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
-            rect.p3 = p3;
-            rect.update();
+            makeRect.p3 = p3;
+            makeRect.update();
         }).resource(this);
-        await rect.commit();
+
+        await makeRect.commit();
     }
 }
 

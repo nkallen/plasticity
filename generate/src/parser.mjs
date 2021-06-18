@@ -228,7 +228,7 @@ class FunctionDeclaration {
         let returnsCount = 0;
         if (this.returnType.isReturn) returnsCount++;
         for (const param of this.params) {
-            if (param.isReturn) returnsCount++;
+            if (param.isReturn && !param.ignore) returnsCount++;
         }
         this.returnsCount = returnsCount;
     }
@@ -335,12 +335,13 @@ class ReturnDeclaration extends TypeDeclaration {
         this.desc = desc;
         this.options = options;
         if (this.options?.isErrorBool) this.isErrorBool = true;
+        if (this.options?.ignore) this.ignore = true;
         this.const = matchType.groups.const;
         this.ref = matchType.groups.ref;
     }
 
     get isReturn() {
-        return !this.isErrorCode && !this.isErrorBool && this.rawType != 'void'
+        return !this.isErrorCode && !this.isErrorBool && this.rawType != 'void' && !this.ignore;
     }
 
     get name() {
