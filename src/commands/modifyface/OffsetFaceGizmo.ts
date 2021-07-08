@@ -13,15 +13,17 @@ export class OffsetFaceGizmo extends AbstractGizmo<(radius: number) => void> {
     private readonly plane: THREE.Mesh;
     private readonly pointStart: THREE.Vector3;
     private readonly pointEnd: THREE.Vector3;
+    private readonly sphere: THREE.Mesh;
+    private readonly line: THREE.Mesh;
 
     constructor(editor: EditorLike, point: THREE.Vector3, normal: THREE.Vector3) {
         const materials = editor.gizmos;
 
         const sphere = new THREE.Mesh(sphereGeometry, materials.yellow);
-        sphere.position.set(0, 1, 0);
         const line = new Line2(lineGeometry, materials.lineYellow);
+        line.scale.y = 0;
         const picker = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), materials.invisible);
-        picker.position.set(0, 0.6, 0);
+
         const handle = new THREE.Group();
         handle.add(sphere, line);
         super("offset-face", editor, { handle: handle, picker: picker });
@@ -33,13 +35,18 @@ export class OffsetFaceGizmo extends AbstractGizmo<(radius: number) => void> {
 
         this.pointStart = new THREE.Vector3();
         this.pointEnd = new THREE.Vector3();
+        this.line = line;
+        this.sphere = sphere;
     }
 
-    onPointerDown(intersect: Intersector): void {
+    onPointerDown(intersect: Intersector, info: MovementInfo): void {
         const planeIntersect = intersect(this.plane, true);
         if (!planeIntersect) throw "corrupt intersection query";
         this.pointStart.copy(planeIntersect.point);
     }
+
+    onPointerUp(intersect: Intersector, info: MovementInfo) { }
+
 
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, _info: MovementInfo): void {
         const planeIntersect = intersect(this.plane, true);
@@ -47,7 +54,10 @@ export class OffsetFaceGizmo extends AbstractGizmo<(radius: number) => void> {
 
         this.pointEnd.copy(planeIntersect.point);
 
-        cb(this.pointEnd.sub(this.pointStart).dot(this.normal));
+        const delta = this.pointEnd.sub(this.pointStart).dot(this.normal);
+        this.line.scale.y = delta;
+        this.sphere.position.set(0, delta, 0);
+        cb(delta);
     }
 
     update(camera: THREE.Camera): void {

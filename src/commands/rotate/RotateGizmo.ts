@@ -98,7 +98,8 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         else this.mode = undefined;
     }
 
-    onPointerDown(_intersect: Intersector): void { }
+    onPointerDown(intersect: Intersector, info: MovementInfo) {}
+    onPointerUp(intersect: Intersector, info: MovementInfo) {}
 
     onPointerMove(cb: (axis: THREE.Vector3, angle: number) => void, intersect: Intersector, info: MovementInfo): void {
         if (!this.mode) throw "invalid state";

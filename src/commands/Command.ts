@@ -454,7 +454,7 @@ export class FilletCommand extends Command {
         const gizmo = filletGizmo.execute(async delta => {
             filletDialog.render();
             await max.exec(delta)
-        }).resource(this);
+        }, false).resource(this);
 
         await Promise.all([dialog, gizmo]);
 

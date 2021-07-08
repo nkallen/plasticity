@@ -38,9 +38,11 @@ export class ElementarySolidGizmo extends AbstractGizmo<(point: THREE.Vector3, i
         else this.index = undefined;
     }
 
-    onPointerDown(intersect: Intersector): void {
+    onPointerDown(intersect: Intersector, info: MovementInfo): void {
         if (this.index === undefined) throw new Error("invalid state");
     }
+
+    onPointerUp(intersect: Intersector, info: MovementInfo) {}
 
     onPointerMove(cb: (point: THREE.Vector3, i: number) => void, intersect: Intersector, info: MovementInfo): void {
         if (this.index === undefined) throw new Error("invalid state");

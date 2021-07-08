@@ -64,9 +64,10 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
     onPointerHover(_intersector: Intersector) { }
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
-    abstract onPointerDown(intersect: Intersector): void;
+    abstract onPointerDown(intersect: Intersector, info: MovementInfo): void;
+    abstract onPointerUp(intersect: Intersector, info: MovementInfo): void;
 
-    execute(cb: CB): CancellablePromise<void> {
+    execute(cb: CB, finishFast = true): CancellablePromise<void> {
         this.editor.helpers.add(this);
         const disposables = new CompositeDisposable();
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
@@ -128,8 +129,13 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     stateMachine.update(viewport, pointer);
                     stateMachine.pointerUp(() => {
-                        disposables.dispose();
-                        resolve();
+                        if (finishFast) {
+                            disposables.dispose();
+                            resolve();
+                        }
+                        viewport.enableControls();
+                        domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+                        domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
                     });
                 }
 
@@ -267,7 +273,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.center2d.set(center3d.x, center3d.y);
                 this.pointStart3d.copy(intersection.point);
                 this.pointStart2d.set(this.pointer.x, this.pointer.y);
-                this.gizmo.onPointerDown(this.intersector);
+                this.gizmo.onPointerDown(this.intersector, this);
                 break;
             case 'command':
                 this.pointerMove();
@@ -333,6 +339,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
                 this.signals.gizmoChanged.dispatch();
                 this.state = 'none';
+                this.gizmo.onPointerUp(this.intersector, this);
                 finish();
                 break;
             default: break;

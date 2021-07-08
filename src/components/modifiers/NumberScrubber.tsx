@@ -100,9 +100,7 @@ export default (editor: Editor) => {
                     const value = this.state.currentValue;
                     try { this.scrub(value) }
                     catch (e) { console.error(e) }
-                    finally {
-                        this.state.startEvent = e;
-                    }
+                    finally { this.state.startEvent = e }
                     break;
                 default: throw new Error('invalid state: ' + this.state.tag);
             }
