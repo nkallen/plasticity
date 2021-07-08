@@ -75,7 +75,7 @@ export default abstract class Command extends CancellableRegistor {
 
 export class SphereCommand extends Command {
     async execute(): Promise<void> {
-        const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const pointPicker = new PointPicker(this.editor);
 
         const [p1,] = await pointPicker.execute().resource(this);
@@ -92,7 +92,7 @@ export class SphereCommand extends Command {
 
 export class CircleCommand extends Command {
     async execute(): Promise<void> {
-        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
         const [p1,] = await pointPicker.execute().resource(this);
@@ -110,7 +110,7 @@ export class CircleCommand extends Command {
 
 export class RegionCommand extends Command {
     async execute(): Promise<void> {
-        const region = new RegionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const region = new RegionFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         region.contours = [...this.editor.selection.selectedCurves];
         await region.commit();
     }
@@ -118,7 +118,7 @@ export class RegionCommand extends Command {
 
 export class RegionBooleanCommand extends Command {
     async execute(): Promise<void> {
-        const region = new RegionBooleanFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const region = new RegionBooleanFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         region.regions = [...this.editor.selection.selectedRegions];
         await region.commit();
     }
@@ -139,7 +139,7 @@ export class CylinderCommand extends Command {
         }).resource(this);
         await circle.cancel();
 
-        const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cylinder.base = p1;
         cylinder.radius = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
@@ -152,7 +152,7 @@ export class CylinderCommand extends Command {
 
 export class LineCommand extends Command {
     async execute(): Promise<void> {
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
         const [p1,] = await pointPicker.execute().resource(this);
@@ -167,7 +167,7 @@ export class LineCommand extends Command {
 
 export class CurveCommand extends Command {
     async execute(): Promise<void> {
-        const makeCurve = new CurveAndContourFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const makeCurve = new CurveAndContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
         const keyboard = new CurveGizmo(this.editor);
@@ -198,25 +198,25 @@ export class CurveCommand extends Command {
                 }).resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
                     makeCurve.closed = true;
-                    this.finish();
-                    break;
+                    throw Finish;
                 }
                 makeCurve.nextPoint = undefined;
                 makeCurve.points.push(point);
                 await makeCurve.update();
             } catch (e) {
-                if (e !== Cancel) throw e;
+                if (e !== Finish) throw e;
                 break;
             }
         }
 
+        await makeCurve.commit();
         this.editor.signals.contoursChanged.dispatch();
     }
 }
 
 export class JoinCurvesCommand extends Command {
     async execute(): Promise<void> {
-        const contour = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const contour = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         for (const curve of this.editor.selection.selectedCurves) contour.curves.push(curve);
         await contour.commit();
     }
@@ -235,7 +235,7 @@ export class RectCommand extends Command {
         }).resource(this);
         await line.cancel();
 
-        const makeRect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const makeRect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         makeRect.p1 = p1;
         makeRect.p2 = p2;
         await pointPicker.execute((p3: THREE.Vector3) => {
@@ -271,7 +271,7 @@ export class BoxCommand extends Command {
         }).resource(this);
         await rect.cancel();
 
-        const box = new BoxFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const box = new BoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         box.p1 = p1;
         box.p2 = p2;
         box.p3 = p3;
@@ -296,7 +296,7 @@ export class MoveCommand extends Command {
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         line.p1 = centroid;
 
-        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         move.p1 = centroid;
         move.items = objects;
 
@@ -330,7 +330,7 @@ export class ScaleCommand extends Command {
         const line2 = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         line.p1 = origin;
 
-        const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         scale.items = objects;
         scale.origin = line2.p1 = origin;
         scale.p2 = p2;
@@ -356,7 +356,7 @@ export class RotateCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rotate.items = objects;
         rotate.point = centroid;
 
@@ -377,7 +377,7 @@ export class UnionCommand extends Command {
         const object1 = items[0]!;
         const object2 = items[1]!;
 
-        const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         union.item1 = object1;
         union.item2 = object2;
         await union.commit();
@@ -390,7 +390,7 @@ export class IntersectionCommand extends Command {
         const object1 = items[0]!;
         const object2 = items[1]!;
 
-        const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         intersection.item1 = object1;
         intersection.item2 = object2;
         await intersection.commit();
@@ -403,7 +403,7 @@ export class DifferenceCommand extends Command {
         const object1 = items[0]!;
         const object2 = items[1]!;
 
-        const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         difference.item1 = object1;
         difference.item2 = object2;
         await difference.commit();
@@ -417,7 +417,7 @@ export class CutCommand extends Command {
         const object1 = solids[0]!;
         const object2 = curves[0]!;
 
-        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cut.solid = object1;
         cut.contour = object2;
         await cut.commit();
@@ -435,7 +435,7 @@ export class FilletCommand extends Command {
         const centroid = new THREE.Vector3();
         edge.geometry.boundingBox!.getCenter(centroid);
 
-        const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         fillet.item = item;
         fillet.edges = edges;
 
@@ -451,16 +451,12 @@ export class FilletCommand extends Command {
         const max = new Max(fillet);
         max.start();
 
-        filletGizmo.execute(async delta => {
+        const gizmo = filletGizmo.execute(async delta => {
             filletDialog.render();
             await max.exec(delta)
         }).resource(this);
 
-        try {
-            await dialog;
-        } catch (e) {
-            if (e !== Finish) throw e;
-        }
+        await Promise.all([dialog, gizmo]);
 
         const selection = await fillet.commit() as visual.Solid;
         this.editor.selection.selectSolid(selection);
@@ -473,7 +469,7 @@ export class OffsetFaceCommand extends Command {
         const parent = faces[0].parentItem as visual.Solid
         const face = faces[0];
 
-        const offsetFace = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const offsetFace = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         offsetFace.solid = parent;
         offsetFace.faces = faces;
 
@@ -510,7 +506,7 @@ export class DraftSolidCommand extends Command {
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
         const gizmo = new RotateGizmo(this.editor, point);
 
-        const draftSolid = new DraftSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const draftSolid = new DraftSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         draftSolid.solid = parent;
         draftSolid.faces = faces;
         draftSolid.origin = point;
@@ -531,7 +527,7 @@ export class RemoveFaceCommand extends Command {
         const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
 
-        const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         removeFace.solid = parent;
         removeFace.faces = faces;
 
@@ -544,7 +540,7 @@ export class PurifyFaceCommand extends Command {
         const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
 
-        const removeFace = new PurifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const removeFace = new PurifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         removeFace.solid = parent;
         removeFace.faces = faces;
 
@@ -557,7 +553,7 @@ export class CreateFaceCommand extends Command {
         const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
 
-        const removeFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const removeFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         removeFace.solid = parent;
         removeFace.faces = faces;
 
@@ -571,7 +567,7 @@ export class ActionFaceCommand extends Command {
         const parent = faces[0].parentItem as visual.Solid
         const face = faces[0];
 
-        const actionFace = new ActionFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const actionFace = new ActionFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         actionFace.solid = parent;
         actionFace.faces = faces;
 
@@ -599,7 +595,7 @@ export class FilletFaceCommand extends Command {
         const parent = faces[0].parentItem as visual.Solid
         const face = faces[0];
 
-        const refilletFace = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const refilletFace = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         refilletFace.solid = parent;
         refilletFace.faces = faces;
 
@@ -630,7 +626,7 @@ export class MergerFaceCommand extends Command { async execute(): Promise<void> 
 export class LoftCommand extends Command {
     async execute(): Promise<void> {
         const curves = [...this.editor.selection.selectedCurves];
-        const loft = new LoftFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const loft = new LoftFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         loft.contours = curves;
         await loft.commit();
     }
@@ -639,7 +635,7 @@ export class LoftCommand extends Command {
 export class ExtrudeCommand extends Command {
     async execute(): Promise<void> {
         const curves = [...this.editor.selection.selectedCurves];
-        const extrude = new ExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const extrude = new ExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         extrude.curves = curves;
 
         const pointPicker = new PointPicker(this.editor);
@@ -660,7 +656,7 @@ export class ExtrudeRegionCommand extends Command {
 
     async execute(): Promise<void> {
         const regions = [...this.editor.selection.selectedRegions];
-        const extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         extrude.region = regions[0];
         const gizmo = new OffsetFaceGizmo(this.editor, this.point ?? new THREE.Vector3(), extrude.direction);
         await gizmo.execute(delta => {
@@ -676,7 +672,7 @@ export class ExtrudeRegionCommand extends Command {
 export class MirrorCommand extends Command {
     async execute(): Promise<void> {
         const curves = [...this.editor.selection.selectedCurves];
-        const mirror = new MirrorFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const mirror = new MirrorFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         mirror.curve = curves[0];
 
         const pointPicker = new PointPicker(this.editor);
@@ -712,7 +708,7 @@ export class ModeCommand extends Command {
         let recent = model.SetCreator(l - 1);
         switch (recent.IsA()) {
             case c3d.CreatorType.ElementarySolid:
-                const factory = new ElementarySolidFactory(this.editor.db, this.editor.materials, this.editor.signals);
+                const factory = new ElementarySolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
                 factory.solid = object;
                 const gizmo = new ElementarySolidGizmo(this.editor, factory.points);
                 await gizmo.execute((point, index) => {

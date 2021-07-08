@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../Editor';
-import { Cancellable, CancellableDisposable } from "../util/Cancellable";
+import { Cancellable, CancellableDisposable, ResourceRegistration } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 
 /**
@@ -23,7 +23,7 @@ export abstract class CommandKeyboardInput<CB> {
         protected readonly commands: string[]
     ) { }
 
-    execute(cb: CB): Cancellable {
+    execute(cb: CB): ResourceRegistration {
         const disposables = new CompositeDisposable();
 
         for (const viewport of this.editor.viewports) {

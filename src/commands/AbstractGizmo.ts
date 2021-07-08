@@ -156,7 +156,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
             const finish = () => {
                 disposables.dispose();
                 this.editor.signals.gizmoChanged.dispatch();
-                reject(Finish);
+                resolve();
             }
             return { cancel, finish };
         });

@@ -39,7 +39,7 @@ export abstract class AbstractDialog<T> extends HTMLElement {
     }
 
     execute(cb: (sv: T) => void) {
-        return new CancellablePromise<T>((resolve, reject) => {
+        return new CancellablePromise<void>((resolve, reject) => {
             const disposables = new CompositeDisposable();
             disposables.add(new Disposable(() => this.state = { tag: 'none' }));
 
@@ -51,7 +51,7 @@ export abstract class AbstractDialog<T> extends HTMLElement {
             }
             const finish = () => {
                 disposables.dispose();
-                reject(Finish);
+                resolve();
             }
             this.state = { tag: 'executing', cb, finish,cancel };
             return { cancel, finish };

@@ -9,7 +9,15 @@
 
 import { Disposable } from "event-kit";
 
-export abstract class Cancellable {
+export interface Cancellable {
+    cancel(): void;
+}
+
+export interface Finishable {
+    finish(): void;
+}
+
+export abstract class ResourceRegistration implements Cancellable, Finishable {
     abstract cancel(): void;
     abstract finish(): void;
 
@@ -17,25 +25,15 @@ export abstract class Cancellable {
         reg.resource(this);
         return this;
     }
-
-    finally(reg: CancellableRegistor): this {
-        reg.finally(this);
-        return this;
-    }
 }
 
-export class CancellableDisposable extends Cancellable {
+export class CancellableDisposable extends ResourceRegistration {
     constructor(private readonly disposable: Disposable) {
         super();
     }
 
-    cancel() {
-        this.disposable.dispose();
-    }
-
-    finish() {
-        this.cancel();
-    }
+    cancel() { this.disposable.dispose() }
+    finish() { this.disposable.dispose() }
 }
 
 export const Cancel = { tag: 'Cancel' };
@@ -49,43 +47,32 @@ type State = 'None' | 'Cancelled' | 'Finished';
 // This is used for Commands, which have factories, gizmos, etc. which
 // can be cancelled / finished /etc.
 export abstract class CancellableRegistor {
-    private readonly resources: Cancellable[] = [];
-    private _finally?: Cancellable;
-    state: State = 'None';
+    private readonly resources: (Cancellable & Finishable)[] = [];
 
     cancel(): void {
         for (const resource of this.resources) {
             resource.cancel();
         }
-        this._finally?.cancel();
-        this.state = 'Cancelled';
     }
 
     finish(): void {
-        this._finally?.finish();
         for (const resource of this.resources) {
-            resource.cancel();
+            resource.finish();
         }
-        this.state = 'Finished';
     }
 
-    resource<T extends Cancellable>(x: T): T {
+    resource<T extends ResourceRegistration>(x: T): T {
         this.resources.push(x);
         return x
     }
-
-    finally<T extends Cancellable>(x: T): T {
-        this._finally = x;
-        return x;
-    }
 }
 
-export class CancellablePromise<T> extends Cancellable implements PromiseLike<T> {
+export class CancellablePromise<T> extends ResourceRegistration implements PromiseLike<T> {
     static resolve() {
         return new CancellablePromise<void>((resolve, reject) => {
             resolve();
-            const cancel = () => {}
-            const finish = () => {}
+            const cancel = () => { }
+            const finish = () => { }
             return { cancel, finish };
         });
     }

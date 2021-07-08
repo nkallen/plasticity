@@ -1,4 +1,4 @@
-import { Cancellable } from '../util/Cancellable';
+import { Cancellable, ResourceRegistration } from '../util/Cancellable';
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
@@ -8,7 +8,7 @@ import c3d from '../../build/Release/c3d.node';
 
 type State = 'none' | 'updated' | 'failed' | 'cancelled' | 'committed'
 
-export abstract class GeometryFactory extends Cancellable {
+export abstract class GeometryFactory extends ResourceRegistration {
     state: Promise<State> = Promise.resolve('none');
     private readonly scheduler = new Scheduler(1, 1);
 
@@ -17,18 +17,6 @@ export abstract class GeometryFactory extends Cancellable {
         protected readonly materials: MaterialDatabase,
         protected readonly signals: EditorSignals
     ) { super() }
-
-    async finish() {
-        const state = await this.state;
-        switch (state) {
-            case 'none':
-            case 'updated':
-                this.commit();
-                break;
-            default:
-                throw new Error('invalid state: ' + state);
-        }
-    }
 
     protected abstract doUpdate(): Promise<void>;
     protected abstract doCommit(): Promise<visual.SpaceItem | visual.SpaceItem[]>;
@@ -80,6 +68,9 @@ export abstract class GeometryFactory extends Cancellable {
                 throw new Error('invalid state: ' + state);
         }
     }
+
+    // Factories can be cancelled but "finishing" is a no-op. Commit must be called explicitly.
+    async finish() { }
 
     async cancel() {
         const state = await this.state;

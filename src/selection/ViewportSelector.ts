@@ -39,6 +39,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
 
     onPointerDown(event: PointerEvent): void {
         if (!this.enabled) return;
+        if (event.button !== 0) return;
 
         const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         this.onDownPosition.fromArray(array);
@@ -58,6 +59,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
 
     onPointerUp(event: PointerEvent): void {
         if (!this.enabled) return;
+        if (event.button !== 0) return;
 
         const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         this.onUpPosition.fromArray(array);

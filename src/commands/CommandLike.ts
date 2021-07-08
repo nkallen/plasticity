@@ -41,7 +41,7 @@ export class RebuildCommand extends Command {
     }
 
     async execute(): Promise<void> {
-        const factory = new RebuildFactory(this.editor.db, this.editor.materials, this.editor.signals).finally(this);
+        const factory = new RebuildFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         factory.item = this.item;
         factory.dup = this.dup;
         await this.element.execute(async () => {
