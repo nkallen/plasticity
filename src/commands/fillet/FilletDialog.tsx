@@ -5,7 +5,7 @@ import { Cancel, CancellablePromise, Finish } from "../../util/Cancellable";
 import { render } from 'preact';
 import { FilletParams } from "./FilletFactory";
 
-type State<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, finish: () => void, cancel: () => void }
+type State<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, finish: () => void, cancel: () => void } | { tag: 'finished' }
 
 export abstract class AbstractDialog<T> extends HTMLElement {
     private state: State<T> = { tag: 'none' };
@@ -22,16 +22,19 @@ export abstract class AbstractDialog<T> extends HTMLElement {
     onChange(e: Event) {
         switch (this.state.tag) {
             case 'executing':
+                let value: any = undefined;
                 if (e.target instanceof HTMLInputElement) {
+                    if (e.target.type == 'checkbox') value = e.target.checked;
                 } else if (e.target instanceof HTMLSelectElement) {
+                    value = e.target.value;
                 } else if (e.target instanceof HTMLElement && e.target.tagName == 'ISPACE-NUMBER-SCRUBBER') {
+                    value = Number(e.target.getAttribute('value'));
                 } else {
                     throw new Error("invalid precondition");
                 }
 
                 const key = e.target.getAttribute('name') as keyof T;
-                const value = Number(e.target.getAttribute('value')) as unknown as T[keyof T];
-                this.params[key] = value;
+                this.params[key] = value as unknown as T[keyof T];
                 this.state.cb(this.params);
                 break;
             default: throw new Error('invalid state');
@@ -53,7 +56,7 @@ export abstract class AbstractDialog<T> extends HTMLElement {
                 disposables.dispose();
                 resolve();
             }
-            this.state = { tag: 'executing', cb, finish,cancel };
+            this.state = { tag: 'executing', cb, finish, cancel };
             return { cancel, finish };
         });
     }
@@ -61,6 +64,7 @@ export abstract class AbstractDialog<T> extends HTMLElement {
     finish() {
         switch (this.state.tag) {
             case 'executing': this.state.finish();
+                this.state = { tag: 'finished' };
                 break;
             case 'none': throw new Error('invalid precondition');
         }

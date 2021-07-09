@@ -4,7 +4,7 @@ import signals from "signals";
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import Command from './commands/Command';
-import { CommandExecutor } from "./commands/CommandExecutor";
+import { CancelOrFinish, CommandExecutor } from "./commands/CommandExecutor";
 import ContourManager from './commands/ContourManager';
 import { AbstractDialog } from "./commands/fillet/FilletDialog";
 import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
@@ -139,8 +139,8 @@ export class Editor {
         this.disposable.add(d);
     }
 
-    async enqueue(command: Command) {
-        await this.executor.enqueue(command);
+    async enqueue(command: Command, cancelOrFinish?: CancelOrFinish) {
+        await this.executor.enqueue(command, cancelOrFinish);
     }
 
     private async undo() {

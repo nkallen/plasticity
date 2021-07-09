@@ -33,6 +33,7 @@ class FakeGizmo extends AbstractGizmo<() => void> {
 
     onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void { }
     onPointerDown(intersect: Intersector): void { }
+    onPointerUp(intersect: Intersector, info: MovementInfo): void {}
 }
 
 let db: GeometryDatabase;

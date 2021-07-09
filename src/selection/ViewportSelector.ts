@@ -1,3 +1,4 @@
+import { CancelOrFinish } from "../commands/CommandExecutor";
 import * as THREE from "three";
 import Command, * as cmd from "../commands/Command";
 import { ChangeSelectionCommand } from "../commands/CommandLike";
@@ -5,7 +6,7 @@ import { EditorOriginator } from "../History";
 
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,
-    enqueue(command: Command, silent?: boolean): void;
+    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): void;
 }
 
 export class ViewportSelector extends THREE.EventDispatcher {
@@ -68,7 +69,7 @@ export class ViewportSelector extends THREE.EventDispatcher {
             const intersects = this.getIntersects(this.onUpPosition, [...this.editor.db.visibleObjects]);
 
             const command = new ChangeSelectionCommand(this.editor, intersects);
-            this.editor.enqueue(command);
+            this.editor.enqueue(command, 'finish');
         }
 
         document.removeEventListener('pointerup', this.onPointerUp, false);

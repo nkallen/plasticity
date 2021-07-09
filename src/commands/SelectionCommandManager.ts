@@ -5,11 +5,12 @@ import Command, { ExtrudeRegionCommand, FilletCommand, OffsetFaceCommand } from 
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
 import { ChangeSelectionCommand } from './CommandLike';
+import { CancelOrFinish } from './CommandExecutor';
 
 export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
     db: GeometryDatabase;
     materials: MaterialDatabase;
-    enqueue(command: Command, silent?: boolean): void;
+    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): void;
 }
 
 export class SelectionCommandManager {

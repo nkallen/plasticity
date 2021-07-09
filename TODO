@@ -1,5 +1,7 @@
 THIS WEEK:
 
+ok cancel not working
+cancel does nothing
 left click cancels fillet
 
 keyboard commands not working for move face? - it turns out that since viewports don't always have focus, the way we have of matching commands is wrong; need to attach to body i guess
@@ -13,6 +15,8 @@ transaction history
 
 
 BUG:
+
+it seems clear that scheduling stuff isn't entirely working; things can backlog somehow
 
 both point picker and abstract gizmo take callbacks that should be async, because they call update which is potentially async
 cylinder not working in many cases

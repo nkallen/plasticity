@@ -47,18 +47,21 @@ type State = 'None' | 'Cancelled' | 'Finished';
 // This is used for Commands, which have factories, gizmos, etc. which
 // can be cancelled / finished /etc.
 export abstract class CancellableRegistor {
+    private state: State = 'None';
     private readonly resources: (Cancellable & Finishable)[] = [];
 
     cancel(): void {
         for (const resource of this.resources) {
             resource.cancel();
         }
+        this.state = 'Cancelled';
     }
 
     finish(): void {
         for (const resource of this.resources) {
             resource.finish();
         }
+        this.state = 'Finished';
     }
 
     resource<T extends ResourceRegistration>(x: T): T {
@@ -68,6 +71,8 @@ export abstract class CancellableRegistor {
 }
 
 export class CancellablePromise<T> extends ResourceRegistration implements PromiseLike<T> {
+    private state: State = 'None';
+
     static resolve() {
         return new CancellablePromise<void>((resolve, reject) => {
             resolve();
@@ -77,8 +82,8 @@ export class CancellablePromise<T> extends ResourceRegistration implements Promi
         });
     }
 
-    cancel!: () => void;
-    finish!: () => void;
+    _cancel!: () => void;
+    _finish!: () => void;
     private readonly promise: Promise<T>;
 
     constructor(executor: Executor<T>) {
@@ -86,9 +91,21 @@ export class CancellablePromise<T> extends ResourceRegistration implements Promi
         const that = this;
         this.promise = new Promise<T>((resolve, reject) => {
             const { cancel, finish } = executor(resolve, reject);
-            that.cancel = cancel;
-            that.finish = finish;
+            that._cancel = cancel;
+            that._finish = finish;
         });
+    }
+
+    cancel() {
+        if (this.state != 'None') return;
+        this._cancel();
+        this.state = 'Cancelled';
+    }
+
+    finish() {
+        if (this.state != 'None') return;
+        this._finish();
+        this.state = 'Finished';
     }
 
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2> {

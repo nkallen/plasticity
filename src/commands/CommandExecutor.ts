@@ -6,6 +6,8 @@ import { EditorOriginator, History } from "../History";
 import { Cancel } from "../util/Cancellable";
 import { HasSelection } from "../selection/SelectionManager";
 
+export type CancelOrFinish = 'cancel' | 'finish';
+
 export class CommandExecutor {
     constructor(
         private readonly selectionGizmo: SelectionCommandManager,
@@ -23,32 +25,38 @@ export class CommandExecutor {
     // Ensure commands are executed ATOMICALLY.
     // That is, do not start a new command until the previous is fully completed,
     // including any cancelation cleanup. (await this.execute(next))
-    async enqueue(command: Command) {
+    async enqueue(command: Command, cancelOrFinish: CancelOrFinish = 'cancel') {
         this.next = command;
-        if (!this.cancelActiveCommand())
-            await this.dequeue();
+        const isActive = !!this.active;
+        if (cancelOrFinish === 'cancel') this.cancelActiveCommand();
+        else if (cancelOrFinish === 'finish') this.finishActiveCommand();
+
+        if (!isActive) await this.dequeue();
     }
 
     private async dequeue() {
         if (!this.next) throw new Error("Invalid precondition");
 
         let next!: Command;
+        const es =[];
         while (this.next) {
             next = this.next;
             if (this.active) throw new Error("invalid precondition");
             this.active = next;
             this.next = undefined;
-            try { await this.execute(next) } 
-            finally {
-                this.active = undefined;
-            }
+            try { await this.execute(next) }
+            catch (_e) { es.push(_e) }
+            finally { this.active = undefined; }
         }
 
         const command = this.selectionGizmo.commandFor(next);
         if (command) await this.enqueue(command);
+
+        for (const e of es) { console.error(e) }
     }
 
     private async execute(command: Command) {
+        console.log(command);
         const disposable = this.registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
@@ -72,6 +80,12 @@ export class CommandExecutor {
     cancelActiveCommand(): boolean {
         const active = this.active;
         if (active) active.cancel();
+        return !!active;
+    }
+
+    finishActiveCommand(): boolean {
+        const active = this.active;
+        if (active) active.finish();
         return !!active;
     }
 

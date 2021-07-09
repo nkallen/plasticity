@@ -455,10 +455,11 @@ export class FilletCommand extends Command {
 
         const gizmo = filletGizmo.execute(async delta => {
             filletDialog.render();
-            await max.exec(delta)
+            await max.exec(delta);
         }, false).resource(this);
 
-        await Promise.all([dialog, gizmo]);
+        const closeGizmoWhenDialogFinishes = dialog.then(() => gizmo.finish());
+        await Promise.all([dialog, closeGizmoWhenDialogFinishes, gizmo]);
 
         const selection = await fillet.commit() as visual.Solid;
         this.editor.selection.selectSolid(selection);
