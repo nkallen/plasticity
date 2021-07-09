@@ -97,7 +97,6 @@ export default class CommandRegistry {
         });
     }
 
-
     handleCommandEvent(event: Event) {
         let propagationStopped = false;
         let immediatePropagationStopped = false;
@@ -166,9 +165,8 @@ export default class CommandRegistry {
         return matched.length > 0 ? Promise.all(matched) : null;
     }
 
-    commandRegistered(commandName: String) {
+    commandRegistered(commandName: string) {
         if (this.rootNode != null && !this.registeredCommands.has(commandName)) {
-            // @ts-ignore
             this.rootNode.addEventListener(commandName, this.handleCommandEvent, {
                 capture: true
             });

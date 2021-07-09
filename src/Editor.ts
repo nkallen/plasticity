@@ -117,7 +117,6 @@ export class Editor {
         this.keymaps.defaultTarget = document.body;
         document.addEventListener('keydown', event => {
             this.keymaps.handleKeyboardEvent(event);
-            console.log(event);
         });
         document.addEventListener('contextmenu', event => {
             // FIXME need to map ctrlKey->ctrl and fix the incorrect types.

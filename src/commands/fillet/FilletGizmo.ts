@@ -51,9 +51,13 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
 
         const delta = planeIntersect.point.sub(this.position).dot(this.normal);
 
+        this.render(delta);
+        cb(Math.abs(delta));
+    }
+
+    render(delta: number) {
         this.line.scale.y = delta;
         this.sphere.position.set(0, delta, 0);
         this.picker.position.copy(this.sphere.position);
-        cb(Math.abs(delta));
     }
 }

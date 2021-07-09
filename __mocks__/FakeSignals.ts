@@ -25,5 +25,7 @@ export default (): EditorSignals => {
         selectionChanged: new signals.Signal(),
         contoursChanged: new signals.Signal(),
         creatorChanged: new signals.Signal(),
+        dialogAdded: new signals.Signal(),
+        dialogRemoved: new signals.Signal(),
     }
 }

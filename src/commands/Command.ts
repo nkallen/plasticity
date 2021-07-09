@@ -304,11 +304,12 @@ export class MoveCommand extends Command {
         await moveGizmo.execute(delta => {
             line.p2 = line.p1.clone().add(delta);
             move.p2 = move.p1.clone().add(delta);
-            line.update();
-            move.update();
+            Promise.all([
+                line.update(), move.update()]);
         }).resource(this);
-        await line.cancel();
-        await move.commit();
+        Promise.all([
+            line.cancel(),
+            move.commit()]);
     }
 }
 
@@ -445,6 +446,7 @@ export class FilletCommand extends Command {
 
         const filletDialog = new FilletDialog(fillet, this.editor.signals);
         const dialog = filletDialog.execute(async params => {
+            filletGizmo.render(params.distance1);
             await fillet.update();
         }).resource(this);
 

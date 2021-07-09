@@ -1,7 +1,8 @@
 THIS WEEK:
 
-keyboard commands not working for move face?
-fillet gizmo not updating when dialog is updated
+left click cancels fillet
+
+keyboard commands not working for move face? - it turns out that since viewports don't always have focus, the way we have of matching commands is wrong; need to attach to body i guess
 
 transaction history
 
