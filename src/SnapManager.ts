@@ -37,28 +37,37 @@ export class SnapManager {
         this.update();
     }
 
-    pick(raycaster: THREE.Raycaster, additional: Snap[] = []): THREE.Object3D[] {
+    pick(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
         const additionalPickers = [];
         for (const a of additional) if (a.picker !== undefined) additionalPickers.push(a.picker);
 
         const pickerIntersections = raycaster.intersectObjects([...this.pickers, ...additionalPickers]);
         const result = [];
         for (const intersection of pickerIntersections) {
+            if (!this.satisfiesRestrictions(intersection.point, restrictions)) continue;
             const sprite = this.hoverIndicatorFor(intersection);
             result.push(sprite);
         }
         return result;
     }
 
-    snap(raycaster: THREE.Raycaster, constructionPlane: THREE.Object3D, additional: Snap[] = []): [THREE.Object3D, THREE.Vector3][] {
-        const snapperIntersections = raycaster.intersectObjects([constructionPlane, ...this.snappers, ...additional.map(a => a.snapper)]);
+    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[]): [Snap, THREE.Vector3][] {
+        const snapperIntersections = raycaster.intersectObjects([...this.snappers, ...additional.map(a => a.snapper)]);
         snapperIntersections.sort((s1, s2) => s1.object.userData.sort - s2.object.userData.sort);
-        const result = [];
+        const result: [Snap, THREE.Vector3][] = [];
         for (const intersection of snapperIntersections) {
-            const h = this.helperFor(intersection);
-            result.push(h);
+            const [snap, point] = this.helperFor(intersection);
+            if (!this.satisfiesRestrictions(point, restrictions)) continue;
+            result.push([snap, point]);
         }
         return result;
+    }
+
+    private satisfiesRestrictions(point: THREE.Vector3, restrictions: Restriction[]): boolean {
+        for (const restriction of restrictions) {
+            if (!restriction.isValid(point)) return false;
+        }
+        return true;
     }
 
     private update() {
@@ -122,17 +131,16 @@ export class SnapManager {
         this.update();
     }
 
-    hoverIndicatorFor(intersection: THREE.Intersection): THREE.Object3D {
+    private hoverIndicatorFor(intersection: THREE.Intersection): THREE.Object3D {
         const sprite = this.sprites.isNear();
         const snap = intersection.object.userData.snap;
         sprite.position.copy(snap.project(intersection));
         return sprite;
     }
 
-    helperFor(intersection: THREE.Intersection): [THREE.Object3D, THREE.Vector3] {
+    private helperFor(intersection: THREE.Intersection): [Snap, THREE.Vector3] {
         const snap = intersection.object.userData.snap;
-        const helper = snap.helper;
-        return [helper, snap.project(intersection)];
+        return [snap, snap.project(intersection)];
     }
 
     saveToMemento(registry: Map<any, any>): SnapMemento {
@@ -151,7 +159,11 @@ export class SnapManager {
     }
 }
 
-export abstract class Snap {
+export interface Restriction {
+    isValid(pt: THREE.Vector3): boolean;
+}
+
+export abstract class Snap implements Restriction {
     snapper: THREE.Object3D;
     picker?: THREE.Object3D;
     helper?: THREE.Object3D;
@@ -169,6 +181,7 @@ export abstract class Snap {
     }
 
     abstract project(intersection: THREE.Intersection): THREE.Vector3;
+    abstract isValid(pt: THREE.Vector3): boolean;
 }
 
 export class PointSnap extends Snap {
@@ -196,9 +209,38 @@ export class PointSnap extends Snap {
             new AxisSnap(new THREE.Vector3(0, 1, 0), o),
             new AxisSnap(new THREE.Vector3(0, 0, 1), o)];
     }
+
+    isValid(pt: THREE.Vector3): boolean {
+        return this.snapper.position.distanceToSquared(pt) < 10e-6
+    }
+}
+
+export class CurveEdgeSnap extends Snap {
+    t!: number;
+
+    constructor(readonly visual: visual.CurveEdge, readonly model: c3d.CurveEdge) {
+        super(visual);
+    }
+
+    project(intersection: THREE.Intersection): THREE.Vector3 {
+        const pt = intersection.point;
+        const t = this.model.PointProjection(new c3d.CartPoint3D(pt.x, pt.y, pt.z));
+        const on = this.model.Point(t);
+        return new THREE.Vector3(on.x, on.y, on.z);
+    }
+
+    isValid(pt: THREE.Vector3): boolean {
+        const t = this.model.PointProjection(new c3d.CartPoint3D(pt.x, pt.y, pt.z));
+        const on = this.model.Point(t);
+        const result = pt.distanceToSquared(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
+        if (result) this.t = t;
+        return result;
+    }
 }
 
 export class AxisSnap extends Snap {
+    readonly n: THREE.Vector3;
+
     constructor(n: THREE.Vector3, o = new THREE.Vector3()) {
         n = n.normalize().multiplyScalar(1000);
         const points = [
@@ -210,10 +252,15 @@ export class AxisSnap extends Snap {
 
         super(snapper, undefined, snapper);
         snapper.userData.sort = 1;
+        this.n = n;
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
         return intersection.point;
+    }
+
+    isValid(pt: THREE.Vector3): boolean {
+        return pt.clone().cross(this.n).lengthSq() < 10e-6
     }
 }
 
@@ -236,6 +283,10 @@ export class PlaneSnap extends Snap {
 
     restrict(pt: THREE.Vector3): PlaneSnap {
         return new PlaneSnap(this.n, pt);
+    }
+
+    isValid(pt: THREE.Vector3): boolean {
+        return Math.abs(pt.clone().sub(this.snapper.position).dot(this.n)) < 10e-6;
     }
 }
 

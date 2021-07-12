@@ -26,7 +26,8 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     private _edges!: visual.CurveEdge[];
 
     private solid!: c3d.Solid;
-    private curves!: c3d.CurveEdge[];
+    curves!: c3d.EdgeFunction[];
+    functions!: Map<string, c3d.CubicFunction>;
     private temp?: TemporaryObject;
 
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
@@ -64,10 +65,15 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         this._edges = edges;
 
         const curves = [];
+        const functions = new Map<string, c3d.CubicFunction>();
         for (const edge of edges) {
-            curves.push(this.db.lookupTopologyItem(edge) as c3d.CurveEdge);
+            const model = this.db.lookupTopologyItem(edge) as c3d.CurveEdge;
+            const fn = new c3d.CubicFunction(1, 1);
+            functions.set(edge.simpleName, fn);
+            curves.push(new c3d.EdgeFunction(model, fn));
         }
         this.curves = curves;
+        this.functions = functions;
     }
 
     get distance() { return this.params.distance1 }

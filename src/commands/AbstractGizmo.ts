@@ -75,6 +75,17 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         const stateMachine = new GizmoStateMachine(this, this.editor.signals, cb);
 
         return new CancellablePromise<void>((resolve, reject) => {
+            // Aggregate the commands, like 'x' for :move:x
+            const registry = this.editor.registry;
+            const commands = [];
+            for (const picker of this.picker.children) {
+                if (picker.userData.command == null) continue;
+                const [name, fn] = picker.userData.command;
+                commands.push([name, fn]);
+            }
+            this.editor.signals.keybindingsRegistered.dispatch(commands.map(([name,]) => name));
+            disposables.add(new Disposable(() => this.editor.signals.keybindingsCleared.dispatch([])));
+
             for (const viewport of this.editor.viewports) {
                 const renderer = viewport.renderer;
                 const domElement = renderer.domElement;
@@ -82,14 +93,8 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 viewport.setAttribute("gizmo", this.title); // for gizmo-specific keyboard command selectors
                 disposables.add(new Disposable(() => viewport.removeAttribute("gizmo")));
 
-                // First, register any keyboard commands, like 'x' for move-x
-                const registry = this.editor.registry;
-                const commands = [];
-                for (const picker of this.picker.children) {
-                    if (picker.userData.command == null) continue;
-                    const [name, fn] = picker.userData.command;
-                    commands.push(name);
-
+                // First, register any keyboard commands for each viewport, like 'x' for :move:x
+                for (const [name, fn] of commands) { // FIXME I'm skeptical this belongs in a loop
                     const disp = registry.addOne(domElement, name, () => {
                         // If a keyboard command is invoked immediately after the gizmo appears, we will
                         // not have received any pointer info from pointermove/hover. Since we need a "start"
@@ -105,8 +110,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     });
                     disposables.add(disp);
                 }
-                this.editor.signals.keybindingsRegistered.dispatch(commands); // FIXME I'm skeptical this belongs in a loop
-                disposables.add(new Disposable(() => this.editor.signals.keybindingsRegistered.dispatch([])));
 
                 // Next, the basic workflow for pointer events
                 const onPointerDown = (event: PointerEvent) => {

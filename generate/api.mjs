@@ -14,6 +14,18 @@ export default {
                 "void AddRef()",
             ]
         },
+        Function: {
+            rawHeader: ["function.h"]
+        },
+        CubicFunction: {
+            rawHeader: ["func_cubic_function.h"],
+            dependencies: ["Function.h"],
+            extends: "Function",
+            initializers: ["double value1, double value2"],
+            functions: [
+                "bool InsertValue(double t, double newValue)"
+            ]
+        },
         Model: {
             rawHeader: "model.h",
             dependencies: ["Item.h", "Path.h", "Matrix3D.h"],
@@ -489,6 +501,7 @@ export default {
                 { signature: "void Point(double t, MbCartPoint3D &p)", p: isReturn },
                 { signature: "void GetBegPoint(MbCartPoint3D & p)", p: isReturn },
                 { signature: "void GetEndPoint(MbCartPoint3D & p)", p: isReturn },
+                "double PointProjection(const MbCartPoint3D & p)"
             ]
         },
         SurfaceIntersectionCurve: {
@@ -602,6 +615,17 @@ export default {
                 "ThreeStates keepCant",
                 "bool strict",
                 "bool equable",
+            ]
+        },
+        EdgeFunction: {
+            rawHeader: "topology_faceset.h",
+            dependencies: ["CurveEdge.h", "Function.h"],
+            initializers: [
+                "const MbCurveEdge *e, const MbFunction *f",
+            ],
+            functions: [
+                "const MbCurveEdge * Edge()",
+                "const MbFunction * Function()",
             ]
         },
         Arc3D: {
@@ -839,11 +863,11 @@ export default {
         },
         ActionSolid: {
             rawHeader: "action_solid.h",
-            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h"],
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h"],
             functions: [
                 "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
                 // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
-                "MbResultType FilletSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbCurveEdge> & initCurves, RPArray<MbFace> & initBounds, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType FilletSolid(MbSolid & solid, MbeCopyMode sameShell, SArray<MbEdgeFunction> & initCurves, RPArray<MbFace> & initBounds, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType BooleanResult(MbSolid & solid1, MbeCopyMode sameShell1, MbSolid & solid2, MbeCopyMode sameShell2, OperationType oType, const MbBooleanFlags & flags, const MbSNameMaker & operNames, MbSolid *& result)",
                 "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType SolidCutting(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & place, const MbContour & contour, const MbVector3D & direction, int retainedPart, const MbSNameMaker & names, bool closed, const MbMergingFlags & flags, MbSolid *& result)",

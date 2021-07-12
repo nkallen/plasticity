@@ -33,7 +33,7 @@
     <%_ if (arg.isOptional || arg.isNullable) { _%>
         <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = NULL;
         if (!(info[<%- arg.jsIndex %>].IsNull() || info[<%- arg.jsIndex %>].IsUndefined())) {
-            <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject());
+            <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject()); // 1
                 <%- arg.name %> = <%- arg.name %>_ <%_ if (!arg.isRaw) { _%> ->_underlying <%_ }  _%>;
         } else {
             <%- arg.name %> = NULL;
@@ -51,7 +51,7 @@
                 return;
             <%_ } _%>
         }
-        const <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject());
+        const class <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject());
         
         <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = <%_ if (!arg.isPointer) { _%>*<%_ } _%><%- arg.name %>_->_underlying;
         

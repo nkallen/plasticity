@@ -9,6 +9,11 @@ export default {
         "s": "gizmo:move:screen",
     },
 
+    "ispace-viewport[gizmo='fillet']": {
+        "a": "gizmo:fillet:add",
+        "f": "gizmo:fillet:distance",
+    },
+
     "ispace-viewport[gizmo='rotate']": {
         "x": "gizmo:rotate:x",
         "y": "gizmo:rotate:y",

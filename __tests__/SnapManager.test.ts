@@ -63,6 +63,10 @@ test("adding & removing curve", async () => {
     expect(snaps.pickers.length).toBe(1);
 });
 
+test("restrictions", async () => {
+
+})
+
 test("saveToMemento & restoreFromMemento", async () => {
     const makeBox = new BoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();

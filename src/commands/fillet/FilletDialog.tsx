@@ -134,7 +134,8 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                 <li>
                     <label for="keepCant">keepCant</label>
                     <select name="keepCant" value={keepCant} onChange={this.onChange}>
-                        <option value="-1">Keep</option>
+                    <option value="-1">Keep</option>
+                    <option value="0">Neut</option>
                         <option value="1">Unkeep</option>
                     </select>
                 </li>

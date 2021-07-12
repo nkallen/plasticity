@@ -6,6 +6,8 @@ import { EditorOriginator, History } from "../History";
 import { Cancel } from "../util/Cancellable";
 import { HasSelection } from "../selection/SelectionManager";
 
+const maxFailures = 10;
+
 export type CancelOrFinish = 'cancel' | 'finish';
 
 export class CommandExecutor {
@@ -34,18 +36,23 @@ export class CommandExecutor {
         if (!isActive) await this.dequeue();
     }
 
+    private failures = 0;
     private async dequeue() {
         if (!this.next) throw new Error("Invalid precondition");
 
         let next!: Command;
         const es =[];
         while (this.next) {
+            if (this.failures > maxFailures) return;
             next = this.next;
             if (this.active) throw new Error("invalid precondition");
             this.active = next;
             this.next = undefined;
-            try { await this.execute(next) }
-            catch (_e) { es.push(_e) }
+            try {
+                await this.execute(next)
+                this.failures = 0;
+            }
+            catch (_e) { es.push(_e); this.failures++ }
             finally { this.active = undefined; }
         }
 
@@ -56,7 +63,6 @@ export class CommandExecutor {
     }
 
     private async execute(command: Command) {
-        console.log(command);
         const disposable = this.registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),

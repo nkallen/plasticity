@@ -63,6 +63,8 @@ keybindings.set("gizmo:curve:bezier", "Bezier");
 keybindings.set("gizmo:curve:cubic-spline", "Cubic spline");
 keybindings.set("gizmo:curve:add-curve", "Add new curve");
 keybindings.set("gizmo:curve:undo", "Undo");
+keybindings.set("gizmo:fillet:add", "Add variable fillet point");
+keybindings.set("gizmo:fillet:distance", "Distance");
 
 export class Model {
     constructor(
@@ -223,25 +225,39 @@ export default (editor: Editor) => {
     customElements.define('ispace-toolbar', Toolbar);
 
     class Keybindings extends HTMLElement {
+        private commands: string[] = [];
+
         constructor() {
             super();
             this.update = this.update.bind(this);
+            this.clear = this.clear.bind(this);
         }
 
         connectedCallback() {
             editor.signals.keybindingsRegistered.add(this.update);
+            editor.signals.keybindingsCleared.add(this.clear);
         }
 
-        update(commands: string[]) {
+        update(newCommands?: string[]) {
+            this.commands = this.commands.concat(newCommands ?? []);
             const keymaps = editor.keymaps;
             const result = <ul>
-                {commands.map(command => {
+                {this.commands.map(command => {
                     const bindings = keymaps.findKeyBindings({ command: command });
+                    if (bindings.length == 0) {
+                        console.warn("Command missing:", command);
+                        return;
+                    }
                     const keystroke = humanizeKeystrokes(bindings[0].keystrokes);
                     return <li><span class="keystroke">{keystroke}</span>{keybindings.get(command)}</li>
                 })}
             </ul>;
             render(result, this);
+        }
+
+        clear() {
+            this.commands = [];
+            this.update();
         }
 
         disconnectedCallback() {

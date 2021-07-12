@@ -44,6 +44,7 @@ export interface EditorSignals {
     commandStarted: signals.Signal<Command>;
     commandEnded: signals.Signal;
     keybindingsRegistered: signals.Signal<string[]>;
+    keybindingsCleared: signals.Signal<string[]>;
     hovered: signals.Signal<THREE.Intersection[]>;
     historyChanged: signals.Signal;
     contoursChanged: signals.Signal;
@@ -74,6 +75,7 @@ export class Editor {
         commandStarted: new signals.Signal(),
         commandEnded: new signals.Signal(),
         keybindingsRegistered: new signals.Signal(),
+        keybindingsCleared: new signals.Signal(),
         hovered: new signals.Signal(),
         historyChanged: new signals.Signal(),
         contoursChanged: new signals.Signal(),

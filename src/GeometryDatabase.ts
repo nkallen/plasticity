@@ -93,7 +93,7 @@ export class GeometryDatabase {
     }
 
     lookupTopologyItem(object: visual.Face): c3d.Face;
-    lookupTopologyItem(object: visual.Edge): c3d.Edge;
+    lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
     lookupTopologyItem(object: visual.Edge | visual.Face): c3d.TopologyItem {
         const parent = object.parentItem;
         const { model: parentModel } = this.lookupItemById(parent.simpleName);
