@@ -117,6 +117,7 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
 
                 jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
                 jsInfo.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(edge->GetName())));
+                jsInfo.Set(Napi::String::New(env, "i"), Napi::Number::New(env, k));
             }
 
             size_t pointsCnt = polygon->Count();

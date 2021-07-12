@@ -144,8 +144,8 @@ export class CurveEdge extends Edge {
         occludedLine.computeLineDistances();
         const result = new CurveEdge(line, occludedLine);
         result.userData.name = edge.name;
-        result.userData.simpleName = `${parentId},${edge.simpleName}`;
-        // result.userData.index = edge.i;
+        result.userData.simpleName = `${parentId},${edge.i}`;
+        result.userData.index = edge.i;
         return result;
     }
 

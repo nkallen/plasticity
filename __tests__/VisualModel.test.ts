@@ -33,7 +33,7 @@ test('constructs solids', () => {
 
     const makeSolid = new visual.SolidBuilder();
     makeSolid.addLOD(makeEdges.build(), makeFaces.build());
-    const solid = makeSolid.build(0);
+    const solid = makeSolid.build();
 });
 
 test('constructs curves', () => {
@@ -67,7 +67,7 @@ describe('materials are consistent across LODs', () => {
 
         makeSolid.addLOD(makeEdges1.build(), makeFaces1.build());
         makeSolid.addLOD(makeEdges2.build(), makeFaces2.build());
-        const solid = makeSolid.build(0);
+        const solid = makeSolid.build();
         expect(solid.lod.children.length).toBe(2);
     });
 
