@@ -55,6 +55,7 @@ export class OffsetFaceGizmo extends AbstractGizmo<(radius: number) => void> {
         this.pointEnd.copy(planeIntersect.point);
 
         const delta = this.pointEnd.sub(this.pointStart).dot(this.normal);
+        console.log(delta);
         this.line.scale.y = delta;
         this.sphere.position.set(0, delta, 0);
         cb(delta);

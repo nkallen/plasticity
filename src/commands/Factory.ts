@@ -5,10 +5,28 @@ import MaterialDatabase from '../MaterialDatabase';
 import { ResourceRegistration } from '../util/Cancellable';
 import * as visual from '../VisualModel';
 
-type State = { tag: 'none' } | { tag: 'updated' } | { tag: 'updating', hasNext: boolean, failed?: any } | { tag: 'failed', error: any } | { tag: 'cancelled' } | { tag: 'committed' }
+type State = { tag: 'none', last: undefined } | { tag: 'updated', last?: Map<string, any> } | { tag: 'updating', hasNext: boolean, failed?: any, last?: Map<string, any> } | { tag: 'failed', error: any, last?: Map<string, any> } | { tag: 'cancelled' } | { tag: 'committed' }
+
+/**
+ * Subclasses of GeometryFactory implement template update() and commit() methods. This abstract class
+ * implements a state machine that does a lot of error handling. Update previews the computation to but
+ * the user but commit() is required to actually store the result in the geometry database.
+ * 
+ * Particularly in the case of update(), where the user is interactively trying one value after another,
+ * the factory can temporarily be in a failure state. Similarly, if an update takes too long, the user
+ * might request another update before the last has finished. Hence there are states like 'updating',
+ * 'failed', 'updated', etc.
+ * 
+ * In general, if the user is requesting updates too fast we drop all but the most recent request; this
+ * is implemented with the hasNext field on the updating state.
+ * 
+ * In the case of failure, if the subclass implements a key() method, we store the last successful
+ * value and try to return to that state whenever the user is done requesting updates. This works best
+ * when a user exceeds some max value, (like a max fillet radius).
+ */
 
 export abstract class GeometryFactory extends ResourceRegistration {
-    state: State = { tag: 'none' };
+    state: State = { tag: 'none', last: undefined };
 
     constructor(
         protected readonly db: GeometryDatabase,
@@ -25,24 +43,18 @@ export abstract class GeometryFactory extends ResourceRegistration {
             case 'none':
             case 'failed':
             case 'updated':
-                this.state = { tag: 'updating', hasNext: false };
+                this.state = { tag: 'updating', hasNext: false, last: this.state.last };
                 c3d.Mutex.EnterParallelRegion();
+                let before = this.saveState();
                 try {
                     await this.doUpdate();
                     this.signals.factoryUpdated.dispatch();
                 } catch (e) {
-                    this.state.failed = e ?? "unknown error";
+                    this.state.failed = e ?? new Error("unknown error");
                 } finally {
                     c3d.Mutex.ExitParallelRegion();
-                    const hasNext = this.state.hasNext;
-                    const error = this.state.failed;
-                    if (!hasNext && error) {
-                        this.state = { tag: 'failed', error: error };
-                        throw error;
-                    } else {
-                        this.state = { tag: 'updated' };
-                        if (hasNext) await this.update();
-                    }
+
+                    await this.continueUpdatingIfMoreWork(before);
                 }
                 break;
             case 'updating':
@@ -51,6 +63,39 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 break;
             default:
                 throw new Error('invalid state: ' + this.state.tag);
+        }
+    }
+
+    // If another update() job was "enqueued" while still doing the previous one, do that too
+    private async continueUpdatingIfMoreWork(before: Map<string, any> | undefined) {
+        switch (this.state.tag) {
+            case 'updating':
+                const hasNext = this.state.hasNext;
+                const error = this.state.failed;
+                if (error) {
+                    this.state = { tag: 'failed', error, last: this.state.last };
+                    if (hasNext) await this.update();
+                    else await this.revertToLastSuccess();
+                } else {
+                    this.state = { tag: 'updated', last: before };
+                    if (hasNext) await this.update();
+                }
+                break;
+            default: throw new Error("invalid state");
+        }
+    }
+
+    private async revertToLastSuccess() {
+        switch (this.state.tag) {
+            case 'failed':
+                if (this.state.last !== undefined) {
+                    this.restoreSavedState(this.state.last);
+                    await this.update();
+                } else throw this.state.error;
+                break;
+            case 'updating': break;
+            default:
+                throw new Error("invalid state: " + this.state.tag);
         }
     }
 
@@ -66,7 +111,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
                     this.signals.factoryCommitted.dispatch();
                     return result;
                 } catch (e) {
-                    await this.cancel();
+                    this.cancel();
                     throw e;
                 }
             case 'failed':
@@ -92,6 +137,31 @@ export abstract class GeometryFactory extends ResourceRegistration {
             default:
                 throw new Error('invalid state: ' + this.state.tag);
         }
+    }
+
+    private saveState(): Map<string, any> | undefined {
+        if (this.keys.length === 0) return;
+        const result = new Map();
+        for (const key of this.keys) {
+            const uncloned = this[key as keyof this];
+            let value = uncloned;
+            if (typeof uncloned === 'object' && 'clone' in uncloned) {
+                // @ts-expect-error("clone doesn't exist")
+                value = uncloned.clone();
+            }
+            result.set(key, value);
+        }
+        return result;
+    }
+
+    private restoreSavedState(last: Map<string, any>) {
+        for (const key of this.keys) {
+            this[key as keyof this] = last.get(key);
+        }
+    }
+
+    protected get keys(): string[] {
+        return [];
     }
 
     private previous?: Map<keyof this, any>;

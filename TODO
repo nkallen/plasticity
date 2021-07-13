@@ -1,5 +1,6 @@
 THIS WEEK:
 
+onpointermove needs to take an async cb
 maxi fillet:
 restrictToPlaneThroughPoint isn't working
 audit restrictions in MoI

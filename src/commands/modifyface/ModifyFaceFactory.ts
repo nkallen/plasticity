@@ -71,6 +71,10 @@ abstract class ModifyFaceFactory extends GeometryFactory {
         this.db.unhide(this.solid);
         this.temp?.cancel();
     }
+
+    get keys() {
+        return ['direction'];
+    }
 }
 
 export class RemoveFaceFactory extends ModifyFaceFactory {
