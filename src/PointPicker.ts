@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Viewport } from './components/viewport/Viewport';
 import { EditorSignals } from './Editor';
 import { GeometryDatabase } from './GeometryDatabase';
-import { CurveEdgeSnap, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from './SnapManager';
+import { CurveEdgeSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from './SnapManager';
 import { Cancel, CancellablePromise, Finish } from './util/Cancellable';
 import * as visual from "./VisualModel";
 
@@ -23,7 +23,8 @@ export class PointPicker {
     private readonly editor: EditorLike;
     private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
     private readonly addedPointSnaps = new Array<PointSnap>();
-    private readonly restrictions = new Array<Snap>();
+    private readonly otherAddedSnaps = new Array<Snap>();
+    private readonly restrictions = new Array<Restriction>();
 
     constructor(editor: EditorLike) {
         this.editor = editor;
@@ -40,7 +41,7 @@ export class PointPicker {
             const raycaster = new THREE.Raycaster();
             raycaster.params.Line = { threshold: 0.1 };
             // @ts-expect-error("Line2 is missing from the typedef")
-            raycaster.params.Line2 = { threshold: 100 };
+            raycaster.params.Line2 = { threshold: 20 };
 
             scene.add(mesh);
             disposables.add(new Disposable(() => scene.remove(mesh)));
@@ -64,7 +65,7 @@ export class PointPicker {
 
                     viewport.overlay.clear();
                     // display potential/nearby snapping positions
-                    const sprites = editor.snaps.pick(raycaster, this.snaps, this.restrictions);
+                    const sprites = editor.snaps.nearby(raycaster, this.snaps, this.restrictions);
                     for (const sprite of sprites) {
                         viewport.overlay.add(sprite);
                     }
@@ -135,7 +136,7 @@ export class PointPicker {
     }
 
     get snaps() {
-        return this.createdPointSnaps.concat(this.restrictions);
+        return this.createdPointSnaps.concat(this.otherAddedSnaps);
     }
 
     private restrictionPoint?: THREE.Vector3;
@@ -144,9 +145,14 @@ export class PointPicker {
     }
 
     restrictToEdges(edges: visual.CurveEdge[]) {
-        const edge = edges[0];
-        const model = this.editor.db.lookupTopologyItem(edge);
-        const restriction = new CurveEdgeSnap(edge, model);
+        const restrictions = [];
+        for (const edge of edges) {
+            const model = this.editor.db.lookupTopologyItem(edge);
+            const restriction = new CurveEdgeSnap(edge, model);
+            this.otherAddedSnaps.push(restriction);
+            restrictions.push(restriction);
+        }
+        const restriction = new OrRestriction(restrictions);
         this.restrictions.push(restriction);
         return restriction;
     }

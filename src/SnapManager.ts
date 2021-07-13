@@ -20,8 +20,8 @@ export class SnapManager {
     private readonly endPoints = new Set<Snap>();
     private readonly garbageDisposal = new RefCounter<c3d.SimpleName>();
 
-    pickers: THREE.Object3D[] = [];
-    snappers: THREE.Object3D[] = [];
+    pickers: THREE.Object3D[] = []; // visual objects indicating nearby snap points
+    snappers: THREE.Object3D[] = []; // actual snap points
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -40,14 +40,15 @@ export class SnapManager {
         this.update();
     }
 
-    pick(raycaster: Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
+    nearby(raycaster: Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
         const additionalPickers = [];
         for (const a of additional) if (a.picker !== undefined) additionalPickers.push(a.picker);
 
         const pickerIntersections = raycaster.intersectObjects([...this.pickers, ...additionalPickers]);
         const result = [];
         for (const intersection of pickerIntersections) {
-            if (!this.satisfiesRestrictions(intersection.point, restrictions)) continue;
+            if (!this.satisfiesRestrictions(intersection.object.position, restrictions)) continue;
+
             const sprite = this.hoverIndicatorFor(intersection);
             result.push(sprite);
         }
@@ -58,6 +59,7 @@ export class SnapManager {
         const snapperIntersections = raycaster.intersectObjects([...this.snappers, ...additional.map(a => a.snapper)]);
         snapperIntersections.sort((s1, s2) => s1.object.userData.sort - s2.object.userData.sort);
         const result: [Snap, THREE.Vector3][] = [];
+
         for (const intersection of snapperIntersections) {
             const [snap, point] = this.helperFor(intersection);
             if (!this.satisfiesRestrictions(point, restrictions)) continue;
@@ -192,7 +194,7 @@ export class PointSnap extends Snap {
 
     constructor(x = 0, y = 0, z = 0) {
         const snapper = new THREE.Mesh(new THREE.SphereGeometry(0.1));
-        const picker = new THREE.Mesh(new THREE.SphereGeometry(0.5));
+        const picker = new THREE.Mesh(new THREE.SphereGeometry(0.2));
         snapper.position.set(x, y, z);
         picker.position.set(x, y, z);
 
@@ -229,6 +231,7 @@ export class CurveEdgeSnap extends Snap {
         const pt = intersection.point;
         const t = this.model.PointProjection(new c3d.CartPoint3D(pt.x, pt.y, pt.z));
         const on = this.model.Point(t);
+        this.t = t;
         return new THREE.Vector3(on.x, on.y, on.z);
     }
 
@@ -236,8 +239,22 @@ export class CurveEdgeSnap extends Snap {
         const t = this.model.PointProjection(new c3d.CartPoint3D(pt.x, pt.y, pt.z));
         const on = this.model.Point(t);
         const result = pt.distanceToSquared(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
-        if (result) this.t = t;
         return result;
+    }
+}
+
+export class OrRestriction<R extends Restriction> implements Restriction {
+    match!: R;
+    constructor(private readonly underlying: R[]) { }
+
+    isValid(pt: THREE.Vector3): boolean {
+        for (const restriction of this.underlying) {
+            if (restriction.isValid(pt)) {
+                this.match = restriction;
+                return true;
+            }
+        }
+        return false;
     }
 }
 

@@ -151,10 +151,9 @@ export class CurveEdge extends Edge {
 
     private constructor(line: Line2, occludedLine: Line2) {
         super()
-        this.add(line);
         this.line = line;
         this.occludedLine = occludedLine;
-        this.add(occludedLine);
+        this.add(line, occludedLine);
         occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
     }
 }

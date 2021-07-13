@@ -429,9 +429,8 @@ export class CutCommand extends Command {
 export class FilletCommand extends Command {
     async execute(): Promise<void> {
         const edges = [...this.editor.selection.selectedEdges];
-        const item = edges[0].parentItem as visual.Solid;
-
-        const edge = edges[0];
+        const edge = edges[edges.length - 1];
+        const item = edge.parentItem as visual.Solid;
 
         edge.geometry.computeBoundingBox();
         const centroid = new THREE.Vector3();
@@ -461,11 +460,11 @@ export class FilletCommand extends Command {
             switch (e.tag) {
                 case 'add':
                     const { point } = await pp.execute().resource(this);
-                    const { visual, model, t } = restriction;
+                    const { visual, model, t } = restriction.match;
                     const normal = model.EdgeNormal(t);
-                    const another = new FilletGizmo(this.editor, point, new THREE.Vector3(normal.x, normal.y, normal.z));
+                    const gizmo = new FilletGizmo(this.editor, point, new THREE.Vector3(normal.x, normal.y, normal.z));
                     const fn = fillet.functions.get(visual.simpleName)!;
-                    another.execute(async delta => {
+                    gizmo.execute(async delta => {
                         fn.InsertValue(t, delta);
                         await fillet.update();
                     }, false).resource(this);
@@ -481,7 +480,7 @@ export class FilletCommand extends Command {
         }, false).resource(this);
 
         const closeGizmoWhenDialogFinishes = dialog.then(() => gizmo.finish());
-        await Promise.all([dialog, closeGizmoWhenDialogFinishes, gizmo]);
+        await Promise.all([dialog, closeGizmoWhenDialogFinishes, gizmo]); // FIXME make this await Promise.all(this.resources);
 
         const selection = await fillet.commit() as visual.Solid;
         this.editor.selection.selectSolid(selection);

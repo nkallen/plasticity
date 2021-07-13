@@ -96,7 +96,7 @@ describe("snap()", () => {
     });
 });
 
-describe("pick()", () => {
+describe("nearby()", () => {
     let point: THREE.Vector3;
     beforeEach(() => {
         point = new THREE.Vector3();
@@ -107,14 +107,14 @@ describe("pick()", () => {
     })
 
     test("basic behavior", async () => {
-        const [pick,] = snaps.pick(raycaster);
+        const [pick,] = snaps.nearby(raycaster);
         expect(pick).toBe(sprites.isNear());
         expect(pick.position).toEqual(originSnap['projection']);
     });
 
     test("restrictions", async () => {
         const pointSnap = new PointSnap(1, 1, 1);
-        const [pick,] = snaps.pick(raycaster, [pointSnap], [pointSnap]);
+        const [pick,] = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
         expect(pick).toBe(pointSnap.helper);
     });
 });
