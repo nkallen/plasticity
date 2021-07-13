@@ -35,7 +35,7 @@ export class RebuildCommand extends Command {
         private readonly element: GizmoLike<() => void>
     ) {
         super(editor);
-        
+
         const model = this.editor.db.lookup(item);
         this.dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
     }
@@ -45,9 +45,7 @@ export class RebuildCommand extends Command {
         factory.item = this.item;
         factory.dup = this.dup;
         await this.element.execute(async () => {
-            factory.schedule(async () => {
-                await factory.update();
-            });
+            await factory.update();
         }).resource(this);
         const selection = await factory.commit() as visual.Solid;
         this.editor.selection.selectSolid(selection);

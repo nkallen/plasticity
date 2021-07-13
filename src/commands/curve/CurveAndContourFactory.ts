@@ -26,7 +26,7 @@ export default class CurveAndContourFactory extends GeometryFactory {
         this.factories = [new CurveFactory(db, materials, signals)];
     }
 
-    push() {
+    async push() {
         if (!this.isValid) throw new Error("invalid state");
 
         const { db, materials, signals } = this;
@@ -38,7 +38,7 @@ export default class CurveAndContourFactory extends GeometryFactory {
         currentFactory.points.push(previousFactory.points[previousFactory.points.length-1]);
         currentFactory.nextPoint = previousFactory.nextPoint;
         previousFactory.nextPoint = undefined;
-        previousFactory.update();
+        await previousFactory.update();
     }
 
     undo() {

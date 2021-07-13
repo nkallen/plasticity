@@ -3,14 +3,12 @@ import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
 import { ResourceRegistration } from '../util/Cancellable';
-import { Scheduler } from '../util/Scheduler';
 import * as visual from '../VisualModel';
 
-type State = 'none' | 'updated' | 'failed' | 'cancelled' | 'committed'
+type State = { tag: 'none' } | { tag: 'updated' } | { tag: 'updating', hasNext: boolean, failed?: any } | { tag: 'failed', error: any } | { tag: 'cancelled' } | { tag: 'committed' }
 
 export abstract class GeometryFactory extends ResourceRegistration {
-    state: State = 'none';
-    private readonly scheduler = new Scheduler(1, 1);
+    state: State = { tag: 'none' };
 
     constructor(
         protected readonly db: GeometryDatabase,
@@ -23,38 +21,48 @@ export abstract class GeometryFactory extends ResourceRegistration {
     protected abstract doCancel(): void;
 
     async update() {
-        const state = this.state;
-        switch (state) {
+        switch (this.state.tag) {
             case 'none':
             case 'failed':
             case 'updated':
+                this.state = { tag: 'updating', hasNext: false };
+                c3d.Mutex.EnterParallelRegion();
                 try {
-                    c3d.Mutex.EnterParallelRegion();
                     await this.doUpdate();
-                    c3d.Mutex.ExitParallelRegion();
                     this.signals.factoryUpdated.dispatch();
-                    this.state = 'updated';
                 } catch (e) {
-                    this.state = 'failed';
-                    this.signals.factoryUpdated.dispatch();
-                    throw e;
+                    this.state.failed = e ?? "unknown error";
+                } finally {
+                    c3d.Mutex.ExitParallelRegion();
+                    const hasNext = this.state.hasNext;
+                    const error = this.state.failed;
+                    if (!hasNext && error) {
+                        this.state = { tag: 'failed', error: error };
+                        throw error;
+                    } else {
+                        this.state = { tag: 'updated' };
+                        if (hasNext) await this.update();
+                    }
                 }
-                return;
+                break;
+            case 'updating':
+                if (this.state.hasNext) console.warn("Dropping job because of latency");
+                this.state.hasNext = true;
+                break;
             default:
-                throw new Error('invalid state: ' + state);
+                throw new Error('invalid state: ' + this.state.tag);
         }
     }
 
     async commit(): Promise<visual.SpaceItem | visual.SpaceItem[]> {
-        const state = this.state;
-        switch (state) {
+        switch (this.state.tag) {
             case 'none':
             case 'updated':
                 try {
                     c3d.Mutex.EnterParallelRegion();
                     const result = await this.doCommit();
                     c3d.Mutex.ExitParallelRegion();
-                    this.state = 'committed';
+                    this.state = { tag: 'committed' };
                     this.signals.factoryCommitted.dispatch();
                     return result;
                 } catch (e) {
@@ -63,27 +71,26 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 }
             case 'failed':
                 this.cancel();
-                throw new Error('invalid state: ' + state);
             default:
-                throw new Error('invalid state: ' + state);
+                throw new Error('invalid state: ' + this.state.tag);
         }
     }
 
     // Factories can be cancelled but "finishing" is a no-op. Commit must be called explicitly.
     async finish() { }
 
-    async cancel() {
-        const state = this.state;
-        switch (state) {
+    cancel() {
+        switch (this.state.tag) {
             case 'updated':
             case 'none':
                 this.doCancel();
             case 'cancelled':
             case 'failed':
-                this.state = 'cancelled';
+            case 'updating':
+                this.state = { tag: 'cancelled' };
                 return;
             default:
-                throw new Error('invalid state: ' + state);
+                throw new Error('invalid state: ' + this.state.tag);
         }
     }
 
@@ -99,17 +106,13 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 value = uncloned.clone();
             }
             this.previous.set(key, value);
-            this.previous.set("state", this.state);
+            // this.previous.set("state", this.state);
         } catch (e) {
             console.warn(e);
             if (this.previous != null) {
                 this[key] = this.previous.get(key);
-                this.state = this.previous.get("state");
+                // this.state = this.previous.get("state");
             }
         }
-    }
-
-    schedule(fn: () => Promise<void>) {
-        this.scheduler.schedule(fn);
     }
 }

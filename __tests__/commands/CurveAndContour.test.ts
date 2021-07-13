@@ -26,7 +26,7 @@ describe('push & commit', () => {
         for (var i = 0; i < 3; i++) {
             makeContour.points.push(new THREE.Vector3(i,i,i));
         }
-        makeContour.push();
+        await makeContour.push();
         for (var i = 3; i < 6; i++) {
             makeContour.points.push(new THREE.Vector3(i,i,i));
         }
@@ -55,7 +55,7 @@ describe('undo', () => {
         for (var i = 0; i < 3; i++) {
             makeContour.points.push(new THREE.Vector3(i,i,i));
         }
-        makeContour.push();
+        await makeContour.push();
         makeContour.undo();
         const contour = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>;
         const bbox = new THREE.Box3().setFromObject(contour);

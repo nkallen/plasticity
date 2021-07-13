@@ -523,12 +523,10 @@ export class OffsetFaceCommand extends Command {
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
         const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
 
-        await gizmo.execute(delta => {
-            offsetFace.schedule(async () => {
-                await offsetFace.transaction('direction', async () => {
-                    offsetFace.direction = new THREE.Vector3(delta, 0, 0);
-                    await offsetFace.update();
-                });
+        await gizmo.execute(async delta => {
+            await offsetFace.transaction('direction', async () => {
+                offsetFace.direction = new THREE.Vector3(delta, 0, 0);
+                await offsetFace.update();
             });
         }).resource(this);
 
@@ -618,12 +616,10 @@ export class ActionFaceCommand extends Command {
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
         const gizmo = new MoveGizmo(this.editor, point);
 
-        await gizmo.execute(delta => {
-            actionFace.schedule(async () => {
-                await actionFace.transaction('direction', async () => {
-                    actionFace.direction = delta;
-                    await actionFace.update();
-                });
+        await gizmo.execute(async delta => {
+            await actionFace.transaction('direction', async () => {
+                actionFace.direction = delta;
+                await actionFace.update();
             });
         }).resource(this);
 
@@ -648,12 +644,10 @@ export class FilletFaceCommand extends Command {
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
         const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
 
-        await gizmo.execute((delta) => {
-            refilletFace.schedule(async () => {
-                await refilletFace.transaction('direction', async () => {
-                    refilletFace.direction = new THREE.Vector3(delta, 0, 0);
-                    await refilletFace.update();
-                });
+        await gizmo.execute(async delta => {
+            await refilletFace.transaction('direction', async () => {
+                refilletFace.direction = new THREE.Vector3(delta, 0, 0);
+                await refilletFace.update();
             });
         }).resource(this);
 
@@ -753,11 +747,9 @@ export class ModeCommand extends Command {
                 const factory = new ElementarySolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
                 factory.solid = object;
                 const gizmo = new ElementarySolidGizmo(this.editor, factory.points);
-                await gizmo.execute((point, index) => {
-                    factory.schedule(async () => {
-                        factory.points[index] = point;
-                        await factory.update();
-                    });
+                await gizmo.execute(async (point, index) => {
+                    factory.points[index] = point;
+                    await factory.update();
                 }).resource(this);
 
                 await factory.commit();
