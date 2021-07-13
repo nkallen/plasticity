@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../Editor';
-import { Cancellable, CancellableDisposable, ResourceRegistration } from "../util/Cancellable";
+import { Cancel, CancellablePromise } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 
 /**
@@ -23,7 +23,7 @@ export abstract class CommandKeyboardInput<CB> {
         protected readonly commands: string[]
     ) { }
 
-    execute(cb: CB): ResourceRegistration {
+    execute(cb: CB) {
         const disposables = new CompositeDisposable();
 
         for (const viewport of this.editor.viewports) {
@@ -41,7 +41,18 @@ export abstract class CommandKeyboardInput<CB> {
         }
         this.editor.signals.keybindingsRegistered.dispatch(this.commands);
         disposables.add(new Disposable(() => this.editor.signals.keybindingsRegistered.dispatch([])));
-        return new CancellableDisposable(disposables);
+
+        return new CancellablePromise<void>((resolve, reject) => {
+            const cancel = () => {
+                disposables.dispose();
+                reject(Cancel);
+            }
+            const finish = () => {
+                disposables.dispose();
+                resolve();
+            }
+            return { cancel, finish };
+        });
     }
 
     abstract resolve(cb: CB, command: string): void;

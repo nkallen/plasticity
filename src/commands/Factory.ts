@@ -1,15 +1,15 @@
-import { Cancellable, ResourceRegistration } from '../util/Cancellable';
+import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../Editor';
 import { GeometryDatabase } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
-import * as visual from '../VisualModel';
+import { ResourceRegistration } from '../util/Cancellable';
 import { Scheduler } from '../util/Scheduler';
-import c3d from '../../build/Release/c3d.node';
+import * as visual from '../VisualModel';
 
 type State = 'none' | 'updated' | 'failed' | 'cancelled' | 'committed'
 
 export abstract class GeometryFactory extends ResourceRegistration {
-    state: Promise<State> = Promise.resolve('none');
+    state: State = 'none';
     private readonly scheduler = new Scheduler(1, 1);
 
     constructor(
@@ -23,7 +23,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     protected abstract doCancel(): void;
 
     async update() {
-        const state = await this.state;
+        const state = this.state;
         switch (state) {
             case 'none':
             case 'failed':
@@ -33,9 +33,9 @@ export abstract class GeometryFactory extends ResourceRegistration {
                     await this.doUpdate();
                     c3d.Mutex.ExitParallelRegion();
                     this.signals.factoryUpdated.dispatch();
-                    this.state = Promise.resolve('updated');
+                    this.state = 'updated';
                 } catch (e) {
-                    this.state = Promise.resolve('failed');
+                    this.state = 'failed';
                     this.signals.factoryUpdated.dispatch();
                     throw e;
                 }
@@ -46,7 +46,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     }
 
     async commit(): Promise<visual.SpaceItem | visual.SpaceItem[]> {
-        const state = await this.state;
+        const state = this.state;
         switch (state) {
             case 'none':
             case 'updated':
@@ -54,7 +54,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
                     c3d.Mutex.EnterParallelRegion();
                     const result = await this.doCommit();
                     c3d.Mutex.ExitParallelRegion();
-                    this.state = Promise.resolve('committed');
+                    this.state = 'committed';
                     this.signals.factoryCommitted.dispatch();
                     return result;
                 } catch (e) {
@@ -73,14 +73,14 @@ export abstract class GeometryFactory extends ResourceRegistration {
     async finish() { }
 
     async cancel() {
-        const state = await this.state;
+        const state = this.state;
         switch (state) {
             case 'updated':
             case 'none':
-                await this.doCancel();
+                this.doCancel();
             case 'cancelled':
             case 'failed':
-                this.state = Promise.resolve('cancelled');
+                this.state = 'cancelled';
                 return;
             default:
                 throw new Error('invalid state: ' + state);

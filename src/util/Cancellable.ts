@@ -7,8 +7,6 @@
  * running, the Registor can cancel them all.
  */
 
-import { Disposable } from "event-kit";
-
 export interface Cancellable {
     cancel(): void;
 }
@@ -27,15 +25,6 @@ export abstract class ResourceRegistration implements Cancellable, Finishable {
     }
 }
 
-export class CancellableDisposable extends ResourceRegistration {
-    constructor(private readonly disposable: Disposable) {
-        super();
-    }
-
-    cancel() { this.disposable.dispose() }
-    finish() { this.disposable.dispose() }
-}
-
 export const Cancel = { tag: 'Cancel' };
 export const Finish = { tag: 'Finish' };
 
@@ -48,9 +37,11 @@ type State = 'None' | 'Cancelled' | 'Finished';
 // can be cancelled / finished /etc.
 export abstract class CancellableRegistor {
     private state: State = 'None';
-    private readonly resources: (Cancellable & Finishable)[] = [];
+    protected readonly resources: ResourceRegistration[] = [];
+    protected readonly promises: PromiseLike<any>[] = [];
 
     cancel(): void {
+        if (this.state != 'None') return;
         for (const resource of this.resources) {
             resource.cancel();
         }
@@ -58,6 +49,7 @@ export abstract class CancellableRegistor {
     }
 
     finish(): void {
+        if (this.state != 'None') return;
         for (const resource of this.resources) {
             resource.finish();
         }
@@ -66,7 +58,12 @@ export abstract class CancellableRegistor {
 
     resource<T extends ResourceRegistration>(x: T): T {
         this.resources.push(x);
+        if (x instanceof CancellablePromise) this.promises.push(x);
         return x
+    }
+
+    connect(a: CancellablePromise<any>, b: CancellablePromise<any>) {
+        this.promises.push(a.then(() => b.finish()));
     }
 }
 

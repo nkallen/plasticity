@@ -1,10 +1,10 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { PlaneSnap } from "../SnapManager";
 import * as THREE from "three";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../Editor';
-import { Cancel, CancellablePromise, Finish } from "../util/Cancellable";
+import { PlaneSnap } from "../SnapManager";
+import { Cancel, CancellablePromise } from "../util/Cancellable";
 import { Helper, Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 

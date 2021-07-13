@@ -1,10 +1,10 @@
 THIS WEEK:
 
 maxi fillet:
-support multiple edges
 restrictToPlaneThroughPoint isn't working
 audit restrictions in MoI
-duplicate keybindings
+redo scheduling in factory
+move keybindings outside of loop keybindings
 
 uncaught promse error hitting escape
 

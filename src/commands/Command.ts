@@ -474,13 +474,13 @@ export class FilletCommand extends Command {
             }
         }).resource(this);
 
-        const gizmo = filletGizmo.execute(async delta => {
+        filletGizmo.execute(async delta => {
             filletDialog.render();
             await max.exec(delta);
         }, false).resource(this);
 
-        const closeGizmoWhenDialogFinishes = dialog.then(() => gizmo.finish());
-        await Promise.all([dialog, closeGizmoWhenDialogFinishes, gizmo]); // FIXME make this await Promise.all(this.resources);
+        dialog.then(() => this.finish(), () => this.cancel());
+        await Promise.all(this.promises);
 
         const selection = await fillet.commit() as visual.Solid;
         this.editor.selection.selectSolid(selection);
