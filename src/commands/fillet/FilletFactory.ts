@@ -175,23 +175,17 @@ export class Max {
             case 'start':
             case 'finding':
                 factory.distance = delta;
-                await factory.transaction('distance', async () => {
-                    await factory.update();
-                });
+                await factory.update();
                 break;
             case 'found':
                 const max = this.state.value;
                 if (delta >= max) {
                     factory.distance = max;
-                    await factory.transaction('distance', async () => {
-                        await factory.update();
-                        this.state = { tag: 'computed', value: max }
-                    });
+                    await factory.update();
+                    this.state = { tag: 'computed', value: max }
                 } else {
                     factory.distance = delta;
-                    await factory.transaction('distance', async () => {
-                        await factory.update();
-                    });
+                    await factory.update();
                 }
                 break;
             case 'computed':

@@ -163,26 +163,4 @@ export abstract class GeometryFactory extends ResourceRegistration {
     protected get keys(): string[] {
         return [];
     }
-
-    private previous?: Map<keyof this, any>;
-    async transaction(key: (keyof this), cb: () => Promise<void>) {
-        try {
-            await cb();
-            this.previous = new Map();
-            const uncloned = this[key];
-            let value = uncloned;
-            if (typeof uncloned === 'object' && 'clone' in uncloned) {
-                // @ts-expect-error("clone doesn't exist")
-                value = uncloned.clone();
-            }
-            this.previous.set(key, value);
-            // this.previous.set("state", this.state);
-        } catch (e) {
-            console.warn(e);
-            if (this.previous != null) {
-                this[key] = this.previous.get(key);
-                // this.state = this.previous.get("state");
-            }
-        }
-    }
 }

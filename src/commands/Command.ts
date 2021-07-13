@@ -615,10 +615,8 @@ export class ActionFaceCommand extends Command {
         const gizmo = new MoveGizmo(this.editor, point);
 
         await gizmo.execute(async delta => {
-            await actionFace.transaction('direction', async () => {
-                actionFace.direction = delta;
-                await actionFace.update();
-            });
+            actionFace.direction = delta;
+            await actionFace.update();
         }).resource(this);
 
         await actionFace.commit();
@@ -643,10 +641,8 @@ export class FilletFaceCommand extends Command {
         const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
 
         await gizmo.execute(async delta => {
-            await refilletFace.transaction('direction', async () => {
-                refilletFace.direction = new THREE.Vector3(delta, 0, 0);
-                await refilletFace.update();
-            });
+            refilletFace.direction = new THREE.Vector3(delta, 0, 0);
+            await refilletFace.update();
         }).resource(this);
 
         await refilletFace.commit();
