@@ -479,7 +479,10 @@ export class FilletCommand extends Command {
             await max.exec(delta);
         }, false).resource(this);
 
+        // Dialog OK/Cancel buttons trigger completion of the entire command.
         dialog.then(() => this.finish(), () => this.cancel());
+
+        // Clean-up all resources and throw if anything was cancelled.
         await Promise.all(this.promises);
 
         const selection = await fillet.commit() as visual.Solid;
