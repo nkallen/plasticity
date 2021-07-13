@@ -207,12 +207,15 @@ export class PointSnap extends Snap {
         return this.projection;
     }
 
-    get axes() {
+    axes(verticalStraightSnap: boolean) {
         const o = this.projection.clone();
-        return [
+        const result = [
             new AxisSnap(new THREE.Vector3(1, 0, 0), o),
-            new AxisSnap(new THREE.Vector3(0, 1, 0), o),
-            new AxisSnap(new THREE.Vector3(0, 0, 1), o)];
+            new AxisSnap(new THREE.Vector3(0, 1, 0), o)
+        ];
+
+        if (verticalStraightSnap) result.push(new AxisSnap(new THREE.Vector3(0, 0, 1), o));
+        return result;
     }
 
     isValid(pt: THREE.Vector3): boolean {
@@ -306,7 +309,7 @@ export class PlaneSnap extends Snap {
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        return Math.abs(pt.clone().sub(this.snapper.position).dot(this.n)) < 10e-6;
+        return Math.abs(pt.clone().sub(this.snapper.position).dot(this.n)) < 10e-4;
     }
 }
 

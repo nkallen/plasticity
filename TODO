@@ -1,13 +1,10 @@
 THIS WEEK:
 
-onpointermove needs to take an async cb
 maxi fillet:
 restrictToPlaneThroughPoint isn't working
 audit restrictions in MoI
-redo scheduling in factory
 move keybindings outside of loop keybindings
-
-uncaught promse error hitting escape
+fix axes
 
 transaction history
 
@@ -25,6 +22,9 @@ tab to re-enter last command of object
 auto save last object, auto lastGood
 
 BUG:
+
+onpointermove needs to take an async cb
+
 
 it seems clear that scheduling stuff isn't entirely working; things can backlog somehow. all updating should automatically be scheduled.
 

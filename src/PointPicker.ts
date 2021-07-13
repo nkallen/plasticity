@@ -53,8 +53,10 @@ export class PointPicker {
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
                 let constructionPlane = viewport.constructionPlane;
+                const restrictions = this.restrictions.slice();
                 if (this.restrictionPoint != null) {
                     constructionPlane = constructionPlane.restrict(this.restrictionPoint);
+                    restrictions.push(constructionPlane);
                 }
                 const domElement = renderer.domElement;
 
@@ -65,13 +67,13 @@ export class PointPicker {
 
                     viewport.overlay.clear();
                     // display potential/nearby snapping positions
-                    const sprites = editor.snaps.nearby(raycaster, this.snaps, this.restrictions);
+                    const sprites = editor.snaps.nearby(raycaster, this.snaps, restrictions);
                     for (const sprite of sprites) {
                         viewport.overlay.add(sprite);
                     }
 
                     // if within snap range, change point to snap position
-                    const snappers = editor.snaps.snap(raycaster, [constructionPlane, ...this.snaps], this.restrictions);
+                    const snappers = editor.snaps.snap(raycaster, [constructionPlane, ...this.snaps], restrictions);
                     for (const [snap, point] of snappers) {
                         if (cb != null) cb(point);
                         mesh.position.copy(point);
@@ -126,13 +128,23 @@ export class PointPicker {
         });
     }
 
+    private verticalStraightSnap = true;
+    disableVerticalStraightSnap() {
+        this.verticalStraightSnap = false;
+    }
+
     private get createdPointSnaps(): Snap[] {
         let result: Snap[] = [...this.addedPointSnaps];
         if (this.addedPointSnaps.length > 0) {
             const last = this.addedPointSnaps[this.addedPointSnaps.length - 1];
-            result = result.concat(last.axes);
+            result = result.concat(last.axes(this.verticalStraightSnap));
         }
         return result;
+    }
+
+    addPointSnap(point: THREE.Vector3) {
+        const axes = new PointSnap(point.x, point.y, point.z).axes(this.verticalStraightSnap);
+        for (const axis of axes) this.otherAddedSnaps.push(axis);
     }
 
     get snaps() {

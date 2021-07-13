@@ -142,22 +142,26 @@ export class RegionBooleanCommand extends Command {
 
 export class CylinderCommand extends Command {
     async execute(): Promise<void> {
-        const pointPicker = new PointPicker(this.editor);
+        let pointPicker = new PointPicker(this.editor);
 
         const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const { point: p1 } = await pointPicker.execute().resource(this);
         circle.center = p1;
 
         pointPicker.restrictToPlaneThroughPoint(p1);
+        pointPicker.disableVerticalStraightSnap();
+
         const { point: p2 } = await pointPicker.execute((p2: THREE.Vector3) => {
             circle.radius = p1.distanceTo(p2);
             circle.update();
         }).resource(this);
-        await circle.cancel();
+        circle.cancel();
 
         const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cylinder.base = p1;
         cylinder.radius = p2;
+        pointPicker = new PointPicker(this.editor);
+        pointPicker.addPointSnap(p1);
         await pointPicker.execute((p3: THREE.Vector3) => {
             cylinder.height = p3;
             cylinder.update();
