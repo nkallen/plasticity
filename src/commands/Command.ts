@@ -46,7 +46,22 @@ import SphereFactory from './sphere/SphereFactory';
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
  * operations, like creating a cylinder. But they also encapsulate any state change that needs to be atomic,
- * for the purposes of UNDO.
+ * for the purposes of UNDO. Thus, selection changes are also commands.
+ * 
+ * For the most part, a Command is a user-friendly wrapper around a Factory. The factory actually creates 
+ * geometrical objects and adds them to the database. Whereas the Command shows the users a dialog box,
+ * interactive gizmos, etc. While the user interacts with the gizmo or dialog fields, the factory is
+ * "updated". When the user is finished the factory is "committed".
+ * 
+ * Commands can be written such that they complete immediately after the user's first interaction
+ * (as in the Move command), or they can stick around allowing the user to refine values and finish
+ * only when the user clicks "ok" (as in the Fillet command).
+ * 
+ * A key implementation detail of Commands is that they have "resources". Resources include gizmos, dialogs,
+ * and factories. A resource represents something that can be "finished" or "cancelled." Modeling all of
+ * these objects as resources makes it easy to clean-up a command when finishing or cancelling. Because
+ * most resources deal with Promises, it's important to make sure all exceptions are handled, and calling
+ * await Promise.all(this.resources) will ensure nothing is uncaught.
  */
 
 export interface EditorLike {
