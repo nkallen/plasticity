@@ -8,6 +8,10 @@ import { SnapMemento } from "./History";
 import { SpriteDatabase } from "./SpriteDatabase";
 import { RefCounter } from "./util/Util";
 
+export interface Raycaster {
+    intersectObjects(objects: THREE.Object3D[], recursive?: boolean, optionalTarget?: THREE.Intersection[]): THREE.Intersection[];
+}
+
 export class SnapManager {
     private readonly basicSnaps = new Set<Snap>();
 
@@ -18,7 +22,6 @@ export class SnapManager {
 
     pickers: THREE.Object3D[] = [];
     snappers: THREE.Object3D[] = [];
-
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -37,7 +40,7 @@ export class SnapManager {
         this.update();
     }
 
-    pick(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
+    pick(raycaster: Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
         const additionalPickers = [];
         for (const a of additional) if (a.picker !== undefined) additionalPickers.push(a.picker);
 
@@ -51,7 +54,7 @@ export class SnapManager {
         return result;
     }
 
-    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[]): [Snap, THREE.Vector3][] {
+    snap(raycaster: Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): [Snap, THREE.Vector3][] {
         const snapperIntersections = raycaster.intersectObjects([...this.snappers, ...additional.map(a => a.snapper)]);
         snapperIntersections.sort((s1, s2) => s1.object.userData.sort - s2.object.userData.sort);
         const result: [Snap, THREE.Vector3][] = [];
@@ -290,4 +293,4 @@ export class PlaneSnap extends Snap {
     }
 }
 
-const originSnap = new PointSnap();
+export const originSnap = new PointSnap();

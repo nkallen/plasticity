@@ -30,6 +30,6 @@ test('basic move and click', async () => {
     const move = new MouseEvent('pointermove');
     domElement.dispatchEvent(move);
     domElement.dispatchEvent(new MouseEvent('pointerdown'));
-    const [p1,] = await promise;
-    expect(p1).toEqual(new THREE.Vector3());
+    const { point } = await promise;
+    expect(point).toEqual(new THREE.Vector3());
 });

@@ -29,9 +29,9 @@ test('enqueue cancels active commands and executes the most recent', async () =>
     editor.enqueue(command3);
     await Promise.resolve();
 
-    expect(command1.state).toBe('Cancelled');
-    expect(command2.state).toBe('None');
-    expect(command3.state).toBe('None');
+    expect(command1['state']).toBe('Cancelled');
+    expect(command2['state']).toBe('None');
+    expect(command3['state']).toBe('None');
 });
 
 class ErroringCommand extends Command {
@@ -49,9 +49,9 @@ test('erroring commands are ok, allowing subsequent commands to procede', async 
     const command1 = new ErroringCommand(editor);
     const command2 = new FastCommand(editor);
 
-    await expect(editor.enqueue(command1)).rejects.toThrow("I'm an error")
+    await editor.enqueue(command1);
     await editor.enqueue(command2);
 
-    expect(command1.state).toBe('None');
-    expect(command2.state).toBe('None');
+    expect(command1['state']).toBe('None');
+    expect(command2['state']).toBe('None');
 });

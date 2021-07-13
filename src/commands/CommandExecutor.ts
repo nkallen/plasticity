@@ -59,7 +59,7 @@ export class CommandExecutor {
         const command = this.selectionGizmo.commandFor(next);
         if (command) await this.enqueue(command);
 
-        for (const e of es) { console.error(e) }
+        for (const e of es) { console.warn(e) }
     }
 
     private async execute(command: Command) {

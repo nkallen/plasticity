@@ -43,11 +43,13 @@ export class FakeMaterials implements MaterialDatabase {
     }
 }
 
+const isNear = new THREE.Object3D();
+const willSnap = new THREE.Object3D();
 export class FakeSprites implements Required<SpriteDatabase> {
     isNear(): THREE.Object3D {
-        throw new Error("Method not implemented.");
+        return isNear;
     }
     willSnap(): THREE.Object3D {
-        throw new Error("Method not implemented.");
+        return willSnap;
     }
 }

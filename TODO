@@ -2,7 +2,6 @@ THIS WEEK:
 
 maxi fillet:
 support multiple edges
-unit test new additions to SnapManager
 restrictToPlaneThroughPoint isn't working
 audit restrictions in MoI
 duplicate keybindings
