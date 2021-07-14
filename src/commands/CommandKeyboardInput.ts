@@ -40,7 +40,7 @@ export abstract class CommandKeyboardInput<CB> {
             }
         }
         this.editor.signals.keybindingsRegistered.dispatch(this.commands);
-        disposables.add(new Disposable(() => this.editor.signals.keybindingsRegistered.dispatch([])));
+        disposables.add(new Disposable(() => this.editor.signals.keybindingsCleared.dispatch(this.commands)));
 
         return new CancellablePromise<void>((resolve, reject) => {
             const cancel = () => {
