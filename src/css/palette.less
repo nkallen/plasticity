@@ -1,23 +1,19 @@
-// Import only after ui-variables.less
-@package-card-background-color: lighten(@tool-panel-background-color, 8%);
-@package-card-disabled-background-color: darken(@package-card-background-color, 3%);
-
 ispace-palette {
-    padding: 15px;
-    flex-grow: 1;
-    border-width: 0 1px 0 0;
-    border-image: linear-gradient(@level-2-color 10px, @base-border-color 200px) 0 1 0 0 stretch;
-    background: @level-2-color;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translate(0%, -50%);
+    margin: auto;
+    text-align: center;
+    width: 42px;
 
     button {
         color: #aaa;
-        background-color: transparent;
+        background-color: #555;
         position: relative;
         border: 0px;
-        margin: 10px;
-        /* GNOME Web */
+        margin: 0px;
         padding: 5px 8px;
-        text-transform: uppercase;
         cursor: pointer;
         outline: none;
 
@@ -28,28 +24,22 @@ ispace-palette {
     }
 
     section {
-        padding: @component-padding*1.5;
         margin-bottom: @component-padding;
         list-style-type: none;
         font-size: 1.2em;
         border-radius: @component-border-radius*2;
-        border: 1px solid @base-border-color;
-        background-color: @package-card-background-color;
+        background-color: transparent;
         overflow: hidden;
         cursor: pointer;
 
         button,
         input {
-            height: 64px;
+            height: 48px;
         }
 
         button img {
-            width: 32px;
+            width: 24px;
             opacity: 0.8;
-        }
-
-        h4 {
-            text-align: center;
         }
     }
 }

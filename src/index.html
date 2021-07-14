@@ -39,6 +39,26 @@
                             <ispace-viewport view="3d">
                                 <ispace-toolbar></ispace-toolbar>
                                 <ispace-keybindings></ispace-keybindings>
+                                <ispace-palette>
+                                    <section>
+                                        <button is="ispace-command"
+                                            name="Line"></button>
+                                        <button is="ispace-command"
+                                            name="Curve"></button>
+                                        <button is="ispace-command" name="Circle">
+                                        </button>
+                                        <button is="ispace-command" name="Rect">
+                                        </button>
+                                    </section>
+                                    <section>
+                                        <button is="ispace-command" name="Sphere">
+                                        </button>
+                                        <button is="ispace-command" name="Cylinder">
+                                        </button>
+                                        <button is="ispace-command" name="Box">
+                                        </button>
+                                    </section>
+                                </ispace-palette>
                             </ispace-viewport>
                         </ispace-pane>
                         <ispace-pane>
@@ -47,39 +67,6 @@
                             </ispace-viewport>
                         </ispace-pane>
                     </ispace-pane-axis>
-                    <ispace-pane style="flex: 0 0 128px">
-                        <ispace-palette>
-                            <section>
-                                <h4>Curves</h4>
-                                <button is="ispace-command"
-                                    name="Line"></button>
-                                <button is="ispace-command"
-                                    name="Curve"></button>
-                                <button is="ispace-command" name="Circle">
-                                </button>
-                                <button is="ispace-command" name="Rect">
-                                </button>
-                            </section>
-                            <section>
-                                <h4>Solids</h4>
-                                <button is="ispace-command" name="Sphere">
-                                </button>
-                                <button is="ispace-command" name="Cylinder">
-                                </button>
-                                <button is="ispace-command" name="Box">
-                                </button>
-                            </section>
-                            <section>
-                                <h4>Construct</h4>
-                                <button is="ispace-command" name="Loft">
-                                </button>
-                                <button is="ispace-command" name="Extrude">
-                                </button>
-                                <button is="ispace-command" name="Mirror">
-                                </button>
-                            </section>
-                        </ispace-palette>
-                    </ispace-pane>
                 </ispace-pane-axis>
             </ispace-pane-container>
         </ispace-workspace-axis>
