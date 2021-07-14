@@ -71,6 +71,10 @@ describe('commit', () => {
         scale.origin = new THREE.Vector3();
         scale.p2 = new THREE.Vector3(1, 0, 0);
         scale.p3 = new THREE.Vector3(2, 0, 0);
-        const scaleds = await scale.commit() as visual.Solid[];
+        const scaleds = await scale.commit() as visual.SpaceInstance<visual.Curve3D>[];
+
+        for (const scaled of scaleds) bbox.setFromObject(scaled);
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -2, -2));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 2));
     });
 })
