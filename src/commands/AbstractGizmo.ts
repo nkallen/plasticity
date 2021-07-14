@@ -42,6 +42,8 @@ export interface GizmoLike<CB> {
     execute(cb: CB): CancellablePromise<void>;
 }
 
+export enum mode { Persistent , Transitory };
+
 export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {
     handle: THREE.Object3D;
     picker: THREE.Object3D;
@@ -67,7 +69,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     abstract onPointerDown(intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(intersect: Intersector, info: MovementInfo): void;
 
-    execute(cb: CB, finishFast = true): CancellablePromise<void> {
+    execute(cb: CB, finishFast: mode = mode.Transitory): CancellablePromise<void> {
         this.editor.helpers.add(this);
         const disposables = new CompositeDisposable();
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
@@ -132,7 +134,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     stateMachine.update(viewport, pointer);
                     stateMachine.pointerUp(() => {
-                        if (finishFast) {
+                        if (finishFast === mode.Transitory) {
                             disposables.dispose();
                             resolve();
                         }

@@ -12,6 +12,7 @@ import { SnapManager } from "../SnapManager";
 import { CancellableRegistor, Finish } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 import * as visual from "../VisualModel";
+import { mode } from "./AbstractGizmo";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
 import CircleFactory from './circle/CircleFactory';
@@ -161,11 +162,12 @@ export class CylinderCommand extends Command {
         cylinder.base = p1;
         cylinder.radius = p2;
         pointPicker = new PointPicker(this.editor);
-        pointPicker.addPointSnap(p1);
+        pointPicker.addPlacement(p1);
         await pointPicker.execute((p3: THREE.Vector3) => {
             cylinder.height = p3;
             cylinder.update();
         }).resource(this);
+
         await cylinder.commit();
     }
 }
@@ -486,7 +488,7 @@ export class FilletCommand extends Command {
                     gizmo.execute(async delta => {
                         fn.InsertValue(t, delta);
                         await fillet.update();
-                    }, false).resource(this);
+                    }, mode.Persistent).resource(this);
                     break;
                 case 'undo':
                     break;
@@ -496,7 +498,7 @@ export class FilletCommand extends Command {
         filletGizmo.execute(async delta => {
             filletDialog.render();
             await max.exec(delta);
-        }, false).resource(this);
+        }, mode.Persistent).resource(this);
 
         // Dialog OK/Cancel buttons trigger completion of the entire command.
         dialog.then(() => this.finish(), () => this.cancel());

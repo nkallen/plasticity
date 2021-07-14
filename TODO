@@ -1,10 +1,9 @@
 THIS WEEK:
 
-maxi fillet:
-restrictToPlaneThroughPoint isn't working
 audit restrictions in MoI
 move keybindings outside of loop keybindings
 fix axes
+finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 
 transaction history
 

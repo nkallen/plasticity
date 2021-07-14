@@ -19,6 +19,8 @@ interface EditorLike {
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap, restrictions: Restriction[] }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
+enum mode { RejectOnFinish, ResolveOnFinish };
+
 export class PointPicker {
     private readonly editor: EditorLike;
     private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
@@ -32,7 +34,7 @@ export class PointPicker {
         this.mesh.renderOrder = 999;
     }
 
-    execute<T>(cb?: (pt: THREE.Vector3) => T): CancellablePromise<PointResult> {
+    execute<T>(cb?: (pt: THREE.Vector3) => T, resolveOnFinish: mode = mode.ResolveOnFinish): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const mesh = this.mesh;
@@ -142,7 +144,7 @@ export class PointPicker {
         return result;
     }
 
-    addPointSnap(point: THREE.Vector3) {
+    addPlacement(point: THREE.Vector3) {
         const axes = new PointSnap(point.x, point.y, point.z).axes(this.verticalStraightSnap);
         for (const axis of axes) this.otherAddedSnaps.push(axis);
     }
