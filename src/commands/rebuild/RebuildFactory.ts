@@ -7,8 +7,6 @@ export class RebuildFactory extends GeometryFactory {
     dup!: c3d.Item;
     item!: visual.Item;
 
-    private temp?: TemporaryObject;
-
     async doUpdate() {
         const { dup, item } = this;
 

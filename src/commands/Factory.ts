@@ -1,6 +1,6 @@
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../Editor';
-import { GeometryDatabase } from '../GeometryDatabase';
+import { GeometryDatabase, TemporaryObject } from '../GeometryDatabase';
 import MaterialDatabase from '../MaterialDatabase';
 import { ResourceRegistration } from '../util/Cancellable';
 import * as visual from '../VisualModel';
@@ -34,9 +34,35 @@ export abstract class GeometryFactory extends ResourceRegistration {
         protected readonly signals: EditorSignals
     ) { super() }
 
-    protected abstract doUpdate(): Promise<void>;
-    protected abstract doCommit(): Promise<visual.SpaceItem | visual.SpaceItem[]>;
-    protected abstract doCancel(): void;
+    // MARK: Default implementations of the template methods. Override for more complicated commands
+
+    protected temp?: TemporaryObject;
+
+    protected async doUpdate(): Promise<void> {
+        const geometry = await this.computeGeometry();
+        const temp = await this.db.addTemporaryItem(geometry);
+        this.temp?.cancel();
+        this.temp = temp;
+    }
+
+    protected async doCommit(): Promise<visual.Item | visual.Item[]> {
+        try {
+            const geometry = await this.computeGeometry();
+            const result = this.db.addItem(geometry);
+            return result;
+        } finally {
+            this.temp?.cancel();
+        }
+    }
+
+    protected doCancel(): void {
+        this.temp?.cancel();
+    }
+
+    protected computeGeometry(): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }
+
+
+    // MARK: Below is the complicated StateMachine behavior
 
     async update() {
         switch (this.state.tag) {

@@ -6,6 +6,7 @@ import '../build/Release/libc3d.dylib'; // On mac
 import '../lib/c3d/enums';
 import license from '../license-key.json';
 import BoxFactory from './commands/box/BoxFactory';
+import CircleFactory, { Mode } from './commands/circle/CircleFactory';
 import SphereFactory from './commands/sphere/SphereFactory';
 import Dialog from './components/modifiers/Dialog';
 import Modifiers from './components/modifiers/Modifiers';
@@ -17,6 +18,7 @@ import './css/index.less';
 import registerDefaultCommands from './default-commands';
 import keymap from "./default-keymap";
 import { Editor } from './Editor';
+import { PlaneSnap } from './SnapManager';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 

@@ -1,5 +1,6 @@
 THIS WEEK:
 
+rename keyboard gizmos (circle, variablefillet, curve) to keyboardinputs.
 audit restrictions in MoI
 move keybindings outside of loop keybindings
 fix axes

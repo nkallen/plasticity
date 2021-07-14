@@ -1,4 +1,8 @@
 export default {
+    "ispace-viewport[gizmo='circle']": {
+        "v": "gizmo:circle:mode",
+    },
+
     "ispace-viewport[gizmo='move']": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",
@@ -34,6 +38,7 @@ export default {
     },
 
     "ispace-viewport": {
+        "c": "command:circle",
         "g": "command:move",
         "r": "command:rotate",
         "s": "command:scale",

@@ -413,6 +413,8 @@ export default {
                 "const MbVector3D & GetAxisZ()",
                 "const MbVector3D & GetAxisY()",
                 "const MbVector3D & GetAxisX()",
+                "void Normalize()",
+                "void Reset()",
                 { signature: "bool GetMatrixToPlace(const MbPlacement3D & p, MbMatrix & matrix, double eps = Math::angleRegion)", matrix: isReturn, return: ignore },
             ]
         },
@@ -631,9 +633,10 @@ export default {
         Arc3D: {
             rawHeader: "cur_arc3d.h",
             extends: "Curve3D",
-            dependencies: ["CartPoint3D.h", "Curve3D.h"],
+            dependencies: ["CartPoint3D.h", "Curve3D.h", "Placement3D.h"],
             initializers: [
-                "const MbCartPoint3D & p0, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int n, bool closed"
+                "const MbCartPoint3D & p0, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int n, bool closed",
+                "const MbPlacement3D & place, double aa, double bb, double angle",
             ]
         },
         PolyCurve3D: {
@@ -691,7 +694,7 @@ export default {
         SweptData: {
             dependencies: ["Placement3D.h", "Contour.h"],
             rawHeader: "op_swept_parameter.h",
-            initializers: ["", "const MbPlacement3D & place, MbContour & contour", "MbSurface &	_surface, RPArray<MbContour> & _contours"]
+            initializers: ["", "const MbPlacement3D & place, MbContour & contour", "MbSurface &_surface, RPArray<MbContour> & _contours"]
         },
         RegionBooleanParams: {
             rawHeader: "region.h",
@@ -918,6 +921,13 @@ export default {
                 }
             ]
         },
+        ActionCurve: {
+            rawHeader: "action_curve.h",
+            dependencies: ["CartPoint.h", "Curve.h"],
+            functions: [
+                "MbResultType Arc(const MbCartPoint & center, const SArray<MbCartPoint> & points, bool curveClosed, double angle, double & a, double & b, MbCurve *& result )"
+            ]
+        },
         ActionCurve3D: {
             rawHeader: "action_curve3d.h",
             dependencies: ["CartPoint3D.h", "Curve3D.h", "Contour3D.h"],
@@ -966,5 +976,6 @@ export default {
         "RegionOperationType",
         "MbResultType",
         "MbeCreatorType",
+        "MbeArcCreateWay",
     ]
 }

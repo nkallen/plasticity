@@ -571,6 +571,10 @@ export enum ResultType {
     ErrorTotal           // \ru НИЖЕ НЕ ДОБАВЛЯТЬ! \en DON'T ADD BELOW! 
 }
 
+export enum ArcCreateWay {
+    
+}
+
 Object.assign(c3d, {
     ESides: ESides,
     StepType: StepType,

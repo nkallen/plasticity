@@ -55,5 +55,5 @@ export abstract class CommandKeyboardInput<CB> {
         });
     }
 
-    abstract resolve(cb: CB, command: string): void;
+    protected abstract resolve(cb: CB, command: string): void;
 }

@@ -26,7 +26,7 @@ export class GeometryDatabase {
         private readonly signals: EditorSignals) { }
 
     private counter = 0;
-    async addItem(model: c3d.Item): Promise<visual.SpaceItem> {
+    async addItem(model: c3d.Item): Promise<visual.Item> {
         const current = this.counter++;
 
         const view = await this.meshes(model, current, precision_distance);

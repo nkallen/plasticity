@@ -200,6 +200,7 @@ export class Max {
     }
 
     static async search<_>(lastGood: number, candidate: number, max: number, cb: (n: number) => Promise<_>): Promise<number> {
+        console.log("tring", candidate);
         if (max < candidate) throw new Error('invalid');
         if (candidate < lastGood) throw new Error('invalid');
         if (Math.abs(candidate - lastGood) < 0.01) return Promise.resolve(lastGood);

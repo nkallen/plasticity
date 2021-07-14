@@ -1,41 +1,50 @@
+import { PlaneSnap } from "../../SnapManager";
 import * as THREE from "three";
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import c3d from '../../../build/Release/c3d.node';
-import { EditorSignals } from '../../Editor';
-import { GeometryDatabase } from '../../GeometryDatabase';
-import MaterialDatabase from '../../MaterialDatabase';
-import { CircleGeometry } from '../../util/Util';
+import { TemporaryObject } from '../../GeometryDatabase';
 import { GeometryFactory } from '../Factory';
+import * as visual from '../../VisualModel';
+
+export enum Mode { Horizontal, Vertical }
 
 export default class CircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
-    radius!: number;
-    mesh: Line2;
+    point!: THREE.Vector3;
+    constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1))
+    mode = Mode.Horizontal;
 
-    constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
-        super(db, materials, signals);
-        this.mesh = new Line2(new LineGeometry(), materials.line());
-        this.db.temporaryObjects.add(this.mesh);
+    get radius() { return this.point.distanceTo(this.center) }
+    set radius(r: number) { this.point = this.center.clone().add(new THREE.Vector3(r, 0, 0)) }
+
+    toggleMode() {
+        this.mode = this.mode === Mode.Vertical ? Mode.Horizontal : Mode.Vertical;
     }
 
-    async doUpdate() {
-        this.mesh.geometry.dispose();
-        const vertices = CircleGeometry(this.radius, 32);
-        const geometry = new LineGeometry();
-        geometry.setPositions(vertices);
-        this.mesh.geometry = geometry;
-        this.mesh.position.copy(this.center);
-    }
+    protected async computeGeometry() {
+        const { mode, center, radius, point, constructionPlane: { n } } = this;
 
-    async doCommit() {
-        this.db.temporaryObjects.remove(this.mesh);
-        const center = new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z);
-        const circle = c3d.ActionCurve3D.Arc(center, [], true, 0, this.radius, this.radius);
-        return this.db.addItem(new c3d.SpaceInstance(circle));
+        const Y = point.clone().sub(center).normalize();
+
+        const placement = new c3d.Placement3D();
+        const k = n.clone().cross(Y);
+        if (mode === Mode.Vertical) {
+            placement.SetAxisX(new c3d.Vector3D(n.x, n.y, n.z));
+            placement.SetAxisY(new c3d.Vector3D(Y.x, Y.y, Y.z));
+            placement.SetAxisZ(new c3d.Vector3D(k.x, k.y, k.z));
+        } else {
+            placement.SetAxisX(new c3d.Vector3D(Y.x, Y.y, Y.z));
+            placement.SetAxisY(new c3d.Vector3D(k.x, k.y, k.z));
+            placement.SetAxisZ(new c3d.Vector3D(n.x, n.y, n.z));
+        }
+        placement.Reset();
+        placement.SetOrigin(new c3d.CartPoint3D(center.x, center.y, center.z));
+
+        const circle = new c3d.Arc3D(placement, radius, radius, 0);
+
+        return new c3d.SpaceInstance(circle);
     }
 
     doCancel() {
-        this.db.temporaryObjects.remove(this.mesh);
+        this.temp?.cancel();
     }
 }

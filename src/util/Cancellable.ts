@@ -43,6 +43,7 @@ export abstract class CancellableRegistor {
     cancel(): void {
         if (this.state != 'None') return;
         for (const resource of this.resources) {
+            if (resource instanceof CancellablePromise) resource.then(null, () => null);
             resource.cancel();
         }
         this.state = 'Cancelled';
@@ -62,8 +63,9 @@ export abstract class CancellableRegistor {
         return x
     }
 
-    connect(a: CancellablePromise<any>, b: CancellablePromise<any>) {
-        this.promises.push(a.then(() => b.finish()));
+    // All registered gizmos, dialogs, etc. finished successfully.
+    get finished() {
+        return Promise.all(this.promises)
     }
 }
 

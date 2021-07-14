@@ -17,6 +17,7 @@ import { mode } from "./AbstractGizmo";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
 import CircleFactory from './circle/CircleFactory';
+import { CircleGizmo, CircleGizmoEvent } from "./circle/CircleGizmo";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveGizmo, CurveGizmoEvent } from "./curve/CurveGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -62,8 +63,9 @@ import SphereFactory from './sphere/SphereFactory';
  * A key implementation detail of Commands is that they have "resources". Resources include gizmos, dialogs,
  * and factories. A resource represents something that can be "finished" or "cancelled." Modeling all of
  * these objects as resources makes it easy to clean-up a command when finishing or cancelling. Because
- * most resources deal with Promises, it's important to make sure all exceptions are handled, and calling
- * await Promise.all(this.resources) will ensure nothing is uncaught.
+ * most resources deal with Promises, it's important to make sure all exceptions are handled. Normally,
+ * `await gizmo.execute()` is most natural, but for more complicated commands, `await this.finished` is
+ * an option.
  */
 
 export interface EditorLike {
@@ -100,7 +102,7 @@ export class SphereCommand extends Command {
         const { point: p1 } = await pointPicker.execute().resource(this);
         sphere.center = p1;
 
-        await pointPicker.execute((p2: THREE.Vector3) => {
+        await pointPicker.execute(({ point: p2 }) => {
             const radius = p1.distanceTo(p2);
             sphere.radius = radius;
             sphere.update();
@@ -113,14 +115,29 @@ export class CircleCommand extends Command {
     async execute(): Promise<void> {
         const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
+        const keyboard = new CircleGizmo(this.editor);
+        keyboard.execute((e: CircleGizmoEvent) => {
+            console.log(e);
+            switch (e.tag) {
+                case 'mode':
+                    circle.toggleMode();
+                    circle.update();
+                    break;
+            }
+        }).resource(this);
+
         const pointPicker = new PointPicker(this.editor);
-        const { point: p1 } = await pointPicker.execute().resource(this);
-        circle.center = p1;
-        await pointPicker.execute(p2 => {
-            const radius = p1.distanceTo(p2);
-            circle.radius = radius;
+        const { point } = await pointPicker.execute().resource(this);
+        circle.center = point;
+
+        pointPicker.restrictToPlaneThroughPoint(point);
+        pointPicker.disableVerticalStraightSnap();
+        await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+            circle.point = p2;
+            circle.constructionPlane = constructionPlane;
             circle.update();
         }).resource(this);
+
         await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         this.editor.signals.contoursChanged.dispatch();
@@ -154,8 +171,8 @@ export class CylinderCommand extends Command {
         pointPicker.restrictToPlaneThroughPoint(p1);
         pointPicker.disableVerticalStraightSnap();
 
-        const { point: p2 } = await pointPicker.execute((p2: THREE.Vector3) => {
-            circle.radius = p1.distanceTo(p2);
+        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
+            circle.point = p2;
             circle.update();
         }).resource(this);
         circle.cancel();
@@ -165,7 +182,7 @@ export class CylinderCommand extends Command {
         cylinder.radius = p2;
         pointPicker = new PointPicker(this.editor);
         pointPicker.addPlacement(p1);
-        await pointPicker.execute((p3: THREE.Vector3) => {
+        await pointPicker.execute(({ point: p3 }) => {
             cylinder.height = p3;
             cylinder.update();
         }).resource(this);
@@ -181,7 +198,7 @@ export class LineCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
         line.p1 = p1;
-        await pointPicker.execute((p2: THREE.Vector3) => {
+        await pointPicker.execute(({ point: p2 }) => {
             line.p2 = p2;
             line.update();
         }).resource(this);
@@ -214,10 +231,10 @@ export class CurveCommand extends Command {
 
         while (true) {
             try {
-                const { point } = await pointPicker.execute(async (p: THREE.Vector3) => {
-                    makeCurve.nextPoint = p;
+                const { point } = await pointPicker.execute(async ({ point }) => {
+                    makeCurve.nextPoint = point;
                     if (!makeCurve.isValid) return;
-                    makeCurve.closed = makeCurve.wouldBeClosed(p);
+                    makeCurve.closed = makeCurve.wouldBeClosed(point);
                     await makeCurve.update();
                 }).resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
@@ -251,9 +268,9 @@ export class RectCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const { point: p1 } = await pointPicker.execute();
+        const { point: p1 } = await pointPicker.execute().resource(this);
         line.p1 = p1;
-        const { point: p2 } = await pointPicker.execute((p2: THREE.Vector3) => {
+        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
             line.p2 = p2;
             line.update();
         }).resource(this);
@@ -262,7 +279,7 @@ export class RectCommand extends Command {
         const makeRect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         makeRect.p1 = p1;
         makeRect.p2 = p2;
-        await pointPicker.execute((p3: THREE.Vector3) => {
+        await pointPicker.execute(({ point: p3 }) => {
             makeRect.p3 = p3;
             makeRect.update();
         }).resource(this);
@@ -280,7 +297,7 @@ export class BoxCommand extends Command {
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const { point: p1 } = await pointPicker.execute().resource(this);
         line.p1 = p1;
-        const { point: p2 } = await pointPicker.execute((p2: THREE.Vector3) => {
+        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
             line.p2 = p2;
             line.update();
         }).resource(this);
@@ -289,7 +306,7 @@ export class BoxCommand extends Command {
         const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
         rect.p2 = p2;
-        const { point: p3 } = await pointPicker.execute((p3: THREE.Vector3) => {
+        const { point: p3 } = await pointPicker.execute(({ point: p3 }) => {
             rect.p3 = p3;
             rect.update();
         }).resource(this);
@@ -299,7 +316,7 @@ export class BoxCommand extends Command {
         box.p1 = p1;
         box.p2 = p2;
         box.p3 = p3;
-        await pointPicker.execute((p4: THREE.Vector3) => {
+        await pointPicker.execute(({ point: p4 }) => {
             box.p4 = p4;
             box.update();
         }).resource(this);
@@ -346,7 +363,7 @@ export class ScaleCommand extends Command {
         const { point: origin } = await pointPicker.execute().resource(this);
         line.p1 = origin;
 
-        const { point: p2 } = await pointPicker.execute((p2: THREE.Vector3) => {
+        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
             line.p2 = p2;
             line.update();
         }).resource(this);
@@ -359,7 +376,7 @@ export class ScaleCommand extends Command {
         scale.items = objects;
         scale.origin = line2.p1 = origin;
         scale.p2 = p2;
-        await pointPicker.execute((p3: THREE.Vector3) => {
+        await pointPicker.execute(({ point: p3 }) => {
             line2.p2 = p3;
             scale.p3 = p3
             line2.update();
@@ -505,8 +522,7 @@ export class FilletCommand extends Command {
         // Dialog OK/Cancel buttons trigger completion of the entire command.
         dialog.then(() => this.finish(), () => this.cancel());
 
-        // Clean-up all resources and throw if anything was cancelled.
-        await Promise.all(this.promises);
+        await this.finished;
 
         const selection = await fillet.commit() as visual.Solid;
         this.editor.selection.selectSolid(selection);
@@ -679,7 +695,7 @@ export class ExtrudeCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
 
-        await pointPicker.execute(p2 => {
+        await pointPicker.execute(({ point: p2 }) => {
             extrude.direction = p2.clone().sub(p1);
             extrude.distance1 = extrude.direction.length();
             extrude.update();
@@ -719,7 +735,7 @@ export class MirrorCommand extends Command {
 
         mirror.origin = p1;
 
-        await pointPicker.execute((p2: THREE.Vector3) => {
+        await pointPicker.execute(({ point: p2 }) => {
             mirror.normal = p2.clone().sub(p1).cross(constructionPlane.n);
             mirror.update();
         }).resource(this);

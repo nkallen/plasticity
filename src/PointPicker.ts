@@ -34,7 +34,7 @@ export class PointPicker {
         this.mesh.renderOrder = 999;
     }
 
-    execute<T>(cb?: (pt: THREE.Vector3) => T, resolveOnFinish: mode = mode.ResolveOnFinish): CancellablePromise<PointResult> {
+    execute<T>(cb?: (pt: PointResult) => T, resolveOnFinish: mode = mode.ResolveOnFinish): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const mesh = this.mesh;
@@ -77,10 +77,10 @@ export class PointPicker {
                     // if within snap range, change point to snap position
                     const snappers = editor.snaps.snap(raycaster, [constructionPlane, ...this.snaps], restrictions);
                     for (const [snap, point] of snappers) {
-                        if (cb != null) cb(point);
+                        const info = { snap, constructionPlane, restrictions };
+                        if (cb != null) cb({ point, info });
                         mesh.position.copy(point);
-                        mesh.userData.snap = snap;
-                        mesh.userData.constructionPlane = constructionPlane;
+                        mesh.userData = info;
                         const helper = snap.helper;
                         if (helper !== undefined) viewport.overlay.add(helper);
                         break;

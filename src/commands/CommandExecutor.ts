@@ -53,7 +53,7 @@ export class CommandExecutor {
                 this.failures = 0;
             }
             catch (_e) { es.push(_e); this.failures++ }
-            finally { this.active = undefined; }
+            finally { delete this.active }
         }
 
         const command = this.selectionGizmo.commandFor(next);
@@ -77,8 +77,8 @@ export class CommandExecutor {
             if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
             this.history.add("Command", state);
         } catch (e) {
-            if (e !== Cancel) throw e;
             command.cancel();
+            if (e !== Cancel) throw e;
         } finally {
             document.body.removeAttribute("command");
             disposable.dispose();

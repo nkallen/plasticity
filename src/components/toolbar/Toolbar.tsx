@@ -67,6 +67,7 @@ keybindings.set("gizmo:curve:add-curve", "Add new curve");
 keybindings.set("gizmo:curve:undo", "Undo");
 keybindings.set("gizmo:fillet:add", "Add variable fillet point");
 keybindings.set("gizmo:fillet:distance", "Distance");
+keybindings.set("gizmo:circle:mode", "Toggle vertical/horizontal");
 
 export class Model {
     constructor(
