@@ -132,6 +132,7 @@ export class Model {
         if (selection.selectedCurves.size > 0) {
             result.push(cmd.ExtrudeCommand);
             result.push(cmd.RegionCommand);
+            result.push(cmd.MirrorCommand);
         }
         if (selection.selectedCurves.size > 1) {
             result.push(cmd.LoftCommand);

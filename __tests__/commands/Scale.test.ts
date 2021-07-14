@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import LineFactory from "../../src/commands/line/LineFactory";
 import ScaleFactory from '../../src/commands/scale/ScaleFactory';
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from '../../src/Editor';
@@ -35,7 +36,7 @@ describe('update', () => {
 });
 
 describe('commit', () => {
-    test('invokes the appropriate c3d commands', async () => {
+    test('solids', async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3();
         makeSphere.radius = 1;
@@ -54,5 +55,22 @@ describe('commit', () => {
         for (const scaled of scaleds) bbox.setFromObject(scaled);
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -2, -2));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 2));
-    })
+    });
+
+    test('curves', async () => {
+        const makeLine = new LineFactory(db, materials, signals);
+        makeLine.p1 = new THREE.Vector3(-1,-1,-1);
+        makeLine.p2 = new THREE.Vector3(1, 1, 1);
+        const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const bbox = new THREE.Box3().setFromObject(line);
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+
+        scale.items = [line];
+        scale.origin = new THREE.Vector3();
+        scale.p2 = new THREE.Vector3(1, 0, 0);
+        scale.p3 = new THREE.Vector3(2, 0, 0);
+        const scaleds = await scale.commit() as visual.Solid[];
+    });
 })

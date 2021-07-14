@@ -55,7 +55,7 @@ export default class ScaleFactory extends GeometryFactory {
             if (model instanceof c3d.Solid) {
                 transformed = c3d.ActionDirect.TransformedSolid(model, c3d.CopyMode.Copy, params, names);
             } else if (model instanceof c3d.SpaceInstance) {
-                transformed = model.Duplicate() as c3d.SpaceInstance;
+                transformed = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
                 const mat = new c3d.Matrix3D();
                 mat.Scale(scaleFactor, scaleFactor, scaleFactor);
                 transformed.Transform(mat);

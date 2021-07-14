@@ -135,10 +135,10 @@ export class GeometryDatabase {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
-                builder = new visual.SpaceInstanceBuilder();
+                builder = new visual.SpaceInstanceBuilder<visual.Curve3D>();
                 break;
             case c3d.SpaceType.PlaneInstance:
-                builder = new visual.PlaneInstanceBuilder();
+                builder = new visual.PlaneInstanceBuilder<visual.Region>();
                 break;
             case c3d.SpaceType.Solid:
                 builder = new visual.SolidBuilder();
@@ -156,7 +156,7 @@ export class GeometryDatabase {
         return result;
     }
 
-    private async object2mesh(builder: any, obj: c3d.Item, id: c3d.SimpleName, sag: number, distance?: number): Promise<void> {
+    private async object2mesh(builder: visual.SpaceInstanceBuilder<visual.Curve3D> | visual.PlaneInstanceBuilder<visual.Region> | visual.SolidBuilder, obj: c3d.Item, id: c3d.SimpleName, sag: number, distance?: number): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const note = new c3d.FormNote(true, true, true, false, false);
         const item = await obj.CreateMesh_async(stepData, note);
