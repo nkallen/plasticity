@@ -5,8 +5,6 @@ import { TemporaryObject } from '../../GeometryDatabase';
 import { GeometryFactory } from '../Factory';
 
 export default class ElementarySolidFactory extends GeometryFactory {
-    private temp?: TemporaryObject;
-
     points = new Array<THREE.Vector3>();
     original!: visual.Solid;
     duplicate!: c3d.Solid;

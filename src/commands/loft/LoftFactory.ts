@@ -1,22 +1,14 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../../src/VisualModel';
-import { EditorSignals } from '../../Editor';
-import { GeometryDatabase } from '../../GeometryDatabase';
-import MaterialDatabase from '../../MaterialDatabase';
 import { GeometryFactory } from '../Factory';
 
 export default class LoftFactory extends GeometryFactory {
     contours!: visual.SpaceInstance<visual.Curve3D>[];
     spine?: visual.SpaceInstance<visual.Curve3D>;
 
-    constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
-        super(db, materials, signals);
-    }
+    protected async doUpdate() { }
 
-    async doUpdate() {
-    }
-
-    async doCommit() {
+    protected async doCommit() {
         const contours = [], placements = [];
         for (const c of this.contours) {
             const inst = this.db.lookup(c);
@@ -40,6 +32,5 @@ export default class LoftFactory extends GeometryFactory {
         return r;
     }
 
-    doCancel() {
-    }
+    protected doCancel() { }
 }

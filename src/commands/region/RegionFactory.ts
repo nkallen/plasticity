@@ -5,15 +5,14 @@ import { GeometryFactory } from '../Factory';
 export default class RegionFactory extends GeometryFactory {
     contours = new Array<visual.SpaceInstance<visual.Curve3D>>();
 
-    async doUpdate() {
-    }
+    protected async doUpdate() { }
 
     validate() {
         // FIXME check all placements have the same orientation
-            //                 else if ( place->GetAxisZ().Colinear( instPlace.GetAxisZ() ) )
-        }
+        //                 else if ( place->GetAxisZ().Colinear( instPlace.GetAxisZ() ) )
+    }
 
-    async doCommit() {
+    protected async doCommit() {
         const contours = [];
         const placement_ = new c3d.Placement3D();
         for (const contour of this.contours) {
@@ -38,7 +37,6 @@ export default class RegionFactory extends GeometryFactory {
         return Promise.all(result);
     }
 
-    doCancel() {
-    }
+    protected doCancel() { }
 }
 

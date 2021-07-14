@@ -28,7 +28,6 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     private solid!: c3d.Solid;
     curves!: c3d.EdgeFunction[];
     functions!: Map<string, c3d.CubicFunction>;
-    private temp?: TemporaryObject;
 
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
         super(db, materials, signals);
@@ -108,25 +107,9 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
 
-    async doUpdate() {
+    protected async computeGeometry() {
         const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
-        const temp = await this.db.addTemporaryItem(result);
-        this.db.hide(this.item)
-        this.temp?.cancel();
-        this.temp = temp;
-    }
-
-    async doCommit() {
-        const filletted = c3d.ActionSolid.FilletSolid(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
-        const result = await this.db.addItem(filletted);
-        this.db.removeItem(this.item);
-        this.temp?.cancel();
         return result;
-    }
-
-    doCancel() {
-        this.db.unhide(this.item)
-        this.temp?.cancel();
     }
 
     async check(d: number) {
@@ -142,6 +125,8 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 
         await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.curves, [], params, this.names);
     }
+
+    get originalItem() { return this.item }
 }
 
 /**
@@ -200,7 +185,6 @@ export class Max {
     }
 
     static async search<_>(lastGood: number, candidate: number, max: number, cb: (n: number) => Promise<_>): Promise<number> {
-        console.log("tring", candidate);
         if (max < candidate) throw new Error('invalid');
         if (candidate < lastGood) throw new Error('invalid');
         if (Math.abs(candidate - lastGood) < 0.01) return Promise.resolve(lastGood);

@@ -14,9 +14,7 @@ export class DraftSolidFactory extends GeometryFactory {
     protected solidModel!: c3d.Solid;
     private names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
 
-    private temp?: TemporaryObject;
-
-    async doUpdate() {
+    protected async computeGeometry() {
         const { solid, faces, origin, axis, angle, names } = this;
         const model = this.db.lookup(solid);
         const faces_ = faces.map(f => this.db.lookupTopologyItem(f));
@@ -25,30 +23,8 @@ export class DraftSolidFactory extends GeometryFactory {
         placement.Move(new c3d.Vector3D(origin.x, origin.y, origin.z));
 
         const drafted = await c3d.ActionSolid.DraftSolid_async(model, c3d.CopyMode.Copy, placement, angle, faces_, c3d.FacePropagation.All, false, names);
-        const temp = await this.db.addTemporaryItem(drafted);
-
-        this.db.hide(solid);
-        this.temp?.cancel();
-        this.temp = temp;
+        return drafted;
     }
 
-    async doCommit() {
-        const { solid, faces, origin, axis, angle, names } = this;
-        this.temp?.cancel();
-        const model = this.db.lookup(solid);
-        const faces_ = faces.map(f => this.db.lookupTopologyItem(f));
-        const placement = new c3d.Placement3D();
-        placement.SetAxisX(new c3d.Vector3D(axis.x, axis.y, axis.z));
-        placement.Move(new c3d.Vector3D(origin.x, origin.y, origin.z));
-
-        const drafted = await c3d.ActionSolid.DraftSolid_async(model, c3d.CopyMode.Copy, placement, angle, faces_, c3d.FacePropagation.All, false, names);
-        const result = await this.db.addItem(drafted);
-        this.db.removeItem(solid);
-        return result;
-    }
-
-    doCancel() {
-        this.db.unhide(this.solid);
-        this.temp?.cancel();
-    }
+    protected get originalItem() { return this.solid }
 }

@@ -41,25 +41,37 @@ export abstract class GeometryFactory extends ResourceRegistration {
     protected async doUpdate(): Promise<void> {
         const geometry = await this.computeGeometry();
         const temp = await this.db.addTemporaryItem(geometry);
+        if (this.originalItem) this.db.hide(this.originalItem);
         this.temp?.cancel();
         this.temp = temp;
     }
 
     protected async doCommit(): Promise<visual.Item | visual.Item[]> {
+        let final = Promise.resolve();
         try {
+            const originalItem = this.originalItem;
             const geometry = await this.computeGeometry();
             const result = this.db.addItem(geometry);
+            final = result as unknown as Promise<void>;
+            if (originalItem) {
+                final.then(() => this.db.removeItem(originalItem))
+            }
             return result;
         } finally {
-            this.temp?.cancel();
+            const temp = this.temp;
+            if (temp) {
+                final.then(() => temp.cancel());
+            }
         }
     }
 
     protected doCancel(): void {
+        if (this.originalItem) this.db.unhide(this.originalItem);
         this.temp?.cancel();
     }
 
-    protected computeGeometry(): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }
+    protected computeGeometry(): Promise<c3d.Item> { throw new Error("Implement this for simple factories"); }
+    protected get originalItem(): visual.Item | undefined { return undefined }
 
 
     // MARK: Below is the complicated StateMachine behavior
@@ -107,7 +119,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
                     if (hasNext) await this.update();
                 }
                 break;
-            default: throw new Error("invalid state");
+            default: throw new Error("invalid state: " + this.state.tag);
         }
     }
 
@@ -125,7 +137,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
         }
     }
 
-    async commit(): Promise<visual.SpaceItem | visual.SpaceItem[]> {
+    async commit(): Promise<visual.Item | visual.Item[]> {
         switch (this.state.tag) {
             case 'none':
             case 'updated':

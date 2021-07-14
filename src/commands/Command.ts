@@ -117,7 +117,6 @@ export class CircleCommand extends Command {
 
         const keyboard = new CircleGizmo(this.editor);
         keyboard.execute((e: CircleGizmoEvent) => {
-            console.log(e);
             switch (e.tag) {
                 case 'mode':
                     circle.toggleMode();
