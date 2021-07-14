@@ -19,7 +19,8 @@ ispace-palette {
 
         &:hover {
             color: #fff;
-            background-color: #08f;
+            // background-color: #08f;
+            background-color: #666;
         }
     }
 
@@ -42,4 +43,36 @@ ispace-palette {
             opacity: 0.8;
         }
     }
+}
+
+body[command='line'] button[name='line'],
+body[command='curve'] button[name='curve'],
+body[command='circle'] button[name='circle'],
+body[command='rect'] button[name='rect'],
+body[command='sphere'] button[name='sphere'],
+body[command='cylinder'] button[name='cylinder'],
+body[command='box'] button[name='box'],
+body[command='move'] button[name='move'],
+body[command='rotate'] button[name='rotate'],
+body[command='scale'] button[name='scale'],
+body[command='fillet'] button[name='fillet'],
+body[command='intersection'] button[name='intersection'],
+body[command='difference'] button[name='difference'],
+body[command='union'] button[name='union'],
+body[command='cut'] button[name='cut'],
+body[command='offset-face'] button[name='offset-face'],
+body[command='draft-solid'] button[name='draft-solid'],
+body[command='remove-face'] button[name='remove-face'],
+body[command='create-face'] button[name='create-face'],
+body[command='action-face'] button[name='action-face'],
+body[command='fillet-face'] button[name='fillet-face'],
+body[command='purify-face'] button[name='purify-face'],
+body[command='loft'] button[name='loft'],
+body[command='extrude'] button[name='extrude'],
+body[command='mirror'] button[name='mirror'],
+body[command='join-curves'] button[name='join-curves'],
+body[command='region'] button[name='region'],
+body[command='region-boolean'] button[name='region-boolean'],
+body[command='extrude-region'] button[name='extrude-region'] {
+    background-color: #08f;
 }

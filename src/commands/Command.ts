@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import _ from "underscore-plus";
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
@@ -79,9 +80,10 @@ export interface EditorLike {
 }
 
 export default abstract class Command extends CancellableRegistor {
-    static get title() {
-        return this.name.replace(/Command/, '').toLowerCase();
-    }
+    static get title() { return this.name.replace(/Command/, '') }
+    static get identifier() { return _.dasherize(this.title) }
+    get title() { return this.constructor.name.replace(/Command/, '') }
+    get identifier() { return _.dasherize(this.title) }
 
     constructor(protected readonly editor: EditorLike) {
         super();

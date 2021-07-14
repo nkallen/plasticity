@@ -9,6 +9,7 @@ import { GConstructor } from '../../util/Util';
 import * as visual from "../../VisualModel";
 import { humanizeKeystrokes } from '../atom/tooltip-manager';
 import icons from './icons';
+import _ from "underscore-plus";
 
 const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");
@@ -39,6 +40,7 @@ tooltips.set(cmd.MirrorCommand, "Mirror");
 tooltips.set(cmd.JoinCurvesCommand, "Join curves");
 tooltips.set(cmd.RegionCommand, "Region");
 tooltips.set(cmd.RegionBooleanCommand, "Region Boolean");
+tooltips.set(cmd.ExtrudeRegionCommand, "Extrude");
 
 const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
@@ -75,6 +77,9 @@ export class Model {
     get commands() {
         const result = [];
         const { db, selection } = this;
+        if (selection.selectedRegions.size > 0) {
+            result.push(cmd.ExtrudeRegionCommand);
+        }
         if (selection.selectedSolids.size > 0) {
             result.push(cmd.MoveCommand);
             result.push(cmd.RotateCommand);
@@ -166,7 +171,7 @@ export default (editor: Editor) => {
             type CommandName = keyof typeof cmd;
             const name = this.getAttribute('name');
             if (!name) throw "invalid name";
-            const CommandName = name + 'Command' as CommandName;
+            const CommandName = _.undasherize(name) + 'Command' as CommandName;
             const klass = cmd[CommandName] as GConstructor<Command>;
             if (klass == null) throw `${name} is invalid`;
             this.addEventListener('click', e => {
@@ -208,9 +213,9 @@ export default (editor: Editor) => {
                     {this.model.commands.map(command => {
                         const tooltip = tooltips.get(command);
                         if (!tooltip) throw "invalid tooltip for " + command;
-                        return <button onClick={_ => editor.enqueue(new command(editor))}>
-                            <img title={command.title} src={icons.get(command)}></img>
-                            <ispace-tooltip command={`command:${command.title}`}>{tooltip}</ispace-tooltip>
+                        return <button onClick={_ => editor.enqueue(new command(editor))} name={command.identifier}>
+                            <img src={icons.get(command)}></img>
+                            <ispace-tooltip command={`command:${command.identifier}`}>{tooltip}</ispace-tooltip>
                         </button>
                     })}
                 </>

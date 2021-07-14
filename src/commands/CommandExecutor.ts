@@ -68,6 +68,7 @@ export class CommandExecutor {
             'command:abort': () => command.cancel(),
         });
         const state = this.originator.saveToMemento(new Map());
+        document.body.setAttribute("command", command.identifier);
         try {
             let selectionChanged = false;
             this.signals.objectSelected.addOnce(() => selectionChanged = true);
@@ -79,6 +80,7 @@ export class CommandExecutor {
             if (e !== Cancel) throw e;
             command.cancel();
         } finally {
+            document.body.removeAttribute("command");
             disposable.dispose();
         }
     }

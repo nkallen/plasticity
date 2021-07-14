@@ -45,6 +45,7 @@ icons.set(cmd.CylinderCommand, cylinder);
 icons.set(cmd.BoxCommand, box);
 icons.set(cmd.LoftCommand, loft);
 icons.set(cmd.ExtrudeCommand, extrude);
+icons.set(cmd.ExtrudeRegionCommand, extrude);
 icons.set(cmd.MirrorCommand, mirror);
 icons.set(cmd.JoinCurvesCommand, mirror);
 icons.set(cmd.RegionCommand, mirror);

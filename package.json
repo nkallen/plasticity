@@ -29,7 +29,7 @@
     "forge": {
       "packagerConfig": {},
       "electronRebuildConfig": {
-          "mode": "parallel"
+        "mode": "parallel"
       },
       "makers": [
         {
@@ -127,6 +127,7 @@
     "preact": "^10.5.13",
     "signals": "^1.0.0",
     "stats.js": "^0.17.0",
-    "three": "^0.126.1"
+    "three": "^0.126.1",
+    "underscore-plus": "^1.7.0"
   }
 }
