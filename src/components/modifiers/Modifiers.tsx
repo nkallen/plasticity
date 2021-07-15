@@ -8,7 +8,7 @@ import { GeometryDatabase } from '../../GeometryDatabase';
 import { HasSelection } from '../../selection/SelectionManager';
 import { Cancel, CancellablePromise, Finish } from '../../util/Cancellable';
 import * as visual from '../../VisualModel';
-import icons from '../toolbar/icons';
+import { icons } from '../toolbar/icons';
 import { ChangeEvent } from './NumberScrubber';
 
 export class Model {
@@ -325,7 +325,7 @@ export default (editor: Editor) => {
 
     for (const key of Object.values(map)) {
         if (key == 'fillet-solid') continue;
-        class Foo extends Creator<any, any> {};
+        class Foo extends Creator<any, any> { };
         customElements.define(`ispace-creator-${key}`, Foo);
     }
 }

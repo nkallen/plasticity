@@ -12,6 +12,7 @@ import Modifiers from './components/modifiers/Modifiers';
 import NumberScrubber from './components/modifiers/NumberScrubber';
 import './components/pane/Pane';
 import Toolbar from './components/toolbar/Toolbar';
+import Palette from './components/toolbar/Palette';
 import Viewport from './components/viewport/Viewport';
 import './css/index.less';
 import registerDefaultCommands from './default-commands';
@@ -40,6 +41,7 @@ requestAnimationFrame(function loop() {
 });
 
 Toolbar(editor);
+Palette(editor);
 Viewport(editor);
 Modifiers(editor);
 NumberScrubber(editor);
