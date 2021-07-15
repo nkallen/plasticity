@@ -302,8 +302,9 @@ export class CornerRectangleCommand extends Command {
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        await pointPicker.execute(({ point: p2 }) => {
+        await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             rect.p2 = p2;
+            rect.constructionPlane = constructionPlane;
             rect.update();
         }).resource(this);
 
@@ -326,8 +327,9 @@ export class CenterRectangleCommand extends Command {
 
         const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        await pointPicker.execute(({ point: p2 }) => {
+        await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             rect.p2 = p2;
+            rect.constructionPlane = constructionPlane;
             rect.update();
         }).resource(this);
 

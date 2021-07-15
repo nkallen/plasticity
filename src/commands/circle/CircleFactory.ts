@@ -1,16 +1,14 @@
-import { PlaneSnap } from "../../SnapManager";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { TemporaryObject } from '../../GeometryDatabase';
+import { PlaneSnap } from "../../SnapManager";
 import { GeometryFactory } from '../Factory';
-import * as visual from '../../VisualModel';
 
 export enum Mode { Horizontal, Vertical }
 
 export default class CircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
     point!: THREE.Vector3;
-    constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1))
+    constructionPlane = new PlaneSnap()
     mode = Mode.Horizontal;
 
     get radius() { return this.point.distanceTo(this.center) }
@@ -42,9 +40,5 @@ export default class CircleFactory extends GeometryFactory {
         const circle = new c3d.Arc3D(placement, radius, radius, 0);
 
         return new c3d.SpaceInstance(circle);
-    }
-
-    doCancel() {
-        this.temp?.cancel();
     }
 }

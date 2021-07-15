@@ -1,3 +1,4 @@
+import { PlaneSnap } from "../../SnapManager";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory } from '../Factory';
@@ -25,50 +26,73 @@ abstract class RectangleFactory extends GeometryFactory {
 export class ThreePointRectangleFactory extends RectangleFactory {
     p3!: THREE.Vector3;
 
+    private AB = new THREE.Vector3();
+    private BC = new THREE.Vector3();
+    private heightNormal = new THREE.Vector3();
+    private depthNormal = new THREE.Vector3();
+    private p4 = new THREE.Vector3();
+
     protected orthogonal() {
-        const { p1, p2 } = this;
+        const { p1, p2, AB, BC, heightNormal, depthNormal, p4 } = this;
         let { p3 } = this;
 
-        const AB = p2.clone().sub(p1);
-        let BC = p3.clone().sub(p2);
-        const heightNormal = AB.clone().cross(BC).normalize();
+        AB.copy(p2).sub(p1);
+        BC.copy(p3).sub(p2);
+        heightNormal.copy(AB).cross(BC).normalize();
 
-        const depthNormal = AB.clone().cross(heightNormal).normalize();
+        depthNormal.copy(AB).cross(heightNormal).normalize();
         const depth = p3.clone().sub(p2).dot(depthNormal);
-        BC = depthNormal.multiplyScalar(depth);
-        p3 = BC.clone().add(p2);
+        BC.copy(depthNormal.multiplyScalar(depth));
+        p3 = BC.add(p2);
 
-        const p4 = p3.clone().sub(p2).add(p1);
+        p4.copy(p3).sub(p2).add(p1);
 
         return { p1, p2, p3, p4 };
     }
 }
 
-export class CornerRectangleFactory extends RectangleFactory {
+abstract class DiagonalRectangleFactory extends RectangleFactory {
+    constructionPlane = new PlaneSnap();
+
+    private quat = new THREE.Quaternion();
+    private inv = new THREE.Quaternion();
+    private c1 = new THREE.Vector3();
+    private c2 = new THREE.Vector3();
+
     protected orthogonal() {
-        const { p1, p2 } = this;
+        const { corner1, p2, quat, constructionPlane, inv, c1, c2 } = this;
+
+        quat.setFromUnitVectors(constructionPlane.n, new THREE.Vector3(0, 0, 1));
+        inv.copy(quat).invert();
+
+        c1.copy(corner1).applyQuaternion(quat);
+        c2.copy(p2).applyQuaternion(quat);
 
         return {
-            p1: p1,
-            p2: new THREE.Vector3(p1.x, p2.y, p2.z),
+            p1: corner1,
+            p2: new THREE.Vector3(c1.x, c2.y, c2.z).applyQuaternion(inv),
             p3: p2,
-            p4: new THREE.Vector3(p2.x, p1.y, p1.z)
+            p4: new THREE.Vector3(c2.x, c1.y, c1.z).applyQuaternion(inv)
         };
     }
+
+    abstract get corner1(): THREE.Vector3;
 }
 
-export class CenterRectangleFactory extends RectangleFactory {
-    protected orthogonal() {
-        const { p1, p2 } = this;
+export class CornerRectangleFactory extends DiagonalRectangleFactory {
+    get corner1() { return this.p1 }
+}
 
-        const AB = p2.clone().sub(p1);
-        const c1 = p1.clone().sub(AB);
+export class CenterRectangleFactory extends DiagonalRectangleFactory {
+    private AB = new THREE.Vector3();
+    private _corner1 = new THREE.Vector3();
 
-        return {
-            p1: c1,
-            p2: new THREE.Vector3(c1.x, p2.y, p2.z),
-            p3: p2,
-            p4: new THREE.Vector3(p2.x, c1.y, c1.z)
-        };
+    get corner1() {
+        const { p1, p2, AB, _corner1 } = this;
+
+        AB.copy(p2).sub(p1);
+        const c1 = _corner1.copy(p1).sub(AB);
+
+        return c1;
     }
 }
