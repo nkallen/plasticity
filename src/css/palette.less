@@ -1,3 +1,4 @@
+body>,
 ispace-palette {
     position: absolute;
     right: 10px;
@@ -7,7 +8,7 @@ ispace-palette {
     text-align: center;
     width: 42px;
 
-    button {
+    button[is='ispace-command'] {
         color: #aaa;
         background-color: #555;
         position: relative;
@@ -33,12 +34,26 @@ ispace-palette {
         overflow: hidden;
         cursor: pointer;
 
-        button,
-        input {
+        button[is='ispace-command'] {
             height: 48px;
-        }
 
-        button img {
+            img {
+                width: 24px;
+                opacity: 0.8;
+            }
+        }
+    }
+}
+
+body>section.submenu {
+    position: absolute;
+    display: block;
+    width: 42px;
+
+    button[is='ispace-command'] {
+        height: 48px;
+
+        img {
             width: 24px;
             opacity: 0.8;
         }

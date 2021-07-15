@@ -175,34 +175,56 @@ export default (editor: Editor) => {
     customElements.define('ispace-tooltip', Tooltip);
 
     class CommandButton extends HTMLButtonElement {
+        private klass: typeof Command;
+        // private title: string;
+        private tooltip: string;
+
         constructor() {
             super();
-            type CommandName = keyof typeof cmd;
+
             const name = this.getAttribute('name');
             if (!name) throw "invalid name";
-            const CommandName = _.undasherize(name).replace(/\s+/g, '') + 'Command' as CommandName;
-            const klass = cmd[CommandName] as GConstructor<Command>;
-            if (klass == null) throw `${name} is invalid (${CommandName})`;
-            this.addEventListener('click', e => {
-                editor.enqueue(new klass(editor))
-            });
-            const command = cmd[CommandName];
-            const tooltip = tooltips.get(command);
-            if (!tooltip) throw "no matching tooltip for command " + CommandName;
+            // this.title = name;
 
+            type CommandName = keyof typeof cmd;
+            const CommandName = _.undasherize(name).replace(/\s+/g, '') + 'Command' as CommandName;
+            const klass = cmd[CommandName];
+            if (klass == null) throw `${name} is invalid (${CommandName})`;
+            this.klass = klass;
+
+            const tooltip = tooltips.get(klass);
+            if (!tooltip) throw "no matching tooltip for command " + CommandName;
+            this.tooltip = tooltip;
+        }
+
+        connectedCallback() {
+            this.addEventListener('click', e => {
+                this.execute();
+            });
+            this.render();
+        }
+
+        render() {
+            const { klass, tooltip } = this;
             const result = <>
-                <img title={name} src={icons.get(command)}></img>
-                <ispace-tooltip command={`command:${command.title}`}>{tooltip}</ispace-tooltip>
+                <img src={icons.get(klass)}></img>
+                <ispace-tooltip command={`command:${klass.title}`}>{tooltip}</ispace-tooltip>
             </>
             render(result, this);
+        }
+
+        execute() {
+            const klass = this.klass as unknown as GConstructor<Command>;
+            editor.enqueue(new klass(editor));
         }
     }
     customElements.define('ispace-command', CommandButton, { extends: 'button' });
 
-    type ButtonGroupState = { tag: 'none' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'open', downEvent: PointerEvent, disposable: Disposable };
+    type ButtonGroupState = { tag: 'none' } | { tag: 'down', downEvent: PointerEvent, disposable: CompositeDisposable } | { tag: 'open', downEvent: PointerEvent, disposable: CompositeDisposable };
     class ButtonGroup extends HTMLElement {
         private selected = 0;
         private state: ButtonGroupState = { tag: 'none' };
+        private original!: string;
 
         constructor() {
             super();
@@ -213,16 +235,45 @@ export default (editor: Editor) => {
         }
 
         connectedCallback() {
+            this.original = this.innerHTML;
             this.render();
+            this.addEventListener('pointerdown', this.onPointerDown)
         }
 
         render() {
-            for (const [i, child] of Array.from(this.children).entries()) {
-                if (!(child instanceof CommandButton)) continue;
-                if (i == this.selected) continue;
-                child.style.display = 'none';
+            switch (this.state.tag) {
+                case 'none': {
+                    for (const [i, child] of Array.from(this.children).entries()) {
+                        if (!(child instanceof CommandButton)) continue;
+                        if (i == this.selected) continue;
+                        child.style.display = 'none';
+                    }
+                    break;
+                }
+                case 'open': {
+                    const { disposable } = this.state;
+                    const pos = this.getBoundingClientRect();
+                    const submenu = document.createElement('section');
+                    submenu.className = 'submenu';
+                    submenu.innerHTML = this.original;
+                    submenu.style.top = '0px';
+                    submenu.style.left = '0px';
+                    document.body.appendChild(submenu);
+                    disposable.add(new Disposable(() => submenu.remove()));
+
+                    const actualWidth = submenu.offsetWidth;
+                    const actualHeight = submenu.offsetHeight;
+                    const offset = {
+                        top: pos.top + pos.height / 2 - actualHeight / 2,
+                        left: pos.left - actualWidth
+                    };
+
+                    submenu.style.top = offset.top + 'px';
+                    submenu.style.left = offset.left + 'px';
+                    document.body.appendChild(submenu);
+                    break;
+                }
             }
-            this.addEventListener('pointerdown', this.onPointerDown)
         }
 
         private onPointerDown(e: PointerEvent) {
@@ -254,6 +305,7 @@ export default (editor: Editor) => {
                         currentPosition.distanceTo(startPosition) >= consummationDistanceThreshold
                     ) {
                         this.state = { tag: 'open', downEvent, disposable }
+                        this.render();
                     }
                 }
                 case 'open':
@@ -271,12 +323,21 @@ export default (editor: Editor) => {
                     if (e.pointerId !== downEvent.pointerId) return;
                     disposable.dispose();
                     this.state = { tag: 'none' };
+                    this.render();
                     break;
                 }
                 case 'open':
                     const { downEvent, disposable } = this.state;
                     if (e.pointerId !== downEvent.pointerId) return;
+
+                    const button = e.target;
+                    if (button instanceof CommandButton) {
+                        button.execute();
+                    }
+
                     disposable.dispose();
+                    this.state = { tag: 'none' };
+                    this.render();
                     break;
             }
         }
