@@ -141,6 +141,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
         switch (this.state.tag) {
             case 'none':
             case 'updated':
+            case 'failed':
                 try {
                     c3d.Mutex.EnterParallelRegion();
                     const result = await this.doCommit();
@@ -148,12 +149,11 @@ export abstract class GeometryFactory extends ResourceRegistration {
                     this.state = { tag: 'committed' };
                     this.signals.factoryCommitted.dispatch();
                     return result;
-                } catch (e) {
-                    this.cancel();
-                    throw e;
+                } catch (error) {
+                    this.state = { tag: 'failed', error };
+                    this.doCancel();
+                    throw error;
                 }
-            case 'failed':
-                this.cancel();
             default:
                 throw new Error('invalid state: ' + this.state.tag);
         }

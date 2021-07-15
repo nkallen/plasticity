@@ -3,7 +3,7 @@ import CommandRegistry from "../components/atom/CommandRegistry";
 import Command from "./Command";
 import { SelectionCommandManager } from "./SelectionCommandManager";
 import { EditorOriginator, History } from "../History";
-import { Cancel } from "../util/Cancellable";
+import { Cancel, Finish } from "../util/Cancellable";
 import { HasSelection } from "../selection/SelectionManager";
 
 const maxFailures = 10;

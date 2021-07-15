@@ -1,19 +1,20 @@
 THIS WEEK:
 
-rename keyboard gizmos (circle, variablefillet, curve) to keyboardinputs.
 audit restrictions in MoI
-move keybindings outside of loop keybindings
 fix axes
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
 bug: fillet edge. ok. undo. fillet edge. ok. error
 
-transaction history
-
-
+# transaction history
 - delete creator
 - mute creator, etc.
 - handle rebuild errors
+
+# move keybindings outside of loop keybindings
+- onPointerDown and on command (registry.addOne), store the viewport the pointer is over
+- keep lastPointerEvent as a global on editor
+- dispatch keyboard events to the target of lastPointerEvent
 
 redo all the basic commands (creating a box, etc.,) including the gui
 
