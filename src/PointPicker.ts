@@ -1,9 +1,10 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
+import { Points } from 'three';
 import { Viewport } from './components/viewport/Viewport';
 import { EditorSignals } from './Editor';
 import { GeometryDatabase } from './GeometryDatabase';
-import { CurveEdgeSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from './SnapManager';
+import { AxisSnap, CurveEdgeSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from './SnapManager';
 import { Cancel, CancellablePromise, Finish } from './util/Cancellable';
 import * as visual from "./VisualModel";
 
@@ -27,6 +28,9 @@ export class PointPicker {
     private readonly addedPointSnaps = new Array<PointSnap>();
     private readonly otherAddedSnaps = new Array<Snap>();
     private readonly restrictions = new Array<Restriction>();
+
+    straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]);
+    private restrictionPoint?: THREE.Vector3;
 
     constructor(editor: EditorLike) {
         this.editor = editor;
@@ -106,7 +110,7 @@ export class PointPicker {
                     mesh.userData = {};
                     resolve({ point, info });
                     disposables.dispose();
-                    this.addedPointSnaps.push(new PointSnap(point.x, point.y, point.z));
+                    this.addedPointSnaps.push(new PointSnap(point));
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
@@ -130,22 +134,22 @@ export class PointPicker {
         });
     }
 
-    private verticalStraightSnap = true;
-    disableVerticalStraightSnap() {
-        this.verticalStraightSnap = false;
-    }
-
     private get createdPointSnaps(): Snap[] {
-        let result: Snap[] = [...this.addedPointSnaps];
-        if (this.addedPointSnaps.length > 0) {
-            const last = this.addedPointSnaps[this.addedPointSnaps.length - 1];
-            result = result.concat(last.axes(this.verticalStraightSnap));
+        const { addedPointSnaps, straightSnaps } = this;
+        let result: Snap[] = [...addedPointSnaps];
+        if (addedPointSnaps.length > 0) {
+            const last = addedPointSnaps[addedPointSnaps.length - 1];
+            result = result.concat(last.axes(straightSnaps));
         }
         return result;
     }
 
+    addPointSnap(point: THREE.Vector3) {
+        this.addedPointSnaps.push(new PointSnap(point));
+    }
+
     addPlacement(point: THREE.Vector3) {
-        const axes = new PointSnap(point.x, point.y, point.z).axes(this.verticalStraightSnap);
+        const axes = new PointSnap(point).axes(this.straightSnaps);
         for (const axis of axes) this.otherAddedSnaps.push(axis);
     }
 
@@ -153,7 +157,6 @@ export class PointPicker {
         return this.createdPointSnaps.concat(this.otherAddedSnaps);
     }
 
-    private restrictionPoint?: THREE.Vector3;
     restrictToPlaneThroughPoint(point: THREE.Vector3): void {
         this.restrictionPoint = point;
     }

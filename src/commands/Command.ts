@@ -9,7 +9,7 @@ import MaterialDatabase from "../MaterialDatabase";
 import { PointPicker } from '../PointPicker';
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
-import { SnapManager } from "../SnapManager";
+import { AxisSnap, SnapManager } from "../SnapManager";
 import { CancellableRegistor, Finish } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 import * as visual from "../VisualModel";
@@ -38,7 +38,7 @@ import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFact
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
-import ThreePointRectangleFactory from './rect/ThreePointRectangleFactory';
+import { CornerRectangleFactory, ThreePointRectangleFactory } from './rect/ThreePointRectangleFactory';
 import { RegionBooleanFactory } from "./region/RegionBooleanFactory";
 import RegionFactory from "./region/RegionFactory";
 import RotateFactory from './rotate/RotateFactory';
@@ -130,7 +130,7 @@ export class CircleCommand extends Command {
         circle.center = point;
 
         pointPicker.restrictToPlaneThroughPoint(point);
-        pointPicker.disableVerticalStraightSnap();
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
         await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             circle.point = p2;
             circle.constructionPlane = constructionPlane;
@@ -168,7 +168,7 @@ export class CylinderCommand extends Command {
         circle.center = p1;
 
         pointPicker.restrictToPlaneThroughPoint(p1);
-        pointPicker.disableVerticalStraightSnap();
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
 
         const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
             circle.point = p2;
@@ -275,15 +275,39 @@ export class ThreePointRectangleCommand extends Command {
         }).resource(this);
         await line.cancel();
 
-        const makeRect = new ThreePointRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        makeRect.p1 = p1;
-        makeRect.p2 = p2;
+        const rect = new ThreePointRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        rect.p1 = p1;
+        rect.p2 = p2;
         await pointPicker.execute(({ point: p3 }) => {
-            makeRect.p3 = p3;
-            makeRect.update();
+            rect.p3 = p3;
+            rect.update();
         }).resource(this);
 
-        await makeRect.commit();
+        await rect.commit();
+
+        this.editor.signals.contoursChanged.dispatch();
+    }
+}
+
+export class CornerRectangleCommand extends Command {
+    async execute(): Promise<void> {
+        const pointPicker = new PointPicker(this.editor);
+        const { point: p1 } = await pointPicker.execute().resource(this);
+        pointPicker.restrictToPlaneThroughPoint(p1);
+        pointPicker.straightSnaps.delete(AxisSnap.X);
+        pointPicker.straightSnaps.delete(AxisSnap.Y);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
+        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
+
+        const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        rect.p1 = p1;
+        await pointPicker.execute(({ point: p2 }) => {
+            rect.p2 = p2;
+            rect.update();
+        }).resource(this);
+
+        await rect.commit();
 
         this.editor.signals.contoursChanged.dispatch();
     }

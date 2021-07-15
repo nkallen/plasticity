@@ -6,6 +6,7 @@ import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { SnapMemento } from "./History";
 import { SpriteDatabase } from "./SpriteDatabase";
+import { cart2vec } from "./util/Conversion";
 import { RefCounter } from "./util/Util";
 
 export interface Raycaster {
@@ -101,8 +102,8 @@ export class SnapManager {
         const model = this.db.lookupTopologyItem(edge) as c3d.Edge;
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
-        const begSnap = new PointSnap(begPt.x, begPt.y, begPt.z);
-        const midSnap = new PointSnap(midPt.x, midPt.y, midPt.z);
+        const begSnap = new PointSnap(cart2vec(begPt));
+        const midSnap = new PointSnap(cart2vec(midPt));
 
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
@@ -118,9 +119,9 @@ export class SnapManager {
         const min = curve.PointOn(curve.GetTMin());
         const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
         const max = curve.PointOn(curve.GetTMax());
-        const begSnap = new PointSnap(min.x, min.y, min.z);
-        const midSnap = new PointSnap(mid.x, mid.y, mid.z);
-        const endSnap = new PointSnap(max.x, max.y, max.z);
+        const begSnap = new PointSnap(cart2vec(min));
+        const midSnap = new PointSnap(cart2vec(mid));
+        const endSnap = new PointSnap(cart2vec(max));
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
         this.endPoints.add(endSnap);
@@ -192,14 +193,14 @@ export abstract class Snap implements Restriction {
 export class PointSnap extends Snap {
     private readonly projection: THREE.Vector3;
 
-    constructor(x = 0, y = 0, z = 0) {
+    constructor(position = new THREE.Vector3()) {
         const snapper = new THREE.Mesh(new THREE.SphereGeometry(0.1));
         const picker = new THREE.Mesh(new THREE.SphereGeometry(0.2));
-        snapper.position.set(x, y, z);
-        picker.position.set(x, y, z);
+        snapper.position.copy(position);
+        picker.position.copy(position);
 
         super(snapper, picker);
-        this.projection = new THREE.Vector3(x, y, z);
+        this.projection = position;
         snapper.userData.sort = 0;
     }
 
@@ -207,14 +208,13 @@ export class PointSnap extends Snap {
         return this.projection;
     }
 
-    axes(verticalStraightSnap: boolean) {
+    axes(axisSnaps: Set<AxisSnap>) {
         const o = this.projection.clone();
-        const result = [
-            new AxisSnap(new THREE.Vector3(1, 0, 0), o),
-            new AxisSnap(new THREE.Vector3(0, 1, 0), o)
-        ];
+        const result = [];
+        for (const snap of axisSnaps) {
+            result.push(snap.move(o));
+        }
 
-        if (verticalStraightSnap) result.push(new AxisSnap(new THREE.Vector3(0, 0, 1), o));
         return result;
     }
 
@@ -262,6 +262,10 @@ export class OrRestriction<R extends Restriction> implements Restriction {
 }
 
 export class AxisSnap extends Snap {
+    static X = new AxisSnap(new THREE.Vector3(1, 0, 0));
+    static Y = new AxisSnap(new THREE.Vector3(0, 1, 0));
+    static Z = new AxisSnap(new THREE.Vector3(0, 0, 1));
+
     readonly n: THREE.Vector3;
 
     constructor(n: THREE.Vector3, o = new THREE.Vector3()) {
@@ -284,6 +288,10 @@ export class AxisSnap extends Snap {
 
     isValid(pt: THREE.Vector3): boolean {
         return pt.clone().cross(this.n).lengthSq() < 10e-6
+    }
+
+    move(o: THREE.Vector3) {
+        return new AxisSnap(this.n, o.clone().add(this.snapper.position));
     }
 }
 

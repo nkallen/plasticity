@@ -89,10 +89,10 @@ describe("snap()", () => {
     })
 
     test("restrictions", async () => {
-        const pointSnap = new PointSnap(1, 1, 1);
+        const pointSnap = new PointSnap(new THREE.Vector3(1, 1, 1));
         const [[snap, p],] = snaps.snap(raycaster, [pointSnap], [pointSnap]);
         expect(snap).toBe(pointSnap);
-        expect(new THREE.Vector3(1,1,1)).toEqual(p);
+        expect(new THREE.Vector3(1, 1, 1)).toEqual(p);
     });
 });
 
@@ -113,7 +113,7 @@ describe("nearby()", () => {
     });
 
     test("restrictions", async () => {
-        const pointSnap = new PointSnap(1, 1, 1);
+        const pointSnap = new PointSnap(new THREE.Vector3(1, 1, 1));
         const [pick,] = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
         expect(pick).toBe(pointSnap.helper);
     });
