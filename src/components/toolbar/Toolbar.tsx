@@ -1,4 +1,4 @@
-import { Disposable } from 'event-kit';
+import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
 import Command, * as cmd from '../../commands/Command';
@@ -10,6 +10,7 @@ import * as visual from "../../VisualModel";
 import { humanizeKeystrokes } from '../atom/tooltip-manager';
 import icons from './icons';
 import _ from "underscore-plus";
+import * as THREE from "three";
 
 const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");
@@ -70,6 +71,10 @@ keybindings.set("gizmo:curve:undo", "Undo");
 keybindings.set("gizmo:fillet:add", "Add variable fillet point");
 keybindings.set("gizmo:fillet:distance", "Distance");
 keybindings.set("gizmo:circle:mode", "Toggle vertical/horizontal");
+
+// Time thresholds are in milliseconds, distance thresholds are in pixels.
+const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
+const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummated
 
 export class Model {
     constructor(
@@ -194,6 +199,90 @@ export default (editor: Editor) => {
     }
     customElements.define('ispace-command', CommandButton, { extends: 'button' });
 
+    type ButtonGroupState = { tag: 'none' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'open', downEvent: PointerEvent, disposable: Disposable };
+    class ButtonGroup extends HTMLElement {
+        private selected = 0;
+        private state: ButtonGroupState = { tag: 'none' };
+
+        constructor() {
+            super();
+            this.render = this.render.bind(this);
+            this.onPointerDown = this.onPointerDown.bind(this);
+            this.onPointerMove = this.onPointerMove.bind(this);
+            this.onPointerUp = this.onPointerUp.bind(this);
+        }
+
+        connectedCallback() {
+            this.render();
+        }
+
+        render() {
+            for (const [i, child] of Array.from(this.children).entries()) {
+                if (!(child instanceof CommandButton)) continue;
+                if (i == this.selected) continue;
+                child.style.display = 'none';
+            }
+            this.addEventListener('pointerdown', this.onPointerDown)
+        }
+
+        private onPointerDown(e: PointerEvent) {
+            switch (this.state.tag) {
+                case 'none': {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    window.addEventListener('pointermove', this.onPointerMove);
+                    window.addEventListener('pointerup', this.onPointerUp);
+                    const disposables = new CompositeDisposable();
+                    disposables.add(new Disposable(() => window.removeEventListener('pointermove', this.onPointerMove)));
+                    disposables.add(new Disposable(() => window.removeEventListener('pointerup', this.onPointerUp)));
+                    this.state = { tag: 'down', downEvent: e, disposable: disposables };
+                    break;
+                }
+                default: throw new Error('invalid state: ' + this.state.tag);
+            }
+        }
+
+        private onPointerMove(e: PointerEvent) {
+            switch (this.state.tag) {
+                case 'down': {
+                    const { downEvent, disposable } = this.state;
+                    if (e.pointerId !== downEvent.pointerId) return;
+                    const currentPosition = new THREE.Vector2(e.clientX, e.clientY);
+                    const startPosition = new THREE.Vector2(e.clientX, e.clientY);
+                    const dragStartTime = downEvent.timeStamp;
+                    if (e.timeStamp - dragStartTime >= consummationTimeThreshold ||
+                        currentPosition.distanceTo(startPosition) >= consummationDistanceThreshold
+                    ) {
+                        this.state = { tag: 'open', downEvent, disposable }
+                    }
+                }
+                case 'open':
+                    const { downEvent } = this.state;
+                    if (e.pointerId !== downEvent.pointerId) return;
+                    break;
+                default: throw new Error('invalid state: ' + this.state.tag);
+            }
+        }
+
+        private onPointerUp(e: PointerEvent) {
+            switch (this.state.tag) {
+                case 'down': {
+                    const { downEvent, disposable } = this.state;
+                    if (e.pointerId !== downEvent.pointerId) return;
+                    disposable.dispose();
+                    this.state = { tag: 'none' };
+                    break;
+                }
+                case 'open':
+                    const { downEvent, disposable } = this.state;
+                    if (e.pointerId !== downEvent.pointerId) return;
+                    disposable.dispose();
+                    break;
+            }
+        }
+    }
+    customElements.define('ispace-button-group', ButtonGroup);
+
     class Toolbar extends HTMLElement {
         private readonly model = new Model(editor.selection, editor.db);
 
@@ -204,7 +293,6 @@ export default (editor: Editor) => {
 
         connectedCallback() {
             editor.signals.selectionChanged.add(this.render);
-
             this.render();
         }
 
