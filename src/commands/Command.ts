@@ -38,7 +38,7 @@ import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFact
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
-import { CornerRectangleFactory, ThreePointRectangleFactory } from './rect/ThreePointRectangleFactory';
+import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
 import { RegionBooleanFactory } from "./region/RegionBooleanFactory";
 import RegionFactory from "./region/RegionFactory";
 import RotateFactory from './rotate/RotateFactory';
@@ -301,6 +301,30 @@ export class CornerRectangleCommand extends Command {
         pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        rect.p1 = p1;
+        await pointPicker.execute(({ point: p2 }) => {
+            rect.p2 = p2;
+            rect.update();
+        }).resource(this);
+
+        await rect.commit();
+
+        this.editor.signals.contoursChanged.dispatch();
+    }
+}
+
+export class CenterRectangleCommand extends Command {
+    async execute(): Promise<void> {
+        const pointPicker = new PointPicker(this.editor);
+        const { point: p1 } = await pointPicker.execute().resource(this);
+        pointPicker.restrictToPlaneThroughPoint(p1);
+        pointPicker.straightSnaps.delete(AxisSnap.X);
+        pointPicker.straightSnaps.delete(AxisSnap.Y);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
+        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
+
+        const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
         await pointPicker.execute(({ point: p2 }) => {
             rect.p2 = p2;

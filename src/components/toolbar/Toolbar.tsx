@@ -33,6 +33,7 @@ tooltips.set(cmd.CircleCommand, "Circle");
 tooltips.set(cmd.LineCommand, "Line");
 tooltips.set(cmd.ThreePointRectangleCommand, "Three point rectangle");
 tooltips.set(cmd.CornerRectangleCommand, "Corner rectangle");
+tooltips.set(cmd.CenterRectangleCommand, "Center rectangle");
 tooltips.set(cmd.CylinderCommand, "Cylinder");
 tooltips.set(cmd.BoxCommand, "Box");
 tooltips.set(cmd.LoftCommand, "Loft");

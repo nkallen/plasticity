@@ -7,7 +7,7 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import FakeSignals from '../../__mocks__/FakeSignals';
 import '../matchers';
 import * as visual from '../../src/VisualModel';
-import { CornerRectangleFactory, ThreePointRectangleFactory } from "../../src/commands/rect/ThreePointRectangleFactory";
+import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from "../../src/commands/rect/RectangleFactory";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
@@ -51,7 +51,30 @@ describe(CornerRectangleFactory, () => {
 
     describe('commit', () => {
         test('invokes the appropriate c3d commands', async () => {
-            makeRectangle.p1 = new THREE.Vector3(-1,-1,-1);
+            makeRectangle.p1 = new THREE.Vector3(-1, -1, -1);
+            makeRectangle.p2 = new THREE.Vector3(1, 1, 1);
+            const item = await makeRectangle.commit() as visual.SpaceItem;
+            const bbox = new THREE.Box3().setFromObject(item);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+        })
+    })
+
+});
+
+describe(CenterRectangleFactory, () => {
+    let makeRectangle: CenterRectangleFactory;
+
+    beforeEach(() => {
+        makeRectangle = new CenterRectangleFactory(db, materials, signals);
+    })
+
+    describe('commit', () => {
+        test('invokes the appropriate c3d commands', async () => {
+            makeRectangle.p1 = new THREE.Vector3(0, 0, 0);
             makeRectangle.p2 = new THREE.Vector3(1, 1, 1);
             const item = await makeRectangle.commit() as visual.SpaceItem;
             const bbox = new THREE.Box3().setFromObject(item);
