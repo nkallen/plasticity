@@ -17,9 +17,9 @@ import { mode } from "./AbstractGizmo";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
 import CircleFactory from './circle/CircleFactory';
-import { CircleGizmo, CircleGizmoEvent } from "./circle/CircleGizmo";
+import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
-import { CurveGizmo, CurveGizmoEvent } from "./curve/CurveGizmo";
+import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
 import ElementarySolidFactory from "./elementary_solid/ElementarySolidFactory";
@@ -28,7 +28,7 @@ import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { FilletDialog } from "./fillet/FilletDialog";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
-import { VariableFilletGizmo } from "./fillet/VariableFilletGizmo";
+import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
@@ -115,8 +115,8 @@ export class CircleCommand extends Command {
     async execute(): Promise<void> {
         const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
-        const keyboard = new CircleGizmo(this.editor);
-        keyboard.execute((e: CircleGizmoEvent) => {
+        const keyboard = new CircleKeyboardGizmo(this.editor);
+        keyboard.execute((e: CircleKeyboardEvent) => {
             switch (e.tag) {
                 case 'mode':
                     circle.toggleMode();
@@ -210,8 +210,8 @@ export class CurveCommand extends Command {
         const makeCurve = new CurveAndContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const keyboard = new CurveGizmo(this.editor);
-        keyboard.execute((e: CurveGizmoEvent) => {
+        const keyboard = new CurveKeyboardGizmo(this.editor);
+        keyboard.execute((e: CurveKeyboardEvent) => {
             switch (e.tag) {
                 case 'type':
                     makeCurve.type = e.type;
@@ -492,7 +492,7 @@ export class FilletCommand extends Command {
         const max = new Max(fillet);
         max.start();
 
-        const keyboard = new VariableFilletGizmo(this.editor);
+        const keyboard = new FilletKeyboardGizmo(this.editor);
         const pp = new PointPicker(this.editor);
         const restriction = pp.restrictToEdges(edges);
         keyboard.execute(async e => {

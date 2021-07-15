@@ -17,14 +17,14 @@ for (const key in map) commands.push(key);
 commands.push('gizmo:curve:add-curve');
 commands.push('gizmo:curve:undo');
 
-export type CurveGizmoEvent = { tag: 'type', type: number } | { tag: 'add-curve' } | { tag: 'undo' }
+export type CurveKeyboardEvent = { tag: 'type', type: number } | { tag: 'add-curve' } | { tag: 'undo' }
 
-export class CurveGizmo extends CommandKeyboardInput<(e: CurveGizmoEvent) => void> {
+export class CurveKeyboardGizmo extends CommandKeyboardInput<(e: CurveKeyboardEvent) => void> {
     constructor(editor: EditorLike) {
         super('curve', editor, commands);
     }
 
-    resolve(cb: (e: CurveGizmoEvent) => void, command: string) {
+    resolve(cb: (e: CurveKeyboardEvent) => void, command: string) {
         switch (command) {
             case 'gizmo:curve:add-curve':
                 cb({ tag: 'add-curve' });

@@ -1,15 +1,15 @@
 import { CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
 
-export type VariableFilletGizmoEvent = { tag: 'add' } | { tag: 'undo' }
+export type FilletKeyboardEvent = { tag: 'add' } | { tag: 'undo' }
 
-export class VariableFilletGizmo extends CommandKeyboardInput<(e: VariableFilletGizmoEvent) => void> {
+export class FilletKeyboardGizmo extends CommandKeyboardInput<(e: FilletKeyboardEvent) => void> {
     constructor(editor: EditorLike) {
         super('curve', editor, [
             'gizmo:fillet:add',
         ]);
     }
 
-    resolve(cb: (e: VariableFilletGizmoEvent) => void, command: string) {
+    resolve(cb: (e: FilletKeyboardEvent) => void, command: string) {
         switch (command) {
             case 'gizmo:fillet:add':
                 cb({ tag: 'add' });
