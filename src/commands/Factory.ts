@@ -166,10 +166,10 @@ export abstract class GeometryFactory extends ResourceRegistration {
         switch (this.state.tag) {
             case 'updated':
             case 'none':
-                this.doCancel();
             case 'cancelled':
             case 'failed':
             case 'updating':
+                this.doCancel();
                 this.state = { tag: 'cancelled' };
                 return;
             default:
