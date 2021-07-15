@@ -76,7 +76,7 @@ export default (editor: Editor) => {
                     const { downEvent, disposable, startValue } = this.state;
                     if (e.pointerId !== downEvent.pointerId) return;
                     const currentPosition = new THREE.Vector2(e.clientX, e.clientY);
-                    const startPosition = new THREE.Vector2(e.clientX, e.clientY);
+                    const startPosition = new THREE.Vector2(downEvent.clientX, downEvent.clientY);
                     const dragStartTime = downEvent.timeStamp;
                     if (e.timeStamp - dragStartTime >= consummationTimeThreshold ||
                         currentPosition.distanceTo(startPosition) >= consummationDistanceThreshold
