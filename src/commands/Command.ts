@@ -38,7 +38,7 @@ import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFact
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
-import RectFactory from './rect/RectFactory';
+import ThreePointRectangleFactory from './rect/ThreePointRectangleFactory';
 import { RegionBooleanFactory } from "./region/RegionBooleanFactory";
 import RegionFactory from "./region/RegionFactory";
 import RotateFactory from './rotate/RotateFactory';
@@ -262,7 +262,7 @@ export class JoinCurvesCommand extends Command {
     }
 }
 
-export class RectCommand extends Command {
+export class ThreePointRectangleCommand extends Command {
     async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
 
@@ -275,7 +275,7 @@ export class RectCommand extends Command {
         }).resource(this);
         await line.cancel();
 
-        const makeRect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const makeRect = new ThreePointRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         makeRect.p1 = p1;
         makeRect.p2 = p2;
         await pointPicker.execute(({ point: p3 }) => {
@@ -302,7 +302,7 @@ export class BoxCommand extends Command {
         }).resource(this);
         await line.cancel();
 
-        const rect = new RectFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const rect = new ThreePointRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
         rect.p2 = p2;
         const { point: p3 } = await pointPicker.execute(({ point: p3 }) => {

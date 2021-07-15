@@ -40,7 +40,7 @@ icons.set(cmd.CurveCommand, curve);
 icons.set(cmd.SphereCommand, sphere);
 icons.set(cmd.CircleCommand, circle);
 icons.set(cmd.LineCommand, line);
-icons.set(cmd.RectCommand, rect);
+icons.set(cmd.ThreePointRectangleCommand, rect);
 icons.set(cmd.CylinderCommand, cylinder);
 icons.set(cmd.BoxCommand, box);
 icons.set(cmd.LoftCommand, loft);

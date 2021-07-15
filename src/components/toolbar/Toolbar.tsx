@@ -31,7 +31,7 @@ tooltips.set(cmd.CurveCommand, "Curve");
 tooltips.set(cmd.SphereCommand, "Sphere");
 tooltips.set(cmd.CircleCommand, "Circle");
 tooltips.set(cmd.LineCommand, "Line");
-tooltips.set(cmd.RectCommand, "Three point rectangle");
+tooltips.set(cmd.ThreePointRectangleCommand, "Three point rectangle");
 tooltips.set(cmd.CylinderCommand, "Cylinder");
 tooltips.set(cmd.BoxCommand, "Box");
 tooltips.set(cmd.LoftCommand, "Loft");
@@ -173,9 +173,9 @@ export default (editor: Editor) => {
             type CommandName = keyof typeof cmd;
             const name = this.getAttribute('name');
             if (!name) throw "invalid name";
-            const CommandName = _.undasherize(name) + 'Command' as CommandName;
+            const CommandName = _.undasherize(name).replace(/\s+/g, '') + 'Command' as CommandName;
             const klass = cmd[CommandName] as GConstructor<Command>;
-            if (klass == null) throw `${name} is invalid`;
+            if (klass == null) throw `${name} is invalid (${CommandName})`;
             this.addEventListener('click', e => {
                 editor.enqueue(new klass(editor))
             });

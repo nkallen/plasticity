@@ -7,7 +7,7 @@ import { GeometryDatabase } from '../../GeometryDatabase';
 import MaterialDatabase from '../../MaterialDatabase';
 import { GeometryFactory } from '../Factory';
 
-export default class RectFactory extends GeometryFactory {
+export default class ThreePointRectangleFactory extends GeometryFactory {
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
     p3!: THREE.Vector3;
