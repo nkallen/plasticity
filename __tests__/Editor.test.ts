@@ -53,5 +53,5 @@ test('erroring commands are ok, allowing subsequent commands to procede', async 
     await editor.enqueue(command2);
 
     expect(command1['state']).toBe('Cancelled');
-    expect(command2['state']).toBe('None');
+    expect(command2['state']).toBe('Finished');
 });

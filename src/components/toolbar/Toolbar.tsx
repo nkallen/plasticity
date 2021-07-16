@@ -1,7 +1,7 @@
 import { Disposable } from 'event-kit';
 import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
-import Command, * as cmd from '../../commands/Command';
+import * as cmd from '../../commands/Command';
 import { Editor } from '../../Editor';
 import { GeometryDatabase } from '../../GeometryDatabase';
 import { HasSelection } from '../../selection/SelectionManager';
@@ -160,6 +160,7 @@ export default (editor: Editor) => {
         }
 
         update(newCommands?: string[]) {
+            console.log("clearing");
             this.commands = this.commands.concat(newCommands ?? []);
             const keymaps = editor.keymaps;
             const result = <ul>
