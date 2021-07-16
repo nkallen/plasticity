@@ -12,69 +12,6 @@ MbResultType HandleEnvelopeContour(RPArray<MbCurve> &curveList, MbCartPoint &ins
 void SwapCrossPoints(SArray<MbCrossPoint> &crossLeft, SArray<MbCrossPoint> &crossRight);
 ptrdiff_t SelectCurveFromNode(const MbCurve *pSegment, const MbCurve *selectCurve, SArray<MbCrossPoint> &crossRight, int &sense);
 
-Napi::Value ActionCurve::EnvelopeContour(const Napi::CallbackInfo &info)
-{
-    Napi::Env env = info.Env();
-    if ((info.Length() == 0 || !info[0].IsArray()))
-    {
-        Napi::Error::New(env, "Array curves is required.").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-    if ((info.Length() == 1 || !((info[1].IsObject() && info[1].ToObject().InstanceOf(CartPoint::GetConstructor(env))))))
-    {
-        Napi::Error::New(env, "CartPoint insidePoint is required.").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-    MbContour *result = NULL;
-    const Napi::Array curves_ = Napi::Array(env, info[0]);
-    RPArray<MbCurve> curves = RPArray<MbCurve>(curves_.Length(), 1);
-    for (size_t i = 0; i < curves_.Length(); i++)
-    {
-        if (curves_[i].IsNull() || curves_[i].IsUndefined())
-        {
-            std::cerr << __FILE__ << ":" << __LINE__ << " warning: Passed an array with a null element at [" << i << "]. This is probably a mistake, so skipping\n";
-        }
-        else if (!curves_[i].IsObject() || !curves_[i].ToObject().InstanceOf(Curve::GetConstructor(env)))
-        {
-            Napi::Error::New(env, "Curve curves is required.").ThrowAsJavaScriptException();
-            return env.Undefined();
-        }
-        else
-        {
-            curves.Add(Curve::Unwrap(curves_[i].ToObject())->_underlying);
-        }
-    }
-    if (info[1].IsNull() || info[1].IsUndefined())
-    {
-        Napi::Error::New(env, "Passed null for non-optional parameter 'insidePoint'").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-    const class CartPoint *insidePoint_ = CartPoint::Unwrap(info[1].ToObject());
-    MbCartPoint &insidePoint = *insidePoint_->_underlying;
-    MbResultType _result = HandleEnvelopeContour(
-        curves, insidePoint, result);
-    if (_result == rt_Success)
-    {
-        Napi::Value _to;
-        if (result != NULL)
-        {
-            _to = Contour::NewInstance(env, result);
-        }
-        else
-        {
-            _to = env.Null();
-        }
-        return _to;
-    }
-    else
-    {
-        std::ostringstream msg;
-        msg << "Operation EnvelopeContour failed with error: " << Error::GetSolidErrorResId(_result);
-        Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-}
-
 //------------------------------------------------------------------------------
 // Структура для запоминания шагов выбора контура для отката назад.
 // Structure for storing the contour selection steps for rollback.
