@@ -925,7 +925,9 @@ export default {
             rawHeader: "action_curve.h",
             dependencies: ["CartPoint.h", "Curve.h"],
             functions: [
-                "MbResultType Arc(const MbCartPoint & center, const SArray<MbCartPoint> & points, bool curveClosed, double angle, double & a, double & b, MbCurve *& result )"
+                "MbResultType Arc(const MbCartPoint & center, const SArray<MbCartPoint> & points, bool curveClosed, double angle, double & a, double & b, MbCurve *& result)",
+                { signature: "MbResultType EnvelopeContour(RPArray<MbCurve> curves, MbCartPoint & insidePoint, MbContour *& result)", isManual: true },
+
             ]
         },
         ActionCurve3D: {
