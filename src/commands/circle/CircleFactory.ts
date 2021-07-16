@@ -5,7 +5,7 @@ import { GeometryFactory } from '../Factory';
 
 export enum Mode { Horizontal, Vertical }
 
-export default class CircleFactory extends GeometryFactory {
+export class CircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
     point!: THREE.Vector3;
     constructionPlane = new PlaneSnap()
@@ -40,5 +40,17 @@ export default class CircleFactory extends GeometryFactory {
         const circle = new c3d.Arc3D(placement, radius, radius, 0);
 
         return new c3d.SpaceInstance(circle);
+    }
+}
+
+export class TwoPointCircleFactory extends CircleFactory {
+    p1!: THREE.Vector3
+    private radial = new THREE.Vector3();
+
+    set p2(point: THREE.Vector3) {
+        const { p1, radial } = this;
+        this.point = point;
+        radial.copy(point).sub(p1).multiplyScalar(0.5);
+        this.center = new THREE.Vector3().copy(p1).add(radial);
     }
 }

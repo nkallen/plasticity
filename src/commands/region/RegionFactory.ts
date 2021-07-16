@@ -29,9 +29,7 @@ export class RegionFactory extends GeometryFactory {
             contours.push(model)
         }
 
-        const contour = c3d.ActionCurve.EnvelopeContour(contours, new c3d.CartPoint(0, 0));
-
-        const regions = c3d.ActionRegion.GetCorrectRegions([contour], false);
+        const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
         const result = [];
         for (const region of regions) {
             result.push(this.db.addItem(new c3d.PlaneInstance(region, placement_!)));

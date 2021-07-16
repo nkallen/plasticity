@@ -43,7 +43,6 @@ export default (editor: Editor) => {
         }
 
         render() {
-            console.log("hi");
             const { klass, tooltip } = this;
             const result = <>
                 <img src={icons.get(klass)}></img>

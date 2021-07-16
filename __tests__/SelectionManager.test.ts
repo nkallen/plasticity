@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import BoxFactory from '../src/commands/box/BoxFactory';
-import CircleFactory from '../src/commands/circle/CircleFactory';
-import RegionFactory from '../src/commands/region/RegionFactory';
+import { CircleFactory } from '../src/commands/circle/CircleFactory';
+import { RegionFactory } from '../src/commands/region/RegionFactory';
 import { EditorSignals } from '../src/Editor';
 import { GeometryDatabase } from '../src/GeometryDatabase';
 import MaterialDatabase from '../src/MaterialDatabase';

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import CircleFactory from "../../src/commands/circle/CircleFactory";
+import { CircleFactory } from "../../src/commands/circle/CircleFactory";
 import LoftFactory from "../../src/commands/loft/LoftFactory";
 import { EditorSignals } from '../../src/Editor';
 import { GeometryDatabase } from '../../src/GeometryDatabase';

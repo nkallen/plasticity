@@ -16,7 +16,7 @@ import * as visual from "../VisualModel";
 import { mode } from "./AbstractGizmo";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
-import CircleFactory from './circle/CircleFactory';
+import { CircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
@@ -133,6 +133,38 @@ export class CircleCommand extends Command {
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             circle.point = p2;
+            circle.constructionPlane = constructionPlane;
+            circle.update();
+        }).resource(this);
+
+        await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        this.editor.signals.contoursChanged.dispatch();
+    }
+}
+
+export class TwoPointCircleCommand extends Command {
+    async execute(): Promise<void> {
+        const circle = new TwoPointCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
+        const keyboard = new CircleKeyboardGizmo(this.editor);
+        keyboard.execute((e: CircleKeyboardEvent) => {
+            switch (e.tag) {
+                case 'mode':
+                    circle.toggleMode();
+                    circle.update();
+                    break;
+            }
+        }).resource(this);
+
+        const pointPicker = new PointPicker(this.editor);
+        const { point } = await pointPicker.execute().resource(this);
+        circle.p1 = point;
+
+        pointPicker.restrictToPlaneThroughPoint(point);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
+        await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+            circle.p2 = p2;
             circle.constructionPlane = constructionPlane;
             circle.update();
         }).resource(this);
