@@ -8,17 +8,19 @@ abstract class AbstractExtrudeFactory extends GeometryFactory {
     distance2 = 0;
     abstract direction: THREE.Vector3;
 
-    names = new c3d.SNameMaker(c3d.CreatorType.CurveExtrusionSolid, c3d.ESides.SideNone, 0);
+    private names = new c3d.SNameMaker(c3d.CreatorType.CurveExtrusionSolid, c3d.ESides.SideNone, 0);
 
     protected abstract contours: c3d.Contour[];
     protected abstract surface: c3d.Surface;
 
     async computeGeometry() {
-        const { contours, surface, direction, names } = this;
+        const { contours, surface, direction, names, distance1, distance2 } = this;
+
+        if (distance1 == 0 && distance2 == 0) throw new Error("invalid data");
 
         const sweptData = new c3d.SweptData(surface, contours);
         const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
-        const params = new c3d.ExtrusionValues(this.distance1, this.distance2);
+        const params = new c3d.ExtrusionValues(distance1, distance2);
         const solid = c3d.ActionSolid.ExtrusionSolid(sweptData, new c3d.Vector3D(direction.x, direction.y, direction.z), null, null, false, params, names, ns);
 
         return solid;

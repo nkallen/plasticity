@@ -275,6 +275,7 @@ applyMixins(SpaceInstance, [HasDisposable]);
 applyMixins(PlaneInstance, [HasDisposable]);
 applyMixins(FaceGroup, [HasDisposable]);
 applyMixins(CurveEdgeGroup, [HasDisposable]);
+applyMixins(Region, [HasDisposable]);
 
 /**
  * We also want some recursive raycasting behavior. Why don't we just use instersectObjects(recursive: true)?

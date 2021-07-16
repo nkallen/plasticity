@@ -926,7 +926,7 @@ export default {
             dependencies: ["CartPoint.h", "Curve.h"],
             functions: [
                 "MbResultType Arc(const MbCartPoint & center, const SArray<MbCartPoint> & points, bool curveClosed, double angle, double & a, double & b, MbCurve *& result)",
-                { signature: "MbResultType EnvelopeContour(RPArray<MbCurve> curves, MbCartPoint & insidePoint, MbContour *& result)", isManual: true },
+                { signature: "MbResultType IntersectContour(MbCurve & newCurve, RPArray<MbCurve> & curves, MbContour *& result)" },
 
             ]
         },

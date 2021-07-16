@@ -40,7 +40,7 @@ import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
 import { RegionBooleanFactory } from "./region/RegionBooleanFactory";
-import RegionFactory from "./region/RegionFactory";
+import { RegionFactory } from "./region/RegionFactory";
 import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";

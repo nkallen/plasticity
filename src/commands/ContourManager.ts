@@ -1,7 +1,9 @@
 import { EditorSignals } from "../Editor";
 import * as visual from "../VisualModel";
 import * as cmd from "./Command";
-import RegionFactory from "./region/RegionFactory";
+import { RegionFactory } from "./region/RegionFactory";
+
+// FIXME rename region manager?
 
 export default class ContourManager {
     constructor(

@@ -2,6 +2,7 @@
     "files.associations": {
         "typeinfo": "cpp",
         "complex": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "iosfwd": "cpp"
     }
 }
