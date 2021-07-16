@@ -49,6 +49,7 @@ import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
+import { SpiralFactory } from "./spiral/SpiralFactory";
 
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
@@ -350,6 +351,35 @@ export class PolygonCommand extends Command {
         await polygon.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         this.editor.signals.contoursChanged.dispatch();
+    }
+}
+
+export class SpiralCommand extends Command {
+    async execute(): Promise<void> {
+        const spiral = new SpiralFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
+        const pointPicker = new PointPicker(this.editor);
+        const { point } = await pointPicker.execute().resource(this);
+        spiral.p1 = point;
+
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        line.p1 = point;
+        const { point: p2 } = await pointPicker.execute(({ point }) => {
+            line.p2 = point;
+            line.update();
+        }).resource(this);
+        line.cancel();
+        spiral.p2 = p2;
+
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
+        pointPicker.restrictToPlaneThroughPoint(p2);
+        
+        await pointPicker.execute(({ point }) => {
+            spiral.radius = point.distanceTo(p2);
+            spiral.update();
+        }).resource(this);
+
+        await spiral.commit() as visual.SpaceInstance<visual.Curve3D>;
     }
 }
 

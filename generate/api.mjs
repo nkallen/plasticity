@@ -943,6 +943,7 @@ export default {
                 "MbResultType CreateContour(MbCurve3D & curve, MbContour3D *& result)",
                 "MbResultType AddCurveToContour(MbCurve3D & curve, MbCurve3D & contour, bool toEnd)",
                 "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result)",
+                {signature: "MbResultType SpiralCurve(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, double radius, double step, double angle, MbCurve * lawCurve, bool spiralAxis, MbCurve3D *& result)", lawCurve: isNullable },
                 { signature: "MbResultType CreateContours(RPArray<MbCurve3D> & curves, double metricEps, RPArray<MbContour3D> & result, bool onlySmoothConnected = false, VERSION version = Math::DefaultMathVersion())", result: isReturn },
                 // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
             ]

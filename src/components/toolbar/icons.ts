@@ -59,6 +59,7 @@ icons.set(cmd.MirrorCommand, mirror);
 icons.set(cmd.JoinCurvesCommand, mirror);
 icons.set(cmd.RegionCommand, mirror);
 icons.set(cmd.RegionBooleanCommand, mirror);
+icons.set(cmd.SpiralCommand, mirror);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 
 export const tooltips = new Map<typeof Command, string>();
@@ -100,6 +101,7 @@ tooltips.set(cmd.JoinCurvesCommand, "Join curves");
 tooltips.set(cmd.RegionCommand, "Region");
 tooltips.set(cmd.RegionBooleanCommand, "Region Boolean");
 tooltips.set(cmd.ExtrudeRegionCommand, "Extrude");
+tooltips.set(cmd.SpiralCommand, "Spiral");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");

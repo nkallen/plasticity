@@ -1,5 +1,9 @@
 THIS WEEK:
 
+2 spirals
+analytic fn
+fillet curves/contours
+
 fix axes
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
