@@ -7,8 +7,13 @@ import { GeometryFactory } from '../Factory';
 export class PolygonFactory extends GeometryFactory {
     center!: THREE.Vector3;
     p2!: THREE.Vector3;
-    vertexCount = 5;
+    private _vertexCount = 5;
     constructionPlane = new PlaneSnap();
+
+    get vertexCount() { return this._vertexCount }
+    set vertexCount(count: number) {
+        this._vertexCount = Math.max(0, count);
+    }
 
     protected async computeGeometry() {
         const { center, p2, vertexCount, constructionPlane: { n } } = this;

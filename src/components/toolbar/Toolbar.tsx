@@ -160,7 +160,6 @@ export default (editor: Editor) => {
         }
 
         update(newCommands?: string[]) {
-            console.log("clearing");
             this.commands = this.commands.concat(newCommands ?? []);
             const keymaps = editor.keymaps;
             const result = <ul>

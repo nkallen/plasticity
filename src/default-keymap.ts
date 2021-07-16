@@ -3,6 +3,11 @@ export default {
         "v": "gizmo:circle:mode",
     },
 
+    "ispace-viewport[gizmo='polygon']": {
+        "wheel+up": "gizmo:polygon:add-vertex",
+        "wheel+down": "gizmo:polygon:subtract-vertex",
+    },
+
     "ispace-viewport[gizmo='move']": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",

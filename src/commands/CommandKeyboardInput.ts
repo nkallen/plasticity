@@ -31,7 +31,6 @@ export abstract class CommandKeyboardInput<CB> {
             disposables.add(new Disposable(() => viewport.removeAttribute("gizmo")));
 
             for (const command of this.commands) {
-
                 const d = this.editor.registry.addOne(
                     viewport.renderer.domElement,
                     command,

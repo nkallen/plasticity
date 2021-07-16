@@ -124,7 +124,16 @@ export class Editor {
             // FIXME need to map ctrlKey->ctrl and fix the incorrect types.
             // @ts-expect-error
             this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('mouse2', event));
-        })
+        });
+        document.addEventListener('wheel', event => {
+            if (event.deltaY > 0) {
+                // @ts-expect-error
+                this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+up', event));
+            } else {
+                // @ts-expect-error
+                this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+down', event));
+            }
+        });
 
         // FIXME disappearing
         const axes = new THREE.AxesHelper(10000);

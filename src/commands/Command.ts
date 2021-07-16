@@ -41,6 +41,7 @@ import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
 import { PolygonFactory } from "./polygon/PolygonFactory";
+import { PolygonKeyboardEvent, PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
 import { RegionBooleanFactory } from "./region/RegionBooleanFactory";
 import { RegionFactory } from "./region/RegionFactory";
@@ -323,13 +324,27 @@ export class PolygonCommand extends Command {
     async execute(): Promise<void> {
         const polygon = new PolygonFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
+        const keyboard = new PolygonKeyboardGizmo(this.editor);
+        keyboard.execute((e: PolygonKeyboardEvent) => {
+            switch (e.tag) {
+                case 'add-vertex':
+                    polygon.vertexCount++;
+                    break;
+                case 'subtract-vertex':
+                    polygon.vertexCount--;
+                    break;
+            }
+            polygon.update();
+        }).resource(this);
+
         const pointPicker = new PointPicker(this.editor);
         const { point } = await pointPicker.execute().resource(this);
         polygon.center = point;
 
-        await pointPicker.execute(({ point }) => {
-            polygon.update();
+        await pointPicker.execute(({ point, info: { constructionPlane } }) => {
+            polygon.constructionPlane = constructionPlane;
             polygon.p2 = point;
+            polygon.update();
         }).resource(this);
 
         await polygon.commit() as visual.SpaceInstance<visual.Curve3D>;
