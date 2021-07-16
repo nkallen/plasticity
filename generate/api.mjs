@@ -636,7 +636,9 @@ export default {
             dependencies: ["CartPoint3D.h", "Curve3D.h", "Placement3D.h"],
             initializers: [
                 "const MbCartPoint3D & p0, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int n, bool closed",
+                "const MbCartPoint3D & pc, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int initSense = 0",
                 "const MbPlacement3D & place, double aa, double bb, double angle",
+                "const MbCartPoint3D & pc, const MbCartPoint3D & p1, const MbCartPoint3D & p2, const MbVector3D & aZ, int initSense",
             ]
         },
         PolyCurve3D: {

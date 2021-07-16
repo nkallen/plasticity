@@ -14,6 +14,7 @@ import { CancellableRegistor, Finish } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 import * as visual from "../VisualModel";
 import { mode } from "./AbstractGizmo";
+import { CenterPointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
 import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
@@ -192,6 +193,38 @@ export class ThreePointCircleCommand extends Command {
         }).resource(this);
 
         await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        this.editor.signals.contoursChanged.dispatch();
+    }
+}
+
+export class CenterPointArcCommand extends Command {
+    async execute(): Promise<void> {
+        const arc = new CenterPointArcFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
+        const pointPicker = new PointPicker(this.editor);
+        const { point } = await pointPicker.execute().resource(this);
+        arc.center = point;
+
+        pointPicker.restrictToPlaneThroughPoint(point);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
+
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        line.p1 = point;
+        const { point: p2 } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+            line.p2 = p2;
+            line.update();
+        }).resource(this);
+        line.cancel();
+        arc.p2 = p2;
+
+        await pointPicker.execute(({ point: p3, info: { constructionPlane } }) => {
+            arc.p3 = p3;
+            arc.constructionPlane = constructionPlane;
+            arc.update();
+        }).resource(this);
+
+        await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         this.editor.signals.contoursChanged.dispatch();
     }

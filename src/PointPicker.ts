@@ -136,7 +136,7 @@ export class PointPicker {
 
     private get createdPointSnaps(): Snap[] {
         const { addedPointSnaps, straightSnaps } = this;
-        let result: Snap[] = [...addedPointSnaps];
+        let result: Snap[] = [];
         if (addedPointSnaps.length > 0) {
             const last = addedPointSnaps[addedPointSnaps.length - 1];
             result = result.concat(last.axes(straightSnaps));
