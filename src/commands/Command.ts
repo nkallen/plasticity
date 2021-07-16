@@ -16,7 +16,7 @@ import * as visual from "../VisualModel";
 import { mode } from "./AbstractGizmo";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
-import { CircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
+import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
@@ -166,6 +166,28 @@ export class TwoPointCircleCommand extends Command {
         await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             circle.p2 = p2;
             circle.constructionPlane = constructionPlane;
+            circle.update();
+        }).resource(this);
+
+        await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        this.editor.signals.contoursChanged.dispatch();
+    }
+}
+
+export class ThreePointCircleCommand extends Command {
+    async execute(): Promise<void> {
+        const circle = new ThreePointCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
+        const pointPicker = new PointPicker(this.editor);
+        const { point: p1 } = await pointPicker.execute().resource(this);
+        circle.p1 = p1;
+
+        const { point: p2 } = await pointPicker.execute().resource(this);
+        circle.p2 = p2;
+
+        await pointPicker.execute(({ point: p3 }) => {
+            circle.p3 = p3;
             circle.update();
         }).resource(this);
 
