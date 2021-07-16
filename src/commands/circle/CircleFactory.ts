@@ -9,7 +9,7 @@ export enum Mode { Horizontal, Vertical }
 export class CircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
     point!: THREE.Vector3;
-    constructionPlane = new PlaneSnap()
+    constructionPlane = new PlaneSnap();
     mode = Mode.Horizontal;
 
     get radius() { return this.point.distanceTo(this.center) }

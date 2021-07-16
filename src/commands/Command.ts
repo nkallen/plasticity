@@ -40,6 +40,7 @@ import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFact
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
+import { PolygonFactory } from "./polygon/PolygonFactory";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
 import { RegionBooleanFactory } from "./region/RegionBooleanFactory";
 import { RegionFactory } from "./region/RegionFactory";
@@ -313,6 +314,25 @@ export class ThreePointArcCommand extends Command {
         }).resource(this);
 
         await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        this.editor.signals.contoursChanged.dispatch();
+    }
+}
+
+export class PolygonCommand extends Command {
+    async execute(): Promise<void> {
+        const polygon = new PolygonFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
+        const pointPicker = new PointPicker(this.editor);
+        const { point } = await pointPicker.execute().resource(this);
+        polygon.center = point;
+
+        await pointPicker.execute(({ point }) => {
+            polygon.update();
+            polygon.p2 = point;
+        }).resource(this);
+
+        await polygon.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         this.editor.signals.contoursChanged.dispatch();
     }
