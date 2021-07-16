@@ -25,6 +25,7 @@ import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
 import ElementarySolidFactory from "./elementary_solid/ElementarySolidFactory";
 import { ElementarySolidGizmo } from "./elementary_solid/ElementarySolidGizmo";
+import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
 import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { FilletDialog } from "./fillet/FilletDialog";
 import FilletFactory, { Max } from './fillet/FilletFactory';
@@ -225,6 +226,65 @@ export class CenterPointArcCommand extends Command {
         }).resource(this);
 
         await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        this.editor.signals.contoursChanged.dispatch();
+    }
+}
+
+export class CenterEllipseCommand extends Command {
+    async execute(): Promise<void> {
+        const ellipse = new CenterEllipseFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
+        const pointPicker = new PointPicker(this.editor);
+        const { point } = await pointPicker.execute().resource(this);
+        ellipse.center = point;
+
+        pointPicker.restrictToPlaneThroughPoint(point);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
+
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        line.p1 = point;
+        const { point: p2 } = await pointPicker.execute(({ point }) => {
+            line.p2 = point;
+            line.update();
+        }).resource(this);
+        line.cancel();
+        ellipse.p2 = p2;
+
+        await pointPicker.execute(({ point }) => {
+            ellipse.p3 = point;
+            ellipse.update();
+        }).resource(this);
+
+        await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        this.editor.signals.contoursChanged.dispatch();
+    }
+}
+
+export class ThreePointEllipseCommand extends Command {
+    async execute(): Promise<void> {
+        const ellipse = new ThreePointEllipseFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
+        const pointPicker = new PointPicker(this.editor);
+        const { point } = await pointPicker.execute().resource(this);
+        ellipse.p1 = point;
+
+        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        line.p1 = point;
+        const { point: p2 } = await pointPicker.execute(({ point }) => {
+            line.p2 = point;
+            line.update();
+        }).resource(this);
+        line.cancel();
+        ellipse.p2 = p2;
+
+        await pointPicker.execute(({ point: p3 }) => {
+            ellipse.p3 = p3;
+            ellipse.update();
+        }).resource(this);
+
+        await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         this.editor.signals.contoursChanged.dispatch();
     }

@@ -48,7 +48,6 @@ export class CenterPointArcFactory extends GeometryFactory {
         const Z = new c3d.Vector3D(n.x, n.y, n.z);
         const circle = new c3d.Arc3D(vec2cart(center), vec2cart(p2), vec2cart(p3), Z, this.sense ? 1 : -1);
 
-
         return new c3d.SpaceInstance(circle);
     }
 }

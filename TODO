@@ -1,7 +1,5 @@
 THIS WEEK:
 
-circle
-
 fix axes
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
