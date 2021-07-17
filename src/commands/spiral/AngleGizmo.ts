@@ -57,20 +57,16 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
     private readonly tip: THREE.Mesh;
     private readonly knob: THREE.Mesh;
     private readonly shaft: THREE.Mesh;
-    private readonly vector: THREE.Vector3;
 
-    constructor(editor: EditorLike, vector: THREE.Vector3) {
+    constructor(editor: EditorLike) {
         const materials = editor.gizmos;
 
         const handle = new THREE.Group();
         const picker = new THREE.Group();
 
-        const length = vector.length();
-
         const tip = new THREE.Mesh(arrowGeometry, materials.yellow);
-        tip.position.set(0, length, 0);
+        tip.position.set(0, 1, 0);
         const shaft = new Line2(lineGeometry, materials.lineYellow);
-        shaft.scale.y = length;
         handle.add(tip, shaft);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
@@ -78,17 +74,11 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         knob.position.copy(tip.position);
         picker.add(knob);
 
-        const quat = new THREE.Quaternion();
-        quat.setFromUnitVectors(Y, vector);
-        handle.quaternion.copy(quat);
-        picker.quaternion.copy(quat);
-
         super("spiral", editor, { handle, picker });
 
         this.shaft = shaft;
         this.tip = tip;
         this.knob = knob;
-        this.vector = vector;
     }
 
     onPointerHover(intersect: Intersector): void { }

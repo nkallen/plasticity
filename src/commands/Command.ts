@@ -390,8 +390,12 @@ export class SpiralCommand extends Command {
             spiral.update();
         }, mode.Persistent).resource(this);
 
-        const heightGizmo = new DistanceGizmo(this.editor, axis);
+        const heightGizmo = new DistanceGizmo(this.editor);
         heightGizmo.position.copy(p1);
+        const quat = new THREE.Quaternion();
+        quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
+        heightGizmo.quaternion.copy(quat);
+
         heightGizmo.execute(height => {
             p2.copy(axis).multiplyScalar(height).add(p1);
             spiral.p2 = p2;
