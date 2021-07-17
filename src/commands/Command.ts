@@ -51,6 +51,8 @@ import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
+import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
+import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
@@ -826,6 +828,26 @@ export class FilletCommand extends Command {
         this.editor.selection.selectSolid(selection);
     }
 }
+
+export class CharacterCurveCommand extends Command {
+    async execute(): Promise<void> {
+        const character = new CharacterCurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        character.update(); // It has sensible defaults, so show something immediately
+
+        const characterDialog = new CharacterCurveDialog(character, this.editor.signals);
+        const dialog = characterDialog.execute(async params => {
+            await character.update();
+        }).resource(this);
+
+        // Dialog OK/Cancel buttons trigger completion of the entire command.
+        dialog.then(() => this.finish(), () => this.cancel());
+
+        await this.finished;
+
+        character.commit();
+    }
+}
+
 
 export class OffsetFaceCommand extends Command {
     async execute(): Promise<void> {

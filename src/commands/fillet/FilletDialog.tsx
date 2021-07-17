@@ -1,12 +1,12 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import c3d from '../../../build/Release/c3d.node';
-import { EditorSignals } from "../../editor/Editor";
-import { Cancel, CancellablePromise, Finish } from "../../util/Cancellable";
 import { render } from 'preact';
+import { EditorSignals } from "../../editor/Editor";
+import { Cancel, CancellablePromise } from "../../util/Cancellable";
 import { FilletParams } from "./FilletFactory";
 
 type State<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, finish: () => void, cancel: () => void } | { tag: 'finished' }
 
+// FIXME move into its own file:
 export abstract class AbstractDialog<T> extends HTMLElement {
     private state: State<T> = { tag: 'none' };
     protected abstract readonly params: T;
@@ -25,6 +25,7 @@ export abstract class AbstractDialog<T> extends HTMLElement {
                 let value: any = undefined;
                 if (e.target instanceof HTMLInputElement) {
                     if (e.target.type == 'checkbox') value = e.target.checked;
+                    if (e.target.type == 'text') value = e.target.value;
                 } else if (e.target instanceof HTMLSelectElement) {
                     value = e.target.value;
                 } else if (e.target instanceof HTMLElement && e.target.tagName == 'ISPACE-NUMBER-SCRUBBER') {

@@ -60,6 +60,7 @@ icons.set(cmd.JoinCurvesCommand, mirror);
 icons.set(cmd.RegionCommand, mirror);
 icons.set(cmd.RegionBooleanCommand, mirror);
 icons.set(cmd.SpiralCommand, mirror);
+icons.set(cmd.CharacterCurveCommand, draftSolid);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 
 export const tooltips = new Map<typeof Command, string>();
@@ -102,6 +103,7 @@ tooltips.set(cmd.RegionCommand, "Region");
 tooltips.set(cmd.RegionBooleanCommand, "Region Boolean");
 tooltips.set(cmd.ExtrudeRegionCommand, "Extrude");
 tooltips.set(cmd.SpiralCommand, "Spiral");
+tooltips.set(cmd.CharacterCurveCommand, "Custom Function");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
