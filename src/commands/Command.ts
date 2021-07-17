@@ -49,8 +49,8 @@ import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
-import { AngleGizmo, DistanceGizmo, SpiralGizmo } from "./spiral/AngleGizmo";
 import { SpiralFactory } from "./spiral/SpiralFactory";
+import { SpiralGizmo } from "./spiral/SpiralGizmo";
 
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
