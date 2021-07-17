@@ -377,6 +377,7 @@ export class SpiralCommand extends Command {
 
         await pointPicker.execute(({ point }) => {
             spiral.radius = point.distanceTo(p2);
+            spiral.p3 = point;
             spiral.update();
         }).resource(this);
 
