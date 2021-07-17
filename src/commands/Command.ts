@@ -49,7 +49,7 @@ import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
-import { AngleGizmo, DistanceGizmo } from "./spiral/AngleGizmo";
+import { AngleGizmo, DistanceGizmo, SpiralGizmo } from "./spiral/AngleGizmo";
 import { SpiralFactory } from "./spiral/SpiralFactory";
 
 /**
@@ -380,37 +380,8 @@ export class SpiralCommand extends Command {
             spiral.update();
         }).resource(this);
 
-        const axis = new THREE.Vector3().copy(p2).sub(p1);
-
-        const angleGizmo = new AngleGizmo("spiral:angle", this.editor);
-        angleGizmo.position.copy(p2);
-        angleGizmo.relativeScale.setScalar(spiral.radius);
-        angleGizmo.execute(angle => {
-            spiral.angle = angle;
-            spiral.update();
-        }, mode.Persistent).resource(this);
-
-        const lengthGizmo = new DistanceGizmo("spiral:length", this.editor);
-        lengthGizmo.position.copy(p1);
-        const quat = new THREE.Quaternion();
-        quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
-        lengthGizmo.quaternion.copy(quat);
-
-        lengthGizmo.execute(height => {
-            p2.copy(axis).multiplyScalar(height).add(p1);
-            spiral.p2 = p2;
-            angleGizmo.position.copy(p2);
-            spiral.update();
-        }, mode.Persistent).resource(this);
-
-        const radiusGizmo = new DistanceGizmo("spiral:radius", this.editor);
-        radiusGizmo.position.copy(p1);
-        quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), axis);
-        radiusGizmo.quaternion.copy(quat);
-
-        radiusGizmo.execute(radius => {
-            spiral.radius = radius;
-            angleGizmo.relativeScale.setScalar(radius);
+        const spiralGizmo = new SpiralGizmo(spiral, this.editor);
+        spiralGizmo.execute(params => {
             spiral.update();
         }, mode.Persistent).resource(this);
 

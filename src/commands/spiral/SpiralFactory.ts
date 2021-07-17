@@ -1,10 +1,17 @@
-import { PlaneSnap } from "../../SnapManager";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { vec2cart } from "../../util/Conversion";
 import { GeometryFactory } from '../Factory';
 
-export class SpiralFactory extends GeometryFactory {
+export interface SpiralParams {
+    p1: THREE.Vector3;
+    p2: THREE.Vector3;
+    p3: THREE.Vector3;
+    radius: number;
+    step: number;
+    angle: number;
+}
+export class SpiralFactory extends GeometryFactory implements SpiralParams {
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
     p3 = new THREE.Vector3();

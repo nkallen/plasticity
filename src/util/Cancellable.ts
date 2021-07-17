@@ -72,6 +72,20 @@ export abstract class CancellableRegistor {
 export class CancellablePromise<T> extends ResourceRegistration implements PromiseLike<T> {
     private state: State = 'None';
 
+    static all(ps: CancellablePromise<any>[]) {
+        return new CancellablePromise<void>((resolve, reject) => {
+            const cancel = () => {
+                for (const p of ps) p.cancel();
+                reject(Cancel);
+            }
+            const finish = () => {
+                for (const p of ps) p.finish();
+                resolve();
+            }
+            return { cancel, finish };
+        });
+    }
+
     static resolve() {
         return new CancellablePromise<void>((resolve, reject) => {
             resolve();
