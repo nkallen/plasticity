@@ -1,3 +1,4 @@
+import KeymapManager from "atom-keymap";
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 
@@ -11,24 +12,15 @@ export default class Mouse2KeyboardEventManager {
     private state: State = { tag: 'none' };
 
     constructor(private readonly keymaps: AtomKeymap.KeymapManager) {
-        document.addEventListener('keydown', event => {
-            keymaps.handleKeyboardEvent(event);
-        });
-        document.addEventListener('pointerdown', event => {
-
-        });
-        document.addEventListener('wheel', event => {
-            if (event.deltaY > 0) {
-                // @ts-expect-error
-                keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+up', event));
-            } else {
-                // @ts-expect-error
-                keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+down', event));
-            }
-        });
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
+        this.onWheelEvent = this.onWheelEvent.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
+
+        document.addEventListener('keydown', this.onKeyDown);
+        document.addEventListener('pointerdown', this.onPointerDown);
+        document.addEventListener('wheel', this.onWheelEvent);
     }
 
     onPointerMove(e: PointerEvent) { }
@@ -37,6 +29,8 @@ export default class Mouse2KeyboardEventManager {
         switch (this.state.tag) {
             case 'none':
                 const disposables = new CompositeDisposable();
+
+                if (e.button != 2) return;
 
                 document.addEventListener('pointerup', this.onPointerUp);
                 disposables.add(new Disposable(() => window.removeEventListener('pointermove', this.onPointerMove)));
@@ -52,7 +46,6 @@ export default class Mouse2KeyboardEventManager {
             case 'down': {
                 const { downEvent, disposable } = this.state;
                 if (e.pointerId !== downEvent.pointerId) return;
-                if (e.button != 2) return;
 
                 const currentPosition = new THREE.Vector2(e.clientX, e.clientY);
                 const startPosition = new THREE.Vector2(downEvent.clientX, downEvent.clientY);
@@ -63,7 +56,7 @@ export default class Mouse2KeyboardEventManager {
                 ) {
                     // FIXME need to map ctrlKey->ctrl and fix the incorrect types.
                     // @ts-expect-error
-                    keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('mouse2', e));
+                    this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('mouse2', e));
                 }
 
                 disposable.dispose();
@@ -71,7 +64,22 @@ export default class Mouse2KeyboardEventManager {
 
                 break;
             }
-            default: throw new Error('invalid state: ' + this.state.tag);
+            case 'none':
+                break;
         }
+    }
+
+    onWheelEvent(event: WheelEvent) {
+        if (event.deltaY > 0) {
+            // @ts-expect-error
+            this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+up', event));
+        } else {
+            // @ts-expect-error
+            this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+down', event));
+        }
+    }
+
+    onKeyDown(event: KeyboardEvent) {
+        this.keymaps.handleKeyboardEvent(event);
     }
 }
