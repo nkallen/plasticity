@@ -49,6 +49,7 @@ import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
+import { AngleGizmo, DistanceGizmo } from "./spiral/AngleGizmo";
 import { SpiralFactory } from "./spiral/SpiralFactory";
 
 /**
@@ -359,11 +360,11 @@ export class SpiralCommand extends Command {
         const spiral = new SpiralFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const { point } = await pointPicker.execute().resource(this);
-        spiral.p1 = point;
+        const { point: p1 } = await pointPicker.execute().resource(this);
+        spiral.p1 = p1;
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        line.p1 = point;
+        line.p1 = p1;
         const { point: p2 } = await pointPicker.execute(({ point }) => {
             line.p2 = point;
             line.update();
@@ -373,11 +374,32 @@ export class SpiralCommand extends Command {
 
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         pointPicker.restrictToPlaneThroughPoint(p2);
-        
+
         await pointPicker.execute(({ point }) => {
             spiral.radius = point.distanceTo(p2);
             spiral.update();
         }).resource(this);
+
+        const axis = new THREE.Vector3().copy(p2).sub(p1);
+
+        const angleGizmo = new AngleGizmo(this.editor);
+        angleGizmo.position.copy(p2);
+        angleGizmo.relativeScale.setScalar(spiral.radius);
+        angleGizmo.execute(angle => {
+            spiral.angle = angle;
+            spiral.update();
+        }, mode.Persistent).resource(this);
+
+        const heightGizmo = new DistanceGizmo(this.editor, axis);
+        heightGizmo.position.copy(p1);
+        heightGizmo.execute(height => {
+            p2.copy(axis).multiplyScalar(height).add(p1);
+            spiral.p2 = p2;
+            angleGizmo.position.copy(p2);
+            spiral.update();
+        }, mode.Persistent).resource(this);
+
+        await this.finished;
 
         await spiral.commit() as visual.SpaceInstance<visual.Curve3D>;
     }

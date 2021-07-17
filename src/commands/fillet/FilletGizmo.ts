@@ -19,7 +19,6 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
 
         const plane = new THREE.Mesh(planeGeometry, materials.yellowTransparent);
         plane.lookAt(0, 0, 1);
-
         plane.updateMatrixWorld();
 
         const sphere = new THREE.Mesh(sphereGeometry, materials.yellow);
@@ -30,9 +29,7 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
 
         const picker = new THREE.Group();
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.yellowTransparent);
-        knob.userData.command = ['gizmo:fillet:distance', () => {
-
-        }];
+        knob.userData.command = ['gizmo:fillet:distance', () => {}];
         picker.add(knob);
 
         super("fillet", editor, { handle: handle, picker: picker });

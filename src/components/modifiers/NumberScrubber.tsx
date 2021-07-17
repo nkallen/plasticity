@@ -152,7 +152,6 @@ export default (editor: Editor) => {
                     }
                     break;
                 default: throw new Error('invalid state: ' + this.state.tag);
-
             }
 
         }

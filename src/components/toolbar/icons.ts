@@ -131,3 +131,4 @@ keybindings.set("gizmo:fillet:distance", "Distance");
 keybindings.set("gizmo:circle:mode", "Toggle vertical/horizontal");
 keybindings.set("gizmo:polygon:add-vertex", "Add a vertex");
 keybindings.set("gizmo:polygon:subtract-vertex", "Subtract a vertex");
+keybindings.set("gizmo:spiral:angle", "Angle");

@@ -8,6 +8,10 @@ export default {
         "wheel+down": "gizmo:polygon:subtract-vertex",
     },
 
+    "ispace-viewport[gizmo='spiral']": {
+        "a": "gizmo:spiral:angle",
+    },
+
     "ispace-viewport[gizmo='move']": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",

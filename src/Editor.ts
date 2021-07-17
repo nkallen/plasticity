@@ -11,6 +11,7 @@ import { GizmoMaterialDatabase } from "./commands/GizmoMaterials";
 import { SelectionCommandManager } from "./commands/SelectionCommandManager";
 import CommandRegistry from "./components/atom/CommandRegistry";
 import TooltipManager from "./components/atom/tooltip-manager";
+import Mouse2KeyboardEventManager from "./components/viewport/Mouse2KeyboardEventManager";
 import { Viewport } from "./components/viewport/Viewport";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
@@ -102,6 +103,7 @@ export class Editor {
     readonly history = new History(this.originator, this.signals);
     readonly transactoins = new Transactions(this.db, this.signals);
     readonly executor = new CommandExecutor(this.selectionGizmo, this.registry, this.signals, this.originator, this.history, this.selection);
+    readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);
 
     disposable = new CompositeDisposable();
 
@@ -117,23 +119,6 @@ export class Editor {
 
         this.registry.attach(window);
         this.keymaps.defaultTarget = document.body;
-        document.addEventListener('keydown', event => {
-            this.keymaps.handleKeyboardEvent(event);
-        });
-        document.addEventListener('contextmenu', event => {
-            // FIXME need to map ctrlKey->ctrl and fix the incorrect types.
-            // @ts-expect-error
-            this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('mouse2', event));
-        });
-        document.addEventListener('wheel', event => {
-            if (event.deltaY > 0) {
-                // @ts-expect-error
-                this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+up', event));
-            } else {
-                // @ts-expect-error
-                this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+down', event));
-            }
-        });
 
         // FIXME disappearing
         const axes = new THREE.AxesHelper(10000);

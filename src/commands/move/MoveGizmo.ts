@@ -188,7 +188,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
             case 'YZ':
             case 'XZ':
                 const planeIntersect = intersect(this.mode.plane, true);
-                if (planeIntersect == null) return; // this only happens when the is dragging through different viewports.
+                if (planeIntersect == null) return; // this only happens when the user is dragging through different viewports.
 
                 this.pointEnd.copy(planeIntersect.point);
                 cb(this.pointEnd.sub(this.pointStart).multiply(this.mode.multiplicand));

@@ -42,7 +42,7 @@ export interface GizmoLike<CB> {
     execute(cb: CB): CancellablePromise<void>;
 }
 
-export enum mode { Persistent , Transitory };
+export enum mode { Persistent, Transitory };
 
 export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {
     handle: THREE.Object3D;
@@ -59,7 +59,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         this.helper = view.helper;
 
         const elements = [this.handle, this.picker, this.delta, this.helper];
-        this.picker.visible = false;
         const filtered = elements.filter(x => !!x) as THREE.Object3D[];
         this.add(...filtered);
     }
@@ -173,6 +172,8 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         });
     }
 
+    readonly relativeScale = new THREE.Vector3(1, 1, 1);
+
     // Scale the gizmo so it has a uniform size regardless of camera position/zoom
     update(camera: THREE.Camera) {
         let factor;
@@ -184,7 +185,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
             throw new Error("Invalid camera type");
         }
 
-        this.scale.set(1, 1, 1).multiplyScalar(factor * 1 / 7);
+        this.scale.copy(this.relativeScale).multiplyScalar(factor * 1 / 7);
         this.updateMatrixWorld();
     }
 
@@ -258,6 +259,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.camera = camera;
         this.eye.copy(camera.position).sub(this.gizmo.position).normalize();
         this.gizmo.update(camera);
+        this.cameraPlane.position.copy(this.gizmo.position);
         this.cameraPlane.quaternion.copy(camera.quaternion);
         this.cameraPlane.updateMatrixWorld();
         this.constructionPlane = viewport.constructionPlane;
