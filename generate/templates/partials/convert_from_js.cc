@@ -27,16 +27,20 @@
     }
 <%_ } else if (arg.isCppString2CString) { _%>
     const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString().Utf8Value();
+<%_ } else if (arg.isC3dString) { _%>
+    const c3d::string_t <%- arg.name %> = info[<%- arg.jsIndex %>].ToString().Utf8Value();
 <%_ } else if (arg.isEnum) { _%>
     const <%- arg.rawType %> <%- arg.name %> = static_cast<<%- arg.rawType %>>(info[<%- arg.jsIndex %>].ToNumber().Uint32Value());
 <%_ } else { _%>
     <%_ if (arg.isOptional || arg.isNullable) { _%>
-        <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = NULL;
+        <%_ if (arg.isPointer) { _%>
+            <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = NULL;
+        <%_ } else { _%>
+            <%- arg.rawType %> <%- arg.ref %> <%- arg.name %>;
+        <%_ } _%>
         if (!(info[<%- arg.jsIndex %>].IsNull() || info[<%- arg.jsIndex %>].IsUndefined())) {
             <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject()); // 1
-                <%- arg.name %> = <%- arg.name %>_ <%_ if (!arg.isRaw) { _%> ->_underlying <%_ }  _%>;
-        } else {
-            <%- arg.name %> = NULL;
+                <%- arg.name %> = <% if (!arg.isPointer) { %>*<% } %>  <%- arg.name %>_ <%_ if (!arg.isRaw) { _%> ->_underlying <%_ }  _%>;
         }
     <%_ } else { _%>
         if (info[<%- arg.jsIndex %>].IsNull() || info[<%- arg.jsIndex %>].IsUndefined()) {

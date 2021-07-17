@@ -2,7 +2,11 @@ import * as THREE from 'three';
 import { EditorSignals } from '../editor/Editor';
 
 // Helpers are little visualization tools like gizmos that should
-// be rendered as a separate pass from the main scene.
+// be rendered as a separate pass from the main scene so they appear
+// in front of everything
+
+// The axes helper is also here, though it's rendered as a normal pass,
+// so that it appears behind things.
 
 export interface Helper extends THREE.Object3D {
     update(camera: THREE.Camera): void;

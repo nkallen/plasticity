@@ -24,6 +24,7 @@ function cppType2jsType(cppType) {
         case 'size_t':
         case 'VERSION':
         case 'double': return 'number';
+        case 'c3d::string_t': return 'string';
         default: return cppType;
     }
 }
@@ -276,6 +277,10 @@ class TypeDeclaration {
 
     get isCppString2CString() {
         return this.rawType == "char" && this.const && this.ref == "*";
+    }
+
+    get isC3dString() {
+        return this.rawType == "c3d::string_t"
     }
 
     get isBoolean() {

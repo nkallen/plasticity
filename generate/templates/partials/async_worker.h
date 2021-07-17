@@ -11,7 +11,7 @@
                 <% if (arg.isCppString2CString) { _%>
                 const char * <%- arg.name %>, size_t <%- arg.name %>_length
                 <%_ } else { _%>
-                <%- arg.rawType %> <%- arg.ref %> <%- arg.name _%><%_ if (arg.isOptional) { %> = <%- arg.default _%><%_ } _%>
+                <%- arg.const %> <%- arg.rawType %> <%- arg.ref %> <%- arg.name _%><%_ if (arg.isOptional) { %> = <%- arg.default _%><%_ } _%>
                 <%_ } _%>
             <%_ } _%>
           <%_ %>);

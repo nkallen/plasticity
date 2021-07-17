@@ -575,6 +575,13 @@ export enum ArcCreateWay {
     
 }
 
+enum LocalSystemType3D 
+{
+  CartesianSystem,   ///< \ru Декартова система координат. \en Cartesian coordinate system. 
+  CylindricalSystem, ///< \ru Цилиндрическая система координат. \en Cylindrical coordinate system. 
+  SphericalSystem,   ///< \ru Сферическая система координат. \en Spherical coordinate system. 
+};
+
 Object.assign(c3d, {
     ESides: ESides,
     StepType: StepType,
@@ -591,4 +598,5 @@ Object.assign(c3d, {
     PlaneType: PlaneType,
     RegionOperationType: RegionOperationType,
     ResultType: ResultType,
+    LocalSystemType3D: LocalSystemType3D,
 });

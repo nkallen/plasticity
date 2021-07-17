@@ -369,4 +369,11 @@ declare module "*c3d.node" {
         Unknown = 0,     ///< \ru Неопределенная операция. \en Undefined operation. 
         Union = 1,       ///< \ru Операция объединение. \en Union operation. 
       };
+
+      declare enum LocalSystemType3D 
+      {
+        CartesianSystem,   ///< \ru Декартова система координат. \en Cartesian coordinate system. 
+        CylindricalSystem, ///< \ru Цилиндрическая система координат. \en Cylindrical coordinate system. 
+        SphericalSystem,   ///< \ru Сферическая система координат. \en Spherical coordinate system. 
+      };
 }

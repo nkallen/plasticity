@@ -1,4 +1,5 @@
 #include <napi.h>
+
 <%_ for (c of classes) { _%>
 #include "./include/<%- c.cppClassName %>.h"
 <%_ } _%>

@@ -203,13 +203,19 @@ export default {
                 "const RPArray<MbCurve> & curves, bool sameCurves"
             ]
         },
+        PlanarCheckParams: {
+            rawHeader: "mb_data.h",
+            cppClassName: "_PlanarCheckParams",
+            rawClassName: "PlanarCheckParams",
+            jsClassName: "PlanarCheckParams",
+        },
         Curve3D: {
             rawHeader: "curve3d.h",
             extends: "SpaceItem",
-            dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h"],
+            dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h", "_PlanarCheckParams.h"],
             functions: [
                 {
-                    signature: "bool GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & placement, bool saveParams, VERSION version = Math::DefaultMathVersion())",
+                    signature: "bool GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & placement, bool saveParams, PlanarCheckParams params = PlanarCheckParams())",
                     placement: isReturn,
                     return: isErrorBool,
                 },
@@ -630,6 +636,25 @@ export default {
                 "const MbFunction * Function()",
             ]
         },
+        FunctionFactory: {
+            rawHeader: "function_factory.h",
+            dependencies: ["Function.h"],
+            initializers: [""],
+            functions: [
+                "MbFunction * CreateAnalyticalFunction(const c3d::string_t &data, const c3d::string_t &argument, double tmin, double tmax)"
+            ],
+        },
+        CharacterCurve: {
+            rawHeader: "cur_character_curve.h",
+            dependencies: ["Curve.h", "Function.h"],
+            extends: "Curve"
+        },
+        CharacterCurve3D: {
+            rawHeader: "cur_character_curve3d.h",
+            dependencies: ["Curve3D.h", "Function.h"],
+            extends: "Curve3D",
+            initializers: ["MbFunction &x, MbFunction &y, MbFunction &z, MbeLocalSystemType3D cs, const MbPlacement3D &place, double tmin, double tmax"],
+        },
         Arc3D: {
             rawHeader: "cur_arc3d.h",
             extends: "Curve3D",
@@ -983,5 +1008,6 @@ export default {
         "MbResultType",
         "MbeCreatorType",
         "MbeArcCreateWay",
+        "MbeLocalSystemType3D"
     ]
 }

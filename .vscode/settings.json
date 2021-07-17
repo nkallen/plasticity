@@ -3,6 +3,7 @@
         "typeinfo": "cpp",
         "complex": "cpp",
         "new": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "filesystem": "cpp"
     }
 }
