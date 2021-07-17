@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import BoxFactory from '../src/commands/box/BoxFactory';
 import { CircleFactory } from '../src/commands/circle/CircleFactory';
-import { EditorSignals } from '../src/Editor';
-import { GeometryDatabase } from '../src/GeometryDatabase';
-import MaterialDatabase from '../src/MaterialDatabase';
+import { EditorSignals } from '../src/editor/Editor';
+import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { HighlightManager } from '../src/selection/HighlightManager';
-import * as visual from '../src/VisualModel';
+import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';

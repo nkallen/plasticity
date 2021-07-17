@@ -1,4 +1,4 @@
-import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../VisualModel";
+import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { ModifiesSelection } from "./SelectionManager";
 

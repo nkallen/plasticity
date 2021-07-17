@@ -4,11 +4,11 @@
 
 import { MoveCommand, RotateCommand, ScaleCommand } from "../src/commands/Command";
 import { Model } from "../src/components/toolbar/Toolbar";
-import { EditorSignals } from '../src/Editor';
-import { GeometryDatabase } from '../src/GeometryDatabase';
-import MaterialDatabase from '../src/MaterialDatabase';
+import { EditorSignals } from '../src/editor/Editor';
+import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import MaterialDatabase from '../src/editor/MaterialDatabase';
+import * as visual from '../src/editor/VisualModel';
 import { SelectionManager } from "../src/selection/SelectionManager";
-import * as visual from '../src/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';

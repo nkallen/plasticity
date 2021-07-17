@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
-import { Editor } from '../../Editor';
+import { Editor } from '../../editor/Editor';
 import * as THREE from "three";
 
 // Time thresholds are in milliseconds, distance thresholds are in pixels.

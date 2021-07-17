@@ -1,11 +1,11 @@
-import { EditorSignals } from '../src/Editor';
-import { GeometryDatabase } from '../src/GeometryDatabase';
-import MaterialDatabase from '../src/MaterialDatabase';
+import c3d from '../build/Release/c3d.node';
+import { EditorSignals } from '../src/editor/Editor';
+import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import MaterialDatabase from '../src/editor/MaterialDatabase';
+import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
-import c3d from '../build/Release/c3d.node';
-import * as visual from '../src/VisualModel';
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;

@@ -1,9 +1,8 @@
 import * as THREE from "three";
-import c3d from '../../../build/Release/c3d.node';
-import { EditorSignals } from '../../Editor';
-import { GeometryDatabase } from '../../GeometryDatabase';
-import MaterialDatabase from '../../MaterialDatabase';
-import * as visual from "../../VisualModel";
+import { EditorSignals } from '../../editor/Editor';
+import { GeometryDatabase } from '../../editor/GeometryDatabase';
+import MaterialDatabase from '../../editor/MaterialDatabase';
+import * as visual from "../../editor/VisualModel";
 import { GeometryFactory } from '../Factory';
 import ContourFactory from "./ContourFactory";
 import CurveFactory from "./CurveFactory";

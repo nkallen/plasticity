@@ -4,8 +4,8 @@
 import * as THREE from "three";
 import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
-import { EditorSignals } from '../src/Editor';
-import { BasicMaterialDatabase } from "../src/MaterialDatabase";
+import { EditorSignals } from '../src/editor/Editor';
+import { BasicMaterialDatabase } from "../src/editor/MaterialDatabase";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 
 let materials: BasicMaterialDatabase;

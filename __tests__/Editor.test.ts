@@ -4,7 +4,7 @@
 jest.mock('atom-keymap');
 
 import Command, { CircleCommand } from '../src/commands/Command';
-import { Editor } from '../src/Editor';
+import { Editor } from '../src/editor/Editor';
 import './matchers';
 
 let editor: Editor;

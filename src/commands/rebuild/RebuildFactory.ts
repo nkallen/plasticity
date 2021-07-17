@@ -1,6 +1,5 @@
 import c3d from '../../../build/Release/c3d.node';
-import { TemporaryObject } from '../../GeometryDatabase';
-import * as visual from '../../VisualModel';
+import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../Factory';
 
 export class RebuildFactory extends GeometryFactory {

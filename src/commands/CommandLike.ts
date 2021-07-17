@@ -1,5 +1,5 @@
 import Command, * as cmd from "./Command";
-import * as visual from "../VisualModel";
+import * as visual from "../editor/VisualModel";
 import { RebuildFactory } from "./rebuild/RebuildFactory";
 import { GizmoLike } from "./AbstractGizmo";
 import c3d from '../../../build/Release/c3d.node';

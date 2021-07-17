@@ -1,12 +1,12 @@
 import * as THREE from "three";
 import BoxFactory from "../../src/commands/box/BoxFactory";
-import { EditorSignals } from '../../src/Editor';
-import { GeometryDatabase } from '../../src/GeometryDatabase';
-import MaterialDatabase from '../../src/MaterialDatabase';
+import { EditorSignals } from '../../src/editor/Editor';
+import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import FakeSignals from '../../__mocks__/FakeSignals';
 import '../matchers';
-import * as visual from '../../src/VisualModel';
+import * as visual from '../../src/editor/VisualModel';
 import FilletFactory from "../../src/commands/fillet/FilletFactory";
 
 let db: GeometryDatabase;

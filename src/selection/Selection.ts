@@ -1,6 +1,6 @@
-import { GeometryDatabase } from "../GeometryDatabase";
+import { GeometryDatabase } from "../editor/GeometryDatabase";
 import c3d from '../build/Release/c3d.node';
-import * as visual from '../VisualModel';
+import * as visual from '../editor/VisualModel';
 
 abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem, S extends c3d.SimpleName | string> {
     size: number;

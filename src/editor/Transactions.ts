@@ -1,7 +1,7 @@
 import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
 import * as visual from "./VisualModel";
-import c3d from '../build/Release/c3d.node';
+import c3d from '../../build/Release/c3d.node';
 
 export default class Transactions {
     constructor(

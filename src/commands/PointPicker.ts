@@ -1,12 +1,11 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
-import { Points } from 'three';
-import { Viewport } from './components/viewport/Viewport';
-import { EditorSignals } from './Editor';
-import { GeometryDatabase } from './GeometryDatabase';
-import { AxisSnap, CurveEdgeSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from './SnapManager';
-import { Cancel, CancellablePromise, Finish } from './util/Cancellable';
-import * as visual from "./VisualModel";
+import { Viewport } from '../components/viewport/Viewport';
+import { EditorSignals } from '../editor/Editor';
+import { GeometryDatabase } from '../editor/GeometryDatabase';
+import { AxisSnap, CurveEdgeSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
+import * as visual from "../editor/VisualModel";
+import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
 
 const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 

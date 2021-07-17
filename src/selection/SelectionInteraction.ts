@@ -1,7 +1,7 @@
-import { EditorSignals } from '../Editor';
-import MaterialDatabase from '../MaterialDatabase';
-import * as visual from '../VisualModel';
-import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../VisualModel';
+import { EditorSignals } from '../editor/Editor';
+import MaterialDatabase from '../editor/MaterialDatabase';
+import * as visual from '../editor/VisualModel';
+import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../editor/VisualModel';
 import { ClickStrategy } from './Click';
 import { HoverStrategy } from './Hover';
 import { SelectionManager } from './SelectionManager';

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import c3d from '../../build/Release/c3d.node';
-import { GeometryDatabase } from "../GeometryDatabase";
+import { GeometryDatabase } from "../editor/GeometryDatabase";
 
 export class HighlightManager {
     constructor(

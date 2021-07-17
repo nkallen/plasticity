@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import c3d from '../build/Release/c3d.node';
+import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
 import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
-import { assertUnreachable } from './util/Util';
+import { assertUnreachable } from '../util/Util';
 import * as visual from './VisualModel';
 
 const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];

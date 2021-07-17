@@ -1,7 +1,7 @@
-import { GeometryFactory } from '../Factory'
-import c3d from '../../../build/Release/c3d.node';
 import * as THREE from "three";
-import * as visual from '../../VisualModel';
+import c3d from '../../../build/Release/c3d.node';
+import * as visual from '../../editor/VisualModel';
+import { GeometryFactory } from '../Factory';
 
 export default class ScaleFactory extends GeometryFactory {
     _items!: visual.Item[];

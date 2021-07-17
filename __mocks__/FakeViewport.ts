@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PlaneSnap } from '../src/SnapManager';
+import { PlaneSnap } from '../src/editor/SnapManager';
 import { Viewport } from '../src/components/viewport/Viewport';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 

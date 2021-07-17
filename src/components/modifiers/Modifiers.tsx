@@ -3,11 +3,11 @@ import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
 import * as cmd from '../../commands/Command';
 import { RebuildCommand } from '../../commands/CommandLike';
-import { Editor } from '../../Editor';
-import { GeometryDatabase } from '../../GeometryDatabase';
+import { Editor } from '../../editor/Editor';
+import { GeometryDatabase } from '../../editor/GeometryDatabase';
+import * as visual from '../../editor/VisualModel';
 import { HasSelection } from '../../selection/SelectionManager';
 import { Cancel, CancellablePromise, Finish } from '../../util/Cancellable';
-import * as visual from '../../VisualModel';
 import { icons } from '../toolbar/icons';
 import { ChangeEvent } from './NumberScrubber';
 

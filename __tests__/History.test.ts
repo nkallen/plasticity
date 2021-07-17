@@ -1,9 +1,9 @@
-import { EditorSignals } from '../src/Editor';
-import { GeometryDatabase } from '../src/GeometryDatabase';
-import MaterialDatabase from '../src/MaterialDatabase';
+import { EditorSignals } from '../src/editor/Editor';
+import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { SelectionManager } from '../src/selection/SelectionManager';
-import { SnapManager } from '../src/SnapManager';
-import { SpriteDatabase } from '../src/SpriteDatabase';
+import { SnapManager } from '../src/editor/SnapManager';
+import { SpriteDatabase } from '../src/editor/SpriteDatabase';
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';

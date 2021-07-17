@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
-import { EditorSignals } from '../Editor';
+import { EditorSignals } from '../editor/Editor';
 import { Cancel, CancellablePromise } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 

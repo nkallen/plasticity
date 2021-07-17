@@ -1,8 +1,8 @@
-import { EditorSignals } from "../Editor";
+import { EditorSignals } from "../editor/Editor";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import Command from "./Command";
 import { SelectionCommandManager } from "./SelectionCommandManager";
-import { EditorOriginator, History } from "../History";
+import { EditorOriginator, History } from "../editor/History";
 import { Cancel, Finish } from "../util/Cancellable";
 import { HasSelection } from "../selection/SelectionManager";
 

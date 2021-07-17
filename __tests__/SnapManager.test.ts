@@ -1,13 +1,12 @@
 import * as THREE from "three";
-import { isModuleBlock } from "typescript";
 import BoxFactory from '../src/commands/box/BoxFactory';
 import LineFactory from "../src/commands/line/LineFactory";
-import { EditorSignals } from '../src/Editor';
-import { GeometryDatabase } from '../src/GeometryDatabase';
-import MaterialDatabase from '../src/MaterialDatabase';
-import { AxisSnap, originSnap, PointSnap, Raycaster, SnapManager } from '../src/SnapManager';
-import { SpriteDatabase } from "../src/SpriteDatabase";
-import * as visual from '../src/VisualModel';
+import { EditorSignals } from '../src/editor/Editor';
+import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import MaterialDatabase from '../src/editor/MaterialDatabase';
+import { originSnap, PointSnap, Raycaster, SnapManager } from '../src/editor/SnapManager';
+import { SpriteDatabase } from "../src/editor/SpriteDatabase";
+import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 

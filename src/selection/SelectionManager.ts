@@ -1,13 +1,11 @@
 import { Disposable } from 'event-kit';
-import * as THREE from "three";
-import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import c3d from '../build/Release/c3d.node';
-import { EditorSignals } from '../Editor';
-import { GeometryDatabase } from '../GeometryDatabase';
-import { SelectionMemento } from '../History';
-import MaterialDatabase from '../MaterialDatabase';
+import { EditorSignals } from '../editor/Editor';
+import { GeometryDatabase } from '../editor/GeometryDatabase';
+import { SelectionMemento } from '../editor/History';
+import MaterialDatabase from '../editor/MaterialDatabase';
+import * as visual from '../editor/VisualModel';
 import { RefCounter } from '../util/Util';
-import * as visual from '../VisualModel';
 import { HighlightManager } from './HighlightManager';
 import { Hoverable } from './Hover';
 import { ItemSelection, TopologyItemSelection } from './Selection';

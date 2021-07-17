@@ -1,8 +1,8 @@
-import c3d from '../build/Release/c3d.node';
+import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
 import { TopologyData } from './GeometryDatabase';
 import { Snap } from './SnapManager';
-import { RefCounter } from './util/Util';
+import { RefCounter } from '../util/Util';
 import * as visual from './VisualModel';
 
 export class Memento {

@@ -1,9 +1,9 @@
-import { GeometryFactory } from '../Factory'
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../VisualModel';
-import { GeometryDatabase, TemporaryObject } from '../../GeometryDatabase';
-import MaterialDatabase from '../../MaterialDatabase';
-import { EditorSignals } from '../../Editor';
+import { EditorSignals } from '../../editor/Editor';
+import { GeometryDatabase } from '../../editor/GeometryDatabase';
+import MaterialDatabase from '../../editor/MaterialDatabase';
+import * as visual from '../../editor/VisualModel';
+import { GeometryFactory } from '../Factory';
 
 export interface FilletParams {
     item: visual.Solid;

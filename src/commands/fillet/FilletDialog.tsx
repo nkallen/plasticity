@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import c3d from '../../../build/Release/c3d.node';
-import { EditorSignals } from "../../Editor";
+import { EditorSignals } from "../../editor/Editor";
 import { Cancel, CancellablePromise, Finish } from "../../util/Cancellable";
 import { render } from 'preact';
 import { FilletParams } from "./FilletFactory";

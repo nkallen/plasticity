@@ -1,10 +1,8 @@
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import c3d from '../build/Release/c3d.node';
-import * as visual from '../src/VisualModel';
+import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from "./Editor";
-import porcelain from './img/matcap-porcelain-white.jpg';
-import { assertUnreachable } from "./util/Util";
+import porcelain from '../img/matcap-porcelain-white.jpg';
 
 export default interface MaterialDatabase {
     line(o?: c3d.SpaceInstance): LineMaterial;

@@ -2,10 +2,10 @@ import { Disposable } from 'event-kit';
 import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
 import * as cmd from '../../commands/Command';
-import { Editor } from '../../Editor';
-import { GeometryDatabase } from '../../GeometryDatabase';
+import { Editor } from '../../editor/Editor';
+import { GeometryDatabase } from '../../editor/GeometryDatabase';
+import * as visual from "../../editor/VisualModel";
 import { HasSelection } from '../../selection/SelectionManager';
-import * as visual from "../../VisualModel";
 import { humanizeKeystrokes } from '../atom/tooltip-manager';
 import { icons, keybindings, tooltips } from './icons';
 

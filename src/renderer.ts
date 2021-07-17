@@ -17,7 +17,7 @@ import Viewport from './components/viewport/Viewport';
 import './css/index.less';
 import registerDefaultCommands from './default-commands';
 import keymap from "./default-keymap";
-import { Editor } from './Editor';
+import { Editor } from './editor/Editor';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 

@@ -2,7 +2,7 @@ import { CancelOrFinish } from "../commands/CommandExecutor";
 import * as THREE from "three";
 import Command, * as cmd from "../commands/Command";
 import { ChangeSelectionCommand } from "../commands/CommandLike";
-import { EditorOriginator } from "../History";
+import { EditorOriginator } from "../editor/History";
 
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,

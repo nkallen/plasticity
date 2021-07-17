@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import * as gizmo from './AbstractGizmo';
 import * as cmd from './Command';
 import Command, { ExtrudeRegionCommand, FilletCommand, OffsetFaceCommand } from './Command';
-import { GeometryDatabase } from '../GeometryDatabase';
-import MaterialDatabase from '../MaterialDatabase';
+import { GeometryDatabase } from '../editor/GeometryDatabase';
+import MaterialDatabase from '../editor/MaterialDatabase';
 import { ChangeSelectionCommand } from './CommandLike';
 import { CancelOrFinish } from './CommandExecutor';
 

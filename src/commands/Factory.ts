@@ -1,9 +1,9 @@
 import c3d from '../../build/Release/c3d.node';
-import { EditorSignals } from '../Editor';
-import { GeometryDatabase, TemporaryObject } from '../GeometryDatabase';
-import MaterialDatabase from '../MaterialDatabase';
+import { EditorSignals } from '../editor/Editor';
+import { GeometryDatabase, TemporaryObject } from '../editor/GeometryDatabase';
+import MaterialDatabase from '../editor/MaterialDatabase';
 import { ResourceRegistration } from '../util/Cancellable';
-import * as visual from '../VisualModel';
+import * as visual from '../editor/VisualModel';
 
 type State = { tag: 'none', last: undefined } | { tag: 'updated', last?: Map<string, any> } | { tag: 'updating', hasNext: boolean, failed?: any, last?: Map<string, any> } | { tag: 'failed', error: any, last?: Map<string, any> } | { tag: 'cancelled' } | { tag: 'committed' }
 

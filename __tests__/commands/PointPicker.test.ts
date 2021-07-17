@@ -3,8 +3,8 @@
  */
 jest.mock('atom-keymap');
 
-import { Editor } from '../../src/Editor';
-import { PointPicker } from '../../src/PointPicker';
+import { Editor } from '../../src/editor/Editor';
+import { PointPicker } from '../../src/commands/PointPicker';
 import { FakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 import * as THREE from "three";

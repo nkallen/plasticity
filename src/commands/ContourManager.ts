@@ -1,5 +1,5 @@
-import { EditorSignals } from "../Editor";
-import * as visual from "../VisualModel";
+import { EditorSignals } from "../editor/Editor";
+import * as visual from "../editor/VisualModel";
 import * as cmd from "./Command";
 import { RegionFactory } from "./region/RegionFactory";
 

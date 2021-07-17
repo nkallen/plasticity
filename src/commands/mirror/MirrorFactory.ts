@@ -1,6 +1,5 @@
-import { TemporaryObject } from '../../GeometryDatabase';
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../VisualModel';
+import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../Factory';
 
 export default class MirrorFactory extends GeometryFactory {

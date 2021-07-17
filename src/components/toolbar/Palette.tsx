@@ -3,7 +3,7 @@ import { render } from 'preact';
 import * as THREE from "three";
 import _ from "underscore-plus";
 import Command, * as cmd from '../../commands/Command';
-import { Editor } from '../../Editor';
+import { Editor } from '../../editor/Editor';
 import { GConstructor } from '../../util/Util';
 import { icons, tooltips } from './icons';
 

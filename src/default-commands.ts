@@ -1,4 +1,4 @@
-import { Editor } from "./Editor";
+import { Editor } from "./editor/Editor";
 import * as cmd from './commands/Command';
 
 // FIXME move this as well as the icon stuff and keybinding stuff all into one obvious place

@@ -1,13 +1,13 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import c3d from '../build/Release/c3d.node';
-import * as visual from '../src/VisualModel';
+import c3d from '../../build/Release/c3d.node';
+import * as visual from './VisualModel';
 import { EditorSignals } from "./Editor";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { SnapMemento } from "./History";
 import { SpriteDatabase } from "./SpriteDatabase";
-import { cart2vec } from "./util/Conversion";
-import { RefCounter } from "./util/Util";
+import { cart2vec } from "../util/Conversion";
+import { RefCounter } from "../util/Util";
 
 export interface Raycaster {
     intersectObjects(objects: THREE.Object3D[], recursive?: boolean, optionalTarget?: THREE.Intersection[]): THREE.Intersection[];

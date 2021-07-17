@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { AbstractDialog } from '../../commands/fillet/FilletDialog';
-import { Editor } from '../../Editor';
+import { Editor } from '../../editor/Editor';
 import { createRef, render } from 'preact';
 
 export default (editor: Editor) => {
