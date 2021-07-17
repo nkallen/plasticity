@@ -120,12 +120,6 @@ export class Editor {
         this.registry.attach(window);
         this.keymaps.defaultTarget = document.body;
 
-        // FIXME disappearing
-        const axes = new THREE.AxesHelper(10000);
-        axes.renderOrder = 0;
-        const material = axes.material as THREE.Material;
-        material.depthFunc = THREE.AlwaysDepth;
-        this.scene.add(axes);
         this.scene.background = new THREE.Color(0x424242);
 
         const d = this.registry.add("ispace-workspace", {

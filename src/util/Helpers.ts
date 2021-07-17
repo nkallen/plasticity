@@ -10,9 +10,16 @@ export interface Helper extends THREE.Object3D {
 
 export class Helpers {
     readonly scene = new THREE.Scene();
+    readonly axes: THREE.AxesHelper;
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(({ camera }) => this.update(camera));
+
+        const axes = new THREE.AxesHelper(10000);
+        axes.renderOrder = 0;
+        const material = axes.material as THREE.Material;
+        material.depthFunc = THREE.AlwaysDepth;
+        this.axes = axes;
     }
 
     add(...object: Helper[]) {

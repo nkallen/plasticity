@@ -195,6 +195,7 @@ export class Model implements Viewport {
                     scene.add(v);
                 }
                 scene.add(this.editor.db.temporaryObjects);
+                scene.add(this.editor.helpers.axes);
 
                 if (this.grid) this.editor.scene.add(this.grid);
                 const oldFog = this.editor.scene.fog;
