@@ -14,7 +14,7 @@ const depthInfo = {
 export class GizmoMaterialDatabase {
     readonly invisible = new THREE.MeshBasicMaterial(Object.assign({
         transparent: true,
-        opacity: 0.15
+        opacity: 0.0,
     }, depthInfo));
 
     readonly occlude = new THREE.MeshBasicMaterial(Object.assign({

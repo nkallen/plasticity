@@ -10,7 +10,9 @@ export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
     private readonly circle: THREE.Mesh;
     private readonly torus: THREE.Mesh;
 
-    constructor(editor: EditorLike) {
+    constructor(name: string, editor: EditorLike) {
+        const [gizmoName, ] = name.split(':');
+
         const materials = editor.gizmos;
 
         const handle = new THREE.Group();
@@ -22,10 +24,10 @@ export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
         handle.add(circle);
 
         const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
-        torus.userData.command = ['gizmo:spiral:angle', () => { }];
+        torus.userData.command = [`gizmo:${name}`, () => { }];
         picker.add(torus);
 
-        super("spiral", editor, { handle, picker });
+        super(gizmoName, editor, { handle, picker });
 
         this.circle = circle;
         this.torus = torus;
@@ -52,17 +54,24 @@ const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, 0.1, 12, 1, false);
 const lineGeometry = new LineGeometry();
 lineGeometry.setPositions([0, 0, 0, 0, 1, 0]);
 const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
+const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 
 export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
     private readonly tip: THREE.Mesh;
     private readonly knob: THREE.Mesh;
     private readonly shaft: THREE.Mesh;
+    private readonly plane: THREE.Mesh;
 
-    constructor(editor: EditorLike) {
+    constructor(name: string, editor: EditorLike) {
+        const [gizmoName, ] = name.split(':');
         const materials = editor.gizmos;
 
         const handle = new THREE.Group();
         const picker = new THREE.Group();
+
+        const plane = new THREE.Mesh(planeGeometry, materials.yellowTransparent);
 
         const tip = new THREE.Mesh(arrowGeometry, materials.yellow);
         tip.position.set(0, 1, 0);
@@ -70,15 +79,16 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         handle.add(tip, shaft);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
-        knob.userData.command = ['gizmo:spiral:distance', () => { }];
+        knob.userData.command = [`gizmo:${name}`, () => { }];
         knob.position.copy(tip.position);
         picker.add(knob);
 
-        super("spiral", editor, { handle, picker });
+        super(gizmoName, editor, { handle, picker });
 
         this.shaft = shaft;
         this.tip = tip;
         this.knob = knob;
+        this.plane = plane;
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -86,7 +96,10 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
     onPointerUp(intersect: Intersector, info: MovementInfo) { }
 
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
-        const delta = info.pointEnd3d.distanceTo(this.position);
+        const planeIntersect = intersect(this.plane, true);
+        if (planeIntersect == null) return; // this only happens when the user is dragging through different viewports.
+
+        const delta = planeIntersect.point.distanceTo(this.position);
         this.render(delta);
         cb(Math.abs(delta));
     }
@@ -97,6 +110,21 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         this.knob.position.copy(this.tip.position);
     }
 
-    update(camera: THREE.Camera) {}
-}
+    update(camera: THREE.Camera) {
+        const eye = new THREE.Vector3();
+        eye.copy(camera.position).sub(this.position).normalize();
+        const align = new THREE.Vector3();
+        const dir = new THREE.Vector3();
 
+        const o = Y.clone().applyQuaternion(this.quaternion);
+        align.copy(eye).cross(o);
+        dir.copy(o).cross(align);
+
+        const matrix = new THREE.Matrix4();
+        matrix.lookAt(new THREE.Vector3(), dir, align);
+        this.plane.quaternion.setFromRotationMatrix(matrix);
+        this.plane.updateMatrixWorld();
+        this.plane.position.copy(this.position);
+
+    }
+}

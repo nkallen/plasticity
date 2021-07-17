@@ -10,6 +10,8 @@ export default {
 
     "ispace-viewport[gizmo='spiral']": {
         "a": "gizmo:spiral:angle",
+        "d": "gizmo:spiral:length",
+        "r": "gizmo:spiral:radius",
     },
 
     "ispace-viewport[gizmo='move']": {

@@ -382,7 +382,7 @@ export class SpiralCommand extends Command {
 
         const axis = new THREE.Vector3().copy(p2).sub(p1);
 
-        const angleGizmo = new AngleGizmo(this.editor);
+        const angleGizmo = new AngleGizmo("spiral:angle", this.editor);
         angleGizmo.position.copy(p2);
         angleGizmo.relativeScale.setScalar(spiral.radius);
         angleGizmo.execute(angle => {
@@ -390,16 +390,27 @@ export class SpiralCommand extends Command {
             spiral.update();
         }, mode.Persistent).resource(this);
 
-        const heightGizmo = new DistanceGizmo(this.editor);
-        heightGizmo.position.copy(p1);
+        const lengthGizmo = new DistanceGizmo("spiral:length", this.editor);
+        lengthGizmo.position.copy(p1);
         const quat = new THREE.Quaternion();
         quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
-        heightGizmo.quaternion.copy(quat);
+        lengthGizmo.quaternion.copy(quat);
 
-        heightGizmo.execute(height => {
+        lengthGizmo.execute(height => {
             p2.copy(axis).multiplyScalar(height).add(p1);
             spiral.p2 = p2;
             angleGizmo.position.copy(p2);
+            spiral.update();
+        }, mode.Persistent).resource(this);
+
+        const radiusGizmo = new DistanceGizmo("spiral:radius", this.editor);
+        radiusGizmo.position.copy(p1);
+        quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), axis);
+        radiusGizmo.quaternion.copy(quat);
+
+        radiusGizmo.execute(radius => {
+            spiral.radius = radius;
+            angleGizmo.relativeScale.setScalar(radius);
             spiral.update();
         }, mode.Persistent).resource(this);
 
