@@ -10,20 +10,39 @@
     for (size_t i = 0; i < <%- arg.name %>_.Length(); i++) {
         if (<%- arg.name %>_[i].IsNull() || <%- arg.name %>_[i].IsUndefined()) {
             std::cerr << __FILE__ << ":" << __LINE__ << " warning: Passed an array with a null element at [" << i << "]. This is probably a mistake, so skipping\n";
-        } else if (!<%- arg.name %>_[i].IsObject() || !<%- arg.name %>_[i].ToObject().InstanceOf(<%- arg.elementType.cppType %>::GetConstructor(env))) {
-            <%_ if (_return == 'value') { _%>
-                Napi::Error::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
-                return env.Undefined();
-            <%_ } else if (_return == 'promise') { _%>
-                deferred.Reject(Napi::String::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required."));
-                return deferred.Promise();
-            <%_ } else { _%>
-                Napi::Error::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
-                return;
-            <%_ } _%>
-        } else {
-            <%- arg.name %><%- (_return == 'promise' || arg.ref == '*') ? '->' : '.' %>Add(<%_ if (!arg.elementType.isReference) { _%>*<%_ } _%><%- arg.elementType.cppType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
+            continue;
         }
+        <%_ if (arg.elementType.rawType == "double") { _%>
+            if (!<%- arg.name %>_[i].IsNumber()) {
+                <%_ if (_return == 'value') { _%>
+                    Napi::Error::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
+                    return env.Undefined();
+                <%_ } else if (_return == 'promise') { _%>
+                    deferred.Reject(Napi::String::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required."));
+                    return deferred.Promise();
+                <%_ } else { _%>
+                    Napi::Error::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
+                    return;
+                <%_ } _%>
+            } else {
+                <%- arg.name %><%- (_return == 'promise' || arg.ref == '*') ? '->' : '.' %>Add(<%- arg.name %>_[i].ToNumber().DoubleValue());
+            }
+        <%_ } else { _%>
+            if (!<%- arg.name %>_[i].IsObject() || !<%- arg.name %>_[i].ToObject().InstanceOf(<%- arg.elementType.cppType %>::GetConstructor(env))) {
+                <%_ if (_return == 'value') { _%>
+                    Napi::Error::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
+                    return env.Undefined();
+                <%_ } else if (_return == 'promise') { _%>
+                    deferred.Reject(Napi::String::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required."));
+                    return deferred.Promise();
+                <%_ } else { _%>
+                    Napi::Error::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
+                    return;
+                <%_ } _%>
+            } else {
+                <%- arg.name %><%- (_return == 'promise' || arg.ref == '*') ? '->' : '.' %>Add(<%_ if (!arg.elementType.isReference) { _%>*<%_ } _%><%- arg.elementType.cppType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
+            }
+        <%_ } _%>
     }
 <%_ } else if (arg.isCppString2CString) { _%>
     const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString().Utf8Value();

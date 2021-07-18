@@ -891,6 +891,13 @@ export default {
                 "MbResultType ElementarySurface(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbeSpaceType surfaceType, MbSurface *& result)"
             ]
         },
+        ActionSurfaceCurve: {
+            rawHeader: "action_surface_curve.h",
+            dependencies: ["Contour3D.h", "Curve3D.h"],
+            functions: [
+                "MbResultType CreateContourFillets(const MbContour3D & contour, SArray<double> & radiuses, MbCurve3D *& result, const MbeConnectingType type)",
+            ]
+        },
         ActionSolid: {
             rawHeader: "action_solid.h",
             dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h"],
@@ -1008,6 +1015,7 @@ export default {
         "MbResultType",
         "MbeCreatorType",
         "MbeArcCreateWay",
-        "MbeLocalSystemType3D"
+        "MbeLocalSystemType3D",
+        "MbeConnectingType",
     ]
 }

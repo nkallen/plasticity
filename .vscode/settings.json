@@ -4,6 +4,7 @@
         "complex": "cpp",
         "new": "cpp",
         "iosfwd": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "memory": "cpp"
     }
 }

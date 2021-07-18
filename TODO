@@ -1,13 +1,10 @@
 THIS WEEK:
 
-analytic fn
 fillet curves/contours
-move editor into its own folder
 
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
 bug: fillet edge. ok. undo. fillet edge. ok. error
-right click to navigate shouldn't automatically submit
 
 # transaction history
 - delete creator
