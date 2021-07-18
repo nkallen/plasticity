@@ -164,14 +164,12 @@ export class GeometryDatabase {
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance: {
                 const instance = builder as visual.SpaceInstanceBuilder<visual.Curve3D>;
-                const curve3D = new visual.Curve3DBuilder();
-                const edges = mesh.GetEdges();
                 let material = this.materials.line(obj as c3d.SpaceInstance);
-                for (const edge of edges) {
-                    const line = visual.CurveSegment.build(edge, material);
-                    curve3D.addCurveSegment(line);
-                }
-                instance.addLOD(curve3D.build(), distance);
+                const edges = mesh.GetEdges();
+                if (edges.length != 1) throw new Error("invalid precondition");
+                const edge = edges[0];
+                const line = visual.Curve3D.build(edge, material);
+                instance.addLOD(line, distance);
                 break;
             }
             case c3d.SpaceType.PlaneInstance: {

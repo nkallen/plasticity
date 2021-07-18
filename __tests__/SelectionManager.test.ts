@@ -57,7 +57,7 @@ describe('onClick', () => {
         intersections.push({
             distance: 1,
             point: new THREE.Vector3(),
-            object: circle.underlying.get(0)
+            object: circle.underlying
         });
 
         expect(selectionManager.selectedCurves.size).toBe(0);
@@ -92,7 +92,7 @@ describe('onClick', () => {
         intersections.push({
             distance: 1,
             point: new THREE.Vector3(),
-            object: circle.underlying.get(0)
+            object: circle.underlying
         });
 
         expect(selectionManager.selectedCurves.size).toBe(0);

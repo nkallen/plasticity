@@ -49,10 +49,10 @@ test('highlight & unhighlight topology items', () => {
 });
 
 test('highlight & unhighlight items', () => {
-    const segment = circle.underlying.get(0).child;
-    expect(segment.material).toBe(materials.line(circle));
+    const line = circle.underlying.child;
+    expect(line.material).toBe(materials.line(circle));
     highlighter.highlightItems([circle.simpleName], x => materials.highlight(x));
-    expect(segment.material).toBe(materials.highlight(circle));
+    expect(line.material).toBe(materials.highlight(circle));
     highlighter.unhighlightItems([circle.simpleName]);
-    expect(segment.material).toBe(materials.line(circle));
+    expect(line.material).toBe(materials.line(circle));
 });

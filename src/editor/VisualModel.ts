@@ -69,14 +69,29 @@ export class PlaneInstance<T extends PlaneItem> extends Item {
 
 export class Curve3D extends SpaceItem {
     disposable = new CompositeDisposable();
-    *[Symbol.iterator]() {
-        for (const child of this.children) {
-            yield child as CurveSegment;
-        }
+    private readonly line: Line2;
+    get child() { return this.line };
+
+    static build(edge: c3d.EdgeBuffer, material: LineMaterial) {
+        const geometry = new LineGeometry();
+        geometry.setPositions(edge.position);
+        const line = new Line2(geometry, material);
+        return new Curve3D(line, edge.name, edge.simpleName);
     }
 
-    get(i: number): CurveSegment {
-        return this.children[i] as CurveSegment;
+    private constructor(line: Line2, name: c3d.Name, simpleName: number) {
+        super();
+        this.add(line);
+        this.line = line;
+        this.userData.name = name;
+        this.userData.simpleName = simpleName;
+        this.renderOrder = RenderOrder.CurveSegment;
+    }
+
+    get parentItem(): SpaceInstance<Curve3D> {
+        const result = this.parent?.parent as SpaceInstance<Curve3D>;
+        if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
+        return result;
     }
 }
 
@@ -156,32 +171,10 @@ export class CurveEdge extends Edge {
         occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
     }
 }
-
-// FIXME rethink name and the fact that it extends SpaceItem
-export class CurveSegment extends SpaceItem { // This doesn't correspond to a real c3d class, but it's here for convenience
-    private readonly line: Line2;
-    get child() { return this.line };
-
+export class Vertex {
     static build(edge: c3d.EdgeBuffer, material: LineMaterial) {
-        const geometry = new LineGeometry();
-        geometry.setPositions(edge.position);
-        const line = new Line2(geometry, material);
-        return new CurveSegment(line, edge.name, edge.simpleName);
-    }
 
-    private constructor(line: Line2, name: c3d.Name, simpleName: number) {
-        super();
-        this.add(line);
-        this.line = line;
-        this.userData.name = name;
-        this.userData.simpleName = simpleName;
-        this.renderOrder = RenderOrder.CurveSegment;
-    }
-
-    get parentItem(): SpaceInstance<Curve3D> {
-        const result = this.parent?.parent?.parent as SpaceInstance<Curve3D>;
-        if (!(result instanceof SpaceInstance)) throw "Invalid precondition";
-        return result;
+        
     }
 }
 
@@ -253,10 +246,10 @@ export interface PlaneItem extends DisposableLike { }
 
 export interface Face extends GeometryDisposable<THREE.BufferGeometry> { }
 export interface CurveEdge extends GeometryDisposable<LineGeometry> { }
-export interface CurveSegment extends GeometryDisposable<LineGeometry> { }
+export interface Curve3D extends GeometryDisposable<LineGeometry> { }
 applyMixins(Face, [GeometryDisposable]);
 applyMixins(CurveEdge, [GeometryDisposable]);
-applyMixins(CurveSegment, [GeometryDisposable]);
+applyMixins(Curve3D, [GeometryDisposable]);
 
 abstract class HasDisposable {
     abstract disposable: Disposable;
@@ -326,28 +319,17 @@ abstract class ObjectWrapper<T extends THREE.BufferGeometry = THREE.BufferGeomet
 
 export interface Face extends ObjectWrapper { }
 export interface CurveEdge extends ObjectWrapper<LineGeometry, LineMaterial> { }
-export interface CurveSegment extends ObjectWrapper<LineGeometry, LineMaterial> { }
+export interface Curve3D extends ObjectWrapper<LineGeometry, LineMaterial> { }
 export interface Region extends ObjectWrapper { }
 
 applyMixins(Face, [ObjectWrapper]);
 applyMixins(CurveEdge, [ObjectWrapper]);
-applyMixins(CurveSegment, [ObjectWrapper]);
+applyMixins(Curve3D, [ObjectWrapper]);
 applyMixins(Region, [ObjectWrapper]);
 
 /**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.
  */
-
-export class Curve3DBuilder {
-    private readonly curve3D = new Curve3D();
-
-    build() { return this.curve3D }
-
-    addCurveSegment(segment: CurveSegment) {
-        this.curve3D.add(segment);
-        this.curve3D.disposable.add(new Disposable(() => segment.dispose()))
-    }
-}
 
 export class SurfaceBuilder {
     private readonly surface = new Surface();

@@ -1,6 +1,6 @@
 import MaterialDatabase from "../editor/MaterialDatabase";
 import { EditorSignals } from "../editor/Editor";
-import { Curve3D, CurveEdge, CurveSegment, Face, Item, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
+import { Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { HighlightManager } from "./HighlightManager";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { HasSelection } from "./SelectionManager";
@@ -17,7 +17,7 @@ export class HoverStrategy implements SelectionStrategy {
         this.selection.hover = undefined;
     }
 
-    curve3D(object: CurveSegment, parentCurve: SpaceInstance<Curve3D>): boolean {
+    curve3D(object: Curve3D, parentCurve: SpaceInstance<Curve3D>): boolean {
         if (this.selection.mode.has(SelectionMode.Curve) && !this.selection.selectedCurves.has(parentCurve)) {
             if (!this.selection.hover?.isEqual(parentCurve)) {
                 this.selection.hover?.dispose();

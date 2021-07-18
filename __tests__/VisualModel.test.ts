@@ -38,10 +38,8 @@ test('constructs solids', () => {
 
 test('constructs curves', () => {
     const makeSpaceInstance = new visual.SpaceInstanceBuilder();
-    const makeCurve = new visual.Curve3DBuilder();
-    const line = visual.CurveSegment.build({ position: [1, 2, 3] }, materials.line());
-    makeCurve.addCurveSegment(line);
-    makeSpaceInstance.addLOD(makeCurve.build())
+    const line = visual.Curve3D.build({ position: [1, 2, 3] }, materials.line());
+    makeSpaceInstance.addLOD(line)
 });
 
 describe('materials are consistent across LODs', () => {

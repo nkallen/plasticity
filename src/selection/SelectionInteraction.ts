@@ -1,7 +1,7 @@
 import { EditorSignals } from '../editor/Editor';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
-import { Curve3D, CurveEdge, CurveSegment, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../editor/VisualModel';
+import { Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../editor/VisualModel';
 import { ClickStrategy } from './Click';
 import { HoverStrategy } from './Hover';
 import { SelectionManager } from './SelectionManager';
@@ -14,7 +14,7 @@ export interface SelectionStrategy {
     emptyIntersection(): void;
     solid(object: TopologyItem, parentItem: Solid): boolean;
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean;
-    curve3D(object: CurveSegment, parentItem: SpaceInstance<Curve3D>): boolean;
+    curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean;
     region(object: Region, parentItem: PlaneInstance<Region>): boolean;
 }
 
@@ -60,7 +60,7 @@ export class SelectionInteractionManager {
                     if (strategy.solid(object, parentItem as Solid)) return intersection;
                 }
                 if (strategy.topologicalItem(object, parentItem as Solid)) return intersection;
-            } else if (object instanceof CurveSegment) {
+            } else if (object instanceof Curve3D) {
                 const parentItem = object.parentItem;
                 if (strategy.curve3D(object, parentItem)) return intersection;
             } else if (object instanceof Region) {
