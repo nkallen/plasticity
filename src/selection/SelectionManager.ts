@@ -240,7 +240,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
             new Set(this.selectedFaceIds),
             new Set(this.selectedCurveIds),
             new Set(this.selectedRegionIds),
-            new Set(this.selectedControlPoints),
+            new Set(this.selectedControlPointIds),
         );
     }
 
