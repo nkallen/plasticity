@@ -5,6 +5,7 @@ import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, S
 import { ClickStrategy } from './Click';
 import { HoverStrategy } from './Hover';
 import { SelectionManager } from './SelectionManager';
+import * as THREE from "three";
 
 export enum SelectionMode {
     Edge, Face, Solid, Curve, ControlPoint
@@ -16,7 +17,7 @@ export interface SelectionStrategy {
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean;
     curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean;
     region(object: Region, parentItem: PlaneInstance<Region>): boolean;
-    controlPoint(object: ControlPoint, parentItem: Curve3D): boolean;
+    controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean;
 }
 
 // Handles click and hovering logic
@@ -76,13 +77,21 @@ export class SelectionInteractionManager {
     }
 }
 
+const map = new Map<any, number>();
+map.set(visual.CurveEdge, 0);
+map.set(visual.Face, 1);
+map.set(visual.ControlPoint, 0);
+map.set(visual.Curve3D, 2);
+map.set(visual.CurveEdge, 0);
+map.set(visual.Region, 2);
+
 function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
-    const a = i1.object, b = i2.object;
-    if (a instanceof visual.CurveEdge && b instanceof visual.Face) {
-        return -1;
-    } else if (a instanceof visual.Face && b instanceof visual.CurveEdge) {
-        return 1;
-    } else {
-        return 0;
+    const x = map.get(i1.object.constructor);
+    const y = map.get(i2.object.constructor)
+    if (x === undefined || y === undefined) {
+        console.error(i1);
+        console.error(i2);
+        throw new Error("invalid precondition");
     }
+    return x - y;
 }

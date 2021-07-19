@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import c3d from '../../build/Release/c3d.node';
 import { GeometryDatabase } from "../editor/GeometryDatabase";
+import * as visual from '../editor/VisualModel';
 
 export class HighlightManager {
     constructor(
@@ -31,8 +32,6 @@ export class HighlightManager {
                     if (o instanceof Line2 || o instanceof THREE.Mesh) {
                         o.material = o.userData.oldMaterial;
                         delete o.userData.oldMaterial;
-                    } else if (o instanceof THREE.Sprite) {
-                        o.visible = false;
                     }
                 })
             }
@@ -48,8 +47,6 @@ export class HighlightManager {
                 if (o instanceof Line2 || o instanceof THREE.Mesh) {
                     o.userData.oldMaterial = o.material;
                     o.material = newMaterial;
-                } else if (o instanceof THREE.Sprite) {
-                    o.visible = true;
                 }
             })
         }
@@ -81,6 +78,7 @@ export class HighlightManager {
                     if (o instanceof THREE.Sprite) {
                         o.userData.oldMaterial = o.material;
                         o.material = newMaterial;
+                        o.visible = true;
                     }
                 })
             }
@@ -93,11 +91,34 @@ export class HighlightManager {
             for (const v of views) {
                 v.traverse(o => {
                     if (o instanceof THREE.Sprite) {
+                        o.visible = false;
                         o.material = o.userData.oldMaterial;
                         delete o.userData.oldMaterial;
                     }
                 })
             }
+        }
+    }
+
+    showControlPoints(collection: Iterable<c3d.SimpleName>) {
+        for (const id of collection) {
+            const { view, model } = this.db.lookupItemById(id);
+            view.traverse(o => {
+                if (o instanceof visual.ControlPoint) {
+                    o.visible = true;
+                }
+            })
+        }
+    }
+
+    hideControlPoints(collection: Iterable<c3d.SimpleName>) {
+        for (const id of collection) {
+            const { view, model } = this.db.lookupItemById(id);
+            view.traverse(o => {
+                if (o instanceof visual.ControlPoint) {
+                    o.visible = false;
+                }
+            })
         }
     }
 }

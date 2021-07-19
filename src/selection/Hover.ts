@@ -64,10 +64,14 @@ export class HoverStrategy implements SelectionStrategy {
         return false;
     }
 
-    controlPoint(object: ControlPoint, parentItem: Curve3D): boolean {
-        if (this.selection.mode.has(SelectionMode.ControlPoint) && !this.selection.selectedControlPoints.has(object)) {
+    controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean {
+        if (!this.selection.mode.has(SelectionMode.ControlPoint)) return false;
+        if (!this.selection.selectedCurves.has(parentItem) && !this.selection.hasSelectedChildren(parentItem)) return false;
+
+        if (!this.selection.selectedControlPoints.has(object)) {
             this.selection.hover?.dispose();
             this.selection.hover = new Hoverable(object, this.materials, this.signals);
+            return true;
         }
         return false;
     }

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import BoxFactory from '../src/commands/box/BoxFactory';
 import { CircleFactory } from '../src/commands/circle/CircleFactory';
+import LineFactory from '../src/commands/line/LineFactory';
 import { RegionFactory } from '../src/commands/region/RegionFactory';
 import { EditorSignals } from '../src/editor/Editor';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
@@ -30,6 +31,7 @@ beforeEach(() => {
 describe('onClick', () => {
     let solid: visual.Solid;
     let circle: visual.SpaceInstance<visual.Curve3D>;
+    let curve: visual.SpaceInstance<visual.Curve3D>;
     let region: visual.PlaneInstance<visual.Region>;
 
     beforeEach(async () => {
@@ -45,6 +47,11 @@ describe('onClick', () => {
         makeCircle.center = new THREE.Vector3();
         makeCircle.radius = 1;
         circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeCurve = new LineFactory(db, materials, signals);
+        makeCurve.p1 = new THREE.Vector3();
+        makeCurve.p2 = new THREE.Vector3(1, 1, 1);
+        curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const makeRegion = new RegionFactory(db, materials, signals);
         makeRegion.contours = [circle];
@@ -69,6 +76,80 @@ describe('onClick', () => {
         expect(selectionManager.selectedCurves.size).toBe(0);
     });
 
+    test('clicking on a curve then a control point selects the control point', () => {
+        let intersections = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying as THREE.Object3D
+        }];
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selectedCurves.size).toBe(1);
+
+        intersections = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying.points.children[0]
+        }];
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.selectedControlPoints.size).toBe(1);
+
+        interactionManager.onClick([]);
+        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.selectedControlPoints.size).toBe(0);
+    });
+
+    test("delete curve removes the selection", () => {
+        let intersections = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying as THREE.Object3D
+        }];
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selectedCurves.size).toBe(1);
+
+        intersections = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying.points.children[0]
+        }];
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.selectedControlPoints.size).toBe(1);
+
+        selectionManager.delete(curve);
+        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.selectedControlPoints.size).toBe(0);
+    });
+
+    test("reselecting curve removes control point selection", () => {
+        const intersectCurve = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying as THREE.Object3D
+        }];
+
+        interactionManager.onClick(intersectCurve);
+        expect(selectionManager.selectedCurves.size).toBe(1);
+
+        const intersectControlPoint = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying.points.children[0]
+        }];
+
+        interactionManager.onClick(intersectControlPoint);
+        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.selectedControlPoints.size).toBe(1);
+
+        interactionManager.onClick(intersectCurve);
+        expect(selectionManager.selectedCurves.size).toBe(1);
+        expect(selectionManager.selectedControlPoints.size).toBe(0);
+    });
 
     test('clicking on a region selects the region', () => {
         const intersections = [];
@@ -152,7 +233,7 @@ describe('onClick', () => {
     });
 
 
-    test("clicking on an solid's topo item selects the topo item", () => {
+    test("clicking on an solid's edge item selects the edge", () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
@@ -177,7 +258,7 @@ describe('onClick', () => {
         expect(selectionManager.selectedEdges.size).toBe(0);
     });
 
-    test("delete removes the selection", () => {
+    test("delete solid removes the selection", () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({

@@ -39,6 +39,6 @@ export class TopologyItemSelection<T extends visual.TopologyItem> extends Abstra
 
 export class ControlPointSelection extends AbstractSelection<visual.ControlPoint, string> {
     lookupById(id: string): visual.ControlPoint {
-        throw new Error("not yet implemented");
+        return this.db.lookupControlPointById(id).views.values().next().value;
     }
 }

@@ -78,9 +78,9 @@ export class ControlPoint extends THREE.Sprite {
         return built;
     }
 
-    get parentItem(): Curve3D {
-        const result = this.parent?.parent;
-        if (!(result instanceof Curve3D)) throw new Error("Invalid precondition");
+    get parentItem(): SpaceInstance<Curve3D> {
+        const result = this.parent?.parent?.parent?.parent;
+        if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
         return result;
     }
 
@@ -91,7 +91,7 @@ export class ControlPoint extends THREE.Sprite {
 export class Curve3D extends SpaceItem {
     disposable = new CompositeDisposable();
     private readonly line: Line2;
-    private readonly points: THREE.Group;
+    readonly points: THREE.Group;
 
     static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial) {
         const geometry = new LineGeometry();

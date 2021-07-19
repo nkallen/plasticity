@@ -20,7 +20,8 @@ export interface HasSelection {
     readonly selectedCurves: ItemSelection<visual.SpaceInstance<visual.Curve3D>>;
     readonly selectedControlPoints: ControlPointSelection;
     hover?: Hoverable;
-    hasSelectedChildren(solid: visual.Solid): boolean;
+    hasSelectedChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>): boolean;
+    deselectChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>): void;
 }
 
 export interface ModifiesSelection extends HasSelection {
@@ -34,8 +35,8 @@ export interface ModifiesSelection extends HasSelection {
     selectSolid(solid: visual.Solid): void;
     deselectCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
     selectCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
-    deselectControlPoint(object: visual.ControlPoint): void;
-    selectControlPoint(object: visual.ControlPoint): void;
+    deselectControlPoint(object: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
+    selectControlPoint(object: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
     deselectAll(): void;
 }
 
@@ -89,85 +90,92 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         return new ControlPointSelection(this.db, this.selectedControlPointIds);
     }
 
-    hasSelectedChildren(solid: visual.Solid) {
-        return this.parentsWithSelectedChildren.has(solid.userData.simpleName);
+    hasSelectedChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>) {
+        return this.parentsWithSelectedChildren.has(solid.simpleName);
+    }
+
+    deselectChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>) {
+        return this.parentsWithSelectedChildren.delete(solid.simpleName);
     }
 
     deselectFace(object: visual.Face, parentItem: visual.Solid) {
-        this.selectedFaceIds.delete(object.userData.simpleName);
-        this.parentsWithSelectedChildren.decr(parentItem.userData.simpleName);
+        this.selectedFaceIds.delete(object.simpleName);
+        this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectDeselected.dispatch(object);
     }
 
     selectFace(object: visual.Face, parentItem: visual.Solid) {
         this.hover?.dispose();
         this.hover = undefined;
-        this.selectedFaceIds.add(object.userData.simpleName);
-        this.parentsWithSelectedChildren.incr(parentItem.userData.simpleName,
-            new Disposable(() => this.selectedFaceIds.delete(object.userData.simpleName)));
+        this.selectedFaceIds.add(object.simpleName);
+        this.parentsWithSelectedChildren.incr(parentItem.simpleName,
+            new Disposable(() => this.selectedFaceIds.delete(object.simpleName)));
         this.signals.objectSelected.dispatch(object);
     }
 
     deselectRegion(object: visual.PlaneInstance<visual.Region>) {
-        this.selectedRegionIds.delete(object.userData.simpleName);
+        this.selectedRegionIds.delete(object.simpleName);
         this.signals.objectDeselected.dispatch(object);
     }
 
     selectRegion(object: visual.PlaneInstance<visual.Region>) {
         this.hover?.dispose();
         this.hover = undefined;
-        this.selectedRegionIds.add(object.userData.simpleName);
+        this.selectedRegionIds.add(object.simpleName);
         this.signals.objectSelected.dispatch(object);
     }
 
     deselectEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
-        this.selectedEdgeIds.delete(object.userData.simpleName);
-        this.parentsWithSelectedChildren.decr(parentItem.userData.simpleName);
+        this.selectedEdgeIds.delete(object.simpleName);
+        this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectDeselected.dispatch(object);
     }
 
     selectEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
         this.hover?.dispose();
         this.hover = undefined;
-        this.selectedEdgeIds.add(object.userData.simpleName);
-        this.parentsWithSelectedChildren.incr(parentItem.userData.simpleName,
-            new Disposable(() => this.selectedEdgeIds.delete(object.userData.simpleName)));
+        this.selectedEdgeIds.add(object.simpleName);
+        this.parentsWithSelectedChildren.incr(parentItem.simpleName,
+            new Disposable(() => this.selectedEdgeIds.delete(object.simpleName)));
         this.signals.objectSelected.dispatch(object);
     }
 
     deselectSolid(solid: visual.Solid) {
-        this.selectedSolidIds.delete(solid.userData.simpleName);
+        this.selectedSolidIds.delete(solid.simpleName);
         this.signals.objectDeselected.dispatch(solid);
     }
 
     selectSolid(solid: visual.Solid) {
         this.hover?.dispose();
         this.hover = undefined;
-        this.selectedSolidIds.add(solid.userData.simpleName);
+        this.selectedSolidIds.add(solid.simpleName);
         this.signals.objectSelected.dispatch(solid);
     }
 
     deselectCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
-        this.selectedCurveIds.delete(curve.userData.simpleName);
+        this.selectedCurveIds.delete(curve.simpleName);
         this.signals.objectDeselected.dispatch(curve);
     }
 
     selectCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
         this.hover?.dispose();
         this.hover = undefined;
-        this.selectedCurveIds.add(curve.userData.simpleName);
+        this.selectedCurveIds.add(curve.simpleName);
         this.signals.objectSelected.dispatch(curve);
     }
 
-    selectControlPoint(point: visual.ControlPoint) {
+    selectControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
         this.hover?.dispose();
         this.hover = undefined;
-        this.selectedControlPointIds.add(point.userData.simpleName);
+        this.selectedControlPointIds.add(point.simpleName);
+        this.parentsWithSelectedChildren.incr(parentItem.simpleName,
+            new Disposable(() => this.selectedControlPointIds.delete(point.simpleName)));
         this.signals.objectSelected.dispatch(point);
     }
 
-    deselectControlPoint(point: visual.ControlPoint) {
-        this.selectedControlPointIds.delete(point.userData.simpleName);
+    deselectControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
+        this.selectedControlPointIds.delete(point.simpleName);
+        this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectDeselected.dispatch(point);
     }
 
@@ -196,14 +204,15 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
 
     delete(item: visual.Item): void {
         if (item instanceof visual.Solid) {
-            this.selectedSolidIds.delete(item.userData.simpleName);
-            this.parentsWithSelectedChildren.delete(item.userData.simpleName);
+            this.selectedSolidIds.delete(item.simpleName);
+            this.parentsWithSelectedChildren.delete(item.simpleName);
         } else if (item instanceof visual.SpaceInstance) {
-            this.selectedCurveIds.delete(item.userData.simpleName);
+            this.selectedCurveIds.delete(item.simpleName);
+            this.parentsWithSelectedChildren.delete(item.simpleName);
         } else if (item instanceof visual.PlaneInstance) {
-            this.selectedRegionIds.delete(item.userData.simpleName);
+            this.selectedRegionIds.delete(item.simpleName);
         } else if (item instanceof visual.ControlPoint) {
-            this.selectedControlPointIds.delete(item.userData.simpleName);
+            this.selectedControlPointIds.delete(item.simpleName);
         }
         this.hover?.dispose();
         this.hover = undefined;
@@ -211,25 +220,31 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
     }
 
     highlight() {
-        const { selectedEdgeIds, selectedFaceIds, selectedCurveIds, selectedRegionIds } = this;
+        const { selectedEdgeIds, selectedFaceIds, selectedCurveIds, selectedRegionIds, selectedControlPointIds } = this;
         for (const collection of [selectedEdgeIds, selectedFaceIds]) {
             this.highlighter.highlightTopologyItems(collection, m => this.materials.highlight(m));
         }
         for (const collection of [selectedCurveIds, selectedRegionIds]) {
             this.highlighter.highlightItems(collection, m => this.materials.highlight(m));
         }
+        this.highlighter.showControlPoints(selectedCurveIds);
+        this.highlighter.showControlPoints(this.parentsWithSelectedChildren.keys());
+        this.highlighter.highlightControlPoints(selectedControlPointIds, m => this.materials.highlight(m));
         this.hover?.highlight(this.highlighter);
     }
 
     unhighlight() {
         this.hover?.unhighlight(this.highlighter);
-        const { selectedEdgeIds, selectedFaceIds, selectedCurveIds, selectedRegionIds } = this;
+        const { selectedEdgeIds, selectedFaceIds, selectedCurveIds, selectedRegionIds, selectedControlPointIds } = this;
         for (const collection of [selectedEdgeIds, selectedFaceIds]) {
             this.highlighter.unhighlightTopologyItems(collection);
         }
         for (const collection of [selectedCurveIds, selectedRegionIds]) {
             this.highlighter.unhighlightItems(collection);
         }
+        this.highlighter.hideControlPoints(selectedCurveIds);
+        this.highlighter.hideControlPoints(this.parentsWithSelectedChildren.keys());
+        this.highlighter.unhighlightControlPoints(selectedControlPointIds);
     }
 
     saveToMemento(registry: Map<any, any>) {

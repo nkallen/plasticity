@@ -3,7 +3,7 @@ import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { ModifiesSelection } from "./SelectionManager";
 
 export class ClickStrategy implements SelectionStrategy {
-    constructor(private selection: ModifiesSelection) {}
+    constructor(private selection: ModifiesSelection) { }
 
     emptyIntersection(): void {
         this.selection.deselectAll();
@@ -15,6 +15,9 @@ export class ClickStrategy implements SelectionStrategy {
                 this.selection.deselectCurve(parentItem);
             } else {
                 this.selection.selectCurve(parentItem);
+                if (this.selection.hasSelectedChildren(parentItem)) {
+                    this.selection.deselectChildren(parentItem);
+                }
             }
             return true;
         }
@@ -22,15 +25,17 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     solid(object: TopologyItem, parentItem: Solid): boolean {
-        if (this.selection.selectedSolids.has(parentItem)) {
-            if (this.topologicalItem(object, parentItem)) {
-                this.selection.deselectSolid(parentItem);
+        if (this.selection.mode.has(SelectionMode.Solid)) {
+            if (this.selection.selectedSolids.has(parentItem)) {
+                if (this.topologicalItem(object, parentItem)) {
+                    this.selection.deselectSolid(parentItem);
+                    return true;
+                }
+                return false;
+            } else if (!this.selection.hasSelectedChildren(parentItem)) {
+                this.selection.selectSolid(parentItem);
                 return true;
             }
-            return false;
-        } else if (!this.selection.hasSelectedChildren(parentItem)) {
-            this.selection.selectSolid(parentItem);
-            return true;
         }
         return false;
     }
@@ -66,15 +71,18 @@ export class ClickStrategy implements SelectionStrategy {
         return false;
     }
 
-    controlPoint(object: ControlPoint, parentItem: Curve3D): boolean {
-        if (this.selection.mode.has(SelectionMode.ControlPoint)) {
-            if (this.selection.selectedControlPoints.has(object)) {
-                this.selection.deselectControlPoint(object);
-            } else {
-                this.selection.selectControlPoint(object);
+    controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean {
+        if (!this.selection.mode.has(SelectionMode.ControlPoint)) return false;
+        if (!this.selection.selectedCurves.has(parentItem) && !this.selection.hasSelectedChildren(parentItem)) return false;
+
+        if (this.selection.selectedControlPoints.has(object)) {
+            this.selection.deselectControlPoint(object, parentItem);
+        } else {
+            if (this.selection.selectedCurves.has(parentItem)) {
+                this.selection.deselectCurve(parentItem);
             }
-            return true;
+            this.selection.selectControlPoint(object, parentItem);
         }
-        return false;
+        return true;
     }
 }
