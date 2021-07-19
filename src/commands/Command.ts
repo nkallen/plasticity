@@ -1107,7 +1107,7 @@ export class ChangePointCommand extends Command {
         const controlPoint = [...this.editor.selection.selectedControlPoints][0];
         const instance = controlPoint.parentItem;
 
-        const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         changePoint.controlPoint = controlPoint;
         changePoint.instance = instance;
 
@@ -1116,7 +1116,7 @@ export class ChangePointCommand extends Command {
         await gizmo.execute(delta => {
             changePoint.delta = delta;
             changePoint.update();
-        });
+        }).resource(this);
 
         const newInstance = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
         const newCurve = newInstance.underlying;

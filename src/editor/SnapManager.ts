@@ -299,6 +299,7 @@ export class AxisSnap extends Snap {
 
 export class PlaneSnap extends Snap {
     readonly n: THREE.Vector3;
+    readonly p: THREE.Vector3;
 
     constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3()) {
         const planeGeo = new THREE.PlaneGeometry(1000, 1000, 2, 2);
@@ -307,11 +308,14 @@ export class PlaneSnap extends Snap {
         mesh.position.copy(p);
         super(mesh);
         this.n = n;
+        this.p = p;
         mesh.userData.sort = 2;
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
-        return intersection.point;
+        const { n, p } = this;
+        const plane = new THREE.Plane(n, p.dot(n));
+        return plane.projectPoint(intersection.point, new THREE.Vector3());
     }
 
     restrict(pt: THREE.Vector3): PlaneSnap {

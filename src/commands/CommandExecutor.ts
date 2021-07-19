@@ -1,10 +1,10 @@
-import { EditorSignals } from "../editor/Editor";
 import CommandRegistry from "../components/atom/CommandRegistry";
+import { EditorSignals } from "../editor/Editor";
+import { EditorOriginator, History } from "../editor/History";
+import { HasSelection } from "../selection/SelectionManager";
+import { Cancel } from "../util/Cancellable";
 import Command from "./Command";
 import { SelectionCommandManager } from "./SelectionCommandManager";
-import { EditorOriginator, History } from "../editor/History";
-import { Cancel, Finish } from "../util/Cancellable";
-import { HasSelection } from "../selection/SelectionManager";
 
 const maxFailures = 10;
 
@@ -41,7 +41,7 @@ export class CommandExecutor {
         if (!this.next) throw new Error("Invalid precondition");
 
         let next!: Command;
-        const es =[];
+        const es = [];
         while (this.next) {
             if (this.failures > maxFailures) return;
             next = this.next;
