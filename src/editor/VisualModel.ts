@@ -273,6 +273,13 @@ export class ControlPointGroup extends THREE.Group {
     get(i: number): ControlPoint {
         return this.children[i] as ControlPoint;
     }
+
+    findByIndex(i: number): ControlPoint | undefined {
+        return this.children.find(child => {
+            const point = child as ControlPoint;
+            if (point.index === i) return true;
+        }) as ControlPoint | undefined;
+    }
 }
 
 /**

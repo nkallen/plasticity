@@ -706,6 +706,11 @@ export default {
             extends: "PolyCurve3D",
             dependencies: ["PolyCurve3D.h"],
         },
+        LineSegment3D: {
+            rawHeader: "cur_line_segment3d.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h"],
+        },
         PointFrame: {
             rawHeader: "point_frame.h",
             extends: "Item",

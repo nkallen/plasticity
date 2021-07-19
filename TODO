@@ -5,6 +5,7 @@ fillet curves/contours
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
 bug: fillet edge. ok. undo. fillet edge. ok. error
+moving needs to have snapping
 
 # transaction history
 - delete creator

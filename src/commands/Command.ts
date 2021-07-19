@@ -1120,7 +1120,7 @@ export class ChangePointCommand extends Command {
 
         const newInstance = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
         const newCurve = newInstance.underlying;
-        const newPoint = newCurve.points.get(controlPoint.index);
+        const newPoint = newCurve.points.findByIndex(controlPoint.index)!;
         this.editor.selection.selectControlPoint(newPoint, newInstance);
 
         this.editor.signals.contoursChanged.dispatch();
