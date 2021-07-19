@@ -91,7 +91,7 @@ export class ControlPoint extends THREE.Sprite {
 export class Curve3D extends SpaceItem {
     disposable = new CompositeDisposable();
     private readonly line: Line2;
-    readonly points: THREE.Group;
+    readonly points: ControlPointGroup;
 
     static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial) {
         const geometry = new LineGeometry();
@@ -270,7 +270,9 @@ export class FaceGroup extends THREE.Group {
 }
 
 export class ControlPointGroup extends THREE.Group {
-
+    get(i: number): ControlPoint {
+        return this.children[i] as ControlPoint;
+    }
 }
 
 /**

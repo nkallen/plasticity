@@ -7,6 +7,11 @@
 #include "../include/Mesh.h"
 #include "../include/SpaceInstance.h"
 #include "../include/PolyCurve3D.h"
+#include "../include/Polyline3D.h"
+#include "../include/Bezier3D.h"
+#include "../include/CubicSpline3D.h"
+#include "../include/Hermit3D.h"
+#include "../include/Nurbs3D.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -56,6 +61,16 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return Curve3D::NewInstance(env, (MbCurve3D *)(_underlying));
     case st_PolyCurve3D:
         return PolyCurve3D::NewInstance(env, (MbPolyCurve3D *)(_underlying));
+    case st_Bezier3D:
+        return Bezier3D::NewInstance(env, (MbBezier3D *)(_underlying));
+    case st_CubicSpline3D:
+        return CubicSpline3D::NewInstance(env, (MbCubicSpline3D *)(_underlying));
+    case st_Hermit3D:
+        return Hermit3D::NewInstance(env, (MbHermit3D *)(_underlying));
+    case st_Nurbs3D:
+        return Nurbs3D::NewInstance(env, (MbNurbs3D *)(_underlying));
+    case st_Polyline3D:
+        return Polyline3D::NewInstance(env, (MbPolyline3D *)(_underlying));
         // case st_WireFrame:
         //     return Item::NewInstance(env, dynamic_cast<MbWireFrame *>(_underlying));
         // default:

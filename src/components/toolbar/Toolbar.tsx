@@ -85,6 +85,9 @@ export class Model {
         if (selection.selectedRegions.size > 1) {
             result.push(cmd.RegionBooleanCommand);
         }
+        if (selection.selectedControlPoints.size > 0) {
+            result.push(cmd.ChangePointCommand);
+        }
         return result;
     }
 }

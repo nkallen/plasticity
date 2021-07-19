@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as gizmo from './AbstractGizmo';
 import * as cmd from './Command';
-import Command, { ExtrudeRegionCommand, FilletCommand, OffsetFaceCommand } from './Command';
+import Command, { ChangePointCommand, ExtrudeRegionCommand, FilletCommand, OffsetFaceCommand } from './Command';
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ChangeSelectionCommand } from './CommandLike';
@@ -26,7 +26,9 @@ export class SelectionCommandManager {
         } else if (this.editor.selection.selectedFaces.size > 0) {
             return new OffsetFaceCommand(this.editor);
         } else if (this.editor.selection.selectedEdges.size > 0) {
-            return new FilletCommand(this.editor)
+            return new FilletCommand(this.editor);
+        } else if (this.editor.selection.selectedControlPoints.size > 0) {
+            return new ChangePointCommand(this.editor);
         }
     }
 }

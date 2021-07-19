@@ -10,7 +10,7 @@ import '../matchers';
 
 let db: GeometryDatabase;
 let makeLine: LineFactory;
-let materials: Required<MaterialDatabase>;
+let materials: MaterialDatabase;
 let signals: EditorSignals;
 
 beforeEach(() => {
@@ -19,14 +19,6 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
     makeLine = new LineFactory(db, materials, signals);
 })
-
-describe('update', () => {
-    test('creates a line', () => {
-        makeLine.p1 = new THREE.Vector3();
-        makeLine.p2 = new THREE.Vector3(1, 1, 0);
-        makeLine.update();
-    });
-});
 
 describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {

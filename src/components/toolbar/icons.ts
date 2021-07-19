@@ -1,5 +1,6 @@
 import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
+import { Editor } from '../../editor/Editor';
 import Command, * as cmd from '../../commands/Command';
 import circle from './img/circle.svg';
 import curve from './img/curve.svg';
@@ -19,6 +20,7 @@ import { default as draftSolid, default as rotate } from './img/rotate.svg';
 import scale from './img/scale.svg';
 import sphere from './img/sphere.svg';
 import union from './img/union.svg';
+import changePoint from './img/union.svg';
 
 export const icons = new Map<typeof Command, string>();
 icons.set(cmd.MoveCommand, move);
@@ -62,6 +64,7 @@ icons.set(cmd.RegionBooleanCommand, mirror);
 icons.set(cmd.SpiralCommand, mirror);
 icons.set(cmd.CharacterCurveCommand, draftSolid);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
+icons.set(cmd.ChangePointCommand, changePoint);
 
 export const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");
@@ -104,6 +107,7 @@ tooltips.set(cmd.RegionBooleanCommand, "Region Boolean");
 tooltips.set(cmd.ExtrudeRegionCommand, "Extrude");
 tooltips.set(cmd.SpiralCommand, "Spiral");
 tooltips.set(cmd.CharacterCurveCommand, "Custom Function");
+tooltips.set(cmd.ChangePointCommand, "Move control point");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
@@ -136,3 +140,27 @@ keybindings.set("gizmo:polygon:subtract-vertex", "Subtract a vertex");
 keybindings.set("gizmo:spiral:angle", "Angle");
 keybindings.set("gizmo:spiral:radius", "Radius");
 keybindings.set("gizmo:spiral:length", "Length");
+
+export default (editor: Editor): void => {
+    editor.registry.add('ispace-viewport', {
+        'command:move': () => editor.enqueue(new cmd.MoveCommand(editor)),
+        'command:rotate': () => editor.enqueue(new cmd.RotateCommand(editor)),
+        'command:scale': () => editor.enqueue(new cmd.ScaleCommand(editor)),
+        'command:sphere': () => editor.enqueue(new cmd.SphereCommand(editor)),
+        'command:circle': () => editor.enqueue(new cmd.CircleCommand(editor)),
+        'command:cylinder': () => editor.enqueue(new cmd.CylinderCommand(editor)),
+        'command:line': () => editor.enqueue(new cmd.LineCommand(editor)),
+        'command:curve': () => editor.enqueue(new cmd.CurveCommand(editor)),
+        'command:rect': () => editor.enqueue(new cmd.ThreePointRectangleCommand(editor)),
+        'command:box': () => editor.enqueue(new cmd.BoxCommand(editor)),
+        'command:union': () => editor.enqueue(new cmd.UnionCommand(editor)),
+        'command:intersection': () => editor.enqueue(new cmd.IntersectionCommand(editor)),
+        'command:difference': () => editor.enqueue(new cmd.DifferenceCommand(editor)),
+        'command:cut': () => editor.enqueue(new cmd.CutCommand(editor)),
+        'command:fillet': () => editor.enqueue(new cmd.FilletCommand(editor)),
+        'command:modify-face': () => editor.enqueue(new cmd.OffsetFaceCommand(editor)),
+        'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),
+        'command:mode': () => editor.enqueue(new cmd.ModeCommand(editor)),
+        'command:extrude': () => editor.enqueue(new cmd.ExtrudeCommand(editor)),
+    })
+}

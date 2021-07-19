@@ -24,7 +24,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
     private readonly circle: THREE.Mesh;
     private readonly torus: THREE.Mesh;
 
-    constructor(editor: EditorLike, p1: THREE.Vector3) {
+    constructor(editor: EditorLike) {
         const materials = editor.gizmos;
 
         const handle = new THREE.Group();
@@ -158,8 +158,6 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
 
         this.circle = circle;
         this.torus = torus;
-
-        this.position.copy(p1);
     }
 
     onPointerHover(intersect: Intersector): void {

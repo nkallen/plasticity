@@ -6,19 +6,22 @@ import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../editor/Editor';
 import { GeometryDatabase } from "../editor/GeometryDatabase";
 import MaterialDatabase from "../editor/MaterialDatabase";
-import { PointPicker } from './PointPicker';
+import { AxisSnap, SnapManager } from "../editor/SnapManager";
+import * as visual from "../editor/VisualModel";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
-import { AxisSnap, SnapManager } from "../editor/SnapManager";
 import { CancellableRegistor, Finish } from "../util/Cancellable";
+import { vec2cart } from "../util/Conversion";
 import { Helpers } from "../util/Helpers";
-import * as visual from "../editor/VisualModel";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import BoxFactory from './box/BoxFactory';
+import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
+import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
 import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
+import ChangePointFactory from "./control_point/ChangePointFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -40,6 +43,7 @@ import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFact
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
+import { PointPicker } from './PointPicker';
 import { PolygonFactory } from "./polygon/PolygonFactory";
 import { PolygonKeyboardEvent, PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
@@ -51,8 +55,6 @@ import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
-import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
-import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
@@ -641,12 +643,13 @@ export class MoveCommand extends Command {
         move.p1 = centroid;
         move.items = objects;
 
-        const moveGizmo = new MoveGizmo(this.editor, centroid);
+        const moveGizmo = new MoveGizmo(this.editor);
+        moveGizmo.position.copy(centroid);
         await moveGizmo.execute(delta => {
             line.p2 = line.p1.clone().add(delta);
             move.p2 = move.p1.clone().add(delta);
-            Promise.all([
-                line.update(), move.update()]);
+            line.update();
+            move.update();
         }).resource(this);
         Promise.all([
             line.cancel(),
@@ -956,7 +959,8 @@ export class ActionFaceCommand extends Command {
         const faceModel = this.editor.db.lookupTopologyItem(face);
         const point_ = faceModel.Point(0.5, 0.5);
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
-        const gizmo = new MoveGizmo(this.editor, point);
+        const gizmo = new MoveGizmo(this.editor);
+        gizmo.position.copy(point);
 
         await gizmo.execute(async delta => {
             actionFace.direction = delta;
@@ -1095,5 +1099,30 @@ export class ModeCommand extends Command {
 
                 break;
         }
+    }
+}
+
+export class ChangePointCommand extends Command {
+    async execute(): Promise<void> {
+        const controlPoint = [...this.editor.selection.selectedControlPoints][0];
+        const instance = controlPoint.parentItem;
+
+        const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        changePoint.controlPoint = controlPoint;
+        changePoint.instance = instance;
+
+        const gizmo = new MoveGizmo(this.editor);
+        gizmo.position.copy(controlPoint.position);
+        await gizmo.execute(delta => {
+            changePoint.delta = delta;
+            changePoint.update();
+        });
+
+        const newInstance = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const newCurve = newInstance.underlying;
+        const newPoint = newCurve.points.get(controlPoint.index);
+        this.editor.selection.selectControlPoint(newPoint, newInstance);
+
+        this.editor.signals.contoursChanged.dispatch();
     }
 }

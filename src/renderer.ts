@@ -15,9 +15,9 @@ import Toolbar from './components/toolbar/Toolbar';
 import Palette from './components/toolbar/Palette';
 import Viewport from './components/viewport/Viewport';
 import './css/index.less';
-import registerDefaultCommands from './default-commands';
 import keymap from "./default-keymap";
 import { Editor } from './editor/Editor';
+import registerDefaultCommands from './components/toolbar/icons';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 

@@ -675,6 +675,7 @@ export default {
             dependencies: ["Curve3D.h", "CartPoint3D.h"],
             functions: [
                 { signature: "void GetPoints(SArray<MbCartPoint3D> & pnts)", pnts: isReturn },
+                "void ChangePoint(ptrdiff_t index, const MbCartPoint3D & pnt)",
             ]
         },
         Polyline3D: {
@@ -684,6 +685,26 @@ export default {
             initializers: [
                 "const SArray<MbCartPoint3D> & initList, bool closed"
             ]
+        },
+        Bezier3D: {
+            rawHeader: "cur_bezier3d.h",
+            extends: "PolyCurve3D",
+            dependencies: ["PolyCurve3D.h"],
+        },
+        CubicSpline3D: {
+            rawHeader: "cur_cubic_spline3d.h",
+            extends: "PolyCurve3D",
+            dependencies: ["PolyCurve3D.h"],
+        },
+        Hermit3D: {
+            rawHeader: "cur_hermit3d.h",
+            extends: "PolyCurve3D",
+            dependencies: ["PolyCurve3D.h"],
+        },
+        Nurbs3D: {
+            rawHeader: "cur_nurbs3d.h",
+            extends: "PolyCurve3D",
+            dependencies: ["PolyCurve3D.h"],
         },
         PointFrame: {
             rawHeader: "point_frame.h",
