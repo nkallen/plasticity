@@ -2,6 +2,7 @@ const isReturn = { isReturn: true };
 const isNullable = { isNullable: true };
 const isErrorBool = { isErrorBool: true };
 const ignore = { ignore: true };
+const isRaw = { isRaw: true };
 
 export default {
     classes: {
@@ -116,7 +117,7 @@ export default {
                 "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg = NULL)",
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
-                { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, ProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool, progInd: { isRaw: true } },
+                { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, ProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool, progInd: isRaw },
             ],
         },
         TopItem: {
@@ -184,6 +185,9 @@ export default {
             extends: "RefItem",
             dependencies: ["RefItem.h", "RegTransform.h", "Vector.h", "Surface.h", "Matrix.h"],
             functions: [
+                "MbePlaneType IsA()",
+                "MbePlaneType Type()",
+                "MbePlaneType Family()",
                 { signature: "MbPlaneItem * Cast()", isManual: true },
                 { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn },
                 "void Transform(const MbMatrix & matr, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)"
@@ -908,6 +912,18 @@ export default {
             extends: "Creator",
             dependencies: ["Creator.h"]
         },
+        MpGraph: {
+            rawHeader: "contour_graph.h",
+            cppClassName: "Graph",
+            rawClassName: "MpGraph",
+            jsClassName: "Graph",
+            functions: [
+                "size_t GetLoopsCount()",
+            ]
+        },
+        CrossPoint: {
+            rawHeader: "mb_cross_point.h",
+        }
     },
     modules: {
         Enabler: {
@@ -1028,7 +1044,26 @@ export default {
                 "void EnterParallelRegion()",
                 "void ExitParallelRegion()"
             ]
-        }
+        },
+        ContourGraph: {
+            rawHeader: "contour_graph.h",
+            dependencies: ["Curve.h", "Contour.h", "ProgressIndicator.h", "Graph.h"],
+            functions: [
+                {
+                    signature: "MpGraph * OuterContoursBuilder(const RPArray<MbCurve> & curveList, PArray<MbContour> & contours, double accuracy = METRIC_ACCURACY, bool strict = false, VERSION version = Math::DefaultMathVersion(), ProgressIndicator * progInd = NULL)",
+                    contours: isReturn,
+                    progInd: isRaw,
+                    return: { name: "graph" }
+                },
+            ]
+        },
+        CurveEnvelope: {
+            rawHeader: "alg_curve_envelope.h",
+            dependencies: ["Curve.h", "CrossPoint.h"],
+            functions: [
+                { signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)", cross: isReturn }
+            ]
+        },
     },
     enums: [
         "SimpleName",
@@ -1049,5 +1084,6 @@ export default {
         "MbeArcCreateWay",
         "MbeLocalSystemType3D",
         "MbeConnectingType",
+        "MbePlaneType",
     ]
 }

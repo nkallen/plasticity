@@ -32,7 +32,7 @@ function cppType2jsType(cppType) {
 class TypeRegistry {
     classes = {};
     resolveType(rawType) {
-        if (rawType == "MbResultType") {
+        if (rawType === "MbResultType") {
             return {
                 rawType: "MbResultType",
                 jsType: "Resultype",
@@ -260,7 +260,7 @@ class TypeDeclaration {
         this.typeRegistry = typeRegistry;
         const type = typeRegistry.resolveType(rawType);
         Object.assign(this, type);
-        if (/Array/.exec(this.rawType)) {
+        if (/Array/.exec(this.rawType) || /List/.exec(this.rawType) || /LIterator/.test(this.rawType)) {
             this.jsType = "Array";
         } else {
             this.jsType = type.jsType;
@@ -288,11 +288,15 @@ class TypeDeclaration {
     }
 
     get isArray() {
-        return /Array/.test(this.rawType);
+        return /Array/.test(this.rawType) || /List/.test(this.rawType) || /LIterator/.test(this.rawType);
     }
 
     get isStructArray() {
         return /SArray/.test(this.rawType);
+    }
+
+    get isIterator() {
+        return /LIterator/.test(this.rawType);
     }
 
     get isPrimitive() {
@@ -318,7 +322,7 @@ class ParamDeclaration extends TypeDeclaration {
         this.default = matchType.groups.default;
         if (matchType.groups.elementType) {
             this.elementType = typeRegistry.resolveType(matchType.groups.elementType);
-            this.elementType.isReference = /RPArray/.test(this.rawType);
+            this.elementType.isReference = /RPArray|LIterator/.test(this.rawType);
         }
         Object.assign(this, options[this.name]);
     }

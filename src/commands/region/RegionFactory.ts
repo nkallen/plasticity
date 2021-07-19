@@ -13,22 +13,31 @@ export class RegionFactory extends GeometryFactory {
     }
 
     protected async doCommit() {
-        const contours = [];
+        const curves = [];
         const placement_ = new c3d.Placement3D();
         for (const contour of this.contours) {
             const inst = this.db.lookup(contour);
             const item = inst.GetSpaceItem();
             if (item === null) throw new Error("invalid precondition");
             const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            const { curve2d, placement } = curve.GetPlaneCurve(false);
+            try {
+                const { curve2d, placement } = curve.GetPlaneCurve(false);
 
-            // Apply an 2d placement to the curve, so that any future booleans work
-            const matrix = placement.GetMatrixToPlace(placement_);
-            curve2d.Transform(matrix);
+                // Apply an 2d placement to the curve, so that any future booleans work
+                const matrix = placement.GetMatrixToPlace(placement_);
+                curve2d.Transform(matrix);
 
-            const model = new c3d.Contour([curve2d], true);
-            contours.push(model)
+                curves.push(curve2d);
+            } catch (e) {
+                console.warn(e);
+            }
         }
+
+        const first = curves[0];
+        const rest = curves.slice(1);
+        // const crosses = c3d.CurveEnvelope.IntersectWithAll(first, rest, true);
+
+        const { contours, graph } = c3d.ContourGraph.OuterContoursBuilder(curves);
 
         const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
         const result = [];

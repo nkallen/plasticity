@@ -4,6 +4,7 @@ THIS WEEK:
   virtual void    RemovePoint( ptrdiff_t index );     
 MATH_FUNC (MpGraph *) OuterContoursBuilder( const RPArray<MbCurve> &  curveList, 
 
+lines need to be planar
 fillet curves/contours
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
@@ -22,6 +23,11 @@ command validation (curves fail at beginning, as well as click away aborting lot
 - dispatch keyboard events to the target of lastPointerEvent
 
 redo all the basic commands (creating a box, etc.,) including the gui
+
+audit array conversion is reserving and freeing elements:
+    ::AddRefItems( curveArray );
+    ::ReleaseItems( curveArray );
+    and especially check if instantiated RPArray/etc. is freed altogether
 
 gizmos for primitives
 
