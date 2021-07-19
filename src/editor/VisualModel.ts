@@ -75,6 +75,7 @@ export class ControlPoint extends THREE.Sprite {
         built.userData.simpleName = `${parentId},${i}`;
         built.userData.index = i;
         built.scale.setScalar(0.005);
+        built.visible = false;
         return built;
     }
 

@@ -1,11 +1,15 @@
 THIS WEEK:
 
-fillet curves/contours
+  virtual void    InsertPoint( double t,  const MbCartPoint3D &, double ) = 0; // \ru Добавить точку \en Add a point 
+  virtual void    RemovePoint( ptrdiff_t index );     
+MATH_FUNC (MpGraph *) OuterContoursBuilder( const RPArray<MbCurve> &  curveList, 
 
+fillet curves/contours
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
 bug: fillet edge. ok. undo. fillet edge. ok. error
 moving needs to have snapping
+command validation (curves fail at beginning, as well as click away aborting lots of commands)
 
 # transaction history
 - delete creator
