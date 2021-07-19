@@ -1,4 +1,4 @@
-import { Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
+import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { ModifiesSelection } from "./SelectionManager";
 
@@ -60,6 +60,18 @@ export class ClickStrategy implements SelectionStrategy {
                 this.selection.deselectRegion(parentItem);
             } else {
                 this.selection.selectRegion(parentItem);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    controlPoint(object: ControlPoint, parentItem: Curve3D): boolean {
+        if (this.selection.mode.has(SelectionMode.ControlPoint)) {
+            if (this.selection.selectedControlPoints.has(object)) {
+                this.selection.deselectControlPoint(object);
+            } else {
+                this.selection.selectControlPoint(object);
             }
             return true;
         }

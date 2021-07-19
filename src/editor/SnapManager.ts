@@ -115,7 +115,9 @@ export class SnapManager {
 
     private addCurve(item: visual.SpaceInstance<visual.Curve3D>) {
         const inst = this.db.lookup(item);
-        const curve = inst.GetSpaceItem().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+        const item_ = inst.GetSpaceItem();
+        if (item_ === null) throw new Error("invalid precondition");
+        const curve = item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
         const min = curve.PointOn(curve.GetTMin());
         const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
         const max = curve.PointOn(curve.GetTMax());

@@ -10,9 +10,9 @@ export class HighlightManager {
 
     highlightTopologyItems(collection: Iterable<string>, mat: (c: c3d.TopologyItem) => THREE.Material) {
         for (const id of collection) {
-            const { view, model } = this.db.lookupTopologyItemById(id);
+            const { views, model } = this.db.lookupTopologyItemById(id);
             const newMaterial = mat(model);
-            for (const v of view) {
+            for (const v of views) {
                 v.traverse(o => {
                     if (o instanceof Line2 || o instanceof THREE.Mesh) {
                         o.userData.oldMaterial = o.material;
@@ -25,12 +25,14 @@ export class HighlightManager {
 
     unhighlightTopologyItems(collection: Iterable<string>) {
         for (const id of collection) {
-            const { view } = this.db.lookupTopologyItemById(id);
-            for (const v of view) {
+            const { views } = this.db.lookupTopologyItemById(id);
+            for (const v of views) {
                 v.traverse(o => {
                     if (o instanceof Line2 || o instanceof THREE.Mesh) {
                         o.material = o.userData.oldMaterial;
                         delete o.userData.oldMaterial;
+                    } else if (o instanceof THREE.Sprite) {
+                        o.visible = false;
                     }
                 })
             }
@@ -46,6 +48,8 @@ export class HighlightManager {
                 if (o instanceof Line2 || o instanceof THREE.Mesh) {
                     o.userData.oldMaterial = o.material;
                     o.material = newMaterial;
+                } else if (o instanceof THREE.Sprite) {
+                    o.visible = true;
                 }
             })
         }
@@ -61,8 +65,39 @@ export class HighlightManager {
                 if (o instanceof Line2 || o instanceof THREE.Mesh) {
                     o.material = o.userData.oldMaterial;
                     delete o.userData.oldMaterial;
+                } else if (o instanceof THREE.Sprite) {
+                    o.visible = false;
                 }
             })
+        }
+    }
+
+    highlightControlPoints(collection: Iterable<string>, mat: (c: number) => THREE.SpriteMaterial) {
+        for (const id of collection) {
+            const { index, views } = this.db.lookupControlPointById(id);
+            for (const v of views) {
+                const newMaterial = mat(index);
+                v.traverse(o => {
+                    if (o instanceof THREE.Sprite) {
+                        o.userData.oldMaterial = o.material;
+                        o.material = newMaterial;
+                    }
+                })
+            }
+        }
+    }
+
+    unhighlightControlPoints(collection: Iterable<string>) {
+        for (const id of collection) {
+            const { views } = this.db.lookupControlPointById(id);
+            for (const v of views) {
+                v.traverse(o => {
+                    if (o instanceof THREE.Sprite) {
+                        o.material = o.userData.oldMaterial;
+                        delete o.userData.oldMaterial;
+                    }
+                })
+            }
         }
     }
 }

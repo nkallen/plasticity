@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
+import { assertUnreachable } from '../util/Util';
 import { EditorSignals } from './Editor';
 import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
-import { assertUnreachable } from '../util/Util';
 import * as visual from './VisualModel';
 
 const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];
@@ -13,12 +13,14 @@ export interface TemporaryObject {
     commit(): Promise<visual.SpaceItem>;
 }
 
-export type TopologyData = { model: c3d.TopologyItem, view: Set<visual.Face | visual.Edge> };
+export type TopologyData = { model: c3d.TopologyItem, views: Set<visual.Face | visual.Edge> };
+export type ControlPointData = { index: number, views: Set<visual.ControlPoint> };
 
 export class GeometryDatabase {
     readonly temporaryObjects = new THREE.Scene();
-    private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>(); // FIXME combine these two
-    private readonly topologyModel = new Map<string, TopologyData>(); // parentId -> topologyId -> ...
+    private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
+    private readonly topologyModel = new Map<string, TopologyData>();
+    private readonly controlPointModel = new Map<string, ControlPointData>();
     private readonly hidden = new Set<c3d.SimpleName>();
 
     constructor(
@@ -32,13 +34,15 @@ export class GeometryDatabase {
         const view = await this.meshes(model, current, precision_distance);
 
         this.geometryModel.set(current, { view, model });
-        if (view instanceof visual.Solid) {
-            view.traverse(t => {
-                if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
-                    this.addTopologyItem(model, t);
-                }
-            })
-        }
+        view.traverse(t => {
+            if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
+                if (!(model instanceof c3d.Solid)) throw new Error("invalid precondition");
+                this.addTopologyItem(model, t);
+            } else if (t instanceof visual.ControlPoint) {
+                if (!(model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
+                this.addControlPoint(model, t);
+            }
+        })
 
         this.signals.objectAdded.dispatch(view);
         this.signals.sceneGraphChanged.dispatch();
@@ -65,6 +69,7 @@ export class GeometryDatabase {
         const simpleName = object.simpleName;
         this.geometryModel.delete(simpleName);
         this.removeTopologyItems(object);
+        this.removeControlPoints(object);
         this.hidden.delete(simpleName);
 
         this.signals.objectRemoved.dispatch(object);
@@ -161,15 +166,28 @@ export class GeometryDatabase {
         const note = new c3d.FormNote(true, true, true, false, false);
         const item = await obj.CreateMesh_async(stepData, note);
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
+
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance: {
-                const instance = builder as visual.SpaceInstanceBuilder<visual.Curve3D>;
-                let material = this.materials.line(obj as c3d.SpaceInstance);
+                const curveBuilder = builder as visual.SpaceInstanceBuilder<visual.Curve3D>;
+                const instance = obj as c3d.SpaceInstance;
+                const underlying = instance.GetSpaceItem();
+                if (underlying === null) throw new Error("invalid precondition");
+                if (underlying.Family() !== c3d.SpaceType.Curve3D) throw new Error("invalid precondition");
+
                 const edges = mesh.GetEdges();
                 if (edges.length != 1) throw new Error("invalid precondition");
                 const edge = edges[0];
-                const line = visual.Curve3D.build(edge, material);
-                instance.addLOD(line, distance);
+
+                const material = this.materials.line(instance);
+                const sprite = this.materials.controlPoint();
+
+                const points = new visual.ControlPointGroupBuilder();
+                for (const point of visual.ControlPointGroupBuilder.points(underlying, id, sprite))
+                    points.addControlPoint(point);
+
+                const line = visual.Curve3D.build(edge, id, points.build(), material);
+                curveBuilder.addLOD(line, distance);
                 break;
             }
             case c3d.SpaceType.PlaneInstance: {
@@ -213,9 +231,7 @@ export class GeometryDatabase {
         }
     }
 
-    private addTopologyItem<T extends visual.Face | visual.Edge>(parent: c3d.Item, t: T) {
-        if (!(parent instanceof c3d.Solid)) throw new Error("invalid precondition");
-
+    private addTopologyItem<T extends visual.Face | visual.Edge>(parent: c3d.Solid, t: T) {
         let topologyData = this.topologyModel.get(t.simpleName);
         let views;
         if (topologyData === undefined) {
@@ -224,12 +240,13 @@ export class GeometryDatabase {
                 model = parent.GetFace(t.userData.index);
             } else if (t instanceof visual.CurveEdge) {
                 model = parent.FindEdgeByName(t.userData.name);
-            } else throw new Error("invalid precondition");
+            };
+            if (model == null) throw new Error("invalid precondition")
             views = new Set<visual.Face | visual.Edge>();
-            topologyData = { model, view: views }
+            topologyData = { model, views: views }
             this.topologyModel.set(t.simpleName, topologyData);
         } else {
-            views = topologyData.view;
+            views = topologyData.views;
         }
         views.add(t);
     }
@@ -238,6 +255,36 @@ export class GeometryDatabase {
         parent.traverse(o => {
             if (o instanceof visual.TopologyItem) {
                 this.topologyModel.delete(o.simpleName);
+            }
+        })
+    }
+
+    lookupControlPointById(id: string): ControlPointData {
+        const result = this.controlPointModel.get(id);
+        if (result === undefined) throw new Error(`invalid precondition: object ${id} missing from control point model`);
+        return result;
+    }
+
+    private addControlPoint(parent: c3d.SpaceInstance, t: visual.ControlPoint) {
+        const spaceItem = parent.GetSpaceItem();
+        if (spaceItem === null) throw new Error("invalid precondition");
+        if (spaceItem.Family() !== c3d.SpaceType.Curve3D) throw new Error("invalid precondition");
+        let data = this.controlPointModel.get(t.simpleName);
+        let views;
+        if (data === undefined) {
+            views = new Set<visual.ControlPoint>();
+            data = { index: t.index, views: views }
+            this.controlPointModel.set(t.simpleName, data);
+        } else {
+            views = data.views;
+        }
+        views.add(t);
+    }
+
+    private removeControlPoints(parent: visual.Item) {
+        parent.traverse(o => {
+            if (o instanceof visual.ControlPoint) {
+                this.controlPointModel.delete(o.simpleName);
             }
         })
     }
@@ -254,12 +301,14 @@ export class GeometryDatabase {
         return new GeometryMemento(
             new Map(this.geometryModel),
             new Map(this.topologyModel),
+            new Map(this.controlPointModel),
             new Set(this.hidden));
     }
 
     restoreFromMemento(m: GeometryMemento) {
         (this.geometryModel as GeometryDatabase['geometryModel']) = m.geometryModel;
         (this.topologyModel as GeometryDatabase['topologyModel']) = m.topologyModel;
+        (this.controlPointModel as GeometryDatabase['controlPointModel']) = m.controlPointModel;
         (this.hidden as GeometryDatabase['hidden']) = m.hidden;
     }
 }

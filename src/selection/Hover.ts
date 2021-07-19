@@ -1,6 +1,6 @@
 import MaterialDatabase from "../editor/MaterialDatabase";
 import { EditorSignals } from "../editor/Editor";
-import { Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
+import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { HighlightManager } from "./HighlightManager";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { HasSelection } from "./SelectionManager";
@@ -63,11 +63,19 @@ export class HoverStrategy implements SelectionStrategy {
         }
         return false;
     }
+
+    controlPoint(object: ControlPoint, parentItem: Curve3D): boolean {
+        if (this.selection.mode.has(SelectionMode.ControlPoint) && !this.selection.selectedControlPoints.has(object)) {
+            this.selection.hover?.dispose();
+            this.selection.hover = new Hoverable(object, this.materials, this.signals);
+        }
+        return false;
+    }
 }
 
 export class Hoverable {
     constructor(
-        private readonly object: Item | TopologyItem,
+        private readonly object: Item | TopologyItem | ControlPoint,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals
     ) {
@@ -78,23 +86,29 @@ export class Hoverable {
         this.signals.objectUnhovered.dispatch(this.object);
     }
 
-    isEqual(other: Item | TopologyItem): boolean {
-        return this.object.userData.simpleName === other.userData.simpleName;
+    isEqual(other: Item | TopologyItem | ControlPoint): boolean {
+        return this.object.simpleName === other.simpleName;
     }
 
     highlight(highlighter: HighlightManager) {
-        if (this.object instanceof PlaneInstance || this.object instanceof SpaceInstance) {
-            highlighter.highlightItems([this.object.userData.simpleName], o => this.materials.hover(o));
-        } else if (this.object instanceof TopologyItem) {
-            highlighter.highlightTopologyItems([this.object.userData.simpleName], o => this.materials.hover(o));
+        const { object, materials } = this;
+        if (object instanceof PlaneInstance || object instanceof SpaceInstance) {
+            highlighter.highlightItems([object.simpleName], o => materials.hover(o));
+        } else if (object instanceof TopologyItem) {
+            highlighter.highlightTopologyItems([object.simpleName], o => materials.hover(o));
+        } else if (object instanceof ControlPoint) { 
+            highlighter.highlightControlPoints([object.simpleName], o => materials.hover(o));
         }
     }
 
     unhighlight(highlighter: HighlightManager) {
-        if (this.object instanceof PlaneInstance || this.object instanceof SpaceInstance) {
-            highlighter.unhighlightItems([this.object.userData.simpleName]);
-        } else if (this.object instanceof TopologyItem) {
-            highlighter.unhighlightTopologyItems([this.object.userData.simpleName]);
+        const { object } = this;
+        if (object instanceof PlaneInstance || object instanceof SpaceInstance) {
+            highlighter.unhighlightItems([object.simpleName]);
+        } else if (object instanceof TopologyItem) {
+            highlighter.unhighlightTopologyItems([object.simpleName]);
+        } else if (object instanceof ControlPoint) {
+            highlighter.unhighlightControlPoints([object.simpleName])
         }
     }
 }

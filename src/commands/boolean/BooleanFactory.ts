@@ -53,6 +53,7 @@ export class CutFactory extends GeometryFactory {
         const solid = this.db.lookup(this.solid);
         const instance = this.db.lookup(this.contour);
         const item = instance.GetSpaceItem();
+        if (item === null) throw new Error("invalid precondition");
         const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
         const { curve2d, placement } = curve.GetPlaneCurve(false);
         if (!curve2d || !placement) throw new Error("invalid curve");

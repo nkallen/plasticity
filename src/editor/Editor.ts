@@ -29,10 +29,10 @@ THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 export interface EditorSignals {
     objectAdded: signals.Signal<visual.Item>;
     objectRemoved: signals.Signal<visual.Item>;
-    objectSelected: signals.Signal<visual.Item | visual.TopologyItem>;
-    objectDeselected: signals.Signal<visual.Item | visual.TopologyItem>;
-    objectHovered: signals.Signal<visual.Item | visual.TopologyItem>
-    objectUnhovered: signals.Signal<visual.Item | visual.TopologyItem>
+    objectSelected: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint>;
+    objectDeselected: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint>;
+    objectHovered: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint>
+    objectUnhovered: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint>
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
     sceneGraphChanged: signals.Signal;
     factoryUpdated: signals.Signal;
@@ -87,8 +87,8 @@ export class Editor {
 
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
-    readonly db = new GeometryDatabase(this.materials, this.signals);
     readonly sprites = new SpriteDatabase();
+    readonly db = new GeometryDatabase(this.materials, this.signals);
     readonly snaps = new SnapManager(this.db, this.sprites, this.signals);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();

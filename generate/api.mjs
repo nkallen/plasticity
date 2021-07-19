@@ -57,6 +57,8 @@ export default {
             dependencies: ["RefItem.h", "RegDuplicate.h", "RegTransform.h", "Matrix3D.h", "Vector3D.h", "Axis3D.h"],
             functions: [
                 "MbeSpaceType IsA()",
+                "MbeSpaceType Type()",
+                "MbeSpaceType Family()",
                 { signature: "MbItem * Cast()", isManual: true },
                 "void Transform(const MbMatrix3D & mat, MbRegTransform * iReg = NULL)",
                 "void Move(const MbVector3D & v, MbRegTransform * iReg = NULL)",
@@ -226,6 +228,7 @@ export default {
                 "double GetTMin()",
                 "double GetPeriod()",
                 "double IsPeriodic()",
+                { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint3D & point)", point: isReturn },
                 { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn }
             ]
         },
@@ -669,7 +672,10 @@ export default {
         PolyCurve3D: {
             rawHeader: "cur_polycurve3d.h",
             extends: "Curve3D",
-            dependencies: ["Curve3D.h"],
+            dependencies: ["Curve3D.h", "CartPoint3D.h"],
+            functions: [
+                { signature: "void GetPoints(SArray<MbCartPoint3D> & pnts)", pnts: isReturn },
+            ]
         },
         Polyline3D: {
             rawHeader: "cur_polyline3d.h",
@@ -975,7 +981,7 @@ export default {
                 "MbResultType CreateContour(MbCurve3D & curve, MbContour3D *& result)",
                 "MbResultType AddCurveToContour(MbCurve3D & curve, MbCurve3D & contour, bool toEnd)",
                 "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result)",
-                {signature: "MbResultType SpiralCurve(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, double radius, double step, double angle, MbCurve * lawCurve, bool spiralAxis, MbCurve3D *& result)", lawCurve: isNullable },
+                { signature: "MbResultType SpiralCurve(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, double radius, double step, double angle, MbCurve * lawCurve, bool spiralAxis, MbCurve3D *& result)", lawCurve: isNullable },
                 { signature: "MbResultType CreateContours(RPArray<MbCurve3D> & curves, double metricEps, RPArray<MbContour3D> & result, bool onlySmoothConnected = false, VERSION version = Math::DefaultMathVersion())", result: isReturn },
                 // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
             ]

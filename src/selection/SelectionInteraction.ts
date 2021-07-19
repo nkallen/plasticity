@@ -1,13 +1,13 @@
 import { EditorSignals } from '../editor/Editor';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
-import { Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../editor/VisualModel';
+import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../editor/VisualModel';
 import { ClickStrategy } from './Click';
 import { HoverStrategy } from './Hover';
 import { SelectionManager } from './SelectionManager';
 
 export enum SelectionMode {
-    Edge, Face, Solid, Curve
+    Edge, Face, Solid, Curve, ControlPoint
 }
 
 export interface SelectionStrategy {
@@ -16,6 +16,7 @@ export interface SelectionStrategy {
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean;
     curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean;
     region(object: Region, parentItem: PlaneInstance<Region>): boolean;
+    controlPoint(object: ControlPoint, parentItem: Curve3D): boolean;
 }
 
 // Handles click and hovering logic
@@ -40,17 +41,7 @@ export class SelectionInteractionManager {
             return;
         }
 
-        // FIXME add sort order in visualmodel rather than adhoc here
-        intersections.sort((i1, i2) => {
-            const a = i1.object, b = i2.object;
-            if (a instanceof visual.CurveEdge && b instanceof visual.Face) {
-                return -1;
-            } else if (a instanceof visual.Face && b instanceof visual.CurveEdge) {
-                return 1;
-            } else {
-                return 0;
-            }
-        });
+        intersections.sort(sortIntersections);
 
         for (const intersection of intersections) {
             const object = intersection.object;
@@ -66,6 +57,9 @@ export class SelectionInteractionManager {
             } else if (object instanceof Region) {
                 const parentItem = object.parentItem;
                 if (strategy.region(object, parentItem)) return intersection;
+            } else if (object instanceof ControlPoint) {
+                const parentItem = object.parentItem;
+                if (strategy.controlPoint(object, parentItem)) return intersection;
             } else {
                 console.error(object);
                 throw new Error("Invalid precondition");
@@ -79,5 +73,16 @@ export class SelectionInteractionManager {
 
     onPointerMove(intersections: THREE.Intersection[]): void {
         this.onIntersection(intersections, this.hoverStrategy);
+    }
+}
+
+function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
+    const a = i1.object, b = i2.object;
+    if (a instanceof visual.CurveEdge && b instanceof visual.Face) {
+        return -1;
+    } else if (a instanceof visual.Face && b instanceof visual.CurveEdge) {
+        return 1;
+    } else {
+        return 0;
     }
 }

@@ -1,6 +1,6 @@
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from './Editor';
-import { TopologyData } from './GeometryDatabase';
+import { ControlPointData, TopologyData } from './GeometryDatabase';
 import { Snap } from './SnapManager';
 import { RefCounter } from '../util/Util';
 import * as visual from './VisualModel';
@@ -18,6 +18,7 @@ export class GeometryMemento {
     constructor(
         readonly geometryModel: Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>,
         readonly topologyModel: Map<string, TopologyData>,
+        readonly controlPointModel: Map<string, ControlPointData>,
         readonly hidden: Set<c3d.SimpleName>
     ) { }
 }
@@ -30,6 +31,7 @@ export class SelectionMemento {
         readonly selectedFaceIds: Set<string>,
         readonly selectedCurveIds: Set<c3d.SimpleName>,
         readonly selectedRegionIds: Set<c3d.SimpleName>,
+        readonly selectedControlPointIds: Set<string>,
     ) { }
 }
 

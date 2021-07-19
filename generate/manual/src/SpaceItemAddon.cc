@@ -6,6 +6,7 @@
 #include "../include/Solid.h"
 #include "../include/Mesh.h"
 #include "../include/SpaceInstance.h"
+#include "../include/PolyCurve3D.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -22,10 +23,10 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
     }
 
     const uint isa = info[0].ToNumber().Uint32Value();
-    if (_underlying->IsA() != isa && _underlying->Family() != isa)
+    if (_underlying->IsA() != isa && _underlying->Family() != isa && _underlying->Type() != isa)
     {
         std::ostringstream msg;
-        msg << "Operation Cast failed: object is a " << _underlying->IsA() << "with family " << _underlying->Family() << " but trying to cast to " << isa << "\n";
+        msg << "Operation Cast failed: object is a " << _underlying->IsA() << " with family " << _underlying->Family() << " but trying to cast to " << isa << "\n";
         Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
         return env.Undefined();
     }
@@ -53,6 +54,8 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return SpaceInstance::NewInstance(env, (MbSpaceInstance *)(_underlying));
     case st_Curve3D:
         return Curve3D::NewInstance(env, (MbCurve3D *)(_underlying));
+    case st_PolyCurve3D:
+        return PolyCurve3D::NewInstance(env, (MbPolyCurve3D *)(_underlying));
         // case st_WireFrame:
         //     return Item::NewInstance(env, dynamic_cast<MbWireFrame *>(_underlying));
         // default:

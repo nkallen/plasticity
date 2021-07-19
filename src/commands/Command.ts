@@ -1080,6 +1080,7 @@ export class ModeCommand extends Command {
 
         const l = model.GetCreatorsCount();
         let recent = model.SetCreator(l - 1);
+        if (recent === null) throw new Error("invalid precondition");
         switch (recent.IsA()) {
             case c3d.CreatorType.ElementarySolid:
                 const factory = new ElementarySolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);

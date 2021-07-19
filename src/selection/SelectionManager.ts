@@ -8,7 +8,7 @@ import * as visual from '../editor/VisualModel';
 import { RefCounter } from '../util/Util';
 import { HighlightManager } from './HighlightManager';
 import { Hoverable } from './Hover';
-import { ItemSelection, TopologyItemSelection } from './Selection';
+import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './Selection';
 import { SelectionMode } from './SelectionInteraction';
 
 export interface HasSelection {
@@ -18,6 +18,7 @@ export interface HasSelection {
     readonly selectedFaces: TopologyItemSelection<visual.Face>;
     readonly selectedRegions: ItemSelection<visual.PlaneInstance<visual.Region>>;
     readonly selectedCurves: ItemSelection<visual.SpaceInstance<visual.Curve3D>>;
+    readonly selectedControlPoints: ControlPointSelection;
     hover?: Hoverable;
     hasSelectedChildren(solid: visual.Solid): boolean;
 }
@@ -33,17 +34,20 @@ export interface ModifiesSelection extends HasSelection {
     selectSolid(solid: visual.Solid): void;
     deselectCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
     selectCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
+    deselectControlPoint(object: visual.ControlPoint): void;
+    selectControlPoint(object: visual.ControlPoint): void;
     deselectAll(): void;
 }
 
 export class SelectionManager implements HasSelection, ModifiesSelection {
-    readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face]);
+    readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint]);
 
     readonly selectedSolidIds = new Set<c3d.SimpleName>();
     readonly selectedEdgeIds = new Set<string>();
     readonly selectedFaceIds = new Set<string>();
     readonly selectedRegionIds = new Set<c3d.SimpleName>();
     readonly selectedCurveIds = new Set<c3d.SimpleName>();
+    readonly selectedControlPointIds = new Set<string>();
 
     // selectedChildren is the set of solids that have actively selected topological items;
     // It's used in selection logic -- you can't select a solid if its face is already selected, for instance;
@@ -79,6 +83,10 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
 
     get selectedCurves() {
         return new ItemSelection<visual.SpaceInstance<visual.Curve3D>>(this.db, this.selectedCurveIds);
+    }
+
+    get selectedControlPoints() {
+        return new ControlPointSelection(this.db, this.selectedControlPointIds);
     }
 
     hasSelectedChildren(solid: visual.Solid) {
@@ -151,21 +159,37 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.signals.objectSelected.dispatch(curve);
     }
 
+    selectControlPoint(point: visual.ControlPoint) {
+        this.hover?.dispose();
+        this.hover = undefined;
+        this.selectedControlPointIds.add(point.userData.simpleName);
+        this.signals.objectSelected.dispatch(point);
+    }
+
+    deselectControlPoint(point: visual.ControlPoint) {
+        this.selectedControlPointIds.delete(point.userData.simpleName);
+        this.signals.objectDeselected.dispatch(point);
+    }
+
     deselectAll(): void {
         for (const collection of [this.selectedEdgeIds, this.selectedFaceIds]) {
             for (const id of collection) {
                 collection.delete(id);
-                const { view } = this.db.lookupTopologyItemById(id);
-                this.signals.objectDeselected.dispatch(view.entries().next().value);
+                const { views} = this.db.lookupTopologyItemById(id);
+                this.signals.objectDeselected.dispatch(views.entries().next().value);
             }
         }
-
         for (const collection of [this.selectedSolidIds, this.selectedCurveIds, this.selectedRegionIds]) {
             for (const id of collection) {
                 collection.delete(id);
                 const { view } = this.db.lookupItemById(id);
                 this.signals.objectDeselected.dispatch(view);
             }
+        }
+        for (const id of this.selectedControlPointIds) {
+            this.selectedControlPointIds.delete(id);
+            const { views } = this.db.lookupControlPointById(id);
+            this.signals.objectDeselected.dispatch(views.entries().next().value);
         }
         this.parentsWithSelectedChildren.clear();
     }
@@ -178,6 +202,8 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
             this.selectedCurveIds.delete(item.userData.simpleName);
         } else if (item instanceof visual.PlaneInstance) {
             this.selectedRegionIds.delete(item.userData.simpleName);
+        } else if (item instanceof visual.ControlPoint) {
+            this.selectedControlPointIds.delete(item.userData.simpleName);
         }
         this.hover?.dispose();
         this.hover = undefined;
@@ -214,6 +240,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
             new Set(this.selectedFaceIds),
             new Set(this.selectedCurveIds),
             new Set(this.selectedRegionIds),
+            new Set(this.selectedControlPoints),
         );
     }
 
@@ -224,6 +251,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         (this.selectedFaceIds as SelectionManager['selectedFaceIds']) = m.selectedFaceIds;
         (this.selectedCurveIds as SelectionManager['selectedCurveIds']) = m.selectedCurveIds;
         (this.selectedRegionIds as SelectionManager['selectedRegionIds']) = m.selectedRegionIds;
+        (this.selectedControlPointIds as SelectionManager['selectedControlPointIds']) = m.selectedControlPointIds;
 
         this.signals.selectionChanged.dispatch({ selection: this });
     }

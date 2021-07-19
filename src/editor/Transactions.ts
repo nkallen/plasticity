@@ -11,11 +11,12 @@ export default class Transactions {
         signals.objectSelected.add(o => this.selected(o));
     }
 
-    selected(object: visual.SpaceItem | visual.TopologyItem) {
+    selected(object: visual.SpaceItem | visual.TopologyItem | visual.ControlPoint) {
         if (object instanceof visual.Item) {
             const model = this.db.lookup(object);
             for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
                 const creator = model.GetCreator(i);
+                if (creator === null) throw new Error("invalid precondition");
                 switch (creator.IsA()) {
                     case c3d.CreatorType.ElementarySolid:
                         const es = creator.Cast<c3d.ElementarySolid>(c3d.CreatorType.ElementarySolid);

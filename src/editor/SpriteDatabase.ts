@@ -13,7 +13,9 @@ const willSnap_material = new THREE.SpriteMaterial({ map: circleFill, sizeAttenu
 const isNear = new THREE.Sprite(isNear_material);
 const willSnap = new THREE.Sprite(willSnap_material);
 
-isNear_material.onBeforeCompile = willSnap_material.onBeforeCompile = shader => {
+isNear_material.onBeforeCompile = willSnap_material.onBeforeCompile = attenuateSizeInOrthoCamera;
+
+export function attenuateSizeInOrthoCamera(shader: THREE.Shader) {
     shader.vertexShader = `
 uniform float rotation;
 uniform vec2 center;
@@ -30,7 +32,7 @@ void main() {
     scale.y = length( vec3( modelMatrix[ 1 ].x, modelMatrix[ 1 ].y, modelMatrix[ 1 ].z ) );
     bool isPerspective = isPerspectiveMatrix( projectionMatrix );
     if ( isPerspective ) scale *= - mvPosition.z;
-    else scale /= 1. / 6. * projectionMatrix[1][1]; // THIS IS THE KEY CHANGE
+    else scale /= 1. / 6. * projectionMatrix[1][1]; // NOTE: THIS IS THE KEY CHANGE
     vec2 alignedPosition = ( position.xy - ( center - vec2( 0.5 ) ) ) * scale;
     vec2 rotatedPosition;
     rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;
@@ -46,13 +48,13 @@ void main() {
 export class SpriteDatabase {
     isNear() {
         const result = isNear.clone();
-        result.scale.set(0.01, 0.01, 0.01);
-        return result;
+        result.scale.setScalar(0.01);
+        return result as THREE.Sprite;
     }
 
     willSnap() {
         const result = willSnap.clone();
-        result.scale.set(0.01, 0.01, 0.01);
-        return result;
+        result.scale.setScalar(0.01);
+        return result as THREE.Sprite;
     }
 }

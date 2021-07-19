@@ -13,6 +13,7 @@ export default class LoftFactory extends GeometryFactory {
         for (const c of this.contours) {
             const inst = this.db.lookup(c);
             const item = inst.GetSpaceItem();
+            if (item === null) throw new Error("invalid precondition");
             const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
             const { curve2d, placement } = curve.GetPlaneCurve(false);
             const contour = new c3d.Contour([curve2d], true);

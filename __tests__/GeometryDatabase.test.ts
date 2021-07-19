@@ -2,27 +2,31 @@ import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from '../src/editor/Editor';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
+import { SpriteDatabase } from '../src/editor/SpriteDatabase';
 import * as visual from '../src/editor/VisualModel';
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
+import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
 import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
 
 let db: GeometryDatabase;
-let materials: Required<MaterialDatabase>;
+let materials: MaterialDatabase;
+let sprites: SpriteDatabase;
 let signals: EditorSignals;
 let box: c3d.Solid;
 
+const points = [
+    new c3d.CartPoint3D(0, 0, 0),
+    new c3d.CartPoint3D(1, 0, 0),
+    new c3d.CartPoint3D(1, 1, 0),
+    new c3d.CartPoint3D(1, 1, 1),
+]
+
 beforeEach(() => {
     materials = new FakeMaterials();
+    sprites = new FakeSprites();
     signals = FakeSignals();
     db = new GeometryDatabase(materials, signals);
 
-    const points = [
-        new c3d.CartPoint3D(0, 0, 0),
-        new c3d.CartPoint3D(1, 0, 0),
-        new c3d.CartPoint3D(1, 1, 0),
-        new c3d.CartPoint3D(1, 1, 1),
-    ]
     const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
     box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
 })
@@ -118,24 +122,43 @@ describe("addTemporaryItem", () => {
         expect(db.temporaryObjects.children.length).toBe(0);
         expect(db.visibleObjects.length).toBe(1);
     })
+});
 
-    test("lookupTopologyItemById", async () => {
-        const solid = await db.addItem(box) as visual.Solid;
-        expect(db.visibleObjects.length).toBe(1);
+test("lookupTopologyItemById", async () => {
+    const solid = await db.addItem(box) as visual.Solid;
+    expect(db.visibleObjects.length).toBe(1);
 
-        const faces = [];
-        solid.traverse(o => {
-            if (o instanceof visual.Face) faces.push(o);
-        })
-        expect(faces.length).toBe(3 * 6);
+    const faces = [];
+    solid.traverse(o => {
+        if (o instanceof visual.Face) faces.push(o);
+    })
+    expect(faces.length).toBe(3 * 6);
 
-        expect(db.lookupTopologyItem(faces[0])).toBeTruthy();
-        const { model, view: v } = db.lookupTopologyItemById(faces[0].simpleName);
-        expect(v.size).toBe(3);
-        expect(model).toBeInstanceOf(c3d.Face);
+    expect(db.lookupTopologyItem(faces[0])).toBeTruthy();
+    const { model, views: v } = db.lookupTopologyItemById(faces[0].simpleName);
+    expect(v.size).toBe(3);
+    expect(model).toBeInstanceOf(c3d.Face);
 
-        db.removeItem(solid);
-        expect(() => db.lookupTopologyItem(faces[0])).toThrow();
-        expect(() => db.lookupTopologyItemById(faces[0].simpleName)).toThrow();
-    });
+    db.removeItem(solid);
+    expect(() => db.lookupTopologyItem(faces[0])).toThrow();
+    expect(() => db.lookupTopologyItemById(faces[0].simpleName)).toThrow();
+});
+
+test("lookupControlPointById", async () => {
+    const curve = c3d.ActionCurve3D.SplineCurve(points, false, c3d.SpaceType.Hermit3D);
+    const instance = await db.addItem(new c3d.SpaceInstance(curve)) as visual.SpaceInstance<visual.Curve3D>;
+    expect(db.visibleObjects.length).toBe(1);
+
+    const controlPoints = [];
+    instance.traverse(o => {
+        if (o instanceof visual.ControlPoint) controlPoints.push(o);
+    })
+    expect(controlPoints.length).toBe(4*3);
+
+    const { index, views } = db.lookupControlPointById(controlPoints[0].simpleName);
+    expect(views.size).toBe(3);
+    expect(index).toBe(0);
+
+    db.removeItem(instance);
+    expect(() => db.lookupControlPointById(controlPoints[0].simpleName)).toThrow();
 });

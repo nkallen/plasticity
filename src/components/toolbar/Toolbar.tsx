@@ -41,7 +41,9 @@ export class Model {
             const parent = face.parentItem as visual.Solid;
             const solid = db.lookup(parent);
             try {
-                const purifiableFaces = c3d.ActionDirect.CollectFacesForModification(solid.GetShell(), c3d.ModifyingType.Purify, 1);
+                const shell = solid.GetShell();
+                if (shell === null) throw new Error("invalid precondition");
+                const purifiableFaces = c3d.ActionDirect.CollectFacesForModification(shell, c3d.ModifyingType.Purify, 1);
                 const purifiableNames = new Set(purifiableFaces.map(f => f.GetNameHash()));
                 const all = [...selection.selectedFaces].every(f => {
                     const model = db.lookupTopologyItem(f);
@@ -53,7 +55,9 @@ export class Model {
                 }
             } catch { }
             try {
-                const removableFaces = c3d.ActionDirect.CollectFacesForModification(solid.GetShell(), c3d.ModifyingType.Remove, 1);
+                const shell = solid.GetShell();
+                if (shell === null) throw new Error("invalid precondition");
+                const removableFaces = c3d.ActionDirect.CollectFacesForModification(shell, c3d.ModifyingType.Remove, 1);
                 const removableNames = new Set(removableFaces.map(f => f.GetNameHash()));
                 const all = [...selection.selectedFaces].every(f => {
                     const model = db.lookupTopologyItem(f);

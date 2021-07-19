@@ -16,6 +16,7 @@ export default class ElementarySolidFactory extends GeometryFactory {
         model = model.Duplicate().Cast<c3d.Solid>(c3d.SpaceType.Solid);
         const l = model.GetCreatorsCount();
         let recent = model.SetCreator(l - 1);
+        if (recent === null) throw new Error("invalid precondition");
         if (recent.IsA() !== c3d.CreatorType.ElementarySolid) throw new Error("invalid precondition");
 
         const control = recent.GetBasisPoints();

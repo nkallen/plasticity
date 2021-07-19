@@ -49,7 +49,7 @@ test('highlight & unhighlight topology items', () => {
 });
 
 test('highlight & unhighlight items', () => {
-    const line = circle.underlying.child;
+    const line = circle.underlying['line'];
     expect(line.material).toBe(materials.line(circle));
     highlighter.highlightItems([circle.simpleName], x => materials.highlight(x));
     expect(line.material).toBe(materials.highlight(circle));

@@ -34,6 +34,7 @@ export class Model {
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
             const creator = model.SetCreator(i);
+            if (creator === null) throw new Error("invalid precondition");
             result.push([i, creator.Cast<any>(creator.IsA())]);
         }
 
@@ -173,7 +174,9 @@ export default (editor: Editor) => {
                 }
             });
             editor.enqueue(command);
-            const creator = command.dup.SetCreator(this.index).Cast<C>(this.creator.IsA());
+            const c = command.dup.SetCreator(this.index);
+            if (c === null) throw new Error("invalid precondition");
+            const creator = c.Cast<C>(this.creator.IsA());
             this.set(creator, key, value);
         }
 
@@ -191,7 +194,9 @@ export default (editor: Editor) => {
                                 const cancel = () => reject(Cancel);
                                 const finish = () => reject(Finish);
 
-                                const creator = command.dup.SetCreator(that.index).Cast<C>(that.creator.IsA());
+                                const c = command.dup.SetCreator(that.index);
+                                if (c === null) throw new Error("invalid precondition");
+                                const creator = c.Cast<C>(that.creator.IsA());
                                 that.set(creator, key, value);
                                 that.state = { tag: 'updating', cb, resolve, reject, creator };
                                 try { if (cb) cb() }

@@ -272,7 +272,7 @@ class TypeDeclaration {
     }
 
     get isNumber() {
-        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t" || this.rawType == "size_t" || this.rawType == "VERSION" || this.rawType == "uint" || this.rawType == "SimpleName"
+        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t" || this.rawType == "size_t" || this.rawType == "VERSION" || this.rawType == "uint" || this.rawType == "SimpleName" || this.rawType == "ptrdiff_t"
     }
 
     get isCppString2CString() {
@@ -289,6 +289,10 @@ class TypeDeclaration {
 
     get isArray() {
         return /Array/.test(this.rawType);
+    }
+
+    get isStructArray() {
+        return /SArray/.test(this.rawType);
     }
 
     get isPrimitive() {

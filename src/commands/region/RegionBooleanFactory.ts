@@ -14,6 +14,7 @@ export class RegionBooleanFactory extends GeometryFactory {
         for (const region of this.regions) {
             const inst = this.db.lookup(region);
             const item = inst.GetPlaneItem();
+            if (item === null) throw new Error("invalid precondition");
             const r = item.Cast<c3d.Region>(c3d.PlaneType.Region);
             input.push(r);
             placement = inst.GetPlacement();

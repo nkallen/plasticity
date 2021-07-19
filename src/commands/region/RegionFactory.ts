@@ -18,6 +18,7 @@ export class RegionFactory extends GeometryFactory {
         for (const contour of this.contours) {
             const inst = this.db.lookup(contour);
             const item = inst.GetSpaceItem();
+            if (item === null) throw new Error("invalid precondition");
             const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
             const { curve2d, placement } = curve.GetPlaneCurve(false);
 

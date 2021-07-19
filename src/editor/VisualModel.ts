@@ -4,6 +4,7 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
+import { cart2vec } from '../util/Conversion';
 import { applyMixins } from '../util/Util';
 
 /**
@@ -67,21 +68,44 @@ export class PlaneInstance<T extends PlaneItem> extends Item {
     disposable = new CompositeDisposable();
 }
 
+export class ControlPoint extends THREE.Sprite {
+    static build(point: c3d.CartPoint3D, parentId: c3d.SimpleName, i: number, material: THREE.SpriteMaterial) {
+        const built = new this(material);
+        built.position.copy(cart2vec(point));
+        built.userData.simpleName = `${parentId},${i}`;
+        built.userData.index = i;
+        built.scale.setScalar(0.005);
+        return built;
+    }
+
+    get parentItem(): Curve3D {
+        const result = this.parent?.parent;
+        if (!(result instanceof Curve3D)) throw new Error("Invalid precondition");
+        return result;
+    }
+
+    get simpleName(): string { return this.userData.simpleName }
+    get index(): number { return this.userData.index }
+}
+
 export class Curve3D extends SpaceItem {
     disposable = new CompositeDisposable();
     private readonly line: Line2;
-    get child() { return this.line };
+    private readonly points: THREE.Group;
 
-    static build(edge: c3d.EdgeBuffer, material: LineMaterial) {
+    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial) {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
-        return new Curve3D(line, edge.name, edge.simpleName);
+
+        return new Curve3D(line, points, edge.name, edge.simpleName);
     }
 
-    private constructor(line: Line2, name: c3d.Name, simpleName: number) {
+    private constructor(line: Line2, points: ControlPointGroup, name: c3d.Name, simpleName: number) {
         super();
         this.add(line);
+        this.add(points);
+        this.points = points;
         this.line = line;
         this.userData.name = name;
         this.userData.simpleName = simpleName;
@@ -89,9 +113,21 @@ export class Curve3D extends SpaceItem {
     }
 
     get parentItem(): SpaceInstance<Curve3D> {
-        const result = this.parent?.parent as SpaceInstance<Curve3D>;
+        const result = this.parent?.parent;
         if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
         return result;
+    }
+
+    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        this.points.raycast(raycaster, intersects);
+
+        const is: THREE.Intersection[] = [];
+        this.line.raycast(raycaster, is);
+        if (is.length > 0) {
+            const i = is[0];
+            i.object = this;
+            intersects.push(i);
+        }
     }
 }
 
@@ -174,7 +210,7 @@ export class CurveEdge extends Edge {
 export class Vertex {
     static build(edge: c3d.EdgeBuffer, material: LineMaterial) {
 
-        
+
     }
 }
 
@@ -188,7 +224,7 @@ export class Face extends TopologyItem {
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
         const mesh = new THREE.Mesh(geometry, material);
-        const result =  new Face(mesh);
+        const result = new Face(mesh);
         result.userData.name = grid.name;
         result.userData.simpleName = `${parentId},${grid.i}`
         result.userData.index = grid.i;
@@ -217,6 +253,7 @@ export class CurveEdgeGroup extends THREE.Group {
         return this.children[i] as CurveEdge;
     }
 }
+
 export class FaceGroup extends THREE.Group {
     private _useNominal: undefined;
     disposable = new CompositeDisposable();
@@ -230,6 +267,10 @@ export class FaceGroup extends THREE.Group {
     get(i: number): Face {
         return this.children[i] as Face;
     }
+}
+
+export class ControlPointGroup extends THREE.Group {
+
 }
 
 /**
@@ -271,7 +312,6 @@ applyMixins(Region, [HasDisposable]);
 
 /**
  * We also want some recursive raycasting behavior. Why don't we just use instersectObjects(recursive: true)?
- * Well, LOD is incompatible with it since all of the levels are just normal children.
  */
 
 abstract class RaycastsRecursively {
@@ -286,18 +326,17 @@ abstract class RaycastsRecursively {
 
 applyMixins(Solid, [RaycastsRecursively]);
 applyMixins(FaceGroup, [RaycastsRecursively]);
+applyMixins(ControlPointGroup, [RaycastsRecursively]);
 applyMixins(CurveEdgeGroup, [RaycastsRecursively]);
 applyMixins(SpaceInstance, [RaycastsRecursively]);
 applyMixins(PlaneInstance, [RaycastsRecursively]);
-applyMixins(Curve3D, [RaycastsRecursively]);
 
 export class RecursiveGroup extends THREE.Group { }
 applyMixins(RecursiveGroup, [RaycastsRecursively]);
 
 /**
  * Similarly, for Face and CurveEdge, they are simple proxy/wrappers around their one child.
- * Their parents are LOD objects, and keeping materials synchronized across peers at
- * different levels is a whole thing.
+ * Their parents are LOD objects.
  */
 
 abstract class ObjectWrapper<T extends THREE.BufferGeometry = THREE.BufferGeometry, M extends THREE.Material | THREE.Material[] = THREE.Material | THREE.Material[]>
@@ -319,12 +358,12 @@ abstract class ObjectWrapper<T extends THREE.BufferGeometry = THREE.BufferGeomet
 
 export interface Face extends ObjectWrapper { }
 export interface CurveEdge extends ObjectWrapper<LineGeometry, LineMaterial> { }
-export interface Curve3D extends ObjectWrapper<LineGeometry, LineMaterial> { }
+// export interface Curve3D extends ObjectWrapper<LineGeometry, LineMaterial> { }
 export interface Region extends ObjectWrapper { }
 
 applyMixins(Face, [ObjectWrapper]);
 applyMixins(CurveEdge, [ObjectWrapper]);
-applyMixins(Curve3D, [ObjectWrapper]);
+// applyMixins(Curve3D, [ObjectWrapper]);
 applyMixins(Region, [ObjectWrapper]);
 
 /**
@@ -381,7 +420,7 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
 }
 
 export class FaceGroupBuilder {
-    faceGroup = new FaceGroup();
+    private faceGroup = new FaceGroup();
 
     addFace(face: Face) {
         this.faceGroup.add(face);
@@ -394,7 +433,7 @@ export class FaceGroupBuilder {
 }
 
 export class CurveEdgeGroupBuilder {
-    curveEdgeGroup = new CurveEdgeGroup();
+    private curveEdgeGroup = new CurveEdgeGroup();
 
     addEdge(edge: CurveEdge) {
         this.curveEdgeGroup.add(edge);
@@ -403,6 +442,38 @@ export class CurveEdgeGroupBuilder {
 
     build() {
         return this.curveEdgeGroup;
+    }
+}
+
+export class ControlPointGroupBuilder {
+    private controlPointGroup = new ControlPointGroup();
+
+    static points(item: c3d.SpaceItem, parentId: c3d.SimpleName, sprite: THREE.SpriteMaterial): ControlPoint[] {
+        const result = [];
+        if (item.Type() === c3d.SpaceType.PolyCurve3D) {
+            const poly = item.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D);
+            const ps = poly.GetPoints();
+            for (const [i, p] of ps.entries()) {
+                result.push(ControlPoint.build(p, parentId, i, sprite));
+            }
+        } else if (item.IsA() === c3d.SpaceType.LineSegment3D) {
+            const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            const start = curve.GetLimitPoint(1);
+            result.push(ControlPoint.build(start, parentId, 1, sprite));
+            if (!curve.IsClosed()) {
+                const end = curve.GetLimitPoint(2);
+                result.push(ControlPoint.build(end, parentId, 2, sprite));
+            }
+        }
+        return result;
+    }
+
+    addControlPoint(controlPoint: ControlPoint) {
+        this.controlPointGroup.add(controlPoint);
+    }
+
+    build() {
+        return this.controlPointGroup;
     }
 }
 

@@ -71,7 +71,6 @@ export class PointPicker {
                     raycaster.setFromCamera(pointer, camera);
 
                     viewport.overlay.clear();
-                    // display potential/nearby snapping positions
                     const sprites = editor.snaps.nearby(raycaster, this.snaps, restrictions);
                     for (const sprite of sprites) {
                         viewport.overlay.add(sprite);

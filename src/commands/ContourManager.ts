@@ -20,6 +20,10 @@ export default class ContourManager {
         const curves = this.editor.db.find(visual.SpaceInstance) as visual.SpaceInstance<visual.Curve3D>[];
         const factory = new RegionFactory(this.editor.db, this.editor.materials, this.signals);
         factory.contours = curves;
-        await factory.commit();
+        try {
+            await factory.commit();
+        } catch {
+            console.warn("Some non-planar curves.");
+        }
     }
 }

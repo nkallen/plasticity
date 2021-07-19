@@ -38,7 +38,8 @@ test('constructs solids', () => {
 
 test('constructs curves', () => {
     const makeSpaceInstance = new visual.SpaceInstanceBuilder();
-    const line = visual.Curve3D.build({ position: [1, 2, 3] }, materials.line());
+    const points = new visual.ControlPointGroupBuilder();
+    const line = visual.Curve3D.build({ position: [1, 2, 3] }, 0, points.build(), materials.line());
     makeSpaceInstance.addLOD(line)
 });
 
@@ -82,6 +83,7 @@ test('raycast solid', async () => {
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 0.5;
     const item = await makeSphere.commit() as visual.Solid;
+    item.updateMatrixWorld();
 
     const raycaster = new THREE.Raycaster();
     const pointer = { x: 0, y: 0 };
@@ -91,12 +93,16 @@ test('raycast solid', async () => {
     raycaster.setFromCamera(pointer, camera);
     const intersections = raycaster.intersectObject(item);
     expect(intersections.length).toBe(3);
+    expect(intersections[0].object).toBeInstanceOf(visual.CurveEdge);
+    expect(intersections[1].object).toBeInstanceOf(visual.Face);
+    expect(intersections[2].object).toBeInstanceOf(visual.CurveEdge);
 });
 
 test('raycast instance<curve3d>', async () => {
     makeLine.p1 = new THREE.Vector3();
-    makeLine.p2 = new THREE.Vector3(1, 1, 0);
+    makeLine.p2 = new THREE.Vector3(5, 5, 5);
     const item = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+    item.updateMatrixWorld();
 
     const raycaster = new THREE.Raycaster();
     const pointer = { x: 0, y: 0 };
@@ -105,5 +111,7 @@ test('raycast instance<curve3d>', async () => {
     camera.lookAt(0, 0, 0);
     raycaster.setFromCamera(pointer, camera);
     const intersections = raycaster.intersectObject(item);
-    expect(intersections.length).toBe(1);
+    expect(intersections.length).toBe(2);
+    expect(intersections[0].object).toBeInstanceOf(visual.Curve3D);
+    expect(intersections[1].object).toBeInstanceOf(visual.ControlPoint);
 });

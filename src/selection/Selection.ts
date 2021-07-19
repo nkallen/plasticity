@@ -2,7 +2,7 @@ import { GeometryDatabase } from "../editor/GeometryDatabase";
 import c3d from '../build/Release/c3d.node';
 import * as visual from '../editor/VisualModel';
 
-abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem, S extends c3d.SimpleName | string> {
+abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem | visual.ControlPoint, S extends c3d.SimpleName | string> {
     size: number;
 
     constructor(
@@ -33,6 +33,12 @@ export class ItemSelection<T extends visual.Item> extends AbstractSelection<T, c
 
 export class TopologyItemSelection<T extends visual.TopologyItem> extends AbstractSelection<T, string> {
     lookupById(id: string) {
-        return this.db.lookupTopologyItemById(id).view.values().next().value;
+        return this.db.lookupTopologyItemById(id).views.values().next().value;
+    }
+}
+
+export class ControlPointSelection extends AbstractSelection<visual.ControlPoint, string> {
+    lookupById(id: string): visual.ControlPoint {
+        throw new Error("not yet implemented");
     }
 }

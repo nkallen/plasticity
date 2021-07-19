@@ -13,7 +13,9 @@ export default class JoinCurvesFactory extends GeometryFactory {
 
         const curves = [];
         for (const curve of this.curves) {
-            curves.push(this.db.lookup(curve).GetSpaceItem().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
+            const spaceItem = this.db.lookup(curve).GetSpaceItem();
+            if (spaceItem === null) throw new Error("invalid precondition");
+            curves.push(spaceItem.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
         }
         const contours = c3d.ActionCurve3D.CreateContours(curves, 10);
         const result = [];
