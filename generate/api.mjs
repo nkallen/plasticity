@@ -206,7 +206,10 @@ export default {
             extends: "Curve",
             dependencies: ["Curve.h"],
             initializers: [
-                "const RPArray<MbCurve> & curves, bool sameCurves"
+                "const RPArray<MbCurve> & curves, bool sameCurves",
+            ],
+            functions: [
+                "double GetArea(double sag = 1*Math::deviateSag)",
             ]
         },
         PlanarCheckParams: {
@@ -1064,6 +1067,13 @@ export default {
                 { signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)", cross: isReturn }
             ]
         },
+        CurveUtil: {
+            rawHeader: "curve.h",
+            dependencies: ["Curve.h"],
+            functions: [
+                "double AreaSign(const MbCurve & curve, double sag, bool close)",
+            ]
+        }
     },
     enums: [
         "SimpleName",
