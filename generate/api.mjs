@@ -940,7 +940,25 @@ export default {
             ]
         },
         CrossPoint: {
+            isPOD: true,
             rawHeader: "mb_cross_point.h",
+            dependencies: ["CartPoint.h", "Curve.h", "PointOnCurve.h"],
+            fields: [
+                "MbCartPoint p",
+                "MbPointOnCurve<MbCurve> on1",
+                "MbPointOnCurve<MbCurve> on2",
+                "MbeIntersectionType form"
+            ],
+        },
+        PointOnCurve: {
+            isPOD: true,
+            rawClassName: "MbPointOnCurve<MbCurve>",
+            rawHeader: "mb_cross_point.h",
+            dependencies: ["Curve.h"],
+            fields: [
+                "double t",
+                "const MbCurve * curve",
+            ],
         }
     },
     modules: {
@@ -1112,6 +1130,7 @@ export default {
         "MbeConnectingType",
         "MbePlaneType",
         "MbeItemLocation",
-        "MbeLocation"
+        "MbeLocation",
+        "MbeIntersectionType",
     ]
 }

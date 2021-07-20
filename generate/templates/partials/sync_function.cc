@@ -27,6 +27,7 @@
     <%_ } _%>
     <%_ if (arg.cppIndex < func.params.length - 1) { _%>,<%_ } _%>
 <%_ } _%>
+<%- func.after %>
 );
 
 

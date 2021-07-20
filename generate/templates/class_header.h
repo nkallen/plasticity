@@ -16,7 +16,7 @@ class <%- klass.cppClassName -%> : public
 {
   public:
         static Napi::Object Init(const Napi::Env env, Napi::Object exports);
-        static Napi::Object NewInstance(const Napi::Env env, <%- klass.rawClassName %> *raw);
+        static Napi::Object NewInstance(const Napi::Env env, <%- klass.rawClassName %> <%- klass.isPOD ? '' : '*' %>raw);
         static Napi::Function GetConstructor(Napi::Env env);
         <%- klass.cppClassName -%>(const Napi::CallbackInfo& info);
 
@@ -25,7 +25,7 @@ class <%- klass.cppClassName -%> : public
         Napi::Value <%- func.name %>_async(const Napi::CallbackInfo& info);
     <%_ } _%>
 
-    <%- klass.rawClassName %> * _underlying;
+    <%- klass.rawClassName %> <%- klass.isPOD ? '' : '*' %> _underlying;
 
     <%_ if (klass.freeFunctionName && !klass.protectedDestructor) { _%>
     ~<%- klass.cppClassName -%>();

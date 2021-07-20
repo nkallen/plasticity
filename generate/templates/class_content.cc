@@ -70,7 +70,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
     <%_ } _%>
 }
 
-Napi::Object <%- klass.cppClassName %>::NewInstance(Napi::Env env, <%- klass.rawClassName %> *underlying) {
+Napi::Object <%- klass.cppClassName %>::NewInstance(Napi::Env env, <%- klass.rawClassName %> <%- klass.isPOD ? '' : '*' %>underlying) {
     Napi::Object obj = env.GetInstanceData<Napi::ObjectReference>()->Value();
     Napi::Value value = obj.Get("<%- klass.jsClassName %>");
     Napi::Function f = value.As<Napi::Function>();
@@ -96,7 +96,7 @@ Napi::Function <%- klass.cppClassName %>::GetConstructor(Napi::Env env) {
 Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     Napi::Value _to;
-    <%- field.rawType %> <%- field.name %> = _underlying-><%- field.name %>;
+    <%- field.const %> <%- field.rawType %> <%- field.ref %> <%- field.name %> = _underlying<%- klass.isPOD ? '.' : '->' %><%- field.name %>;
     <%- include('convert_to_js.cc', { arg: field, skipCopy: false }) %>
     return _to;
 }
@@ -104,7 +104,7 @@ Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::Ca
 void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackInfo &info, const Napi::Value &value) {
     Napi::Env env = info.Env();
     <%- include('convert_from_js.cc', { arg: field, _return: 'void' }) %>
-    _underlying-><%- field.name %> = <%- field.name %>;
+    _underlying<%- klass.isPOD ? '.' : '->' %><%- field.name %> = <%- field.name %>;
 }
 <%_ } _%>
 

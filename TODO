@@ -28,6 +28,7 @@ audit array conversion is reserving and freeing elements:
     ::AddRefItems( curveArray );
     ::ReleaseItems( curveArray );
     and especially check if instantiated RPArray/etc. is freed altogether
+    - convert MbCartPoint3D and Vector to isPOD
 
 gizmos for primitives
 

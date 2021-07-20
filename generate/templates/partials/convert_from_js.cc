@@ -23,7 +23,7 @@
         <%_ if (arg.elementType.rawType == "double") { _%>
             if (!<%- arg.name %>_[i].IsNumber()) {
                 <%_ if (_return == 'value') { _%>
-                    Napi::Error::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required.").ThrowAsJavaScriptException();
+                    Napi::Error::New(env, "<%- arg.elementType.jsType %> <%-arg.name%> is required.").ThrowAsJavaScriptException();
                     return env.Undefined();
                 <%_ } else if (_return == 'promise') { _%>
                     deferred.Reject(Napi::String::New(env, "<%-arg.elementType.jsType%> <%-arg.name%> is required."));
@@ -48,7 +48,7 @@
                     return;
                 <%_ } _%>
             } else {
-                <%- arg.name %><%- (arg.isIterator) ? '_list' : '' %><%- (_return == 'promise' || arg.ref == '*') ? '->' : '.' %>Add(<%_ if (!arg.elementType.isReference) { _%>*<%_ } _%><%- arg.elementType.cppType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
+                <%- arg.name %><%- (arg.isIterator) ? '_list' : '' %><%- (_return == 'promise' || arg.ref == '*') ? '->' : '.' %>Add(<%_ if (!arg.elementType.isReference && !arg.elementType.klass?.isPOD) { _%>*<%_ } _%><%- arg.elementType.cppType %>::Unwrap(<%- arg.name %>_[i].ToObject())->_underlying);
             }
         <%_ } _%>
     }
@@ -73,7 +73,7 @@
             <%- arg.rawType %> <%- arg.ref %> <%- arg.name %>;
         <%_ } _%>
         if (!(info[<%- arg.jsIndex %>].IsNull() || info[<%- arg.jsIndex %>].IsUndefined())) {
-            <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject()); // 1
+            <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject());
                 <%- arg.name %> = <% if (!arg.isPointer) { %>*<% } %>  <%- arg.name %>_ <%_ if (!arg.isRaw) { _%> ->_underlying <%_ }  _%>;
         }
     <%_ } else { _%>
@@ -91,7 +91,7 @@
         }
         const class <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject());
         
-        <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = <%_ if (!arg.isPointer) { _%>*<%_ } _%><%- arg.name %>_->_underlying;
+        <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = <%_ if (!arg.isPointer && !arg.klass?.isPOD) { _%>*<%_ } _%><%- arg.name %>_->_underlying;
         
     <%_ } _%>
 <%_ } _%>

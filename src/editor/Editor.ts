@@ -48,7 +48,7 @@ export interface EditorSignals {
     keybindingsCleared: signals.Signal<string[]>;
     hovered: signals.Signal<THREE.Intersection[]>;
     historyChanged: signals.Signal;
-    contoursChanged: signals.Signal;
+    contoursChanged: signals.Signal<visual.SpaceInstance<visual.Curve3D>>;
     creatorChanged: signals.Signal<{ creator: c3d.Creator, item: visual.Item }>;
     dialogAdded: signals.Signal<AbstractDialog<any>>;
     dialogRemoved: signals.Signal;

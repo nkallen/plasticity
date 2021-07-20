@@ -48,6 +48,52 @@ export class RegionFactory extends GeometryFactory {
     protected doCancel() { }
 }
 
+export class FooFactory extends GeometryFactory {
+    newCurve!: visual.SpaceInstance<visual.Curve3D>;
+    curves!: visual.SpaceInstance<visual.Curve3D>[];
+
+    protected async doCommit() {
+        const curves = [];
+        const newCurve = this.curve3d2curve(this.newCurve);
+        if (newCurve === undefined) throw new Error("invalid precondition");
+        for (const curve3d of this.curves) {
+            const curve = this.curve3d2curve(curve3d);
+            if (curve !== undefined) curves.push(curve);
+        }
+
+        const crosses = c3d.CurveEnvelope.IntersectWithAll(newCurve, curves, true);
+        for (const cross of crosses) {
+            console.log(cross.on1.curve, cross.on1.t, cross.on2.curve, cross.on2.t);
+            console.log(cross.on1.curve.IsA());
+        }
+
+        throw new Error("check");
+    }
+
+    protected doCancel() { }
+    protected async doUpdate() { }
+
+    curve3d2curve(from: visual.SpaceInstance<visual.Curve3D>) {
+        const placement_ = new c3d.Placement3D();
+        const inst = this.db.lookup(from);
+        const item = inst.GetSpaceItem();
+        if (item === null) throw new Error("invalid precondition");
+        const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+        try {
+            const { curve2d, placement } = curve.GetPlaneCurve(false);
+
+            // Apply an 2d placement to the curve, so that any future booleans work
+            const matrix = placement.GetMatrixToPlace(placement_);
+            curve2d.Transform(matrix);
+
+            return curve2d;
+        } catch (e) {
+            console.warn(e);
+        }
+    }
+}
+
+
 // export class RegionFactory2 extends GeometryFactory {
 //     contours = new Array<visual.SpaceInstance<visual.Curve3D>>();
 //     point!: THREE.Vector2;

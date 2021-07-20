@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
-import { assertUnreachable } from '../util/Util';
+import { assertUnreachable, GConstructor } from '../util/Util';
 import { EditorSignals } from './Editor';
 import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
@@ -117,7 +117,7 @@ export class GeometryDatabase {
         assertUnreachable(object);
     }
 
-    find<T extends visual.Item>(klass: any): T[] {
+    find<T extends visual.Item>(klass: GConstructor<T>): T[] {
         const result: visual.Item[] = [];
         for (const { view: visual } of this.geometryModel.values()) {
             if (visual instanceof klass) {

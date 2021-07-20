@@ -54,11 +54,11 @@ class TypeRegistry {
             return {
                 rawType: rawType,
                 cppType: klass.cppClassName,
-                jsType: klass.jsClassName
+                jsType: klass.jsClassName,
             }
         }
 
-        const cppType = rawType.replace(/^Mb/, '');
+        const cppType = rawType.replace(/^Mb/, '').replace(/<[^>]+>/, '');
         return {
             rawType: rawType,
             jsType: cppType2jsType(cppType),
@@ -81,6 +81,8 @@ class ClassDeclaration {
         this.desc = desc;
         this.typeRegistry = typeRegistry;
         this.rawHeader = desc.rawHeader;
+        this.template = desc.template;
+        this.isPOD = desc.isPOD;
         typeRegistry.register(this);
 
         // For "extends", we inherit functions as well as the free function name.
@@ -259,6 +261,7 @@ class TypeDeclaration {
     constructor(rawType, typeRegistry) {
         this.typeRegistry = typeRegistry;
         const type = typeRegistry.resolveType(rawType);
+
         Object.assign(this, type);
         if (/Array/.exec(this.rawType) || /List/.exec(this.rawType) || /LIterator/.test(this.rawType)) {
             this.jsType = "Array";
@@ -312,6 +315,7 @@ class ParamDeclaration extends TypeDeclaration {
 
         super(matchType.groups.type, typeRegistry);
 
+        this.klass = typeRegistry.resolveClass(this.cppType);
         this.const = matchType.groups.const;
         this.cppIndex = cppIndex;
         this.jsIndex = jsIndex;
@@ -323,6 +327,7 @@ class ParamDeclaration extends TypeDeclaration {
         if (matchType.groups.elementType) {
             this.elementType = typeRegistry.resolveType(matchType.groups.elementType);
             this.elementType.isReference = /RPArray|LIterator/.test(this.rawType);
+            this.elementType.klass = typeRegistry.resolveClass(this.elementType.cppType);
         }
         Object.assign(this, options[this.name]);
     }
@@ -338,6 +343,7 @@ class ParamDeclaration extends TypeDeclaration {
     get shouldAlloc() {
         return (this.isReturn && this.ref == "&") || (this.isReturn && this.isArray)
     }
+
 }
 
 class ReturnDeclaration extends TypeDeclaration {
@@ -398,6 +404,6 @@ class FieldDeclaration extends ParamDeclaration {
     }
 
     get isOnStack() {
-        return true;
+        return this.ref != "*";
     }
 }

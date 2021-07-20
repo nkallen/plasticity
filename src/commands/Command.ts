@@ -147,9 +147,9 @@ export class CircleCommand extends Command {
             circle.update();
         }).resource(this);
 
-        await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -179,9 +179,9 @@ export class TwoPointCircleCommand extends Command {
             circle.update();
         }).resource(this);
 
-        await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -201,9 +201,9 @@ export class ThreePointCircleCommand extends Command {
             circle.update();
         }).resource(this);
 
-        await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -233,9 +233,9 @@ export class CenterPointArcCommand extends Command {
             arc.update();
         }).resource(this);
 
-        await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -264,9 +264,9 @@ export class CenterEllipseCommand extends Command {
             ellipse.update();
         }).resource(this);
 
-        await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -292,9 +292,9 @@ export class ThreePointEllipseCommand extends Command {
             ellipse.update();
         }).resource(this);
 
-        await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -320,9 +320,9 @@ export class ThreePointArcCommand extends Command {
             arc.update();
         }).resource(this);
 
-        await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -353,9 +353,9 @@ export class PolygonCommand extends Command {
             polygon.update();
         }).resource(this);
 
-        await polygon.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await polygon.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -502,8 +502,8 @@ export class CurveCommand extends Command {
             }
         }
 
-        await makeCurve.commit();
-        this.editor.signals.contoursChanged.dispatch();
+        const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.signals.contoursChanged.dispatch(curve);
     }
 }
 
@@ -536,9 +536,9 @@ export class ThreePointRectangleCommand extends Command {
             rect.update();
         }).resource(this);
 
-        await rect.commit();
+        const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -561,9 +561,9 @@ export class CornerRectangleCommand extends Command {
             rect.update();
         }).resource(this);
 
-        await rect.commit();
+        const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -588,7 +588,9 @@ export class CenterRectangleCommand extends Command {
 
         await rect.commit();
 
-        this.editor.signals.contoursChanged.dispatch();
+        const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -1123,6 +1125,6 @@ export class ChangePointCommand extends Command {
         const newPoint = newCurve.points.findByIndex(controlPoint.index)!;
         this.editor.selection.selectControlPoint(newPoint, newInstance);
 
-        this.editor.signals.contoursChanged.dispatch();
+        this.editor.signals.contoursChanged.dispatch(newInstance);
     }
 }
