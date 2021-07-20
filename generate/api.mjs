@@ -198,7 +198,8 @@ export default {
             extends: "PlaneItem",
             dependencies: ["PlaneItem.h"],
             functions: [
-                "void Inverse(MbRegTransform * iReg = NULL)"
+                "void Inverse(MbRegTransform * iReg = NULL)",
+                "MbCurve * Trimmed(double t1, double t2, int sense)",
             ],
         },
         Contour: {
@@ -1064,7 +1065,8 @@ export default {
             rawHeader: "alg_curve_envelope.h",
             dependencies: ["Curve.h", "CrossPoint.h"],
             functions: [
-                { signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)", cross: isReturn }
+                { signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)", cross: isReturn },
+                "void SortCrossPoints(double tProj, const MbCurve * selectCurve, SArray<MbCrossPoint> & cross, SArray<MbCrossPoint> & crossLeft, SArray<MbCrossPoint> & crossRight)",
             ]
         },
         CurveUtil: {
