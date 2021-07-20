@@ -15,6 +15,10 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
         InstanceMethod<&<%- klass.cppClassName %>::<%- func.name %>_async>("<%- func.name %>_async"),
             <%_ } _%>
         <%_ } _%>
+        <%_ if (!klass.isPOD) { _%>
+            InstanceMethod<&<%- klass.cppClassName %>::Id>("Id"),
+        <%_ } _%>
+
         <%_ for (const field of klass.fields) { _%>
         InstanceAccessor<&<%- klass.cppClassName %>::GetValue_<%- field.name %>, &<%- klass.cppClassName %>::SetValue_<%- field.name %>>("<%- field.name %>"),
         <%_ } _%>

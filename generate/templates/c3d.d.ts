@@ -23,7 +23,10 @@ declare module "*c3d.node" {
             <%_ for (const field of c.fields) { _%>
                 <%- field.name %>: <%- field.jsType %>;
             <%_ } _%>
-        }
+            <%_ if (!c.isPOD) { _%>
+                Id(): bigint;
+            <%_ } _%>
+            }
         
     <%_ } _%>
 
