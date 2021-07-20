@@ -572,14 +572,37 @@ export enum ResultType {
 }
 
 export enum ArcCreateWay {
-    
+
 }
 
-enum LocalSystemType3D 
-{
-  CartesianSystem,   ///< \ru Декартова система координат. \en Cartesian coordinate system. 
-  CylindricalSystem, ///< \ru Цилиндрическая система координат. \en Cylindrical coordinate system. 
-  SphericalSystem,   ///< \ru Сферическая система координат. \en Spherical coordinate system. 
+enum LocalSystemType3D {
+    CartesianSystem,   ///< \ru Декартова система координат. \en Cartesian coordinate system. 
+    CylindricalSystem, ///< \ru Цилиндрическая система координат. \en Cylindrical coordinate system. 
+    SphericalSystem,   ///< \ru Сферическая система координат. \en Spherical coordinate system. 
+};
+
+enum ConnectingType {
+    Fillet = 0, ///< \ru Скругление круговое на цилиндре. \en Circular fillet on the cylinder. 
+    OnSurface = 1, ///< \ru Скругление пересечением цилиндра и общей поверхности сопрягаемых кривых. \en Fillet by intersection of the cylinder and common surface of the mating curves. 
+    Spline = 2, ///< \ru Сопряжение сплайном. \en Conjugation by spline. 
+    Double = 3, ///< \ru Сопряжение двумя дугами. \en Conjugation by two arcs. 
+    Bridge = 4, ///< \ru Сопряжение кубической кривой. \en Conjugation by a cubic curve. 
+};
+
+enum ItemLocation {
+    Undefined = -3,  ///< \ru Не определялось. \en Not defined. 
+    Unknown = -2,  ///< \ru Не получилось определить. \en Failed to define. 
+    OutOfItem = -1,  ///< \ru Вне объекта. \en Outside the object. 
+    OnItem = 0,  ///< \ru На объекте (на границе). \en On the object (on the boundary). 
+    InItem = 1,  ///< \ru Внутри объекта. \en Inside the object. 
+    ByItem = 2,  ///< \ru Условно внутри объекта (для незамкнутых оболочек). \en Conditionally inside the object (for non-closed shells). 
+};
+
+enum Location {
+    Undefined = ItemLocation.Unknown,   ///< \ru Положение не определено, кривая разомкнута.  \en Failed to define, curve is not closed. 
+    Outside = ItemLocation.OutOfItem, ///< \ru Точка снаружи замкнутой кривой. \en Outside the curve. 
+    OnCurve = ItemLocation.OnItem,    ///< \ru Точка на кривой. \en On the curve. 
+    Inside = ItemLocation.InItem,    ///< \ru Точка внутри замкнутой кривой. \en Inside the curve. 
 };
 
 Object.assign(c3d, {
@@ -599,4 +622,7 @@ Object.assign(c3d, {
     RegionOperationType: RegionOperationType,
     ResultType: ResultType,
     LocalSystemType3D: LocalSystemType3D,
+    ConnectingType: ConnectingType,
+    ItemLocation: ItemLocation,
+    Location: Location
 });

@@ -212,6 +212,8 @@ export default {
                 { signature: "void _Tangent(double &t, MbVector &v)", v: isReturn },
                 { signature: "void Normal(double &t, MbVector &v)", v: isReturn },
                 { signature: "void _Normal(double &t, MbVector &v)", v: isReturn },
+                "MbeItemLocation PointRelative(const MbCartPoint &pnt, double eps=Math::LengthEps)",
+                "MbeLocation PointLocation(const MbCartPoint &pnt, double eps=Math::LengthEps)"
             ],
         },
         Contour: {
@@ -1109,5 +1111,7 @@ export default {
         "MbeLocalSystemType3D",
         "MbeConnectingType",
         "MbePlaneType",
+        "MbeItemLocation",
+        "MbeLocation"
     ]
 }
