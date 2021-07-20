@@ -190,7 +190,7 @@ export default {
                 "MbePlaneType Family()",
                 { signature: "MbPlaneItem * Cast()", isManual: true },
                 { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn },
-                "void Transform(const MbMatrix & matr, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)"
+                "void Transform(const MbMatrix & matr, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)",
             ]
         },
         Curve: {
@@ -200,6 +200,18 @@ export default {
             functions: [
                 "void Inverse(MbRegTransform * iReg = NULL)",
                 "MbCurve * Trimmed(double t1, double t2, int sense)",
+                "bool IsStraight(bool ignoreParams = false)",
+                { signature: "void PointOn(double &t, MbCartPoint &p)", p: isReturn },
+                { signature: "void _PointOn(double &t, MbCartPoint &p)", p: isReturn },
+                { signature: "void Explore(double & t, bool ext, MbCartPoint & pnt, MbVector & fir, MbVector * sec, MbVector * thir)", pnt: isReturn, fir: isReturn, sec: isReturn, thir: isReturn },
+                { signature: "void FirstDer(double &t, MbVector &v)", v: isReturn },
+                { signature: "void _FirstDer(double &t, MbVector &v)", v: isReturn },
+                { signature: "void SecondDer(double &t, MbVector &v)", v: isReturn },
+                { signature: "void _SecondDer(double &t, MbVector &v)", v: isReturn },
+                { signature: "void Tangent(double &t, MbVector &v)", v: isReturn },
+                { signature: "void _Tangent(double &t, MbVector &v)", v: isReturn },
+                { signature: "void Normal(double &t, MbVector &v)", v: isReturn },
+                { signature: "void _Normal(double &t, MbVector &v)", v: isReturn },
             ],
         },
         Contour: {
@@ -1066,7 +1078,7 @@ export default {
             dependencies: ["Curve.h", "CrossPoint.h"],
             functions: [
                 { signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)", cross: isReturn },
-                "void SortCrossPoints(double tProj, const MbCurve * selectCurve, SArray<MbCrossPoint> & cross, SArray<MbCrossPoint> & crossLeft, SArray<MbCrossPoint> & crossRight)",
+                { signature: "void SortCrossPoints(double tProj, const MbCurve * selectCurve, SArray<MbCrossPoint> & cross, SArray<MbCrossPoint> & crossLeft, SArray<MbCrossPoint> & crossRight)", crossLeft: isReturn, crossRight: isReturn },
             ]
         },
         CurveUtil: {

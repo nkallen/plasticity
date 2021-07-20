@@ -33,8 +33,6 @@ export class RegionFactory extends GeometryFactory {
             }
         }
 
-        const first = curves[0];
-        const rest = curves.slice(1);
         // const crosses = c3d.CurveEnvelope.IntersectWithAll(first, rest, true);
 
         const { contours, graph } = c3d.ContourGraph.OuterContoursBuilder(curves);
