@@ -62,12 +62,25 @@ export class FooFactory extends GeometryFactory {
         }
 
         const crosses = c3d.CurveEnvelope.IntersectWithAll(newCurve, curves, true);
-        for (const cross of crosses) {
-            console.log(cross.on1.curve, cross.on1.t, cross.on2.curve, cross.on2.t);
-            console.log(cross.on1.curve.IsA());
-        }
 
-        throw new Error("check");
+        const result = [];
+        let start = newCurve.GetTMin();
+        for (const cross of crosses) {
+            const { t, curve } = cross.on1;
+            const stop = t;
+            const trimmed = curve.Trimmed(start, stop, 1)!;
+            result.push(trimmed);
+            start = stop;
+        }
+        const trimmed = newCurve.Trimmed(start, newCurve.GetTMax(), 1)!;
+        result.push(trimmed);
+        
+
+        const ps = [];
+        for (const r of result) {
+            ps.push(this.db.addItem(new c3d.SpaceInstance(new c3d.PlaneCurve(new c3d.Placement3D(), r, true))));;
+        }
+        return Promise.all(ps);
     }
 
     protected doCancel() { }

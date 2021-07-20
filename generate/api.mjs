@@ -201,6 +201,10 @@ export default {
                 "void Inverse(MbRegTransform * iReg = NULL)",
                 "MbCurve * Trimmed(double t1, double t2, int sense)",
                 "bool IsStraight(bool ignoreParams = false)",
+                "bool IsClosed()",
+                "double GetTMax()",
+                "double GetTMin()",
+                "double GetPeriod()",
                 { signature: "void PointOn(double &t, MbCartPoint &p)", p: isReturn },
                 { signature: "void _PointOn(double &t, MbCartPoint &p)", p: isReturn },
                 { signature: "void Explore(double & t, bool ext, MbCartPoint & pnt, MbVector & fir, MbVector * sec, MbVector * thir)", pnt: isReturn, fir: isReturn, sec: isReturn, thir: isReturn },
@@ -252,6 +256,14 @@ export default {
                 "double IsPeriodic()",
                 { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint3D & point)", point: isReturn },
                 { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn }
+            ]
+        },
+        PlaneCurve: {
+            rawHeader: "cur_plane_curve.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h", "Placement3D.h"],
+            initializers: [
+                "const MbPlacement3D & placement, const MbCurve & init, bool same"
             ]
         },
         Contour3D: {
