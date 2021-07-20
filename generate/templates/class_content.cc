@@ -97,6 +97,9 @@ Napi::Value <%- klass.cppClassName %>::GetValue_<%- field.name %>(const Napi::Ca
     Napi::Env env = info.Env();
     Napi::Value _to;
     <%- field.const %> <%- field.rawType %> <%- field.ref %> <%- field.name %> = _underlying<%- klass.isPOD ? '.' : '->' %><%- field.name %>;
+    <%_ if (!field.isOnStack) { _%>
+        <%- field.name %>->AddRef();
+    <%_ } _%>
     <%- include('convert_to_js.cc', { arg: field, skipCopy: false }) %>
     return _to;
 }
