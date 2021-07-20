@@ -75,7 +75,6 @@ export class FooFactory extends GeometryFactory {
         const trimmed = newCurve.Trimmed(start, newCurve.GetTMax(), 1)!;
         result.push(trimmed);
         
-
         const ps = [];
         for (const r of result) {
             ps.push(this.db.addItem(new c3d.SpaceInstance(new c3d.PlaneCurve(new c3d.Placement3D(), r, true))));;

@@ -104,7 +104,7 @@
     "js-beautify": "^1.13.5",
     "less": "^4.1.1",
     "less-loader": "7.3.0",
-    "node-addon-api": "^3.1.0",
+    "node-addon-api": "^4.0.0",
     "node-loader": "^1.0.1",
     "style-loader": "^1.2.1",
     "svg-inline-loader": "^0.8.2",

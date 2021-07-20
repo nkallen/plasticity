@@ -111,6 +111,13 @@ void <%- klass.cppClassName %>::SetValue_<%- field.name %>(const Napi::CallbackI
 }
 <%_ } _%>
 
+<%_ if (!klass.isPOD) { _%>
+    Napi::Value <%- klass.cppClassName %>::Id(const Napi::CallbackInfo &info) {
+        Napi::Env env = info.Env();
+        return Napi::BigInt::New(env, (uint64_t)(uintptr_t)_underlying);
+    }
+<%_ } _%>
+
 <%_ if (klass.freeFunctionName && !klass.protectedDestructor) { _%>
 <%- klass.cppClassName %>::~<%- klass.cppClassName %>() {
     // std::cout << "calling <%- klass.freeFunctionName %> on <%- klass.cppClassName %> for " << this->_underlying->GetUseCount() << "\n";

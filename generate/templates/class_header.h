@@ -2,6 +2,7 @@
 #define <%- klass.cppClassName.toUpperCase() %>_H
 
 #include <napi.h>
+#include <node_api.h>
 #include <vector>
 
 #include <<%- klass.rawHeader %>>
@@ -23,6 +24,9 @@ class <%- klass.cppClassName -%> : public
     <%_ for (const func of klass.functions) { _%>
         Napi::Value <%- func.name %>(const Napi::CallbackInfo& info);
         Napi::Value <%- func.name %>_async(const Napi::CallbackInfo& info);
+    <%_ } _%>
+    <%_ if (!klass.isPOD) { _%>
+        Napi::Value Id(const Napi::CallbackInfo& info);
     <%_ } _%>
 
     <%- klass.rawClassName %> <%- klass.isPOD ? '' : '*' %> _underlying;
