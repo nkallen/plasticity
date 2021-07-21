@@ -89,6 +89,7 @@ export class Editor {
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly sprites = new SpriteDatabase();
     readonly db = new GeometryDatabase(this.materials, this.signals);
+    readonly contours: ContourManager = new ContourManager(this.db, this.signals);
     readonly snaps = new SnapManager(this.db, this.sprites, this.signals);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
@@ -98,7 +99,6 @@ export class Editor {
     readonly scene = new THREE.Scene();
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
-    readonly contours = new ContourManager(this, this.signals);
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
     readonly history = new History(this.originator, this.signals);
     readonly transactoins = new Transactions(this.db, this.signals);

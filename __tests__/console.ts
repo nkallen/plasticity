@@ -14,7 +14,4 @@ import '../lib/c3d/enums'
 import license from '../license-key.json';
 import c3d from '../build/Release/c3d.node';
 
-const SegfaultHandler = require('segfault-handler');
-SegfaultHandler.registerHandler('crash.log');
-
 c3d.Enabler.EnableMathModules(license.name, license.key);

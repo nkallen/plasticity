@@ -202,9 +202,11 @@ export default {
                 "MbCurve * Trimmed(double t1, double t2, int sense)",
                 "bool IsStraight(bool ignoreParams = false)",
                 "bool IsClosed()",
+                "bool IsBounded()",
                 "double GetTMax()",
                 "double GetTMin()",
                 "double GetPeriod()",
+                { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint & point)", point: isReturn },
                 { signature: "void PointOn(double &t, MbCartPoint &p)", p: isReturn },
                 { signature: "void _PointOn(double &t, MbCartPoint &p)", p: isReturn },
                 { signature: "void Explore(double & t, bool ext, MbCartPoint & pnt, MbVector & fir, MbVector * sec, MbVector * thir)", pnt: isReturn, fir: isReturn, sec: isReturn, thir: isReturn },
@@ -955,6 +957,7 @@ export default {
             isPOD: true,
             rawHeader: "mb_cross_point.h",
             dependencies: ["CartPoint.h", "Curve.h", "PointOnCurve.h"],
+            initializers: ["const MbCartPoint & pnt, const MbPointOnCurve<MbCurve> & pOn1, const MbPointOnCurve<MbCurve> & pOn2"],
             fields: [
                 "MbCartPoint p",
                 "MbPointOnCurve<MbCurve> on1",
@@ -967,6 +970,7 @@ export default {
             rawClassName: "MbPointOnCurve<MbCurve>",
             rawHeader: "mb_cross_point.h",
             dependencies: ["Curve.h"],
+            initializers: ["double t, const MbCurve * curve"],
             fields: [
                 "double t",
                 "const MbCurve * curve",
@@ -1109,7 +1113,11 @@ export default {
             rawHeader: "alg_curve_envelope.h",
             dependencies: ["Curve.h", "CrossPoint.h"],
             functions: [
-                { signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)", cross: isReturn },
+                {
+                    signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)", 
+                    // after: "::SortCrossPoints(selectCurve->GetTMin(), selectCurve, cross, SArray<MbCrossPoint>(), SArray<MbCrossPoint>()); ",
+                    cross: isReturn
+                },
                 { signature: "void SortCrossPoints(double tProj, const MbCurve * selectCurve, SArray<MbCrossPoint> & cross, SArray<MbCrossPoint> & crossLeft, SArray<MbCrossPoint> & crossRight)", crossLeft: isReturn, crossRight: isReturn },
             ]
         },

@@ -15,6 +15,7 @@ import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
+import * as visual from "../../editor/VisualModel";
 
 const near = 0.01;
 const far = 1000;
@@ -311,6 +312,7 @@ export default (editor: EditorLike) => {
             const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
             orthographicCamera.zoom = 3;
             const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, 1, near, far);
+            // orthographicCamera.layers = perspectiveCamera.layers = visual.EnabledLayers;
 
             let camera: THREE.Camera;
             let n: THREE.Vector3;

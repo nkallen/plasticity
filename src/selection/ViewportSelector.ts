@@ -3,6 +3,7 @@ import * as THREE from "three";
 import Command, * as cmd from "../commands/Command";
 import { ChangeSelectionCommand } from "../commands/CommandLike";
 import { EditorOriginator } from "../editor/History";
+import * as visual from "../editor/VisualModel";
 
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,
@@ -29,6 +30,8 @@ export class ViewportSelector extends THREE.EventDispatcher {
         // @ts-expect-error("Line2 is missing from the typedef")
         this.raycaster.params.Line2 = { threshold: 10 };
         this.raycaster.params.Mesh.threshold = 0;
+        this.raycaster.layers = visual.EnabledLayers;
+        // this.raycaster.layers.enable(visual.Layers.Solid);
 
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);

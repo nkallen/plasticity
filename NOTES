@@ -1,1 +1,6 @@
 codesign -f -s "Apple Development: socialmediamaster9000@gmail.com" Release/libc3d.dylib\n
+
+node-gyp configure --target=13.1.7 --arch=x64 --dist-url=https://electronjs.org/headers
+
+    // ::SortCrossPoints(tmin, selectCurve, *cross, crossLeft, crossRight);
+    // ::RemoveEquPoints(tmin, *cross);

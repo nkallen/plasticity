@@ -22,6 +22,8 @@ command validation (curves fail at beginning, as well as click away aborting lot
 - keep lastPointerEvent as a global on editor
 - dispatch keyboard events to the target of lastPointerEvent
 
+rename Id() .id
+
 redo all the basic commands (creating a box, etc.,) including the gui
 
 audit array conversion is reserving and freeing elements:

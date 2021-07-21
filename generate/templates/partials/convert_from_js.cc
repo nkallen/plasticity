@@ -91,7 +91,7 @@
         }
         const class <%- arg.cppType %> *<%- arg.name %>_ = <%- arg.cppType %>::Unwrap(info[<%- arg.jsIndex %>].ToObject());
         
-        <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = <%_ if (!arg.isPointer && !arg.klass?.isPOD) { _%>*<%_ } _%><%- arg.name %>_->_underlying;
+        <%- arg.const %> <%- arg.rawType %> <%- arg.ref %> <%- arg.name %> = <%_ if (!arg.isPointer && !arg.klass?.isPOD) { _%>*<%_ } _%><%- arg.name %>_->_underlying;
         
     <%_ } _%>
 <%_ } _%>

@@ -130,8 +130,8 @@ export class GeometryDatabase {
     get visibleObjects(): Array<visual.Item> {
         const { geometryModel, hidden } = this;
         const difference = [];
-        for (const { view: visual } of geometryModel.values()) {
-            if (!hidden.has(visual.simpleName)) difference.push(visual);
+        for (const { view } of geometryModel.values()) {
+            if (!hidden.has(view.simpleName)) difference.push(view);
         }
         return difference;
     }

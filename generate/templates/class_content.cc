@@ -57,11 +57,17 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
             <%- include('convert_from_js.cc', { arg: arg, _return: 'void' }) %>
             <%_ } _%>
 
-            <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(<%- initializer.params.map((arg) => arg.name).join(',') %>);
-            if (underlying == NULL) {
-                Napi::Error::New(env, "Invalid construction").ThrowAsJavaScriptException();
-                return;
-            }
+            <%_ if (klass.isPOD) { _%>
+                <%- klass.rawClassName %> underlying(<%- initializer.params.map((arg) => arg.name).join(',') %>);
+            <%_ } else { _%>
+                <%- klass.rawClassName %> *underlying = new <%- klass.rawClassName %>(<%- initializer.params.map((arg) => arg.name).join(',') %>);
+            <%_ } _%>
+            <%_ if (!klass.isPOD) { _%>
+                if (underlying == NULL) {
+                    Napi::Error::New(env, "Invalid construction").ThrowAsJavaScriptException();
+                    return;
+                }
+            <%_ } _%>
             <%_ if (klass.freeFunctionName == 'DeleteItem') { _%>underlying->AddRef();<%_ } _%>
             this->_underlying = underlying;
         <%_ } _%>

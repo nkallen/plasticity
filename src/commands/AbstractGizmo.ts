@@ -246,6 +246,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     angle = 0;
 
     private raycaster = new THREE.Raycaster();
+    // FIXME set layer
 
     constructor(
         private readonly gizmo: AbstractGizmo<T>,

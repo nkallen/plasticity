@@ -197,6 +197,7 @@ export class CurveEdge extends Edge {
         result.userData.name = edge.name;
         result.userData.simpleName = `${parentId},${edge.i}`;
         result.userData.index = edge.i;
+        result.layers.set(Layers.CurveEdge);
         return result;
     }
 
@@ -229,6 +230,7 @@ export class Face extends TopologyItem {
         result.userData.name = grid.name;
         result.userData.simpleName = `${parentId},${grid.i}`
         result.userData.index = grid.i;
+        result.layers.set(Layers.Face);
         return result;
     }
 
@@ -399,6 +401,7 @@ export class SolidBuilder {
     }
 
     build(): Solid {
+        this.solid.layers.set(Layers.Solid);
         return this.solid;
     }
 }
@@ -412,6 +415,7 @@ export class SpaceInstanceBuilder<T extends SpaceItem> {
     }
 
     build(): SpaceInstance<T> {
+        this.instance.layers.set(Layers.Curve);
         return this.instance;
     }
 }
@@ -425,6 +429,7 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
     }
 
     build(): PlaneInstance<T> {
+        this.instance.layers.set(Layers.Region);
         return this.instance;
     }
 }
@@ -492,3 +497,27 @@ const RenderOrder = {
     Face: 1,
     CurveSegment: 1,
 }
+
+export enum Layers {
+    Default,
+
+    Overlay,
+    ViewportGizmo,
+    ObjectGizmo,
+
+    XRay,
+    CurveFragment,
+
+    Solid,
+    Curve,
+    Region,
+
+    ControlPoint,
+    Face,
+    CurveEdge,
+}
+
+export const EnabledLayers = new THREE.Layers();
+EnabledLayers.enableAll();
+EnabledLayers.disable(Layers.Curve);
+// EnabledLayers.disable(Layers.Solid);

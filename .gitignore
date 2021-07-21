@@ -115,3 +115,13 @@ license-key.json
 **/.history
 
 .vs
+
+/yarn-offline-cache
+
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
