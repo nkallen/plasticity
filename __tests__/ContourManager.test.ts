@@ -47,8 +47,16 @@ test('foo', async () => {
     makeCircle3.center = new THREE.Vector3(0, 1.1, 0);
     makeCircle3.radius = 1;
     const circle3 = await makeCircle3.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(2 + 4 + 1);
+    expect(db.visibleObjects.length).toBe(6 + 1);
 
     await contours.add(circle3);
     expect(db.visibleObjects.length).toBe(3 + 8);
+
+    await contours.remove(circle3);
+    db.removeItem(circle3);
+    expect(db.visibleObjects.length).toBe(6);
+
+    await contours.remove(circle2);
+    db.removeItem(circle2);
+    expect(db.visibleObjects.length).toBe(1);
 });
