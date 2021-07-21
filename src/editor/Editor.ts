@@ -52,6 +52,8 @@ export interface EditorSignals {
     creatorChanged: signals.Signal<{ creator: c3d.Creator, item: visual.Item }>;
     dialogAdded: signals.Signal<AbstractDialog<any>>;
     dialogRemoved: signals.Signal;
+    curveAdded: signals.Signal<visual.SpaceInstance<visual.Curve3D>>;
+    curveRemoved: signals.Signal<visual.SpaceInstance<visual.Curve3D>>;
 }
 
 export class Editor {
@@ -83,6 +85,8 @@ export class Editor {
         creatorChanged: new signals.Signal(),
         dialogAdded: new signals.Signal(),
         dialogRemoved: new signals.Signal(),
+        curveAdded: new signals.Signal(),
+        curveRemoved: new signals.Signal(),
     }
 
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);

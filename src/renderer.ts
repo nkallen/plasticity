@@ -7,6 +7,7 @@ import '../lib/c3d/enums';
 import license from '../license-key.json';
 import BoxFactory from './commands/box/BoxFactory';
 import SphereFactory from './commands/sphere/SphereFactory';
+import { CircleFactory } from './commands/circle/CircleFactory';
 import Dialog from './components/modifiers/Dialog';
 import Modifiers from './components/modifiers/Modifiers';
 import NumberScrubber from './components/modifiers/NumberScrubber';
@@ -58,3 +59,18 @@ Dialog(editor);
 // makeSphere.center = new THREE.Vector3(0.5, 0.5, 1.25);
 // makeSphere.radius = 0.5;
 // makeSphere.commit();
+
+// const makeCircle1 = new CircleFactory(editor.db, editor.materials, editor.signals);
+// makeCircle1.center = new THREE.Vector3(0,-1.1,0);
+// makeCircle1.radius = 1;
+// makeCircle1.commit();
+
+// const makeCircle2 = new CircleFactory(editor.db, editor.materials, editor.signals);
+// makeCircle2.center = new THREE.Vector3(0,0,0);
+// makeCircle2.radius = 1;
+// makeCircle2.commit();
+
+// const makeCircle3 = new CircleFactory(editor.db, editor.materials, editor.signals);
+// makeCircle3.center = new THREE.Vector3(0,1.1,0);
+// makeCircle3.radius = 1;
+// makeCircle3.commit();

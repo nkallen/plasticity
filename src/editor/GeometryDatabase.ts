@@ -28,7 +28,7 @@ export class GeometryDatabase {
         private readonly signals: EditorSignals) { }
 
     private counter = 0;
-    async addItem(model: c3d.Item): Promise<visual.Item> {
+    async addItem(model: c3d.Item, silent: 'silent' | 'broadcast' = 'broadcast'): Promise<visual.Item> {
         const current = this.counter++;
 
         const view = await this.meshes(model, current, precision_distance);
@@ -44,8 +44,12 @@ export class GeometryDatabase {
             }
         })
 
-        this.signals.objectAdded.dispatch(view);
-        this.signals.sceneGraphChanged.dispatch();
+        if (silent == 'broadcast') {
+            this.signals.objectAdded.dispatch(view);
+            this.signals.sceneGraphChanged.dispatch();
+            if (view instanceof visual.SpaceInstance)
+                this.signals.curveAdded.dispatch(view);
+        }
         return view;
     }
 
@@ -65,15 +69,19 @@ export class GeometryDatabase {
         }
     }
 
-    removeItem(object: visual.Item) {
-        const simpleName = object.simpleName;
+    removeItem(view: visual.Item, silent: 'silent' | 'broadcast' = 'broadcast') {
+        const simpleName = view.simpleName;
         this.geometryModel.delete(simpleName);
-        this.removeTopologyItems(object);
-        this.removeControlPoints(object);
+        this.removeTopologyItems(view);
+        this.removeControlPoints(view);
         this.hidden.delete(simpleName);
 
-        this.signals.objectRemoved.dispatch(object);
-        this.signals.sceneGraphChanged.dispatch();
+        if (silent == 'broadcast') {
+            this.signals.objectRemoved.dispatch(view);
+            this.signals.sceneGraphChanged.dispatch();
+            if (view instanceof visual.SpaceInstance)
+                this.signals.curveRemoved.dispatch(view);
+        }
     }
 
     lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item } {

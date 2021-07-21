@@ -1,5 +1,5 @@
 import signals from "signals";
-import { EditorSignals } from '../src/Editor';
+import { EditorSignals } from '../src/editor/Editor';
 
 export default (): EditorSignals => {
     return {
@@ -28,5 +28,7 @@ export default (): EditorSignals => {
         creatorChanged: new signals.Signal(),
         dialogAdded: new signals.Signal(),
         dialogRemoved: new signals.Signal(),
+        curveAdded: new signals.Signal(),
+        curveRemoved: new signals.Signal(),
     }
 }
