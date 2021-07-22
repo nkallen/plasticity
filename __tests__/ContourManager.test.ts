@@ -20,7 +20,7 @@ let contours: ContourManager;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = FakeSignals();
-    const silentSignals = FakeSignals();
+    const silentSignals = FakeSignals(); // signals >/dev/null because for tests we want to explicitly invoke add()/remove()
     db = new GeometryDatabase(materials, silentSignals);
     makeCircle1 = new CircleFactory(db, materials, signals);
     makeCircle2 = new CircleFactory(db, materials, signals);
@@ -28,7 +28,7 @@ beforeEach(() => {
     contours = new ContourManager(db, signals);
 })
 
-test('foo', async () => {
+test('three intersecting circles, added then deleted', async () => {
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;

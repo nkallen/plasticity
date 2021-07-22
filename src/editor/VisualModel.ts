@@ -198,6 +198,7 @@ export class CurveEdge extends Edge {
         result.userData.simpleName = `${parentId},${edge.i}`;
         result.userData.index = edge.i;
         result.layers.set(Layers.CurveEdge);
+        result.traverse(child => child.layers.set(Layers.CurveEdge))
         return result;
     }
 
@@ -231,6 +232,7 @@ export class Face extends TopologyItem {
         result.userData.simpleName = `${parentId},${grid.i}`
         result.userData.index = grid.i;
         result.layers.set(Layers.Face);
+        result.traverse(child => child.layers.set(Layers.Face))
         return result;
     }
 
@@ -401,8 +403,10 @@ export class SolidBuilder {
     }
 
     build(): Solid {
-        this.solid.layers.set(Layers.Solid);
-        return this.solid;
+        const built = this.solid;
+        built.layers.set(Layers.Solid);
+        built.traverse(child => child.layers.set(Layers.Solid))
+        return built;
     }
 }
 
@@ -415,8 +419,10 @@ export class SpaceInstanceBuilder<T extends SpaceItem> {
     }
 
     build(): SpaceInstance<T> {
-        this.instance.layers.set(Layers.Curve);
-        return this.instance;
+        const built = this.instance;
+        built.layers.set(Layers.Curve);
+        built.traverse(child => child.layers.set(Layers.Curve))
+        return built;
     }
 }
 
@@ -429,8 +435,10 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
     }
 
     build(): PlaneInstance<T> {
-        this.instance.layers.set(Layers.Region);
-        return this.instance;
+        const built = this.instance;
+        built.layers.set(Layers.Region);
+        built.traverse(child => child.layers.set(Layers.Region))
+        return built;
     }
 }
 
@@ -519,5 +527,4 @@ export enum Layers {
 
 export const EnabledLayers = new THREE.Layers();
 EnabledLayers.enableAll();
-EnabledLayers.disable(Layers.Curve);
-// EnabledLayers.disable(Layers.Solid);
+EnabledLayers.disable(Layers.CurveFragment);

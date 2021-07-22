@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { EditorSignals } from '../editor/Editor';
+import * as visual from "../editor/VisualModel";
 
 // Helpers are little visualization tools like gizmos that should
 // be rendered as a separate pass from the main scene so they appear
@@ -21,6 +22,7 @@ export class Helpers {
 
         const axes = new THREE.AxesHelper(10000);
         axes.renderOrder = 0;
+        axes.layers.set(visual.Layers.Overlay);
         const material = axes.material as THREE.Material;
         material.depthFunc = THREE.AlwaysDepth;
         this.axes = axes;

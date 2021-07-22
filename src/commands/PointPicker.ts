@@ -35,6 +35,7 @@ export class PointPicker {
         this.editor = editor;
         this.mesh.material.depthTest = false;
         this.mesh.renderOrder = 999;
+        this.mesh.layers.set(visual.Layers.Overlay);
     }
 
     execute<T>(cb?: (pt: PointResult) => T, resolveOnFinish: mode = mode.ResolveOnFinish): CancellablePromise<PointResult> {

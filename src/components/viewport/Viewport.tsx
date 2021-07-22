@@ -305,6 +305,7 @@ export default (editor: EditorLike) => {
 
             const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
             const grid = new THREE.GridHelper(300, 300, 0x666666, 0x666666);
+            grid.layers.set(visual.Layers.Overlay);
 
             this.append(renderer.domElement);
 
@@ -312,7 +313,6 @@ export default (editor: EditorLike) => {
             const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
             orthographicCamera.zoom = 3;
             const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, 1, near, far);
-            // orthographicCamera.layers = perspectiveCamera.layers = visual.EnabledLayers;
 
             let camera: THREE.Camera;
             let n: THREE.Vector3;
@@ -339,6 +339,7 @@ export default (editor: EditorLike) => {
                     n = new THREE.Vector3(0, 1, 0);
                     break;
             }
+            camera.layers = visual.EnabledLayers;
 
             const navigationControls = new OrbitControls(camera, renderer.domElement);
             if (camera.type == 'OrthographicCamera') navigationControls.enableRotate = false;
