@@ -1,21 +1,20 @@
+import { SequentialExecutor } from '../util/Executor';
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from "../editor/Editor";
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import * as visual from "../editor/VisualModel";
 
-// fixme this needs to be a queue to avoid interleaving;
 // and we need to aggregate by placement
 
 class CurveInfo {
     touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
     fragments = new Array<visual.Item>();
-    constructor (readonly planarCurve: c3d.Curve) {}
+    constructor(readonly planarCurve: c3d.Curve) { }
 }
 
-type Curve3dId = bigint;
 type Curve2dId = bigint;
 
-export default class ContourManager {
+export default class ContourManager extends SequentialExecutor<void> {
     private readonly curve2info = new Map<visual.SpaceInstance<visual.Curve3D>, CurveInfo>();
     private readonly planar2instance = new Map<Curve2dId, visual.SpaceInstance<visual.Curve3D>>();
 
@@ -23,12 +22,23 @@ export default class ContourManager {
         private readonly db: GeometryDatabase,
         signals: EditorSignals
     ) {
+        super();
+
         signals.contoursChanged.add(c => this.add(c));
         // signals.curveAdded.add(c => this.add(c));
         // signals.curveRemoved.add(c => this.add(c));
     }
 
-    async remove(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
+
+    async add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+        await this.enqueue(() => this._add(newCurve));
+    }
+
+    async remove(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+        await this.enqueue(() => this._remove(newCurve));
+    }
+
+    private async _remove(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
         const { curve2info, planar2instance } = this;
         const info = curve2info.get(curve);
         if (info === undefined) return;
@@ -54,21 +64,19 @@ export default class ContourManager {
                 }
             }
 
-            const promises1 = [];
             for (const touchee of visited) {
-                promises1.push(this.remove(touchee, false));
+                await this._remove(touchee, false);
             }
-            await Promise.all(promises1);
 
             visited.delete(curve);
 
             for (const touchee of visited) {
-                await this.add(touchee);
+                await this._add(touchee);
             }
         }
     }
 
-    async add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+    private async _add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
         const { curve2info, planar2instance } = this;
 
         const newPlanarCurve = this.curve3d2curve2d(newCurve);
