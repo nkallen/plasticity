@@ -24,11 +24,10 @@ export default class ContourManager extends SequentialExecutor<void> {
     ) {
         super();
 
-        signals.contoursChanged.add(c => this.add(c));
-        // signals.curveAdded.add(c => this.add(c));
-        // signals.curveRemoved.add(c => this.add(c));
+        // signals.contoursChanged.add(c => this.add(c));
+        signals.curveAdded.add(c => this.add(c));
+        signals.curveRemoved.add(c => this.add(c));
     }
-
 
     async add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
         await this.enqueue(() => this._add(newCurve));
@@ -49,7 +48,7 @@ export default class ContourManager extends SequentialExecutor<void> {
         planar2instance.delete(planarCurve.Id());
 
         for (const fragment of fragments) {
-            this.db.removeItem(fragment);
+            this.db.removeItem(fragment, 'silent');
         }
 
         if (invalidateCurvesThatTouch) { // mutually touching curves form a circular graph so do a bfs
@@ -152,7 +151,8 @@ export default class ContourManager extends SequentialExecutor<void> {
         const views: visual.Item[] = [];
         const ps = [];
         for (const fragment of result) {
-            const p = db.addItem(new c3d.SpaceInstance(new c3d.PlaneCurve(placement, fragment, true))).then(item => {
+            const inst = new c3d.SpaceInstance(new c3d.PlaneCurve(placement, fragment, true));
+            const p = db.addItem(inst, 'silent').then(item => {
                 item.layers.set(visual.Layers.CurveFragment);
                 views.push(item);
             });

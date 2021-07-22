@@ -20,7 +20,8 @@ let contours: ContourManager;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = FakeSignals();
-    db = new GeometryDatabase(materials, signals);
+    const silentSignals = FakeSignals();
+    db = new GeometryDatabase(materials, silentSignals);
     makeCircle1 = new CircleFactory(db, materials, signals);
     makeCircle2 = new CircleFactory(db, materials, signals);
     makeCircle3 = new CircleFactory(db, materials, signals);
