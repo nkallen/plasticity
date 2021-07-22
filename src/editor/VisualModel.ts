@@ -212,8 +212,6 @@ export class CurveEdge extends Edge {
 }
 export class Vertex {
     static build(edge: c3d.EdgeBuffer, material: LineMaterial) {
-
-
     }
 }
 

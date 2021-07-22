@@ -86,6 +86,7 @@ test('raycast solid', async () => {
     item.updateMatrixWorld();
 
     const raycaster = new THREE.Raycaster();
+    raycaster.layers.enable(visual.Layers.Solid);
     const pointer = { x: 0, y: 0 };
     const camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
@@ -105,6 +106,7 @@ test('raycast instance<curve3d>', async () => {
     item.updateMatrixWorld();
 
     const raycaster = new THREE.Raycaster();
+    raycaster.layers.enable(visual.Layers.Curve);
     const pointer = { x: 0, y: 0 };
     const camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
