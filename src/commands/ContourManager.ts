@@ -28,7 +28,7 @@ export default class ContourManager {
         // signals.curveRemoved.add(c => this.add(c));
     }
 
-    async remove(curve: visual.SpaceInstance<visual.Curve3D>, recursive = true) {
+    async remove(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
         const { curve2info, planar2instance } = this;
         const info = curve2info.get(curve);
         if (info === undefined) return;
@@ -42,7 +42,7 @@ export default class ContourManager {
             this.db.removeItem(fragment);
         }
 
-        if (recursive) {
+        if (invalidateCurvesThatTouch) { // mutually touching curves form a circular graph so do a bfs
             const visited = new Set<visual.SpaceInstance<visual.Curve3D>>();
             let walk = [...touched];
             while (walk.length > 0) {
