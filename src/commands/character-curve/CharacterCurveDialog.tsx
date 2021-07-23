@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import { EditorSignals } from "../../editor/Editor";
+import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../fillet/FilletDialog";
 import { CharacterCurveParams } from './CharacterCurveFactory';
 

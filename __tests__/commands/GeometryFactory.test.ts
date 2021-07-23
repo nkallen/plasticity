@@ -1,10 +1,9 @@
 import { GeometryFactory } from "../../src/commands/Factory";
-import { EditorSignals } from '../../src/editor/Editor';
+import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import FakeSignals from '../../__mocks__/FakeSignals';
 import '../matchers';
 
 class FakeFactory extends GeometryFactory {
@@ -34,7 +33,7 @@ let signals: EditorSignals;
 
 beforeEach(() => {
     materials = new FakeMaterials();
-    signals = FakeSignals();
+    signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     factory = new FakeFactory(db, materials, signals);
 })

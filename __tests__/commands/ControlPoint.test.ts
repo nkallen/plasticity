@@ -2,12 +2,11 @@ import * as THREE from "three";
 import ChangePointFactory from "../../src/commands/control_point/ChangePointFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import LineFactory from "../../src/commands/line/LineFactory";
-import { EditorSignals } from '../../src/editor/Editor';
+import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import FakeSignals from '../../__mocks__/FakeSignals';
 import '../matchers';
 
 let db: GeometryDatabase;
@@ -18,7 +17,7 @@ let curve: visual.SpaceInstance<visual.Curve3D>;
 
 beforeEach(async () => {
     materials = new FakeMaterials();
-    signals = FakeSignals();
+    signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
 })
 

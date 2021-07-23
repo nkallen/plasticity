@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
-import { EditorSignals } from "./Editor";
+import { EditorSignals } from "./EditorSignals";
 import porcelain from '../img/matcap-porcelain-white.jpg';
 import controlPointIcon from '../components/viewport/img/control-point.svg';
 import { attenuateSizeInOrthoCamera } from "./SpriteDatabase";

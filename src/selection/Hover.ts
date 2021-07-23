@@ -1,5 +1,5 @@
 import MaterialDatabase from "../editor/MaterialDatabase";
-import { EditorSignals } from "../editor/Editor";
+import { EditorSignals } from "../editor/EditorSignals";
 import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { HighlightManager } from "./HighlightManager";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";

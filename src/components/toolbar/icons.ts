@@ -1,7 +1,8 @@
 import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
 import { Editor } from '../../editor/Editor';
-import Command, * as cmd from '../../commands/Command';
+import Command from '../../commands/Command';
+import * as cmd from '../../commands/GeometryCommands';
 import circle from './img/circle.svg';
 import curve from './img/curve.svg';
 import cut from './img/cut.svg';
@@ -21,6 +22,7 @@ import scale from './img/scale.svg';
 import sphere from './img/sphere.svg';
 import union from './img/union.svg';
 import changePoint from './img/union.svg';
+import trim from './img/extrude.svg';
 
 export const icons = new Map<typeof Command, string>();
 icons.set(cmd.MoveCommand, move);
@@ -65,6 +67,7 @@ icons.set(cmd.SpiralCommand, mirror);
 icons.set(cmd.CharacterCurveCommand, draftSolid);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 icons.set(cmd.ChangePointCommand, changePoint);
+icons.set(cmd.TrimCommand, trim);
 
 export const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");
@@ -108,6 +111,7 @@ tooltips.set(cmd.ExtrudeRegionCommand, "Extrude");
 tooltips.set(cmd.SpiralCommand, "Spiral");
 tooltips.set(cmd.CharacterCurveCommand, "Custom Function");
 tooltips.set(cmd.ChangePointCommand, "Move control point");
+tooltips.set(cmd.TrimCommand, "Cut off line segments at intersections of curves");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");

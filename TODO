@@ -12,6 +12,8 @@ bug: fillet edge. ok. undo. fillet edge. ok. error
 moving needs to have snapping
 command validation (curves fail at beginning, as well as click away aborting lots of commands)
 
+lots of broken things, like variable fillet, weird errors when adding squares, etc.
+
 # transaction history
 - delete creator
 - mute creator, etc.

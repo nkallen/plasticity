@@ -1,14 +1,13 @@
 import * as THREE from "three";
 import BoxFactory from '../src/commands/box/BoxFactory';
 import LineFactory from "../src/commands/line/LineFactory";
-import { EditorSignals } from '../src/editor/Editor';
+import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { originSnap, PointSnap, Raycaster, SnapManager } from '../src/editor/SnapManager';
 import { SpriteDatabase } from "../src/editor/SpriteDatabase";
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
-import FakeSignals from '../__mocks__/FakeSignals';
 
 let db: GeometryDatabase;
 let snaps: SnapManager;
@@ -21,7 +20,7 @@ let raycaster: Raycaster;
 beforeEach(() => {
     materials = new FakeMaterials();
     sprites = new FakeSprites();
-    signals = FakeSignals();
+    signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     snaps = new SnapManager(db, sprites, signals);
 

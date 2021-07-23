@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
 import { assertUnreachable, GConstructor } from '../util/Util';
-import { EditorSignals } from './Editor';
+import { EditorSignals } from './EditorSignals';
 import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import * as visual from './VisualModel';

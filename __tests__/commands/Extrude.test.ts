@@ -2,12 +2,11 @@ import * as THREE from "three";
 import { CircleFactory } from "../../src/commands/circle/CircleFactory";
 import ExtrudeFactory, { RegionExtrudeFactory } from "../../src/commands/extrude/ExtrudeFactory";
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
-import { EditorSignals } from '../../src/editor/Editor';
+import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import FakeSignals from '../../__mocks__/FakeSignals';
 import '../matchers';
 
 let db: GeometryDatabase;
@@ -20,7 +19,7 @@ let makeRegion: RegionFactory;
 
 beforeEach(() => {
     materials = new FakeMaterials();
-    signals = FakeSignals();
+    signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     makeCircle = new CircleFactory(db, materials, signals);
     makeRegion = new RegionFactory(db, materials, signals);

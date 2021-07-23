@@ -1,6 +1,6 @@
 import { SequentialExecutor } from '../util/Executor';
 import c3d from '../../build/Release/c3d.node';
-import { EditorSignals } from "../editor/Editor";
+import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import * as visual from "../editor/VisualModel";
 
@@ -154,6 +154,7 @@ export default class ContourManager extends SequentialExecutor<void> {
             const inst = new c3d.SpaceInstance(new c3d.PlaneCurve(placement, fragment, true));
             const p = db.addItem(inst, 'silent').then(item => {
                 item.layers.set(visual.Layers.CurveFragment);
+                item.traverse(c => c.layers.set(visual.Layers.CurveFragment));
                 views.push(item);
             });
             ps.push(p);

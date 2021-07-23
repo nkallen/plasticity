@@ -1,4 +1,4 @@
-import { EditorSignals } from "./Editor";
+import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
 import * as visual from "./VisualModel";
 import c3d from '../../build/Release/c3d.node';

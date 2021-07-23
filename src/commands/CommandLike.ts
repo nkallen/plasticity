@@ -21,7 +21,6 @@ export class ChangeSelectionCommand extends Command {
 
     async execute(): Promise<void> {
         const intersection = this.editor.selectionInteraction.onClick(this.intersections);
-        const point = intersection?.point;
         this.intersection = intersection;
     }
 }

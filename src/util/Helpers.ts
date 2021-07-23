@@ -1,5 +1,5 @@
+import { EditorSignals } from '../editor/EditorSignals';
 import * as THREE from 'three';
-import { EditorSignals } from '../editor/Editor';
 import * as visual from "../editor/VisualModel";
 
 // Helpers are little visualization tools like gizmos that should

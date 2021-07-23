@@ -1,12 +1,9 @@
 import KeymapManager from "atom-keymap";
 import { CompositeDisposable, Disposable } from "event-kit";
-import signals from "signals";
 import * as THREE from "three";
-import c3d from '../build/Release/c3d.node';
 import Command from '../commands/Command';
 import { CancelOrFinish, CommandExecutor } from "../commands/CommandExecutor";
 import ContourManager from '../commands/ContourManager';
-import { AbstractDialog } from "../commands/fillet/FilletDialog";
 import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
 import { SelectionCommandManager } from "../commands/SelectionCommandManager";
 import CommandRegistry from "../components/atom/CommandRegistry";
@@ -14,81 +11,22 @@ import TooltipManager from "../components/atom/tooltip-manager";
 import Mouse2KeyboardEventManager from "../components/viewport/Mouse2KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
-import { HasSelection, SelectionManager } from "../selection/SelectionManager";
+import { SelectionManager } from "../selection/SelectionManager";
 import { Helpers } from "../util/Helpers";
+import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import Transactions from './Transactions';
-import * as visual from './VisualModel';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
-
-export interface EditorSignals {
-    objectAdded: signals.Signal<visual.Item>;
-    objectRemoved: signals.Signal<visual.Item>;
-    objectSelected: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint>;
-    objectDeselected: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint>;
-    objectHovered: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint>
-    objectUnhovered: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint>
-    selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
-    sceneGraphChanged: signals.Signal;
-    factoryUpdated: signals.Signal;
-    factoryCommitted: signals.Signal;
-    pointPickerChanged: signals.Signal;
-    gizmoChanged: signals.Signal;
-    windowResized: signals.Signal;
-    windowLoaded: signals.Signal;
-    renderPrepared: signals.Signal<{ camera: THREE.Camera, resolution: THREE.Vector2 }>;
-    commandStarted: signals.Signal<Command>;
-    commandEnded: signals.Signal;
-    keybindingsRegistered: signals.Signal<string[]>;
-    keybindingsCleared: signals.Signal<string[]>;
-    hovered: signals.Signal<THREE.Intersection[]>;
-    historyChanged: signals.Signal;
-    contoursChanged: signals.Signal<visual.SpaceInstance<visual.Curve3D>>;
-    creatorChanged: signals.Signal<{ creator: c3d.Creator, item: visual.Item }>;
-    dialogAdded: signals.Signal<AbstractDialog<any>>;
-    dialogRemoved: signals.Signal;
-    curveAdded: signals.Signal<visual.SpaceInstance<visual.Curve3D>>;
-    curveRemoved: signals.Signal<visual.SpaceInstance<visual.Curve3D>>;
-}
 
 export class Editor {
     readonly viewports: Viewport[] = [];
 
-    readonly signals: EditorSignals = {
-        objectAdded: new signals.Signal(),
-        objectRemoved: new signals.Signal(),
-        objectSelected: new signals.Signal(),
-        objectDeselected: new signals.Signal(),
-        selectionChanged: new signals.Signal(),
-        objectHovered: new signals.Signal(),
-        objectUnhovered: new signals.Signal(),
-        sceneGraphChanged: new signals.Signal(),
-        factoryUpdated: new signals.Signal(),
-        factoryCommitted: new signals.Signal(),
-        pointPickerChanged: new signals.Signal(),
-        gizmoChanged: new signals.Signal(),
-        windowResized: new signals.Signal(),
-        windowLoaded: new signals.Signal(),
-        renderPrepared: new signals.Signal(),
-        commandStarted: new signals.Signal(),
-        commandEnded: new signals.Signal(),
-        keybindingsRegistered: new signals.Signal(),
-        keybindingsCleared: new signals.Signal(),
-        hovered: new signals.Signal(),
-        historyChanged: new signals.Signal(),
-        contoursChanged: new signals.Signal(),
-        creatorChanged: new signals.Signal(),
-        dialogAdded: new signals.Signal(),
-        dialogRemoved: new signals.Signal(),
-        curveAdded: new signals.Signal(),
-        curveRemoved: new signals.Signal(),
-    }
-
+    readonly signals = new EditorSignals(); 
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly sprites = new SpriteDatabase();

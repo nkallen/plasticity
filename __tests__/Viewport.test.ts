@@ -6,7 +6,7 @@ import { EventDispatcher } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorLike, Model } from "../src/components/viewport/Viewport";
-import { EditorSignals } from "../src/editor/Editor";
+import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { EditorOriginator } from "../src/editor/History";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
@@ -16,7 +16,6 @@ import { PlaneSnap } from "../src/editor/SnapManager";
 import { Helpers } from "../src/util/Helpers";
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import FakeSignals from '../__mocks__/FakeSignals';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -55,7 +54,7 @@ class FakeWebGLRenderer implements THREE.Renderer {
 
 beforeEach(async () => {
     materials = new FakeMaterials();
-    signals = FakeSignals();
+    signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
     interaction = new SelectionInteractionManager(selection, materials, signals);

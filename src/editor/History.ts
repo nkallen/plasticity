@@ -1,5 +1,5 @@
 import c3d from '../../build/Release/c3d.node';
-import { EditorSignals } from './Editor';
+import { EditorSignals } from './EditorSignals';
 import { ControlPointData, TopologyData } from './GeometryDatabase';
 import { Snap } from './SnapManager';
 import { RefCounter } from '../util/Util';

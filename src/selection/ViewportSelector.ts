@@ -1,17 +1,18 @@
-import { CancelOrFinish } from "../commands/CommandExecutor";
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import Command, * as cmd from "../commands/Command";
+import { CancelOrFinish } from "../commands/CommandExecutor";
 import { ChangeSelectionCommand } from "../commands/CommandLike";
+import { EditorSignals } from "../editor/EditorSignals";
+import { GeometryDatabase } from "../editor/GeometryDatabase";
 import { EditorOriginator } from "../editor/History";
 import * as visual from "../editor/VisualModel";
-import { CompositeDisposable, Disposable } from "event-kit";
-
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,
     enqueue(command: Command, cancelOrFinish?: CancelOrFinish): void;
 }
 
-export class ViewportSelector extends THREE.EventDispatcher {
+export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
     enabled = true;
 
     private readonly raycaster = new THREE.Raycaster();
@@ -25,7 +26,8 @@ export class ViewportSelector extends THREE.EventDispatcher {
     constructor(
         private readonly camera: THREE.Camera,
         private readonly domElement: HTMLElement,
-        private readonly editor: EditorLike,
+        protected readonly db: GeometryDatabase,
+        protected readonly signals: EditorSignals
     ) {
         super();
 
@@ -33,7 +35,6 @@ export class ViewportSelector extends THREE.EventDispatcher {
         this.raycaster.params.Line2 = { threshold: 10 };
         this.raycaster.params.Mesh.threshold = 0;
         this.raycaster.layers = visual.EnabledLayers;
-        // this.raycaster.layers.enable(visual.Layers.Solid);
 
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
@@ -61,8 +62,8 @@ export class ViewportSelector extends THREE.EventDispatcher {
         const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         const point = new THREE.Vector2();
         point.fromArray(array);
-        const intersects = this.getIntersects(point, [...this.editor.db.visibleObjects]);
-        this.editor.signals.hovered.dispatch(intersects);
+        const intersects = this.getIntersects(point, [...this.db.visibleObjects]);
+        this.signals.hovered.dispatch(intersects);
     }
 
     onPointerUp(event: PointerEvent): void {
@@ -73,14 +74,15 @@ export class ViewportSelector extends THREE.EventDispatcher {
         this.onUpPosition.fromArray(array);
 
         if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
-            const intersects = this.getIntersects(this.onUpPosition, [...this.editor.db.visibleObjects]);
+            const intersects = this.getIntersects(this.onUpPosition, [...this.db.visibleObjects]);
 
-            const command = new ChangeSelectionCommand(this.editor, intersects);
-            this.editor.enqueue(command, 'finish');
+            this.processIntersection(intersects);
         }
 
         document.removeEventListener('pointerup', this.onPointerUp, false);
     }
+
+    protected abstract processIntersection(intersects: THREE.Intersection[]): void;
 
     private getMousePosition(dom: HTMLElement, x: number, y: number) {
         const rect = dom.getBoundingClientRect();
@@ -96,5 +98,20 @@ export class ViewportSelector extends THREE.EventDispatcher {
 
     dispose() {
         this.disposable.dispose();
+    }
+}
+
+export class ViewportSelector extends AbstractViewportSelector {
+    constructor(
+        camera: THREE.Camera,
+        domElement: HTMLElement,
+        private readonly editor: EditorLike,
+    ) {
+        super(camera, domElement, editor.db, editor.signals);
+    }
+
+    protected processIntersection(intersects: THREE.Intersection[]) {
+        const command = new ChangeSelectionCommand(this.editor, intersects);
+        this.editor.enqueue(command, 'finish');
     }
 }

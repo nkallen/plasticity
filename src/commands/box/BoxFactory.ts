@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { EditorSignals } from '../../editor/Editor';
+import { EditorSignals } from '../../editor/EditorSignals';
 import { GeometryDatabase } from "../../editor/GeometryDatabase";
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import { GeometryFactory } from '../Factory';

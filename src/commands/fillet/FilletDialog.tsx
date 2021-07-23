@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import { render } from 'preact';
-import { EditorSignals } from "../../editor/Editor";
+import { EditorSignals } from "../../editor/EditorSignals";
 import { Cancel, CancellablePromise } from "../../util/Cancellable";
 import { FilletParams } from "./FilletFactory";
 

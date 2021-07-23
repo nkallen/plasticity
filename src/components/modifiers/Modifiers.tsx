@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
-import * as cmd from '../../commands/Command';
+import * as cmd from '../../commands/GeometryCommands';
 import { RebuildCommand } from '../../commands/CommandLike';
 import { Editor } from '../../editor/Editor';
 import { GeometryDatabase } from '../../editor/GeometryDatabase';

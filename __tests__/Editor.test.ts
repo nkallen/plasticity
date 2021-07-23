@@ -3,7 +3,8 @@
  */
 jest.mock('atom-keymap');
 
-import Command, { CircleCommand } from '../src/commands/Command';
+import Command from '../src/commands/Command';
+import { CircleCommand } from '../src/commands/GeometryCommands';
 import { Editor } from '../src/editor/Editor';
 import './matchers';
 

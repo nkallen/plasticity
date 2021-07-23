@@ -1,7 +1,7 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
-import { EditorSignals } from '../editor/Editor';
+import { EditorSignals } from '../editor/EditorSignals';
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import { AxisSnap, CurveEdgeSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
 import * as visual from "../editor/VisualModel";
@@ -22,7 +22,6 @@ export type PointResult = { point: THREE.Vector3, info: PointInfo };
 enum mode { RejectOnFinish, ResolveOnFinish };
 
 export class PointPicker {
-    private readonly editor: EditorLike;
     private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
     private readonly addedPointSnaps = new Array<PointSnap>();
     private readonly otherAddedSnaps = new Array<Snap>();
@@ -31,8 +30,7 @@ export class PointPicker {
     straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]);
     private restrictionPoint?: THREE.Vector3;
 
-    constructor(editor: EditorLike) {
-        this.editor = editor;
+    constructor(private readonly editor: EditorLike) {
         this.mesh.material.depthTest = false;
         this.mesh.renderOrder = 999;
         this.mesh.layers.set(visual.Layers.Overlay);
@@ -66,7 +64,6 @@ export class PointPicker {
                 }
                 const domElement = renderer.domElement;
 
-                const editor = this.editor;
                 const onPointerMove = (e: PointerEvent) => {
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);

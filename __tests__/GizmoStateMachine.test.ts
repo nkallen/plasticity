@@ -5,13 +5,12 @@ import * as THREE from "three";
 import { AbstractGizmo, EditorLike, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import CommandRegistry from "../src/components/atom/CommandRegistry";
-import { EditorSignals } from '../src/editor/Editor';
+import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { Helpers } from "../src/util/Helpers";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import FakeSignals from '../__mocks__/FakeSignals';
 import { FakeViewport } from "../__mocks__/FakeViewport";
 
 class FakeGizmo extends AbstractGizmo<() => void> {
@@ -47,7 +46,7 @@ let gizmos: GizmoMaterialDatabase;
 
 beforeEach(() => {
     materials = new FakeMaterials();
-    signals = FakeSignals();
+    signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
     viewport = new FakeViewport();

@@ -2,12 +2,11 @@ import * as THREE from "three";
 import LineFactory from "../../src/commands/line/LineFactory";
 import ScaleFactory from '../../src/commands/scale/ScaleFactory';
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
-import { EditorSignals } from '../../src/editor/Editor';
+import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import FakeSignals from '../../__mocks__/FakeSignals';
 import '../matchers';
 
 let db: GeometryDatabase;
@@ -17,7 +16,7 @@ let signals: EditorSignals;
 
 beforeEach(() => {
     materials = new FakeMaterials();
-    signals = FakeSignals();
+    signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     scale = new ScaleFactory(db, materials, signals);
 })

@@ -1,6 +1,6 @@
 import { Disposable } from 'event-kit';
 import c3d from '../build/Release/c3d.node';
-import { EditorSignals } from '../editor/Editor';
+import { EditorSignals } from '../editor/EditorSignals';
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import { SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
@@ -41,8 +41,6 @@ export interface ModifiesSelection extends HasSelection {
 }
 
 export class SelectionManager implements HasSelection, ModifiesSelection {
-    readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint]);
-
     readonly selectedSolidIds = new Set<c3d.SimpleName>();
     readonly selectedEdgeIds = new Set<string>();
     readonly selectedFaceIds = new Set<string>();
@@ -61,7 +59,8 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
     constructor(
         readonly db: GeometryDatabase,
         readonly materials: MaterialDatabase,
-        readonly signals: EditorSignals
+        readonly signals: EditorSignals,
+        readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])
     ) {
         signals.objectRemoved.add(item => this.delete(item));
     }

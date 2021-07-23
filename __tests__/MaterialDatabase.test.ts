@@ -2,9 +2,8 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
-import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
-import { EditorSignals } from '../src/editor/Editor';
+import { EditorSignals } from '../src/editor/EditorSignals';
 import { BasicMaterialDatabase } from "../src/editor/MaterialDatabase";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 
@@ -13,7 +12,7 @@ let gizmos: GizmoMaterialDatabase;
 let signals: EditorSignals;
 
 beforeEach(() => {
-    signals = FakeSignals();
+    signals = new EditorSignals();
     materials = new BasicMaterialDatabase(signals);
     gizmos = new GizmoMaterialDatabase(signals);
 })

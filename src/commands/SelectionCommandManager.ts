@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import * as gizmo from './AbstractGizmo';
 import * as cmd from './Command';
-import Command, { ChangePointCommand, ExtrudeRegionCommand, FilletCommand, OffsetFaceCommand } from './Command';
+import Command from './Command';
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ChangeSelectionCommand } from './CommandLike';
 import { CancelOrFinish } from './CommandExecutor';
+import { ChangePointCommand, ExtrudeRegionCommand, FilletCommand, OffsetFaceCommand } from './GeometryCommands';
 
 export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
     db: GeometryDatabase;

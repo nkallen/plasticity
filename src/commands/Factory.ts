@@ -1,5 +1,5 @@
 import c3d from '../../build/Release/c3d.node';
-import { EditorSignals } from '../editor/Editor';
+import { EditorSignals } from '../editor/EditorSignals';
 import { GeometryDatabase, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ResourceRegistration } from '../util/Cancellable';

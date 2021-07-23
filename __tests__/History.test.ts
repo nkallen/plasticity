@@ -1,11 +1,10 @@
-import { EditorSignals } from '../src/editor/Editor';
+import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { SelectionManager } from '../src/selection/SelectionManager';
 import { SnapManager } from '../src/editor/SnapManager';
 import { SpriteDatabase } from '../src/editor/SpriteDatabase';
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
-import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
 
 describe("saveToMemento", () => {
@@ -18,7 +17,7 @@ describe("saveToMemento", () => {
 
     beforeEach(() => {
         materials = new FakeMaterials();
-        signals = FakeSignals();
+        signals = new EditorSignals();
         db = new GeometryDatabase(materials, signals);
         sprites = new FakeSprites();
         snaps = new SnapManager(db, sprites, signals);

@@ -1,11 +1,10 @@
 import c3d from '../build/Release/c3d.node';
-import { EditorSignals } from '../src/editor/Editor';
+import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { SpriteDatabase } from '../src/editor/SpriteDatabase';
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
-import FakeSignals from '../__mocks__/FakeSignals';
 import './matchers';
 
 let db: GeometryDatabase;
@@ -24,7 +23,7 @@ const points = [
 beforeEach(() => {
     materials = new FakeMaterials();
     sprites = new FakeSprites();
-    signals = FakeSignals();
+    signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
 
     const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);

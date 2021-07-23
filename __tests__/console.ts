@@ -6,6 +6,7 @@ global.console = {
     info: console.info,
     debug: console.debug,
     assert: console.assert,
+    trace: console.trace,
     time: jest.fn(),
     timeEnd: jest.fn(),
 };
