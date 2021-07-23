@@ -238,6 +238,7 @@ export default {
             cppClassName: "_PlanarCheckParams",
             rawClassName: "PlanarCheckParams",
             jsClassName: "PlanarCheckParams",
+            initializers: ["double accuracy"]
         },
         Curve3D: {
             rawHeader: "curve3d.h",
@@ -256,6 +257,7 @@ export default {
                 "double GetTMin()",
                 "double GetPeriod()",
                 "double IsPeriodic()",
+                "MbCurve3D * Trimmed(double t1, double t2, int sense)",
                 { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint3D & point)", point: isReturn },
                 { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn }
             ]

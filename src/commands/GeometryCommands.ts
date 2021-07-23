@@ -91,8 +91,6 @@ export class CircleCommand extends Command {
         }).resource(this);
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -123,8 +121,6 @@ export class TwoPointCircleCommand extends Command {
         }).resource(this);
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -145,8 +141,6 @@ export class ThreePointCircleCommand extends Command {
         }).resource(this);
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -177,8 +171,6 @@ export class CenterPointArcCommand extends Command {
         }).resource(this);
 
         const result = await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -208,8 +200,6 @@ export class CenterEllipseCommand extends Command {
         }).resource(this);
 
         const result = await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -236,8 +226,6 @@ export class ThreePointEllipseCommand extends Command {
         }).resource(this);
 
         const result = await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -264,8 +252,6 @@ export class ThreePointArcCommand extends Command {
         }).resource(this);
 
         const result = await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
@@ -1067,8 +1053,6 @@ export class ChangePointCommand extends Command {
         const newCurve = newInstance.underlying;
         const newPoint = newCurve.points.findByIndex(controlPoint.index)!;
         this.editor.selection.selectControlPoint(newPoint, newInstance);
-
-        this.editor.signals.contoursChanged.dispatch(newInstance);
     }
 }
 
@@ -1076,11 +1060,35 @@ export class TrimCommand extends Command {
     async execute(): Promise<void> {
         visual.EnabledLayers.disable(visual.Layers.Curve);
         visual.EnabledLayers.enable(visual.Layers.CurveFragment);
-        
+
         const picker = new ObjectPicker(this.editor);
         picker.allowCurveFragments();
-        const selection = await picker.execute(item => {
-            
-        });
+        await picker.execute(async fragment => {
+            if (!(fragment instanceof visual.SpaceInstance)) throw new Error("invalid precondition");
+            const { start, stop, parentItem } = fragment.userData as { start: number, stop: number, parentItem: visual.SpaceInstance<visual.Curve3D> };
+            const model = this.editor.db.lookup(parentItem);
+            this.editor.db.removeItem(parentItem);
+            const item = model.GetSpaceItem()!;
+            const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            if (!curve.IsClosed()) {
+                let from = curve.GetTMin(), to = start;
+                if (Math.abs(from - to) > 10e-4) {
+                    const beginning = curve.Trimmed(from, to, 1)!;
+                    await this.editor.db.addItem(new c3d.SpaceInstance(beginning));
+                }
+                from = stop, to = curve.GetTMax();
+                if (Math.abs(from - to) > 10e-4) {
+                    const ending = curve.Trimmed(from, to, 1)!;
+                    await this.editor.db.addItem(new c3d.SpaceInstance(ending));
+                }
+            } else {
+                const ending = curve.Trimmed(stop, start, 1)!;
+                await this.editor.db.addItem(new c3d.SpaceInstance(ending));
+            }
+            this.editor.signals.factoryUpdated.dispatch();
+        }).resource(this);
+
+        visual.EnabledLayers.enable(visual.Layers.Curve);
+        visual.EnabledLayers.disable(visual.Layers.CurveFragment);
     }
 }

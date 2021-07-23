@@ -56,6 +56,7 @@ export default {
         "b": "command:fillet",
         "e": "command:extrude",
         "x": "command:delete",
+        "t": "command:trim",
         "tab": "command:mode",
         "delete": "command:delete",
         "backspace": "command:delete",

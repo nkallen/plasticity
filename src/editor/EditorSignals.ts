@@ -31,6 +31,6 @@ export class EditorSignals {
     creatorChanged: signals.Signal<{ creator: c3d.Creator, item: visual.Item }> = new signals.Signal();
     dialogAdded: signals.Signal<AbstractDialog<any>> = new signals.Signal();
     dialogRemoved: signals.Signal = new signals.Signal();
-    curveAdded: signals.Signal<visual.SpaceInstance<visual.Curve3D>> = new signals.Signal();
-    curveRemoved: signals.Signal<visual.SpaceInstance<visual.Curve3D>> = new signals.Signal();
+    userAddedCurve: signals.Signal<visual.SpaceInstance<visual.Curve3D>> = new signals.Signal();
+    userRemovedCurve: signals.Signal<visual.SpaceInstance<visual.Curve3D>> = new signals.Signal();
 }

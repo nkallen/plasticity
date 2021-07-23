@@ -32,8 +32,6 @@ export class SelectionInteractionManager {
     ) {
         this.clickStrategy = new ClickStrategy(selection);
         this.hoverStrategy = new HoverStrategy(selection, materials, signals);
-
-        signals.hovered.add((intersections) => this.onPointerMove(intersections));
     }
 
     private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy): THREE.Intersection | undefined {
@@ -72,7 +70,7 @@ export class SelectionInteractionManager {
         return this.onIntersection(intersections, this.clickStrategy);
     }
 
-    onPointerMove(intersections: THREE.Intersection[]): void {
+    onHover(intersections: THREE.Intersection[]): void {
         this.onIntersection(intersections, this.hoverStrategy);
     }
 }

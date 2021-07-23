@@ -13,6 +13,7 @@ class CurveInfo {
 }
 
 type Curve2dId = bigint;
+type Trim = { trimmed: c3d.Curve, start: number, stop: number };
 
 export default class ContourManager extends SequentialExecutor<void> {
     private readonly curve2info = new Map<visual.SpaceInstance<visual.Curve3D>, CurveInfo>();
@@ -24,9 +25,11 @@ export default class ContourManager extends SequentialExecutor<void> {
     ) {
         super();
 
-        // signals.contoursChanged.add(c => this.add(c));
-        signals.curveAdded.add(c => this.add(c));
-        signals.curveRemoved.add(c => this.add(c));
+        this.add = this.add.bind(this);
+        this.remove = this.remove.bind(this);
+
+        signals.userAddedCurve.add(this.add);
+        signals.userRemovedCurve.add(this.remove);
     }
 
     async add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
@@ -48,7 +51,7 @@ export default class ContourManager extends SequentialExecutor<void> {
         planar2instance.delete(planarCurve.Id());
 
         for (const fragment of fragments) {
-            this.db.removeItem(fragment, 'silent');
+            this.db.removeItem(fragment);
         }
 
         if (invalidateCurvesThatTouch) { // mutually touching curves form a circular graph so do a bfs
@@ -93,11 +96,11 @@ export default class ContourManager extends SequentialExecutor<void> {
 
         const promises = [];
         for (const [id, current] of curvesToProcess) {
-            const result = [];
             visited.add(id);
             curvesToProcess.delete(id);
 
             const crosses = c3d.CurveEnvelope.IntersectWithAll(current, allPlanarCurves, true);
+            if (crosses.length < 1) continue;
             crosses.sort((a, b) => {
                 return a.on1.t - b.on1.t;
             });
@@ -115,11 +118,10 @@ export default class ContourManager extends SequentialExecutor<void> {
                 crosses.push(crosses[0]);
             }
 
-            if (crosses.length < 1) continue;
-
             // The crosses (intersections) are sorted, so each t[i] (start) to t[i+1] (stop) section of the curve is a cuttable.
             const first = crosses.shift()!;
             let start = first.on1.t;
+            const result: Trim[] = [];
             for (const cross of crosses) {
                 const { on1: { t, curve }, on2: { curve: other } } = cross;
                 const otherId = other.Id();
@@ -127,10 +129,10 @@ export default class ContourManager extends SequentialExecutor<void> {
                 info.touched.add(this.planar2instance.get(otherId)!);
 
                 const stop = t;
-                const trimmed = curve.Trimmed(start, stop, 1);
+                if (Math.abs(start - stop) < 10e-6) { start = stop; continue }
+                const trimmed = curve.Trimmed(start, stop, 1)!;
+                result.push({ trimmed, start, stop });
                 start = stop;
-                if (trimmed === null) continue;
-                result.push(trimmed);
 
                 if (!visited.has(otherId)) {
                     curvesToProcess.set(otherId, other);
@@ -141,20 +143,24 @@ export default class ContourManager extends SequentialExecutor<void> {
         await Promise.all(promises);
     }
 
-    private async updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: c3d.Curve[]) {
+
+    private async updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[]) {
         const { curve2info, db } = this;
         const info = curve2info.get(instance)!;
         for (const invalid of info.fragments) {
-            db.removeItem(invalid, 'silent');
+            db.removeItem(invalid, 'automatic');
         }
         const placement = new c3d.Placement3D();
         const views: visual.Item[] = [];
         const ps = [];
-        for (const fragment of result) {
-            const inst = new c3d.SpaceInstance(new c3d.PlaneCurve(placement, fragment, true));
-            const p = db.addItem(inst, 'silent').then(item => {
+        for (const { trimmed, start, stop } of result) {
+            const inst = new c3d.SpaceInstance(new c3d.PlaneCurve(placement, trimmed, true));
+            const p = db.addItem(inst, 'automatic').then(item => {
                 item.layers.set(visual.Layers.CurveFragment);
                 item.traverse(c => c.layers.set(visual.Layers.CurveFragment));
+                item.userData.start = start;
+                item.userData.stop = stop;
+                item.userData.parentItem = instance;
                 views.push(item);
             });
             ps.push(p);
@@ -172,7 +178,7 @@ export default class ContourManager extends SequentialExecutor<void> {
 
         const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
         try {
-            const { curve2d, placement } = curve.GetPlaneCurve(false);
+            const { curve2d, placement } = curve.GetPlaneCurve(true, new c3d.PlanarCheckParams(0.1));
 
             // Apply an 2d placement to the curve, so that any future booleans work
             const matrix = placement.GetMatrixToPlace(placement_);

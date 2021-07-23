@@ -7,7 +7,11 @@ export class SequentialExecutor<T> {
     async enqueue(f: () => Promise<T>) {
         const d = new Delay<T>();
         this.queue.push([f, d]);
-        if (!this.active) await this.dequeue();
+        if (this.active) return d;
+        else {
+            await this.dequeue();
+            return d.promise;
+        }
     }
 
     async dequeue() {
@@ -28,7 +32,7 @@ export class SequentialExecutor<T> {
 export class Delay<T> {
     readonly resolve!:(value: T | PromiseLike<T>) => void;
     readonly reject!: (reason?: any) => void;
-    private readonly promise: Promise<T>;
+    readonly promise: Promise<T>;
 
     constructor() {
         this.promise = new Promise<T>((resolve, reject) => {

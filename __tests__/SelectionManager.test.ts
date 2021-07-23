@@ -354,14 +354,14 @@ describe('onPointerMove', () => {
         const unhov = jest.fn();
         signals.objectUnhovered.add(unhov);
 
-        interactionManager.onPointerMove(intersections);
+        interactionManager.onHover(intersections);
         expect(hov).toHaveBeenCalledWith(solid);
         expect(unhov).not.toHaveBeenCalled();
 
         hov.mockReset();
         unhov.mockReset();
 
-        interactionManager.onPointerMove([]);
+        interactionManager.onHover([]);
         expect(hov).not.toHaveBeenCalled();
         expect(unhov).toHaveBeenCalledWith(solid);
     });
@@ -380,12 +380,12 @@ describe('onPointerMove', () => {
         interactionManager.onClick(intersections);
         expect(selectionManager.selectedSolids.size).toBe(1);
 
-        interactionManager.onPointerMove(intersections);
+        interactionManager.onHover(intersections);
         selectionManager.hover.highlight(highlighter);
         expect(edge.child.material).toBe(materials.hover(edge));
         selectionManager.hover.unhighlight(highlighter);
 
-        interactionManager.onPointerMove([]);
+        interactionManager.onHover([]);
         selectionManager.hover?.highlight(highlighter);
         expect(edge.child.material).toBe(materials.line(edge));
         selectionManager.hover?.unhighlight(highlighter);

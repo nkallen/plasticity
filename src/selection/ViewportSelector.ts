@@ -63,7 +63,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         const point = new THREE.Vector2();
         point.fromArray(array);
         const intersects = this.getIntersects(point, [...this.db.visibleObjects]);
-        this.signals.hovered.dispatch(intersects);
+        this.processHover(intersects);
     }
 
     onPointerUp(event: PointerEvent): void {
@@ -76,13 +76,14 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
             const intersects = this.getIntersects(this.onUpPosition, [...this.db.visibleObjects]);
 
-            this.processIntersection(intersects);
+            this.processClick(intersects);
         }
 
         document.removeEventListener('pointerup', this.onPointerUp, false);
     }
 
-    protected abstract processIntersection(intersects: THREE.Intersection[]): void;
+    protected abstract processClick(intersects: THREE.Intersection[]): void;
+    protected abstract processHover(intersects: THREE.Intersection[]): void;
 
     private getMousePosition(dom: HTMLElement, x: number, y: number) {
         const rect = dom.getBoundingClientRect();
@@ -110,8 +111,12 @@ export class ViewportSelector extends AbstractViewportSelector {
         super(camera, domElement, editor.db, editor.signals);
     }
 
-    protected processIntersection(intersects: THREE.Intersection[]) {
+    protected processClick(intersects: THREE.Intersection[]) {
         const command = new ChangeSelectionCommand(this.editor, intersects);
         this.editor.enqueue(command, 'finish');
+    }
+
+    protected processHover(intersects: THREE.Intersection[]) {
+        this.editor.selectionInteraction.onHover(intersects);
     }
 }

@@ -19,6 +19,7 @@ import './css/index.less';
 import keymap from "./default-keymap";
 import { Editor } from './editor/Editor';
 import registerDefaultCommands from './components/toolbar/icons';
+import CurveFactory from './commands/curve/CurveFactory';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -61,10 +62,15 @@ Dialog(editor);
 // makeSphere.commit();
 
 // const makeCircle1 = new CircleFactory(editor.db, editor.materials, editor.signals);
-// makeCircle1.center = new THREE.Vector3(0,-1.1,0);
+// makeCircle1.center = new THREE.Vector3(0, 0, 0);
 // makeCircle1.radius = 1;
 // makeCircle1.commit();
 
+// const makeCurve = new CurveFactory(editor.db, editor.materials, editor.signals);
+// makeCurve.points.push(new THREE.Vector3(-2, 2, 0))
+// makeCurve.points.push(new THREE.Vector3());
+// makeCurve.points.push(new THREE.Vector3(-2, -2, 0));
+// makeCurve.commit();
 // const makeCircle2 = new CircleFactory(editor.db, editor.materials, editor.signals);
 // makeCircle2.center = new THREE.Vector3(0,0,0);
 // makeCircle2.radius = 1;

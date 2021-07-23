@@ -212,7 +212,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
             this.selectedRegionIds.delete(item.simpleName);
         } else if (item instanceof visual.ControlPoint) {
             this.selectedControlPointIds.delete(item.simpleName);
-        }
+        } else throw new Error("invalid precondition");
         this.hover?.dispose();
         this.hover = undefined;
         this.signals.objectDeselected.dispatch(item);

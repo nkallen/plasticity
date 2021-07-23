@@ -166,5 +166,6 @@ export default (editor: Editor): void => {
         'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),
         'command:mode': () => editor.enqueue(new cmd.ModeCommand(editor)),
         'command:extrude': () => editor.enqueue(new cmd.ExtrudeCommand(editor)),
+        'command:trim': () => editor.enqueue(new cmd.TrimCommand(editor)),
     })
 }
