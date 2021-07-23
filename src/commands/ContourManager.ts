@@ -27,9 +27,33 @@ export default class ContourManager extends SequentialExecutor<void> {
 
         this.add = this.add.bind(this);
         this.remove = this.remove.bind(this);
+        this.update = this.update.bind(this);
 
         signals.userAddedCurve.add(this.add);
         signals.userRemovedCurve.add(this.remove);
+        signals.userAddedCurve.add(this.update);
+        signals.userRemovedCurve.add(this.update);
+    }
+
+    async update(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+        await this.enqueue(() => this._update());
+    }
+
+    async _update() {
+        const oldRegions = this.db.find(visual.PlaneInstance) as visual.PlaneInstance<visual.Region>[];
+        for (const region of oldRegions) this.db.removeItem(region);
+
+        const { curve2info } = this;
+        const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
+        const placement_ = new c3d.Placement3D();
+        const { contours } = c3d.ContourGraph.OuterContoursBuilder(allPlanarCurves);
+
+        const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
+        const result = [];
+        for (const region of regions) {
+            result.push(this.db.addItem(new c3d.PlaneInstance(region, placement_!)));
+        }
+        return Promise.all(result).then(() => { });
     }
 
     async add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
@@ -79,7 +103,6 @@ export default class ContourManager extends SequentialExecutor<void> {
     }
 
     private async _add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
-        console.time("_add");
         const { curve2info, planar2instance } = this;
 
         const newPlanarCurve = this.curve3d2curve2d(newCurve);
@@ -145,7 +168,6 @@ export default class ContourManager extends SequentialExecutor<void> {
             promises.push(this.updateCurve(this.planar2instance.get(id)!, result));
         }
         await Promise.all(promises);
-        console.timeEnd("_add");
     }
 
 
