@@ -734,10 +734,10 @@ export class FilletCommand extends Command {
             switch (e.tag) {
                 case 'add':
                     const { point } = await pp.execute().resource(this);
-                    const { visual, model, t } = restriction.match;
+                    const { view, model, t } = restriction.match;
                     const normal = model.EdgeNormal(t);
                     const gizmo = new FilletGizmo(this.editor, point, new THREE.Vector3(normal.x, normal.y, normal.z));
-                    const fn = fillet.functions.get(visual.simpleName)!;
+                    const fn = fillet.functions.get(view.simpleName)!;
                     gizmo.execute(async delta => {
                         fn.InsertValue(t, delta);
                         await fillet.update();

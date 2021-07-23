@@ -1,13 +1,13 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import * as visual from './VisualModel';
+import { cart2vec } from "../util/Conversion";
+import { RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { SnapMemento } from "./History";
 import { SpriteDatabase } from "./SpriteDatabase";
-import { cart2vec } from "../util/Conversion";
-import { RefCounter } from "../util/Util";
+import * as visual from './VisualModel';
 
 export interface Raycaster {
     intersectObjects(objects: THREE.Object3D[], recursive?: boolean, optionalTarget?: THREE.Intersection[]): THREE.Intersection[];
@@ -228,14 +228,15 @@ export class PointSnap extends Snap {
 export class CurveEdgeSnap extends Snap {
     t!: number;
 
-    constructor(readonly visual: visual.CurveEdge, readonly model: c3d.CurveEdge) {
-        super(visual);
+    constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
+        super(view);
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
         const pt = intersection.point;
         const t = this.model.PointProjection(new c3d.CartPoint3D(pt.x, pt.y, pt.z));
         const on = this.model.Point(t);
+        console.log("setting", t);
         this.t = t;
         return new THREE.Vector3(on.x, on.y, on.z);
     }
