@@ -1061,34 +1061,38 @@ export class TrimCommand extends Command {
         visual.EnabledLayers.disable(visual.Layers.Curve);
         visual.EnabledLayers.enable(visual.Layers.CurveFragment);
 
-        const picker = new ObjectPicker(this.editor);
-        picker.allowCurveFragments();
-        await picker.execute(async fragment => {
-            if (!(fragment instanceof visual.SpaceInstance)) throw new Error("invalid precondition");
-            const { start, stop, parentItem } = fragment.userData as { start: number, stop: number, parentItem: visual.SpaceInstance<visual.Curve3D> };
-            const model = this.editor.db.lookup(parentItem);
-            this.editor.db.removeItem(parentItem);
-            const item = model.GetSpaceItem()!;
-            const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            if (!curve.IsClosed()) {
-                let from = curve.GetTMin(), to = start;
-                if (Math.abs(from - to) > 10e-4) {
-                    const beginning = curve.Trimmed(from, to, 1)!;
-                    await this.editor.db.addItem(new c3d.SpaceInstance(beginning));
-                }
-                from = stop, to = curve.GetTMax();
-                if (Math.abs(from - to) > 10e-4) {
-                    const ending = curve.Trimmed(from, to, 1)!;
+        try {
+            const picker = new ObjectPicker(this.editor);
+            picker.allowCurveFragments();
+            await picker.execute(async fragment => {
+                if (!(fragment instanceof visual.SpaceInstance)) throw new Error("invalid precondition");
+                const { start, stop, parentItem } = fragment.userData as { start: number, stop: number, parentItem: visual.SpaceInstance<visual.Curve3D> };
+                const model = this.editor.db.lookup(parentItem);
+                this.editor.db.removeItem(parentItem);
+                const item = model.GetSpaceItem()!;
+                const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+                if (!curve.IsClosed()) {
+                    let from = curve.GetTMin(), to = start;
+                    if (Math.abs(from - to) > 10e-4) {
+                        const beginning = curve.Trimmed(from, to, 1)!;
+                        await this.editor.db.addItem(new c3d.SpaceInstance(beginning));
+                    }
+                    from = stop, to = curve.GetTMax();
+                    if (Math.abs(from - to) > 10e-4) {
+                        const ending = curve.Trimmed(from, to, 1)!;
+                        await this.editor.db.addItem(new c3d.SpaceInstance(ending));
+                    }
+                } else {
+                    const ending = curve.Trimmed(stop, start, 1)!;
                     await this.editor.db.addItem(new c3d.SpaceInstance(ending));
                 }
-            } else {
-                const ending = curve.Trimmed(stop, start, 1)!;
-                await this.editor.db.addItem(new c3d.SpaceInstance(ending));
-            }
-            this.editor.signals.factoryUpdated.dispatch();
-        }).resource(this);
-
-        visual.EnabledLayers.enable(visual.Layers.Curve);
-        visual.EnabledLayers.disable(visual.Layers.CurveFragment);
+                this.editor.contours.enqueue(() =>
+                    this.editor.signals.factoryUpdated.dispatch()
+                );
+            }).resource(this);
+        } finally {
+            visual.EnabledLayers.enable(visual.Layers.Curve);
+            visual.EnabledLayers.disable(visual.Layers.CurveFragment);
+        }
     }
 }

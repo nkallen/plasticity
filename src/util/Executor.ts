@@ -22,6 +22,7 @@ export class SequentialExecutor<T> {
                 const result = await job();
                 delay.resolve(result);
             } catch (e) {
+                console.warn(e);
                 delay.reject(e);
             }
         }

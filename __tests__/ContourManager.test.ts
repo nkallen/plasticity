@@ -6,7 +6,6 @@ import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import * as visual from '../src/editor/VisualModel';
-import { Delay } from "../src/util/Executor";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -151,3 +150,25 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
     expect(userAddedCurve.mock.calls.length).toBe(2);
     expect(objectAdded.mock.calls.length).toBe(2+4);
 });
+
+test("removing circles in reverse order works", async () => {
+    makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
+    makeCircle1.radius = 1;
+    const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    expect(db.visibleObjects.length).toBe(1);
+
+    await contours.add(circle1);
+    expect(db.visibleObjects.length).toBe(1);
+
+    makeCircle2.center = new THREE.Vector3(0, 0, 0);
+    makeCircle2.radius = 1;
+    const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    expect(db.visibleObjects.length).toBe(2);
+
+    await contours.add(circle2);
+    expect(db.visibleObjects.length).toBe(2 + 4);
+
+    await contours.remove(circle1);
+    db.removeItem(circle1);
+    expect(db.visibleObjects.length).toBe(1);
+})

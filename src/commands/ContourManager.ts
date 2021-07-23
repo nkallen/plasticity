@@ -126,6 +126,7 @@ export default class ContourManager extends SequentialExecutor<void> {
                 const { on1: { t, curve }, on2: { curve: other } } = cross;
                 const otherId = other.Id();
 
+                const info = curve2info.get(this.planar2instance.get(curve.Id())!)!;
                 info.touched.add(this.planar2instance.get(otherId)!);
 
                 const stop = t;
