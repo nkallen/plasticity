@@ -1068,7 +1068,6 @@ export class TrimCommand extends Command {
                 if (!(fragment instanceof visual.SpaceInstance)) throw new Error("invalid precondition");
                 const { start, stop, parentItem } = fragment.userData as { start: number, stop: number, parentItem: visual.SpaceInstance<visual.Curve3D> };
                 const model = this.editor.db.lookup(parentItem);
-                this.editor.db.removeItem(parentItem);
                 const item = model.GetSpaceItem()!;
                 const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
                 if (!curve.IsClosed()) {
@@ -1083,12 +1082,12 @@ export class TrimCommand extends Command {
                         await this.editor.db.addItem(new c3d.SpaceInstance(ending));
                     }
                 } else {
-                    const ending = curve.Trimmed(stop, start, 1)!;
-                    await this.editor.db.addItem(new c3d.SpaceInstance(ending));
+                    if (Math.abs(stop - start) > 10e-4) {
+                        const ending = curve.Trimmed(stop, start, 1)!;
+                        await this.editor.db.addItem(new c3d.SpaceInstance(ending));
+                    }
                 }
-                this.editor.contours.enqueue(() =>
-                    this.editor.signals.factoryUpdated.dispatch()
-                );
+                this.editor.db.removeItem(parentItem);
             }).resource(this);
         } finally {
             visual.EnabledLayers.enable(visual.Layers.Curve);

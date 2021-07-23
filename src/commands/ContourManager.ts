@@ -79,6 +79,7 @@ export default class ContourManager extends SequentialExecutor<void> {
     }
 
     private async _add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+        console.time("_add");
         const { curve2info, planar2instance } = this;
 
         const newPlanarCurve = this.curve3d2curve2d(newCurve);
@@ -88,7 +89,6 @@ export default class ContourManager extends SequentialExecutor<void> {
         planar2instance.set(newPlanarCurve.Id(), newCurve);
 
         const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
-        if (allPlanarCurves.length < 2) return;
 
         const curvesToProcess = new Map<Curve2dId, c3d.Curve>();
         curvesToProcess.set(newPlanarCurve.Id(), newPlanarCurve);
@@ -100,7 +100,10 @@ export default class ContourManager extends SequentialExecutor<void> {
             curvesToProcess.delete(id);
 
             const crosses = c3d.CurveEnvelope.IntersectWithAll(current, allPlanarCurves, true);
-            if (crosses.length < 1) continue;
+            if (crosses.length < 1) {
+                promises.push(this.updateCurve(newCurve, [{ trimmed: newPlanarCurve, start: -1, stop: -1 }]));
+                continue;
+            }
             crosses.sort((a, b) => {
                 return a.on1.t - b.on1.t;
             });
@@ -142,6 +145,7 @@ export default class ContourManager extends SequentialExecutor<void> {
             promises.push(this.updateCurve(this.planar2instance.get(id)!, result));
         }
         await Promise.all(promises);
+        console.timeEnd("_add");
     }
 
 

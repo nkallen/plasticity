@@ -38,12 +38,12 @@ test('three intersecting circles, added then deleted', async () => {
     expect(db.visibleObjects.length).toBe(1);
 
     await contours.add(circle1);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
     makeCircle2.radius = 1;
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.visibleObjects.length).toBe(3);
 
     await contours.add(circle2);
     expect(db.visibleObjects.length).toBe(2 + 4);
@@ -62,7 +62,7 @@ test('three intersecting circles, added then deleted', async () => {
 
     await contours.remove(circle2);
     db.removeItem(circle2);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(2);
 });
 
 test('two non-intersecting circles', async() => {
@@ -72,19 +72,19 @@ test('two non-intersecting circles', async() => {
     expect(db.visibleObjects.length).toBe(1);
 
     await contours.add(circle1);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 5, 0);
     makeCircle2.radius = 1;
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.visibleObjects.length).toBe(3);
 
     await contours.add(circle2);
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.visibleObjects.length).toBe(4);
 
     await contours.remove(circle2);
     db.removeItem(circle2);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(2);
 });
 
 test('open curve through circle, added then deleted', async () => {
@@ -94,20 +94,20 @@ test('open curve through circle, added then deleted', async () => {
     expect(db.visibleObjects.length).toBe(1);
 
     await contours.add(circle);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(2);
 
     makeCurve.points.push(new THREE.Vector3(-2, 2, 0))
     makeCurve.points.push(new THREE.Vector3());
     makeCurve.points.push(new THREE.Vector3(-2, -2, 0));
     const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.visibleObjects.length).toBe(3);
 
     await contours.add(curve);
     expect(db.visibleObjects.length).toBe(2 + 5);
 
     await contours.remove(curve);
     db.removeItem(curve);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(2);
 });
 
 test('userAddedCurve event is dispatched only when the user interacts with the db, not when fragments are automatically created; other events behave the same in both cases', async () => {
@@ -129,9 +129,9 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
     await contours.add(circle1);
     await contours.enqueue(() => Promise.resolve());
 
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(2);
     expect(userAddedCurve.mock.calls.length).toBe(1);
-    expect(objectAdded.mock.calls.length).toBe(1);
+    expect(objectAdded.mock.calls.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
     makeCircle2.radius = 1;
@@ -139,16 +139,16 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
     await contours.enqueue(() => Promise.resolve());
 
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.visibleObjects.length).toBe(3);
     expect(userAddedCurve.mock.calls.length).toBe(2);
-    expect(objectAdded.mock.calls.length).toBe(2);
+    expect(objectAdded.mock.calls.length).toBe(3);
 
     await contours.add(circle2);
     await contours.enqueue(() => Promise.resolve());
 
     expect(db.visibleObjects.length).toBe(2 + 4);
     expect(userAddedCurve.mock.calls.length).toBe(2);
-    expect(objectAdded.mock.calls.length).toBe(2+4);
+    expect(objectAdded.mock.calls.length).toBe(3+4);
 });
 
 test("removing circles in reverse order works", async () => {
@@ -158,17 +158,17 @@ test("removing circles in reverse order works", async () => {
     expect(db.visibleObjects.length).toBe(1);
 
     await contours.add(circle1);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
     makeCircle2.radius = 1;
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(2);
+    expect(db.visibleObjects.length).toBe(3);
 
     await contours.add(circle2);
     expect(db.visibleObjects.length).toBe(2 + 4);
 
     await contours.remove(circle1);
     db.removeItem(circle1);
-    expect(db.visibleObjects.length).toBe(1);
+    expect(db.visibleObjects.length).toBe(2);
 })
