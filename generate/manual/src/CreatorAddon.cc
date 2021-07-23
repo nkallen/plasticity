@@ -115,6 +115,9 @@ Napi::Value cast(MbCreator * _underlying, const Napi::CallbackInfo &info)
         return DuplicationSolid::NewInstance(env, (MbDuplicationSolid *)(_underlying));
     case ct_ReverseCreator:
         return ReverseCreator::NewInstance(env, (MbReverseCreator *)(_underlying));
+    default:
+        Napi::Error::New(env, "Invalid cast parameter").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 }
 

@@ -236,7 +236,6 @@ export class CurveEdgeSnap extends Snap {
         const pt = intersection.point;
         const t = this.model.PointProjection(new c3d.CartPoint3D(pt.x, pt.y, pt.z));
         const on = this.model.Point(t);
-        console.log("setting", t);
         this.t = t;
         return new THREE.Vector3(on.x, on.y, on.z);
     }

@@ -28,7 +28,7 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
         handle.add(sphere, line);
 
         const picker = new THREE.Group();
-        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.yellowTransparent);
+        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), materials.invisible);
         knob.userData.command = ['gizmo:fillet:distance', () => {}];
         picker.add(knob);
 

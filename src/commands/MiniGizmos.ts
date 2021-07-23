@@ -71,7 +71,7 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         const handle = new THREE.Group();
         const picker = new THREE.Group();
 
-        const plane = new THREE.Mesh(planeGeometry, materials.yellowTransparent);
+        const plane = new THREE.Mesh(planeGeometry, materials.invisible);
 
         const tip = new THREE.Mesh(arrowGeometry, materials.yellow);
         tip.position.set(0, 1, 0);

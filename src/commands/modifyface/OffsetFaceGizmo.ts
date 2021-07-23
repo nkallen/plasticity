@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "../AbstractGizmo";
 
-const sphereGeometry = new THREE.SphereGeometry(0.1);
+const sphereGeometry = new THREE.SphereGeometry(0.1, 10, 8);
 const lineGeometry = new LineGeometry();
 lineGeometry.setPositions([0, 0, 0, 0, 1, 0]);
 const planeGeometry = new THREE.PlaneGeometry(10, 10, 2, 2);

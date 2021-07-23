@@ -4,6 +4,7 @@ THIS WEEK:
   virtual void    RemovePoint( ptrdiff_t index );     
 MATH_FUNC (MpGraph *) OuterContoursBuilder( const RPArray<MbCurve> &  curveList, 
 
+remove fillet never seems to work 
 lines need to be planar
 fillet curves/contours
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
@@ -11,6 +12,7 @@ fillet has two points, F key bound twice
 bug: fillet edge. ok. undo. fillet edge. ok. error
 moving needs to have snapping
 command validation (curves fail at beginning, as well as click away aborting lots of commands)
+can't select control points in ortho view
 
 lots of broken things, like variable fillet, weird errors when adding squares, etc.
 
@@ -24,7 +26,9 @@ lots of broken things, like variable fillet, weird errors when adding squares, e
 - keep lastPointerEvent as a global on editor
 - dispatch keyboard events to the target of lastPointerEvent
 
+# c++ changes:
 rename Id() .id
+Cast should automatically take IsA();
 
 redo all the basic commands (creating a box, etc.,) including the gui
 

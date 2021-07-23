@@ -33,8 +33,7 @@ export class Model {
         const solid = selection.selectedSolids.first!;
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
-            const creator = model.SetCreator(i);
-            if (creator === null) throw new Error("invalid precondition");
+            const creator = model.SetCreator(i)!;
             result.push([i, creator.Cast<any>(creator.IsA())]);
         }
 

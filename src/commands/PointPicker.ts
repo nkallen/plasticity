@@ -46,6 +46,7 @@ export class PointPicker {
             raycaster.params.Line = { threshold: 0.1 };
             // @ts-expect-error("Line2 is missing from the typedef")
             raycaster.params.Line2 = { threshold: 20 };
+            raycaster.layers = visual.EnabledLayers;
 
             scene.add(mesh);
             disposables.add(new Disposable(() => scene.remove(mesh)));
