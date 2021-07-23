@@ -74,11 +74,11 @@ export class CommandExecutor {
             this.signals.objectSelected.addOnce(() => selectionChanged = true);
             this.signals.objectDeselected.addOnce(() => selectionChanged = true);
             await command.execute();
-            command.finish(); // FIXME this is experimental. The idea is that open resources need to be disposed
+            command.finish();
             if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
             this.history.add("Command", state);
         } catch (e) {
-            command.cancel(); // same as above, maybe this should be more explicit and moved to finally
+            command.cancel();
             if (e !== Cancel) throw e;
         } finally {
             document.body.removeAttribute("command");

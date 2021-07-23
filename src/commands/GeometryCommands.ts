@@ -282,9 +282,7 @@ export class PolygonCommand extends Command {
             polygon.update();
         }).resource(this);
 
-        const result = await polygon.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
+        await polygon.commit();
     }
 }
 
@@ -321,7 +319,7 @@ export class SpiralCommand extends Command {
 
         await this.finished;
 
-        await spiral.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await spiral.commit();
     }
 }
 
@@ -431,8 +429,7 @@ export class CurveCommand extends Command {
             }
         }
 
-        const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-        this.editor.signals.contoursChanged.dispatch(curve);
+        await makeCurve.commit();
     }
 }
 
@@ -465,9 +462,7 @@ export class ThreePointRectangleCommand extends Command {
             rect.update();
         }).resource(this);
 
-        const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
+        await rect.commit();
     }
 }
 
@@ -490,9 +485,7 @@ export class CornerRectangleCommand extends Command {
             rect.update();
         }).resource(this);
 
-        const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
+        await rect.commit();
     }
 }
 
@@ -516,10 +509,6 @@ export class CenterRectangleCommand extends Command {
         }).resource(this);
 
         await rect.commit();
-
-        const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.signals.contoursChanged.dispatch(result);
     }
 }
 
