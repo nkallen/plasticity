@@ -67,13 +67,16 @@ beforeEach(async () => {
         selection: selection,
         originator: originator,
         materials: materials,
-        selectionInteraction: interaction
+        selectionInteraction: interaction,
+        scene: new THREE.Scene(),
+        enqueue: () => {},
     };
     const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;
     sphere = await makeSphere.commit() as visual.Solid;
-    navigationControls = new EventDispatcher()
+    navigationControls = new EventDispatcher() as any;
+    navigationControls.dispose = () => {};
     viewport = new Model(
         editor,
         new FakeWebGLRenderer() as unknown as THREE.WebGLRenderer,
@@ -87,7 +90,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-    viewport.stop();
+    viewport.dispose();
 });
 
 test("item selected", () => {

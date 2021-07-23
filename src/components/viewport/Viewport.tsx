@@ -1,3 +1,4 @@
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -9,13 +10,13 @@ import { EditorSignals } from '../../editor/Editor';
 import { GeometryDatabase } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
 import { PlaneSnap } from "../../editor/SnapManager";
+import * as visual from "../../editor/VisualModel";
 import { ControlPoint, Solid, SpaceItem, TopologyItem } from "../../editor/VisualModel";
 import { SelectionManager } from "../../selection/SelectionManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
-import * as visual from "../../editor/VisualModel";
 
 const near = 0.01;
 const far = 1000;
@@ -47,7 +48,7 @@ export interface EditorLike extends selector.EditorLike {
     scene: THREE.Scene,
 }
 
-type Control = { enabled: boolean };
+type Control = { enabled: boolean, dispose(): void };
 
 export class Model implements Viewport {
     readonly overlay = new THREE.Scene();
@@ -58,6 +59,7 @@ export class Model implements Viewport {
     readonly selector: ViewportSelector;
     lastPointerEvent?: PointerEvent;
     private readonly renderPass: RenderPass;
+    private readonly disposable = new CompositeDisposable();
 
     constructor(
         private readonly editor: EditorLike,
@@ -127,6 +129,11 @@ export class Model implements Viewport {
 
         this.controls.add(this.selector);
         this.controls.add(this.navigationControls);
+
+        this.disposable.add(new Disposable(() => {
+            this.selector.dispose();
+            this.navigationControls.dispose();
+        }));
     }
 
     private started = false;
@@ -151,28 +158,28 @@ export class Model implements Viewport {
 
         this.started = true;
         this.render(-1);
-    }
 
-    stop() {
-        this.editor.signals.selectionChanged.remove(this.outlineSelection);
-        this.editor.signals.historyChanged.remove(this.outlineSelection);
-        this.editor.signals.objectHovered.remove(this.outlineHover);
-        this.editor.signals.objectUnhovered.remove(this.outlineUnhover);
+        this.disposable.add(new Disposable(() => {
+            this.editor.signals.selectionChanged.remove(this.outlineSelection);
+            this.editor.signals.historyChanged.remove(this.outlineSelection);
+            this.editor.signals.objectHovered.remove(this.outlineHover);
+            this.editor.signals.objectUnhovered.remove(this.outlineUnhover);
 
-        this.editor.signals.selectionChanged.remove(this.setNeedsRender);
-        this.editor.signals.sceneGraphChanged.remove(this.setNeedsRender);
-        this.editor.signals.factoryUpdated.remove(this.setNeedsRender);
-        this.editor.signals.pointPickerChanged.remove(this.setNeedsRender);
-        this.editor.signals.gizmoChanged.remove(this.setNeedsRender);
-        this.editor.signals.objectHovered.remove(this.setNeedsRender);
-        this.editor.signals.objectUnhovered.remove(this.setNeedsRender);
-        this.editor.signals.objectAdded.remove(this.setNeedsRender);
-        this.editor.signals.historyChanged.remove(this.setNeedsRender);
+            this.editor.signals.selectionChanged.remove(this.setNeedsRender);
+            this.editor.signals.sceneGraphChanged.remove(this.setNeedsRender);
+            this.editor.signals.factoryUpdated.remove(this.setNeedsRender);
+            this.editor.signals.pointPickerChanged.remove(this.setNeedsRender);
+            this.editor.signals.gizmoChanged.remove(this.setNeedsRender);
+            this.editor.signals.objectHovered.remove(this.setNeedsRender);
+            this.editor.signals.objectUnhovered.remove(this.setNeedsRender);
+            this.editor.signals.objectAdded.add(this.setNeedsRender);
+            this.editor.signals.historyChanged.add(this.setNeedsRender);
 
-        this.navigationControls.removeEventListener('change', this.setNeedsRender);
-        this.navigationControls.removeEventListener('start', this.navigationStart);
+            this.navigationControls.removeEventListener('change', this.setNeedsRender);
+            this.navigationControls.removeEventListener('start', this.navigationStart);
 
-        this.started = false;
+            this.started = false;
+        }));
     }
 
     private needsRender = true;
@@ -294,6 +301,10 @@ export class Model implements Viewport {
     removeAttribute(name: string) {
         this.domElement.removeAttribute(name);
     }
+
+    dispose() {
+        this.disposable.dispose();
+    }
 }
 
 export default (editor: EditorLike) => {
@@ -373,6 +384,10 @@ export default (editor: EditorLike) => {
             editor.signals.windowResized.add(this.resize);
 
             this.model.start();
+        }
+
+        disconnectedCallback() {
+            this.model.dispose();
         }
 
         resize() {

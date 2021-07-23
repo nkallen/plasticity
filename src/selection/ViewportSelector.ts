@@ -4,6 +4,7 @@ import Command, * as cmd from "../commands/Command";
 import { ChangeSelectionCommand } from "../commands/CommandLike";
 import { EditorOriginator } from "../editor/History";
 import * as visual from "../editor/VisualModel";
+import { CompositeDisposable, Disposable } from "event-kit";
 
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,
@@ -11,15 +12,16 @@ export interface EditorLike extends cmd.EditorLike {
 }
 
 export class ViewportSelector extends THREE.EventDispatcher {
+    enabled = true;
+
     private readonly raycaster = new THREE.Raycaster();
     private readonly mouse = new THREE.Vector2();
 
     private readonly onDownPosition = new THREE.Vector2();
     private readonly onUpPosition = new THREE.Vector2();
 
-    enabled = true;
+    private readonly disposable = new CompositeDisposable();
 
-    // FIXME add dispose
     constructor(
         private readonly camera: THREE.Camera,
         private readonly domElement: HTMLElement,
@@ -39,6 +41,8 @@ export class ViewportSelector extends THREE.EventDispatcher {
 
         domElement.addEventListener('pointerdown', this.onPointerDown, false);
         domElement.addEventListener('pointermove', this.onPointerHover);
+        this.disposable.add(new Disposable(() => domElement.removeEventListener('pointerdown', this.onPointerDown)));
+        this.disposable.add(new Disposable(() => domElement.removeEventListener('pointermove', this.onPointerDown)));
     }
 
     onPointerDown(event: PointerEvent): void {
@@ -88,5 +92,9 @@ export class ViewportSelector extends THREE.EventDispatcher {
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
         return this.raycaster.intersectObjects(objects, false); // FIXME reconsider non-recursive
+    }
+
+    dispose() {
+        this.disposable.dispose();
     }
 }
