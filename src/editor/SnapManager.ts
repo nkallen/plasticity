@@ -1,4 +1,3 @@
-import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { cart2vec } from "../util/Conversion";
@@ -83,18 +82,20 @@ export class SnapManager {
     }
 
     private add(item: visual.Item): void {
-        const disposable = new CompositeDisposable();
+        const fns: (() => void)[] = [];
         if (item instanceof visual.Solid) {
             for (const edge of item.edges) {
                 const d = this.addEdge(edge);
-                disposable.add(d);
+                fns.push(d);
             }
         } else if (item instanceof visual.SpaceInstance) {
             const d = this.addCurve(item);
-            disposable.add(d);
+            fns.push(d);
         }
 
-        this.garbageDisposal.incr(item.simpleName, disposable);
+        this.garbageDisposal.incr(item.simpleName, () => {
+            for (const fn of fns) fn()
+        });
         this.update();
     }
 
@@ -107,10 +108,10 @@ export class SnapManager {
 
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
-        return new Disposable(() => {
+        return () => {
             this.begPoints.delete(begSnap);
             this.midPoints.delete(midSnap);
-        });
+        };
     }
 
     private addCurve(item: visual.SpaceInstance<visual.Curve3D>) {
@@ -127,11 +128,11 @@ export class SnapManager {
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
         this.endPoints.add(endSnap);
-        return new Disposable(() => {
+        return () => {
             this.begPoints.delete(begSnap);
             this.midPoints.delete(midSnap);
             this.endPoints.delete(endSnap);
-        });
+        };
     }
 
     private delete(item: visual.Item): void {
