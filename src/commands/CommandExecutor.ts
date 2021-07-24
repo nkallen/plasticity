@@ -44,11 +44,12 @@ export class CommandExecutor {
             this.active = next;
             this.next = undefined;
             try {
-                await this.execute(next)
+                await this.execute(next);
                 const command = this.selectionGizmo.commandFor(next);
                 if (command !== undefined) await this.enqueue(command);
-            }
-            finally { delete this.active }
+            } catch (e) {
+                if (e !== Cancel) console.warn(e);
+            } finally { delete this.active }
         }
     }
 
@@ -69,7 +70,7 @@ export class CommandExecutor {
             this.history.add("Command", state);
         } catch (e) {
             command.cancel();
-            if (e !== Cancel) throw e;
+            throw e;
         } finally {
             document.body.removeAttribute("command");
             disposable.dispose();
