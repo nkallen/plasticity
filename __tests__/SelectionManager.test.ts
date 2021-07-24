@@ -277,6 +277,36 @@ describe('onClick', () => {
         expect(selectionManager.selectedEdges.size).toBe(0);
     });
 
+    test("deleting, then undoing, then deleting again", () => {
+        const intersections = [];
+        const edge = solid.edges.get(0);
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: edge
+        });
+
+        expect(selectionManager.selectedSolids.size).toBe(0);
+        expect(selectionManager.selectedEdges.size).toBe(0);
+        interactionManager.onClick(intersections);
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selectedEdges.size).toBe(1);
+
+        const before = selectionManager.saveToMemento(new Map());
+
+        selectionManager.delete(solid);
+        expect(selectionManager.selectedSolids.size).toBe(0);
+        expect(selectionManager.selectedEdges.size).toBe(0);
+
+        selectionManager.restoreFromMemento(before);
+        expect(selectionManager.selectedSolids.size).toBe(0);
+        expect(selectionManager.selectedEdges.size).toBe(1);
+
+        selectionManager.delete(solid);
+        expect(selectionManager.selectedSolids.size).toBe(0);
+        expect(selectionManager.selectedEdges.size).toBe(0);
+    });
+
     test("clicking on both a edge and a face selects the edge", () => {
         const intersections = [
             {

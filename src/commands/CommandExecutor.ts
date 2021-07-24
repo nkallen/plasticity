@@ -6,7 +6,7 @@ import { Cancel } from "../util/Cancellable";
 import Command from "./Command";
 import { SelectionCommandManager } from "./SelectionCommandManager";
 
-const maxFailures = 10;
+const maxFailures = 1;
 
 export type CancelOrFinish = 'cancel' | 'finish';
 
@@ -56,8 +56,9 @@ export class CommandExecutor {
             finally { delete this.active }
         }
 
+        // FIXME: set userData on the command indicating it was automatically enq'd ; only count failures for autos.
         const command = this.selectionGizmo.commandFor(next);
-        if (command) await this.enqueue(command);
+        if (command !== undefined) await this.enqueue(command);
 
         for (const e of es) { console.warn(e) }
     }

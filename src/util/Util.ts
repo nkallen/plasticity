@@ -1,7 +1,5 @@
 // https://www.typescriptlang.org/docs/handbook/mixins.html
 
-import { CompositeDisposable, Disposable } from "event-kit";
-
 export type Constructor = new (...args: any[]) => {};
 export type GConstructor<T = {}> = new (...args: any[]) => T;
 
@@ -24,13 +22,13 @@ export function assertUnreachable(_x: never): never {
 }
 
 export class RefCounter<T> {
-    private readonly counts: Map<T, [number, CompositeDisposable]>;
+    private readonly counts: Map<T, [number, Set<() => void>]>;
 
     constructor(from?: RefCounter<T>) {
         if (from) {
             this.counts = new Map(from.counts);
         } else {
-            this.counts = new Map<T, [number, CompositeDisposable]>();
+            this.counts = new Map<T, [number, Set<() => void>]>();
         }
     }
 
@@ -40,7 +38,7 @@ export class RefCounter<T> {
         return this.counts.has(item);
     }
 
-    incr(item: T, disposable: Disposable): void {
+    incr(item: T, disposable: () => void): void {
         if (this.counts.has(item)) {
             const value = this.counts.get(item);
             if (!value) throw new Error("invalid key");
@@ -49,7 +47,7 @@ export class RefCounter<T> {
             disposables.add(disposable);
             this.counts.set(item, [count + 1, disposables])
         } else {
-            this.counts.set(item, [1, new CompositeDisposable(disposable)]);
+            this.counts.set(item, [1, new Set([disposable])]);
         }
     }
 
@@ -58,9 +56,8 @@ export class RefCounter<T> {
         if (!value) throw new Error("invalid key");
 
         const [count, disposable] = value;
-        if (count == 1) {
-            this.counts.delete(item);
-            disposable.dispose();
+        if (count === 1) {
+            this.delete(item);
         } else {
             this.counts.set(item, [count - 1, disposable])
         }
@@ -68,11 +65,11 @@ export class RefCounter<T> {
 
     delete(item: T): void {
         const value = this.counts.get(item);
-        if (!value) return;
-
-        const [, disposable] = value;
+        if (value === undefined) return;
         this.counts.delete(item);
-        disposable.dispose();
+
+        const [, disposables] = value;
+        for (const disposable of disposables) disposable();
     }
 
     clear(): void {

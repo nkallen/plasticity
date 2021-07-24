@@ -108,7 +108,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.hover = undefined;
         this.selectedFaceIds.add(object.simpleName);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
-            new Disposable(() => this.selectedFaceIds.delete(object.simpleName)));
+            () => this.selectedFaceIds.delete(object.simpleName));
         this.signals.objectSelected.dispatch(object);
     }
 
@@ -135,7 +135,8 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.hover = undefined;
         this.selectedEdgeIds.add(object.simpleName);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
-            new Disposable(() => this.selectedEdgeIds.delete(object.simpleName)));
+            () => this.selectedEdgeIds.delete(object.simpleName)
+        );
         this.signals.objectSelected.dispatch(object);
     }
 
@@ -168,7 +169,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.hover = undefined;
         this.selectedControlPointIds.add(point.simpleName);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
-            new Disposable(() => this.selectedControlPointIds.delete(point.simpleName)));
+            () => this.selectedControlPointIds.delete(point.simpleName));
         this.signals.objectSelected.dispatch(point);
     }
 
@@ -182,7 +183,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         for (const collection of [this.selectedEdgeIds, this.selectedFaceIds]) {
             for (const id of collection) {
                 collection.delete(id);
-                const { views} = this.db.lookupTopologyItemById(id);
+                const { views } = this.db.lookupTopologyItemById(id);
                 this.signals.objectDeselected.dispatch(views.entries().next().value);
             }
         }

@@ -14,7 +14,11 @@ moving needs to have snapping
 command validation (curves fail at beginning, as well as click away aborting lots of commands)
 can't select control points in ortho view
 
-lots of broken things, like variable fillet, weird errors when adding squares, etc.
+BUG/CRASH:
+1. add regular polygon
+2. extrude
+3. fillet variable top face
+4. push/pull face down
 
 # transaction history
 - delete creator
