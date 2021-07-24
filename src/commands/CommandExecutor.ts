@@ -6,8 +6,6 @@ import { Cancel } from "../util/Cancellable";
 import Command from "./Command";
 import { SelectionCommandManager } from "./SelectionCommandManager";
 
-const maxFailures = 1;
-
 export type CancelOrFinish = 'cancel' | 'finish';
 
 export class CommandExecutor {
@@ -36,31 +34,22 @@ export class CommandExecutor {
         if (!isActive) await this.dequeue();
     }
 
-    private failures = 0;
     private async dequeue() {
         if (!this.next) throw new Error("Invalid precondition");
 
         let next!: Command;
-        const es = [];
         while (this.next) {
-            if (this.failures > maxFailures) return;
             next = this.next;
             if (this.active) throw new Error("invalid precondition");
             this.active = next;
             this.next = undefined;
             try {
                 await this.execute(next)
-                this.failures = 0;
+                const command = this.selectionGizmo.commandFor(next);
+                if (command !== undefined) await this.enqueue(command);
             }
-            catch (_e) { es.push(_e); this.failures++ }
             finally { delete this.active }
         }
-
-        // FIXME: set userData on the command indicating it was automatically enq'd ; only count failures for autos.
-        const command = this.selectionGizmo.commandFor(next);
-        if (command !== undefined) await this.enqueue(command);
-
-        for (const e of es) { console.warn(e) }
     }
 
     private async execute(command: Command) {

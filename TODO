@@ -9,7 +9,6 @@ lines need to be planar
 fillet curves/contours
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
-bug: fillet edge. ok. undo. fillet edge. ok. error
 moving needs to have snapping
 command validation (curves fail at beginning, as well as click away aborting lots of commands)
 can't select control points in ortho view
