@@ -18,8 +18,6 @@ abstract class AbstractExtrudeFactory extends GeometryFactory {
 
         if (distance1 == 0 && distance2 == 0) throw new Error("invalid data");
 
-        console.log(distance1,distance2);
-
         const sweptData = new c3d.SweptData(surface, contours);
         const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
         const params = new c3d.ExtrusionValues(distance1, distance2);

@@ -11,6 +11,8 @@ fillet has two points, F key bound twice
 moving needs to have snapping
 command validation (curves fail at beginning, as well as click away aborting lots of commands)
 can't select control points in ortho view
+if clicking away, if the command has never been updated, we should cancel -- maybe add a state to command that indicates it's been resourced, and have the commit() behavior fail if not updated.
+interleaving with updating/commit on factory. use q?
 
 BUG/CRASH:
 1. add regular polygon

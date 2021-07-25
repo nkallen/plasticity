@@ -77,16 +77,14 @@ export class CommandExecutor {
         }
     }
 
-    cancelActiveCommand(): boolean {
+    cancelActiveCommand() {
         const active = this.active;
         if (active) active.cancel();
-        return !!active;
     }
 
-    finishActiveCommand(): boolean {
+    private finishActiveCommand() {
         const active = this.active;
         if (active) active.finish();
-        return !!active;
     }
 
     async enqueueDefaultCommand() {

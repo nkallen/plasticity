@@ -5,7 +5,12 @@ import MaterialDatabase from '../editor/MaterialDatabase';
 import { ResourceRegistration } from '../util/Cancellable';
 import * as visual from '../editor/VisualModel';
 
-type State = { tag: 'none', last: undefined } | { tag: 'updated', last?: Map<string, any> } | { tag: 'updating', hasNext: boolean, failed?: any, last?: Map<string, any> } | { tag: 'failed', error: any, last?: Map<string, any> } | { tag: 'cancelled' } | { tag: 'committed' }
+type State = { tag: 'none', last: undefined }
+    | { tag: 'updated', last?: Map<string, any> } 
+    | { tag: 'updating', hasNext: boolean, failed?: any, last?: Map<string, any> }
+    | { tag: 'failed', error: any, last?: Map<string, any> } 
+    | { tag: 'cancelled' } 
+    | { tag: 'committed' }
 
 /**
  * Subclasses of GeometryFactory implement template update() and commit() methods. This abstract class
