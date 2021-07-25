@@ -32,7 +32,7 @@ void main() {
     scale.y = length( vec3( modelMatrix[ 1 ].x, modelMatrix[ 1 ].y, modelMatrix[ 1 ].z ) );
     bool isPerspective = isPerspectiveMatrix( projectionMatrix );
     if ( isPerspective ) scale *= - mvPosition.z;
-    else scale /= 1. / 6. * projectionMatrix[1][1]; // NOTE: THIS IS THE KEY CHANGE
+    else scale /= (1. / 6.) * projectionMatrix[1][1]; // NOTE: THIS IS THE KEY CHANGE
     vec2 alignedPosition = ( position.xy - ( center - vec2( 0.5 ) ) ) * scale;
     vec2 rotatedPosition;
     rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;
@@ -57,4 +57,8 @@ export class SpriteDatabase {
         result.scale.setScalar(0.01);
         return result as THREE.Sprite;
     }
+}
+
+class MySprite extends THREE.Sprite {
+
 }

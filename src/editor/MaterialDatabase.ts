@@ -99,11 +99,13 @@ region_highlighted.transparent = true;
 const controlPoint = new THREE.SpriteMaterial({map: new THREE.TextureLoader().load(controlPointIcon), sizeAttenuation: false });
 controlPoint.onBeforeCompile = attenuateSizeInOrthoCamera;
 
-const controlPoint_hovered = controlPoint.clone() as THREE.SpriteMaterial;
+const controlPoint_hovered = new THREE.SpriteMaterial({map: new THREE.TextureLoader().load(controlPointIcon), sizeAttenuation: false });
 controlPoint_hovered.color.set(0xffff00);
+controlPoint_hovered.onBeforeCompile = attenuateSizeInOrthoCamera;
 
-const controlPoint_highlighted = controlPoint.clone() as THREE.SpriteMaterial;
+const controlPoint_highlighted = new THREE.SpriteMaterial({map: new THREE.TextureLoader().load(controlPointIcon), sizeAttenuation: false });
 controlPoint_highlighted.color.set(0xffff00);
+controlPoint_highlighted.onBeforeCompile = attenuateSizeInOrthoCamera;
 
 export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();

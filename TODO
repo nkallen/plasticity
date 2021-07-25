@@ -13,6 +13,7 @@ command validation (curves fail at beginning, as well as click away aborting lot
 can't select control points in ortho view
 if clicking away, if the command has never been updated, we should cancel -- maybe add a state to command that indicates it's been resourced, and have the commit() behavior fail if not updated.
 interleaving with updating/commit on factory. use q?
+keyboard instructions get in the way of clicking
 
 BUG/CRASH:
 1. add regular polygon
