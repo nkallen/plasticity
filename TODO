@@ -4,7 +4,6 @@ THIS WEEK:
   virtual void    RemovePoint( ptrdiff_t index );     
 MATH_FUNC (MpGraph *) OuterContoursBuilder( const RPArray<MbCurve> &  curveList, 
 
-remove fillet never seems to work 
 lines need to be planar
 fillet curves/contours
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().

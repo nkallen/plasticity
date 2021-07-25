@@ -4,7 +4,7 @@ import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../Factory';
 
 abstract class AbstractExtrudeFactory extends GeometryFactory {
-    distance1!: number;
+    distance1 = 0;
     distance2 = 0;
     abstract direction: THREE.Vector3;
 
@@ -17,6 +17,8 @@ abstract class AbstractExtrudeFactory extends GeometryFactory {
         const { contours, surface, direction, names, distance1, distance2 } = this;
 
         if (distance1 == 0 && distance2 == 0) throw new Error("invalid data");
+
+        console.log(distance1,distance2);
 
         const sweptData = new c3d.SweptData(surface, contours);
         const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
