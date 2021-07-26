@@ -275,6 +275,10 @@ export default {
             rawHeader: "cur_contour3d.h",
             extends: "Curve3D",
             dependencies: ["Curve3D.h"],
+            functions: [
+                { signature: "bool AddCurveWithRuledCheck(MbCurve3D & curve, double absEps = Math::metricPrecision, bool toEndOnly = false, bool checkSame = true, VERSION version = Math::DefaultMathVersion())", return: isErrorBool },
+                "size_t GetSegmentsCount()",
+            ]
         },
         Plane: {
             rawHeader: "surf_plane.h",

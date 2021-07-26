@@ -18,7 +18,7 @@ export default class ContourFactory extends GeometryFactory {
             const spaceItem = this.db.lookup(curve).GetSpaceItem();
             if (spaceItem === null) throw new Error("invalid precondition");
             const nextCurve = spaceItem.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            c3d.ActionCurve3D.AddCurveToContour(nextCurve, contour, true);
+            contour.AddCurveWithRuledCheck(nextCurve);
         }
         return new c3d.SpaceInstance(contour);
     }

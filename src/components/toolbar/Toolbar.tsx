@@ -77,6 +77,12 @@ export class Model {
             result.push(cmd.ExtrudeCommand);
             result.push(cmd.RegionCommand);
             result.push(cmd.MirrorCommand);
+            const inst = db.lookup(selection.selectedCurves.first);
+            const item = inst.GetSpaceItem()!;
+            const curve = item.Cast<c3d.Curve3D>(item.IsA());
+            if (curve instanceof c3d.Contour3D) {
+                result.push(cmd.CreateContourFilletsCommand);
+            }
         }
         if (selection.selectedCurves.size > 1) {
             result.push(cmd.LoftCommand);

@@ -13,6 +13,7 @@ import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from '.
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
+import ContourFactory from "./curve/ContourFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1059,6 +1060,7 @@ export class RemovePointCommand extends Command {
     }
 }
 
+// FIXME extract TrimFactory
 export class TrimCommand extends Command {
     async execute(): Promise<void> {
         visual.EnabledLayers.disable(visual.Layers.Curve);
@@ -1096,5 +1098,29 @@ export class TrimCommand extends Command {
             visual.EnabledLayers.enable(visual.Layers.Curve);
             visual.EnabledLayers.disable(visual.Layers.CurveFragment);
         }
+    }
+}
+
+export class CreateContourFilletsCommand extends Command {
+    async execute(): Promise<void> {
+        const instance = this.editor.selection.selectedCurves.first;
+
+        let model = this.editor.db.lookup(instance);
+        model = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
+        const item = model.GetSpaceItem()!;
+        const curve = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
+        
+        // const contourFactory = new ContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        // for (const curve of curves) {
+            // contourFactory.curves.push(instance);
+        // }
+        // const contour = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        // this.editor.db.lookup(contour);
+        let fillNumber = curve.GetSegmentsCount();
+        fillNumber -= curve.IsClosed() ? 0 : 1;
+        const radiuses = new Array<number>(fillNumber);
+        for (let i = 0; i < fillNumber; i++) radiuses[i] = 1;
+        const result = c3d.ActionSurfaceCurve.CreateContourFillets(curve, radiuses, c3d.ConnectingType.Fillet);
+        await this.editor.db.addItem(new c3d.SpaceInstance(result));
     }
 }

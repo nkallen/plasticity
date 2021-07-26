@@ -66,10 +66,15 @@ Dialog(editor);
 // makeCircle1.radius = 1;
 // makeCircle1.commit();
 
-const makeCurve = new CurveFactory(editor.db, editor.materials, editor.signals);
-makeCurve.points.push(new THREE.Vector3());
-makeCurve.points.push(new THREE.Vector3(-2, 4, 0));
-makeCurve.commit();
+const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
+makeCurve1.points.push(new THREE.Vector3());
+makeCurve1.points.push(new THREE.Vector3(-2, 4, 0));
+makeCurve1.commit();
+
+const makeCurve2 = new CurveFactory(editor.db, editor.materials, editor.signals);
+makeCurve2.points.push(new THREE.Vector3(-2, 4, 0));
+makeCurve2.points.push(new THREE.Vector3(0, 5, 0));
+makeCurve2.commit();
 
 // const makeCircle2 = new CircleFactory(editor.db, editor.materials, editor.signals);
 // makeCircle2.center = new THREE.Vector3(0,0,0);

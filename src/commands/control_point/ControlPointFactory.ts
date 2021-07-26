@@ -11,10 +11,8 @@ abstract class ControlPointFactory extends GeometryFactory {
     get instance() { return this._instance }
     set instance(i: visual.SpaceInstance<visual.Curve3D>) {
         let model = this.db.lookup(i);
-        // FIXME verify undo works and that this is a deep dup
         model = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
-        const item = model.GetSpaceItem();
-        if (item === null) throw new Error("invalid precondtion");
+        const item = model.GetSpaceItem()!;
         const curve = item.Cast<c3d.PolyCurve3D>(item.IsA());
         this.curve = curve;
         this._instance = i;
