@@ -4,7 +4,7 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
-import { cart2vec } from '../util/Conversion';
+import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { applyMixins } from '../util/Util';
 
 /**
@@ -68,25 +68,18 @@ export class PlaneInstance<T extends PlaneItem> extends Item {
     disposable = new CompositeDisposable();
 }
 
-export class ControlPoint extends THREE.Sprite {
-    static build(point: c3d.CartPoint3D, parentId: c3d.SimpleName, i: number, material: THREE.SpriteMaterial) {
-        const built = new this(material);
-        built.position.copy(cart2vec(point));
-        built.userData.simpleName = `${parentId},${i}`;
-        built.userData.index = i;
-        built.scale.setScalar(0.005);
-        built.visible = false;
-        return built;
+// This only extends THREE.Object3D for type-compatibility with raycasting
+// If you remove it and the system typechecks (in ControlPointGroup.raycast()), 
+// then it's no longer necessary.
+export class ControlPoint extends THREE.Object3D {
+    constructor(
+        readonly parentItem: SpaceInstance<Curve3D>,
+        readonly points: ControlPointGroup,
+        readonly index: number,
+        readonly simpleName: string
+    ) {
+        super()
     }
-
-    get parentItem(): SpaceInstance<Curve3D> {
-        const result = this.parent?.parent?.parent?.parent;
-        if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
-        return result;
-    }
-
-    get simpleName(): string { return this.userData.simpleName }
-    get index(): number { return this.userData.index }
 }
 
 export class Curve3D extends SpaceItem {
@@ -272,16 +265,76 @@ export class FaceGroup extends THREE.Group {
     }
 }
 
-export class ControlPointGroup extends THREE.Group {
-    get(i: number): ControlPoint {
-        return this.children[i] as ControlPoint;
+// Control points are a bit more complicated than other items. There isn't a c3d object equivalent,
+// they're just referred to by indexes. For performance reasons, with THREE.js we aggregate all
+// points into a THREE.Points object; so where we might want an object to refer to an
+// individual point, we "fake" it by creating a dummy object (cf findByIndex). Performance
+// optimizations aside, we do our usual raycast proxying to children, but we also have a completely
+// different screen-space raycasting algorithm in BetterRaycastingPoints.
+export class ControlPointGroup extends THREE.Object3D {
+    static build(ps: c3d.CartPoint3D[], parentId: c3d.SimpleName, material: THREE.PointsMaterial): ControlPointGroup {
+        let positions, colors;
+        positions = new Float32Array(ps.length * 3);
+        colors = new Float32Array(ps.length * 3);
+        for (const [i, p] of ps.entries()) {
+            positions[i * 3 + 0] = p.x;
+            positions[i * 3 + 1] = p.y;
+            positions[i * 3 + 2] = p.z;
+            colors[i * 3 + 0] = 1;
+            colors[i * 3 + 1] = 1;
+            colors[i * 3 + 2] = 1;
+        }
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const points = new BetterRaycastingPoints(geometry, material);
+
+        const result = new ControlPointGroup(ps.length, points);
+        result.visible = false;
+        result.layers.set(Layers.ControlPoint);
+        result.userData.parentId = parentId;
+        return result;
+    }
+
+    constructor(private readonly length = 0, readonly points: THREE.Points = new BetterRaycastingPoints) {
+        super();
+        this.add(points);
+    }
+
+    get parentItem(): SpaceInstance<Curve3D> {
+        const result = this.parent?.parent?.parent;
+        if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
+        return result;
     }
 
     findByIndex(i: number): ControlPoint | undefined {
-        return this.children.find(child => {
-            const point = child as ControlPoint;
-            if (point.index === i) return true;
-        }) as ControlPoint | undefined;
+        if (i >= this.length) throw new Error("invalid precondition");
+        return new ControlPoint(
+            this.parentItem,
+            this,
+            i,
+            `${this.parentId},${i}`);
+    }
+
+    *[Symbol.iterator]() {
+        for (let i = 0; i < this.length; i++) {
+            yield this.findByIndex(i) as ControlPoint;
+        }
+    }
+
+    get parentId(): number { return this.userData.parentId }
+
+    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        if (this.points === undefined) return;
+
+        const is: THREE.Intersection[] = [];
+        this.points.raycast(raycaster, is);
+        if (is.length > 0) {
+            const i = is[0];
+            i.object = this.findByIndex(i.index!)!;
+            intersects.push(i);
+        }
     }
 }
 
@@ -338,7 +391,6 @@ abstract class RaycastsRecursively {
 
 applyMixins(Solid, [RaycastsRecursively]);
 applyMixins(FaceGroup, [RaycastsRecursively]);
-applyMixins(ControlPointGroup, [RaycastsRecursively]);
 applyMixins(CurveEdgeGroup, [RaycastsRecursively]);
 applyMixins(SpaceInstance, [RaycastsRecursively]);
 applyMixins(PlaneInstance, [RaycastsRecursively]);
@@ -463,38 +515,6 @@ export class CurveEdgeGroupBuilder {
 
     build() {
         return this.curveEdgeGroup;
-    }
-}
-
-export class ControlPointGroupBuilder {
-    private controlPointGroup = new ControlPointGroup();
-
-    static points(item: c3d.SpaceItem, parentId: c3d.SimpleName, sprite: THREE.SpriteMaterial): ControlPoint[] {
-        const result = [];
-        if (item.Type() === c3d.SpaceType.PolyCurve3D) {
-            const poly = item.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D);
-            const ps = poly.GetPoints();
-            for (const [i, p] of ps.entries()) {
-                result.push(ControlPoint.build(p, parentId, i, sprite));
-            }
-        } else if (item.IsA() === c3d.SpaceType.LineSegment3D) {
-            const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            const start = curve.GetLimitPoint(1);
-            result.push(ControlPoint.build(start, parentId, 1, sprite));
-            if (!curve.IsClosed()) {
-                const end = curve.GetLimitPoint(2);
-                result.push(ControlPoint.build(end, parentId, 2, sprite));
-            }
-        }
-        return result;
-    }
-
-    addControlPoint(controlPoint: ControlPoint) {
-        this.controlPointGroup.add(controlPoint);
-    }
-
-    build() {
-        return this.controlPointGroup;
     }
 }
 

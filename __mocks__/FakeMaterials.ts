@@ -9,8 +9,8 @@ const highlight = new LineMaterial();
 const hover = new LineMaterial();
 const mesh = new THREE.Material();
 const region = new THREE.Material();
-const controlPoint = new THREE.SpriteMaterial();
-
+const controlPoint = new THREE.PointsMaterial();
+controlPoint.userData.resolution = new THREE.Vector2(1, 1);
 export class FakeMaterials implements MaterialDatabase {
     get(_o: any) { return new THREE.Material() }
     line(_o?: any) { return line }
@@ -25,15 +25,15 @@ export class FakeMaterials implements MaterialDatabase {
     highlight(o: c3d.Face): THREE.Material;
     highlight(o: c3d.PlaneInstance): THREE.Material;
     highlight(o: c3d.SpaceInstance): LineMaterial;
-    highlight(o: number): THREE.SpriteMaterial;
-    highlight(o: any): THREE.Material { return highlight }
+    highlight(o: number): THREE.Color;
+    highlight(o: any): THREE.Material | THREE.Color { return highlight }
 
     lookup(o: c3d.Edge): LineMaterial;
     lookup(o: c3d.Curve3D): LineMaterial;
     lookup(o: c3d.Face): THREE.Material;
     lookup(o: c3d.SpaceInstance): LineMaterial;
     lookup(o: c3d.TopologyItem | c3d.Curve3D | c3d.SpaceInstance): THREE.Material {
-        return _o instanceof c3d.Edge ? line : mesh;
+        return o instanceof c3d.Edge ? line : mesh;
     }
 
     hover(o: c3d.Edge): LineMaterial;
@@ -43,8 +43,8 @@ export class FakeMaterials implements MaterialDatabase {
     hover(o: c3d.PlaneInstance): THREE.Material;
     hover(o: c3d.TopologyItem): THREE.Material;
     hover(o: c3d.Item): THREE.Material;
-    hover(o: number): THREE.SpriteMaterial;
-    hover(o: any): THREE.Material {
+    hover(o: number): THREE.Color;
+    hover(o: any): THREE.Material | THREE.Color {
         return hover
     }
 

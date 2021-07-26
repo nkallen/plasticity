@@ -1,10 +1,9 @@
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
-import { EditorSignals } from "./EditorSignals";
-import porcelain from '../img/matcap-porcelain-white.jpg';
 import controlPointIcon from '../components/viewport/img/control-point.svg';
-import { attenuateSizeInOrthoCamera } from "./SpriteDatabase";
+import porcelain from '../img/matcap-porcelain-white.jpg';
+import { EditorSignals } from "./EditorSignals";
 
 export default interface MaterialDatabase {
     line(o?: c3d.SpaceInstance): LineMaterial;
@@ -13,7 +12,7 @@ export default interface MaterialDatabase {
     point(o?: c3d.Item): THREE.Material;
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material;
     region(): THREE.Material;
-    controlPoint(): THREE.SpriteMaterial;
+    controlPoint(): THREE.PointsMaterial;
 
     highlight(o: c3d.Edge): LineMaterial;
     highlight(o: c3d.Curve3D): LineMaterial;
@@ -21,7 +20,7 @@ export default interface MaterialDatabase {
     highlight(o: c3d.Face): THREE.Material;
     highlight(o: c3d.PlaneInstance): THREE.Material;
     highlight(o: c3d.TopologyItem): THREE.Material;
-    highlight(o: number): THREE.SpriteMaterial;
+    highlight(o: number): THREE.Color;
     highlight(o: c3d.Item): THREE.Material;
 
     lookup(o: c3d.Edge): LineMaterial;
@@ -34,7 +33,7 @@ export default interface MaterialDatabase {
     hover(o: c3d.Face): THREE.Material;
     hover(o: c3d.PlaneInstance): THREE.Material;
     hover(o: c3d.TopologyItem): THREE.Material;
-    hover(o: number): THREE.SpriteMaterial;
+    hover(o: number): THREE.Color;
     hover(o: c3d.Item): THREE.Material;
 }
 
@@ -96,23 +95,18 @@ region_highlighted.color.setHex(0x8dd9f2)
 region_highlighted.opacity = 0.9;
 region_highlighted.transparent = true;
 
-const controlPoint = new THREE.SpriteMaterial({map: new THREE.TextureLoader().load(controlPointIcon), sizeAttenuation: false });
-controlPoint.onBeforeCompile = attenuateSizeInOrthoCamera;
+const controlPoint = new THREE.PointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, transparent: true, vertexColors: true });
+controlPoint.userData.resolution = new THREE.Vector2();
 
-const controlPoint_hovered = new THREE.SpriteMaterial({map: new THREE.TextureLoader().load(controlPointIcon), sizeAttenuation: false });
-controlPoint_hovered.color.set(0xffff00);
-controlPoint_hovered.onBeforeCompile = attenuateSizeInOrthoCamera;
-
-const controlPoint_highlighted = new THREE.SpriteMaterial({map: new THREE.TextureLoader().load(controlPointIcon), sizeAttenuation: false });
-controlPoint_highlighted.color.set(0xffff00);
-controlPoint_highlighted.onBeforeCompile = attenuateSizeInOrthoCamera;
+const controlPoint_hovered = new THREE.Color(0xffffdd);
+const controlPoint_highlighted = new THREE.Color(0xffff00);
 
 export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();
     private readonly lines = [line, line_dashed, line_highlighted, line_hovered];
 
     constructor(signals: EditorSignals) {
-        signals.renderPrepared.add(({resolution}) => this.setResolution(resolution));
+        signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
     }
 
     private get(o: c3d.Item): THREE.Material | undefined {
@@ -135,8 +129,9 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     // a LineMaterial whose resolution must be set before each render
     setResolution(size: THREE.Vector2) {
         for (const material of this.lines) {
-            material.resolution.set(size.x, size.y);
+            material.resolution.copy(size);
         }
+        controlPoint.userData.resolution.copy(size);
     }
 
     point(o?: c3d.Item): THREE.Material {
@@ -158,15 +153,15 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     }
 
     region(): THREE.Material { return region }
-    controlPoint(): THREE.SpriteMaterial { return controlPoint }
+    controlPoint(): THREE.PointsMaterial { return controlPoint }
 
     highlight(o: c3d.Edge): LineMaterial;
     highlight(o: c3d.Curve3D): LineMaterial;
     highlight(o: c3d.Face): THREE.Material;
     highlight(o: c3d.PlaneInstance): THREE.Material;
     highlight(o: c3d.SpaceInstance): LineMaterial;
-    highlight(o: number): THREE.SpriteMaterial;
-    highlight(o: any): THREE.Material {
+    highlight(o: number): THREE.Color;
+    highlight(o: any): THREE.Material | THREE.Color {
         if (o instanceof c3d.Curve3D || o instanceof c3d.Edge)
             return line_highlighted;
         else if (o instanceof c3d.Face)
@@ -175,7 +170,7 @@ export class BasicMaterialDatabase implements MaterialDatabase {
             return line_highlighted;
         else if (o instanceof c3d.PlaneInstance)
             return region_highlighted;
-        else if (typeof(o) === 'number')
+        else if (typeof (o) === 'number')
             return controlPoint_highlighted;
         else {
             throw new Error(`not yet implemented: ${o.constructor}`);
@@ -205,8 +200,8 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     hover(o: c3d.PlaneInstance): THREE.Material;
     hover(o: c3d.TopologyItem): THREE.Material;
     hover(o: c3d.Item): THREE.Material;
-    hover(o: number): THREE.SpriteMaterial;
-    hover(o: any): THREE.Material {
+    hover(o: number): THREE.Color;
+    hover(o: any): THREE.Material | THREE.Color {
         if (o instanceof c3d.Curve3D || o instanceof c3d.Edge)
             return line_hovered;
         else if (o instanceof c3d.Face)
@@ -215,7 +210,7 @@ export class BasicMaterialDatabase implements MaterialDatabase {
             return line_hovered;
         else if (o instanceof c3d.PlaneInstance)
             return region_hovered;
-        else if (typeof(o) === 'number')
+        else if (typeof (o) === 'number')
             return controlPoint_hovered
         else {
             throw new Error(`not yet implemented: ${o.constructor}`);

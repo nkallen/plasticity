@@ -69,18 +69,18 @@ export class HighlightManager {
         }
     }
 
-    highlightControlPoints(collection: Iterable<string>, mat: (c: number) => THREE.SpriteMaterial) {
+    highlightControlPoints(collection: Iterable<string>, mat: (c: number) => THREE.Color) {
         for (const id of collection) {
             const { index, views } = this.db.lookupControlPointById(id);
             for (const v of views) {
-                const newMaterial = mat(index);
-                v.traverse(o => {
-                    if (o instanceof THREE.Sprite) {
-                        o.userData.oldMaterial = o.material;
-                        o.material = newMaterial;
-                        o.visible = true;
-                    }
-                })
+                const newColor = mat(index);
+                const geometry = v.points.points.geometry;
+                const color = geometry.attributes.color;
+                const array = color.array as unknown as Float32Array;
+                array[v.index * 3 + 0] = newColor.r;
+                array[v.index * 3 + 1] = newColor.g;
+                array[v.index * 3 + 2] = newColor.b;
+                geometry.attributes.color.needsUpdate = true;
             }
         }
     }
@@ -89,13 +89,14 @@ export class HighlightManager {
         for (const id of collection) {
             const { views } = this.db.lookupControlPointById(id);
             for (const v of views) {
-                v.traverse(o => {
-                    if (o instanceof THREE.Sprite) {
-                        o.visible = false;
-                        o.material = o.userData.oldMaterial;
-                        delete o.userData.oldMaterial;
-                    }
-                })
+                const newColor = new THREE.Color(0xffffff);
+                const geometry = v.points.points.geometry;
+                const color = geometry.attributes.color;
+                const array = color.array as unknown as Float32Array;
+                array[v.index * 3 + 0] = newColor.r;
+                array[v.index * 3 + 1] = newColor.g;
+                array[v.index * 3 + 2] = newColor.b;
+                geometry.attributes.color.needsUpdate = true;
             }
         }
     }
@@ -104,7 +105,7 @@ export class HighlightManager {
         for (const id of collection) {
             const { view, model } = this.db.lookupItemById(id);
             view.traverse(o => {
-                if (o instanceof visual.ControlPoint) {
+                if (o instanceof visual.ControlPointGroup) {
                     o.visible = true;
                 }
             })
@@ -113,9 +114,9 @@ export class HighlightManager {
 
     hideControlPoints(collection: Iterable<c3d.SimpleName>) {
         for (const id of collection) {
-            const { view, model } = this.db.lookupItemById(id);
+            const { view } = this.db.lookupItemById(id);
             view.traverse(o => {
-                if (o instanceof visual.ControlPoint) {
+                if (o instanceof visual.ControlPointGroup) {
                     o.visible = false;
                 }
             })

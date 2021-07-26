@@ -6,7 +6,7 @@ import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import * as visual from "../src/editor/VisualModel";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import FakeSignals from "../__mocks__/FakeSignals";
+import c3d from '../build/Release/c3d.node';
 
 let materials: MaterialDatabase;
 let makeSphere: SphereFactory;
@@ -37,9 +37,8 @@ test('constructs solids', () => {
 });
 
 test('constructs curves', () => {
-    const makeSpaceInstance = new visual.SpaceInstanceBuilder();
-    const points = new visual.ControlPointGroupBuilder();
-    const line = visual.Curve3D.build({ position: [1, 2, 3] }, 0, points.build(), materials.line());
+    const makeSpaceInstance = new visual.SpaceInstanceBuilder([new c3d.CartPoint3D(1,2,3), new c3d.CartPoint3D(4,5,6)]);
+    const line = visual.Curve3D.build({ position: [1, 2, 3, 4, 5, 6] }, 0, new visual.ControlPointGroup(0), materials.line());
     makeSpaceInstance.addLOD(line)
 });
 

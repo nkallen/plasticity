@@ -34,6 +34,8 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         // @ts-expect-error("Line2 is missing from the typedef")
         this.raycaster.params.Line2 = { threshold: 10 };
         this.raycaster.params.Mesh.threshold = 0;
+        // @ts-expect-error("Points is missing from the typedef")
+        this.raycaster.params.Points.threshold = 0;
         this.raycaster.layers = visual.EnabledLayers;
 
         this.onPointerDown = this.onPointerDown.bind(this);

@@ -20,7 +20,7 @@ abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem | v
 
     get first() { return this[Symbol.iterator]().next().value as T || undefined }
 
-    has(s: T) { return this.ids.has(s.userData.simpleName) }
+    has(s: T) { return this.ids.has(s.simpleName as unknown as any) }
 
     abstract lookupById(id: S): T;
 }
@@ -36,9 +36,8 @@ export class TopologyItemSelection<T extends visual.TopologyItem> extends Abstra
         return this.db.lookupTopologyItemById(id).views.values().next().value;
     }
 }
-
 export class ControlPointSelection extends AbstractSelection<visual.ControlPoint, string> {
-    lookupById(id: string): visual.ControlPoint {
+    lookupById(id: string) {
         return this.db.lookupControlPointById(id).views.values().next().value;
     }
 }

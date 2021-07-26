@@ -38,11 +38,11 @@ export class GeometryDatabase {
             if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
                 if (!(model instanceof c3d.Solid)) throw new Error("invalid precondition");
                 this.addTopologyItem(model, t);
-            } else if (t instanceof visual.ControlPoint) {
+            } else if (t instanceof visual.ControlPointGroup) {
                 if (!(model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
-                this.addControlPoint(model, t);
+                for (const child of t) this.addControlPoint(model, child);
             }
-        })
+        });
 
         this.signals.objectAdded.dispatch(view);
         this.signals.sceneGraphChanged.dispatch();
@@ -187,14 +187,17 @@ export class GeometryDatabase {
                 if (edges.length != 1) throw new Error("invalid precondition");
                 const edge = edges[0];
 
-                const material = this.materials.line(instance);
-                const sprite = this.materials.controlPoint();
+                const lineMaterial = this.materials.line(instance);
+                const pointMaterial = this.materials.controlPoint();
 
-                const points = new visual.ControlPointGroupBuilder();
-                for (const point of visual.ControlPointGroupBuilder.points(underlying, id, sprite))
-                    points.addControlPoint(point);
+                let points;
+                if (underlying.Type() !== c3d.SpaceType.PolyCurve3D) points = new visual.ControlPointGroup();
+                else {
+                    const ps = underlying.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D).GetPoints();
+                    points = visual.ControlPointGroup.build(ps, id, pointMaterial);
+                }
 
-                const line = visual.Curve3D.build(edge, id, points.build(), material);
+                const line = visual.Curve3D.build(edge, id, points, lineMaterial);
                 curveBuilder.addLOD(line, distance);
                 break;
             }
@@ -291,8 +294,8 @@ export class GeometryDatabase {
 
     private removeControlPoints(parent: visual.Item) {
         parent.traverse(o => {
-            if (o instanceof visual.ControlPoint) {
-                this.controlPointModel.delete(o.simpleName);
+            if (o instanceof visual.ControlPointGroup) {
+                for (const p of o) this.controlPointModel.delete(p.simpleName);
             }
         })
     }

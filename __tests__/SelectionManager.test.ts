@@ -88,7 +88,7 @@ describe('onClick', () => {
         intersections = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.points.children[0]
+            object: curve.underlying.points.findByIndex(0)
         }];
 
         interactionManager.onClick(intersections);
@@ -113,7 +113,7 @@ describe('onClick', () => {
         intersections = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.points.children[0]
+            object: curve.underlying.points.findByIndex(0)
         }];
 
         interactionManager.onClick(intersections);
@@ -138,7 +138,7 @@ describe('onClick', () => {
         const intersectControlPoint = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.points.children[0]
+            object: curve.underlying.points.findByIndex(0)
         }];
 
         interactionManager.onClick(intersectControlPoint);

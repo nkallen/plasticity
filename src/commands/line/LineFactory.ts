@@ -10,7 +10,7 @@ export default class LineFactory extends GeometryFactory {
     async computeGeometry() {
         const point1 = new c3d.CartPoint3D(this.p1.x, this.p1.y, this.p1.z);
         const point2 = new c3d.CartPoint3D(this.p2.x, this.p2.y, this.p2.z);
-        const line = c3d.ActionCurve3D.Segment(point1, point2);
+        const line = c3d.ActionCurve3D.SplineCurve([point1, point2], false, c3d.SpaceType.Polyline3D);
         return new c3d.SpaceInstance(line);
     }
 }

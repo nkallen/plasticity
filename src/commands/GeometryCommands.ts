@@ -1024,7 +1024,7 @@ export class ModeCommand extends Command {
 
 export class ChangePointCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoint = [...this.editor.selection.selectedControlPoints][0];
+        const controlPoint = this.editor.selection.selectedControlPoints.first;
         const instance = controlPoint.parentItem;
 
         const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -1032,7 +1032,7 @@ export class ChangePointCommand extends Command {
         changePoint.instance = instance;
 
         const gizmo = new MoveGizmo(this.editor);
-        gizmo.position.copy(controlPoint.position);
+        gizmo.position.copy(changePoint.originalPosition);
         await gizmo.execute(delta => {
             changePoint.delta = delta;
             changePoint.update();

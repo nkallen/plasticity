@@ -35,12 +35,9 @@ export class CommandExecutor {
     }
 
     private async dequeue() {
-        if (!this.next) throw new Error("Invalid precondition");
-
         let next!: Command;
         while (this.next) {
             next = this.next;
-            if (this.active) throw new Error("invalid precondition");
             this.active = next;
             this.next = undefined;
             try {

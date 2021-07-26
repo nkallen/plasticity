@@ -1,4 +1,4 @@
-import { Disposable } from 'event-kit';
+import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
 import { GeometryDatabase } from '../editor/GeometryDatabase';
@@ -35,8 +35,8 @@ export interface ModifiesSelection extends HasSelection {
     selectSolid(solid: visual.Solid): void;
     deselectCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
     selectCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
-    deselectControlPoint(object: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
-    selectControlPoint(object: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
+    deselectControlPoint(index: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
+    selectControlPoint(index: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
     deselectAll(): void;
 }
 
@@ -211,8 +211,6 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
             this.parentsWithSelectedChildren.delete(item.simpleName);
         } else if (item instanceof visual.PlaneInstance) {
             this.selectedRegionIds.delete(item.simpleName);
-        } else if (item instanceof visual.ControlPoint) {
-            this.selectedControlPointIds.delete(item.simpleName);
         } else throw new Error("invalid precondition");
         this.hover?.dispose();
         this.hover = undefined;
