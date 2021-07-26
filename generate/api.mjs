@@ -257,6 +257,7 @@ export default {
                 "double GetTMin()",
                 "double GetPeriod()",
                 "double IsPeriodic()",
+                "bool IsStraight(bool ignoreParams = false)",
                 "MbCurve3D * Trimmed(double t1, double t2, int sense)",
                 { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint3D & point)", point: isReturn },
                 { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn }
@@ -462,6 +463,8 @@ export default {
                 "const MbVector3D & GetAxisX()",
                 "void Normalize()",
                 "void Reset()",
+                { signature: "void PointProjection(const MbCartPoint3D &p, double &x, double &y)", x: isReturn, y: isReturn },
+                "MbeItemLocation PointRelative(const MbCartPoint3D &pnt, double eps = Math::angleRegion)",
                 { signature: "bool GetMatrixToPlace(const MbPlacement3D & p, MbMatrix & matrix, double eps = Math::angleRegion)", matrix: isReturn, return: ignore },
             ]
         },
@@ -1064,6 +1067,7 @@ export default {
             dependencies: ["CartPoint.h", "Curve.h"],
             functions: [
                 "MbResultType Arc(const MbCartPoint & center, const SArray<MbCartPoint> & points, bool curveClosed, double angle, double & a, double & b, MbCurve *& result)",
+                "MbResultType SplineCurve(const SArray<MbCartPoint> & points, bool closed, MbePlaneType curveType, MbCurve *& result)",
                 // { signature: "MbResultType IntersectContour(MbCurve & newCurve, RPArray<MbCurve> & curves, MbContour *& result)" },
 
             ]

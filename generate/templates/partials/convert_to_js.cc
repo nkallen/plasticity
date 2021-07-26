@@ -1,5 +1,5 @@
 <%_ if (arg.isNumber || arg.isEnum || arg.isErrorCode) { _%>
-    _to = Napi::Number::New(env, <%- arg.ref %><%- arg.name %>);
+    _to = Napi::Number::New(env, <%- (arg.isPointer) ? '*' : '' %><%- arg.name %>);
 <%_ } else if (arg.isBoolean) { _%>
     _to = Napi::Boolean::New(env, <%- arg.name %>);
 <%_ } else if (arg.isArray) { _%>

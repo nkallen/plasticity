@@ -196,15 +196,24 @@ export default class ContourManager extends SequentialExecutor<void> {
         info.fragments = views;
     }
 
-    private curve3d2curve2d(from: visual.SpaceInstance<visual.Curve3D>) {
+    private curve3d2curve2d(from: visual.SpaceInstance<visual.Curve3D>): c3d.Curve | undefined {
         const { db } = this;
 
         const placement_ = new c3d.Placement3D();
         const inst = db.lookup(from);
         const item = inst.GetSpaceItem()!;
 
-        const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-        try {
+        const curve = item.Cast<c3d.Curve3D>(item.IsA());
+        if (curve.IsStraight(true)) {
+            if (!(curve instanceof c3d.PolyCurve3D)) throw new Error("invalid precondition");
+            const points2d = [];
+            for (const point of curve.GetPoints()) {
+                if (placement_.PointRelative(point) !== c3d.ItemLocation.OnItem) return;
+                const { x, y } = placement_.PointProjection(point);
+                points2d.push(new c3d.CartPoint(x, y));
+            }
+            return c3d.ActionCurve.SplineCurve(points2d, false, c3d.PlaneType.Polyline);
+        } else {
             const { curve2d, placement } = curve.GetPlaneCurve(true, new c3d.PlanarCheckParams(0.1));
 
             // Apply an 2d placement to the curve, so that any future booleans work
@@ -212,8 +221,6 @@ export default class ContourManager extends SequentialExecutor<void> {
             curve2d.Transform(matrix);
 
             return curve2d;
-        } catch (e) {
-            console.warn(e);
         }
     }
 }

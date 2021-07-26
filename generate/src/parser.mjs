@@ -341,6 +341,7 @@ class ParamDeclaration extends TypeDeclaration {
     }
 
     get shouldAlloc() {
+        if (this.isPrimitive) return false;
         return (this.isReturn && this.ref == "&") || (this.isReturn && this.isArray)
     }
 

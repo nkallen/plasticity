@@ -74,7 +74,9 @@ export class HighlightManager {
             const { index, views } = this.db.lookupControlPointById(id);
             for (const v of views) {
                 const newColor = mat(index);
-                const geometry = v.points.points.geometry;
+                const points = v.points.points;
+                if (points === undefined) continue;
+                const geometry = points.geometry;
                 const color = geometry.attributes.color;
                 const array = color.array as unknown as Float32Array;
                 array[v.index * 3 + 0] = newColor.r;
@@ -90,7 +92,9 @@ export class HighlightManager {
             const { views } = this.db.lookupControlPointById(id);
             for (const v of views) {
                 const newColor = new THREE.Color(0xffffff);
-                const geometry = v.points.points.geometry;
+                const points = v.points.points;
+                if (points === undefined) continue;
+                const geometry = points.geometry;
                 const color = geometry.attributes.color;
                 const array = color.array as unknown as Float32Array;
                 array[v.index * 3 + 0] = newColor.r;

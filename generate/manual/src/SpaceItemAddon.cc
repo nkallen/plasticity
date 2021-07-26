@@ -13,6 +13,7 @@
 #include "../include/Hermit3D.h"
 #include "../include/Nurbs3D.h"
 #include "../include/LineSegment3D.h"
+#include "../include/Arc3D.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -74,6 +75,8 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return Polyline3D::NewInstance(env, (MbPolyline3D *)(_underlying));
     case st_LineSegment3D:
         return LineSegment3D::NewInstance(env, (MbLineSegment3D *)(_underlying));
+    case st_Arc3D:
+        return Arc3D::NewInstance(env, (MbArc3D *)(_underlying));
 
         // case st_WireFrame:
         //     return Item::NewInstance(env, dynamic_cast<MbWireFrame *>(_underlying));

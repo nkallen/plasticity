@@ -1,6 +1,5 @@
 THIS WEEK:
 
-lines need to be planar
 fillet curves/contours
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
@@ -27,6 +26,8 @@ BUG/CRASH:
 - onPointerDown and on command (registry.addOne), store the viewport the pointer is over
 - keep lastPointerEvent as a global on editor
 - dispatch keyboard events to the target of lastPointerEvent
+
+boolean cut should take line direction into account
 
 # c++ changes:
 rename Id() .id
