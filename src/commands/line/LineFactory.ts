@@ -6,7 +6,6 @@ export default class LineFactory extends GeometryFactory {
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
 
-
     async computeGeometry() {
         const point1 = new c3d.CartPoint3D(this.p1.x, this.p1.y, this.p1.z);
         const point2 = new c3d.CartPoint3D(this.p2.x, this.p2.y, this.p2.z);

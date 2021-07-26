@@ -297,9 +297,9 @@ export class ControlPointGroup extends THREE.Object3D {
         return result;
     }
 
-    constructor(private readonly length = 0, readonly points: THREE.Points = new BetterRaycastingPoints) {
+    constructor(private readonly length = 0, readonly points?: THREE.Points) {
         super();
-        this.add(points);
+        if (points !== undefined) this.add(points);
     }
 
     get parentItem(): SpaceInstance<Curve3D> {

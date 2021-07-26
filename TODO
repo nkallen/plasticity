@@ -1,10 +1,5 @@
 THIS WEEK:
 
-  virtual void    InsertPoint( double t,  const MbCartPoint3D &, double ) = 0; // \ru Добавить точку \en Add a point 
-  virtual void    RemovePoint( ptrdiff_t index );     
-MATH_FUNC (MpGraph *) OuterContoursBuilder( const RPArray<MbCurve> &  curveList, 
-
-  - redo sprite render to use THREE.Points
 lines need to be planar
 fillet curves/contours
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
@@ -14,6 +9,8 @@ command validation (curves fail at beginning, as well as click away aborting lot
 if clicking away, if the command has never been updated, we should cancel -- maybe add a state to command that indicates it's been resourced, and have the commit() behavior fail if not updated.
 interleaving with updating/commit on factory. use q?
 keyboard instructions get in the way of clicking
+stick to surface max
+fillet needs to be in screen space
 
 BUG/CRASH:
 1. add regular polygon
@@ -42,6 +39,8 @@ audit array conversion is reserving and freeing elements:
     ::ReleaseItems( curveArray );
     and especially check if instantiated RPArray/etc. is freed altogether
     - convert MbCartPoint3D and Vector to isPOD
+Get planar curve and placement if the space curve is planar (after the using call *******DeleteItem for two-dimensional curves).
+
 
 gizmos for primitives
 

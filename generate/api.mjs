@@ -714,6 +714,8 @@ export default {
             functions: [
                 { signature: "void GetPoints(SArray<MbCartPoint3D> & pnts)", pnts: isReturn },
                 "void ChangePoint(ptrdiff_t index, const MbCartPoint3D & pnt)",
+                "void RemovePoint(ptrdiff_t index)",
+                "void Rebuild()",
             ]
         },
         Polyline3D: {

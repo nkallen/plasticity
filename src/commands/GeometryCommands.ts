@@ -12,7 +12,7 @@ import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
 import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
-import ChangePointFactory from "./control_point/ChangePointFactory";
+import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1042,6 +1042,20 @@ export class ChangePointCommand extends Command {
         const newCurve = newInstance.underlying;
         const newPoint = newCurve.points.findByIndex(controlPoint.index)!;
         this.editor.selection.selectControlPoint(newPoint, newInstance);
+    }
+}
+
+export class RemovePointCommand extends Command {
+    async execute(): Promise<void> {
+        const controlPoint = this.editor.selection.selectedControlPoints.first;
+        const instance = controlPoint.parentItem;
+
+        const removePoint = new RemovePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        removePoint.controlPoint = controlPoint;
+        removePoint.instance = instance;
+
+        const newInstance = await removePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selectCurve(newInstance);
     }
 }
 

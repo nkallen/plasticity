@@ -30,7 +30,7 @@ export class BetterRaycastingPoints extends THREE.Points {
     
         const attributes = geometry.attributes;
         const positionAttribute = attributes.position;
-    
+
         const start = Math.max(0, drawRange.start);
         const end = Math.min(positionAttribute.count, (drawRange.start + drawRange.count));
     
