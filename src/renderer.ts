@@ -67,10 +67,10 @@ makeCircle1.center = new THREE.Vector3(0, 0, 0);
 makeCircle1.radius = 1;
 makeCircle1.commit();
 
-// const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
-// makeCurve1.points.push(new THREE.Vector3());
-// makeCurve1.points.push(new THREE.Vector3(-2, 4, 0));
-// makeCurve1.commit();
+const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
+makeCurve1.points.push(new THREE.Vector3());
+makeCurve1.points.push(new THREE.Vector3(-2, 4, 0));
+makeCurve1.commit();
 
 // const makeCurve2 = new CurveFactory(editor.db, editor.materials, editor.signals);
 // makeCurve2.points.push(new THREE.Vector3(-2, 4, 0));

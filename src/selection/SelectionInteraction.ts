@@ -63,6 +63,9 @@ export class SelectionInteractionManager {
                 throw new Error("Invalid precondition");
             }
         }
+
+        strategy.emptyIntersection();
+        return;
     }
 
     onClick(intersections: THREE.Intersection[]): THREE.Intersection | undefined {

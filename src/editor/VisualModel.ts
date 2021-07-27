@@ -86,7 +86,7 @@ export class ControlPoint extends THREE.Object3D {
 
 export class Curve3D extends SpaceItem {
     disposable = new CompositeDisposable();
-    private readonly line: Line2;
+    readonly line: Line2;
     readonly points: ControlPointGroup;
 
     static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial) {

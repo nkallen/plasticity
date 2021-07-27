@@ -27,37 +27,37 @@ beforeEach(() => {
     interactionManager = new SelectionInteractionManager(selectionManager, materials, signals);
 });
 
+let solid: visual.Solid;
+let circle: visual.SpaceInstance<visual.Curve3D>;
+let curve: visual.SpaceInstance<visual.Curve3D>;
+let region: visual.PlaneInstance<visual.Region>;
+
+beforeEach(async () => {
+    expect(db.temporaryObjects.children.length).toBe(0);
+    const makeBox = new BoxFactory(db, materials, signals);
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+    solid = await makeBox.commit() as visual.Solid;
+
+    const makeCircle = new CircleFactory(db, materials, signals);
+    makeCircle.center = new THREE.Vector3();
+    makeCircle.radius = 1;
+    circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+    const makeCurve = new LineFactory(db, materials, signals);
+    makeCurve.p1 = new THREE.Vector3();
+    makeCurve.p2 = new THREE.Vector3(1, 1, 1);
+    curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+    const makeRegion = new RegionFactory(db, materials, signals);
+    makeRegion.contours = [circle];
+    const regions = await makeRegion.commit();
+    region = regions[0];
+});
+
 describe('onClick', () => {
-    let solid: visual.Solid;
-    let circle: visual.SpaceInstance<visual.Curve3D>;
-    let curve: visual.SpaceInstance<visual.Curve3D>;
-    let region: visual.PlaneInstance<visual.Region>;
-
-    beforeEach(async () => {
-        expect(db.temporaryObjects.children.length).toBe(0);
-        const makeBox = new BoxFactory(db, materials, signals);
-        makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        solid = await makeBox.commit() as visual.Solid;
-
-        const makeCircle = new CircleFactory(db, materials, signals);
-        makeCircle.center = new THREE.Vector3();
-        makeCircle.radius = 1;
-        circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        const makeCurve = new LineFactory(db, materials, signals);
-        makeCurve.p1 = new THREE.Vector3();
-        makeCurve.p2 = new THREE.Vector3(1, 1, 1);
-        curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        const makeRegion = new RegionFactory(db, materials, signals);
-        makeRegion.contours = [circle];
-        const regions = await makeRegion.commit();
-        region = regions[0];
-    });
-
     test('clicking on a curve selects the curve', () => {
         const intersections = [];
         intersections.push({
@@ -359,18 +359,6 @@ describe('onClick', () => {
 })
 
 describe('onPointerMove', () => {
-    let solid: visual.Solid;
-
-    beforeEach(async () => {
-        expect(db.temporaryObjects.children.length).toBe(0);
-        const makeBox = new BoxFactory(db, materials, signals);
-        makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        solid = await makeBox.commit() as visual.Solid;
-    });
-
     test("hovering in and out sends signals", () => {
         const intersections = [];
         intersections.push({
@@ -419,5 +407,54 @@ describe('onPointerMove', () => {
         selectionManager.hover?.highlight(highlighter);
         expect(edge.child.material).toBe(materials.line(edge));
         selectionManager.hover?.unhighlight(highlighter);
+    });
+
+    test('hovering on a curve highlights the curve', () => {
+        const intersections = [];
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: circle.underlying
+        });
+        const highlighter = new HighlightManager(db);
+
+        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.hover).toBeUndefined();
+
+        interactionManager.onHover(intersections);
+        selectionManager.hover.highlight(highlighter);
+        expect(circle.underlying.line.material).toBe(materials.hover(circle));
+        selectionManager.hover.unhighlight(highlighter);
+
+        interactionManager.onHover([]);
+        expect(selectionManager.hover).toBeUndefined();
+        expect(circle.underlying.line.material).toBe(materials.line(circle));
+    });
+
+    test('if no intersections match, it clears hover', () => {
+        const intersectionsCircle = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: circle.underlying
+        }];
+        const highlighter = new HighlightManager(db);
+
+        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.hover).toBeUndefined();
+
+        interactionManager.onHover(intersectionsCircle);
+        selectionManager.hover.highlight(highlighter);
+        expect(circle.underlying.line.material).toBe(materials.hover(circle));
+        selectionManager.hover.unhighlight(highlighter);
+        
+        const intersectionsControlPoint = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying.points.findByIndex(0)
+        }];
+
+        interactionManager.onHover(intersectionsControlPoint);
+        expect(selectionManager.hover).toBeUndefined();
+        expect(circle.underlying.line.material).toBe(materials.line(circle));
     });
 })
