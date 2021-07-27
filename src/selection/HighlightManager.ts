@@ -74,7 +74,7 @@ export class HighlightManager {
             const { index, views } = this.db.lookupControlPointById(id);
             for (const v of views) {
                 const newColor = mat(index);
-                const points = v.points.points;
+                const points = v.geometry;
                 if (points === undefined) continue;
                 const geometry = points.geometry;
                 const color = geometry.attributes.color;
@@ -92,7 +92,7 @@ export class HighlightManager {
             const { views } = this.db.lookupControlPointById(id);
             for (const v of views) {
                 const newColor = new THREE.Color(0xffffff);
-                const points = v.points.points;
+                const points = v.geometry;
                 if (points === undefined) continue;
                 const geometry = points.geometry;
                 const color = geometry.attributes.color;
@@ -107,7 +107,7 @@ export class HighlightManager {
 
     showControlPoints(collection: Iterable<c3d.SimpleName>) {
         for (const id of collection) {
-            const { view, model } = this.db.lookupItemById(id);
+            const { view } = this.db.lookupItemById(id);
             view.traverse(o => {
                 if (o instanceof visual.ControlPointGroup) {
                     o.visible = true;

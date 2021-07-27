@@ -28,7 +28,7 @@ beforeEach(() => {
     makeCircle2 = new CircleFactory(db, materials, silentSignals);
     makeCircle3 = new CircleFactory(db, materials, silentSignals);
     makeCurve = new CurveFactory(db, materials, silentSignals);
-    contours = new ContourManager(db, silentSignals);
+    contours = new ContourManager(db, materials, silentSignals);
 })
 
 test('three intersecting circles, added then deleted', async () => {
@@ -65,7 +65,7 @@ test('three intersecting circles, added then deleted', async () => {
     expect(db.visibleObjects.length).toBe(2);
 });
 
-test('two non-intersecting circles', async() => {
+test('two non-intersecting circles', async () => {
     makeCircle1.center = new THREE.Vector3(0, 0, 0);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
@@ -148,7 +148,7 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
 
     expect(db.visibleObjects.length).toBe(2 + 4);
     expect(userAddedCurve.mock.calls.length).toBe(2);
-    expect(objectAdded.mock.calls.length).toBe(3+4);
+    expect(objectAdded.mock.calls.length).toBe(3 + 4);
 });
 
 test("removing circles in reverse order works", async () => {
@@ -172,3 +172,41 @@ test("removing circles in reverse order works", async () => {
     db.removeItem(circle1);
     expect(db.visibleObjects.length).toBe(2);
 })
+
+test("removing lines in reverse order works", async () => {
+    const makeCurve1 = new CurveFactory(db, materials, signals);
+    makeCurve1.points.push(new THREE.Vector3());
+    makeCurve1.points.push(new THREE.Vector3(-2, 4, 0));
+    const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await contours.add(curve1);
+
+    expect(db.visibleObjects.length).toBe(2);
+
+    const makeCurve2 = new CurveFactory(db, materials, signals);
+    makeCurve2.points.push(new THREE.Vector3(-2, 4, 0));
+    makeCurve2.points.push(new THREE.Vector3(0, 5, 0));
+    const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await contours.add(curve2);
+
+    expect(db.visibleObjects.length).toBe(4);
+
+    const makeCurve3 = new CurveFactory(db, materials, signals);
+    makeCurve3.points.push(new THREE.Vector3(0, 5, 0));
+    makeCurve3.points.push(new THREE.Vector3());
+    const curve3 = await makeCurve3.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await contours.add(curve3);
+
+    expect(db.visibleObjects.length).toBe(6);
+
+    await contours.remove(curve1);
+    db.removeItem(curve1);
+    expect(db.visibleObjects.length).toBe(4);
+
+    await contours.remove(curve2);
+    db.removeItem(curve2);
+    expect(db.visibleObjects.length).toBe(2);
+
+    await contours.remove(curve3);
+    db.removeItem(curve3);
+    expect(db.visibleObjects.length).toBe(0);
+});

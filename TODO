@@ -1,6 +1,8 @@
 THIS WEEK:
 
 fillet curves/contours
+removing the two lines errors
+making a contour errors
 finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
 fillet has two points, F key bound twice
 moving needs to have snapping

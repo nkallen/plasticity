@@ -21,10 +21,11 @@ export class BetterRaycastingPoints extends THREE.Points {
         // Checking boundingSphere distance to ray
     
         if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
-    
+
         _sphere.copy(geometry.boundingSphere!);
         _sphere.applyMatrix4(matrixWorld);
         _sphere.radius += threshold;
+        _sphere.radius = Math.max(0.1, _sphere.radius);
     
         if (raycaster.ray.intersectsSphere(_sphere) === false) return;
     
@@ -40,7 +41,7 @@ export class BetterRaycastingPoints extends THREE.Points {
         // @ts-expect-error
         const resolution: THREE.Vector2 = this.material.userData.resolution;
     
-        const ssMaxWidth = 10 / resolution.width;
+        const ssMaxWidth = 12 / resolution.width;
     
         for (let i = start, l = end; i < l; i++) {
             _position.fromBufferAttribute(positionAttribute, i);

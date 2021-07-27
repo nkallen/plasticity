@@ -3,8 +3,10 @@ import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import * as visual from "../editor/VisualModel";
+import { cart2vec } from '../util/Conversion';
+import MaterialDatabase from '../editor/MaterialDatabase';
 
-// and we need to aggregate by placement
+// FIXME we need to aggregate by placement
 
 class CurveInfo {
     touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
@@ -102,34 +104,58 @@ export default class ContourManager extends SequentialExecutor<void> {
         }
     }
 
+    /**
+     * Summary of algorithm: to add a new curve, with find its intersections with all other curves.
+     * Suppose there's one intersection along the parameter of the curve at i. This intersection
+     * cuts the curve in two. Thus we trim curve from [0,i], and [i,1], assuming 0 and 1 are tmin and
+     * tmax. Then we process the next curve (the one we intersected with earlier), since it also has
+     * been cut in two.
+     * 
+     * There are a lot of edge cases, for circular curves, for curves whose endpoints intersect the
+     * startpoints of the next curve, etc. etc.
+     */
     private async _add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
         const { curve2info, planar2instance } = this;
 
-        const newPlanarCurve = this.curve3d2curve2d(newCurve);
+        const inst = this.db.lookup(newCurve);
+        const item = inst.GetSpaceItem()!;
+        const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+        const newPlanarCurve = this.curve3d2curve2d(curve3d);
         if (newPlanarCurve === undefined) return;
+
         const info = new CurveInfo(newPlanarCurve);
         curve2info.set(newCurve, info);
         planar2instance.set(newPlanarCurve.Id(), newCurve);
 
         const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
-
         const curvesToProcess = new Map<Curve2dId, c3d.Curve>();
         curvesToProcess.set(newPlanarCurve.Id(), newPlanarCurve);
         const visited = new Set<Curve2dId>();
-
         const promises = [];
-        for (const [id, current] of curvesToProcess) {
+
+        while (curvesToProcess.size > 0) {
+            const [id, current] = curvesToProcess.entries().next().value;
             visited.add(id);
             curvesToProcess.delete(id);
 
             const crosses = c3d.CurveEnvelope.IntersectWithAll(current, allPlanarCurves, true);
-            if (crosses.length < 1) {
+            if (crosses.length === 0) {
                 promises.push(this.updateCurve(newCurve, [{ trimmed: newPlanarCurve, start: -1, stop: -1 }]));
                 continue;
             }
-            crosses.sort((a, b) => {
-                return a.on1.t - b.on1.t;
-            });
+            crosses.sort((a, b) => a.on1.t - b.on1.t);
+
+            const { on1: { curve: curve1, t: t1 }, on2: { curve: curve2, t: t2 } } = crosses[0];
+            const view1 = this.planar2instance.get(curve1.Id())!;
+            const view2 = this.planar2instance.get(curve2.Id())!;
+            const info = curve2info.get(view1)!;
+
+            if (t1 === curve1.GetTMin()) {
+                const on1_ = new PointOnCurve(view1, t1);
+                const on2_ = new PointOnCurve(view2, t2);
+                const pos = cart2vec(curve3d.PointOn(t1));
+                // this.db.addJoint(on1_, on2_, pos);
+            }
 
             // For bounded (finite) open curves (like line segments), we need to add in the beginning and end points
             if (current.IsBounded() && !current.IsClosed()) {
@@ -145,20 +171,19 @@ export default class ContourManager extends SequentialExecutor<void> {
             }
 
             // The crosses (intersections) are sorted, so each t[i] (start) to t[i+1] (stop) section of the curve is a cuttable.
-            const first = crosses.shift()!;
-            let start = first.on1.t;
+            let start = crosses[0].on1.t;
             const result: Trim[] = [];
             for (const cross of crosses) {
-                const { on1: { t, curve }, on2: { curve: other } } = cross;
+                const { on1: { t }, on2: { curve: other } } = cross;
                 const otherId = other.Id();
 
-                const info = curve2info.get(this.planar2instance.get(curve.Id())!)!;
                 info.touched.add(this.planar2instance.get(otherId)!);
 
                 const stop = t;
-                if (Math.abs(start - stop) < 10e-6) { start = stop; continue }
-                const trimmed = curve.Trimmed(start, stop, 1)!;
-                result.push({ trimmed, start, stop });
+                if (Math.abs(start - stop) > 10e-6) {
+                    const trimmed = curve1.Trimmed(start, stop, 1)!;
+                    result.push({ trimmed, start, stop });
+                }
                 start = stop;
 
                 if (!visited.has(otherId)) {
@@ -196,14 +221,10 @@ export default class ContourManager extends SequentialExecutor<void> {
         info.fragments = views;
     }
 
-    private curve3d2curve2d(from: visual.SpaceInstance<visual.Curve3D>): c3d.Curve | undefined {
+    private curve3d2curve2d(curve: c3d.Curve3D): c3d.Curve | undefined {
         const { db } = this;
-
         const placement_ = new c3d.Placement3D();
-        const inst = db.lookup(from);
-        const item = inst.GetSpaceItem()!;
 
-        const curve = item.Cast<c3d.Curve3D>(item.IsA());
         if (curve.IsStraight(true)) {
             if (!(curve instanceof c3d.PolyCurve3D)) throw new Error("invalid precondition");
             const points2d = [];
@@ -223,4 +244,12 @@ export default class ContourManager extends SequentialExecutor<void> {
             return curve2d;
         }
     }
+}
+
+
+export class PointOnCurve {
+    constructor(
+        readonly curve: visual.SpaceInstance<visual.Curve3D>,
+        readonly t: number
+    ) { }
 }

@@ -80,6 +80,8 @@ export class ControlPoint extends THREE.Object3D {
     ) {
         super()
     }
+
+    get geometry() { return this.points.points }
 }
 
 export class Curve3D extends SpaceItem {
