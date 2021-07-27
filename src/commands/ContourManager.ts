@@ -16,9 +16,14 @@ class CurveInfo {
 type Curve2dId = bigint;
 type Trim = { trimmed: c3d.Curve, start: number, stop: number };
 
+type CurveSet = Set<visual.SpaceInstance<visual.Curve3D>>;
+type State = { dirty: CurveSet, added: CurveSet, deleted: CurveSet }
+
 export default class ContourManager {
     private readonly curve2info = new Map<visual.SpaceInstance<visual.Curve3D>, CurveInfo>();
     private readonly planar2instance = new Map<Curve2dId, visual.SpaceInstance<visual.Curve3D>>();
+
+    private state: State = { dirty: new Set(), added: new Set(), deleted: new Set() };
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -51,45 +56,77 @@ export default class ContourManager {
         });
     }
 
-    remove(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
+    private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
         const { curve2info, planar2instance } = this;
-        const promises = [];
 
         const info = curve2info.get(curve);
         if (info === undefined) return;
         curve2info.delete(curve);
 
-        const { touched, fragments, planarCurve } = info;
+        const { fragments, planarCurve } = info;
 
         planar2instance.delete(planarCurve.Id());
 
         for (const fragment of fragments) {
             fragment.then(f => this.db.removeItem(f, 'automatic'));
         }
+        return info;
+    }
 
-        if (invalidateCurvesThatTouch) { // mutually touching curves form a circular graph so do a bfs
-            const visited = new Set<visual.SpaceInstance<visual.Curve3D>>();
-            let walk = [...touched];
-            while (walk.length > 0) {
-                const touchee = walk.pop()!;
-                if (visited.has(touchee)) continue;
-                visited.add(touchee);
-                if (curve2info.has(touchee)) { // we may have already deleted this as part of the recursive process
-                    walk = walk.concat([...curve2info.get(touchee)!.touched]);
-                }
-            }
+    private cascade(curve: visual.SpaceInstance<visual.Curve3D>) {
+        const { curve2info } = this;
 
-            for (const touchee of visited) {
-                this.remove(touchee, false);
-            }
+        const info = curve2info.get(curve);
+        if (info === undefined) return;
+        const { touched } = info;
 
-            visited.delete(curve);
-
-            for (const touchee of visited) {
-                promises.push(this.add(touchee));
-            }
+        const visited = this.state.dirty;
+        let walk = [...touched];
+        while (walk.length > 0) {
+            const touchee = walk.pop()!;
+            if (visited.has(touchee)) continue;
+            visited.add(touchee);
+            walk = walk.concat([...curve2info.get(touchee)!.touched]);
         }
+
+        this.state.deleted.add(curve);
+    }
+
+    remove(curve: visual.SpaceInstance<visual.Curve3D>) {
+        this.state = { dirty: new Set(), added: new Set(), deleted: new Set() };
+        const result = this._remove(curve);
+        this.state = { dirty: new Set(), added: new Set(), deleted: new Set() };
+        return result;
+    }
+
+    _remove(curve: visual.SpaceInstance<visual.Curve3D>) {
+        const promises = [];
+        this.cascade(curve);
+        for (const touchee of this.state.dirty) {
+            this.removeInfo(touchee);
+        }
+        for (const touchee of this.state.deleted) {
+            this.removeInfo(touchee);
+        }
+        for (const touchee of this.state.dirty) {
+            if (this.state.deleted.has(touchee)) continue;
+            promises.push(this._add(touchee));
+        }
+
+        for (const touchee of this.state.added) {
+            if (this.state.deleted.has(touchee)) continue;
+            if (this.state.dirty.has(touchee)) continue;
+            promises.push(this._add(touchee));
+        }
+
         return Promise.all(promises);
+    }
+
+    add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+        this.state = { dirty: new Set(), added: new Set(), deleted: new Set() };
+        const result = this._add(newCurve);
+        this.state = { dirty: new Set(), added: new Set(), deleted: new Set() };
+        return result;
     }
 
     /**
@@ -102,7 +139,7 @@ export default class ContourManager {
      * There are a lot of edge cases, for circular curves, for curves whose endpoints intersect the
      * startpoints of the next curve, etc. etc.
      */
-    add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+    _add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
         const { curve2info, planar2instance } = this;
         const promises = [];
 
