@@ -42,6 +42,7 @@ export class SelectionInteractionManager {
 
         intersections.sort(sortIntersections);
         for (const intersection of intersections) {
+            console.log(intersection.object.constructor.name);
             const object = intersection.object;
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;

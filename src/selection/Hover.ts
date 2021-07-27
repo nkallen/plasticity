@@ -59,6 +59,9 @@ export class HoverStrategy implements SelectionStrategy {
     region(object: Region, parentItem: PlaneInstance<Region>): boolean {
         if (this.selection.mode.has(SelectionMode.Face)) {
             if (this.selection.selectedRegions.has(parentItem)) { }
+            this.selection.hover?.dispose();
+            // FIXME regions aren't actually hover/highlighting
+            this.selection.hover = new Hoverable(object, this.materials, this.signals);
             return true;
         }
         return false;
@@ -79,7 +82,7 @@ export class HoverStrategy implements SelectionStrategy {
 
 export class Hoverable {
     constructor(
-        private readonly object: Item | TopologyItem | ControlPoint,
+        private readonly object: Item | TopologyItem | ControlPoint | Region,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals
     ) {
