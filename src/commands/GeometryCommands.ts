@@ -13,7 +13,6 @@ import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from '.
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import ContourFactory from "./curve/ContourFactory";
 import ContourFilletFactory from "./curve/ContourFilletFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
@@ -1104,25 +1103,23 @@ export class TrimCommand extends Command {
 
 export class CreateContourFilletsCommand extends Command {
     async execute(): Promise<void> {
-        await this.editor.contours.transaction(async () => {
-            const controlPoint = this.editor.selection.selectedControlPoints.first;
-            const instance = controlPoint.parentItem;
+        const controlPoint = this.editor.selection.selectedControlPoints.first;
+        const instance = controlPoint.parentItem;
 
-            const info = this.editor.contours.lookup(instance);
-            const joint = info.joint;
-            if (joint === undefined) return;
+        const info = this.editor.contours.lookup(instance);
+        const joint = info.joint;
+        if (joint === undefined) return;
 
-            const contourFactory = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            contourFactory.curves.push(joint.on1.curve);
-            contourFactory.curves.push(joint.on2.curve);
+        const contourFactory = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        contourFactory.curves.push(joint.on1.curve);
+        contourFactory.curves.push(joint.on2.curve);
 
-            const contours = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>[];
-            const contour = contours[0];
+        const contours = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>[];
+        const contour = contours[0];
 
-            const filletFactory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            filletFactory.contour = contour;
-            filletFactory.radiuses[0] = 0.1;
-            await filletFactory.commit();
-        });
+        const filletFactory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        filletFactory.contour = contour;
+        filletFactory.radiuses[0] = 0.1;
+        await filletFactory.commit();
     }
 }

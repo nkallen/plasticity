@@ -125,6 +125,7 @@ export default class ContourManager {
     }
 
     async transaction(f: () => Promise<void>) {
+        console.log("here");
         switch (this.state.tag) {
             case 'none': {
                 this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
