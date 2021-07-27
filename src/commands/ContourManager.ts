@@ -40,20 +40,20 @@ export default class ContourManager {
     }
 
     update() {
-        return this.db.queue.enqueue(async () => {
-            const oldRegions = this.db.find(visual.PlaneInstance) as visual.PlaneInstance<visual.Region>[];
-            for (const region of oldRegions) this.db.removeItem(region, 'automatic');
+        // return this.db.queue.enqueue(async () => {
+        //     const oldRegions = this.db.find(visual.PlaneInstance) as visual.PlaneInstance<visual.Region>[];
+        //     for (const region of oldRegions) this.db.removeItem(region, 'automatic');
 
-            const { curve2info } = this;
-            const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
-            const placement = new c3d.Placement3D();
-            const { contours } = c3d.ContourGraph.OuterContoursBuilder(allPlanarCurves);
+        //     const { curve2info } = this;
+        //     const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
+        //     const placement = new c3d.Placement3D();
+        //     const { contours } = c3d.ContourGraph.OuterContoursBuilder(allPlanarCurves);
 
-            const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
-            for (const region of regions) {
-                this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
-            }
-        });
+        //     const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
+        //     for (const region of regions) {
+        //         this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
+        //     }
+        // });
     }
 
     private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
@@ -75,6 +75,7 @@ export default class ContourManager {
 
     private cascade(curve: visual.SpaceInstance<visual.Curve3D>) {
         if (this.state.tag !== 'transaction') throw new Error("invalid state");
+        this.state.deleted.add(curve);
 
         const { curve2info } = this;
 
@@ -91,7 +92,6 @@ export default class ContourManager {
             walk = walk.concat([...curve2info.get(touchee)!.touched]);
         }
 
-        this.state.deleted.add(curve);
     }
 
     remove(curve: visual.SpaceInstance<visual.Curve3D>) {
@@ -99,7 +99,7 @@ export default class ContourManager {
             case 'none': {
                 this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
                 this.cascade(curve);
-                const result = this._remove();
+                const result = this.commit();
                 this.state = { tag: 'none' };
                 return result;
             }
@@ -129,7 +129,7 @@ export default class ContourManager {
             case 'none': {
                 this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
                 await f();
-                this._remove();
+                this.commit();
                 this.state = { tag: 'none' };
                 return;
             }
@@ -137,7 +137,7 @@ export default class ContourManager {
         }
     }
 
-    _remove() {
+    private commit() {
         if (this.state.tag !== 'transaction') throw new Error("invalid state");
 
         const promises = [];
@@ -151,7 +151,6 @@ export default class ContourManager {
             if (this.state.deleted.has(touchee)) continue;
             promises.push(this._add(touchee));
         }
-
         for (const touchee of this.state.added) {
             if (this.state.deleted.has(touchee)) continue;
             if (this.state.dirty.has(touchee)) continue;

@@ -264,3 +264,34 @@ test("race condition", async () => {
 
     expect(db.find(visual.PlaneInstance).length).toBe(0);
 });
+
+test.only("transactions", async () => {
+    await contours.transaction(async () => {
+        const makeLine1 = new LineFactory(db, materials, signals);
+        makeLine1.p1 = new THREE.Vector3();
+        makeLine1.p2 = new THREE.Vector3(1, 1, 0);
+        const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await contours.add(line1);
+    
+        const makeLine2 = new LineFactory(db, materials, signals);
+        makeLine2.p1 = new THREE.Vector3(1, 1, 0);
+        makeLine2.p2 = new THREE.Vector3(0, 1, 0);
+        const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await contours.add(line2);
+    
+        await contours.remove(line1);
+        await contours.remove(line2);
+        const makeContour = new JoinCurvesFactory(db, materials, signals);
+        makeContour.curves.push(line1);
+        makeContour.curves.push(line2);
+        const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
+        await contours.add(contour);
+    
+        const makeFillet = new ContourFilletFactory(db, materials, signals);
+        makeFillet.contour = contour;
+        makeFillet.radiuses[0] = 0.1;
+        const filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await contours.remove(contour);
+        await contours.add(filleted);
+    });
+});
