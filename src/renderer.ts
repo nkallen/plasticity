@@ -62,10 +62,10 @@ Dialog(editor);
 // makeSphere.radius = 0.5;
 // makeSphere.commit();
 
-// const makeCircle1 = new CircleFactory(editor.db, editor.materials, editor.signals);
-// makeCircle1.center = new THREE.Vector3(0, 0, 0);
-// makeCircle1.radius = 1;
-// makeCircle1.commit();
+const makeCircle1 = new CircleFactory(editor.db, editor.materials, editor.signals);
+makeCircle1.center = new THREE.Vector3(0, 0, 0);
+makeCircle1.radius = 1;
+makeCircle1.commit();
 
 // const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
 // makeCurve1.points.push(new THREE.Vector3());
@@ -87,12 +87,12 @@ Dialog(editor);
 // makeCircle3.radius = 1;
 // makeCircle3.commit();
 
-const makeLine1 = new LineFactory(editor.db, editor.materials, editor.signals);
-makeLine1.p1 = new THREE.Vector3();
-makeLine1.p2 = new THREE.Vector3(1, 1, 0);
-makeLine1.commit();
+// const makeLine1 = new LineFactory(editor.db, editor.materials, editor.signals);
+// makeLine1.p1 = new THREE.Vector3();
+// makeLine1.p2 = new THREE.Vector3(1, 1, 0);
+// makeLine1.commit();
 
-const makeLine2 = new LineFactory(editor.db, editor.materials, editor.signals);
-makeLine2.p1 = new THREE.Vector3(1, 1, 0);
-makeLine2.p2 = new THREE.Vector3(0, 1, 0);
-makeLine2.commit();
+// const makeLine2 = new LineFactory(editor.db, editor.materials, editor.signals);
+// makeLine2.p1 = new THREE.Vector3(1, 1, 0);
+// makeLine2.p2 = new THREE.Vector3(0, 1, 0);
+// makeLine2.commit();

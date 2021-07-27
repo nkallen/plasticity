@@ -39,21 +39,30 @@ export default class ContourManager {
         signals.userRemovedCurve.add(this.update);
     }
 
+    private _update() {
+        return this.db.queue.enqueue(async () => {
+            const oldRegions = this.db.find(visual.PlaneInstance) as visual.PlaneInstance<visual.Region>[];
+            for (const region of oldRegions) this.db.removeItem(region, 'automatic');
+
+            const { curve2info } = this;
+            const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
+            const placement = new c3d.Placement3D();
+            const { contours } = c3d.ContourGraph.OuterContoursBuilder(allPlanarCurves);
+
+            const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
+            for (const region of regions) {
+                this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
+            }
+        });
+    }
+
     update() {
-        // return this.db.queue.enqueue(async () => {
-        //     const oldRegions = this.db.find(visual.PlaneInstance) as visual.PlaneInstance<visual.Region>[];
-        //     for (const region of oldRegions) this.db.removeItem(region, 'automatic');
-
-        //     const { curve2info } = this;
-        //     const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
-        //     const placement = new c3d.Placement3D();
-        //     const { contours } = c3d.ContourGraph.OuterContoursBuilder(allPlanarCurves);
-
-        //     const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
-        //     for (const region of regions) {
-        //         this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
-        //     }
-        // });
+        switch (this.state.tag) {
+            case 'none': {
+                return this._update();
+            }
+            case 'transaction': break;
+        }
     }
 
     private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
@@ -125,13 +134,15 @@ export default class ContourManager {
     }
 
     async transaction(f: () => Promise<void>) {
-        console.log("here");
         switch (this.state.tag) {
             case 'none': {
                 this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
                 try {
                     await f();
-                    this.commit();
+                    await this.commit();
+                    if (this.state.dirty.size > 0 || this.state.added.size > 0 || this.state.deleted.size > 0) {
+                        await this.update();
+                    }
                 } finally {
                     this.state = { tag: 'none' };
                 }

@@ -63,9 +63,7 @@ export class CommandExecutor {
             let selectionChanged = false;
             this.signals.objectSelected.addOnce(() => selectionChanged = true);
             this.signals.objectDeselected.addOnce(() => selectionChanged = true);
-            await this.contours.transaction(async () => {
-                await command.execute();
-            });
+            await command.execute();
             command.finish();
             if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
             this.history.add("Command", state);
