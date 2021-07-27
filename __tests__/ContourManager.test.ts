@@ -28,7 +28,7 @@ beforeEach(() => {
     makeCircle2 = new CircleFactory(db, materials, silentSignals);
     makeCircle3 = new CircleFactory(db, materials, silentSignals);
     makeCurve = new CurveFactory(db, materials, silentSignals);
-    contours = new ContourManager(db, materials, silentSignals);
+    contours = new ContourManager(db, silentSignals);
 })
 
 test('three intersecting circles, added then deleted', async () => {
