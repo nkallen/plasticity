@@ -31,20 +31,6 @@ beforeEach(async () => {
     solid = await makeBox.commit() as visual.Solid;
 });
 
-describe('update', () => {
-    test('push/pulls the visual face', async () => {
-        expect(db.temporaryObjects.children.length).toBe(0);
-        const face = solid.faces.get(2);
-        draftSolid.solid = solid;
-        draftSolid.faces = [face];
-        draftSolid.angle = Math.PI / 8;
-        draftSolid.axis = new THREE.Vector3(1, 0, 0);
-        draftSolid.origin = new THREE.Vector3(0, 0, 0);
-        await draftSolid.update();
-        expect(db.temporaryObjects.children.length).toBe(1);
-    });
-});
-
 describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {
         expect(db.temporaryObjects.children.length).toBe(0);

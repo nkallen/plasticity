@@ -5,10 +5,7 @@ import { GeometryFactory } from '../Factory';
 export default class JoinCurvesFactory extends GeometryFactory {
     readonly curves = new Array<visual.SpaceInstance<visual.Curve3D>>();
 
-    async doUpdate() {
-    }
-
-    async doCommit(): Promise<visual.SpaceInstance<visual.Curve3D>[]> {
+    async computeGeometry() {
         if (this.curves.length === 0) throw new Error("not enough curves");
 
         const curves = [];
@@ -18,17 +15,11 @@ export default class JoinCurvesFactory extends GeometryFactory {
         }
         const contours = c3d.ActionCurve3D.CreateContours(curves, 10);
         const result = [];
-        for (const [i, contour] of contours.entries()) {
-            const p = this.db.addItem(new c3d.SpaceInstance(contour)) as Promise<visual.SpaceInstance<visual.Curve3D>>;
-            result.push(p);
+        for (const contour of contours) {
+            result.push(new c3d.SpaceInstance(contour));
         }
-        const all = await Promise.all(result);
-        for (const curve of this.curves) {
-            this.db.removeItem(curve);
-        }
-        return all;
+        return result;
     }
 
-    doCancel() {
-    }
+    get originalItem() { return this.curves }
 }

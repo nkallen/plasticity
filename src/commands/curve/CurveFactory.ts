@@ -1,3 +1,4 @@
+import { TemporaryObject } from "../../editor/GeometryDatabase";
 import * as THREE from "three";
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import c3d from '../../../build/Release/c3d.node';
@@ -9,6 +10,7 @@ export default class CurveFactory extends GeometryFactory {
     closed = false;
 
     nextPoint?: THREE.Vector3;
+    private temp?: TemporaryObject;
 
     get startPoint() { return this.points[0] }
 

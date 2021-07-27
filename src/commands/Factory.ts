@@ -6,10 +6,10 @@ import { ResourceRegistration } from '../util/Cancellable';
 import * as visual from '../editor/VisualModel';
 
 type State = { tag: 'none', last: undefined }
-    | { tag: 'updated', last?: Map<string, any> } 
+    | { tag: 'updated', last?: Map<string, any> }
     | { tag: 'updating', hasNext: boolean, failed?: any, last?: Map<string, any> }
-    | { tag: 'failed', error: any, last?: Map<string, any> } 
-    | { tag: 'cancelled' } 
+    | { tag: 'failed', error: any, last?: Map<string, any> }
+    | { tag: 'cancelled' }
     | { tag: 'committed' }
 
 /**
@@ -41,43 +41,56 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
     // MARK: Default implementations of the template methods. Override for more complicated commands
 
-    protected temp?: TemporaryObject;
+    protected temps: TemporaryObject[] = [];
 
     protected async doUpdate(): Promise<void> {
-        const geometry = await this.computeGeometry();
-        const temp = await this.db.addTemporaryItem(geometry);
-        if (this.originalItem) this.db.hide(this.originalItem);
-        this.temp?.cancel();
-        this.temp = temp;
+        const promises = [];
+        const geometries = toArray(await this.computeGeometry());
+        for (const geometry of geometries) {
+            promises.push(this.db.addTemporaryItem(geometry));
+        }
+
+        await Promise.all(promises);
+
+        for (const i of this.originalItems) this.db.hide(i);
+        for (const temp of this.temps) temp.cancel();
+
+        const temps = [];
+        for (const p of promises) {
+            temps.push(await p);
+        }
+        this.temps = temps;
     }
 
     protected async doCommit(): Promise<visual.Item | visual.Item[]> {
-        let final = Promise.resolve();
         try {
-            const originalItem = this.originalItem;
-            const geometry = await this.computeGeometry();
-            const result = this.db.addItem(geometry);
-            final = result as unknown as Promise<void>;
-            if (originalItem) {
-                final.then(() => this.db.removeItem(originalItem))
+            const promises = [];
+            const unarray = await this.computeGeometry();
+            const geometries = toArray(unarray);
+            for (const geometry of geometries) {
+                promises.push(this.db.addItem(geometry));
             }
-            return result;
+            const result = await Promise.all(promises);
+            for (const i of this.originalItems) this.db.removeItem(i);
+            return dearray(result, unarray);
         } finally {
-            const temp = this.temp;
-            if (temp) {
-                final.then(() => temp.cancel());
+            await Promise.resolve(); // This removes flickering when rendering.
+            for (const temp of this.temps) {
+                temp.cancel();
             }
         }
     }
 
     protected doCancel(): void {
-        if (this.originalItem) this.db.unhide(this.originalItem);
-        this.temp?.cancel();
+        for (const i of this.originalItems) this.db.unhide(i);
+        for (const temp of this.temps) temp.cancel();
     }
 
-    protected computeGeometry(): Promise<c3d.Item> { throw new Error("Implement this for simple factories"); }
-    protected get originalItem(): visual.Item | undefined { return undefined }
-
+    protected computeGeometry(): Promise<c3d.Item> | Promise<c3d.Item[]> { throw new Error("Implement this for simple factories"); }
+    protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
+    private get originalItems() {
+        return toArray(this.originalItem);
+    }
 
     // MARK: Below is the complicated StateMachine behavior
 
@@ -206,4 +219,15 @@ export abstract class GeometryFactory extends ResourceRegistration {
     protected get keys(): string[] {
         return [];
     }
+}
+
+function toArray<T>(x: T | T[] | undefined): T[] {
+    if (x === undefined) return [];
+    if (x instanceof Array) return x;
+    return [x];
+}
+
+function dearray<S, T>(array: S[], antecedent: T | T[]): S | S[] {
+    if (antecedent instanceof Array) return array;
+    return array[0];
 }

@@ -30,10 +30,8 @@ export default class ElementarySolidFactory extends GeometryFactory {
         this.creator = recent;
     }
 
-    async doUpdate() {
+    async computeGeometry() {
         const { creator, control, duplicate, points } = this;
-
-        this.db.hide(this.original);
 
         for (const [index, point] of points.entries()) {
             control.SetPoint(index, new c3d.CartPoint3D(point.x, point.y, point.z));
@@ -41,22 +39,8 @@ export default class ElementarySolidFactory extends GeometryFactory {
         control.ResetIndex();
         creator.SetBasisPoints(control);
         duplicate.RebuildItem(c3d.CopyMode.Copy, null);
-        const temp = await this.db.addTemporaryItem(duplicate);
-        this.temp?.cancel();
-        this.temp = temp;
+        return duplicate;
     }
 
-    async doCommit() {
-        const { original, duplicate } = this;
-
-        this.db.removeItem(original);
-        const result = await this.db.addItem(duplicate);
-        this.temp?.cancel();
-        return result;
-    }
-
-    doCancel() {
-        this.db.unhide(this.original);
-        this.temp?.cancel();
-    }
+    get originalItem() { return this.original }
 }
