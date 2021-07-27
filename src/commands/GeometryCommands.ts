@@ -1103,24 +1103,39 @@ export class TrimCommand extends Command {
 
 export class CreateContourFilletsCommand extends Command {
     async execute(): Promise<void> {
-        const instance = this.editor.selection.selectedCurves.first;
+        const controlPoint = this.editor.selection.selectedControlPoints.first;
+        const instance = controlPoint.parentItem;
 
-        let model = this.editor.db.lookup(instance);
-        model = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
+        const info = this.editor.contours.lookup(instance);
+        const joint = info.joint;
+        if (joint === undefined) return;
+
+        const contourFactory = new ContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        contourFactory.curves.push(joint.on1.curve);
+        contourFactory.curves.push(joint.on2.curve);
+
+        console.log(1);
+        const contour = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        console.log(2);
+
+        this.editor.db.removeItem(joint.on1.curve);
+        console.log(3);
+        this.editor.db.removeItem(joint.on2.curve);
+
+        let model = this.editor.db.lookup(contour);
         const item = model.GetSpaceItem()!;
         const curve = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
-        
-        // const contourFactory = new ContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        // for (const curve of curves) {
-            // contourFactory.curves.push(instance);
-        // }
-        // const contour = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>;
-        // this.editor.db.lookup(contour);
+
         let fillNumber = curve.GetSegmentsCount();
         fillNumber -= curve.IsClosed() ? 0 : 1;
         const radiuses = new Array<number>(fillNumber);
-        for (let i = 0; i < fillNumber; i++) radiuses[i] = 1;
+        for (let i = 0; i < fillNumber; i++) radiuses[i] = 0.1;
+        console.log(4);
         const result = c3d.ActionSurfaceCurve.CreateContourFillets(curve, radiuses, c3d.ConnectingType.Fillet);
+        console.log(5);
         await this.editor.db.addItem(new c3d.SpaceInstance(result));
+        console.log(6);
+        this.editor.db.removeItem(contour);
     }
 }

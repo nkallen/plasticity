@@ -1,3 +1,4 @@
+import { SequentialExecutor } from '../util/Executor';
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
 import { assertUnreachable, GConstructor } from '../util/Util';
@@ -22,6 +23,7 @@ export class GeometryDatabase {
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
     private readonly hidden = new Set<c3d.SimpleName>();
+    readonly queue = new SequentialExecutor<void>();
 
     constructor(
         private readonly materials: MaterialDatabase,

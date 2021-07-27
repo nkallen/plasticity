@@ -31,6 +31,20 @@ beforeEach(() => {
     contours = new ContourManager(db, silentSignals);
 })
 
+test('adding and deleting a circle', async () => {
+    makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
+    makeCircle1.radius = 1;
+    const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    expect(db.visibleObjects.length).toBe(1);
+
+    await contours.add(circle1);
+    expect(db.visibleObjects.length).toBe(2);
+
+    await contours.remove(circle1);
+    db.removeItem(circle1);
+    expect(db.visibleObjects.length).toBe(0);
+})
+
 test('three intersecting circles, added then deleted', async () => {
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;
@@ -120,14 +134,12 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
     makeCircle1.radius = 1;
 
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await contours.enqueue(() => Promise.resolve());
 
     expect(db.visibleObjects.length).toBe(1);
     expect(userAddedCurve.mock.calls.length).toBe(1);
     expect(objectAdded.mock.calls.length).toBe(1);
 
     await contours.add(circle1);
-    await contours.enqueue(() => Promise.resolve());
 
     expect(db.visibleObjects.length).toBe(2);
     expect(userAddedCurve.mock.calls.length).toBe(1);
@@ -137,14 +149,12 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
     makeCircle2.radius = 1;
 
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await contours.enqueue(() => Promise.resolve());
 
     expect(db.visibleObjects.length).toBe(3);
     expect(userAddedCurve.mock.calls.length).toBe(2);
     expect(objectAdded.mock.calls.length).toBe(3);
 
     await contours.add(circle2);
-    await contours.enqueue(() => Promise.resolve());
 
     expect(db.visibleObjects.length).toBe(2 + 4);
     expect(userAddedCurve.mock.calls.length).toBe(2);

@@ -1,23 +1,21 @@
-import { SequentialExecutor } from '../util/Executor';
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import * as visual from "../editor/VisualModel";
-import { cart2vec } from '../util/Conversion';
-import MaterialDatabase from '../editor/MaterialDatabase';
 
 // FIXME we need to aggregate by placement
 
 class CurveInfo {
     touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
-    fragments = new Array<visual.Item>();
+    fragments = new Array<Promise<visual.Item>>();
+    joint?: Joint;
     constructor(readonly planarCurve: c3d.Curve) { }
 }
 
 type Curve2dId = bigint;
 type Trim = { trimmed: c3d.Curve, start: number, stop: number };
 
-export default class ContourManager extends SequentialExecutor<void> {
+export default class ContourManager {
     private readonly curve2info = new Map<visual.SpaceInstance<visual.Curve3D>, CurveInfo>();
     private readonly planar2instance = new Map<Curve2dId, visual.SpaceInstance<visual.Curve3D>>();
 
@@ -25,20 +23,19 @@ export default class ContourManager extends SequentialExecutor<void> {
         private readonly db: GeometryDatabase,
         signals: EditorSignals
     ) {
-        super();
-
         this.add = this.add.bind(this);
         this.remove = this.remove.bind(this);
         this.update = this.update.bind(this);
 
         signals.userAddedCurve.add(this.add);
-        signals.userRemovedCurve.add(this.remove);
+        signals.userRemovedCurve.add(c => this.remove(c));
         signals.userAddedCurve.add(this.update);
         signals.userRemovedCurve.add(this.update);
     }
 
     async update(newCurve: visual.SpaceInstance<visual.Curve3D>) {
-        await this.enqueue(() => this._update());
+        // console.log("update");
+        // await this.enqueue(() => this._update());
     }
 
     async _update() {
@@ -58,16 +55,10 @@ export default class ContourManager extends SequentialExecutor<void> {
         return Promise.all(result).then(() => { });
     }
 
-    async add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
-        await this.enqueue(() => this._add(newCurve));
-    }
-
-    async remove(newCurve: visual.SpaceInstance<visual.Curve3D>) {
-        await this.enqueue(() => this._remove(newCurve));
-    }
-
-    private async _remove(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
+    remove(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
         const { curve2info, planar2instance } = this;
+        const promises = [];
+
         const info = curve2info.get(curve);
         if (info === undefined) return;
         curve2info.delete(curve);
@@ -77,7 +68,7 @@ export default class ContourManager extends SequentialExecutor<void> {
         planar2instance.delete(planarCurve.Id());
 
         for (const fragment of fragments) {
-            this.db.removeItem(fragment);
+            fragment.then(f => this.db.removeItem(f));
         }
 
         if (invalidateCurvesThatTouch) { // mutually touching curves form a circular graph so do a bfs
@@ -93,15 +84,16 @@ export default class ContourManager extends SequentialExecutor<void> {
             }
 
             for (const touchee of visited) {
-                await this._remove(touchee, false);
+                this.remove(touchee, false);
             }
 
             visited.delete(curve);
 
             for (const touchee of visited) {
-                await this._add(touchee);
+                promises.push(this.add(touchee));
             }
         }
+        return Promise.all(promises);
     }
 
     /**
@@ -114,8 +106,9 @@ export default class ContourManager extends SequentialExecutor<void> {
      * There are a lot of edge cases, for circular curves, for curves whose endpoints intersect the
      * startpoints of the next curve, etc. etc.
      */
-    private async _add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+    add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
         const { curve2info, planar2instance } = this;
+        const promises = [];
 
         const inst = this.db.lookup(newCurve);
         const item = inst.GetSpaceItem()!;
@@ -131,7 +124,6 @@ export default class ContourManager extends SequentialExecutor<void> {
         const curvesToProcess = new Map<Curve2dId, c3d.Curve>();
         curvesToProcess.set(newPlanarCurve.Id(), newPlanarCurve);
         const visited = new Set<Curve2dId>();
-        const promises = [];
 
         while (curvesToProcess.size > 0) {
             const [id, current] = curvesToProcess.entries().next().value;
@@ -153,8 +145,7 @@ export default class ContourManager extends SequentialExecutor<void> {
             if (t1 === curve1.GetTMin()) {
                 const on1_ = new PointOnCurve(view1, t1);
                 const on2_ = new PointOnCurve(view2, t2);
-                const pos = cart2vec(curve3d.PointOn(t1));
-                // this.db.addJoint(on1_, on2_, pos);
+                info.joint = new Joint(on1_, on2_);
             }
 
             // For bounded (finite) open curves (like line segments), we need to add in the beginning and end points
@@ -192,19 +183,17 @@ export default class ContourManager extends SequentialExecutor<void> {
             }
             promises.push(this.updateCurve(this.planar2instance.get(id)!, result));
         }
-        await Promise.all(promises);
+        return Promise.all(promises);
     }
 
-
-    private async updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[]) {
+    private updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[]) {
         const { curve2info, db } = this;
         const info = curve2info.get(instance)!;
         for (const invalid of info.fragments) {
-            db.removeItem(invalid, 'automatic');
+            invalid.then(i => db.removeItem(i, 'automatic'));
         }
         const placement = new c3d.Placement3D();
-        const views: visual.Item[] = [];
-        const ps = [];
+        const views: Promise<visual.Item>[] = [];
         for (const { trimmed, start, stop } of result) {
             const inst = new c3d.SpaceInstance(new c3d.PlaneCurve(placement, trimmed, true));
             const p = db.addItem(inst, 'automatic').then(item => {
@@ -213,16 +202,15 @@ export default class ContourManager extends SequentialExecutor<void> {
                 item.userData.start = start;
                 item.userData.stop = stop;
                 item.userData.parentItem = instance;
-                views.push(item);
+                return item;
             });
-            ps.push(p);
+            views.push(p);
         }
-        await Promise.all(ps);
         info.fragments = views;
+        return Promise.all(views);
     }
 
     private curve3d2curve2d(curve: c3d.Curve3D): c3d.Curve | undefined {
-        const { db } = this;
         const placement_ = new c3d.Placement3D();
 
         if (curve.IsStraight(true)) {
@@ -234,22 +222,35 @@ export default class ContourManager extends SequentialExecutor<void> {
                 points2d.push(new c3d.CartPoint(x, y));
             }
             return c3d.ActionCurve.SplineCurve(points2d, false, c3d.PlaneType.Polyline);
-        } else {
-            const { curve2d, placement } = curve.GetPlaneCurve(true, new c3d.PlanarCheckParams(0.1));
+        } else if (curve.IsPlanar()) {
+            const { curve2d, placement } = curve.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.1));
 
             // Apply an 2d placement to the curve, so that any future booleans work
             const matrix = placement.GetMatrixToPlace(placement_);
             curve2d.Transform(matrix);
 
             return curve2d;
+        } else {
+            console.log("not planar");
         }
+    }
+
+    lookup(instance: visual.SpaceInstance<visual.Curve3D>) {
+        return this.curve2info.get(instance)!;
     }
 }
 
 
-export class PointOnCurve {
+class PointOnCurve {
     constructor(
         readonly curve: visual.SpaceInstance<visual.Curve3D>,
         readonly t: number
+    ) { }
+}
+
+class Joint {
+    constructor(
+        readonly on1: PointOnCurve,
+        readonly on2: PointOnCurve
     ) { }
 }

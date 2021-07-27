@@ -13,8 +13,7 @@ export default class JoinCurvesFactory extends GeometryFactory {
 
         const curves = [];
         for (const curve of this.curves) {
-            const spaceItem = this.db.lookup(curve).GetSpaceItem();
-            if (spaceItem === null) throw new Error("invalid precondition");
+            const spaceItem = this.db.lookup(curve).GetSpaceItem()!;
             curves.push(spaceItem.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
         }
         const contours = c3d.ActionCurve3D.CreateContours(curves, 10);
@@ -23,7 +22,12 @@ export default class JoinCurvesFactory extends GeometryFactory {
             const p = this.db.addItem(new c3d.SpaceInstance(contour)) as Promise<visual.SpaceInstance<visual.Curve3D>>;
             result.push(p);
         }
-        return Promise.all(result).then(x => { this.curves.forEach(c => this.db.removeItem(c)); return x });
+        const all = await Promise.all(result);
+        for (const curve of this.curves) {
+            console.log(curve.simpleName);
+            this.db.removeItem(curve);
+        }
+        return all;
     }
 
     doCancel() {

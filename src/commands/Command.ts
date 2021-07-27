@@ -9,6 +9,7 @@ import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
 import { CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
+import ContourManager from "./ContourManager";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
 /**
@@ -43,7 +44,8 @@ export interface EditorLike {
     registry: CommandRegistry,
     selection: HasSelection & ModifiesSelection,
     gizmos: GizmoMaterialDatabase,
-    selectionInteraction: SelectionInteractionManager
+    selectionInteraction: SelectionInteractionManager,
+    contours: ContourManager
 }
 
 export default abstract class Command extends CancellableRegistor {
