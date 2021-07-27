@@ -1104,24 +1104,27 @@ export class TrimCommand extends Command {
 
 export class CreateContourFilletsCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoint = this.editor.selection.selectedControlPoints.first;
-        const instance = controlPoint.parentItem;
+        this.editor.contours.transaction(async () => {
+            const controlPoint = this.editor.selection.selectedControlPoints.first;
+            const instance = controlPoint.parentItem;
 
-        const info = this.editor.contours.lookup(instance);
-        const joint = info.joint;
-        if (joint === undefined) return;
+            const info = this.editor.contours.lookup(instance);
+            const joint = info.joint;
+            if (joint === undefined) return;
 
-        const contourFactory = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        contourFactory.curves.push(joint.on1.curve);
-        contourFactory.curves.push(joint.on2.curve);
+            const contourFactory = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            contourFactory.curves.push(joint.on1.curve);
+            contourFactory.curves.push(joint.on2.curve);
 
-        const contours = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>[];
-        const contour = contours[0];
+            const contours = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>[];
+            const contour = contours[0];
 
-        const filletFactory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        filletFactory.contour = contour;
-        filletFactory.radiuses[0] = 1;
+            const filletFactory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            filletFactory.contour = contour;
+            filletFactory.radiuses[0] = 0.1;
+            await filletFactory.commit();
 
-        console.log(this.editor.selection.selectedControlPoints.size);
+
+        });
     }
 }

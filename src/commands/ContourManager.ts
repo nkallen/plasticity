@@ -17,13 +17,13 @@ type Curve2dId = bigint;
 type Trim = { trimmed: c3d.Curve, start: number, stop: number };
 
 type CurveSet = Set<visual.SpaceInstance<visual.Curve3D>>;
-type State = { dirty: CurveSet, added: CurveSet, deleted: CurveSet }
+type State = { tag: 'none' } | { tag: 'transaction', dirty: CurveSet, added: CurveSet, deleted: CurveSet }
 
 export default class ContourManager {
     private readonly curve2info = new Map<visual.SpaceInstance<visual.Curve3D>, CurveInfo>();
     private readonly planar2instance = new Map<Curve2dId, visual.SpaceInstance<visual.Curve3D>>();
 
-    private state: State = { dirty: new Set(), added: new Set(), deleted: new Set() };
+    private state: State = { tag: 'none' };
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -74,6 +74,8 @@ export default class ContourManager {
     }
 
     private cascade(curve: visual.SpaceInstance<visual.Curve3D>) {
+        if (this.state.tag !== 'transaction') throw new Error("invalid state");
+
         const { curve2info } = this;
 
         const info = curve2info.get(curve);
@@ -93,15 +95,52 @@ export default class ContourManager {
     }
 
     remove(curve: visual.SpaceInstance<visual.Curve3D>) {
-        this.state = { dirty: new Set(), added: new Set(), deleted: new Set() };
-        const result = this._remove(curve);
-        this.state = { dirty: new Set(), added: new Set(), deleted: new Set() };
-        return result;
+        switch (this.state.tag) {
+            case 'none': {
+                this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
+                this.cascade(curve);
+                const result = this._remove();
+                this.state = { tag: 'none' };
+                return result;
+            }
+            case 'transaction': {
+                this.cascade(curve);
+            }
+        }
     }
 
-    _remove(curve: visual.SpaceInstance<visual.Curve3D>) {
+
+    add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+        switch (this.state.tag) {
+            case 'none': {
+                this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
+                const result = this._add(newCurve);
+                this.state = { tag: 'none' };
+                return result;
+            }
+            case 'transaction': {
+                return this.state.added.add(newCurve);
+            }
+        }
+    }
+
+    async transaction(f: () => Promise<void>) {
+        switch (this.state.tag) {
+            case 'none': {
+                this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
+                await f();
+                this._remove();
+                this.state = { tag: 'none' };
+                return;
+            }
+            default: throw new Error("invalid state");
+        }
+    }
+
+    _remove() {
+        if (this.state.tag !== 'transaction') throw new Error("invalid state");
+
         const promises = [];
-        this.cascade(curve);
         for (const touchee of this.state.dirty) {
             this.removeInfo(touchee);
         }
@@ -122,13 +161,6 @@ export default class ContourManager {
         return Promise.all(promises);
     }
 
-    add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
-        this.state = { dirty: new Set(), added: new Set(), deleted: new Set() };
-        const result = this._add(newCurve);
-        this.state = { dirty: new Set(), added: new Set(), deleted: new Set() };
-        return result;
-    }
-
     /**
      * Summary of algorithm: to add a new curve, with find its intersections with all other curves.
      * Suppose there's one intersection along the parameter of the curve at i. This intersection
@@ -140,6 +172,8 @@ export default class ContourManager {
      * startpoints of the next curve, etc. etc.
      */
     _add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+        if (this.state.tag !== 'transaction') throw new Error("invalid state");
+
         const { curve2info, planar2instance } = this;
         const promises = [];
 
