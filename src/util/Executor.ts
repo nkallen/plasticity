@@ -1,17 +1,16 @@
 // There are some "jobs"/tasks that are composed as sequences of promises, and we must not interleave jobs.
 // Thus, the Executor class prevents that. Cf, CommandExecutor for a more idiosyncratic version of this pattern.
-export class SequentialExecutor<T> {
-    private readonly queue = new Array<[() => Promise<T>, Delay<T>]>();
+export class SequentialExecutor {
+    private readonly queue = new Array<[() => Promise<any>, Delay<any>]>();
     private active = false;
 
-    async enqueue(f: () => Promise<T>) {
+    async enqueue<T>(f: () => Promise<T>) {
         const d = new Delay<T>();
         this.queue.push([f, d]);
-        if (this.active) return d;
-        else {
-            await this.dequeue();
-            return d.promise;
+        if (!this.active) {
+            this.dequeue();
         }
+        return d.promise;
     }
 
     async dequeue() {

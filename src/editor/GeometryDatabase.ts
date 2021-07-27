@@ -23,7 +23,7 @@ export class GeometryDatabase {
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
     private readonly hidden = new Set<c3d.SimpleName>();
-    readonly queue = new SequentialExecutor<void>();
+    readonly queue = new SequentialExecutor();
 
     constructor(
         private readonly materials: MaterialDatabase,
@@ -31,28 +31,30 @@ export class GeometryDatabase {
 
     private counter = 0;
     async addItem(model: c3d.Item, agent: 'user' | 'automatic' = 'user'): Promise<visual.Item> {
-        const current = this.counter++;
+        return this.queue.enqueue(async () => {
+            const current = this.counter++;
 
-        const view = await this.meshes(model, current, precision_distance);
+            const view = await this.meshes(model, current, precision_distance);
 
-        this.geometryModel.set(current, { view, model });
-        view.traverse(t => {
-            if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
-                if (!(model instanceof c3d.Solid)) throw new Error("invalid precondition");
-                this.addTopologyItem(model, t);
-            } else if (t instanceof visual.ControlPointGroup) {
-                if (!(model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
-                for (const child of t) this.addControlPoint(model, child);
+            this.geometryModel.set(current, { view, model });
+            view.traverse(t => {
+                if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
+                    if (!(model instanceof c3d.Solid)) throw new Error("invalid precondition");
+                    this.addTopologyItem(model, t);
+                } else if (t instanceof visual.ControlPointGroup) {
+                    if (!(model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
+                    for (const child of t) this.addControlPoint(model, child);
+                }
+            });
+
+            this.signals.objectAdded.dispatch(view);
+            this.signals.sceneGraphChanged.dispatch();
+            if (agent === 'user') {
+                if (view instanceof visual.SpaceInstance)
+                    this.signals.userAddedCurve.dispatch(view);
             }
+            return view;
         });
-
-        this.signals.objectAdded.dispatch(view);
-        this.signals.sceneGraphChanged.dispatch();
-        if (agent === 'user') {
-            if (view instanceof visual.SpaceInstance)
-                this.signals.userAddedCurve.dispatch(view);
-        }
-        return view;
     }
 
     async addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
@@ -72,18 +74,20 @@ export class GeometryDatabase {
     }
 
     removeItem(view: visual.Item, agent: 'user' | 'automatic' = 'user') {
-        const simpleName = view.simpleName;
-        this.geometryModel.delete(simpleName);
-        this.removeTopologyItems(view);
-        this.removeControlPoints(view);
-        this.hidden.delete(simpleName);
+        return this.queue.enqueue(async () => {
+            const simpleName = view.simpleName;
+            this.geometryModel.delete(simpleName);
+            this.removeTopologyItems(view);
+            this.removeControlPoints(view);
+            this.hidden.delete(simpleName);
 
-        this.signals.objectRemoved.dispatch(view);
-        this.signals.sceneGraphChanged.dispatch();
-        if (agent === 'user') {
-            if (view instanceof visual.SpaceInstance)
-                this.signals.userRemovedCurve.dispatch(view);
-        }
+            this.signals.objectRemoved.dispatch(view);
+            this.signals.sceneGraphChanged.dispatch();
+            if (agent === 'user') {
+                if (view instanceof visual.SpaceInstance)
+                    this.signals.userRemovedCurve.dispatch(view);
+            }
+        });
     }
 
     lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item } {

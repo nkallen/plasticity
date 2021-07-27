@@ -4,6 +4,7 @@ import { GeometryDatabase } from '../editor/GeometryDatabase';
 import * as visual from "../editor/VisualModel";
 
 // FIXME we need to aggregate by placement
+// FIXME no undo
 
 class CurveInfo {
     touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
@@ -33,26 +34,21 @@ export default class ContourManager {
         signals.userRemovedCurve.add(this.update);
     }
 
-    async update(newCurve: visual.SpaceInstance<visual.Curve3D>) {
-        // console.log("update");
-        // await this.enqueue(() => this._update());
-    }
+    update() {
+        return this.db.queue.enqueue(async () => {
+            const oldRegions = this.db.find(visual.PlaneInstance) as visual.PlaneInstance<visual.Region>[];
+            for (const region of oldRegions) this.db.removeItem(region, 'automatic');
 
-    async _update() {
-        const oldRegions = this.db.find(visual.PlaneInstance) as visual.PlaneInstance<visual.Region>[];
-        for (const region of oldRegions) this.db.removeItem(region);
+            const { curve2info } = this;
+            const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
+            const placement = new c3d.Placement3D();
+            const { contours } = c3d.ContourGraph.OuterContoursBuilder(allPlanarCurves);
 
-        const { curve2info } = this;
-        const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
-        const placement_ = new c3d.Placement3D();
-        const { contours } = c3d.ContourGraph.OuterContoursBuilder(allPlanarCurves);
-
-        const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
-        const result = [];
-        for (const region of regions) {
-            result.push(this.db.addItem(new c3d.PlaneInstance(region, placement_!)));
-        }
-        return Promise.all(result).then(() => { });
+            const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
+            for (const region of regions) {
+                this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
+            }
+        });
     }
 
     remove(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
@@ -68,7 +64,7 @@ export default class ContourManager {
         planar2instance.delete(planarCurve.Id());
 
         for (const fragment of fragments) {
-            fragment.then(f => this.db.removeItem(f));
+            fragment.then(f => this.db.removeItem(f, 'automatic'));
         }
 
         if (invalidateCurvesThatTouch) { // mutually touching curves form a circular graph so do a bfs
@@ -231,7 +227,6 @@ export default class ContourManager {
 
             return curve2d;
         } else {
-            console.log("not planar");
         }
     }
 

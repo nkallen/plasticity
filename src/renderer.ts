@@ -20,6 +20,7 @@ import keymap from "./default-keymap";
 import { Editor } from './editor/Editor';
 import registerDefaultCommands from './components/toolbar/icons';
 import CurveFactory from './commands/curve/CurveFactory';
+import LineFactory from './commands/line/LineFactory';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -66,15 +67,15 @@ Dialog(editor);
 // makeCircle1.radius = 1;
 // makeCircle1.commit();
 
-const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
-makeCurve1.points.push(new THREE.Vector3());
-makeCurve1.points.push(new THREE.Vector3(-2, 4, 0));
-makeCurve1.commit();
+// const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
+// makeCurve1.points.push(new THREE.Vector3());
+// makeCurve1.points.push(new THREE.Vector3(-2, 4, 0));
+// makeCurve1.commit();
 
-const makeCurve2 = new CurveFactory(editor.db, editor.materials, editor.signals);
-makeCurve2.points.push(new THREE.Vector3(-2, 4, 0));
-makeCurve2.points.push(new THREE.Vector3(0, 5, 0));
-makeCurve2.commit();
+// const makeCurve2 = new CurveFactory(editor.db, editor.materials, editor.signals);
+// makeCurve2.points.push(new THREE.Vector3(-2, 4, 0));
+// makeCurve2.points.push(new THREE.Vector3(0, 5, 0));
+// makeCurve2.commit();
 
 // const makeCircle2 = new CircleFactory(editor.db, editor.materials, editor.signals);
 // makeCircle2.center = new THREE.Vector3(0,0,0);
@@ -85,3 +86,13 @@ makeCurve2.commit();
 // makeCircle3.center = new THREE.Vector3(0,1.1,0);
 // makeCircle3.radius = 1;
 // makeCircle3.commit();
+
+const makeLine1 = new LineFactory(editor.db, editor.materials, editor.signals);
+makeLine1.p1 = new THREE.Vector3();
+makeLine1.p2 = new THREE.Vector3(1, 1, 0);
+makeLine1.commit();
+
+const makeLine2 = new LineFactory(editor.db, editor.materials, editor.signals);
+makeLine2.p1 = new THREE.Vector3(1, 1, 0);
+makeLine2.p2 = new THREE.Vector3(0, 1, 0);
+makeLine2.commit();

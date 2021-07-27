@@ -14,6 +14,7 @@ import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboar
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import ContourFactory from "./curve/ContourFactory";
+import ContourFilletFactory from "./curve/ContourFilletFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1110,32 +1111,17 @@ export class CreateContourFilletsCommand extends Command {
         const joint = info.joint;
         if (joint === undefined) return;
 
-        const contourFactory = new ContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const contourFactory = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         contourFactory.curves.push(joint.on1.curve);
         contourFactory.curves.push(joint.on2.curve);
 
-        console.log(1);
-        const contour = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const contours = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>[];
+        const contour = contours[0];
 
-        console.log(2);
+        const filletFactory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        filletFactory.contour = contour;
+        filletFactory.radiuses[0] = 1;
 
-        this.editor.db.removeItem(joint.on1.curve);
-        console.log(3);
-        this.editor.db.removeItem(joint.on2.curve);
-
-        let model = this.editor.db.lookup(contour);
-        const item = model.GetSpaceItem()!;
-        const curve = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
-
-        let fillNumber = curve.GetSegmentsCount();
-        fillNumber -= curve.IsClosed() ? 0 : 1;
-        const radiuses = new Array<number>(fillNumber);
-        for (let i = 0; i < fillNumber; i++) radiuses[i] = 0.1;
-        console.log(4);
-        const result = c3d.ActionSurfaceCurve.CreateContourFillets(curve, radiuses, c3d.ConnectingType.Fillet);
-        console.log(5);
-        await this.editor.db.addItem(new c3d.SpaceInstance(result));
-        console.log(6);
-        this.editor.db.removeItem(contour);
+        console.log(this.editor.selection.selectedControlPoints.size);
     }
 }

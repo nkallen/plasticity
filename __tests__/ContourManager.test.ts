@@ -1,7 +1,10 @@
 import * as THREE from "three";
 import { CircleFactory } from "../src/commands/circle/CircleFactory";
 import ContourManager from '../src/commands/ContourManager';
+import ContourFilletFactory from "../src/commands/curve/ContourFilletFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
+import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";
+import LineFactory from "../src/commands/line/LineFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
@@ -41,7 +44,7 @@ test('adding and deleting a circle', async () => {
     expect(db.visibleObjects.length).toBe(2);
 
     await contours.remove(circle1);
-    db.removeItem(circle1);
+    await db.removeItem(circle1);
     expect(db.visibleObjects.length).toBe(0);
 })
 
@@ -71,11 +74,11 @@ test('three intersecting circles, added then deleted', async () => {
     expect(db.visibleObjects.length).toBe(3 + 8);
 
     await contours.remove(circle3);
-    db.removeItem(circle3);
+    await db.removeItem(circle3);
     expect(db.visibleObjects.length).toBe(6);
 
     await contours.remove(circle2);
-    db.removeItem(circle2);
+    await db.removeItem(circle2);
     expect(db.visibleObjects.length).toBe(2);
 });
 
@@ -97,7 +100,7 @@ test('two non-intersecting circles', async () => {
     expect(db.visibleObjects.length).toBe(4);
 
     await contours.remove(circle2);
-    db.removeItem(circle2);
+    await db.removeItem(circle2);
     expect(db.visibleObjects.length).toBe(2);
 });
 
@@ -120,7 +123,7 @@ test('open curve through circle, added then deleted', async () => {
     expect(db.visibleObjects.length).toBe(2 + 5);
 
     await contours.remove(curve);
-    db.removeItem(curve);
+    await db.removeItem(curve);
     expect(db.visibleObjects.length).toBe(2);
 });
 
@@ -179,7 +182,7 @@ test("removing circles in reverse order works", async () => {
     expect(db.visibleObjects.length).toBe(2 + 4);
 
     await contours.remove(circle1);
-    db.removeItem(circle1);
+    await db.removeItem(circle1);
     expect(db.visibleObjects.length).toBe(2);
 })
 
@@ -213,10 +216,51 @@ test("removing lines in reverse order works", async () => {
     expect(db.visibleObjects.length).toBe(4);
 
     await contours.remove(curve2);
-    db.removeItem(curve2);
+    await db.removeItem(curve2);
     expect(db.visibleObjects.length).toBe(2);
 
     await contours.remove(curve3);
-    db.removeItem(curve3);
+    await db.removeItem(curve3);
     expect(db.visibleObjects.length).toBe(0);
+});
+
+test("race condition", async () => {
+    const makeLine1 = new LineFactory(db, materials, signals);
+    makeLine1.p1 = new THREE.Vector3();
+    makeLine1.p2 = new THREE.Vector3(1, 1, 0);
+    const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await contours.add(line1);
+
+    const makeLine2 = new LineFactory(db, materials, signals);
+    makeLine2.p1 = new THREE.Vector3(1, 1, 0);
+    makeLine2.p2 = new THREE.Vector3(0, 1, 0);
+    const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await contours.add(line2);
+
+    await contours.remove(line1);
+    await contours.remove(line2);
+    const makeContour = new JoinCurvesFactory(db, materials, signals);
+    makeContour.curves.push(line1);
+    makeContour.curves.push(line2);
+    const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
+    await contours.add(contour);
+
+    const makeFillet = new ContourFilletFactory(db, materials, signals);
+    makeFillet.contour = contour;
+    makeFillet.radiuses[0] = 0.1;
+    const filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await contours.add(filleted);
+
+    const p1 = contours.update();
+
+    db.removeItem(contour);
+    contours.remove(contour);
+    const p2 = contours.update();
+
+     // THIS IS KEY: p1 is initiated before p2. It shouldn't matter what order we await.
+     // But it does matter unless the .update() uses the db's queue.
+    await p2;
+    await p1;
+
+    expect(db.find(visual.PlaneInstance).length).toBe(0);
 });

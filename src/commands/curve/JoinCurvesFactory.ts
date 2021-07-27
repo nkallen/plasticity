@@ -24,7 +24,6 @@ export default class JoinCurvesFactory extends GeometryFactory {
         }
         const all = await Promise.all(result);
         for (const curve of this.curves) {
-            console.log(curve.simpleName);
             this.db.removeItem(curve);
         }
         return all;
