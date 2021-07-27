@@ -1104,7 +1104,7 @@ export class TrimCommand extends Command {
 
 export class CreateContourFilletsCommand extends Command {
     async execute(): Promise<void> {
-        this.editor.contours.transaction(async () => {
+        await this.editor.contours.transaction(async () => {
             const controlPoint = this.editor.selection.selectedControlPoints.first;
             const instance = controlPoint.parentItem;
 
@@ -1123,9 +1123,6 @@ export class CreateContourFilletsCommand extends Command {
             filletFactory.contour = contour;
             filletFactory.radiuses[0] = 0.1;
             await filletFactory.commit();
-            console.log("added");
-
-            console.log(this.editor.selection.selectedControlPoints.size);
         });
     }
 }

@@ -265,7 +265,7 @@ test("race condition", async () => {
     expect(db.find(visual.PlaneInstance).length).toBe(0);
 });
 
-test.only("transactions", async () => {
+test("transactions", async () => {
     await contours.transaction(async () => {
         const makeLine1 = new LineFactory(db, materials, signals);
         makeLine1.p1 = new THREE.Vector3();

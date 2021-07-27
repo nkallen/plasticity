@@ -4,6 +4,7 @@ import { EditorOriginator, History } from "../editor/History";
 import { HasSelection } from "../selection/SelectionManager";
 import { Cancel } from "../util/Cancellable";
 import Command from "./Command";
+import ContourManager from "./ContourManager";
 import { SelectionCommandManager } from "./SelectionCommandManager";
 
 export type CancelOrFinish = 'cancel' | 'finish';
@@ -16,6 +17,7 @@ export class CommandExecutor {
         private readonly originator: EditorOriginator,
         private readonly history: History,
         private readonly selection: HasSelection,
+        private readonly contours: ContourManager,
     ) { }
 
     private active?: Command;
@@ -61,7 +63,9 @@ export class CommandExecutor {
             let selectionChanged = false;
             this.signals.objectSelected.addOnce(() => selectionChanged = true);
             this.signals.objectDeselected.addOnce(() => selectionChanged = true);
-            await command.execute();
+            await this.contours.transaction(async () => {
+                await command.execute();
+            });
             command.finish();
             if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
             this.history.add("Command", state);

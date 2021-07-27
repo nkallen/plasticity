@@ -128,9 +128,12 @@ export default class ContourManager {
         switch (this.state.tag) {
             case 'none': {
                 this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
-                await f();
-                this.commit();
-                this.state = { tag: 'none' };
+                try {
+                    await f();
+                    this.commit();
+                } finally {
+                    this.state = { tag: 'none' };
+                }
                 return;
             }
             default: throw new Error("invalid state");
