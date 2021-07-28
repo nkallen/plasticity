@@ -45,7 +45,7 @@ class MyViewportSelector extends AbstractViewportSelector {
 export class ObjectPicker {
     constructor(private readonly editor: EditorLike) { }
 
-    execute(cb: (o: visual.Item | visual.TopologyItem | visual.ControlPoint) => void): CancellablePromise<HasSelection> {
+    execute(cb?: (o: visual.Item | visual.TopologyItem | visual.ControlPoint) => void): CancellablePromise<HasSelection> {
         return new CancellablePromise((resolve, reject) => {
             const editor = this.editor;
 
@@ -65,8 +65,12 @@ export class ObjectPicker {
 
             const selection = new SelectionManager(editor.db, editor.materials, signals, new Set());
             
-            signals.objectSelected.add(cb);
-            disposables.add(new Disposable(() => signals.objectSelected.remove(cb)));
+            if (cb !== undefined) {
+                signals.objectSelected.add(cb);
+                disposables.add(new Disposable(() => signals.objectSelected.remove(cb)));
+            }
+            signals.objectSelected.add(finish);
+            disposables.add(new Disposable(() => signals.objectSelected.remove(finish)));
 
             for (const viewport of this.editor.viewports) {
                 viewport.disableControls();

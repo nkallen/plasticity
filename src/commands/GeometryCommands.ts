@@ -1062,7 +1062,6 @@ export class RemovePointCommand extends Command {
     }
 }
 
-// FIXME extract TrimFactory
 export class TrimCommand extends Command {
     async execute(): Promise<void> {
         visual.EnabledLayers.disable(visual.Layers.Curve);
@@ -1071,35 +1070,35 @@ export class TrimCommand extends Command {
         try {
             const picker = new ObjectPicker(this.editor);
             picker.allowCurveFragments();
-            await picker.execute(async fragment => {
-                if (!(fragment instanceof visual.SpaceInstance)) throw new Error("invalid precondition");
-                const { start, stop, parentItem } = fragment.userData as { start: number, stop: number, parentItem: visual.SpaceInstance<visual.Curve3D> };
-                const model = this.editor.db.lookup(parentItem);
-                const item = model.GetSpaceItem()!;
-                const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-                if (!curve.IsClosed()) {
-                    let from = curve.GetTMin(), to = start;
-                    if (Math.abs(from - to) > 10e-4) {
-                        const beginning = curve.Trimmed(from, to, 1)!;
-                        await this.editor.db.addItem(new c3d.SpaceInstance(beginning));
-                    }
-                    from = stop, to = curve.GetTMax();
-                    if (Math.abs(from - to) > 10e-4) {
-                        const ending = curve.Trimmed(from, to, 1)!;
-                        await this.editor.db.addItem(new c3d.SpaceInstance(ending));
-                    }
-                } else {
-                    if (Math.abs(stop - start) > 10e-4) {
-                        const ending = curve.Trimmed(stop, start, 1)!;
-                        await this.editor.db.addItem(new c3d.SpaceInstance(ending));
-                    }
+            const selection = await picker.execute().resource(this);
+            const fragment = selection.selectedCurves.first;
+            const { start, stop, parentItem } = fragment.userData as { start: number, stop: number, parentItem: visual.SpaceInstance<visual.Curve3D> };
+            const model = this.editor.db.lookup(parentItem);
+            const item = model.GetSpaceItem()!;
+            const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            if (!curve.IsClosed()) {
+                let from = curve.GetTMin(), to = start;
+                if (Math.abs(from - to) > 10e-4) {
+                    const beginning = curve.Trimmed(from, to, 1)!;
+                    await this.editor.db.addItem(new c3d.SpaceInstance(beginning));
                 }
-                this.editor.db.removeItem(parentItem);
-            }).resource(this);
+                from = stop, to = curve.GetTMax();
+                if (Math.abs(from - to) > 10e-4) {
+                    const ending = curve.Trimmed(from, to, 1)!;
+                    await this.editor.db.addItem(new c3d.SpaceInstance(ending));
+                }
+            } else {
+                if (Math.abs(stop - start) > 10e-4) {
+                    const ending = curve.Trimmed(stop, start, 1)!;
+                    await this.editor.db.addItem(new c3d.SpaceInstance(ending));
+                }
+            }
+            this.editor.db.removeItem(parentItem);
         } finally {
             visual.EnabledLayers.enable(visual.Layers.Curve);
             visual.EnabledLayers.disable(visual.Layers.CurveFragment);
         }
+        this.editor.enqueue(new TrimCommand(this.editor));
     }
 }
 
@@ -1118,14 +1117,14 @@ export class CreateContourFilletsCommand extends Command {
 
             const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
             gizmo.length = 0;
-            
+
             const cornerAngle = filletFactory.cornerAngle;
 
             gizmo.position.copy(cornerAngle.origin);
             const quat = new THREE.Quaternion();
             quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), cornerAngle.tau);
             gizmo.quaternion.copy(quat);
-                        
+
             await gizmo.execute(d => {
                 filletFactory.radius = d;
                 filletFactory.update();

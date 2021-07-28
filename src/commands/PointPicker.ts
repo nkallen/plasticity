@@ -79,7 +79,7 @@ export class PointPicker {
                     const snappers = editor.snaps.snap(raycaster, [constructionPlane, ...this.snaps], restrictions);
                     for (const [snap, point] of snappers) {
                         const info = { snap, constructionPlane, restrictions };
-                        if (cb != null) cb({ point, info });
+                        if (cb !== undefined) cb({ point, info });
                         mesh.position.copy(point);
                         mesh.userData = info;
                         const helper = snap.helper;

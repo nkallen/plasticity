@@ -9,6 +9,7 @@ import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
 import { CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
+import { CancelOrFinish } from "./CommandExecutor";
 import ContourManager from "./ContourManager";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
@@ -45,8 +46,9 @@ export interface EditorLike {
     selection: HasSelection & ModifiesSelection,
     gizmos: GizmoMaterialDatabase,
     selectionInteraction: SelectionInteractionManager,
-    contours: ContourManager
-}
+    contours: ContourManager,
+    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>
+    }
 
 export default abstract class Command extends CancellableRegistor {
     static get title() { return this.name.replace(/Command/, '') }
