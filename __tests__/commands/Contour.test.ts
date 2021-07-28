@@ -175,6 +175,7 @@ describe(PolylineFilletFactory, () => {
 
     beforeEach(async () => {
         const makePolyline = new CurveFactory(db, materials, signals);
+        makePolyline.type = c3d.SpaceType.Polyline3D;
         makePolyline.points.push(new THREE.Vector3());
         makePolyline.points.push(new THREE.Vector3(1, 1, 0));
         makePolyline.points.push(new THREE.Vector3(2, -1, 0));
@@ -192,7 +193,7 @@ describe(PolylineFilletFactory, () => {
         const bbox = new THREE.Box3().setFromObject(filletted);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.5, 0));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(1.5, 0.06, 0));
 
         expect(db.visibleObjects.length).toBe(1);
     })
@@ -244,7 +245,7 @@ describe(Polyline2ContourFactory, () => {
             polyline = await makePolyline.commit() as visual.SpaceInstance<visual.Curve3D>;
         })
 
-        test.only("converts", async () => {
+        test("converts", async () => {
             convert.polyline = polyline;
             const contour = await convert.commit() as visual.SpaceInstance<visual.Curve3D>;
 

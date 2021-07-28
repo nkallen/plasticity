@@ -86,23 +86,38 @@ export class JointFilletFactory extends GeometryFactory {
 }
 
 export class PolylineFilletFactory extends GeometryFactory {
-    polyline!: visual.SpaceInstance<visual.Curve3D>;
     controlPoints!: number[];
     radiuses!: number[];
 
+    private polyline!: visual.SpaceInstance<visual.Curve3D>;
+
+    private readonly factory = new ContourFilletFactory(this.db, this.materials, this.signals);
+
     async setPolyline(polyline: visual.SpaceInstance<visual.Curve3D>) {
-        const contourFactory = new JoinCurvesFactory(this.db, this.materials, this.signals);
-        contourFactory.push(polyline);
-        const contours = await contourFactory.computeGeometry();
-        const inst = contours[0];
-        const item = inst.GetSpaceItem()!;
-        const contour = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
-        console.log(contour.GetSegmentsCount());
+        const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
+        polyline2contour.polyline = polyline;
+        this.factory.contour = await polyline2contour.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.polyline = polyline;
     }
 
     async computeGeometry() {
-        // return this.factory.computeGeometry();
+        const { controlPoints, radiuses } = this;
+        if (controlPoints.length < 1) throw new Error("invalid precondition");
+        if (controlPoints.length !== radiuses.length) throw new Error("invalid precondition");
+        if (controlPoints.length > this.factory.model.GetSegmentsCount() - 1) throw new Error("invalid precondition");
+
+        this.factory.radiuses = radiuses;
+
+        return this.factory.computeGeometry();
     }
+
+    // This is not strictly necessary but conceptually we should do this.
+    resource(reg: CancellableRegistor): this {
+        this.factory.resource(reg);
+        return super.resource(reg);
+    }
+
+    get originalItem() { return [this.polyline, this.factory.contour] }
 }
 
 export class Polyline2ContourFactory extends GeometryFactory {
