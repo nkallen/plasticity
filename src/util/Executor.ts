@@ -1,3 +1,5 @@
+const nothing = async () => {};
+
 // There are some "jobs"/tasks that are composed as sequences of promises, and we must not interleave jobs.
 // Thus, the Executor class prevents that. Cf, CommandExecutor for a more idiosyncratic version of this pattern.
 export class SequentialExecutor {
@@ -5,12 +7,28 @@ export class SequentialExecutor {
     private active = false;
 
     async enqueue<T>(f: () => Promise<T>) {
-        const d = new Delay<T>();
-        this.queue.push([f, d]);
+        const completionOfThisJob = new Delay<T>();
+        this.queue.push([f, completionOfThisJob]);
+
+        const completionOfRecursivelyEnqueuedItems = new Delay<void>();
+       
+        completionOfThisJob.promise.then(() => {
+            this.queue.push([nothing, completionOfRecursivelyEnqueuedItems]);
+            if (!this.active) {
+                this.dequeue();
+            }
+        });
+
+        const bridged = new Delay<T>();
+        completionOfRecursivelyEnqueuedItems.promise.then(async () => {
+            const result = await completionOfThisJob.promise;
+            bridged.resolve(result);
+        });
+
         if (!this.active) {
             this.dequeue();
         }
-        return d.promise;
+        return bridged.promise;
     }
 
     async dequeue() {

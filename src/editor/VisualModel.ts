@@ -125,6 +125,12 @@ export class Curve3D extends SpaceItem {
             intersects.push(i);
         }
     }
+
+    get isFragment() {
+        const layer = new THREE.Layers();
+        layer.set(Layers.CurveFragment);
+        return this.layers.test(layer);
+    }
 }
 
 export class Surface extends SpaceItem {

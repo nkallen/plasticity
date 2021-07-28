@@ -53,7 +53,7 @@ export default class ContourManager {
             for (const region of regions) {
                 this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
             }
-        });
+       });
     }
 
     update() {

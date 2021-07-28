@@ -80,15 +80,15 @@ Dialog(editor);
 // makeCurve2.points.push(new THREE.Vector3(0, 5, 0));
 // makeCurve2.commit();
 
-// const makeCircle2 = new CircleFactory(editor.db, editor.materials, editor.signals);
-// makeCircle2.center = new THREE.Vector3(0,0,0);
-// makeCircle2.radius = 1;
-// makeCircle2.commit();
+const makeCircle2 = new CircleFactory(editor.db, editor.materials, editor.signals);
+makeCircle2.center = new THREE.Vector3(0, 0.25, 0);
+makeCircle2.radius = 1;
+makeCircle2.commit();
 
-// const makeCircle3 = new CircleFactory(editor.db, editor.materials, editor.signals);
-// makeCircle3.center = new THREE.Vector3(0,1.1,0);
-// makeCircle3.radius = 1;
-// makeCircle3.commit();
+const makeCircle3 = new CircleFactory(editor.db, editor.materials, editor.signals);
+makeCircle3.center = new THREE.Vector3(0, -0.25, 0);
+makeCircle3.radius = 1;
+makeCircle3.commit();
 
 // const makeLine1 = new LineFactory(editor.db, editor.materials, editor.signals);
 // makeLine1.p1 = new THREE.Vector3();
@@ -100,11 +100,11 @@ Dialog(editor);
 // makeLine2.p2 = new THREE.Vector3(0, 1, 0);
 // makeLine2.commit();
 
-const makePolyline = new CurveFactory(editor.db, editor.materials, editor.signals);
-makePolyline.type = c3d.SpaceType.Polyline3D;
-makePolyline.points.push(new THREE.Vector3());
-makePolyline.points.push(new THREE.Vector3(1, 1, 0));
-makePolyline.points.push(new THREE.Vector3(2, -1, 0));
-makePolyline.points.push(new THREE.Vector3(3, 1, 0));
-makePolyline.points.push(new THREE.Vector3(4, -1, 0));
-makePolyline.commit();
+// const makePolyline = new CurveFactory(editor.db, editor.materials, editor.signals);
+// makePolyline.type = c3d.SpaceType.Polyline3D;
+// makePolyline.points.push(new THREE.Vector3());
+// makePolyline.points.push(new THREE.Vector3(1, 1, 0));
+// makePolyline.points.push(new THREE.Vector3(2, -1, 0));
+// makePolyline.points.push(new THREE.Vector3(3, 1, 0));
+// makePolyline.points.push(new THREE.Vector3(4, -1, 0));
+// makePolyline.commit();
