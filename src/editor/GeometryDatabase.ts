@@ -199,10 +199,23 @@ export class GeometryDatabase {
                 const pointMaterial = this.materials.controlPoint();
 
                 let points;
-                if (underlying.Type() !== c3d.SpaceType.PolyCurve3D) points = new visual.ControlPointGroup();
-                else {
-                    const ps = underlying.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D).GetPoints();
-                    points = visual.ControlPointGroup.build(ps, id, pointMaterial);
+                switch (underlying.Type()) {
+                    case c3d.SpaceType.PolyCurve3D: {
+                        const ps = underlying.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D).GetPoints();
+                        points = visual.ControlPointGroup.build(ps, id, pointMaterial);
+                        break;
+                    }
+                    case c3d.SpaceType.Contour3D: {
+                        const contour = underlying.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
+                        const segs = contour.GetSegmentsCount();
+                        const ps = [];
+                        for (let i = contour.IsClosed() ? 0 : 1; i < segs; i++) ps.push(contour.FindCorner(i));
+                        points = visual.ControlPointGroup.build(ps, id, pointMaterial);
+                        break;
+                    }
+                    default:
+                        points = new visual.ControlPointGroup();
+                        break;
                 }
 
                 const line = visual.Curve3D.build(edge, id, points, lineMaterial);
