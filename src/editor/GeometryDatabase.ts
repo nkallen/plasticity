@@ -10,6 +10,7 @@ import * as visual from './VisualModel';
 const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];
 
 export interface TemporaryObject {
+    get underlying(): visual.Item;
     cancel(): void;
     commit(): Promise<visual.SpaceItem>;
 }
@@ -62,6 +63,7 @@ export class GeometryDatabase {
         this.temporaryObjects.add(mesh);
         const that = this;
         return {
+            underlying: mesh,
             cancel() {
                 mesh.dispose();
                 that.temporaryObjects.remove(mesh);

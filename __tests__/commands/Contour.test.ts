@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { Joint, PointOnCurve } from "../../src/commands/ContourManager";
 import ContourFactory from '../../src/commands/curve/ContourFactory';
-import { ContourFilletFactory } from "../../src/commands/curve/ContourFilletFactory";
+import { ContourFilletFactory, JointFilletFactory } from "../../src/commands/curve/ContourFilletFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import LineFactory from '../../src/commands/line/LineFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -103,17 +104,17 @@ describe(ContourFilletFactory, () => {
         makeLine1.p1 = new THREE.Vector3();
         makeLine1.p2 = new THREE.Vector3(1, 1, 0);
         const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    
+
         const makeLine2 = new LineFactory(db, materials, signals);
         makeLine2.p1 = new THREE.Vector3(1, 1, 0);
         makeLine2.p2 = new THREE.Vector3(0, 1, 0);
         const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    
+
         const makeContour = new JoinCurvesFactory(db, materials, signals);
         makeContour.curves.push(line1);
         makeContour.curves.push(line2);
         const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
-    
+
         const makeFillet = new ContourFilletFactory(db, materials, signals);
         makeFillet.contour = contour;
         makeFillet.radiuses[0] = 0.1;
@@ -126,4 +127,39 @@ describe(ContourFilletFactory, () => {
 
         expect(db.visibleObjects.length).toBe(1);
     });
+});
+
+describe(JointFilletFactory, () => {
+    let curveFillet: JointFilletFactory;
+
+    beforeEach(() => {
+        curveFillet = new JointFilletFactory(db, materials, signals);
+    })
+
+    test("when filleting Joints", async () => {
+        const makeLine1 = new LineFactory(db, materials, signals);
+        makeLine1.p1 = new THREE.Vector3();
+        makeLine1.p2 = new THREE.Vector3(1, 1, 0);
+        const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeLine2 = new LineFactory(db, materials, signals);
+        makeLine2.p1 = new THREE.Vector3(1, 1, 0);
+        makeLine2.p2 = new THREE.Vector3(0, 1, 0);
+        const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const on1 = new PointOnCurve(line1, 1);
+        const on2 = new PointOnCurve(line2, 0);
+        const joint = new Joint(on1, on2);
+
+        await curveFillet.setJoint(joint);
+        curveFillet.radius = 0.1;
+        const filletted = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const bbox = new THREE.Box3().setFromObject(filletted);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.5, 0));
+
+        expect(db.visibleObjects.length).toBe(1);
+    })
 });

@@ -321,14 +321,14 @@ export default class ContourManager {
 }
 
 
-class PointOnCurve {
+export class PointOnCurve {
     constructor(
         readonly curve: visual.SpaceInstance<visual.Curve3D>,
         readonly t: number
     ) { }
 }
 
-class Joint {
+export class Joint {
     constructor(
         readonly on1: PointOnCurve,
         readonly on2: PointOnCurve

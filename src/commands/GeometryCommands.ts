@@ -14,7 +14,7 @@ import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from '.
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import { ContourFilletFactory } from "./curve/ContourFilletFactory";
+import { ContourFilletFactory, JointFilletFactory } from "./curve/ContourFilletFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1113,32 +1113,21 @@ export class CreateContourFilletsCommand extends Command {
             const joint = info.joint;
             if (joint === undefined) return;
 
-            const contourFactory = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            contourFactory.curves.push(joint.on1.curve);
-            contourFactory.curves.push(joint.on2.curve);
-
-            const contours = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>[];
-            const contour = contours[0];
-
-            const filletFactory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            filletFactory.contour = contour;
+            const filletFactory = new JointFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            await filletFactory.setJoint(joint);
 
             const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
             gizmo.length = 0;
             
-            const inst = this.editor.db.lookup(contour);
-            const item = inst.GetSpaceItem()!;
-            const model = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
-            const info_ = model.GetCornerAngle(1);
-            console.log(info_);
+            const cornerAngle = filletFactory.cornerAngle;
 
-            gizmo.position.copy(cart2vec(info_.origin));
+            gizmo.position.copy(cornerAngle.origin);
             const quat = new THREE.Quaternion();
-            quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), vec2vec(info_.tau));
+            quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), cornerAngle.tau);
             gizmo.quaternion.copy(quat);
                         
             await gizmo.execute(d => {
-                filletFactory.radiuses[0] = d;
+                filletFactory.radius = d;
                 filletFactory.update();
             }, mode.Persistent).resource(this);
 
