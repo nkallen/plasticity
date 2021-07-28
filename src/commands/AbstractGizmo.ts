@@ -172,6 +172,8 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         });
     }
 
+    // Since gizmos tend to scale as the camera moves in and out, set the
+    // you can make it bigger or smaller with this:
     readonly relativeScale = new THREE.Vector3(1, 1, 1);
 
     // Scale the gizmo so it has a uniform size regardless of camera position/zoom

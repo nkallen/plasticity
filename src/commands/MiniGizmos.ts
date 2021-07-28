@@ -58,7 +58,7 @@ const Z = new THREE.Vector3(0, 0, 1);
 
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 
-export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
+export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
     private readonly tip: THREE.Mesh;
     private readonly knob: THREE.Mesh;
     private readonly shaft: THREE.Mesh;
@@ -99,14 +99,18 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect == null) return; // this only happens when the user is dragging through different viewports.
 
-        const delta = planeIntersect.point.distanceTo(this.position);
-        this.render(delta);
-        cb(Math.abs(delta));
+        const length = planeIntersect.point.distanceTo(this.position);
+        this.render(length);
+        cb(Math.abs(length));
     }
 
-    render(delta: number) {
-        this.shaft.scale.y = delta;
-        this.tip.position.set(0, delta, 0);
+    set length(length: number) {
+        this.render(length);
+    }
+
+    render(length: number) {
+        this.shaft.scale.y = length;
+        this.tip.position.set(0, length, 0);
         this.knob.position.copy(this.tip.position);
     }
 

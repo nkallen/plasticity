@@ -1,18 +1,18 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, GizmoLike, mode } from "../AbstractGizmo";
-import { AngleGizmo, DistanceGizmo } from "../MiniGizmos";
+import { AngleGizmo, LengthGizmo } from "../MiniGizmos";
 import { SpiralParams } from "./SpiralFactory";
 
 export class SpiralGizmo implements GizmoLike<(params: SpiralParams) => void> {
     private readonly angleGizmo: AngleGizmo;
-    private readonly lengthGizmo: DistanceGizmo;
-    private readonly radiusGizmo: DistanceGizmo;
+    private readonly lengthGizmo: LengthGizmo;
+    private readonly radiusGizmo: LengthGizmo;
 
     constructor(private readonly params: SpiralParams, editor: EditorLike) {
         this.angleGizmo = new AngleGizmo("spiral:angle", editor);
-        this.lengthGizmo = new DistanceGizmo("spiral:length", editor);
-        this.radiusGizmo = new DistanceGizmo("spiral:radius", editor);
+        this.lengthGizmo = new LengthGizmo("spiral:length", editor);
+        this.radiusGizmo = new LengthGizmo("spiral:radius", editor);
     }
 
     execute(cb: (params: SpiralParams) => void, finishFast: mode = mode.Transitory): CancellablePromise<void> {
@@ -20,10 +20,14 @@ export class SpiralGizmo implements GizmoLike<(params: SpiralParams) => void> {
         const { p2, p1, angle, radius } = params;
 
         const axis = new THREE.Vector3().copy(p2).sub(p1);
+        const length = axis.length();
+        axis.normalize();
+
         angleGizmo.position.copy(p2);
         angleGizmo.relativeScale.setScalar(radius);
 
         lengthGizmo.position.copy(p1);
+        lengthGizmo.length = length;
         const quat = new THREE.Quaternion();
         quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
         lengthGizmo.quaternion.copy(quat);
@@ -31,6 +35,7 @@ export class SpiralGizmo implements GizmoLike<(params: SpiralParams) => void> {
         radiusGizmo.position.copy(p1);
         quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), axis);
         radiusGizmo.quaternion.copy(quat);
+        radiusGizmo.length = params.radius;
 
         const a = angleGizmo.execute(angle => {
             params.angle = angle;

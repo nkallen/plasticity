@@ -1118,6 +1118,8 @@ export class CreateContourFilletsCommand extends Command {
             const contours = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>[];
             const contour = contours[0];
 
+            
+
             const filletFactory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
             filletFactory.contour = contour;
             filletFactory.radiuses[0] = 0.1;
