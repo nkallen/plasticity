@@ -140,7 +140,7 @@ export default class ContourManager {
                     await f();
                     await this.commit();
                     if (this.state.dirty.size > 0 || this.state.added.size > 0 || this.state.deleted.size > 0) {
-                        await this.update();
+                        await this._update();
                     }
                 } finally {
                     this.state = { tag: 'none' };

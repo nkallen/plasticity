@@ -98,7 +98,7 @@ region_highlighted.transparent = true;
 const controlPoint = new THREE.PointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, transparent: true, vertexColors: true });
 controlPoint.userData.resolution = new THREE.Vector2();
 
-const controlPoint_hovered = new THREE.Color(0xffffdd);
+const controlPoint_hovered = new THREE.Color(0xffff88);
 const controlPoint_highlighted = new THREE.Color(0xffff00);
 
 export class BasicMaterialDatabase implements MaterialDatabase {

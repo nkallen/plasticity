@@ -49,7 +49,7 @@ export class BetterRaycastingPoints extends THREE.Points {
             const dist = Math.max(camera.near, _position.distanceTo(ray.origin));
             const clipToWorld = new THREE.Vector4(1, 0, -dist, 1).applyMatrix4(camera.projectionMatrix);
             clipToWorld.divideScalar(clipToWorld.w);
-            const sphereMargin = Math.abs(ssMaxWidth / clipToWorld.x) + threshold;
+            const sphereMargin = Math.abs(ssMaxWidth / clipToWorld.x);
     
             testPoint(ray, _position, i, sphereMargin * sphereMargin, matrixWorld, raycaster, intersects, this);
         }
