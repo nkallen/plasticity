@@ -13,7 +13,7 @@ import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from '.
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import { JointFilletFactory, PolylineFilletFactory, PolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
+import { JointFilletFactory, PolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1088,9 +1088,10 @@ export class CreateContourFilletsCommand extends Command {
     async execute(): Promise<void> {
         const controlPoint = this.editor.selection.selectedControlPoints.first;
         const instance = controlPoint.parentItem;
-        if (controlPoint.index === 0) {
+        if (controlPoint.index === 0 || controlPoint.index === instance.underlying.points.length - 1) {
             const info = this.editor.contours.lookup(instance);
-            const joint = info.joint;
+            console.log(info.joints);
+            const joint = controlPoint.index === 0 ? info.joints.start : info.joints.stop;
             if (joint === undefined) return;
 
             const filletFactory = new JointFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -1103,7 +1104,7 @@ export class CreateContourFilletsCommand extends Command {
 
             gizmo.position.copy(cornerAngle.origin);
             const quat = new THREE.Quaternion();
-            quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), cornerAngle.tau);
+            quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), cornerAngle.tau.cross(cornerAngle.axis));
             gizmo.quaternion.copy(quat);
 
             await gizmo.execute(d => {

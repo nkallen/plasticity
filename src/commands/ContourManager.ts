@@ -7,9 +7,9 @@ import * as visual from "../editor/VisualModel";
 // FIXME no undo
 
 class CurveInfo {
-    touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
+    readonly touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
     fragments = new Array<Promise<visual.Item>>();
-    joint?: Joint;
+    readonly joints = new Joints();
     constructor(readonly planarCurve: c3d.Curve) { }
 }
 
@@ -53,7 +53,7 @@ export default class ContourManager {
             for (const region of regions) {
                 this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
             }
-       });
+        });
     }
 
     update() {
@@ -67,11 +67,11 @@ export default class ContourManager {
 
     private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
         const { curve2info, planar2instance } = this;
-        
+
         const info = curve2info.get(curve);
         if (info === undefined) return;
         curve2info.delete(curve);
-        
+
         const { fragments, planarCurve } = info;
 
         planar2instance.delete(planarCurve.Id());
@@ -226,7 +226,9 @@ export default class ContourManager {
             if (t1 === curve1.GetTMin()) {
                 const on1_ = new PointOnCurve(view1, t1);
                 const on2_ = new PointOnCurve(view2, t2);
-                info.joint = new Joint(on1_, on2_);
+                info.joints.start = new Joint(on1_, on2_);
+                const info2 = curve2info.get(view2)!;
+                info2.joints.stop = new Joint(on2_, on1_);
             }
 
             // For bounded (finite) open curves (like line segments), we need to add in the beginning and end points
@@ -315,7 +317,7 @@ export default class ContourManager {
         }
     }
 
-    lookup(instance: visual.SpaceInstance<visual.Curve3D>) {
+    lookup(instance: visual.SpaceInstance<visual.Curve3D>): Readonly<CurveInfo> {
         return this.curve2info.get(instance)!;
     }
 }
@@ -333,4 +335,8 @@ export class Joint {
         readonly on1: PointOnCurve,
         readonly on2: PointOnCurve
     ) { }
+}
+
+class Joints {
+    constructor(public start?: Joint, public stop?: Joint) {}
 }

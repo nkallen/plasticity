@@ -307,7 +307,7 @@ export class ControlPointGroup extends THREE.Object3D {
         return result;
     }
 
-    constructor(private readonly length = 0, readonly points?: THREE.Points) {
+    constructor(readonly length = 0, readonly points?: THREE.Points) {
         super();
         if (points !== undefined) this.add(points);
     }
