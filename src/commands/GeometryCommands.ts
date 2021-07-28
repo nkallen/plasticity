@@ -439,7 +439,7 @@ export class CurveCommand extends Command {
 export class JoinCurvesCommand extends Command {
     async execute(): Promise<void> {
         const contour = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        for (const curve of this.editor.selection.selectedCurves) contour.curves.push(curve);
+        for (const curve of this.editor.selection.selectedCurves) contour.push(curve);
         await contour.commit();
     }
 }

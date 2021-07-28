@@ -1,10 +1,11 @@
-import { cart2vec, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { CancellableRegistor } from '../../util/Cancellable';
+import { cart2vec, vec2vec } from '../../util/Conversion';
 import { Joint } from '../ContourManager';
 import { GeometryFactory } from '../Factory';
+import LineFactory from '../line/LineFactory';
 import JoinCurvesFactory from './JoinCurvesFactory';
-import { CancellableRegistor } from 'src/util/Cancellable';
 
 export class ContourFilletFactory extends GeometryFactory {
     radiuses!: number[];
@@ -46,8 +47,8 @@ export class JointFilletFactory extends GeometryFactory {
     async setJoint(joint: Joint) {
         this._joint = joint;
         const contourFactory = new JoinCurvesFactory(this.db, this.materials, this.signals);
-        contourFactory.curves.push(joint.on1.curve);
-        contourFactory.curves.push(joint.on2.curve);
+        contourFactory.push(joint.on1.curve);
+        contourFactory.push(joint.on2.curve);
         const contours = await contourFactory.computeGeometry();
         const inst = contours[0];
         const item = inst.GetSpaceItem()!;
@@ -82,4 +83,62 @@ export class JointFilletFactory extends GeometryFactory {
         this.factory.resource(reg);
         return super.resource(reg);
     }
+}
+
+export class PolylineFilletFactory extends GeometryFactory {
+    polyline!: visual.SpaceInstance<visual.Curve3D>;
+    controlPoints!: number[];
+    radiuses!: number[];
+
+    async setPolyline(polyline: visual.SpaceInstance<visual.Curve3D>) {
+        const contourFactory = new JoinCurvesFactory(this.db, this.materials, this.signals);
+        contourFactory.push(polyline);
+        const contours = await contourFactory.computeGeometry();
+        const inst = contours[0];
+        const item = inst.GetSpaceItem()!;
+        const contour = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
+        console.log(contour.GetSegmentsCount());
+    }
+
+    async computeGeometry() {
+        // return this.factory.computeGeometry();
+    }
+}
+
+export class Polyline2ContourFactory extends GeometryFactory {
+    polyline!: visual.SpaceInstance<visual.Curve3D>;
+
+    async computeGeometry() {
+        const { db, polyline } = this;
+        const inst = db.lookup(polyline);
+        const item = inst.GetSpaceItem()!;
+        const model = item.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
+        const points = model.GetPoints();
+        if (points.length < 2) throw new Error("invalid precondition");
+        let prev = points.shift()!;
+        const start = prev;
+        const segments = [];
+        for (const curr of points) {
+            const factory = new LineFactory(this.db, this.materials, this.signals);
+            factory.p1 = cart2vec(prev);
+            factory.p2 = cart2vec(curr);
+            const segment = factory.computeGeometry();
+            segments.push(segment);
+            prev = curr;
+        }
+        if (model.IsClosed()) {
+            const factory = new LineFactory(this.db, this.materials, this.signals);
+            factory.p1 = cart2vec(prev);
+            factory.p2 = cart2vec(start);
+            const segment = factory.computeGeometry();
+            segments.push(segment);
+        }
+        const finished = await Promise.all(segments);
+        const makeContour = new JoinCurvesFactory(this.db, this.materials, this.signals);
+        for (const segment of finished) makeContour.push(segment);
+        const result = await makeContour.computeGeometry();
+        return result[0];
+    }
+
+    get originalItem() { return this.polyline }
 }

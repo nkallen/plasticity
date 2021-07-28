@@ -6,6 +6,7 @@ fillet curves/contours
 - trim should re-enque itself rather than be loop
 - aggregate by placement
 selecting control with mouse points is finicky
+- make line button polyline and curve button not
 
 NEXT WEEK: Curve cleanup:
 

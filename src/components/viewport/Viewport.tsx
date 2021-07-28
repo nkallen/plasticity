@@ -11,7 +11,7 @@ import { GeometryDatabase } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
 import { PlaneSnap } from "../../editor/SnapManager";
 import * as visual from "../../editor/VisualModel";
-import { ControlPoint, Solid, SpaceItem, TopologyItem } from "../../editor/VisualModel";
+import { ControlPoint, Region, Solid, SpaceItem, TopologyItem } from "../../editor/VisualModel";
 import { SelectionManager } from "../../selection/SelectionManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
@@ -232,13 +232,13 @@ export class Model implements Viewport {
         this.outlinePassSelection.selectedObjects = toOutline;
     }
 
-    outlineHover(object?: SpaceItem | TopologyItem | ControlPoint) {
+    outlineHover(object?: SpaceItem | TopologyItem | ControlPoint | Region) {
         if (object instanceof Solid) {
             this.outlinePassHover.selectedObjects = object.outline;
         }
     }
 
-    outlineUnhover(object?: SpaceItem | TopologyItem | ControlPoint) {
+    outlineUnhover(object?: SpaceItem | TopologyItem | ControlPoint | Region) {
         this.outlinePassHover.selectedObjects = [];
     }
 

@@ -240,8 +240,8 @@ test("race condition", async () => {
     await contours.remove(line1);
     await contours.remove(line2);
     const makeContour = new JoinCurvesFactory(db, materials, signals);
-    makeContour.curves.push(line1);
-    makeContour.curves.push(line2);
+    makeContour.push(line1);
+    makeContour.push(line2);
     const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
     await contours.add(contour);
 
@@ -282,8 +282,8 @@ test("transactions", async () => {
         await contours.remove(line1);
         await contours.remove(line2);
         const makeContour = new JoinCurvesFactory(db, materials, signals);
-        makeContour.curves.push(line1);
-        makeContour.curves.push(line2);
+        makeContour.push(line1);
+        makeContour.push(line2);
         const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
         await contours.add(contour);
     

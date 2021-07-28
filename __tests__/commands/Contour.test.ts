@@ -2,7 +2,8 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { Joint, PointOnCurve } from "../../src/commands/ContourManager";
 import ContourFactory from '../../src/commands/curve/ContourFactory';
-import { ContourFilletFactory, JointFilletFactory } from "../../src/commands/curve/ContourFilletFactory";
+import { ContourFilletFactory, JointFilletFactory, Polyline2ContourFactory, PolylineFilletFactory } from "../../src/commands/curve/ContourFilletFactory";
+import CurveFactory from "../../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import LineFactory from '../../src/commands/line/LineFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -68,8 +69,8 @@ describe(JoinCurvesFactory, () => {
 
     describe('commit', () => {
         test('invokes the appropriate c3d commands', async () => {
-            makeContour.curves.push(line1);
-            makeContour.curves.push(line2);
+            makeContour.push(line1);
+            makeContour.push(line2);
 
             const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
             expect(contours.length).toBe(1);
@@ -82,8 +83,8 @@ describe(JoinCurvesFactory, () => {
         });
 
         test('creates planar contours out of all ambiguous lines', async () => {
-            makeContour.curves.push(line1);
-            makeContour.curves.push(line2);
+            makeContour.push(line1);
+            makeContour.push(line2);
 
             const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
             expect(contours.length).toBe(1);
@@ -111,8 +112,8 @@ describe(ContourFilletFactory, () => {
         const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const makeContour = new JoinCurvesFactory(db, materials, signals);
-        makeContour.curves.push(line1);
-        makeContour.curves.push(line2);
+        makeContour.push(line1);
+        makeContour.push(line2);
         const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
 
         const makeFillet = new ContourFilletFactory(db, materials, signals);
@@ -162,4 +163,97 @@ describe(JointFilletFactory, () => {
 
         expect(db.visibleObjects.length).toBe(1);
     })
+});
+
+describe(PolylineFilletFactory, () => {
+    let curveFillet: PolylineFilletFactory;
+    let polyline: visual.SpaceInstance<visual.Curve3D>;
+
+    beforeEach(() => {
+        curveFillet = new PolylineFilletFactory(db, materials, signals);
+    });
+
+    beforeEach(async () => {
+        const makePolyline = new CurveFactory(db, materials, signals);
+        makePolyline.points.push(new THREE.Vector3());
+        makePolyline.points.push(new THREE.Vector3(1, 1, 0));
+        makePolyline.points.push(new THREE.Vector3(2, -1, 0));
+        makePolyline.points.push(new THREE.Vector3(3, 1, 0));
+        makePolyline.points.push(new THREE.Vector3(4, -1, 0));
+        polyline = await makePolyline.commit() as visual.SpaceInstance<visual.Curve3D>;
+    })
+
+    test("when filleting middle points", async () => {
+        await curveFillet.setPolyline(polyline);
+        curveFillet.controlPoints = [1, 3];
+        curveFillet.radiuses = [0.1, 0.1];
+        const filletted = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const bbox = new THREE.Box3().setFromObject(filletted);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.5, 0));
+
+        expect(db.visibleObjects.length).toBe(1);
+    })
+});
+
+describe(Polyline2ContourFactory, () => {
+    let convert: Polyline2ContourFactory;
+    let polyline: visual.SpaceInstance<visual.Curve3D>;
+
+    beforeEach(() => {
+        convert = new Polyline2ContourFactory(db, materials, signals);
+    });
+
+    describe("open", () => {
+        beforeEach(async () => {
+            const makePolyline = new CurveFactory(db, materials, signals);
+            makePolyline.type = c3d.SpaceType.Polyline3D;
+            makePolyline.points.push(new THREE.Vector3());
+            makePolyline.points.push(new THREE.Vector3(1, 1, 0));
+            makePolyline.points.push(new THREE.Vector3(2, -1, 0));
+            makePolyline.points.push(new THREE.Vector3(3, 1, 0));
+            makePolyline.points.push(new THREE.Vector3(4, -1, 0));
+            polyline = await makePolyline.commit() as visual.SpaceInstance<visual.Curve3D>;
+        })
+
+        test("converts", async () => {
+            convert.polyline = polyline;
+            const contour = await convert.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const bbox = new THREE.Box3().setFromObject(contour);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
+
+            expect(db.visibleObjects.length).toBe(1);
+        })
+    });
+
+    describe("closed", () => {
+        beforeEach(async () => {
+            const makePolyline = new CurveFactory(db, materials, signals);
+            makePolyline.type = c3d.SpaceType.Polyline3D;
+            makePolyline.points.push(new THREE.Vector3());
+            makePolyline.points.push(new THREE.Vector3(1, 1, 0));
+            makePolyline.points.push(new THREE.Vector3(2, -1, 0));
+            makePolyline.points.push(new THREE.Vector3(3, 1, 0));
+            makePolyline.points.push(new THREE.Vector3(4, -1, 0));
+            makePolyline.closed = true;
+            polyline = await makePolyline.commit() as visual.SpaceInstance<visual.Curve3D>;
+        })
+
+        test.only("converts", async () => {
+            convert.polyline = polyline;
+            const contour = await convert.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const bbox = new THREE.Box3().setFromObject(contour);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
+
+            expect(db.visibleObjects.length).toBe(1);
+        })
+    });
 });

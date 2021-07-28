@@ -3,17 +3,24 @@ import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../Factory';
 
 export default class JoinCurvesFactory extends GeometryFactory {
-    readonly curves = new Array<visual.SpaceInstance<visual.Curve3D>>();
+    private curves = new Array<visual.SpaceInstance<visual.Curve3D>>();
+    private models = new Array<c3d.Curve3D>();
+
+    push(curve: visual.SpaceInstance<visual.Curve3D> | c3d.SpaceInstance) {
+        if (curve instanceof visual.SpaceInstance) {
+            this.curves.push(curve);
+            const spaceItem = this.db.lookup(curve).GetSpaceItem()!;
+            this.models.push(spaceItem.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
+        } else {
+            this.models.push(curve.GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
+        }
+    }
 
     async computeGeometry() {
-        if (this.curves.length === 0) throw new Error("not enough curves");
+        const { models } = this;
+        if (models.length < 2) throw new Error("not enough curves");
 
-        const curves = [];
-        for (const curve of this.curves) {
-            const spaceItem = this.db.lookup(curve).GetSpaceItem()!;
-            curves.push(spaceItem.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
-        }
-        const contours = c3d.ActionCurve3D.CreateContours(curves, 10);
+        const contours = c3d.ActionCurve3D.CreateContours(models, 10);
         const result = [];
         for (const contour of contours) {
             result.push(new c3d.SpaceInstance(contour));
