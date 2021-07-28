@@ -9,7 +9,7 @@ import { EditorOriginator } from "../editor/History";
 import * as visual from "../editor/VisualModel";
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,
-    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): void;
+    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>;
 }
 
 export abstract class AbstractViewportSelector extends THREE.EventDispatcher {

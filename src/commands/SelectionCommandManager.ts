@@ -10,7 +10,7 @@ import { ChangePointCommand, ExtrudeRegionCommand, FilletCommand, OffsetFaceComm
 export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
     db: GeometryDatabase;
     materials: MaterialDatabase;
-    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): void;
+    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>;
 }
 
 export class SelectionCommandManager {

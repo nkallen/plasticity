@@ -13,7 +13,7 @@ import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from '.
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import { JointFilletFactory } from "./curve/ContourFilletFactory";
+import { JointFilletFactory, PolylineFilletFactory } from "./curve/ContourFilletFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1088,10 +1088,9 @@ export class TrimCommand extends Command {
 
 export class CreateContourFilletsCommand extends Command {
     async execute(): Promise<void> {
-        await this.editor.contours.transaction(async () => {
-            const controlPoint = this.editor.selection.selectedControlPoints.first;
-            const instance = controlPoint.parentItem;
-
+        const controlPoint = this.editor.selection.selectedControlPoints.first;
+        const instance = controlPoint.parentItem;
+        if (controlPoint.index === 0) {
             const info = this.editor.contours.lookup(instance);
             const joint = info.joint;
             if (joint === undefined) return;
@@ -1115,6 +1114,25 @@ export class CreateContourFilletsCommand extends Command {
             }, mode.Persistent).resource(this);
 
             await filletFactory.commit();
-        });
+        } else {
+            const filletFactory = new PolylineFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            await filletFactory.setPolyline(instance);
+            filletFactory.controlPoints = [...this.editor.selection.selectedControlPoints].map(p => p.index);
+
+            const { origin, tau } = filletFactory.cornerAngle;
+
+            const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
+            gizmo.length = 0;
+            gizmo.position.copy(origin);
+            const quat = new THREE.Quaternion();
+            quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), tau);
+            gizmo.quaternion.copy(quat);
+            await gizmo.execute(d => {
+                filletFactory.radius = d;
+                filletFactory.update();
+            }, mode.Persistent).resource(this);
+
+            await filletFactory.commit();
+        }
     }
 }
