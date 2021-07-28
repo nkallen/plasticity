@@ -8,7 +8,28 @@ import LineFactory from '../line/LineFactory';
 import JoinCurvesFactory from './JoinCurvesFactory';
 import * as THREE from 'three';
 
-export class ContourFilletFactory extends GeometryFactory {
+/**
+ * Filleting curves is idiosyncratic. The underlying c3d method uses Contours only. Thus, to fillet a polyline, it
+ * has to be converted to a contour first. Polyline and Contours can be treated somewhat uniformly. Somewhat similarly,
+ * if two distinct curves end at an intersection (called a Joint) we can also create a contour a fillet at the joint.
+ * The interface for this method is somewhat different, however.
+ */
+
+interface CurveFilletFactory {
+    controlPoints: number[];
+    set radius(radius: number);
+    get cornerAngle(): CornerAngle;
+}
+
+interface CornerAngle {
+    origin: THREE.Vector3;
+    tau: THREE.Vector3;
+    axis: THREE.Vector3;
+    angle: number;
+}
+
+export class ContourFilletFactory extends GeometryFactory implements CurveFilletFactory {
+    controlPoints!: number[];
     radiuses!: number[];
 
     private _contour!: visual.SpaceInstance<visual.Curve3D>;
@@ -26,6 +47,23 @@ export class ContourFilletFactory extends GeometryFactory {
         this.radiuses = new Array<number>(fillNumber);
         this.radiuses.fill(0);
         this.model = model;
+    }
+
+    set radius(radius: number) {
+        for (const p of this.controlPoints) {
+            this.radiuses[p - 1] = radius;
+        }
+    }
+
+    get cornerAngle() {
+        const contour = this.model;
+        const info = contour.GetCornerAngle(1);
+        return {
+            origin: cart2vec(info.origin),
+            tau: vec2vec(info.tau),
+            axis: vec2vec(info.axis),
+            angle: info.angle,
+        }
     }
 
     async computeGeometry() {
@@ -60,14 +98,7 @@ export class JointFilletFactory extends GeometryFactory {
     }
 
     get cornerAngle() {
-        const contour = this.factory.model;
-        const info = contour.GetCornerAngle(1);
-        return {
-            origin: cart2vec(info.origin),
-            tau: vec2vec(info.tau),
-            axis: vec2vec(info.axis),
-            angle: info.angle,
-        }
+        return this.factory.cornerAngle;
     }
 
     async computeGeometry() {
@@ -87,7 +118,7 @@ export class JointFilletFactory extends GeometryFactory {
     }
 }
 
-export class PolylineFilletFactory extends GeometryFactory {
+export class PolylineFilletFactory extends GeometryFactory implements CurveFilletFactory {
     controlPoints!: number[];
     radiuses!: number[];
 
@@ -109,7 +140,7 @@ export class PolylineFilletFactory extends GeometryFactory {
 
     set radius(radius: number) {
         for (const p of this.controlPoints) {
-            this.radiuses[p-1] = radius;
+            this.radiuses[p - 1] = radius;
         }
     }
 
@@ -166,6 +197,50 @@ export class PolylineFilletFactory extends GeometryFactory {
     }
 
     get originalItem() { return this.polyline }
+}
+
+export class PolylineOrContourFilletFactory extends GeometryFactory implements CurveFilletFactory {
+    private factory!: PolylineFilletFactory | ContourFilletFactory;
+
+    private curve!: visual.SpaceInstance<visual.Curve3D>;
+
+    async setCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
+        const { db } = this;
+        const inst = db.lookup(curve);
+        const item = inst.GetSpaceItem()!;
+        let factory;
+        switch (item.IsA()) {
+            case c3d.SpaceType.Polyline3D:
+                factory = new PolylineFilletFactory(this.db, this.materials, this.signals);
+                await factory.setPolyline(curve);
+                break;
+            case c3d.SpaceType.Contour3D:
+                factory = new ContourFilletFactory(this.db, this.materials, this.signals);
+                factory.model = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
+                break;
+            default: throw new Error("invalid precondition: " + c3d.SpaceType[item.Type()]);
+        }
+        this.factory = factory;
+        this.curve = curve;
+    }
+
+    set controlPoints(controlPoints: number[]) {
+        this.factory.controlPoints = controlPoints;
+    }
+
+    get cornerAngle() {
+        return this.factory.cornerAngle;
+    }
+
+    set radius(radius: number) {
+        this.factory.radius = radius;
+    }
+
+    async computeGeometry() {
+        return this.factory.computeGeometry();
+    }
+
+    get originalItem() { return this.curve }
 }
 
 export class Polyline2ContourFactory extends GeometryFactory {

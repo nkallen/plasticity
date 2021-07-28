@@ -13,7 +13,7 @@ import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from '.
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import { JointFilletFactory, PolylineFilletFactory } from "./curve/ContourFilletFactory";
+import { JointFilletFactory, PolylineFilletFactory, PolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1032,7 +1032,6 @@ export class ChangePointCommand extends Command {
 
         const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         changePoint.controlPoint = controlPoint;
-        changePoint.instance = instance;
 
         const gizmo = new MoveGizmo(this.editor);
         gizmo.position.copy(changePoint.originalPosition);
@@ -1056,7 +1055,6 @@ export class RemovePointCommand extends Command {
 
         const removePoint = new RemovePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         removePoint.controlPoint = controlPoint;
-        removePoint.instance = instance;
 
         const newInstance = await removePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selectCurve(newInstance);
@@ -1115,8 +1113,8 @@ export class CreateContourFilletsCommand extends Command {
 
             await filletFactory.commit();
         } else {
-            const filletFactory = new PolylineFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            await filletFactory.setPolyline(instance);
+            const filletFactory = new PolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            await filletFactory.setCurve(instance);
             filletFactory.controlPoints = [...this.editor.selection.selectedControlPoints].map(p => p.index);
 
             const { origin, tau } = filletFactory.cornerAngle;

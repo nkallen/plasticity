@@ -164,6 +164,8 @@ export class Region extends PlaneItem {
         this.add(mesh);
         this.disposable.add(new Disposable(() => this.mesh.geometry.dispose()))
     }
+
+    get simpleName() { return this.parentItem.simpleName }
 }
 
 export abstract class TopologyItem extends THREE.Object3D {

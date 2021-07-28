@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { Joint, PointOnCurve } from "../../src/commands/ContourManager";
 import ContourFactory from '../../src/commands/curve/ContourFactory';
-import { ContourFilletFactory, JointFilletFactory, Polyline2ContourFactory, PolylineFilletFactory } from "../../src/commands/curve/ContourFilletFactory";
+import { ContourFilletFactory, JointFilletFactory, Polyline2ContourFactory, PolylineFilletFactory, PolylineOrContourFilletFactory } from "../../src/commands/curve/ContourFilletFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import LineFactory from '../../src/commands/line/LineFactory';
@@ -187,13 +187,47 @@ describe(PolylineFilletFactory, () => {
     test("when filleting middle points", async () => {
         await curveFillet.setPolyline(polyline);
         curveFillet.controlPoints = [1, 3];
-        curveFillet.radiuses = [0.1, 0.1];
+        curveFillet.radius = 0.1;
         const filletted = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const bbox = new THREE.Box3().setFromObject(filletted);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(1.5, 0.06, 0));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(2, -0.03, 0));
+
+        expect(db.visibleObjects.length).toBe(1);
+    })
+});
+
+describe(PolylineOrContourFilletFactory, () => {
+    let curveFillet: PolylineOrContourFilletFactory;
+    let polyline: visual.SpaceInstance<visual.Curve3D>;
+
+    beforeEach(() => {
+        curveFillet = new PolylineOrContourFilletFactory(db, materials, signals);
+    });
+
+    beforeEach(async () => {
+        const makePolyline = new CurveFactory(db, materials, signals);
+        makePolyline.type = c3d.SpaceType.Polyline3D;
+        makePolyline.points.push(new THREE.Vector3());
+        makePolyline.points.push(new THREE.Vector3(1, 1, 0));
+        makePolyline.points.push(new THREE.Vector3(2, -1, 0));
+        makePolyline.points.push(new THREE.Vector3(3, 1, 0));
+        makePolyline.points.push(new THREE.Vector3(4, -1, 0));
+        polyline = await makePolyline.commit() as visual.SpaceInstance<visual.Curve3D>;
+    })
+
+    test("when filleting middle points", async () => {
+        await curveFillet.setCurve(polyline);
+        curveFillet.controlPoints = [1, 3];
+        curveFillet.radius = 0.1;
+        const filletted = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const bbox = new THREE.Box3().setFromObject(filletted);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(2, -0.03, 0));
 
         expect(db.visibleObjects.length).toBe(1);
     })
