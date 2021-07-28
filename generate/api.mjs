@@ -274,10 +274,12 @@ export default {
         Contour3D: {
             rawHeader: "cur_contour3d.h",
             extends: "Curve3D",
-            dependencies: ["Curve3D.h"],
+            dependencies: ["Curve3D.h", "CartPoint3D.h", "Vector3D.h"],
             functions: [
                 { signature: "bool AddCurveWithRuledCheck(MbCurve3D & curve, double absEps = Math::metricPrecision, bool toEndOnly = false, bool checkSame = true, VERSION version = Math::DefaultMathVersion())", return: isErrorBool },
                 "size_t GetSegmentsCount()",
+                { signature: "void FindCorner(size_t index, MbCartPoint3D &t)", t: isReturn },
+                { signature: "bool GetCornerAngle(size_t index, MbCartPoint3D & origin, MbVector3D & axis, MbVector3D & tau, double & angle, double angleEps = (double)Math::AngleEps)", origin: isReturn, axis: isReturn, tau: isReturn, angle: isReturn, return: isErrorBool },
             ]
         },
         Plane: {
@@ -1126,7 +1128,7 @@ export default {
             dependencies: ["Curve.h", "CrossPoint.h"],
             functions: [
                 {
-                    signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)", 
+                    signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)",
                     // after: "::SortCrossPoints(selectCurve->GetTMin(), selectCurve, cross, SArray<MbCrossPoint>(), SArray<MbCrossPoint>()); ",
                     cross: isReturn
                 },

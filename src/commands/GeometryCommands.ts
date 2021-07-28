@@ -1,3 +1,4 @@
+import { cart2vec, vec2vec } from "../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { AxisSnap } from "../editor/SnapManager";
@@ -28,6 +29,7 @@ import { FilletGizmo } from './fillet/FilletGizmo';
 import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
+import { LengthGizmo } from "./MiniGizmos";
 import MirrorFactory from "./mirror/MirrorFactory";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
@@ -1118,11 +1120,28 @@ export class CreateContourFilletsCommand extends Command {
             const contours = await contourFactory.commit() as visual.SpaceInstance<visual.Curve3D>[];
             const contour = contours[0];
 
-            
-
             const filletFactory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
             filletFactory.contour = contour;
-            filletFactory.radiuses[0] = 0.1;
+
+            const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
+            gizmo.length = 0;
+            
+            const inst = this.editor.db.lookup(contour);
+            const item = inst.GetSpaceItem()!;
+            const model = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
+            const info_ = model.GetCornerAngle(1);
+            console.log(info_);
+
+            gizmo.position.copy(cart2vec(info_.origin));
+            const quat = new THREE.Quaternion();
+            quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), vec2vec(info_.tau));
+            gizmo.quaternion.copy(quat);
+                        
+            await gizmo.execute(d => {
+                filletFactory.radiuses[0] = d;
+                filletFactory.update();
+            }, mode.Persistent).resource(this);
+
             await filletFactory.commit();
         });
     }

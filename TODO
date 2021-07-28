@@ -5,6 +5,7 @@ fillet curves/contours
 - all factories should be atomic? wrt to ContourMan -- so consider DI'ing EditorLike with Cman
 - trim should re-enque itself rather than be loop
 - aggregate by placement
+selecting control with mouse points is finicky
 
 NEXT WEEK: Curve cleanup:
 
@@ -19,7 +20,6 @@ stick to surface max
 fillet needs to be in screen space
 if delete point and 1 point left, GC
 drag and drop points
-selecting control with mouse points is finicky
 control points not highlighted
 
 BUG/CRASH:
