@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { CircleFactory } from "../src/commands/circle/CircleFactory";
 import ContourManager from '../src/commands/ContourManager';
-import ContourFilletFactory from "../src/commands/curve/ContourFilletFactory";
+import { ContourFilletFactory } from "../src/commands/curve/ContourFilletFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";
 import LineFactory from "../src/commands/line/LineFactory";

@@ -1,5 +1,7 @@
 import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
 import ContourFactory from '../../src/commands/curve/ContourFactory';
+import { ContourFilletFactory } from "../../src/commands/curve/ContourFilletFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import LineFactory from '../../src/commands/line/LineFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -8,8 +10,6 @@ import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
-import c3d from '../../build/Release/c3d.node';
-import ContourFilletFactory from "../../src/commands/curve/ContourFilletFactory";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
