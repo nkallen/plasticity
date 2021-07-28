@@ -25,7 +25,10 @@ import LineFactory from './commands/line/LineFactory';
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
 const editor = new Editor();
-Object.defineProperty(window, 'editor', editor); // Make available to debug console
+Object.defineProperty(window, 'editor', {
+    value: editor,
+    writable: false
+}); // Make available to debug console
 
 const stats = new Stats();
 stats.showPanel(1);
@@ -87,12 +90,21 @@ Dialog(editor);
 // makeCircle3.radius = 1;
 // makeCircle3.commit();
 
-const makeLine1 = new LineFactory(editor.db, editor.materials, editor.signals);
-makeLine1.p1 = new THREE.Vector3();
-makeLine1.p2 = new THREE.Vector3(1, 1, 0);
-makeLine1.commit();
+// const makeLine1 = new LineFactory(editor.db, editor.materials, editor.signals);
+// makeLine1.p1 = new THREE.Vector3();
+// makeLine1.p2 = new THREE.Vector3(1, 1, 0);
+// makeLine1.commit();
 
-const makeLine2 = new LineFactory(editor.db, editor.materials, editor.signals);
-makeLine2.p1 = new THREE.Vector3(1, 1, 0);
-makeLine2.p2 = new THREE.Vector3(0, 1, 0);
-makeLine2.commit();
+// const makeLine2 = new LineFactory(editor.db, editor.materials, editor.signals);
+// makeLine2.p1 = new THREE.Vector3(1, 1, 0);
+// makeLine2.p2 = new THREE.Vector3(0, 1, 0);
+// makeLine2.commit();
+
+const makePolyline = new CurveFactory(editor.db, editor.materials, editor.signals);
+makePolyline.type = c3d.SpaceType.Polyline3D;
+makePolyline.points.push(new THREE.Vector3());
+makePolyline.points.push(new THREE.Vector3(1, 1, 0));
+makePolyline.points.push(new THREE.Vector3(2, -1, 0));
+makePolyline.points.push(new THREE.Vector3(3, 1, 0));
+makePolyline.points.push(new THREE.Vector3(4, -1, 0));
+makePolyline.commit();

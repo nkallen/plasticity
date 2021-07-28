@@ -19,7 +19,7 @@ abstract class ControlPointFactory extends GeometryFactory {
     }
 
     get originalItem() {
-        return this.instance
+        return this.instance;
     }
 }
 
@@ -53,7 +53,6 @@ export class ChangePointFactory extends ControlPointFactory {
 
         return new c3d.SpaceInstance(curve);
     }
-
 }
 
 export class RemovePointFactory extends ControlPointFactory {

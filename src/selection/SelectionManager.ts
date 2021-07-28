@@ -202,7 +202,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.parentsWithSelectedChildren.clear();
     }
 
-    delete(item: visual.Item): void {
+    delete(item: visual.Item) {
         if (item instanceof visual.Solid) {
             this.selectedSolidIds.delete(item.simpleName);
             this.parentsWithSelectedChildren.delete(item.simpleName);

@@ -34,7 +34,7 @@ export default class ContourManager {
         this.update = this.update.bind(this);
 
         signals.userAddedCurve.add(this.add);
-        signals.userRemovedCurve.add(c => this.remove(c));
+        signals.userRemovedCurve.add(this.remove);
         signals.userAddedCurve.add(this.update);
         signals.userRemovedCurve.add(this.update);
     }
@@ -67,11 +67,11 @@ export default class ContourManager {
 
     private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
         const { curve2info, planar2instance } = this;
-
+        
         const info = curve2info.get(curve);
         if (info === undefined) return;
         curve2info.delete(curve);
-
+        
         const { fragments, planarCurve } = info;
 
         planar2instance.delete(planarCurve.Id());
@@ -100,7 +100,6 @@ export default class ContourManager {
             visited.add(touchee);
             walk = walk.concat([...curve2info.get(touchee)!.touched]);
         }
-
     }
 
     remove(curve: visual.SpaceInstance<visual.Curve3D>) {
@@ -119,16 +118,16 @@ export default class ContourManager {
     }
 
 
-    add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+    add(curve: visual.SpaceInstance<visual.Curve3D>) {
         switch (this.state.tag) {
             case 'none': {
                 this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
-                const result = this._add(newCurve);
+                const result = this._add(curve);
                 this.state = { tag: 'none' };
                 return result;
             }
             case 'transaction': {
-                return this.state.added.add(newCurve);
+                return this.state.added.add(curve);
             }
         }
     }
@@ -160,6 +159,7 @@ export default class ContourManager {
             this.removeInfo(touchee);
         }
         for (const touchee of this.state.deleted) {
+            if (this.state.dirty.has(touchee)) continue;
             this.removeInfo(touchee);
         }
         for (const touchee of this.state.dirty) {

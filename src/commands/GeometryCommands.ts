@@ -3,7 +3,6 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { cart2vec, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
@@ -14,7 +13,7 @@ import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from '.
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import { ContourFilletFactory, JointFilletFactory } from "./curve/ContourFilletFactory";
+import { JointFilletFactory } from "./curve/ContourFilletFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1042,6 +1041,7 @@ export class ChangePointCommand extends Command {
         }).resource(this);
 
         const newInstance = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+
         const newCurve = newInstance.underlying;
         const newPoint = newCurve.points.findByIndex(controlPoint.index)!;
         this.editor.selection.selectControlPoint(newPoint, newInstance);
