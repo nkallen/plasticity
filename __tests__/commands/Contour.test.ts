@@ -118,7 +118,9 @@ describe(ContourFilletFactory, () => {
 
         const makeFillet = new ContourFilletFactory(db, materials, signals);
         makeFillet.contour = contour;
-        makeFillet.radiuses[0] = 0.1;
+        makeFillet.controlPoints = [0];
+        makeFillet.radius = 0.1;
+        expect(makeFillet.cornerAngles.length).toBe(1);
         const filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const bbox = new THREE.Box3().setFromObject(filleted);
@@ -148,8 +150,47 @@ describe(JointFilletFactory, () => {
         makeLine2.p2 = new THREE.Vector3(0, 1, 0);
         const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const on1 = new PointOnCurve(line1, 1);
-        const on2 = new PointOnCurve(line2, 0);
+        const on1 = new PointOnCurve(line1, 1, 0, 1);
+        const on2 = new PointOnCurve(line2, 0, 0, 1);
+        const joint = new Joint(on1, on2);
+
+        await curveFillet.setJoint(joint);
+        curveFillet.radius = 0.1;
+        expect(curveFillet.cornerAngle.axis).toApproximatelyEqual(new THREE.Vector3(0,0,1));
+        const filletted = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const bbox = new THREE.Box3().setFromObject(filletted);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.5, 0));
+
+        expect(db.visibleObjects.length).toBe(1);
+    });
+
+    test("when filleting Joints of curve + contour in a triangular configuration", async () => {
+        const makeLine1 = new LineFactory(db, materials, signals);
+        makeLine1.p1 = new THREE.Vector3();
+        makeLine1.p2 = new THREE.Vector3(1, 1, 0);
+        const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeLine2 = new LineFactory(db, materials, signals);
+        makeLine2.p1 = new THREE.Vector3(1, 1, 0);
+        makeLine2.p2 = new THREE.Vector3(0, 1, 0);
+        const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeContour = new JoinCurvesFactory(db, materials, signals);
+        makeContour.push(line1);
+        makeContour.push(line2);
+        const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
+        const contour = contours[0];
+
+        const makeLine3 = new LineFactory(db, materials, signals);
+        makeLine3.p1 = new THREE.Vector3();
+        makeLine3.p2 = new THREE.Vector3(0, 1, 0);
+        const line3 = await makeLine3.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const on1 = new PointOnCurve(line3, 0, 0, 1);
+        const on2 = new PointOnCurve(contour, 2, 0, 2);
         const joint = new Joint(on1, on2);
 
         await curveFillet.setJoint(joint);
@@ -159,7 +200,13 @@ describe(JointFilletFactory, () => {
         const bbox = new THREE.Box3().setFromObject(filletted);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+
+        const inst = db.lookup(filletted) as c3d.SpaceInstance;
+        const item = inst.GetSpaceItem();
+        const curve = item.Cast<c3d.Curve3D>(item.IsA());
+        expect (curve.IsClosed()).toBe(true);
 
         expect(db.visibleObjects.length).toBe(1);
     })
@@ -188,12 +235,14 @@ describe(PolylineFilletFactory, () => {
         await curveFillet.setPolyline(polyline);
         curveFillet.controlPoints = [1, 3];
         curveFillet.radius = 0.1;
+        expect(curveFillet.cornerAngles.length).toBe(2);
         const filletted = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const bbox = new THREE.Box3().setFromObject(filletted);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(2, -0.03, 0));
+
 
         expect(db.visibleObjects.length).toBe(1);
     })

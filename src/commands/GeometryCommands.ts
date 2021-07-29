@@ -1088,10 +1088,8 @@ export class FilletCurveCommand extends Command {
     async execute(): Promise<void> {
         const controlPoint = this.editor.selection.selectedControlPoints.first;
         const instance = controlPoint.parentItem;
-        console.log(controlPoint.index);
         if (controlPoint.index === 0 || controlPoint.index === instance.underlying.points.length - 1) {
             const info = this.editor.contours.lookup(instance);
-            console.log(info.joints);
             const joint = controlPoint.index === 0 ? info.joints.start : info.joints.stop;
             if (joint === undefined) return;
 

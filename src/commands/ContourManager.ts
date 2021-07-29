@@ -322,10 +322,15 @@ export default class ContourManager {
         const info1 = this.curve2info.get(view1)!;
         const info2 = this.curve2info.get(view2)!;
 
-        if (t1 !== curve1.GetTMin() && t1 !== curve1.GetTMax()) return;
+        const t1min = curve1.GetTMin();
+        const t1max = curve1.GetTMax();
+        const t2min = curve2.GetTMin();
+        const t2max = curve2.GetTMax();
 
-        const on1 = new PointOnCurve(view1, t1);
-        const on2 = new PointOnCurve(view2, t2);
+        if (t1 !== t1min && t1 !== t1max) return;
+
+        const on1 = new PointOnCurve(view1, t1, t1min, t1max);
+        const on2 = new PointOnCurve(view2, t2, t2min, t2max);
 
         if (t1 === curve1.GetTMin())
             info1.joints.start = new Joint(on1, on2);
@@ -343,8 +348,13 @@ export default class ContourManager {
 export class PointOnCurve {
     constructor(
         readonly curve: visual.SpaceInstance<visual.Curve3D>,
-        readonly t: number
+        readonly t: number,
+        readonly tmin: number,
+        readonly tmax: number
     ) { }
+
+    get isTmin() { return this.t === this.tmin }
+    get isTmax() { return this.t === this.tmax }
 }
 
 export class Joint {

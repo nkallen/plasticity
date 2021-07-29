@@ -30,10 +30,19 @@ interface CornerAngle {
 
 export class ContourFilletFactory extends GeometryFactory implements CurveFilletFactory {
     controlPoints!: number[];
-    radiuses!: number[];
+    readonly radiuses!: number[];
 
     private _contour!: visual.SpaceInstance<visual.Curve3D>;
-    model!: c3d.Contour3D;
+    private _model!: c3d.Contour3D;
+
+    get model() { return this._model }
+    set model(model: c3d.Contour3D) {
+        this._model = model;
+        let fillNumber = model.GetSegmentsCount();
+        fillNumber -= model.IsClosed() ? 0 : 1;
+        (this.radiuses as ContourFilletFactory['radiuses']) = new Array<number>(fillNumber);
+        this.radiuses.fill(0);
+    }
 
     get contour() { return this._contour }
     set contour(contour: visual.SpaceInstance<visual.Curve3D>) {
@@ -42,113 +51,20 @@ export class ContourFilletFactory extends GeometryFactory implements CurveFillet
         const inst = this.db.lookup(contour);
         const item = inst.GetSpaceItem()!;
         const model = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
-        let fillNumber = model.GetSegmentsCount();
-        fillNumber -= model.IsClosed() ? 0 : 1;
-        this.radiuses = new Array<number>(fillNumber);
-        this.radiuses.fill(0);
         this.model = model;
     }
 
     set radius(radius: number) {
         for (const p of this.controlPoints) {
-            this.radiuses[p - 1] = radius;
-        }
-    }
-
-    get cornerAngle() {
-        const contour = this.model;
-        const info = contour.GetCornerAngle(1);
-        return {
-            origin: cart2vec(info.origin),
-            tau: vec2vec(info.tau),
-            axis: vec2vec(info.axis),
-            angle: info.angle,
-        }
-    }
-
-    async computeGeometry() {
-        const { model, radiuses, db } = this;
-
-        const result = c3d.ActionSurfaceCurve.CreateContourFillets(model, radiuses, c3d.ConnectingType.Fillet);
-        return new c3d.SpaceInstance(result);
-    }
-
-    get originalItem() { return this.contour }
-}
-
-export class JointFilletFactory extends GeometryFactory {
-    radiuses!: number[];
-    private _joint!: Joint;
-
-    private readonly factory = new ContourFilletFactory(this.db, this.materials, this.signals);
-
-    get joint() { return this._joint }
-
-    async setJoint(joint: Joint) {
-        this._joint = joint;
-        const contourFactory = new JoinCurvesFactory(this.db, this.materials, this.signals);
-        contourFactory.push(joint.on1.curve);
-        contourFactory.push(joint.on2.curve);
-        const contours = await contourFactory.computeGeometry();
-        const inst = contours[0];
-        const item = inst.GetSpaceItem()!;
-        const contour = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
-        this.factory.model = contour;
-        this.factory.radiuses = [0];
-    }
-
-    get cornerAngle() {
-        return this.factory.cornerAngle;
-    }
-
-    async computeGeometry() {
-        return this.factory.computeGeometry();
-    }
-
-    set radius(r: number) {
-        this.factory.radiuses[0] = r;
-    }
-
-    get originalItem() { return [this.joint.on1.curve, this.joint.on2.curve] }
-
-    // This is not strictly necessary but conceptually we should do this.
-    resource(reg: CancellableRegistor): this {
-        this.factory.resource(reg);
-        return super.resource(reg);
-    }
-}
-
-export class PolylineFilletFactory extends GeometryFactory implements CurveFilletFactory {
-    controlPoints!: number[];
-    radiuses!: number[];
-
-    private polyline!: visual.SpaceInstance<visual.Curve3D>;
-
-    private readonly factory = new ContourFilletFactory(this.db, this.materials, this.signals);
-
-    async setPolyline(polyline: visual.SpaceInstance<visual.Curve3D>) {
-        const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
-        polyline2contour.polyline = polyline;
-        const inst = await polyline2contour.computeGeometry() as c3d.SpaceInstance;
-        const contour = inst.GetSpaceItem()!.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
-        this.factory.model = contour;
-        this.polyline = polyline;
-
-        this.radiuses = new Array<number>(contour.GetSegmentsCount() - 1);
-        this.radiuses.fill(0);
-    }
-
-    set radius(radius: number) {
-        for (const p of this.controlPoints) {
-            this.radiuses[p - 1] = radius;
+            this.radiuses[p] = radius;
         }
     }
 
     get cornerAngles() {
         const result = [];
         for (const i of this.controlPoints) {
-            const contour = this.factory.model;
-            const info = contour.GetCornerAngle(i);
+            const contour = this.model;
+            const info = contour.GetCornerAngle(i + 1);
             result.push({
                 origin: cart2vec(info.origin),
                 tau: vec2vec(info.tau),
@@ -181,11 +97,91 @@ export class PolylineFilletFactory extends GeometryFactory implements CurveFille
     }
 
     async computeGeometry() {
-        const { controlPoints, radiuses } = this;
+        const { model, radiuses, db } = this;
+
+        const result = c3d.ActionSurfaceCurve.CreateContourFillets(model, radiuses, c3d.ConnectingType.Fillet);
+        return new c3d.SpaceInstance(result);
+    }
+
+    get originalItem() { return this.contour }
+}
+
+export class JointFilletFactory extends GeometryFactory {
+    private _joint!: Joint;
+
+    private readonly factory = new ContourFilletFactory(this.db, this.materials, this.signals);
+
+    get joint() { return this._joint }
+
+    async setJoint(joint: Joint) {
+        this._joint = joint;
+        const contourFactory = new JoinCurvesFactory(this.db, this.materials, this.signals);
+        contourFactory.push(joint.on1.curve);
+        contourFactory.push(joint.on2.curve);
+        const contours = await contourFactory.computeGeometry();
+        const inst = contours[0];
+        const item = inst.GetSpaceItem()!;
+        const contour = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
+        this.factory.model = contour;
+        const index = joint.on1.isTmin ? this.factory.radiuses.length - 1 : 0;
+        this.factory.controlPoints = [index];
+    }
+
+    get cornerAngle() {
+        return this.factory.cornerAngle;
+    }
+
+    async computeGeometry() {
+        return this.factory.computeGeometry();
+    }
+
+    set radius(r: number) {
+        this.factory.radius = r;
+    }
+
+    get originalItem() { return [this.joint.on1.curve, this.joint.on2.curve] }
+
+    // This is not strictly necessary but conceptually we should do this.
+    resource(reg: CancellableRegistor): this {
+        this.factory.resource(reg);
+        return super.resource(reg);
+    }
+}
+
+export class PolylineFilletFactory extends GeometryFactory implements CurveFilletFactory {
+    private polyline!: visual.SpaceInstance<visual.Curve3D>;
+
+    private readonly factory = new ContourFilletFactory(this.db, this.materials, this.signals);
+
+    async setPolyline(polyline: visual.SpaceInstance<visual.Curve3D>) {
+        const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
+        polyline2contour.polyline = polyline;
+        const inst = await polyline2contour.computeGeometry() as c3d.SpaceInstance;
+        const contour = inst.GetSpaceItem()!.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
+        this.factory.model = contour;
+        this.polyline = polyline;
+    }
+
+    get controlPoints() { return this.factory.controlPoints }
+    set controlPoints(points: number[]) { this.factory.controlPoints = points.map(p => p - 1) }
+
+    set radius(radius: number) {
+        this.factory.radius = radius;
+    }
+    get radiuses() { return this.factory.radiuses }
+
+    get cornerAngles() {
+        return this.factory.cornerAngles
+    }
+
+    get cornerAngle() {
+        return this.factory.cornerAngle
+    }
+
+    async computeGeometry() {
+        const { controlPoints } = this;
         if (controlPoints.length < 1) throw new Error("invalid precondition");
         if (controlPoints.length > this.factory.model.GetSegmentsCount() - 1) throw new Error("invalid precondition");
-
-        this.factory.radiuses = radiuses;
 
         return this.factory.computeGeometry();
     }
