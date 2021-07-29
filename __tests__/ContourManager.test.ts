@@ -20,6 +20,7 @@ let makeCircle2: CircleFactory;
 let makeCircle3: CircleFactory;
 let makeCurve1: CurveFactory;
 let makeCurve2: CurveFactory;
+let makeCurve3: CurveFactory;
 let contours: ContourManager;
 let signals: EditorSignals;
 
@@ -33,6 +34,7 @@ beforeEach(() => {
     makeCircle3 = new CircleFactory(db, materials, silentSignals);
     makeCurve1 = new CurveFactory(db, materials, silentSignals);
     makeCurve2 = new CurveFactory(db, materials, silentSignals);
+    makeCurve3 = new CurveFactory(db, materials, silentSignals);
     contours = new ContourManager(db, silentSignals);
 })
 
@@ -299,30 +301,30 @@ test("transactions", async () => {
 });
 
 describe("Joints", () => {
-    test("joints (two open curves intersect at start/end points)", async () => {
+    test("joints (two open curves intersect at end/start points)", async () => {
         makeCurve1.points.push(new THREE.Vector3());
         makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
         const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(1);
         await contours.add(curve1);
         expect(db.visibleObjects.length).toBe(2);
-    
+
         makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
         makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(3);
         await contours.add(curve2);
         expect(db.visibleObjects.length).toBe(4);
-    
+
         const joints1 = contours.lookup(curve1).joints;
         const joints2 = contours.lookup(curve2).joints;
-    
+
         expect(joints1.start).toBeUndefined();
         expect(joints1.stop.on1.curve).toBe(curve1);
         expect(joints1.stop.on1.t).toBe(1);
         expect(joints1.stop.on2.curve).toBe(curve2);
         expect(joints1.stop.on2.t).toBe(0);
-    
+
         expect(joints2.stop).toBeUndefined();
         expect(joints2.start.on1.curve).toBe(curve2);
         expect(joints2.start.on1.t).toBe(0);
@@ -337,23 +339,23 @@ describe("Joints", () => {
         expect(db.visibleObjects.length).toBe(1);
         await contours.add(curve1);
         expect(db.visibleObjects.length).toBe(2);
-    
+
         makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
         makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(3);
         await contours.add(curve2);
         expect(db.visibleObjects.length).toBe(4);
-    
+
         const joints1 = contours.lookup(curve1).joints;
         const joints2 = contours.lookup(curve2).joints;
-    
+
         expect(joints1.stop).toBeUndefined();
         expect(joints1.start.on1.curve).toBe(curve1);
         expect(joints1.start.on1.t).toBe(0);
         expect(joints1.start.on2.curve).toBe(curve2);
         expect(joints1.start.on2.t).toBe(0);
-    
+
         expect(joints2.stop).toBeUndefined();
         expect(joints2.start.on1.curve).toBe(curve2);
         expect(joints2.start.on1.t).toBe(0);
@@ -368,27 +370,81 @@ describe("Joints", () => {
         expect(db.visibleObjects.length).toBe(1);
         await contours.add(curve1);
         expect(db.visibleObjects.length).toBe(2);
-    
+
         makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
         makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(3);
         await contours.add(curve2);
         expect(db.visibleObjects.length).toBe(4);
-    
+
         const joints1 = contours.lookup(curve1).joints;
         const joints2 = contours.lookup(curve2).joints;
-    
+
         expect(joints1.start).toBeUndefined();
         expect(joints1.stop.on1.curve).toBe(curve1);
         expect(joints1.stop.on1.t).toBe(1);
         expect(joints1.stop.on2.curve).toBe(curve2);
         expect(joints1.stop.on2.t).toBe(1);
-    
+
         expect(joints2.start).toBeUndefined();
         expect(joints2.stop.on1.curve).toBe(curve2);
         expect(joints2.stop.on1.t).toBe(1);
         expect(joints2.stop.on2.curve).toBe(curve1);
         expect(joints2.stop.on2.t).toBe(1);
+    });
+
+    test("joints (triangle with inconsistent winding order)", async () => {
+        makeCurve1.points.push(new THREE.Vector3());
+        makeCurve1.points.push(new THREE.Vector3(1, 1, 0));
+        const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(1);
+        await contours.add(curve1);
+        expect(db.visibleObjects.length).toBe(2);
+
+        makeCurve2.points.push(new THREE.Vector3(1, 1, 0));
+        makeCurve2.points.push(new THREE.Vector3(0, 1, 0));
+        const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(3);
+        await contours.add(curve2);
+        expect(db.visibleObjects.length).toBe(4);
+
+        makeCurve3.points.push(new THREE.Vector3());
+        makeCurve3.points.push(new THREE.Vector3(0, 1, 0));
+        const curve3 = await makeCurve3.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(5);
+        await contours.add(curve3);
+        expect(db.visibleObjects.length).toBe(6);
+
+        const joints1 = contours.lookup(curve1).joints;
+        const joints2 = contours.lookup(curve2).joints;
+        const joints3 = contours.lookup(curve3).joints;
+
+        expect(joints1.start.on1.curve).toBe(curve1);
+        expect(joints1.start.on1.t).toBe(0);
+        expect(joints1.start.on2.curve).toBe(curve3);
+        expect(joints1.start.on2.t).toBe(0);
+        expect(joints1.stop.on1.curve).toBe(curve1);
+        expect(joints1.stop.on1.t).toBe(1);
+        expect(joints1.stop.on2.curve).toBe(curve2);
+        expect(joints1.stop.on2.t).toBe(0);
+
+        expect(joints2.start.on1.curve).toBe(curve2);
+        expect(joints2.start.on1.t).toBe(0);
+        expect(joints2.start.on2.curve).toBe(curve1);
+        expect(joints2.start.on2.t).toBe(1);
+        expect(joints2.stop.on1.curve).toBe(curve2);
+        expect(joints2.stop.on1.t).toBe(1);
+        expect(joints2.stop.on2.curve).toBe(curve3);
+        expect(joints2.stop.on2.t).toBe(1);
+
+        expect(joints3.start.on1.curve).toBe(curve3);
+        expect(joints3.start.on1.t).toBe(0);
+        expect(joints3.start.on2.curve).toBe(curve1);
+        expect(joints3.start.on2.t).toBe(0);
+        expect(joints3.stop.on1.curve).toBe(curve3);
+        expect(joints3.stop.on1.t).toBe(1);
+        expect(joints3.stop.on2.curve).toBe(curve2);
+        expect(joints3.stop.on2.t).toBe(1);
     });
 })

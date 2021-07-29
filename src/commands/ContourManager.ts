@@ -218,16 +218,15 @@ export default class ContourManager {
             }
             crosses.sort((a, b) => a.on1.t - b.on1.t);
 
-            const { on1: { curve: curve1 }, on2: { curve: curve2 } } = crosses[0];
+            const { on1: { curve: curve1 } } = crosses[0];
             const view1 = this.planar2instance.get(curve1.Id())!;
-            const view2 = this.planar2instance.get(curve2.Id())!;
             const info = curve2info.get(view1)!;
-            const info2 = curve2info.get(view2)!;
-
-            Joint.populate(crosses[0], info.joints, info2.joints, view1, view2);
 
             // For bounded (finite) open curves (like line segments), we need to add in the beginning and end points
             if (current.IsBounded() && !current.IsClosed()) {
+                this.addJoint(crosses[0]);
+                this.addJoint(crosses[crosses.length - 1]);
+
                 const begPointOn = new c3d.PointOnCurve(current.GetTMin(), current);
                 const begCrossPoint = new c3d.CrossPoint(current.GetLimitPoint(1), begPointOn, begPointOn);
                 crosses.unshift(begCrossPoint);
@@ -315,6 +314,29 @@ export default class ContourManager {
     lookup(instance: visual.SpaceInstance<visual.Curve3D>): Readonly<CurveInfo> {
         return this.curve2info.get(instance)!;
     }
+
+    private addJoint(cross: c3d.CrossPoint) {
+        const { on1: { curve: curve1, t: t1 }, on2: { curve: curve2, t: t2 } } = cross;
+        const view1 = this.planar2instance.get(curve1.Id())!;
+        const view2 = this.planar2instance.get(curve2.Id())!;
+        const info1 = this.curve2info.get(view1)!;
+        const info2 = this.curve2info.get(view2)!;
+
+        if (t1 !== curve1.GetTMin() && t1 !== curve1.GetTMax()) return;
+
+        const on1 = new PointOnCurve(view1, t1);
+        const on2 = new PointOnCurve(view2, t2);
+
+        if (t1 === curve1.GetTMin())
+            info1.joints.start = new Joint(on1, on2);
+        else
+            info1.joints.stop = new Joint(on1, on2);
+
+        if (t2 === curve2.GetTMin())
+            info2.joints.start = new Joint(on2, on1);
+        else if (t2 === curve2.GetTMax())
+            info2.joints.stop = new Joint(on2, on1);
+    }
 }
 
 
@@ -326,24 +348,6 @@ export class PointOnCurve {
 }
 
 export class Joint {
-    static populate(cross: c3d.CrossPoint, joints1: Joints, joints2: Joints, view1: visual.SpaceInstance<visual.Curve3D>, view2: visual.SpaceInstance<visual.Curve3D>) {
-        const { on1: { curve: curve1, t: t1 }, on2: { curve: curve2, t: t2 } } = cross;
-        if (t1 !== curve1.GetTMin() && t1 !== curve1.GetTMax()) return;
-
-        const on1 = new PointOnCurve(view1, t1);
-        const on2 = new PointOnCurve(view2, t2);
-
-        if (t1 === curve1.GetTMin())
-            joints1.start = new Joint(on1, on2);
-        else
-            joints1.stop = new Joint(on1, on2);
-
-        if (t2 === curve2.GetTMin())
-            joints2.start = new Joint(on2, on1);
-        else if (t2 === curve2.GetTMax())
-            joints2.stop = new Joint(on2, on1);
-    }
-
     constructor(
         readonly on1: PointOnCurve,
         readonly on2: PointOnCurve
