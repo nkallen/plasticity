@@ -90,20 +90,20 @@ Dialog(editor);
 // makeCircle3.radius = 1;
 // makeCircle3.commit();
 
-const makeLine1 = new LineFactory(editor.db, editor.materials, editor.signals);
-makeLine1.p1 = new THREE.Vector3();
-makeLine1.p2 = new THREE.Vector3(1, 1, 0);
-makeLine1.commit();
+// const makeLine1 = new LineFactory(editor.db, editor.materials, editor.signals);
+// makeLine1.p1 = new THREE.Vector3();
+// makeLine1.p2 = new THREE.Vector3(1, 1, 0);
+// makeLine1.commit();
 
-const makeLine2 = new LineFactory(editor.db, editor.materials, editor.signals);
-makeLine2.p1 = new THREE.Vector3(1, 1, 0);
-makeLine2.p2 = new THREE.Vector3(0, 1, 0);
-makeLine2.commit();
+// const makeLine2 = new LineFactory(editor.db, editor.materials, editor.signals);
+// makeLine2.p1 = new THREE.Vector3(1, 1, 0);
+// makeLine2.p2 = new THREE.Vector3(0, 1, 0);
+// makeLine2.commit();
 
-const makeLine3 = new LineFactory(editor.db, editor.materials, editor.signals);
-makeLine2.p1 = new THREE.Vector3(0, 1, 0);
-makeLine2.p2 = new THREE.Vector3();
-makeLine2.commit();
+// const makeLine3 = new LineFactory(editor.db, editor.materials, editor.signals);
+// makeLine2.p1 = new THREE.Vector3(0, 1, 0);
+// makeLine2.p2 = new THREE.Vector3();
+// makeLine2.commit();
 
 // const makePolyline = new CurveFactory(editor.db, editor.materials, editor.signals);
 // makePolyline.type = c3d.SpaceType.Polyline3D;

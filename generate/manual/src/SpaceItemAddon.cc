@@ -15,6 +15,7 @@
 #include "../include/LineSegment3D.h"
 #include "../include/Arc3D.h"
 #include "../include/Contour3D.h"
+#include "../include/TrimmedCurve3D.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -80,6 +81,8 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return Arc3D::NewInstance(env, (MbArc3D *)(_underlying));
     case st_Contour3D:
         return Contour3D::NewInstance(env, (MbContour3D *)(_underlying));
+    case st_TrimmedCurve3D:
+        return TrimmedCurve3D::NewInstance(env, (MbTrimmedCurve3D *)(_underlying));
 
         // case st_WireFrame:
         //     return Item::NewInstance(env, dynamic_cast<MbWireFrame *>(_underlying));

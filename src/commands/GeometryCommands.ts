@@ -13,8 +13,7 @@ import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from '.
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import { JointFilletFactory, JointOrPolylineOrContourFilletFactory, PolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
-import CurveAndContourFactory from "./curve/CurveAndContourFactory";
+import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import CurveFactory from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardEvent, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";

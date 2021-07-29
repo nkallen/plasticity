@@ -264,6 +264,11 @@ export default {
                 { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn }
             ]
         },
+        TrimmedCurve3D: {
+            rawHeader: "cur_trimmed_curve3d.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h"],
+        },
         PlaneCurve: {
             rawHeader: "cur_plane_curve.h",
             extends: "Curve3D",
