@@ -218,18 +218,13 @@ export default class ContourManager {
             }
             crosses.sort((a, b) => a.on1.t - b.on1.t);
 
-            const { on1: { curve: curve1, t: t1 }, on2: { curve: curve2, t: t2 } } = crosses[0];
+            const { on1: { curve: curve1 }, on2: { curve: curve2 } } = crosses[0];
             const view1 = this.planar2instance.get(curve1.Id())!;
             const view2 = this.planar2instance.get(curve2.Id())!;
             const info = curve2info.get(view1)!;
+            const info2 = curve2info.get(view2)!;
 
-            if (t1 === curve1.GetTMin()) {
-                const on1_ = new PointOnCurve(view1, t1);
-                const on2_ = new PointOnCurve(view2, t2);
-                info.joints.start = new Joint(on1_, on2_);
-                const info2 = curve2info.get(view2)!;
-                info2.joints.stop = new Joint(on2_, on1_);
-            }
+            Joint.populate(crosses[0], info.joints, info2.joints, view1, view2);
 
             // For bounded (finite) open curves (like line segments), we need to add in the beginning and end points
             if (current.IsBounded() && !current.IsClosed()) {
@@ -331,6 +326,24 @@ export class PointOnCurve {
 }
 
 export class Joint {
+    static populate(cross: c3d.CrossPoint, joints1: Joints, joints2: Joints, view1: visual.SpaceInstance<visual.Curve3D>, view2: visual.SpaceInstance<visual.Curve3D>) {
+        const { on1: { curve: curve1, t: t1 }, on2: { curve: curve2, t: t2 } } = cross;
+        if (t1 !== curve1.GetTMin() && t1 !== curve1.GetTMax()) return;
+
+        const on1 = new PointOnCurve(view1, t1);
+        const on2 = new PointOnCurve(view2, t2);
+
+        if (t1 === curve1.GetTMin())
+            joints1.start = new Joint(on1, on2);
+        else
+            joints1.stop = new Joint(on1, on2);
+
+        if (t2 === curve2.GetTMin())
+            joints2.start = new Joint(on2, on1);
+        else if (t2 === curve2.GetTMax())
+            joints2.stop = new Joint(on2, on1);
+    }
+
     constructor(
         readonly on1: PointOnCurve,
         readonly on2: PointOnCurve
@@ -338,5 +351,5 @@ export class Joint {
 }
 
 class Joints {
-    constructor(public start?: Joint, public stop?: Joint) {}
+    constructor(public start?: Joint, public stop?: Joint) { }
 }
