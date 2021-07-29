@@ -2,7 +2,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { CancellableRegistor } from '../../util/Cancellable';
 import { cart2vec, vec2vec } from '../../util/Conversion';
-import { Joint } from '../ContourManager';
+import ContourManager, { Joint } from '../ContourManager';
 import { GeometryFactory } from '../Factory';
 import LineFactory from '../line/LineFactory';
 import JoinCurvesFactory from './JoinCurvesFactory';
@@ -56,7 +56,8 @@ export class ContourFilletFactory extends GeometryFactory implements CurveFillet
 
     set radius(radius: number) {
         for (const p of this.controlPoints) {
-            this.radiuses[p - 1] = radius;
+            const index = (p === 0 && this.model.IsClosed()) ? this.model.GetSegmentsCount() - 1 : p - 1;
+            this.radiuses[index] = radius;
         }
     }
 
@@ -75,26 +76,7 @@ export class ContourFilletFactory extends GeometryFactory implements CurveFillet
         return result;
     }
 
-    get cornerAngle() {
-        const corners = this.cornerAngles;
-        const origin = new THREE.Vector3();
-        const tau = new THREE.Vector3();
-        const axis = new THREE.Vector3();
-        let angle = 0;
-        for (const corner of corners) {
-            origin.add(corner.origin);
-            tau.add(corner.tau);
-            axis.add(corner.axis);
-            angle += corner.angle;
-        }
-        origin.divideScalar(corners.length);
-        tau.divideScalar(corners.length);
-        axis.divideScalar(corners.length);
-        angle /= corners.length;
-        return {
-            origin, tau, axis, angle
-        }
-    }
+    get cornerAngle() { return averageCornerAngles(this.cornerAngles) }
 
     async computeGeometry() {
         const { model, radiuses, db } = this;
@@ -127,18 +109,9 @@ export class JointFilletFactory extends GeometryFactory {
         this.factory.controlPoints = [index];
     }
 
-    get cornerAngle() {
-        return this.factory.cornerAngle;
-    }
-
-    async computeGeometry() {
-        return this.factory.computeGeometry();
-    }
-
-    set radius(r: number) {
-        this.factory.radius = r;
-    }
-
+    get cornerAngle() { return this.factory.cornerAngle }
+    async computeGeometry() { return this.factory.computeGeometry() }
+    set radius(r: number) { this.factory.radius = r }
     get originalItem() { return [this.joint.on1.curve, this.joint.on2.curve] }
 
     // This is not strictly necessary but conceptually we should do this.
@@ -164,19 +137,10 @@ export class PolylineFilletFactory extends GeometryFactory implements CurveFille
 
     get controlPoints() { return this.factory.controlPoints }
     set controlPoints(points: number[]) { this.factory.controlPoints = points }
-
-    set radius(radius: number) {
-        this.factory.radius = radius;
-    }
+    set radius(radius: number) { this.factory.radius = radius }
     get radiuses() { return this.factory.radiuses }
-
-    get cornerAngles() {
-        return this.factory.cornerAngles
-    }
-
-    get cornerAngle() {
-        return this.factory.cornerAngle
-    }
+    get cornerAngles() { return this.factory.cornerAngles }
+    get cornerAngle() { return this.factory.cornerAngle }
 
     async computeGeometry() {
         const { controlPoints } = this;
@@ -224,19 +188,62 @@ export class PolylineOrContourFilletFactory extends GeometryFactory implements C
         this.factory.controlPoints = controlPoints;
     }
 
-    get cornerAngle() {
-        return this.factory.cornerAngle;
+    get cornerAngle() { return this.factory.cornerAngle }
+    set radius(radius: number) { this.factory.radius = radius }
+    async computeGeometry() { return this.factory.computeGeometry() }
+
+    get originalItem() { return this.curve }
+}
+
+export class JointOrPolylineOrContourFilletFactory extends GeometryFactory {
+    private factory: (PolylineOrContourFilletFactory | JointFilletFactory)[] = [];
+    contours!: ContourManager;
+
+    async setControlPoints(controlPoints: { index: number, parentItem: visual.SpaceInstance<visual.Curve3D> }[]) {
+        const nonJoints = [];
+        for (const cp of controlPoints) {
+            const last = cp.parentItem.underlying.points.length - 1;
+            const inst = this.db.lookup(cp.parentItem);
+            const curve = inst.GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            if (!curve.IsClosed() && (cp.index === 0 || cp.index === last)) {
+                const info = this.contours.lookup(cp.parentItem);
+                const joint = cp.index === 0 ? info.joints.start : info.joints.stop;
+                if (joint === undefined) throw new Error("invalid precondition");
+
+                const fact = new JointFilletFactory(this.db, this.materials, this.signals);
+                await fact.setJoint(joint);
+                this.factory.push(fact);
+            } else {
+                nonJoints.push(cp);
+            }
+        }
+        if (nonJoints.length > 0) {
+            const pcfactory = new PolylineOrContourFilletFactory(this.db, this.materials, this.signals)
+            await pcfactory.setCurve(nonJoints[0].parentItem);
+            pcfactory.controlPoints = nonJoints.map(cp => cp.index);
+            this.factory.push(pcfactory);
+        }
     }
 
-    set radius(radius: number) {
-        this.factory.radius = radius;
+    set radius(radius: number) { for (const f of this.factory) f.radius = radius }
+
+    get cornerAngle() {
+        const corners = [];
+        for (const f of this.factory) corners.push(f.cornerAngle);
+        return averageCornerAngles(corners);
+    }
+
+    get originalItem() {
+        const result = [];
+        for (const f of this.factory) result.push(f.originalItem);
+        return result.flat();
     }
 
     async computeGeometry() {
-        return this.factory.computeGeometry();
+        const result = [];
+        for (const f of this.factory) result.push(f.computeGeometry());
+        return Promise.all(result);
     }
-
-    get originalItem() { return this.curve }
 }
 
 export class Polyline2ContourFactory extends GeometryFactory {
@@ -275,4 +282,24 @@ export class Polyline2ContourFactory extends GeometryFactory {
     }
 
     get originalItem() { return this.polyline }
+}
+
+function averageCornerAngles(corners: CornerAngle[]): CornerAngle {
+    const origin = new THREE.Vector3();
+    const tau = new THREE.Vector3();
+    const axis = new THREE.Vector3();
+    let angle = 0;
+    for (const corner of corners) {
+        origin.add(corner.origin);
+        tau.add(corner.tau);
+        axis.add(corner.axis);
+        angle += corner.angle;
+    }
+    origin.divideScalar(corners.length);
+    tau.divideScalar(corners.length);
+    axis.divideScalar(corners.length);
+    angle /= corners.length;
+    return {
+        origin, tau, axis, angle
+    }
 }

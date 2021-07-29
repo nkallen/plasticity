@@ -13,7 +13,7 @@ import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from '.
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import { JointFilletFactory, PolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
+import { JointFilletFactory, JointOrPolylineOrContourFilletFactory, PolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1085,51 +1085,24 @@ export class TrimCommand extends Command {
 
 export class FilletCurveCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoint = this.editor.selection.selectedControlPoints.first;
-        const instance = controlPoint.parentItem;
-        if (controlPoint.index === 0 || controlPoint.index === instance.underlying.points.length - 1) {
-            const info = this.editor.contours.lookup(instance);
-            const joint = controlPoint.index === 0 ? info.joints.start : info.joints.stop;
-            if (joint === undefined) return;
+        const controlPoints = [...this.editor.selection.selectedControlPoints];
+        const factory = new JointOrPolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        factory.contours = this.editor.contours; // FIXME need to DI this in constructor of all factories
+        await factory.setControlPoints(controlPoints);
+        const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
+        gizmo.length = 0;
 
-            const filletFactory = new JointFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            await filletFactory.setJoint(joint);
+        const cornerAngle = factory.cornerAngle;
+        gizmo.position.copy(cornerAngle.origin);
+        const quat = new THREE.Quaternion();
+        quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), cornerAngle.tau.cross(cornerAngle.axis));
+        gizmo.quaternion.copy(quat);
 
-            const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
-            gizmo.length = 0;
+        await gizmo.execute(d => {
+            factory.radius = d;
+            factory.update();
+        }, mode.Persistent).resource(this);
 
-            const cornerAngle = filletFactory.cornerAngle;
-
-            gizmo.position.copy(cornerAngle.origin);
-            const quat = new THREE.Quaternion();
-            quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), cornerAngle.tau.cross(cornerAngle.axis));
-            gizmo.quaternion.copy(quat);
-
-            await gizmo.execute(d => {
-                filletFactory.radius = d;
-                filletFactory.update();
-            }, mode.Persistent).resource(this);
-
-            await filletFactory.commit();
-        } else {
-            const filletFactory = new PolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            await filletFactory.setCurve(instance);
-            filletFactory.controlPoints = [...this.editor.selection.selectedControlPoints].map(p => p.index);
-
-            const { origin, tau } = filletFactory.cornerAngle;
-
-            const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
-            gizmo.length = 0;
-            gizmo.position.copy(origin);
-            const quat = new THREE.Quaternion();
-            quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), tau);
-            gizmo.quaternion.copy(quat);
-            await gizmo.execute(d => {
-                filletFactory.radius = d;
-                filletFactory.update();
-            }, mode.Persistent).resource(this);
-
-            await filletFactory.commit();
-        }
+        await factory.commit();
     }
 }

@@ -100,6 +100,11 @@ makeLine2.p1 = new THREE.Vector3(1, 1, 0);
 makeLine2.p2 = new THREE.Vector3(0, 1, 0);
 makeLine2.commit();
 
+const makeLine3 = new LineFactory(editor.db, editor.materials, editor.signals);
+makeLine2.p1 = new THREE.Vector3(0, 1, 0);
+makeLine2.p2 = new THREE.Vector3();
+makeLine2.commit();
+
 // const makePolyline = new CurveFactory(editor.db, editor.materials, editor.signals);
 // makePolyline.type = c3d.SpaceType.Polyline3D;
 // makePolyline.points.push(new THREE.Vector3());
