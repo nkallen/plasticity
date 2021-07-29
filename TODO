@@ -1,9 +1,7 @@
 THIS WEEK:
 
 fillet contours
- - closed contour
 
-- cleanup object2mesh, cleanup command
 - aggregate by placement
 - contourman undo
 - 3d Joints

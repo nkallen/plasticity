@@ -282,7 +282,30 @@ export class FaceGroup extends THREE.Group {
 // optimizations aside, we do our usual raycast proxying to children, but we also have a completely
 // different screen-space raycasting algorithm in BetterRaycastingPoints.
 export class ControlPointGroup extends THREE.Object3D {
-    static build(ps: c3d.CartPoint3D[], parentId: c3d.SimpleName, material: THREE.PointsMaterial): ControlPointGroup {
+    static build(curve: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial) {
+        let points: c3d.CartPoint3D[] = [];
+        switch (curve.Type()) {
+            case c3d.SpaceType.PolyCurve3D: {
+                const controlPoints = curve.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D).GetPoints();
+                points = points.concat(controlPoints);
+                break;
+            }
+            case c3d.SpaceType.Contour3D: {
+                const contour = curve.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
+                const segs = contour.GetSegmentsCount();
+                if (!contour.IsClosed()) points.push(contour.GetLimitPoint(1));
+                const start = contour.IsClosed() ? 0 : 1;
+                for (let i = start; i < segs; i++) points.push(contour.FindCorner(i));
+                if (!contour.IsClosed()) points.push(contour.GetLimitPoint(2));
+                break;
+            }
+            default:
+                break;
+        }
+        return ControlPointGroup.fromCartPoints(points, parentId, material);
+    }
+
+    private static fromCartPoints(ps: c3d.CartPoint3D[], parentId: c3d.SimpleName, material: THREE.PointsMaterial): ControlPointGroup {
         let positions, colors;
         positions = new Float32Array(ps.length * 3);
         colors = new Float32Array(ps.length * 3);
