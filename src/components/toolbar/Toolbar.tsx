@@ -106,7 +106,8 @@ export default (editor: Editor) => {
         connectedCallback() {
             this.dispose = editor.tooltips.add(this.parentElement, {
                 title: this.innerHTML,
-                keyBindingCommand: `${this.getAttribute('command')}`,
+                placement: this.getAttribute('placement') ?? undefined,
+                keyBindingCommand: this.getAttribute('command'),
             });
         }
 

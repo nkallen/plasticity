@@ -1086,17 +1086,18 @@ export class RemovePointCommand extends Command {
 
 export class TrimCommand extends Command {
     async execute(): Promise<void> {
-        visual.EnabledLayers.disable(visual.Layers.Curve);
-        visual.EnabledLayers.enable(visual.Layers.CurveFragment);
-
-        const picker = new ObjectPicker(this.editor);
-        picker.allowCurveFragments();
-        const selection = await picker.execute().resource(this);
-        const fragment = selection.selectedCurves.first;
-
-        const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals);
-
         try {
+            visual.EnabledLayers.disable(visual.Layers.Curve);
+            visual.EnabledLayers.enable(visual.Layers.CurveFragment);
+
+            const picker = new ObjectPicker(this.editor);
+            picker.allowCurveFragments();
+            const selection = await picker.execute().resource(this);
+            const fragment = selection.selectedCurves.first;
+            if (fragment === undefined) return;
+
+            const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals);
+
             factory.fragment = fragment;
             await factory.commit();
         } finally {

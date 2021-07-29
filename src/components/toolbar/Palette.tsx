@@ -47,7 +47,7 @@ export default (editor: Editor) => {
             const { klass, tooltip } = this;
             const result = <>
                 <img src={icons.get(klass)}></img>
-                <ispace-tooltip command={`command:${klass.title}`}>{tooltip}</ispace-tooltip>
+                <ispace-tooltip command={`command:${klass.identifier}`} placement="left">{tooltip}</ispace-tooltip>
             </>
             render(result, this);
         }

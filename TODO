@@ -1,13 +1,13 @@
 THIS WEEK:
 
 fillet contours
-
+- circle circle box (wrench) seems broken again (Try trimming then fillet)
+- when any curve or control point is selected, show all
 - change icons
-- circle circle box (wrench) seems broken again (Try trimming)
 - aggregate by placement
 - contourman undo
 - 3d Joints
-- selecting control with mouse points is finicky
+- selecting control with mouse points is finicky (seems to be off by X)
 
 NEXT WEEK: Curve cleanup:
 
