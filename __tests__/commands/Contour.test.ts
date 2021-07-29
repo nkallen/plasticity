@@ -118,7 +118,7 @@ describe(ContourFilletFactory, () => {
 
         const makeFillet = new ContourFilletFactory(db, materials, signals);
         makeFillet.contour = contour;
-        makeFillet.controlPoints = [0];
+        makeFillet.controlPoints = [1];
         makeFillet.radius = 0.1;
         expect(makeFillet.cornerAngles.length).toBe(1);
         const filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;

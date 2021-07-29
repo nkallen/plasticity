@@ -1,12 +1,13 @@
 THIS WEEK:
 
-fillet curves/contours
-- add gizmo
-- all factories should be atomic? wrt to ContourMan -- so consider DI'ing EditorLike with Cman
-- trim should re-enque itself rather than be loop
+fillet contours
+
 - aggregate by placement
-selecting control with mouse points is finicky
+- contourman undo
+- 3d Joints
+- selecting control with mouse points is finicky
 - make line button polyline and curve button not
+- change icons
 
 NEXT WEEK: Curve cleanup:
 

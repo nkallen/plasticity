@@ -198,27 +198,28 @@ export class GeometryDatabase {
                 const lineMaterial = this.materials.line(instance);
                 const pointMaterial = this.materials.controlPoint();
 
-                let points;
+                let points: c3d.CartPoint3D[] = [];
                 switch (underlying.Type()) {
                     case c3d.SpaceType.PolyCurve3D: {
-                        const ps = underlying.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D).GetPoints();
-                        points = visual.ControlPointGroup.build(ps, id, pointMaterial);
+                        const controlPoints = underlying.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D).GetPoints();
+                        points = points.concat(controlPoints);
                         break;
                     }
                     case c3d.SpaceType.Contour3D: {
                         const contour = underlying.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
                         const segs = contour.GetSegmentsCount();
-                        const ps = [];
-                        for (let i = contour.IsClosed() ? 0 : 1; i < segs; i++) ps.push(contour.FindCorner(i));
-                        points = visual.ControlPointGroup.build(ps, id, pointMaterial);
+                        if (!contour.IsClosed()) points.push(contour.GetLimitPoint(1));
+                        const start = contour.IsClosed() ? 0 : 1;
+                        for (let i = start; i < segs; i++) points.push(contour.FindCorner(i));
+                        if (!contour.IsClosed()) points.push(contour.GetLimitPoint(2));
                         break;
                     }
                     default:
-                        points = new visual.ControlPointGroup();
                         break;
                 }
+                const pointGroup = visual.ControlPointGroup.build(points, id, pointMaterial);
 
-                const line = visual.Curve3D.build(edge, id, points, lineMaterial);
+                const line = visual.Curve3D.build(edge, id, pointGroup, lineMaterial);
                 curveBuilder.addLOD(line, distance);
                 break;
             }

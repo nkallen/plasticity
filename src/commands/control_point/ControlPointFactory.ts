@@ -1,3 +1,4 @@
+import { assertUnreachable } from "../../util/Util";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
@@ -22,10 +23,13 @@ abstract class ControlPointFactory extends GeometryFactory {
         const curve = item.Cast<c3d.PolyCurve3D | c3d.Contour3D>(item.IsA());
         this.curve = curve;
         this.instance = instance;
+        let position;
         if (curve instanceof c3d.PolyCurve3D) {
-            this.originalPosition.copy(cart2vec(curve.GetPoints()[this.controlPoint.index]));
-        }
-
+            position = curve.GetPoints()[this.controlPoint.index];
+        } else if (curve instanceof c3d.Contour3D) {
+            position = curve.FindCorner(this.controlPoint.index);
+        } else assertUnreachable(curve);
+        this.originalPosition.copy(cart2vec(position));
     }
 
     get originalItem() {

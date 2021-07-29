@@ -1028,7 +1028,6 @@ export class ModeCommand extends Command {
 export class ChangePointCommand extends Command {
     async execute(): Promise<void> {
         const controlPoint = this.editor.selection.selectedControlPoints.first;
-        const instance = controlPoint.parentItem;
 
         const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         changePoint.controlPoint = controlPoint;

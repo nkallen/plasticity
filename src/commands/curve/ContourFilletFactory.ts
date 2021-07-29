@@ -56,7 +56,7 @@ export class ContourFilletFactory extends GeometryFactory implements CurveFillet
 
     set radius(radius: number) {
         for (const p of this.controlPoints) {
-            this.radiuses[p] = radius;
+            this.radiuses[p - 1] = radius;
         }
     }
 
@@ -64,7 +64,7 @@ export class ContourFilletFactory extends GeometryFactory implements CurveFillet
         const result = [];
         for (const i of this.controlPoints) {
             const contour = this.model;
-            const info = contour.GetCornerAngle(i + 1);
+            const info = contour.GetCornerAngle(i);
             result.push({
                 origin: cart2vec(info.origin),
                 tau: vec2vec(info.tau),
@@ -123,7 +123,7 @@ export class JointFilletFactory extends GeometryFactory {
         const item = inst.GetSpaceItem()!;
         const contour = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
         this.factory.model = contour;
-        const index = joint.on1.isTmin ? this.factory.radiuses.length - 1 : 0;
+        const index = joint.on1.isTmin ? this.factory.radiuses.length : 1;
         this.factory.controlPoints = [index];
     }
 
@@ -163,7 +163,7 @@ export class PolylineFilletFactory extends GeometryFactory implements CurveFille
     }
 
     get controlPoints() { return this.factory.controlPoints }
-    set controlPoints(points: number[]) { this.factory.controlPoints = points.map(p => p - 1) }
+    set controlPoints(points: number[]) { this.factory.controlPoints = points }
 
     set radius(radius: number) {
         this.factory.radius = radius;
