@@ -1,3 +1,4 @@
+import ContourManager from '../commands/ContourManager';
 import c3d from '../../build/Release/c3d.node';
 import { RefCounter } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
@@ -9,7 +10,8 @@ export class Memento {
         readonly version: number,
         readonly db: GeometryMemento,
         readonly selection: SelectionMemento,
-        readonly snaps: SnapMemento
+        readonly snaps: SnapMemento,
+        readonly contours: ContourMemento,
     ) { }
 }
 
@@ -43,6 +45,12 @@ export class SnapMemento {
     ) { }
 }
 
+export class ContourMemento {
+    constructor(
+        readonly curve2info: ContourManager["curve2info"],
+        readonly planar2instance: ContourManager["planar2instance"]
+    ) { }
+}
 
 export type StateChange = (f: () => void) => void;
 
@@ -54,7 +62,8 @@ export class EditorOriginator {
     constructor(
         readonly db: MementoOriginator<GeometryMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
-        readonly snaps: MementoOriginator<SnapMemento>
+        readonly snaps: MementoOriginator<SnapMemento>,
+        readonly contours: MementoOriginator<ContourMemento>
     ) { }
 
     group(registry: Map<any, any>, fn: () => void) {
@@ -62,7 +71,8 @@ export class EditorOriginator {
             this.version++,
             this.db.saveToMemento(registry),
             this.selection.saveToMemento(registry),
-            this.snaps.saveToMemento(registry));
+            this.snaps.saveToMemento(registry),
+            this.contours.saveToMemento(registry));
 
         this.state = { tag: 'group', memento: memento };
         try {
@@ -79,7 +89,8 @@ export class EditorOriginator {
                     this.version++,
                     this.db.saveToMemento(registry),
                     this.selection.saveToMemento(registry),
-                    this.snaps.saveToMemento(registry));
+                    this.snaps.saveToMemento(registry),
+                    this.contours.saveToMemento(registry));
             case 'group':
                 return this.state.memento;
         }

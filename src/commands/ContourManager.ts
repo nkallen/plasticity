@@ -1,3 +1,4 @@
+import { ContourMemento } from '../editor/History';
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from '../editor/GeometryDatabase';
@@ -341,6 +342,17 @@ export default class ContourManager {
             info2.joints.start = new Joint(on2, on1);
         else if (t2 === curve2.GetTMax())
             info2.joints.stop = new Joint(on2, on1);
+    }
+
+    saveToMemento(registry: Map<any, any>): ContourMemento {
+        return new ContourMemento(
+            new Map(this.curve2info),
+            new Map(this.planar2instance))
+    }
+
+    restoreFromMemento(m: ContourMemento) {
+        (this.curve2info as ContourManager['curve2info']) = m.curve2info;
+        (this.planar2instance as ContourManager['planar2instance']) = m.planar2instance;
     }
 }
 

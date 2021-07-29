@@ -41,7 +41,7 @@ export class Editor {
     readonly scene = new THREE.Scene();
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this.db, this.selection, this.snaps);
+    readonly originator = new EditorOriginator(this.db, this.selection, this.snaps, this.contours);
     readonly history = new History(this.originator, this.signals);
     readonly transactoins = new Transactions(this.db, this.signals);
     readonly executor = new CommandExecutor(this.selectionGizmo, this.registry, this.signals, this.originator, this.history, this.selection, this.contours);
