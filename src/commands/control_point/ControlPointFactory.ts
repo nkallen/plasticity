@@ -6,7 +6,7 @@ import { cart2vec, vec2cart } from "../../util/Conversion";
 import { GeometryFactory } from '../Factory';
 
 abstract class ControlPointFactory extends GeometryFactory {
-    protected curve!: c3d.PolyCurve3D | c3d.Contour3D;
+    protected curve!: c3d.Curve3D;
     protected instance!: visual.SpaceInstance<visual.Curve3D>;
     readonly originalPosition = new THREE.Vector3();
 
@@ -18,9 +18,8 @@ abstract class ControlPointFactory extends GeometryFactory {
         let model = this.db.lookup(instance);
         model = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
         const item = model.GetSpaceItem()!;
-        if (item.Type() !== c3d.SpaceType.PolyCurve3D && item.Type() !== c3d.SpaceType.Contour3D)
-            throw new Error("invalid precondition");
-        const curve = item.Cast<c3d.PolyCurve3D | c3d.Contour3D>(item.IsA());
+
+        const curve = item.Cast<c3d.Curve3D>(item.IsA());
         this.curve = curve;
         this.instance = instance;
         let position;
@@ -28,7 +27,9 @@ abstract class ControlPointFactory extends GeometryFactory {
             position = curve.GetPoints()[this.controlPoint.index];
         } else if (curve instanceof c3d.Contour3D) {
             position = curve.FindCorner(this.controlPoint.index);
-        } else assertUnreachable(curve);
+        } else if (curve instanceof c3d.Arc3D) {
+            position = curve.GetLimitPoint(this.controlPoint.index + 1);
+        } else throw new Error("not yet supported");
         this.originalPosition.copy(cart2vec(position));
     }
 
@@ -48,6 +49,13 @@ export class ChangePointFactory extends ControlPointFactory {
         if (curve instanceof c3d.PolyCurve3D) {
             curve.ChangePoint(index, vec2cart(newPosition));
             curve.Rebuild();
+        } else if (curve instanceof c3d.Arc3D) {
+            if (curve.IsClosed()) {
+                const center = cart2vec(curve.GetCentre());
+                curve.SetRadius(center.distanceTo(newPosition));
+            } else {
+                curve.SetLimitPoint(index + 1, vec2cart(newPosition));
+            }
         }
 
         return new c3d.SpaceInstance(curve);

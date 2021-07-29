@@ -259,6 +259,7 @@ export default {
                 "double IsPeriodic()",
                 "bool IsStraight(bool ignoreParams = false)",
                 "MbCurve3D * Trimmed(double t1, double t2, int sense)",
+                { signature: "void GetCentre(MbCartPoint3D & c)", c: isReturn },
                 { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint3D & point)", point: isReturn },
                 { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn }
             ]
@@ -714,6 +715,17 @@ export default {
                 "const MbCartPoint3D & pc, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int initSense = 0",
                 "const MbPlacement3D & place, double aa, double bb, double angle",
                 "const MbCartPoint3D & pc, const MbCartPoint3D & p1, const MbCartPoint3D & p2, const MbVector3D & aZ, int initSense",
+            ],
+            functions: [
+                "void SetLimitPoint(ptrdiff_t number, const MbCartPoint3D & pnt)",
+                "void SetRadius(double r)",
+                "void SetRadiusA(double r)",
+                "void SetRadiusB(double r)",
+                "double GetRadius()",
+                "double GetRadiusA()",
+                "double GetRadiusB()",
+                "double GetAngle()",
+                "void SetAngle(double ang)",
             ]
         },
         PolyCurve3D: {

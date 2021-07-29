@@ -282,16 +282,16 @@ export class FaceGroup extends THREE.Group {
 // optimizations aside, we do our usual raycast proxying to children, but we also have a completely
 // different screen-space raycasting algorithm in BetterRaycastingPoints.
 export class ControlPointGroup extends THREE.Object3D {
-    static build(curve: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial) {
+    static build(item: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial) {
         let points: c3d.CartPoint3D[] = [];
-        switch (curve.Type()) {
+        switch (item.Type()) {
             case c3d.SpaceType.PolyCurve3D: {
-                const controlPoints = curve.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D).GetPoints();
+                const controlPoints = item.Cast<c3d.PolyCurve3D>(c3d.SpaceType.PolyCurve3D).GetPoints();
                 points = points.concat(controlPoints);
                 break;
             }
             case c3d.SpaceType.Contour3D: {
-                const contour = curve.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
+                const contour = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
                 const segs = contour.GetSegmentsCount();
                 if (!contour.IsClosed()) points.push(contour.GetLimitPoint(1));
                 const start = contour.IsClosed() ? 0 : 1;
@@ -299,8 +299,12 @@ export class ControlPointGroup extends THREE.Object3D {
                 if (!contour.IsClosed()) points.push(contour.GetLimitPoint(2));
                 break;
             }
-            default:
+            default: {
+                const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+                points.push(curve.GetLimitPoint(1));
+                if (!curve.IsClosed()) points.push(curve.GetLimitPoint(2));
                 break;
+            }
         }
         return ControlPointGroup.fromCartPoints(points, parentId, material);
     }
