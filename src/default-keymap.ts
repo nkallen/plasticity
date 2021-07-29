@@ -37,15 +37,15 @@ export default {
     },
 
     "ispace-viewport[gizmo='curve']": {
-        // "1": "gizmo:curve:line-segment",
-        "1": "gizmo:curve:polyline",
-        "2": "gizmo:curve:bezier",
-        "3": "gizmo:curve:nurbs",
-        "4": "gizmo:curve:hermite",
-        "5": "gizmo:curve:cubic-spline",
-        "6": "gizmo:curve:arc",
-        "space": "gizmo:curve:add-curve",
+        "1": "gizmo:curve:bezier",
+        "2": "gizmo:curve:nurbs",
+        "3": "gizmo:curve:hermite",
+        "4": "gizmo:curve:cubic-spline",
         "cmd-z": "gizmo:curve:undo",
+    },
+
+    "ispace-viewport[gizmo='line']": {
+        "cmd-z": "gizmo:line:undo",
     },
 
     "ispace-viewport": {

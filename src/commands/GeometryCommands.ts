@@ -15,7 +15,8 @@ import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import { JointFilletFactory, JointOrPolylineOrContourFilletFactory, PolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import CurveAndContourFactory from "./curve/CurveAndContourFactory";
-import { CurveKeyboardEvent, CurveKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
+import CurveFactory from "./curve/CurveFactory";
+import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardEvent, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import TrimFactory from "./curve/TrimFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
@@ -375,22 +376,49 @@ export class CylinderCommand extends Command {
 
 export class LineCommand extends Command {
     async execute(): Promise<void> {
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const line = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        line.type = c3d.SpaceType.Polyline3D
 
         const pointPicker = new PointPicker(this.editor);
-        const { point: p1 } = await pointPicker.execute().resource(this);
-        line.p1 = p1;
-        await pointPicker.execute(({ point: p2 }) => {
-            line.p2 = p2;
-            line.update();
+        const keyboard = new LineKeyboardGizmo(this.editor);
+        keyboard.execute((e: LineKeyboardEvent) => {
+            switch (e.tag) {
+                case 'undo':
+                    pointPicker.undo(); // FIXME in theory the overlay needs to be updated;
+                    line.points.pop();
+                    line.update();
+                    break;
+            }
         }).resource(this);
+
+        while (true) {
+            try {
+                const { point } = await pointPicker.execute(async ({ point }) => {
+                    line.nextPoint = point;
+                    if (!line.isValid) return;
+                    line.closed = line.wouldBeClosed(point);
+                    await line.update();
+                }).resource(this);
+                if (line.wouldBeClosed(point)) {
+                    line.closed = true;
+                    throw Finish;
+                }
+                line.nextPoint = undefined;
+                line.points.push(point);
+                await line.update();
+            } catch (e) {
+                if (e !== Finish) throw e;
+                break;
+            }
+        }
+
         await line.commit();
     }
 }
 
 export class CurveCommand extends Command {
     async execute(): Promise<void> {
-        const makeCurve = new CurveAndContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const makeCurve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
         const keyboard = new CurveKeyboardGizmo(this.editor);
@@ -400,12 +428,9 @@ export class CurveCommand extends Command {
                     makeCurve.type = e.type;
                     makeCurve.update();
                     break;
-                case 'add-curve':
-                    makeCurve.push();
-                    break;
                 case 'undo':
                     pointPicker.undo(); // FIXME in theory the overlay needs to be updated;
-                    makeCurve.undo();
+                    makeCurve.points.pop();
                     makeCurve.update();
                     break;
             }
