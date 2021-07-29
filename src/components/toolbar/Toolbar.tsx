@@ -88,7 +88,7 @@ export class Model {
         if (selection.selectedControlPoints.size > 0) {
             result.push(cmd.ChangePointCommand);
             result.push(cmd.RemovePointCommand);
-            result.push(cmd.CreateContourFilletsCommand);
+            result.push(cmd.FilletCurveCommand);
         }
         return result;
     }

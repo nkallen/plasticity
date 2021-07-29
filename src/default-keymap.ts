@@ -54,6 +54,7 @@ export default {
         "r": "command:rotate",
         "s": "command:scale",
         "b": "command:fillet",
+        "f": "command:fillet-curve",
         "e": "command:extrude",
         "x": "command:delete",
         "t": "command:trim",

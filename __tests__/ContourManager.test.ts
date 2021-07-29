@@ -129,37 +129,6 @@ test('open curve through circle, added then deleted', async () => {
     expect(db.visibleObjects.length).toBe(2);
 });
 
-test("joints (two open curves intersect at start/end points)", async () => {
-    makeCurve1.points.push(new THREE.Vector3());
-    makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
-    const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(1);
-    await contours.add(curve1);
-    expect(db.visibleObjects.length).toBe(2);
-
-    makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
-    makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
-    const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    expect(db.visibleObjects.length).toBe(3);
-    await contours.add(curve2);
-    expect(db.visibleObjects.length).toBe(4);
-
-    const joints1 = contours.lookup(curve1).joints;
-    const joints2 = contours.lookup(curve2).joints;
-
-    expect(joints1.start).toBeUndefined();
-    expect(joints1.stop.on1.curve).toBe(curve1);
-    expect(joints1.stop.on1.t).toBe(1);
-    expect(joints1.stop.on2.curve).toBe(curve2);
-    expect(joints1.stop.on2.t).toBe(0);
-
-    expect(joints2.stop).toBeUndefined();
-    expect(joints2.start.on1.curve).toBe(curve2);
-    expect(joints2.start.on1.t).toBe(0);
-    expect(joints2.start.on2.curve).toBe(curve1);
-    expect(joints2.start.on2.t).toBe(1);
-});
-
 test('userAddedCurve event is dispatched only when the user interacts with the db, not when fragments are automatically created; other events behave the same in both cases', async () => {
     const userAddedCurve = jest.fn();
     signals.userAddedCurve.add(userAddedCurve);
@@ -328,3 +297,98 @@ test("transactions", async () => {
         await contours.add(filleted);
     });
 });
+
+describe("Joints", () => {
+    test("joints (two open curves intersect at start/end points)", async () => {
+        makeCurve1.points.push(new THREE.Vector3());
+        makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
+        const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(1);
+        await contours.add(curve1);
+        expect(db.visibleObjects.length).toBe(2);
+    
+        makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
+        makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
+        const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(3);
+        await contours.add(curve2);
+        expect(db.visibleObjects.length).toBe(4);
+    
+        const joints1 = contours.lookup(curve1).joints;
+        const joints2 = contours.lookup(curve2).joints;
+    
+        expect(joints1.start).toBeUndefined();
+        expect(joints1.stop.on1.curve).toBe(curve1);
+        expect(joints1.stop.on1.t).toBe(1);
+        expect(joints1.stop.on2.curve).toBe(curve2);
+        expect(joints1.stop.on2.t).toBe(0);
+    
+        expect(joints2.stop).toBeUndefined();
+        expect(joints2.start.on1.curve).toBe(curve2);
+        expect(joints2.start.on1.t).toBe(0);
+        expect(joints2.start.on2.curve).toBe(curve1);
+        expect(joints2.start.on2.t).toBe(1);
+    });
+
+    test("joints (two open curves intersect at start/start points)", async () => {
+        makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
+        makeCurve1.points.push(new THREE.Vector3());
+        const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(1);
+        await contours.add(curve1);
+        expect(db.visibleObjects.length).toBe(2);
+    
+        makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
+        makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
+        const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(3);
+        await contours.add(curve2);
+        expect(db.visibleObjects.length).toBe(4);
+    
+        const joints1 = contours.lookup(curve1).joints;
+        const joints2 = contours.lookup(curve2).joints;
+    
+        expect(joints1.stop).toBeUndefined();
+        expect(joints1.start.on1.curve).toBe(curve1);
+        expect(joints1.start.on1.t).toBe(0);
+        expect(joints1.start.on2.curve).toBe(curve2);
+        expect(joints1.start.on2.t).toBe(0);
+    
+        expect(joints2.stop).toBeUndefined();
+        expect(joints2.start.on1.curve).toBe(curve2);
+        expect(joints2.start.on1.t).toBe(0);
+        expect(joints2.start.on2.curve).toBe(curve1);
+        expect(joints2.start.on2.t).toBe(0);
+    });
+
+    test("joints (two open curves intersect at end/end points)", async () => {
+        makeCurve1.points.push(new THREE.Vector3());
+        makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
+        const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(1);
+        await contours.add(curve1);
+        expect(db.visibleObjects.length).toBe(2);
+    
+        makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
+        makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
+        const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(3);
+        await contours.add(curve2);
+        expect(db.visibleObjects.length).toBe(4);
+    
+        const joints1 = contours.lookup(curve1).joints;
+        const joints2 = contours.lookup(curve2).joints;
+    
+        expect(joints1.start).toBeUndefined();
+        expect(joints1.stop.on1.curve).toBe(curve1);
+        expect(joints1.stop.on1.t).toBe(1);
+        expect(joints1.stop.on2.curve).toBe(curve2);
+        expect(joints1.stop.on2.t).toBe(1);
+    
+        expect(joints2.start).toBeUndefined();
+        expect(joints2.stop.on1.curve).toBe(curve2);
+        expect(joints2.stop.on1.t).toBe(1);
+        expect(joints2.stop.on2.curve).toBe(curve1);
+        expect(joints2.stop.on2.t).toBe(1);
+    });
+})
