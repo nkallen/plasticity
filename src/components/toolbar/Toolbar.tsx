@@ -141,7 +141,7 @@ export default (editor: Editor) => {
                         if (!tooltip) throw "invalid tooltip for " + command;
                         return <button onClick={_ => editor.enqueue(new command(editor))} name={command.identifier}>
                             <img src={icons.get(command)}></img>
-                            <ispace-tooltip command={`command:${command.identifier}`}>{tooltip}</ispace-tooltip>
+                            <ispace-tooltip placement="top" command={`command:${command.identifier}`}>{tooltip}</ispace-tooltip>
                         </button>
                     })}
                 </>

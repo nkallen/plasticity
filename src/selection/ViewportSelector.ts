@@ -7,6 +7,7 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from "../editor/GeometryDatabase";
 import { EditorOriginator } from "../editor/History";
 import * as visual from "../editor/VisualModel";
+
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,
     enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>;
@@ -96,7 +97,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         this.mouse.set((point.x * 2) - 1, - (point.y * 2) + 1);
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
-        return this.raycaster.intersectObjects(objects, false); // FIXME reconsider non-recursive
+        return this.raycaster.intersectObjects(objects, false);
     }
 
     dispose() {
