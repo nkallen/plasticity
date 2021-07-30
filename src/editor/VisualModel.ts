@@ -89,12 +89,17 @@ export class Curve3D extends SpaceItem {
     readonly line: Line2;
     readonly points: ControlPointGroup;
 
-    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial) {
+    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial): Curve3D {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
 
-        return new Curve3D(line, points, edge.name, edge.simpleName);
+        const built = new Curve3D(line, points, edge.name, edge.simpleName);
+
+        built.layers.set(Layers.Curve);
+        line.layers.set(Layers.Curve);
+
+        return built;
     }
 
     private constructor(line: Line2, points: ControlPointGroup, name: c3d.Name, simpleName: number) {
@@ -142,13 +147,18 @@ export class Region extends PlaneItem {
     get child() { return this.mesh };
     disposable = new CompositeDisposable();
 
-    static build(grid: c3d.MeshBuffer, material: THREE.Material) {
+    static build(grid: c3d.MeshBuffer, material: THREE.Material): Region {
         const geometry = new THREE.BufferGeometry();
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
         // geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3)); // FIXME
+
         const mesh = new THREE.Mesh(geometry, material);
-        return new Region(mesh);
+        const built = new Region(mesh);
+
+        built.layers.set(Layers.Region);
+        mesh.layers.set(Layers.Region);
+        return built;
     }
 
     get parentItem(): PlaneInstance<Region> {
@@ -190,7 +200,7 @@ export class CurveEdge extends Edge {
     private readonly occludedLine: Line2;
     get child() { return this.line };
 
-    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial) {
+    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial): CurveEdge {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
@@ -200,8 +210,10 @@ export class CurveEdge extends Edge {
         result.userData.name = edge.name;
         result.userData.simpleName = `${parentId},${edge.i}`;
         result.userData.index = edge.i;
+
         result.layers.set(Layers.CurveEdge);
         result.traverse(child => child.layers.set(Layers.CurveEdge))
+
         return result;
     }
 
@@ -222,7 +234,7 @@ export class Face extends TopologyItem {
     private readonly mesh: THREE.Mesh;
     get child() { return this.mesh };
 
-    static build(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material) {
+    static build(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material): Face {
         const geometry = new THREE.BufferGeometry();
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
@@ -232,8 +244,10 @@ export class Face extends TopologyItem {
         result.userData.name = grid.name;
         result.userData.simpleName = `${parentId},${grid.i}`
         result.userData.index = grid.i;
+
         result.layers.set(Layers.Face);
         result.traverse(child => child.layers.set(Layers.Face))
+
         return result;
     }
 
@@ -282,7 +296,7 @@ export class FaceGroup extends THREE.Group {
 // optimizations aside, we do our usual raycast proxying to children, but we also have a completely
 // different screen-space raycasting algorithm in BetterRaycastingPoints.
 export class ControlPointGroup extends THREE.Object3D {
-    static build(item: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial) {
+    static build(item: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial): ControlPointGroup {
         let points: c3d.CartPoint3D[] = [];
         switch (item.Type()) {
             case c3d.SpaceType.PolyCurve3D: {
@@ -328,13 +342,13 @@ export class ControlPointGroup extends THREE.Object3D {
         const points = new BetterRaycastingPoints(geometry, material);
 
         const result = new ControlPointGroup(ps.length, points);
-        result.visible = false;
         result.layers.set(Layers.ControlPoint);
+        points.layers.set(Layers.ControlPoint);
         result.userData.parentId = parentId;
         return result;
     }
 
-    constructor(readonly length = 0, readonly points?: THREE.Points) {
+    private constructor(readonly length = 0, readonly points?: THREE.Points) {
         super();
         if (points !== undefined) this.add(points);
     }
@@ -363,6 +377,7 @@ export class ControlPointGroup extends THREE.Object3D {
     get parentId(): number { return this.userData.parentId }
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        if (!raycaster.layers.test(this.layers)) return;
         if (this.points === undefined) return;
 
         const is: THREE.Intersection[] = [];
@@ -492,7 +507,6 @@ export class SolidBuilder {
     build(): Solid {
         const built = this.solid;
         built.layers.set(Layers.Solid);
-        built.traverse(child => child.layers.set(Layers.Solid))
         return built;
     }
 }
@@ -507,8 +521,6 @@ export class SpaceInstanceBuilder<T extends SpaceItem> {
 
     build(): SpaceInstance<T> {
         const built = this.instance;
-        built.layers.set(Layers.Curve);
-        built.traverse(child => child.layers.set(Layers.Curve))
         return built;
     }
 }
@@ -522,10 +534,7 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
     }
 
     build(): PlaneInstance<T> {
-        const built = this.instance;
-        built.layers.set(Layers.Region);
-        built.traverse(child => child.layers.set(Layers.Region))
-        return built;
+        return this.instance;
     }
 }
 
@@ -583,3 +592,4 @@ export enum Layers {
 export const EnabledLayers = new THREE.Layers();
 EnabledLayers.enableAll();
 EnabledLayers.disable(Layers.CurveFragment);
+EnabledLayers.disable(Layers.ControlPoint);

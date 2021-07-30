@@ -104,26 +104,4 @@ export class HighlightManager {
             }
         }
     }
-
-    showControlPoints(collection: Iterable<c3d.SimpleName>) {
-        for (const id of collection) {
-            const { view } = this.db.lookupItemById(id);
-            view.traverse(o => {
-                if (o instanceof visual.ControlPointGroup) {
-                    o.visible = true;
-                }
-            })
-        }
-    }
-
-    hideControlPoints(collection: Iterable<c3d.SimpleName>) {
-        for (const id of collection) {
-            const { view } = this.db.lookupItemById(id);
-            view.traverse(o => {
-                if (o instanceof visual.ControlPointGroup) {
-                    o.visible = false;
-                }
-            })
-        }
-    }
 }

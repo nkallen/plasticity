@@ -1,4 +1,3 @@
-import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
 import { GeometryDatabase } from '../editor/GeometryDatabase';
@@ -154,6 +153,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
 
     deselectCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
         this.selectedCurveIds.delete(curve.simpleName);
+        this.manageLayers();
         this.signals.objectDeselected.dispatch(curve);
     }
 
@@ -161,6 +161,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.hover?.dispose();
         this.hover = undefined;
         this.selectedCurveIds.add(curve.simpleName);
+        this.manageLayers();
         this.signals.objectSelected.dispatch(curve);
     }
 
@@ -170,12 +171,14 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.selectedControlPointIds.add(point.simpleName);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
             () => this.selectedControlPointIds.delete(point.simpleName));
+        this.manageLayers();
         this.signals.objectSelected.dispatch(point);
     }
 
     deselectControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
         this.selectedControlPointIds.delete(point.simpleName);
         this.parentsWithSelectedChildren.decr(parentItem.simpleName);
+        this.manageLayers();
         this.signals.objectDeselected.dispatch(point);
     }
 
@@ -200,6 +203,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
             this.signals.objectDeselected.dispatch(views.entries().next().value);
         }
         this.parentsWithSelectedChildren.clear();
+        this.manageLayers();
     }
 
     delete(item: visual.Item) {
@@ -214,6 +218,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         } else throw new Error("invalid precondition");
         this.hover?.dispose();
         this.hover = undefined;
+        this.manageLayers();
         this.signals.objectDeselected.dispatch(item);
     }
 
@@ -225,8 +230,7 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         for (const collection of [selectedCurveIds, selectedRegionIds]) {
             this.highlighter.highlightItems(collection, m => this.materials.highlight(m));
         }
-        this.highlighter.showControlPoints(selectedCurveIds);
-        this.highlighter.showControlPoints(this.parentsWithSelectedChildren.keys());
+
         this.highlighter.highlightControlPoints(selectedControlPointIds, m => this.materials.highlight(m));
         this.hover?.highlight(this.highlighter);
     }
@@ -240,9 +244,14 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         for (const collection of [selectedCurveIds, selectedRegionIds]) {
             this.highlighter.unhighlightItems(collection);
         }
-        this.highlighter.hideControlPoints(selectedCurveIds);
-        this.highlighter.hideControlPoints(this.parentsWithSelectedChildren.keys());
         this.highlighter.unhighlightControlPoints(selectedControlPointIds);
+    }
+
+    private manageLayers() {
+        if (this.selectedCurveIds.size > 0 || this.selectedControlPointIds.size > 0)
+            visual.EnabledLayers.enable(visual.Layers.ControlPoint);
+        else
+            visual.EnabledLayers.disable(visual.Layers.ControlPoint);
     }
 
     saveToMemento(registry: Map<any, any>) {
