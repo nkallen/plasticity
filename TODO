@@ -18,6 +18,7 @@ interleaving with updating/commit on factory. use q?
 keyboard instructions get in the way of clicking
 stick to surface max
 fillet needs to be in screen space
+redo fillet gizmos
 if delete point and 1 point left, GC
 drag and drop points
 control points not highlighted

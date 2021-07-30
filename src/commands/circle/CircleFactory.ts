@@ -6,7 +6,7 @@ import { GeometryFactory } from '../Factory';
 
 export enum Mode { Horizontal, Vertical }
 
-export class CircleFactory extends GeometryFactory {
+export class CenterCircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
     point!: THREE.Vector3;
     constructionPlane = new PlaneSnap();
@@ -44,7 +44,7 @@ export class CircleFactory extends GeometryFactory {
     }
 }
 
-export class TwoPointCircleFactory extends CircleFactory {
+export class TwoPointCircleFactory extends CenterCircleFactory {
     p1!: THREE.Vector3
     private radial = new THREE.Vector3();
 

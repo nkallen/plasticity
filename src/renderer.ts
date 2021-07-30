@@ -7,7 +7,7 @@ import '../lib/c3d/enums';
 import license from '../license-key.json';
 import BoxFactory from './commands/box/BoxFactory';
 import SphereFactory from './commands/sphere/SphereFactory';
-import { CircleFactory } from './commands/circle/CircleFactory';
+import { CenterCircleFactory } from './commands/circle/CircleFactory';
 import Dialog from './components/modifiers/Dialog';
 import Modifiers from './components/modifiers/Modifiers';
 import NumberScrubber from './components/modifiers/NumberScrubber';

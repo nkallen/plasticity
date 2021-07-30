@@ -9,7 +9,7 @@ import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from
 import BoxFactory from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
-import { CircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
+import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
@@ -67,9 +67,9 @@ export class SphereCommand extends Command {
     }
 }
 
-export class CircleCommand extends Command {
+export class CenterCircleCommand extends Command {
     async execute(): Promise<void> {
-        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const keyboard = new CircleKeyboardGizmo(this.editor);
         keyboard.execute((e: CircleKeyboardEvent) => {
@@ -346,7 +346,7 @@ export class CylinderCommand extends Command {
     async execute(): Promise<void> {
         let pointPicker = new PointPicker(this.editor);
 
-        const circle = new CircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const { point: p1 } = await pointPicker.execute().resource(this);
         circle.center = p1;
 

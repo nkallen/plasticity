@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 60 60" style="enable-background:new 0 0 60 60;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;}
+</style>
+<desc></desc>
+<g id="Page-1_1_">
+	<g id="_x30_84.Spline_1_" transform="translate(1.000000, 1.000000)">
+		<path id="Stroke-1155_1_" class="st0" d="M32,9.1"/>
+		<path id="Stroke-1156_2_" class="st0" d="M26,8.8"/>
+		<polygon id="Stroke-1160_1_" class="st0" points="26,12.6 32,12.6 32,6.6 26,6.6 		"/>
+	</g>
+</g>
+<g id="Page-1_2_">
+	<g id="_x30_84.Spline_2_" transform="translate(1.000000, 1.000000)">
+		<path id="Stroke-1155_2_" class="st0" d="M15.1,43.5"/>
+		<path id="Stroke-1156_1_" class="st0" d="M9.1,43.1"/>
+		<polygon id="Stroke-1160_2_" class="st0" points="9.1,47 15.1,47 15.1,41 9.1,41 		"/>
+	</g>
+</g>
+<g id="Page-1_3_">
+	<g id="_x30_84.Spline_3_" transform="translate(1.000000, 1.000000)">
+		<path id="Stroke-1155_3_" class="st0" d="M48.9,43.5"/>
+		<path id="Stroke-1156_3_" class="st0" d="M42.9,43.1"/>
+		<polygon id="Stroke-1160_3_" class="st0" points="42.9,47 48.9,47 48.9,41 42.9,41 		"/>
+	</g>
+</g>
+<g>
+	<path d="M33,9.3v3c12.4,1.1,22,8.6,22,17.7c0,4.6-2.5,8.8-6.5,12h1.4v2.6c5-3.8,8.1-8.9,8.1-14.6C58,19.3,47,10.4,33,9.3z"/>
+	<path d="M10.1,42h1.4C7.5,38.8,5,34.6,5,30c0-9.1,9.6-16.6,22-17.7v-3C13,10.4,2,19.3,2,30c0,5.7,3.1,10.9,8.1,14.6V42z"/>
+	<path d="M43.9,48v-3.2c-4,1.9-8.8,3-13.9,3c-5.1,0-9.9-1.1-13.9-3V48h-0.2c4.1,1.8,9,2.8,14.1,2.8c5.1,0,10-1,14.1-2.8H43.9z"/>
+</g>
+</svg>

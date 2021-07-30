@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CircleFactory } from "../src/commands/circle/CircleFactory";
+import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import ContourManager from '../src/commands/ContourManager';
 import { ContourFilletFactory } from "../src/commands/curve/ContourFilletFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
@@ -15,9 +15,9 @@ import './matchers';
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let silentSignals: EditorSignals;
-let makeCircle1: CircleFactory;
-let makeCircle2: CircleFactory;
-let makeCircle3: CircleFactory;
+let makeCircle1: CenterCircleFactory;
+let makeCircle2: CenterCircleFactory;
+let makeCircle3: CenterCircleFactory;
 let makeCurve1: CurveFactory;
 let makeCurve2: CurveFactory;
 let makeCurve3: CurveFactory;
@@ -29,9 +29,9 @@ beforeEach(() => {
     silentSignals = new EditorSignals(); // not connected to the db, so these never trigger
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    makeCircle1 = new CircleFactory(db, materials, silentSignals);
-    makeCircle2 = new CircleFactory(db, materials, silentSignals);
-    makeCircle3 = new CircleFactory(db, materials, silentSignals);
+    makeCircle1 = new CenterCircleFactory(db, materials, silentSignals);
+    makeCircle2 = new CenterCircleFactory(db, materials, silentSignals);
+    makeCircle3 = new CenterCircleFactory(db, materials, silentSignals);
     makeCurve1 = new CurveFactory(db, materials, silentSignals);
     makeCurve2 = new CurveFactory(db, materials, silentSignals);
     makeCurve3 = new CurveFactory(db, materials, silentSignals);

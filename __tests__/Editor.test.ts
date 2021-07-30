@@ -4,7 +4,7 @@
 jest.mock('atom-keymap');
 
 import Command from '../src/commands/Command';
-import { CircleCommand } from '../src/commands/GeometryCommands';
+import { CenterCircleCommand } from '../src/commands/GeometryCommands';
 import { Editor } from '../src/editor/Editor';
 import './matchers';
 
@@ -19,9 +19,9 @@ afterEach(() => {
 });
 
 test('enqueue cancels active commands and executes the most recent', async () => {
-    const command1 = new CircleCommand(editor);
-    const command2 = new CircleCommand(editor);
-    const command3 = new CircleCommand(editor);
+    const command1 = new CenterCircleCommand(editor);
+    const command2 = new CenterCircleCommand(editor);
+    const command3 = new CenterCircleCommand(editor);
 
     editor.enqueue(command1);
     await Promise.resolve();

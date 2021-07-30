@@ -3,7 +3,13 @@ import trash from 'bootstrap-icons/icons/trash.svg';
 import { Editor } from '../../editor/Editor';
 import Command from '../../commands/Command';
 import * as cmd from '../../commands/GeometryCommands';
-import circle from './img/circle.svg';
+import centerCircle from './img/center-circle.svg';
+import twoPointCircle from './img/two-point-circle.svg';
+import threePointCircle from './img/three-point-circle.svg';
+import centerPointArc from './img/center-point-arc.svg';
+import threePointArc from './img/three-point-arc.svg';
+import centerEllipse from './img/center-ellipse.svg';
+import threePointEllipse from './img/three-point-ellipse.svg';
 import curve from './img/curve.svg';
 import cut from './img/cut.svg';
 import cylinder from './img/cylinder.svg';
@@ -16,7 +22,12 @@ import loft from './img/loft.svg';
 import mirror from './img/mirror.svg';
 import move from './img/move.svg';
 import offsetFace from './img/offset-face.svg';
-import rect from './img/rect.svg';
+import centerRectangle from './img/center-rectangle.svg';
+import cornerRectangle from './img/corner-rectangle.svg';
+import threePointRectangle from './img/three-point-rectangle.svg';
+import regularPolygon from './img/regular-polygon.svg';
+import characterCurve from './img/character-curve.svg';
+import spiral from './img/spiral.svg';
 import { default as draftSolid, default as rotate } from './img/rotate.svg';
 import scale from './img/scale.svg';
 import sphere from './img/sphere.svg';
@@ -42,18 +53,18 @@ icons.set(cmd.FilletFaceCommand, fillet);
 icons.set(cmd.PurifyFaceCommand, trash);
 icons.set(cmd.CurveCommand, curve);
 icons.set(cmd.SphereCommand, sphere);
-icons.set(cmd.CircleCommand, circle);
-icons.set(cmd.TwoPointCircleCommand, circle);
-icons.set(cmd.ThreePointCircleCommand, circle);
-icons.set(cmd.CenterPointArcCommand, circle);
-icons.set(cmd.ThreePointArcCommand, circle);
-icons.set(cmd.CenterEllipseCommand, circle);
-icons.set(cmd.ThreePointEllipseCommand, circle);
-icons.set(cmd.PolygonCommand, circle);
+icons.set(cmd.CenterCircleCommand, centerCircle);
+icons.set(cmd.TwoPointCircleCommand, twoPointCircle);
+icons.set(cmd.ThreePointCircleCommand, threePointCircle);
+icons.set(cmd.CenterPointArcCommand, centerPointArc);
+icons.set(cmd.ThreePointArcCommand, threePointArc);
+icons.set(cmd.CenterEllipseCommand, centerEllipse);
+icons.set(cmd.ThreePointEllipseCommand, threePointEllipse);
+icons.set(cmd.PolygonCommand, regularPolygon);
 icons.set(cmd.LineCommand, line);
-icons.set(cmd.ThreePointRectangleCommand, rect);
-icons.set(cmd.CornerRectangleCommand, rect);
-icons.set(cmd.CenterRectangleCommand, rect);
+icons.set(cmd.ThreePointRectangleCommand, threePointRectangle);
+icons.set(cmd.CornerRectangleCommand, cornerRectangle);
+icons.set(cmd.CenterRectangleCommand, centerRectangle);
 icons.set(cmd.CylinderCommand, cylinder);
 icons.set(cmd.BoxCommand, box);
 icons.set(cmd.LoftCommand, loft);
@@ -63,8 +74,8 @@ icons.set(cmd.MirrorCommand, mirror);
 icons.set(cmd.JoinCurvesCommand, mirror);
 icons.set(cmd.RegionCommand, mirror);
 icons.set(cmd.RegionBooleanCommand, mirror);
-icons.set(cmd.SpiralCommand, mirror);
-icons.set(cmd.CharacterCurveCommand, draftSolid);
+icons.set(cmd.SpiralCommand, spiral);
+icons.set(cmd.CharacterCurveCommand, characterCurve);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 icons.set(cmd.ChangePointCommand, changePoint);
 icons.set(cmd.TrimCommand, trim);
@@ -89,7 +100,7 @@ tooltips.set(cmd.FilletFaceCommand, "Modify fillet of face");
 tooltips.set(cmd.PurifyFaceCommand, "Remove fillet");
 tooltips.set(cmd.CurveCommand, "Curve");
 tooltips.set(cmd.SphereCommand, "Sphere");
-tooltips.set(cmd.CircleCommand, "Center and radius circle");
+tooltips.set(cmd.CenterCircleCommand, "Center and radius circle");
 tooltips.set(cmd.TwoPointCircleCommand, "Two-point circle");
 tooltips.set(cmd.ThreePointCircleCommand, "Three-point circle");
 tooltips.set(cmd.CenterPointArcCommand, "Center-point arc");
@@ -155,7 +166,7 @@ export default (editor: Editor): void => {
         'command:rotate': () => editor.enqueue(new cmd.RotateCommand(editor)),
         'command:scale': () => editor.enqueue(new cmd.ScaleCommand(editor)),
         'command:sphere': () => editor.enqueue(new cmd.SphereCommand(editor)),
-        'command:circle': () => editor.enqueue(new cmd.CircleCommand(editor)),
+        'command:center-circle': () => editor.enqueue(new cmd.CenterCircleCommand(editor)),
         'command:center-rectangle': () => editor.enqueue(new cmd.CenterRectangleCommand(editor)),
         'command:line': () => editor.enqueue(new cmd.LineCommand(editor)),
         'command:curve': () => editor.enqueue(new cmd.CurveCommand(editor)),
