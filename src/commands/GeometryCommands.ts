@@ -1087,8 +1087,7 @@ export class RemovePointCommand extends Command {
 export class TrimCommand extends Command {
     async execute(): Promise<void> {
         try {
-            visual.EnabledLayers.disable(visual.Layers.Curve);
-            visual.EnabledLayers.enable(visual.Layers.CurveFragment);
+            this.editor.layers.showFragments();
 
             const picker = new ObjectPicker(this.editor);
             picker.allowCurveFragments();
@@ -1100,8 +1099,7 @@ export class TrimCommand extends Command {
             factory.fragment = fragment;
             await factory.commit();
         } finally {
-            visual.EnabledLayers.enable(visual.Layers.Curve);
-            visual.EnabledLayers.disable(visual.Layers.CurveFragment);
+            this.editor.layers.hideFragments();
         }
         this.editor.enqueue(new TrimCommand(this.editor));
     }

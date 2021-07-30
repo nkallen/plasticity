@@ -3,6 +3,7 @@ import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from "../editor/GeometryDatabase";
+import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import { SnapManager } from "../editor/SnapManager";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
@@ -47,8 +48,9 @@ export interface EditorLike {
     gizmos: GizmoMaterialDatabase,
     selectionInteraction: SelectionInteractionManager,
     contours: ContourManager,
+    layers: LayerManager,
     enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>
-    }
+}
 
 export default abstract class Command extends CancellableRegistor {
     static get title() { return this.name.replace(/Command/, '') }

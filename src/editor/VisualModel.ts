@@ -123,6 +123,8 @@ export class Curve3D extends SpaceItem {
     }
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        if (!this.layers.test(raycaster.layers)) return;
+
         this.points.raycast(raycaster, intersects);
         
         const is: THREE.Intersection[] = [];
@@ -474,8 +476,7 @@ abstract class ObjectWrapper<T extends THREE.BufferGeometry = THREE.BufferGeomet
     get geometry() { return this.child.geometry };
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        const is: THREE.Intersection[] = [];
-        this.child.raycast(raycaster, is);
+        const is = raycaster.intersectObject(this.child);
         if (is.length > 0) {
             const i = is[0];
             i.object = this;
@@ -601,7 +602,12 @@ export enum Layers {
     CurveEdge,
 }
 
-export const EnabledLayers = new THREE.Layers();
-EnabledLayers.enableAll();
-EnabledLayers.disable(Layers.CurveFragment);
-EnabledLayers.disable(Layers.ControlPoint);
+export const VisibleLayers = new THREE.Layers();
+VisibleLayers.enableAll();
+VisibleLayers.disable(Layers.CurveFragment);
+VisibleLayers.disable(Layers.ControlPoint);
+
+export const SelectableLayers = new THREE.Layers();
+SelectableLayers.enableAll();
+SelectableLayers.disable(Layers.CurveFragment);
+SelectableLayers.disable(Layers.ControlPoint);

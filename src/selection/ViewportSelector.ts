@@ -37,7 +37,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         this.raycaster.params.Mesh.threshold = 0;
         // @ts-expect-error("Points is missing from the typedef")
         this.raycaster.params.Points.threshold = 10;
-        this.raycaster.layers = visual.EnabledLayers;
+        this.raycaster.layers = visual.VisibleLayers;
 
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);

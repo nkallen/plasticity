@@ -85,7 +85,7 @@ test('raycast solid', async () => {
     item.updateMatrixWorld();
 
     const raycaster = new THREE.Raycaster();
-    raycaster.layers = visual.EnabledLayers;
+    raycaster.layers = visual.SelectableLayers;
     const pointer = { x: 0, y: 0 };
     const camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
@@ -93,8 +93,8 @@ test('raycast solid', async () => {
     raycaster.setFromCamera(pointer, camera);
     const intersections = raycaster.intersectObject(item);
     expect(intersections.length).toBe(3);
-    expect(intersections[0].object).toBeInstanceOf(visual.CurveEdge);
-    expect(intersections[1].object).toBeInstanceOf(visual.Face);
+    expect(intersections[0].object).toBeInstanceOf(visual.Face);
+    expect(intersections[1].object).toBeInstanceOf(visual.CurveEdge);
     expect(intersections[2].object).toBeInstanceOf(visual.CurveEdge);
 });
 
@@ -113,13 +113,12 @@ test('raycast instance<curve3d>', async () => {
     raycaster.setFromCamera(pointer, camera);
     let intersections;
 
-    raycaster.layers = visual.EnabledLayers;
+    raycaster.layers = visual.SelectableLayers;
     raycaster.layers.disable(visual.Layers.ControlPoint);
     intersections = raycaster.intersectObject(item);
     expect(intersections.length).toBe(1);
     expect(intersections[0].object).toBeInstanceOf(visual.Curve3D);
 
-    raycaster.layers = visual.EnabledLayers;
     raycaster.layers.enable(visual.Layers.ControlPoint);
     intersections = raycaster.intersectObject(item);
     expect(intersections.length).toBe(2);

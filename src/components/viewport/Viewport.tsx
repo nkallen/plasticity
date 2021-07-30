@@ -280,6 +280,7 @@ export class Model implements Viewport {
     }
 
     navigationStart() {
+        console.log(1);
         this.navigationControls.addEventListener('change', this.navigationChange);
         this.navigationControls.addEventListener('end', this.navigationEnd);
     }
@@ -350,7 +351,7 @@ export default (editor: EditorLike) => {
                     n = new THREE.Vector3(0, 1, 0);
                     break;
             }
-            camera.layers = visual.EnabledLayers;
+            camera.layers = visual.VisibleLayers;
 
             const navigationControls = new OrbitControls(camera, renderer.domElement);
             if (camera.type == 'OrthographicCamera') navigationControls.enableRotate = false;

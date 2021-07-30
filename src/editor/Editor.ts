@@ -16,6 +16,7 @@ import { Helpers } from "../util/Helpers";
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
+import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
@@ -37,6 +38,7 @@ export class Editor {
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
     readonly selection = new SelectionManager(this.db, this.materials, this.signals);
+    readonly layers = new LayerManager(this.selection, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly scene = new THREE.Scene();
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
