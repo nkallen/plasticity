@@ -18,16 +18,14 @@ export class BetterRaycastingPoints extends THREE.Points {
         const threshold = raycaster.params.Points.threshold;
         const drawRange = geometry.drawRange;
     
-        // Checking boundingSphere distance to ray
-    
         if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
 
         _sphere.copy(geometry.boundingSphere!);
         _sphere.applyMatrix4(matrixWorld);
-        _sphere.radius = Math.max(0.1, _sphere.radius);
+        _sphere.radius = Math.max(0.1, _sphere.radius + 0.1);
     
         if (raycaster.ray.intersectsSphere(_sphere) === false) return;
-    
+        
         const attributes = geometry.attributes;
         const positionAttribute = attributes.position;
 

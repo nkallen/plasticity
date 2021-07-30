@@ -149,6 +149,8 @@ export class Curve3D extends SpaceItem {
         this.userData.start = start;
         this.userData.stop = stop;
         this.userData.untrimmedAncestor = ancestor;
+        // FIXME rethink this -- but fragments don't need control points, and we don't want them ever being visible/raycast targets/
+        this.points.clear();
     }
 }
 
