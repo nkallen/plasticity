@@ -52,6 +52,7 @@ export default {
         "c": "command:circle",
         "g": "command:move",
         "r": "command:rotate",
+        "R": "command:center-rectangle",
         "s": "command:scale",
         "b": "command:fillet",
         "f": "command:fillet-curve",
