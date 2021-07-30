@@ -59,6 +59,7 @@ export class Solid extends Item {
 export class SpaceInstance<T extends SpaceItem> extends Item {
     private _useNominal3: undefined;
     get underlying() { return this.lod.children[0] as T }
+    get levels() { return this.lod.children as T[] }
     disposable = new CompositeDisposable();
 }
 
