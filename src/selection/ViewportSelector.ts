@@ -43,10 +43,10 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerHover = this.onPointerHover.bind(this);
 
-        domElement.addEventListener('pointerdown', this.onPointerDown, false);
+        domElement.addEventListener('pointerdown', this.onPointerDown);
         domElement.addEventListener('pointermove', this.onPointerHover);
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointerdown', this.onPointerDown)));
-        this.disposable.add(new Disposable(() => domElement.removeEventListener('pointermove', this.onPointerDown)));
+        this.disposable.add(new Disposable(() => domElement.removeEventListener('pointermove', this.onPointerHover)));
     }
 
     onPointerDown(event: PointerEvent): void {
@@ -56,7 +56,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
         this.onDownPosition.fromArray(array);
 
-        document.addEventListener('pointerup', this.onPointerUp, false);
+        document.addEventListener('pointerup', this.onPointerUp);
     }
 
     onPointerHover(event: PointerEvent): void {
@@ -82,7 +82,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
             this.processClick(intersects);
         }
 
-        document.removeEventListener('pointerup', this.onPointerUp, false);
+        document.removeEventListener('pointerup', this.onPointerUp);
     }
 
     protected abstract processClick(intersects: THREE.Intersection[]): void;
