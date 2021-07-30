@@ -18,6 +18,8 @@ export interface TemporaryObject {
 export type TopologyData = { model: c3d.TopologyItem, views: Set<visual.Face | visual.Edge> };
 export type ControlPointData = { index: number, views: Set<visual.ControlPoint> };
 
+type Agent = 'user' | 'automatic';
+
 export class GeometryDatabase {
     readonly temporaryObjects = new THREE.Scene();
     private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
@@ -31,7 +33,12 @@ export class GeometryDatabase {
         private readonly signals: EditorSignals) { }
 
     private counter = 0;
-    async addItem(model: c3d.Item, agent: 'user' | 'automatic' = 'user'): Promise<visual.Item> {
+
+    async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
+    async addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    async addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
+    async addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;
+        async addItem(model: c3d.Item, agent: Agent = 'user'): Promise<visual.Item> {
         return this.queue.enqueue(async () => {
             const current = this.counter++;
 
@@ -75,7 +82,7 @@ export class GeometryDatabase {
         }
     }
 
-    removeItem(view: visual.Item, agent: 'user' | 'automatic' = 'user') {
+    removeItem(view: visual.Item, agent: Agent = 'user') {
         return this.queue.enqueue(async () => {
             const simpleName = view.simpleName;
             this.geometryModel.delete(simpleName);

@@ -33,7 +33,7 @@ export class RegionFactory extends GeometryFactory {
             }
         }
 
-        const { contours, graph } = c3d.ContourGraph.OuterContoursBuilder(curves);
+        const { contours } = c3d.ContourGraph.OuterContoursBuilder(curves);
 
         const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
         const result = [];

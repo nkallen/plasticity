@@ -84,6 +84,8 @@ export class ControlPoint extends THREE.Object3D {
     get geometry() { return this.points.points }
 }
 
+export type FragmentInfo = { start: number, stop: number, untrimmedAncestor: SpaceInstance<Curve3D> };
+
 export class Curve3D extends SpaceItem {
     disposable = new CompositeDisposable();
     readonly line: Line2;
@@ -121,7 +123,7 @@ export class Curve3D extends SpaceItem {
 
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
         this.points.raycast(raycaster, intersects);
-
+        
         const is: THREE.Intersection[] = [];
         this.line.raycast(raycaster, is);
         if (is.length > 0) {
@@ -131,10 +133,19 @@ export class Curve3D extends SpaceItem {
         }
     }
 
-    get isFragment() {
+    get fragmentInfo(): FragmentInfo | undefined {
         const layer = new THREE.Layers();
         layer.set(Layers.CurveFragment);
-        return this.layers.test(layer);
+        if (!this.layers.test(layer)) return undefined;
+        return this.userData as FragmentInfo;
+    }
+
+    befragment(start: number, stop: number, ancestor: SpaceInstance<Curve3D>) {
+        this.layers.set(Layers.CurveFragment);
+        this.line.layers.set(Layers.CurveFragment);
+        this.userData.start = start;
+        this.userData.stop = stop;
+        this.userData.untrimmedAncestor = ancestor;
     }
 }
 

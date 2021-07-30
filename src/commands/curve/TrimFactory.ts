@@ -3,18 +3,15 @@ import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../Factory';
 
 export default class TrimFactory extends GeometryFactory {
-    private _fragment!: visual.SpaceInstance<visual.Curve3D>;
     private curve!: c3d.Curve3D;
-    private info!: { start: number, stop: number, parentItem: visual.SpaceInstance<visual.Curve3D> };
+    private info!: visual.FragmentInfo;
 
     set fragment(fragment: visual.SpaceInstance<visual.Curve3D>) {
-        if (!fragment.underlying.isFragment) throw new Error("invalid precondition");
+        const info = fragment.underlying.fragmentInfo;
+        if (info === undefined) throw new Error("invalid precondition");
+        this.info = info;
 
-        this._fragment = fragment;
-
-        this.info = fragment.userData as TrimFactory["info"];
-
-        const model = this.db.lookup(this.info.parentItem);
+        const model = this.db.lookup(info.untrimmedAncestor);
         const item = model.GetSpaceItem()!;
         this.curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
     }
@@ -44,5 +41,5 @@ export default class TrimFactory extends GeometryFactory {
         return result;
     }
 
-    get originalItem() { return this.info.parentItem }
+    get originalItem() { return this.info.untrimmedAncestor }
 }

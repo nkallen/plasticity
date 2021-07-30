@@ -1097,7 +1097,6 @@ export class TrimCommand extends Command {
             if (fragment === undefined) return;
 
             const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals);
-
             factory.fragment = fragment;
             await factory.commit();
         } finally {

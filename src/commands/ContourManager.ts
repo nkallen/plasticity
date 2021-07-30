@@ -275,11 +275,8 @@ export default class ContourManager {
         for (const { trimmed, start, stop } of result) {
             const inst = new c3d.SpaceInstance(new c3d.PlaneCurve(placement, trimmed, true));
             const p = db.addItem(inst, 'automatic').then(item => {
-                item.layers.set(visual.Layers.CurveFragment);
-                item.traverse(c => c.layers.set(visual.Layers.CurveFragment));
-                item.userData.start = start;
-                item.userData.stop = stop;
-                item.userData.parentItem = instance;
+                for (const curve of item.lod.children)
+                    curve.befragment(start, stop, instance);
                 return item;
             });
             views.push(p);
