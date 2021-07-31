@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CircleFactory, Mode, TwoPointCircleFactory } from "../../src/commands/circle/CircleFactory";
+import { CenterCircleFactory, Mode, TwoPointCircleFactory } from "../../src/commands/circle/CircleFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -18,11 +18,11 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
 })
 
-describe(CircleFactory, () => {
-    let makeCircle: CircleFactory;
+describe(CenterCircleFactory, () => {
+    let makeCircle: CenterCircleFactory;
 
     beforeEach(() => {
-        makeCircle = new CircleFactory(db, materials, signals);
+        makeCircle = new CenterCircleFactory(db, materials, signals);
     })
 
     test('mode == Horizontal', async () => {

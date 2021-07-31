@@ -280,7 +280,6 @@ export class Model implements Viewport {
     }
 
     navigationStart() {
-        console.log(1);
         this.navigationControls.addEventListener('change', this.navigationChange);
         this.navigationControls.addEventListener('end', this.navigationEnd);
     }

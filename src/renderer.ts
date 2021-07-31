@@ -65,7 +65,7 @@ Dialog(editor);
 // makeSphere.radius = 0.5;
 // makeSphere.commit();
 
-// const makeCircle1 = new CircleFactory(editor.db, editor.materials, editor.signals);
+// const makeCircle1 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
 // makeCircle1.center = new THREE.Vector3(0, 0, 0);
 // makeCircle1.radius = 1;
 // makeCircle1.commit();
@@ -80,12 +80,12 @@ Dialog(editor);
 // makeCurve2.points.push(new THREE.Vector3(0, 5, 0));
 // makeCurve2.commit();
 
-// const makeCircle2 = new CircleFactory(editor.db, editor.materials, editor.signals);
+// const makeCircle2 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
 // makeCircle2.center = new THREE.Vector3(0, 0.25, 0);
 // makeCircle2.radius = 1;
 // makeCircle2.commit();
 
-// const makeCircle3 = new CircleFactory(editor.db, editor.materials, editor.signals);
+// const makeCircle3 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
 // makeCircle3.center = new THREE.Vector3(0, -0.25, 0);
 // makeCircle3.radius = 1;
 // makeCircle3.commit();

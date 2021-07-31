@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import BoxFactory from '../src/commands/box/BoxFactory';
-import { CircleFactory } from '../src/commands/circle/CircleFactory';
+import { CenterCircleFactory } from '../src/commands/circle/CircleFactory';
 import LineFactory from '../src/commands/line/LineFactory';
 import { RegionFactory } from '../src/commands/region/RegionFactory';
 import { EditorSignals } from '../src/editor/EditorSignals';
@@ -41,7 +41,7 @@ beforeEach(async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     solid = await makeBox.commit() as visual.Solid;
 
-    const makeCircle = new CircleFactory(db, materials, signals);
+    const makeCircle = new CenterCircleFactory(db, materials, signals);
     makeCircle.center = new THREE.Vector3();
     makeCircle.radius = 1;
     circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CircleFactory } from "../src/commands/circle/CircleFactory";
+import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import { ObjectPicker } from "../src/commands/ObjectPicker";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
@@ -13,7 +13,7 @@ import './matchers';
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
-let makeCircle: CircleFactory;
+let makeCircle: CenterCircleFactory;
 let interaction: SelectionInteractionManager;
 let selection: SelectionManager;
 
@@ -21,7 +21,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    makeCircle = new CircleFactory(db, materials, signals);
+    makeCircle = new CenterCircleFactory(db, materials, signals);
     selection = new SelectionManager(db, materials, signals);
     interaction = new SelectionInteractionManager(selection, materials, signals);
 })

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CircleFactory } from "../../src/commands/circle/CircleFactory";
+import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import { RegionBooleanFactory } from "../../src/commands/region/RegionBooleanFactory";
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -10,8 +10,8 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 let db: GeometryDatabase;
-let makeCircle1: CircleFactory;
-let makeCircle2: CircleFactory;
+let makeCircle1: CenterCircleFactory;
+let makeCircle2: CenterCircleFactory;
 let makeRegion1: RegionFactory;
 let makeRegion2: RegionFactory;
 let materials: MaterialDatabase;
@@ -21,8 +21,8 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    makeCircle1 = new CircleFactory(db, materials, signals);
-    makeCircle2 = new CircleFactory(db, materials, signals);
+    makeCircle1 = new CenterCircleFactory(db, materials, signals);
+    makeCircle2 = new CenterCircleFactory(db, materials, signals);
     makeRegion1 = new RegionFactory(db, materials, signals);
     makeRegion2 = new RegionFactory(db, materials, signals);
 })

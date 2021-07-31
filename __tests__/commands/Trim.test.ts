@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CircleFactory } from "../../src/commands/circle/CircleFactory";
+import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import ContourManager from "../../src/commands/ContourManager";
 import TrimFactory from "../../src/commands/curve/TrimFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -25,8 +25,8 @@ let circle1: visual.SpaceInstance<visual.Curve3D>;
 let circle2: visual.SpaceInstance<visual.Curve3D>;
 
 beforeEach(async () => {
-    const makeCircle1 = new CircleFactory(db, materials, signals);
-    const makeCircle2 = new CircleFactory(db, materials, signals);
+    const makeCircle1 = new CenterCircleFactory(db, materials, signals);
+    const makeCircle2 = new CenterCircleFactory(db, materials, signals);
 
     await contours.transaction(async () => {
         makeCircle1.center = new THREE.Vector3(0, 0.25, 0);

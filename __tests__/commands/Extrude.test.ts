@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CircleFactory } from "../../src/commands/circle/CircleFactory";
+import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import ExtrudeFactory, { RegionExtrudeFactory } from "../../src/commands/extrude/ExtrudeFactory";
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -21,7 +21,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    makeCircle = new CircleFactory(db, materials, signals);
+    makeCircle = new CenterCircleFactory(db, materials, signals);
     makeRegion = new RegionFactory(db, materials, signals);
     extrude = new ExtrudeFactory(db, materials, signals);
     extrudeRegion = new RegionExtrudeFactory(db, materials, signals);
@@ -30,7 +30,7 @@ beforeEach(() => {
 describe('Extrude Curve', () => {
     describe('commit', () => {
         test('invokes the appropriate c3d commands', async () => {
-            const makeCircle = new CircleFactory(db, materials, signals);
+            const makeCircle = new CenterCircleFactory(db, materials, signals);
             makeCircle.center = new THREE.Vector3();
             makeCircle.radius = 1;
             const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
@@ -54,7 +54,7 @@ describe('Extrude Curve', () => {
 describe('Extrude Region', () => {
     describe('commit', () => {
         test('invokes the appropriate c3d commands', async () => {
-            const makeCircle = new CircleFactory(db, materials, signals);
+            const makeCircle = new CenterCircleFactory(db, materials, signals);
             const makeRegion = new RegionFactory(db, materials, signals);
 
             makeCircle.center = new THREE.Vector3();
