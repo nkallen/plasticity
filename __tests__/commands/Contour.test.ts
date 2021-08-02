@@ -352,7 +352,7 @@ describe(JointOrPolylineOrContourFilletFactory, () => {
         contour = contours[0];
     })
 
-    test.only("when start/end of closed contour", async () => {
+    test("when start/end of closed contour", async () => {
         await curveFillet.setControlPoints([{
             index: 0, parentItem: contour
         }]);

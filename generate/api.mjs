@@ -437,6 +437,9 @@ export default {
                 "double x",
                 "double y",
                 "double z"
+            ],
+            functions: [
+                "bool Colinear(const MbVector3D & other, double eps = Math::angleRegion)",
             ]
         },
         Axis3D: {
@@ -460,7 +463,7 @@ export default {
         Placement3D: {
             rawHeader: "mb_placement3d.h",
             dependencies: ["Axis3D.h", "Vector3D.h", "Matrix.h"],
-            initializers: [""],
+            initializers: ["", "const MbCartPoint3D & org, const MbVector3D & axisZ, const MbVector3D & axisX, bool l = false"],
             functions: [
                 "MbPlacement3D & Move(const MbVector3D & to)",
                 "MbPlacement3D & Rotate(const MbAxis3D & axis, double angle)",

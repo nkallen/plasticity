@@ -38,7 +38,7 @@ export class GeometryDatabase {
     async addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
     async addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
     async addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;
-        async addItem(model: c3d.Item, agent: Agent = 'user'): Promise<visual.Item> {
+    async addItem(model: c3d.Item, agent: Agent = 'user'): Promise<visual.Item> {
         return this.queue.enqueue(async () => {
             const current = this.counter++;
 
@@ -140,14 +140,18 @@ export class GeometryDatabase {
         assertUnreachable(object);
     }
 
-    find<T extends visual.Item>(klass: GConstructor<T>): T[] {
-        const result: visual.Item[] = [];
-        for (const { view: visual } of this.geometryModel.values()) {
-            if (visual instanceof klass) {
-                result.push(visual);
+
+    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];
+    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T, model: c3d.SpaceInstance }[];
+    find<T extends visual.Solid>(klass: GConstructor<T>): { view: T, model: c3d.Solid }[];
+    find<T extends visual.Item>(klass: GConstructor<T>): { view: T, model: c3d.Item }[] {
+        const result: { view: visual.Item, model: c3d.Item }[] = [];
+        for (const { view, model } of this.geometryModel.values()) {
+            if (view instanceof klass) {
+                result.push({ view, model });
             }
         }
-        return result as T[];
+        return result as { view: T, model: c3d.Item }[];
     }
 
     get visibleObjects(): Array<visual.Item> {

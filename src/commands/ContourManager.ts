@@ -4,14 +4,11 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import * as visual from "../editor/VisualModel";
 
-// FIXME we need to aggregate by placement
-// FIXME no undo
-
 class CurveInfo {
     readonly touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
     fragments = new Array<Promise<visual.Item>>();
     readonly joints = new Joints();
-    constructor(readonly planarCurve: c3d.Curve) { }
+    constructor(readonly planarCurve: c3d.Curve, readonly placement: c3d.Placement3D) { }
 }
 
 type Curve2dId = bigint;
@@ -23,6 +20,7 @@ type State = { tag: 'none' } | { tag: 'transaction', dirty: CurveSet, added: Cur
 export default class ContourManager {
     private readonly curve2info = new Map<visual.SpaceInstance<visual.Curve3D>, CurveInfo>();
     private readonly planar2instance = new Map<Curve2dId, visual.SpaceInstance<visual.Curve3D>>();
+    private readonly placements = new Set<c3d.Placement3D>();
 
     private state: State = { tag: 'none' };
 
@@ -34,33 +32,60 @@ export default class ContourManager {
         this.remove = this.remove.bind(this);
         this.update = this.update.bind(this);
 
+        const origin = new c3d.CartPoint3D(0, 0, 0);
+        const X = new c3d.Vector3D(1, 0, 0);
+        const Y = new c3d.Vector3D(0, 1, 0);
+        const Z = new c3d.Vector3D(0, 0, 1);
+        this.placements.add(new c3d.Placement3D(origin, Z, X, false));
+
+        // The order is important, because add creates info update subsequently uses;
         signals.userAddedCurve.add(this.add);
-        signals.userRemovedCurve.add(this.remove);
         signals.userAddedCurve.add(this.update);
+
+        // Similarly, don't delete info necessary for update
         signals.userRemovedCurve.add(this.update);
+        signals.userRemovedCurve.add(this.remove);
     }
 
-    private _update() {
+    private _update(placement: c3d.Placement3D) {
         return this.db.queue.enqueue(async () => {
-            const oldRegions = this.db.find(visual.PlaneInstance) as visual.PlaneInstance<visual.Region>[];
-            for (const region of oldRegions) this.db.removeItem(region, 'automatic');
-
             const { curve2info } = this;
-            const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
-            const placement = new c3d.Placement3D();
-            const { contours } = c3d.ContourGraph.OuterContoursBuilder(allPlanarCurves);
+
+            // First remove all old regions that are coplanar
+            const oldRegions = this.db.find(visual.PlaneInstance);
+            for (const { model, view } of oldRegions) {
+                const p = model.GetPlacement();
+                if (placement.GetAxisZ().Colinear(p.GetAxisZ())) {
+                    this.db.removeItem(view, 'automatic');
+                }
+            }
+
+            // Then, collect all coplanar curves,
+            const coplanarCurves = [];
+            let normalizedPlacement = placement;
+            for (const info of curve2info.values()) {
+                if (info.placement.GetAxisZ().Colinear(placement.GetAxisZ())) {
+                    coplanarCurves.push(info.planarCurve);
+                    normalizedPlacement = info.placement;
+                }
+            }
+
+            // Assemble regions
+            const { contours } = c3d.ContourGraph.OuterContoursBuilder(coplanarCurves);
 
             const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
             for (const region of regions) {
-                this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
+                this.db.addItem(new c3d.PlaneInstance(region, normalizedPlacement), 'automatic');
             }
         });
     }
 
-    update() {
+    update(changed: visual.SpaceInstance<visual.Curve3D>) {
         switch (this.state.tag) {
             case 'none': {
-                return this._update();
+                const info = this.curve2info.get(changed)!;
+                const placement = info.placement;
+                return this._update(placement);
             }
             case 'transaction': break;
         }
@@ -141,7 +166,9 @@ export default class ContourManager {
                     await f();
                     await this.commit();
                     if (this.state.dirty.size > 0 || this.state.added.size > 0 || this.state.deleted.size > 0) {
-                        await this._update();
+                        for (const placement of this.state2placement(this.state)) {
+                            await this._update(placement);
+                        }
                     }
                 } finally {
                     this.state = { tag: 'none' };
@@ -150,6 +177,34 @@ export default class ContourManager {
             }
             default: throw new Error("invalid state");
         }
+    }
+
+    private state2placement(state: { dirty: CurveSet, added: CurveSet, deleted: CurveSet }) {
+        const { dirty, added, deleted } = state;
+        const { curve2info } = this;
+        const all = [];
+        for (const d of dirty) all.push(d);
+        for (const a of added) all.push(a);
+        for (const d of deleted) all.push(d);
+
+        const placements = [];
+        for (const c of all) {
+            const info = curve2info.get(c);
+            if (info !== undefined) placements.push(info.placement);
+        }
+
+        const result = [];
+        candidates: while (placements.length > 0) {
+            const candidate = placements.pop()!;
+            if (result.length === 0) result.push(candidate);
+            else {
+                already: for (const p of result)
+                    if (p.GetAxisZ().Colinear(candidate.GetAxisZ()))
+                        continue candidates;
+                result.push(candidate);
+            }
+        }
+        return result;
     }
 
     private commit() {
@@ -177,28 +232,28 @@ export default class ContourManager {
     }
 
     /**
-     * Summary of algorithm: to add a new curve, with find its intersections with all other curves.
-     * Suppose there's one intersection along the parameter of the curve at i. This intersection
+     * Summary of algorithm: to add a new curve, first find its intersections with all other curves.
+     * Now, suppose there's one intersection along the parameter of the curve at i. This intersection
      * cuts the curve in two. Thus we trim curve from [0,i], and [i,1], assuming 0 and 1 are tmin and
      * tmax. Then we process the next curve (the one we intersected with earlier), since it also has
      * been cut in two.
      * 
-     * There are a lot of edge cases, for circular curves, for curves whose endpoints intersect the
-     * startpoints of the next curve, etc. etc.
+     * There are a lot of edge cases, e.g., circular (closed) curves, curves whose endpoints intersect the
+     * startpoints of the next curve (a "joint"), etc. etc.
      */
     _add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
         if (this.state.tag !== 'transaction') throw new Error("invalid state");
 
         const { curve2info, planar2instance } = this;
-        const promises = [];
 
         const inst = this.db.lookup(newCurve);
         const item = inst.GetSpaceItem()!;
         const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
-        const newPlanarCurve = this.curve3d2curve2d(curve3d);
-        if (newPlanarCurve === undefined) return;
+        const planarInfo = this.curve3d2curve2d(curve3d);
+        if (planarInfo === undefined) return;
+        const { curve: newPlanarCurve, placement } = planarInfo;
 
-        const info = new CurveInfo(newPlanarCurve);
+        const info = new CurveInfo(newPlanarCurve, placement);
         curve2info.set(newCurve, info);
         planar2instance.set(newPlanarCurve.Id(), newCurve);
 
@@ -207,6 +262,7 @@ export default class ContourManager {
         curvesToProcess.set(newPlanarCurve.Id(), newPlanarCurve);
         const visited = new Set<Curve2dId>();
 
+        const promises = [];
         while (curvesToProcess.size > 0) {
             const [id, current] = curvesToProcess.entries().next().value;
             visited.add(id);
@@ -285,26 +341,38 @@ export default class ContourManager {
         return Promise.all(views);
     }
 
-    private curve3d2curve2d(curve: c3d.Curve3D): c3d.Curve | undefined {
+    private curve3d2curve2d(curve3d: c3d.Curve3D): { curve: c3d.Curve, placement: c3d.Placement3D } | undefined {
         const placement_ = new c3d.Placement3D();
-
-        if (curve.IsStraight(true)) {
-            if (!(curve instanceof c3d.PolyCurve3D)) throw new Error("invalid precondition");
+        if (curve3d.IsStraight(true)) {
+            if (!(curve3d instanceof c3d.PolyCurve3D)) throw new Error("invalid precondition");
             const points2d = [];
-            for (const point of curve.GetPoints()) {
+            for (const point of curve3d.GetPoints()) {
                 if (placement_.PointRelative(point) !== c3d.ItemLocation.OnItem) return;
                 const { x, y } = placement_.PointProjection(point);
                 points2d.push(new c3d.CartPoint(x, y));
             }
-            return c3d.ActionCurve.SplineCurve(points2d, false, c3d.PlaneType.Polyline);
-        } else if (curve.IsPlanar()) {
-            const { curve2d, placement } = curve.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.1));
+            const curve2d = c3d.ActionCurve.SplineCurve(points2d, false, c3d.PlaneType.Polyline);
+            return { curve: curve2d, placement: placement_ };
+        } else if (curve3d.IsPlanar()) {
+            const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.1));
+            let bestExistingPlacement;
+            for (const candidate of this.placements) {
+                if (candidate.GetAxisZ().Colinear(placement.GetAxisZ())) {
+                    bestExistingPlacement = candidate;
+                    break;
+                }
+            }
+            if (bestExistingPlacement === undefined) {
+                this.placements.add(placement);
+                bestExistingPlacement = placement;
+            }
 
-            // Apply an 2d placement to the curve, so that any future booleans work
-            const matrix = placement.GetMatrixToPlace(placement_);
+            // To objects can be coplanar but have different placements (e.g., different origins, same Z axis);
+            // Thus it's safest to normalize or else future operations like booleans may not work.
+            const matrix = placement.GetMatrixToPlace(bestExistingPlacement);
             curve2d.Transform(matrix);
 
-            return curve2d;
+            return { curve: curve2d, placement: bestExistingPlacement };
         } else {
         }
     }

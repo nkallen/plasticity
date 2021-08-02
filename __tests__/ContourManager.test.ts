@@ -255,11 +255,11 @@ test("race condition", async () => {
     const filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
     await contours.add(filleted);
 
-    const p1 = contours.update();
+    const p1 = contours.update(filleted);
 
     db.removeItem(contour);
+    const p2 = contours.update(contour);
     contours.remove(contour);
-    const p2 = contours.update();
 
     // THIS IS KEY: p1 is initiated before p2. It shouldn't matter what order we await.
     // But it does matter unless the .update() uses the db's queue.
