@@ -442,7 +442,7 @@ export class CurveCommand extends Command {
                     if (!makeCurve.isValid) return;
                     makeCurve.closed = makeCurve.wouldBeClosed(point);
                     await makeCurve.update();
-                }).resource(this);
+                }, 'RejectOnFinish').resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
                     makeCurve.closed = true;
                     throw Finish;

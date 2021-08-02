@@ -1,30 +1,29 @@
-THIS WEEK:
-
-fillet contours
-- contourman undo
-- 3d Joints
-
-NEXT WEEK: Curve cleanup:
-
-finish (right click) on circle/cylinder create puts the system in a weird state -- maybe shouldn't reject().
-fillet has two points, F key bound twice
-moving needs to have snapping
 command validation (curves fail at beginning, as well as click away aborting lots of commands)
 if clicking away, if the command has never been updated, we should cancel -- maybe add a state to command that indicates it's been resourced, and have the commit() behavior fail if not updated.
+exception thrown from c++ should maybe have special class so we can condition on them
 interleaving with updating/commit on factory. use q?
 keyboard instructions get in the way of clicking
-stick to surface max
+snap points missing when drawing curves
+draw two curves (last + current)
+
+fillet has two points, F key bound twice
 fillet needs to be in screen space
+
+moving needs to have snapping
+stick to surface max
 redo fillet gizmos
-if delete point and 1 point left, GC
 drag and drop points
-control points not highlighted
 
 BUG/CRASH:
+# 1
 1. add regular polygon
 2. extrude
 3. fillet variable top face
 4. push/pull face down
+# 2
+1. Add cylinder
+2. Fillet top
+3. Squeeze side to smallest possible
 
 # transaction history
 - delete creator
@@ -50,6 +49,8 @@ audit array conversion is reserving and freeing elements:
     and especially check if instantiated RPArray/etc. is freed altogether
     - convert MbCartPoint3D and Vector to isPOD
 Get planar curve and placement if the space curve is planar (after the using call *******DeleteItem for two-dimensional curves).
+
+- 3d Joints
 
 
 gizmos for primitives

@@ -10,7 +10,7 @@ const map: Record<string, number> = {
     'gizmo:curve:hermite': c3d.SpaceType.Hermit3D,
     'gizmo:curve:nurbs': c3d.SpaceType.Nurbs3D,
     'gizmo:curve:cubic-spline': c3d.SpaceType.CubicSpline3D,
-    'gizmo:curve:arc': c3d.SpaceType.Arc3D,
+    // 'gizmo:curve:arc': c3d.SpaceType.Arc3D,
 }
 for (const key in map) commands.push(key);
 

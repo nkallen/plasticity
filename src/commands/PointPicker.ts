@@ -19,7 +19,7 @@ interface EditorLike {
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap, restrictions: Restriction[] }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
-enum mode { RejectOnFinish, ResolveOnFinish };
+type mode = 'RejectOnFinish'| 'ResolveOnFinish'
 
 export class PointPicker {
     private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
@@ -36,7 +36,7 @@ export class PointPicker {
         this.mesh.layers.set(visual.Layers.Overlay);
     }
 
-    execute<T>(cb?: (pt: PointResult) => T, resolveOnFinish: mode = mode.ResolveOnFinish): CancellablePromise<PointResult> {
+    execute<T>(cb?: (pt: PointResult) => T, resolveOnFinish: mode = 'ResolveOnFinish'): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const mesh = this.mesh;
@@ -123,9 +123,12 @@ export class PointPicker {
                 reject(Cancel);
             }
             const finish = () => {
-                disposables.dispose();
+                const point = mesh.position.clone();
                 editor.signals.pointPickerChanged.dispatch();
-                reject(Finish);
+                const info = mesh.userData as PointInfo;
+                disposables.dispose();
+                if (resolveOnFinish === 'ResolveOnFinish') resolve({ point, info });
+                else reject(Finish);
             }
             return { cancel, finish };
         });
