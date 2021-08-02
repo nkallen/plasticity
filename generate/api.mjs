@@ -170,6 +170,7 @@ export default {
                 { signature: "void GetFaces(RPArray<MbFace> & faces)", faces: isReturn },
                 "const MbFace * FindFaceByName(const MbName & name)",
                 "const MbFace * GetFace(size_t index)",
+                "MbCurveEdge * GetEdge(size_t index)",
                 "MbCurveEdge * FindEdgeByName(const MbName & name)",
                 "MbFaceShell * GetShell()",
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },

@@ -68,6 +68,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge) as c3d.CurveEdge;
             const fn = new c3d.CubicFunction(1, 1);
+            console.log(edge.simpleName);
             functions.set(edge.simpleName, fn);
             curves.push(new c3d.EdgeFunction(model, fn));
         }

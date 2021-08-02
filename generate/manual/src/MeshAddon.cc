@@ -93,15 +93,13 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
     if (count > 0)
     {
         MbCartPoint3D p;
-        size_t j = 0;
+        size_t j = 0, edgeIndex = 0;
         for (size_t k = 0; k < count; k++)
         {
             Napi::Object jsInfo = Napi::Object::New(env);
 
             const MbPolygon3D *polygon = mesh->GetPolygon(k);
             if (polygon == NULL)
-                continue;
-            if (!polygon->IsVisible())
                 continue;
 
             if (outlinesOnly)
@@ -113,11 +111,21 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
                 if (item->IsA() != tt_CurveEdge)
                     continue;
 
+                edgeIndex++;
+
+                if (!polygon->IsVisible())
+                    continue;
+
                 const MbEdge *edge = (MbEdge *)item;
 
                 jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
                 jsInfo.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(edge->GetName())));
-                jsInfo.Set(Napi::String::New(env, "i"), Napi::Number::New(env, k));
+                jsInfo.Set(Napi::String::New(env, "i"), Napi::Number::New(env, edgeIndex - 1));
+            }
+            else
+            {
+                if (!polygon->IsVisible())
+                    continue;
             }
 
             size_t pointsCnt = polygon->Count();

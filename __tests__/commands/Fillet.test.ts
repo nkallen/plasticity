@@ -34,6 +34,6 @@ describe('commit', () => {
         makeFillet.item = box;
         makeFillet.edges = [edge];
         makeFillet.distance = 0.1;
-        makeFillet.commit();
+        await makeFillet.commit();
     })
 });

@@ -129,11 +129,11 @@ export class GeometryDatabase {
         const solid = parentModel;
 
         if (object instanceof visual.Edge) {
-            const result = solid.FindEdgeByName(object.userData.name);
+            const result = solid.GetEdge(object.index);
             if (!result) throw new Error("cannot find edge");
             return result;
         } else if (object instanceof visual.Face) {
-            const result = solid.GetFace(object.userData.index);
+            const result = solid.GetFace(object.index);
             if (!result) throw new Error("cannot find face");
             return result;
         }
@@ -179,9 +179,11 @@ export class GeometryDatabase {
                 throw new Error("type not yet supported");
         }
 
+        const promises = [];
         for (const [precision, distance] of precision_distance) {
-            await this.object2mesh(builder, obj, id, precision, distance);
+            promises.push(this.object2mesh(builder, obj, id, precision, distance));
         }
+        await Promise.all(promises);
 
         const result = builder.build();
         result.userData.simpleName = id;
@@ -262,13 +264,13 @@ export class GeometryDatabase {
         if (topologyData === undefined) {
             let model;
             if (t instanceof visual.Face) {
-                model = parent.GetFace(t.userData.index);
+                model = parent.GetFace(t.index);
             } else if (t instanceof visual.CurveEdge) {
-                model = parent.FindEdgeByName(t.userData.name);
+                model = parent.GetEdge(t.index);
             };
-            if (model == null) throw new Error("invalid precondition")
+            if (model == null) throw new Error("invalid precondition");
             views = new Set<visual.Face | visual.Edge>();
-            topologyData = { model, views: views }
+            topologyData = { model, views }
             this.topologyModel.set(t.simpleName, topologyData);
         } else {
             views = topologyData.views;

@@ -134,8 +134,8 @@ test("lookupTopologyItemById", async () => {
     expect(faces.length).toBe(3 * 6);
 
     expect(db.lookupTopologyItem(faces[0])).toBeTruthy();
-    const { model, views: v } = db.lookupTopologyItemById(faces[0].simpleName);
-    expect(v.size).toBe(3);
+    const { model, views } = db.lookupTopologyItemById(faces[0].simpleName);
+    expect(views.size).toBe(3);
     expect(model).toBeInstanceOf(c3d.Face);
 
     db.removeItem(solid);

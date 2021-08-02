@@ -207,6 +207,7 @@ export abstract class TopologyItem extends THREE.Object3D {
     }
 
     get simpleName(): string { return this.userData.simpleName }
+    get index(): number { return this.userData.index }
 }
 
 export abstract class Edge extends TopologyItem { }
@@ -224,7 +225,7 @@ export class CurveEdge extends Edge {
         occludedLine.computeLineDistances();
         const result = new CurveEdge(line, occludedLine);
         result.userData.name = edge.name;
-        result.userData.simpleName = `${parentId},${edge.i}`;
+        result.userData.simpleName = `edge,${parentId},${edge.i}`;
         result.userData.index = edge.i;
 
         result.layers.set(Layers.CurveEdge);
@@ -258,7 +259,7 @@ export class Face extends TopologyItem {
         const mesh = new THREE.Mesh(geometry, material);
         const result = new Face(mesh);
         result.userData.name = grid.name;
-        result.userData.simpleName = `${parentId},${grid.i}`
+        result.userData.simpleName = `face,${parentId},${grid.i}`
         result.userData.index = grid.i;
 
         result.layers.set(Layers.Face);
