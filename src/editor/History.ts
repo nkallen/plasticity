@@ -48,7 +48,8 @@ export class SnapMemento {
 export class ContourMemento {
     constructor(
         readonly curve2info: ContourManager["curve2info"],
-        readonly planar2instance: ContourManager["planar2instance"]
+        readonly planar2instance: ContourManager["planar2instance"],
+        readonly placements: ContourManager["placements"],
     ) { }
 }
 

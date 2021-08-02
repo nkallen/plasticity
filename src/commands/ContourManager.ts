@@ -412,12 +412,14 @@ export default class ContourManager {
     saveToMemento(registry: Map<any, any>): ContourMemento {
         return new ContourMemento(
             new Map(this.curve2info),
-            new Map(this.planar2instance))
+            new Map(this.planar2instance),
+            new Set(this.placements))
     }
 
     restoreFromMemento(m: ContourMemento) {
         (this.curve2info as ContourManager['curve2info']) = m.curve2info;
         (this.planar2instance as ContourManager['planar2instance']) = m.planar2instance;
+        (this.placements as ContourManager['placements']) = m.placements;
     }
 }
 
