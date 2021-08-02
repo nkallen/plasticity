@@ -33,8 +33,16 @@ export default class LayerManager {
     controlPoints() {
         const { selection } = this;
         if (selection.selectedCurves.size > 0 || selection.selectedControlPoints.size > 0)
-            visual.VisibleLayers.enable(visual.Layers.ControlPoint);
-        else
-            visual.VisibleLayers.disable(visual.Layers.ControlPoint);
+            this.showControlPoints();
+        else this.hideControlPoints();
+    }
+
+    showControlPoints() {
+        visual.VisibleLayers.enable(visual.Layers.ControlPoint);
+    }
+
+    hideControlPoints() {
+        visual.VisibleLayers.disable(visual.Layers.ControlPoint);
+
     }
 }

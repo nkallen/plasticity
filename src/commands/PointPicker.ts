@@ -23,7 +23,7 @@ type mode = 'RejectOnFinish'| 'ResolveOnFinish'
 
 export class PointPicker {
     private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
-    private readonly addedPointSnaps = new Array<PointSnap>();
+    private readonly pickedPointSnaps = new Array<PointSnap>(); // Snaps inferred from points the user actually picked
     private readonly otherAddedSnaps = new Array<Snap>();
     private readonly restrictions = new Array<Restriction>();
 
@@ -107,7 +107,7 @@ export class PointPicker {
                     mesh.userData = {};
                     resolve({ point, info });
                     disposables.dispose();
-                    this.addedPointSnaps.push(new PointSnap(point));
+                    this.pickedPointSnaps.push(new PointSnap(point));
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
@@ -134,18 +134,18 @@ export class PointPicker {
         });
     }
 
-    private get createdPointSnaps(): Snap[] {
-        const { addedPointSnaps, straightSnaps } = this;
+    private get axesOfLastPickedPoint(): Snap[] {
+        const { pickedPointSnaps, straightSnaps } = this;
         let result: Snap[] = [];
-        if (addedPointSnaps.length > 0) {
-            const last = addedPointSnaps[addedPointSnaps.length - 1];
+        if (pickedPointSnaps.length > 0) {
+            const last = pickedPointSnaps[pickedPointSnaps.length - 1];
             result = result.concat(last.axes(straightSnaps));
         }
         return result;
     }
 
     addPointSnap(point: THREE.Vector3) {
-        this.addedPointSnaps.push(new PointSnap(point));
+        this.otherAddedSnaps.push(new PointSnap(point));
     }
 
     addPlacement(point: THREE.Vector3) {
@@ -154,7 +154,7 @@ export class PointPicker {
     }
 
     get snaps() {
-        return this.createdPointSnaps.concat(this.otherAddedSnaps);
+        return this.axesOfLastPickedPoint.concat(this.otherAddedSnaps);
     }
 
     restrictToPlaneThroughPoint(point: THREE.Vector3): void {
@@ -175,6 +175,6 @@ export class PointPicker {
     }
 
     undo() {
-        this.addedPointSnaps.pop();
+        this.pickedPointSnaps.pop();
     }
 }

@@ -375,6 +375,9 @@ export class CylinderCommand extends Command {
 
 export class LineCommand extends Command {
     async execute(): Promise<void> {
+        this.editor.layers.showControlPoints();
+        this.ensure(() => this.editor.layers.hideControlPoints());
+
         const line = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         line.type = c3d.SpaceType.Polyline3D
 
@@ -391,13 +394,15 @@ export class LineCommand extends Command {
         }).resource(this);
 
         while (true) {
+            if (line.points.length >= 3)
+                pointPicker.addPointSnap(line.points[0]);
             try {
                 const { point } = await pointPicker.execute(async ({ point }) => {
                     line.nextPoint = point;
                     if (!line.isValid) return;
                     line.closed = line.wouldBeClosed(point);
                     await line.update();
-                }).resource(this);
+                }, 'RejectOnFinish').resource(this);
                 if (line.wouldBeClosed(point)) {
                     line.closed = true;
                     throw Finish;
@@ -417,6 +422,9 @@ export class LineCommand extends Command {
 
 export class CurveCommand extends Command {
     async execute(): Promise<void> {
+        this.editor.layers.showControlPoints();
+        this.ensure(() => this.editor.layers.hideControlPoints());
+
         const makeCurve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
@@ -436,6 +444,8 @@ export class CurveCommand extends Command {
         }).resource(this);
 
         while (true) {
+            if (makeCurve.points.length >= 3)
+                pointPicker.addPointSnap(makeCurve.points[0]);
             try {
                 const { point } = await pointPicker.execute(async ({ point }) => {
                     makeCurve.nextPoint = point;
@@ -1086,21 +1096,19 @@ export class RemovePointCommand extends Command {
 
 export class TrimCommand extends Command {
     async execute(): Promise<void> {
-        try {
-            this.editor.layers.showFragments();
+        this.editor.layers.showFragments();
+        this.ensure(() => this.editor.layers.hideFragments());
 
-            const picker = new ObjectPicker(this.editor);
-            picker.allowCurveFragments();
-            const selection = await picker.execute().resource(this);
-            const fragment = selection.selectedCurves.first;
-            if (fragment === undefined) return;
+        const picker = new ObjectPicker(this.editor);
+        picker.allowCurveFragments();
+        const selection = await picker.execute().resource(this);
+        const fragment = selection.selectedCurves.first;
+        if (fragment === undefined) return;
 
-            const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals);
-            factory.fragment = fragment;
-            await factory.commit();
-        } finally {
-            this.editor.layers.hideFragments();
-        }
+        const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        factory.fragment = fragment;
+        await factory.commit();
+
         this.editor.enqueue(new TrimCommand(this.editor));
     }
 }

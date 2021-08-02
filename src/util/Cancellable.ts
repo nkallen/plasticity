@@ -7,6 +7,8 @@
  * running, the Registor can cancel them all.
  */
 
+import { CompositeDisposable, Disposable } from "event-kit";
+
 export interface Cancellable {
     cancel(): void;
 }
@@ -39,6 +41,7 @@ export abstract class CancellableRegistor {
     private state: State = 'None';
     protected readonly resources: ResourceRegistration[] = [];
     protected readonly promises: PromiseLike<any>[] = [];
+    private disposable = new CompositeDisposable();
 
     cancel(): void {
         if (this.state != 'None') return;
@@ -46,6 +49,7 @@ export abstract class CancellableRegistor {
             if (resource instanceof CancellablePromise) resource.then(null, () => null);
             resource.cancel();
         }
+        this.disposable.dispose();
         this.state = 'Cancelled';
     }
 
@@ -54,6 +58,7 @@ export abstract class CancellableRegistor {
         for (const resource of this.resources) {
             resource.finish();
         }
+        this.disposable.dispose();
         this.state = 'Finished';
     }
 
@@ -66,6 +71,10 @@ export abstract class CancellableRegistor {
     // All registered gizmos, dialogs, etc. finished successfully.
     get finished() {
         return Promise.all(this.promises)
+    }
+
+    ensure(f: () => void) {
+        this.disposable.add(new Disposable(f));
     }
 }
 
