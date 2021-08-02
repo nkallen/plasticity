@@ -49,7 +49,7 @@ export default {
     },
 
     "ispace-viewport": {
-        "c": "command:circle",
+        "c": "command:center-circle",
         "g": "command:move",
         "r": "command:rotate",
         "R": "command:center-rectangle",
