@@ -45,7 +45,15 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
     protected async doUpdate(): Promise<void> {
         const promises = [];
-        const geometries = toArray(await this.computeGeometry());
+        let result;
+        try {
+            result = await this.computeGeometry();
+        } catch (e) {
+            if (e instanceof ValidationError || e.isC3dError)
+                console.warn(e.message);
+            else throw e;
+        }
+        const geometries = toArray(result);
         for (const geometry of geometries) {
             promises.push(this.db.addTemporaryItem(geometry));
         }
@@ -231,3 +239,5 @@ function dearray<S, T>(array: S[], antecedent: T | T[]): S | S[] {
     if (antecedent instanceof Array) return array;
     return array[0];
 }
+
+export class ValidationError extends Error { }

@@ -15,7 +15,7 @@ import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import CurveFactory from "./curve/CurveFactory";
-import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardEvent, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
+import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import TrimFactory from "./curve/TrimFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
@@ -373,62 +373,19 @@ export class CylinderCommand extends Command {
     }
 }
 
-export class LineCommand extends Command {
-    async execute(): Promise<void> {
-        this.editor.layers.showControlPoints();
-        this.ensure(() => this.editor.layers.hideControlPoints());
-
-        const line = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        line.type = c3d.SpaceType.Polyline3D
-
-        const pointPicker = new PointPicker(this.editor);
-        const keyboard = new LineKeyboardGizmo(this.editor);
-        keyboard.execute((e: LineKeyboardEvent) => {
-            switch (e.tag) {
-                case 'undo':
-                    pointPicker.undo(); // FIXME in theory the overlay needs to be updated;
-                    line.points.pop();
-                    line.update();
-                    break;
-            }
-        }).resource(this);
-
-        while (true) {
-            if (line.points.length >= 3)
-                pointPicker.addPointSnap(line.points[0]);
-            try {
-                const { point } = await pointPicker.execute(async ({ point }) => {
-                    line.nextPoint = point;
-                    if (!line.isValid) return;
-                    line.closed = line.wouldBeClosed(point);
-                    await line.update();
-                }, 'RejectOnFinish').resource(this);
-                if (line.wouldBeClosed(point)) {
-                    line.closed = true;
-                    throw Finish;
-                }
-                line.nextPoint = undefined;
-                line.points.push(point);
-                await line.update();
-            } catch (e) {
-                if (e !== Finish) throw e;
-                break;
-            }
-        }
-
-        await line.commit();
-    }
-}
-
 export class CurveCommand extends Command {
+    protected type = c3d.SpaceType.Hermit3D;
+    protected get keyboard() { return new CurveKeyboardGizmo(this.editor) };
+
     async execute(): Promise<void> {
         this.editor.layers.showControlPoints();
         this.ensure(() => this.editor.layers.hideControlPoints());
 
         const makeCurve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        makeCurve.type = this.type;
 
         const pointPicker = new PointPicker(this.editor);
-        const keyboard = new CurveKeyboardGizmo(this.editor);
+        const keyboard = this.keyboard;
         keyboard.execute((e: CurveKeyboardEvent) => {
             switch (e.tag) {
                 case 'type':
@@ -445,11 +402,11 @@ export class CurveCommand extends Command {
 
         while (true) {
             if (makeCurve.points.length >= 3)
-                pointPicker.addPointSnap(makeCurve.points[0]);
+                pointPicker.addPointSnap(makeCurve.startPoint);
             try {
                 const { point } = await pointPicker.execute(async ({ point }) => {
                     makeCurve.nextPoint = point;
-                    if (!makeCurve.isValid) return;
+                    if (!makeCurve.hasEnoughPoints) return;
                     makeCurve.closed = makeCurve.wouldBeClosed(point);
                     await makeCurve.update();
                 }, 'RejectOnFinish').resource(this);
@@ -468,6 +425,11 @@ export class CurveCommand extends Command {
 
         await makeCurve.commit();
     }
+}
+
+export class LineCommand extends CurveCommand {
+    protected type = c3d.SpaceType.Polyline3D;
+    protected get keyboard() { return new LineKeyboardGizmo(this.editor) };
 }
 
 export class JoinCurvesCommand extends Command {

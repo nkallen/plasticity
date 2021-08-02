@@ -64,14 +64,19 @@ if (_result) {
 } else {
     std::ostringstream msg;
     msg << "Operation <%- func.name %> failed with error: " << Error::GetSolidErrorResId(_result);
-    Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
+    Napi::Error error = Napi::Error::New(env, msg.str());
+    error.Set("code", Napi::Number::New(env, _result));
+    error.Set("isC3dError", true);
+    error.ThrowAsJavaScriptException();
     return env.Undefined();
 }
 <%_ } else if (func.returnType.isErrorBool) { _%>
 } else {
     std::ostringstream msg;
     msg << "Operation <%- func.name %> failed";
-    Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
+    Napi::Error error = Napi::Error::New(env, msg.str());
+    error.Set("isC3dError", true);
+    error.ThrowAsJavaScriptException();
     return env.Undefined();
 }
 <%_ } _%>

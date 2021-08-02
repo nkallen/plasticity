@@ -19,7 +19,7 @@ interface EditorLike {
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap, restrictions: Restriction[] }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
-type mode = 'RejectOnFinish'| 'ResolveOnFinish'
+type mode = 'RejectOnFinish' | 'ResolveOnFinish'
 
 export class PointPicker {
     private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());

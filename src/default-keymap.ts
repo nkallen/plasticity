@@ -37,9 +37,9 @@ export default {
     },
 
     "ispace-viewport[gizmo='curve']": {
-        "1": "gizmo:curve:bezier",
-        "2": "gizmo:curve:nurbs",
-        "3": "gizmo:curve:hermite",
+        "1": "gizmo:curve:hermite",
+        "2": "gizmo:curve:bezier",
+        "3": "gizmo:curve:nurbs",
         "4": "gizmo:curve:cubic-spline",
         "cmd-z": "gizmo:curve:undo",
     },
