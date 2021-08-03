@@ -1,8 +1,5 @@
-click away aborting lots of commands is annoying error
- - if clicking away, if the command has never been updated, we should cancel -- maybe add a state to command that indicates it's been resourced, and have the commit() behavior fail if not updated.
 interleaving with updating/commit on factory. use q?
 keyboard instructions get in the way of clicking
-draw two curves (last + current)
 
 fillet has two points, F key bound twice
 fillet needs to be in screen space

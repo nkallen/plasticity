@@ -65,10 +65,10 @@ Dialog(editor);
 // makeSphere.radius = 0.5;
 // makeSphere.commit();
 
-// const makeCircle1 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
-// makeCircle1.center = new THREE.Vector3(0, 0, 0);
-// makeCircle1.radius = 1;
-// makeCircle1.commit();
+const makeCircle1 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
+makeCircle1.center = new THREE.Vector3(0, 0, 0);
+makeCircle1.radius = 1;
+makeCircle1.commit();
 
 // const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
 // makeCurve1.points.push(new THREE.Vector3());

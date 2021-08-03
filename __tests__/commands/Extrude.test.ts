@@ -67,6 +67,7 @@ describe('Extrude Region', () => {
             extrudeRegion.region = region;
             extrudeRegion.distance1 = 1;
             extrudeRegion.distance2 = 1;
+            console.log("======");
             const result = await extrudeRegion.commit() as visual.SpaceItem;
 
             const bbox = new THREE.Box3().setFromObject(result);

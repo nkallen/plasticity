@@ -1,11 +1,26 @@
+import { cart2vec, vec2vec } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
-abstract class AbstractExtrudeFactory extends GeometryFactory {
+export interface ExtrudeParams {
+    distance1: number;
+    distance2: number;
+    race1: number;
+    race2: number;
+    thickness1: number;
+    thickness2: number;
+}
+
+abstract class AbstractExtrudeFactory extends GeometryFactory implements ExtrudeParams {
     distance1 = 0;
     distance2 = 0;
+    race1 = 0;
+    race2 = 0;
+    thickness1 = 0;
+    thickness2 = 0;
+
     abstract direction: THREE.Vector3;
 
     private names = new c3d.SNameMaker(c3d.CreatorType.CurveExtrusionSolid, c3d.ESides.SideNone, 0);
@@ -14,13 +29,25 @@ abstract class AbstractExtrudeFactory extends GeometryFactory {
     protected abstract surface: c3d.Surface;
 
     async computeGeometry() {
-        const { contours, surface, direction, names, distance1, distance2 } = this;
+        const { contours, surface, direction, names, distance1, distance2, race1, race2, thickness1, thickness2 } = this;
 
-        if (distance1 == 0 && distance2 == 0) throw new Error("invalid data");
+        if (distance1 === 0 && distance2 === 0) throw new ValidationError("invalid data");
 
         const sweptData = new c3d.SweptData(surface, contours);
         const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
         const params = new c3d.ExtrusionValues(distance1, distance2);
+
+        // NOTE: structs are always copy-on-read because of memory boundary issues, so you need to do this convoluted
+        // assignment for nested structs.
+        const side1 = params.side1;
+        side1.rake = race1;
+        params.side1 = side1;
+        const side2 = params.side2;
+        side2.rake = race2;
+        params.side2 = side2;
+        params.thickness1 = thickness1;
+        params.thickness2 = thickness2;
+
         const solid = c3d.ActionSolid.ExtrusionSolid(sweptData, new c3d.Vector3D(direction.x, direction.y, direction.z), null, null, false, params, names, ns);
 
         return solid;
@@ -84,7 +111,6 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     get direction() {
         const placement = this.placement;
         const z = placement.GetAxisZ();
-        const normal = new THREE.Vector3(z.x, z.y, z.z);
-        return normal;
+        return vec2vec(z);
     }
 }

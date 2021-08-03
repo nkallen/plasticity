@@ -23,6 +23,7 @@ import ElementarySolidFactory from "./elementary_solid/ElementarySolidFactory";
 import { ElementarySolidGizmo } from "./elementary_solid/ElementarySolidGizmo";
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
 import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
+import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
@@ -550,7 +551,6 @@ export class MoveCommand extends Command {
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
-
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
@@ -954,9 +954,19 @@ export class ExtrudeRegionCommand extends Command {
         const regions = [...this.editor.selection.selectedRegions];
         const extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         extrude.region = regions[0];
-        const gizmo = new OffsetFaceGizmo(this.editor, this.point ?? new THREE.Vector3(), extrude.direction);
-        await gizmo.execute(delta => {
-            extrude.distance1 = delta;
+
+        const bbox = new THREE.Box3();
+        bbox.expandByObject(extrude.region);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const gizmo = new ExtrudeGizmo(extrude, this.editor);
+        gizmo.position.copy(centroid);
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), extrude.direction);
+
+        await gizmo.execute(params => {
+            extrude.distance1 = params.distance1;
+            extrude.race1 = params.race1;
             extrude.update();
         }).resource(this);
 

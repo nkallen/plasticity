@@ -69,9 +69,11 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     abstract onPointerUp(intersect: Intersector, info: MovementInfo): void;
 
     execute(cb: CB, finishFast: mode = mode.Transitory): CancellablePromise<void> {
-        this.editor.helpers.add(this);
         const disposables = new CompositeDisposable();
-        disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
+        if (this.parent === null) {
+            this.editor.helpers.add(this);
+            disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
+        }
 
         const stateMachine = new GizmoStateMachine(this, this.editor.signals, cb);
 

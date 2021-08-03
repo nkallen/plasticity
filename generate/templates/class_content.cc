@@ -33,7 +33,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
     Napi::Function setPrototypeOf = Napi::Function(env, Object.Get("setPrototypeOf"));
     Napi::Value prototype = func.Get("prototype");
 
-    Napi::Function superFunc = <%- klass.extends[0] %>::GetConstructor(env);
+    Napi::Function superFunc = <%- klass.extends[0].cppClassName %>::GetConstructor(env);
     Napi::FunctionReference* superConstructor = new Napi::FunctionReference();
     *superConstructor = Napi::Persistent(superFunc);
 

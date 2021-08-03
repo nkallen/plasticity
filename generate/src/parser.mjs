@@ -88,18 +88,20 @@ class ClassDeclaration {
         // For "extends", we inherit functions as well as the free function name.
         this.desc.functions = this.desc.functions ?? [];
         if (Array.isArray(desc.extends)) {
-            this.extends = desc.extends;
+            // this.extends = desc.extends;
         } else if (desc.extends) {
-            this.extends = [desc.extends];
+            desc.extends = [desc.extends];
         } else {
-            this.extends = [];
+            desc.extends = [];
         }
+        this.extends = [];
 
         this.dependencies = this.desc.dependencies ?? [];
         this.desc.nonInheritedFunctions = this.desc.functions;
         this.desc.implements = [];
-        for (const [i, e] of this.extends.entries()) {
+        for (const [i, e] of desc.extends.entries()) {
             const superclass = typeRegistry.resolveClass(e);
+            this.extends.push(superclass);
             if (!superclass) throw "no superclass found: " + e + " -- note that the ordering of the api file is important.";
             const superclassFunctions = superclass.desc.functions;
             const superclassFunctionsWithoutManuals = superclassFunctions.filter(f => !f.isManual);
@@ -315,7 +317,7 @@ class ParamDeclaration extends TypeDeclaration {
 
         super(matchType.groups.type, typeRegistry);
 
-        this.klass = typeRegistry.resolveClass(this.cppType);
+        this.klass = typeRegistry.resolveClass(this.jsType);
         this.const = matchType.groups.const;
         this.cppIndex = cppIndex;
         this.jsIndex = jsIndex;
@@ -327,7 +329,7 @@ class ParamDeclaration extends TypeDeclaration {
         if (matchType.groups.elementType) {
             this.elementType = typeRegistry.resolveType(matchType.groups.elementType);
             this.elementType.isReference = /RPArray|LIterator/.test(this.rawType);
-            this.elementType.klass = typeRegistry.resolveClass(this.elementType.cppType);
+            this.elementType.klass = typeRegistry.resolveClass(this.elementType.jsType);
         }
         Object.assign(this, options[this.name]);
     }

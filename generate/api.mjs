@@ -813,11 +813,48 @@ export default {
             rawHeader: "op_swept_parameter.h",
             initializers: [""]
         },
+        SweptValues: {
+            isPOD: true,
+            rawHeader: "op_swept_parameter.h",
+            cppClassName: "_SweptValues",
+            rawClassName: "SweptValues",
+            jsClassName: "SweptValues",
+            fields: [
+                "double thickness1",
+                "double thickness2",
+                "bool shellClosed",
+            ]
+        },
+        SweptSide: {
+            isPOD: true,
+            rawHeader: "op_swept_parameter.h",
+            fields: [
+                "double rake",
+                "double distance",
+                "double scalarValue",
+            ]
+        },
+        SweptValuesAndSides: {
+            isPOD: true,
+            rawHeader: "op_swept_parameter.h",
+            extends: "SweptValues",
+            dependencies: ["_SweptValues.h", "SweptSide.h"],
+            cppClassName: "_SweptValuesAndSides",
+            rawClassName: "SweptValuesAndSides",
+            jsClassName: "SweptValuesAndSides",
+            fields: [
+                "MbSweptSide side1",
+                "MbSweptSide side2"
+            ]
+        },
         ExtrusionValues: {
+            isPOD: true,
+            rawHeader: "op_swept_parameter.h",
+            extends: "SweptValuesAndSides",
+            dependencies: ["_SweptValuesAndSides.h"],
             cppClassName: "_ExtrusionValues",
             rawClassName: "ExtrusionValues",
             jsClassName: "ExtrusionValues",
-            rawHeader: "op_swept_parameter.h",
             initializers: ["double scalarValue1, double scalarValue2"]
         },
         SweptData: {
