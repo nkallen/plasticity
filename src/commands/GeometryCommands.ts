@@ -14,7 +14,7 @@ import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboar
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
-import CurveFactory from "./curve/CurveFactory";
+import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import TrimFactory from "./curve/TrimFactory";
@@ -381,54 +381,47 @@ export class CurveCommand extends Command {
         this.editor.layers.showControlPoints();
         this.ensure(() => this.editor.layers.hideControlPoints());
 
-        const makeCurve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const makeNextCurve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        makeCurve.type = makeNextCurve.type = this.type;
+        const makeCurve = new CurveWithPreviewFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        makeCurve.type = this.type;
 
         const pointPicker = new PointPicker(this.editor);
         const keyboard = this.keyboard;
         keyboard.execute((e: CurveKeyboardEvent) => {
             switch (e.tag) {
                 case 'type':
-                    makeCurve.type = makeNextCurve.type = e.type;
+                    makeCurve.type = e.type;
                     makeCurve.update();
-                    makeNextCurve.update();
                     break;
                 case 'undo':
                     pointPicker.undo();
-                    makeCurve.points.pop();
-                    makeNextCurve.points.pop();
+                    makeCurve.undo();
                     makeCurve.update();
-                    makeNextCurve.update();
                     break;
             }
         }).resource(this);
 
         while (true) {
-            if (makeCurve.points.length >= 3)
-                pointPicker.addPointSnap(makeCurve.startPoint);
+            if (makeCurve.canBeClosed) pointPicker.addPointSnap(makeCurve.startPoint);
             try {
                 const { point } = await pointPicker.execute(async ({ point }) => {
-                    makeNextCurve.last = point;
-                    if (!makeNextCurve.hasEnoughPoints) return;
-                    makeNextCurve.closed = makeNextCurve.wouldBeClosed(point);
-                    await makeNextCurve.update();
+                    makeCurve.last = point;
+                    if (!makeCurve.preview.hasEnoughPoints) return;
+                    makeCurve.preview.closed = makeCurve.preview.wouldBeClosed(point);
+                    await makeCurve.preview.update();
                 }, 'RejectOnFinish').resource(this);
-                if (makeNextCurve.wouldBeClosed(point)) {
+                if (makeCurve.wouldBeClosed(point)) {
                     makeCurve.closed = true;
                     throw Finish;
                 }
-                makeCurve.points.push(point);
-                makeNextCurve.points.push(point);
-                if (makeCurve.hasEnoughPoints) await makeCurve.update();
-                if (makeNextCurve.hasEnoughPoints) await makeNextCurve.update();
+                makeCurve.push(point);
+                makeCurve.update();
             } catch (e) {
                 if (e !== Finish) throw e;
                 break;
             }
         }
 
-        makeNextCurve.cancel();
+        makeCurve.preview.cancel();
         await makeCurve.commit();
     }
 }

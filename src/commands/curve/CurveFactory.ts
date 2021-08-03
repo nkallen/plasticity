@@ -38,8 +38,53 @@ export default class CurveFactory extends GeometryFactory {
     wouldBeClosed(p: THREE.Vector3) {
         return this.points.length >= 2 && p.distanceToSquared(this.startPoint) < 10e-6;
     }
+}
+
+export class CurveWithPreviewFactory extends GeometryFactory {
+    readonly underlying = new CurveFactory(this.db, this.materials, this.signals);
+    readonly preview = new CurveFactory(this.db, this.materials, this.signals);
+
+    set type(t: c3d.SpaceType) {
+        this.underlying.type = t;
+        this.preview.type = t;
+    }
+
+    undo() {
+        this.underlying.points.pop();
+        this.preview.points.pop();
+    }
+
+    get canBeClosed() {
+        return this.underlying.points.length >= 3;
+    }
+
+    get startPoint() { return this.underlying.startPoint }
+
 
     set last(point: THREE.Vector3) {
-        this.points[Math.max(this.points.length - 1, 0)] = point;
+        this.preview.points[Math.max(this.preview.points.length - 1, 0)] = point;
+    }
+
+    wouldBeClosed(p: THREE.Vector3) {
+        return this.underlying.wouldBeClosed(p);
+    }
+
+    set closed(c: boolean) {
+        this.underlying.closed = c;
+    }
+
+    push(p: THREE.Vector3) {
+        this.underlying.points.push(p);
+        this.preview.points.push(p);
+    }
+
+    doUpdate() {
+        if (this.preview.hasEnoughPoints) this.preview.update();
+        if (this.underlying.hasEnoughPoints) this.underlying.update();
+        return Promise.resolve();
+    }
+
+    doCommit() {
+        return this.underlying.commit();
     }
 }
