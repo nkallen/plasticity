@@ -45,14 +45,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
     protected async doUpdate(): Promise<void> {
         const promises = [];
-        let result;
-        try {
-            result = await this.computeGeometry();
-        } catch (e) {
-            if (e instanceof ValidationError || e.isC3dError)
-                console.warn(e.message);
-            else throw e;
-        }
+        let result = await this.computeGeometry();
         const geometries = toArray(result);
         for (const geometry of geometries) {
             promises.push(this.db.addTemporaryItem(geometry));
@@ -155,7 +148,12 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 if (this.state.last !== undefined) {
                     this.restoreSavedState(this.state.last);
                     await this.update();
-                } else throw this.state.error;
+                } else {
+                    const e = this.state.error;
+                    if (e instanceof ValidationError || e.isC3dError)
+                        console.warn(e.message);
+                    else throw e;
+                }
                 break;
             case 'updating': break;
             default:

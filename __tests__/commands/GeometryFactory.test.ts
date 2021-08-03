@@ -1,4 +1,4 @@
-import { GeometryFactory } from "../../src/commands/Factory";
+import { GeometryFactory, ValidationError } from "../../src/commands/Factory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -14,15 +14,8 @@ class FakeFactory extends GeometryFactory {
 
     revertOnError = 0;
 
-    protected async doUpdate() {
+    protected async computeGeometry() {
         return this.promises[this.updateCount++];
-    }
-
-    protected async doCommit(): Promise<visual.SpaceItem | visual.SpaceItem[]> {
-        throw new Error("Method not implemented.");
-    }
-    protected doCancel(): void {
-        throw new Error("Method not implemented.");
     }
 }
 
@@ -106,5 +99,30 @@ describe('update', () => {
 
         expect(factory.revertOnError).toBe(1);
         expect(factory.updateCount).toBe(3);
+    });
+
+    test("update swallows validation errors", async () => {
+        let reject;
+        factory.promises.push(new Promise<void>((_, reject_) => { reject = reject_ }));
+
+        const first = factory.update();
+        reject(new ValidationError());
+        await first;
+
+        expect(factory.updateCount).toBe(1);
+    });
+
+
+    test("update swallows c3d errors", async () => {
+        let reject;
+        factory.promises.push(new Promise<void>((_, reject_) => { reject = reject_ }));
+
+        const first = factory.update();
+        const c3dErr = new Error();
+        c3dErr.isC3dError = true;
+        reject(c3dErr);
+        await first;
+
+        expect(factory.updateCount).toBe(1);
     });
 })
