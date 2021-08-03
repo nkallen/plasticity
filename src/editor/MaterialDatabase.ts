@@ -37,7 +37,7 @@ export default interface MaterialDatabase {
     hover(o: c3d.Item): THREE.Material;
 }
 
-const line = new LineMaterial({ color: 0x000000, linewidth: 1.2 });
+const line = new LineMaterial({ color: 0x000000, linewidth: 1.5 });
 
 const line_dashed = new LineMaterial({ color: 0x000000, linewidth: 0.8, dashed: true, dashScale: 100 });
 line_dashed.depthFunc = THREE.AlwaysDepth;

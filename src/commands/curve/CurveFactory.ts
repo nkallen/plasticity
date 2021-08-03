@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { TemporaryObject } from "../../editor/GeometryDatabase";
 import { GeometryFactory, ValidationError } from '../Factory';
 
 const curveMinimumPoints = new Map<c3d.SpaceType, number>();
@@ -15,27 +14,20 @@ export default class CurveFactory extends GeometryFactory {
     type = c3d.SpaceType.Hermit3D;
     closed = false;
 
-    nextPoint?: THREE.Vector3;
-
     get startPoint() { return this.points[0] }
 
     async computeGeometry() {
-        const { points, nextPoint, type } = this;
+        const { points, type } = this;
 
-        if (!this.hasEnoughPoints) throw new ValidationError(`${points.length + (nextPoint === undefined ? 0 : 1)} points is too few points for ${c3d.SpaceType[type]}`);
+        if (!this.hasEnoughPoints) throw new ValidationError(`${points.length} points is too few points for ${c3d.SpaceType[type]}`);
 
         const cartPoints = points.map(p => new c3d.CartPoint3D(p.x, p.y, p.z));
-        if (nextPoint !== undefined)
-            cartPoints.push(new c3d.CartPoint3D(nextPoint.x, nextPoint.y, nextPoint.z));
-
-            const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);
+        const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);
         return new c3d.SpaceInstance(curve);
     }
 
     get hasEnoughPoints() {
-        const { points, nextPoint, type } = this;
-        let length = points.length;
-        if (nextPoint !== undefined) length++;
+        const { type, points: { length } } = this;
 
         if (length === 0) return false;
         if (length === 1) return false;
@@ -45,5 +37,9 @@ export default class CurveFactory extends GeometryFactory {
 
     wouldBeClosed(p: THREE.Vector3) {
         return this.points.length >= 2 && p.distanceToSquared(this.startPoint) < 10e-6;
+    }
+
+    set last(point: THREE.Vector3) {
+        this.points[Math.max(this.points.length - 1, 0)] = point;
     }
 }

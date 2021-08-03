@@ -19,15 +19,6 @@ beforeEach(() => {
     makeCurve = new CurveFactory(db, materials, signals);
 })
 
-describe('update', () => {
-    test('creates a line', () => {
-        makeCurve.points.push(new THREE.Vector3());
-        makeCurve.points.push(new THREE.Vector3(1, 1, 0));
-        makeCurve.points.push(new THREE.Vector3(2, -1, 0));
-        makeCurve.update();
-    });
-});
-
 describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {
         makeCurve.points.push(new THREE.Vector3());

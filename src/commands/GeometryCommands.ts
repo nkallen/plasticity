@@ -382,20 +382,24 @@ export class CurveCommand extends Command {
         this.ensure(() => this.editor.layers.hideControlPoints());
 
         const makeCurve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        makeCurve.type = this.type;
+        const makeNextCurve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        makeCurve.type = makeNextCurve.type = this.type;
 
         const pointPicker = new PointPicker(this.editor);
         const keyboard = this.keyboard;
         keyboard.execute((e: CurveKeyboardEvent) => {
             switch (e.tag) {
                 case 'type':
-                    makeCurve.type = e.type;
+                    makeCurve.type = makeNextCurve.type = e.type;
                     makeCurve.update();
+                    makeNextCurve.update();
                     break;
                 case 'undo':
-                    pointPicker.undo(); // FIXME in theory the overlay needs to be updated;
+                    pointPicker.undo();
                     makeCurve.points.pop();
+                    makeNextCurve.points.pop();
                     makeCurve.update();
+                    makeNextCurve.update();
                     break;
             }
         }).resource(this);
@@ -405,24 +409,26 @@ export class CurveCommand extends Command {
                 pointPicker.addPointSnap(makeCurve.startPoint);
             try {
                 const { point } = await pointPicker.execute(async ({ point }) => {
-                    makeCurve.nextPoint = point;
-                    if (!makeCurve.hasEnoughPoints) return;
-                    makeCurve.closed = makeCurve.wouldBeClosed(point);
-                    await makeCurve.update();
+                    makeNextCurve.last = point;
+                    if (!makeNextCurve.hasEnoughPoints) return;
+                    makeNextCurve.closed = makeNextCurve.wouldBeClosed(point);
+                    await makeNextCurve.update();
                 }, 'RejectOnFinish').resource(this);
-                if (makeCurve.wouldBeClosed(point)) {
+                if (makeNextCurve.wouldBeClosed(point)) {
                     makeCurve.closed = true;
                     throw Finish;
                 }
-                makeCurve.nextPoint = undefined;
                 makeCurve.points.push(point);
-                await makeCurve.update();
+                makeNextCurve.points.push(point);
+                if (makeCurve.hasEnoughPoints) await makeCurve.update();
+                if (makeNextCurve.hasEnoughPoints) await makeNextCurve.update();
             } catch (e) {
                 if (e !== Finish) throw e;
                 break;
             }
         }
 
+        makeNextCurve.cancel();
         await makeCurve.commit();
     }
 }
