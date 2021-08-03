@@ -106,7 +106,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                         const pointer = AbstractGizmo.getPointer(domElement, lastEvent);
                         stateMachine.update(viewport, pointer);
                         stateMachine.command(fn, () => {
-                            viewport.disableControls();
+                            viewport.disableControlsExcept();
                             domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
                             domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
                         });
@@ -119,7 +119,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     stateMachine.update(viewport, pointer);
                     stateMachine.pointerDown(() => {
-                        viewport.disableControls();
+                        viewport.disableControlsExcept();
                         domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
                         domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
                     });

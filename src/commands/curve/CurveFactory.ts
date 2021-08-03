@@ -45,6 +45,18 @@ export default class CurveFactory extends GeometryFactory {
     wouldBeClosed(p: THREE.Vector3) {
         return this.points.length >= 2 && p.distanceToSquared(this.startPoint) < 10e-6;
     }
+
+    set last(point: THREE.Vector3) {
+        this.points[this.points.length - 1] = point;
+    }
+
+    get last() {
+        return this.points[this.points.length - 1];
+    }
+
+    push(point: THREE.Vector3) {
+        this.points.push(point);
+    }
 }
 
 export class CurveWithPreviewFactory extends GeometryFactory {
@@ -77,7 +89,7 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     get startPoint() { return this.underlying.startPoint }
 
     set last(point: THREE.Vector3) {
-        this.preview.points[Math.max(this.preview.points.length - 1, 0)] = point;
+        this.preview.last = point;
     }
 
     wouldBeClosed(p: THREE.Vector3) {

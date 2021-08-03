@@ -73,7 +73,7 @@ export class ObjectPicker {
             disposables.add(new Disposable(() => signals.objectSelected.remove(finish)));
 
             for (const viewport of this.editor.viewports) {
-                viewport.disableControls();
+                viewport.disableControlsExcept();
                 disposables.add(new Disposable(() => viewport.enableControls()));
 
                 const camera = viewport.camera;

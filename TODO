@@ -1,3 +1,5 @@
+when creating spiral, the radius (3rd point,) doesn't snap to plane well
+draw curve first line part is invisible
 interleaving with updating/commit on factory. use q?
 
 fillet has two points, F key bound twice

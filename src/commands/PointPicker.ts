@@ -52,7 +52,7 @@ export class PointPicker {
             disposables.add(new Disposable(() => scene.remove(mesh)));
 
             for (const viewport of this.editor.viewports) {
-                viewport.disableControls();
+                viewport.disableControlsExcept();
                 disposables.add(new Disposable(() => viewport.enableControls()))
 
                 const renderer = viewport.renderer;

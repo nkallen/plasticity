@@ -56,7 +56,8 @@ export class SnapManager {
     }
 
     snap(raycaster: Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): [Snap, THREE.Vector3][] {
-        const snapperIntersections = raycaster.intersectObjects([...this.snappers, ...additional.map(a => a.snapper)]);
+        const snappers = [...this.snappers, ...additional.map(a => a.snapper)];
+        const snapperIntersections = raycaster.intersectObjects(snappers);
         snapperIntersections.sort((s1, s2) => s1.object.userData.sort - s2.object.userData.sort);
         const result: [Snap, THREE.Vector3][] = [];
 
@@ -77,6 +78,10 @@ export class SnapManager {
 
     private update() {
         const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.endPoints];
+        for (const a of all) {
+            a.snapper.userData.snapper = a;
+            if (a.picker !== undefined) a.picker.userData.snapper = a;
+        }
         this.pickers = all.map((s) => s.picker).filter(x => !!x) as THREE.Object3D[];
         this.snappers = all.map((s) => s.snapper);
     }
@@ -304,7 +309,9 @@ export class PlaneSnap extends Snap {
 
     constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3()) {
         const planeGeo = new THREE.PlaneGeometry(1000, 1000, 2, 2);
-        const mesh = new THREE.Mesh(planeGeo);
+        const mat = new THREE.MeshBasicMaterial();
+        mat.side = THREE.DoubleSide;
+        const mesh = new THREE.Mesh(planeGeo, mat);
         mesh.lookAt(n);
         mesh.position.copy(p);
         super(mesh);
@@ -325,6 +332,50 @@ export class PlaneSnap extends Snap {
 
     isValid(pt: THREE.Vector3): boolean {
         return Math.abs(pt.clone().sub(this.snapper.position).dot(this.n)) < 10e-4;
+    }
+
+    update(camera: THREE.Camera) { }
+}
+
+export class CameraPlaneSnap extends PlaneSnap {
+    private readonly camera: THREE.Camera;
+    private readonly worldDirection: THREE.Vector3;
+    private readonly projectionPoint: THREE.Vector3;
+
+    constructor(camera: THREE.Camera) {
+        super(new THREE.Vector3(), new THREE.Vector3());
+        this.camera = camera;
+        this.worldDirection = new THREE.Vector3();
+        this.projectionPoint = new THREE.Vector3();
+        this.update(camera);
+    }
+
+    isValid(pt: THREE.Vector3): boolean {
+        const { camera, worldDirection } = this;
+        return Math.abs(pt.clone().sub(camera.position).dot(worldDirection)) < 10e-4;
+    }
+
+    project(intersection: THREE.Intersection): THREE.Vector3 {
+        const { worldDirection, projectionPoint } = this;
+
+        const plane = new THREE.Plane();
+        plane.setFromNormalAndCoplanarPoint(worldDirection, this.snapper.position);
+
+        // console.log(intersection.point, plane.projectPoint(intersection.point, projectionPoint) );
+
+        return plane.projectPoint(intersection.point, projectionPoint);
+        return intersection.point;
+    }
+
+    update(camera: THREE.Camera) {
+        if (!(camera instanceof THREE.PerspectiveCamera || camera instanceof THREE.OrthographicCamera)) throw Error("invalid precondition");
+
+        const { worldDirection } = this;
+        camera.getWorldDirection(worldDirection);
+
+        this.snapper.position.copy(camera.position).add(worldDirection.clone().multiplyScalar(5));
+        this.snapper.lookAt(worldDirection);
+        this.snapper.updateMatrixWorld();
     }
 }
 

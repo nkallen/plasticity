@@ -9,7 +9,7 @@ import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { EditorSignals } from '../../editor/EditorSignals';
 import { GeometryDatabase } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
-import { PlaneSnap } from "../../editor/SnapManager";
+import { CameraPlaneSnap, PlaneSnap } from "../../editor/SnapManager";
 import * as visual from "../../editor/VisualModel";
 import { ControlPoint, Region, Solid, SpaceItem, TopologyItem } from "../../editor/VisualModel";
 import { SelectionManager } from "../../selection/SelectionManager";
@@ -26,9 +26,10 @@ const fog = new THREE.Fog(0x424242, 1, 100);
 export interface Viewport {
     renderer: THREE.Renderer;
     camera: THREE.Camera;
-    constructionPlane: PlaneSnap;
+    get constructionPlane(): PlaneSnap;
+    set constructionPlane(p: PlaneSnap);
     enableControls(): void;
-    disableControls(): void;
+    disableControlsExcept(): void;
     overlay: THREE.Scene;
     lastPointerEvent?: PointerEvent;
     outlinePassSelection: OutlinePass;
@@ -266,7 +267,7 @@ export class Model implements Viewport {
         this.setNeedsRender();
     }
 
-    disableControls(except?: Control) {
+    disableControlsExcept(except?: Control) {
         for (const control of this.controls) {
             if (control === except) continue;
             control.enabled = false;
@@ -285,7 +286,8 @@ export class Model implements Viewport {
     }
 
     navigationChange() {
-        this.disableControls(this.navigationControls);
+        this.disableControlsExcept(this.navigationControls);
+        this.constructionPlane.update(this.camera);
     }
 
     navigationEnd() {
@@ -355,12 +357,14 @@ export default (editor: EditorLike) => {
             const navigationControls = new OrbitControls(camera, renderer.domElement);
             if (camera.type == 'OrthographicCamera') navigationControls.enableRotate = false;
 
-            let constructionPlane = new PlaneSnap(n);
-            grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
-            grid.renderOrder = -1;
-
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());
+            camera.updateMatrixWorld();
+
+            // const constructionPlane = new CameraPlaneSnap(camera);
+            const constructionPlane = new PlaneSnap(n);
+            grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
+            grid.renderOrder = -1;
 
             this.model = new Model(
                 editor,

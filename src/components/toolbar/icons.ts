@@ -82,7 +82,8 @@ icons.set(cmd.ChangePointCommand, changePoint);
 icons.set(cmd.TrimCommand, trim);
 icons.set(cmd.RemovePointCommand, trash);
 icons.set(cmd.FilletCurveCommand, fillet);
-icons.set(cmd.SelectFillets, fillet);
+icons.set(cmd.SelectFilletsCommand, fillet);
+icons.set(cmd.ClipCurveCommand, line);
 
 export const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");
@@ -129,7 +130,8 @@ tooltips.set(cmd.ChangePointCommand, "Move control point");
 tooltips.set(cmd.TrimCommand, "Cut off line segments at intersections of curves");
 tooltips.set(cmd.RemovePointCommand, "Remove point from polyline or curve");
 tooltips.set(cmd.FilletCurveCommand, "Fillet curve");
-tooltips.set(cmd.SelectFillets, "Select removable faces");
+tooltips.set(cmd.SelectFilletsCommand, "Select removable faces");
+tooltips.set(cmd.ClipCurveCommand, "Clip Curve");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");

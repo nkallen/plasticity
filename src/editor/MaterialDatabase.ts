@@ -84,18 +84,21 @@ region.fog = false;
 region.color.setHex(0x8dd9f2)
 region.opacity = 0.1;
 region.transparent = true;
+region.side = THREE.DoubleSide;
 
 const region_hovered = new THREE.MeshBasicMaterial();
 region_hovered.fog = false;
 region_hovered.color.setHex(0x8dd9f2)
 region_hovered.opacity = 0.5;
 region_hovered.transparent = true;
+region_hovered.side = THREE.DoubleSide;
 
 const region_highlighted = new THREE.MeshBasicMaterial();
 region_highlighted.fog = false;
 region_highlighted.color.setHex(0x8dd9f2)
 region_highlighted.opacity = 0.9;
 region_highlighted.transparent = true;
+region_highlighted.side = THREE.DoubleSide;
 
 const controlPoint = new THREE.PointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, transparent: true, vertexColors: true });
 controlPoint.userData.resolution = new THREE.Vector2();

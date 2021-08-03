@@ -1108,7 +1108,7 @@ export class FilletCurveCommand extends Command {
     }
 }
 
-export class SelectFillets extends Command {
+export class SelectFilletsCommand extends Command {
     async execute(): Promise<void> {
         const solid = this.editor.selection.selectedSolids.first;
         const model = this.editor.db.lookup(solid);
@@ -1121,5 +1121,30 @@ export class SelectFillets extends Command {
             const view = views.values().next().value;
             this.editor.selection.selectFace(view, solid);
         }
+    }
+}
+
+export class ClipCurveCommand extends Command {
+    async execute(): Promise<void> {
+        const makeCurve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals);
+
+        const pointPicker = new PointPicker(this.editor);
+        while (true) {
+            try {
+                makeCurve.push(new THREE.Vector3());
+                await pointPicker.execute(async ({ point }) => {
+                    makeCurve.last.copy(point);
+                    if (!makeCurve.hasEnoughPoints) return;
+                    await makeCurve.update();
+                }, 'RejectOnFinish').resource(this);
+
+                makeCurve.update();
+            } catch (e) {
+                if (e !== Finish) throw e;
+                break;
+            }
+        }
+
+        await makeCurve.commit();
     }
 }
