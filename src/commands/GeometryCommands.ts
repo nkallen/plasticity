@@ -1107,3 +1107,19 @@ export class FilletCurveCommand extends Command {
         await factory.commit();
     }
 }
+
+export class SelectFillets extends Command {
+    async execute(): Promise<void> {
+        const solid = this.editor.selection.selectedSolids.first;
+        const model = this.editor.db.lookup(solid);
+        const shell = model.GetShell()!;
+        const removableFaces = c3d.ActionDirect.CollectFacesForModification(shell, c3d.ModifyingType.Purify, 1);
+
+        const ids = removableFaces.map(f => visual.Face.simpleName(solid.simpleName, model.GetFaceIndex(f)));
+        for (const id of ids) {
+            const { views } = this.editor.db.lookupTopologyItemById(id);
+            const view = views.values().next().value;
+            this.editor.selection.selectFace(view, solid);
+        }
+    }
+}

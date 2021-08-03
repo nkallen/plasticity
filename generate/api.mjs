@@ -173,6 +173,8 @@ export default {
                 "MbCurveEdge * GetEdge(size_t index)",
                 "MbCurveEdge * FindEdgeByName(const MbName & name)",
                 "MbFaceShell * GetShell()",
+                "size_t GetFaceIndex(const MbFace & face)",
+                "size_t GetEdgeIndex(const MbCurveEdge & edge)",
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
                 "void SetBasisPoints(const MbControlData3D & cd)",
             ]

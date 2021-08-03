@@ -25,6 +25,7 @@ export class Model {
             result.push(cmd.MoveCommand);
             result.push(cmd.RotateCommand);
             result.push(cmd.ScaleCommand);
+            result.push(cmd.SelectFillets);
         }
         if (selection.selectedSolids.size > 1) {
             result.push(cmd.UnionCommand);
@@ -54,21 +55,9 @@ export class Model {
                     result.push(cmd.FilletFaceCommand);
                 }
             } catch { }
-            try {
-                const shell = solid.GetShell();
-                if (shell === null) throw new Error("invalid precondition");
-                const removableFaces = c3d.ActionDirect.CollectFacesForModification(shell, c3d.ModifyingType.Remove, 1);
-                const removableNames = new Set(removableFaces.map(f => f.GetNameHash()));
-                const all = [...selection.selectedFaces].every(f => {
-                    const model = db.lookupTopologyItem(f);
-                    return removableNames.has(model.GetNameHash());
-                });
-                if (all) {
-                    result.push(cmd.RemoveFaceCommand);
-                    result.push(cmd.ActionFaceCommand);
-                    result.push(cmd.CreateFaceCommand);
-                }
-            } catch { }
+            result.push(cmd.RemoveFaceCommand);
+            result.push(cmd.ActionFaceCommand);
+            result.push(cmd.CreateFaceCommand);
         }
         if (selection.selectedSolids.size > 0 && selection.selectedCurves.size > 0) {
             result.push(cmd.CutCommand);

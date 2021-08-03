@@ -251,6 +251,10 @@ export class Face extends TopologyItem {
     private readonly mesh: THREE.Mesh;
     get child() { return this.mesh };
 
+    static simpleName(parentId: c3d.SimpleName, index: number) {
+        return `face,${parentId},${index}`;
+    }
+
     static build(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material): Face {
         const geometry = new THREE.BufferGeometry();
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
@@ -259,7 +263,7 @@ export class Face extends TopologyItem {
         const mesh = new THREE.Mesh(geometry, material);
         const result = new Face(mesh);
         result.userData.name = grid.name;
-        result.userData.simpleName = `face,${parentId},${grid.i}`
+        result.userData.simpleName = this.simpleName(parentId, grid.i);
         result.userData.index = grid.i;
 
         result.layers.set(Layers.Face);
