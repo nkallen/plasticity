@@ -114,4 +114,9 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     doCommit() {
         return this.underlying.commit();
     }
+
+    doCancel() {
+        this.underlying.cancel();
+        this.preview.cancel();
+    }
 }

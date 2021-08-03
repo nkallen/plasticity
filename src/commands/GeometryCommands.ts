@@ -28,6 +28,7 @@ import { FilletDialog } from "./fillet/FilletDialog";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
+import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import { LengthGizmo } from "./MiniGizmos";
@@ -675,14 +676,9 @@ export class DifferenceCommand extends Command {
 
 export class CutCommand extends Command {
     async execute(): Promise<void> {
-        const solids = [...this.editor.selection.selectedSolids];
-        const curves = [...this.editor.selection.selectedCurves];
-        const object1 = solids[0]!;
-        const object2 = curves[0]!;
-
         const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        cut.solid = object1;
-        cut.contour = object2;
+        cut.solid = this.editor.selection.selectedSolids.first;
+        cut.curve = this.editor.selection.selectedCurves.first;
         await cut.commit();
     }
 }
@@ -1126,18 +1122,20 @@ export class SelectFilletsCommand extends Command {
 
 export class ClipCurveCommand extends Command {
     async execute(): Promise<void> {
-        const makeCurve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals);
-
+        const makeCurve = new CurveWithPreviewFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        
         const pointPicker = new PointPicker(this.editor);
+        pointPicker.restrictToConstructionPlane = true;
         while (true) {
             try {
-                makeCurve.push(new THREE.Vector3());
-                await pointPicker.execute(async ({ point }) => {
-                    makeCurve.last.copy(point);
-                    if (!makeCurve.hasEnoughPoints) return;
-                    await makeCurve.update();
+                const { point } = await pointPicker.execute(async ({ point }) => {
+                    makeCurve.last = point;
+                    if (!makeCurve.preview.hasEnoughPoints) return;
+                    makeCurve.preview.closed = makeCurve.preview.wouldBeClosed(point);
+                    await makeCurve.preview.update();
                 }, 'RejectOnFinish').resource(this);
 
+                makeCurve.push(point);
                 makeCurve.update();
             } catch (e) {
                 if (e !== Finish) throw e;
@@ -1145,6 +1143,21 @@ export class ClipCurveCommand extends Command {
             }
         }
 
-        await makeCurve.commit();
+        const inst = await makeCurve.underlying.computeGeometry();
+        makeCurve.cancel();
+
+        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        cut.solid = this.editor.selection.selectedSolids.first;
+        
+        const item = inst.GetSpaceItem()!;
+        const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+        const { curve2d, placement } = curve.GetPlaneCurve(false, new c3d.PlanarCheckParams(1));
+        if (!curve2d || !placement) throw new ValidationError("invalid curve");
+
+        cut.contour = new c3d.Contour([curve2d], true);
+        cut.placement = placement;
+
+        const result = await cut.commit() as visual.Solid[];
+        this.editor.selection.selectSolid(result[0]);
     }
 }

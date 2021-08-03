@@ -22,7 +22,7 @@ export class FakeViewport extends HTMLElement implements Viewport {
     enableControls(): void {
         this.controlsEnabled = true;
     }
-    disableControls(): void {
+    disableControlsExcept(): void {
         this.controlsEnabled = false;
     }
     overlay = new THREE.Scene();

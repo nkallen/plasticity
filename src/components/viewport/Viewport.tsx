@@ -361,8 +361,8 @@ export default (editor: EditorLike) => {
             camera.lookAt(new THREE.Vector3());
             camera.updateMatrixWorld();
 
-            // const constructionPlane = new CameraPlaneSnap(camera);
-            const constructionPlane = new PlaneSnap(n);
+            const constructionPlane = new CameraPlaneSnap(camera);
+            // const constructionPlane = new PlaneSnap(n);
             grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
             grid.renderOrder = -1;
 

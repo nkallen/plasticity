@@ -58,7 +58,7 @@ describe("cutting", () => {
     
             const cut = new CutFactory(db, materials, signals);
             cut.solid = sphere;
-            cut.contour = curve;
+            cut.curve = curve;
             const result = await cut.commit() as visual.SpaceItem[];
 
             expect(result.length).toBe(2);

@@ -26,6 +26,7 @@ export class PointPicker {
     private readonly pickedPointSnaps = new Array<PointSnap>(); // Snaps inferred from points the user actually picked
     private readonly otherAddedSnaps = new Array<Snap>();
     private readonly restrictions = new Array<Restriction>();
+    restrictToConstructionPlane = false;
 
     straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]);
     private restrictionPoint?: THREE.Vector3;
@@ -58,11 +59,14 @@ export class PointPicker {
                 const renderer = viewport.renderer;
                 const camera = viewport.camera;
                 let constructionPlane = viewport.constructionPlane;
+
                 const restrictions = this.restrictions.slice();
                 if (this.restrictionPoint != null) {
                     constructionPlane = constructionPlane.restrict(this.restrictionPoint);
                     restrictions.push(constructionPlane);
                 }
+                if (this.restrictToConstructionPlane) restrictions.push(constructionPlane);
+
                 const domElement = renderer.domElement;
 
                 const onPointerMove = (e: PointerEvent) => {
@@ -157,7 +161,7 @@ export class PointPicker {
         return this.axesOfLastPickedPoint.concat(this.otherAddedSnaps);
     }
 
-    restrictToPlaneThroughPoint(point: THREE.Vector3): void {
+    restrictToPlaneThroughPoint(point: THREE.Vector3) {
         this.restrictionPoint = point;
     }
 

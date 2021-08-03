@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 abstract class BooleanFactory extends GeometryFactory {
     protected abstract operationType: c3d.OperationType;
@@ -47,34 +47,36 @@ export class DifferenceFactory extends BooleanFactory {
 
 export class CutFactory extends GeometryFactory {
     solid!: visual.Solid;
-    contour!: visual.SpaceInstance<visual.Curve3D>;
 
-    async doCommit() {
-        const solid = this.db.lookup(this.solid);
-        const instance = this.db.lookup(this.contour);
-        const item = instance.GetSpaceItem();
-        if (item === null) throw new Error("invalid precondition");
+    names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
+
+    contour!: c3d.Contour;
+    placement!: c3d.Placement3D;
+
+    set curve(inst: visual.SpaceInstance<visual.Curve3D>) {
+        const instance = this.db.lookup(inst);
+        const item = instance.GetSpaceItem()!;
         const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
         const { curve2d, placement } = curve.GetPlaneCurve(false);
-        if (!curve2d || !placement) throw new Error("invalid curve");
-        const contour = new c3d.Contour([curve2d], true);
+        if (!curve2d || !placement) throw new ValidationError("invalid curve");
 
-        const names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
+        this.contour = new c3d.Contour([curve2d], true);
+        this.placement = placement;
+    }
+
+    async computeGeometry() {
+        const { db, contour, placement, names } = this;
+
+        const solid = db.lookup(this.solid);
 
         const flags = new c3d.MergingFlags(true, true);
         const direction = new c3d.Vector3D(0, 0, 0);
-        const result0 = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, placement, contour, direction, -1, names, true, flags);
+        // const result0 = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, placement, contour, direction, -1, names, true, flags);
         const result1 = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, placement, contour, direction, 1, names, true, flags);
 
-        const r1 = await this.db.addItem(result0);
-        const r2 = await this.db.addItem(result1);
-        this.db.removeItem(this.solid);
-        this.db.removeItem(this.contour);
-        return [r1, r2];
+        // return [result0, result1];
+        return [result1];
     }
 
-    doCancel() {
-    }
-
-    async doUpdate() { }
+    get originalItem() { return this.solid }
 }

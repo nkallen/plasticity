@@ -351,8 +351,12 @@ export class CameraPlaneSnap extends PlaneSnap {
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        const { camera, worldDirection } = this;
-        return Math.abs(pt.clone().sub(camera.position).dot(worldDirection)) < 10e-4;
+        const { worldDirection, projectionPoint } = this;
+
+        const plane = new THREE.Plane();
+        plane.setFromNormalAndCoplanarPoint(worldDirection, this.snapper.position);
+        
+        return Math.abs(plane.distanceToPoint(pt)) < 1e-4;
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -361,10 +365,7 @@ export class CameraPlaneSnap extends PlaneSnap {
         const plane = new THREE.Plane();
         plane.setFromNormalAndCoplanarPoint(worldDirection, this.snapper.position);
 
-        // console.log(intersection.point, plane.projectPoint(intersection.point, projectionPoint) );
-
         return plane.projectPoint(intersection.point, projectionPoint);
-        return intersection.point;
     }
 
     update(camera: THREE.Camera) {
@@ -373,7 +374,7 @@ export class CameraPlaneSnap extends PlaneSnap {
         const { worldDirection } = this;
         camera.getWorldDirection(worldDirection);
 
-        this.snapper.position.copy(camera.position).add(worldDirection.clone().multiplyScalar(5));
+        this.snapper.position.copy(camera.position).add(worldDirection.clone().multiplyScalar(20));
         this.snapper.lookAt(worldDirection);
         this.snapper.updateMatrixWorld();
     }
