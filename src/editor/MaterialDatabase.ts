@@ -37,6 +37,8 @@ export default interface MaterialDatabase {
     hover(o: c3d.Item): THREE.Material;
 }
 
+const previewLine = new LineMaterial({ color: 0x000088, linewidth: 0.7 });
+
 const line = new LineMaterial({ color: 0x000000, linewidth: 1.5 });
 
 const line_dashed = new LineMaterial({ color: 0x000000, linewidth: 0.8, dashed: true, dashScale: 100 });
@@ -103,7 +105,7 @@ const controlPoint_highlighted = new THREE.Color(0xffff00);
 
 export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();
-    private readonly lines = [line, line_dashed, line_highlighted, line_hovered];
+    private readonly lines = [line, line_dashed, line_highlighted, line_hovered, previewLine];
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
@@ -115,10 +117,10 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     }
 
     line(o?: c3d.SpaceInstance): LineMaterial {
+        if (o === undefined) return line;
+        if (o.GetStyle() === 0) return line;
+        if (o.GetStyle() === 1) return previewLine;
         return line;
-        // FIXME GetStyle errors on windows on unset object
-        // if (!o) return line;
-        // else return this.getLine(o) ?? line;
     }
 
     lineDashed(): LineMaterial {
@@ -215,5 +217,11 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         else {
             throw new Error(`not yet implemented: ${o.constructor}`);
         }
+    }
+}
+
+export class CurvePreviewMaterialDatabase extends BasicMaterialDatabase {
+    line(o?: c3d.SpaceInstance): LineMaterial {
+        return previewLine;
     }
 }

@@ -1,5 +1,8 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
+import { EditorSignals } from "../../editor/EditorSignals";
+import { GeometryDatabase } from "../../editor/GeometryDatabase";
+import MaterialDatabase from "../../editor/MaterialDatabase";
 import { GeometryFactory, ValidationError } from '../Factory';
 
 const curveMinimumPoints = new Map<c3d.SpaceType, number>();
@@ -13,17 +16,21 @@ export default class CurveFactory extends GeometryFactory {
     readonly points = new Array<THREE.Vector3>();
     type = c3d.SpaceType.Hermit3D;
     closed = false;
+    style = 0;
 
     get startPoint() { return this.points[0] }
 
     async computeGeometry() {
-        const { points, type } = this;
+        const { points, type, style } = this;
 
         if (!this.hasEnoughPoints) throw new ValidationError(`${points.length} points is too few points for ${c3d.SpaceType[type]}`);
 
         const cartPoints = points.map(p => new c3d.CartPoint3D(p.x, p.y, p.z));
         const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);
-        return new c3d.SpaceInstance(curve);
+
+        const instance = new c3d.SpaceInstance(curve);
+        instance.SetStyle(style);
+        return instance;
     }
 
     get hasEnoughPoints() {
@@ -44,6 +51,15 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     readonly underlying = new CurveFactory(this.db, this.materials, this.signals);
     readonly preview = new CurveFactory(this.db, this.materials, this.signals);
 
+    constructor(
+        protected readonly db: GeometryDatabase,
+        protected readonly materials: MaterialDatabase,
+        protected readonly signals: EditorSignals
+    ) {
+        super(db, materials, signals);
+        this.preview.style = 1;
+    }
+
     set type(t: c3d.SpaceType) {
         this.underlying.type = t;
         this.preview.type = t;
@@ -59,7 +75,6 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     }
 
     get startPoint() { return this.underlying.startPoint }
-
 
     set last(point: THREE.Vector3) {
         this.preview.points[Math.max(this.preview.points.length - 1, 0)] = point;
