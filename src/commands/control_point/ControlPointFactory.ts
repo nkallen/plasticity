@@ -3,7 +3,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { cart2vec, vec2cart } from "../../util/Conversion";
-import { GeometryFactory } from '../Factory';
+import { GeometryFactory } from '../GeometryFactory';
 
 abstract class ControlPointFactory extends GeometryFactory {
     protected curve!: c3d.Curve3D;

@@ -1,5 +1,5 @@
 import c3d from '../../../build/Release/c3d.node';
-import { GeometryFactory } from '../Factory';
+import { GeometryFactory } from '../GeometryFactory';
 
 export interface CharacterCurveParams {
     tMin: number;

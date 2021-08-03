@@ -2,7 +2,7 @@ import { PlaneSnap } from "../../editor/SnapManager";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { vec2cart } from "../../util/Conversion";
-import { GeometryFactory } from '../Factory';
+import { GeometryFactory } from '../GeometryFactory';
 
 export class PolygonFactory extends GeometryFactory {
     center!: THREE.Vector3;

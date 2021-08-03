@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { GeometryFactory } from '../Factory';
+import { GeometryFactory } from '../GeometryFactory';
 
 export default class JoinCurvesFactory extends GeometryFactory {
     private curves = new Array<visual.SpaceInstance<visual.Curve3D>>();

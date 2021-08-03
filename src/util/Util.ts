@@ -1,6 +1,6 @@
 // https://www.typescriptlang.org/docs/handbook/mixins.html
 
-import { ValidationError } from "../commands/Factory";
+import { ValidationError } from "../commands/GeometryFactory";
 
 export type Constructor = new (...args: any[]) => {};
 export type GConstructor<T = {}> = new (...args: any[]) => T;

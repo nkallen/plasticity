@@ -1,4 +1,4 @@
-import { GeometryFactory, ValidationError } from "../../src/commands/Factory";
+import { GeometryFactory, ValidationError } from "../../src/commands/GeometryFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';

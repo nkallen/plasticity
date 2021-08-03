@@ -1,4 +1,3 @@
-curve right click is adding a point when it shouldn't.
 click away aborting lots of commands is annoying error
  - if clicking away, if the command has never been updated, we should cancel -- maybe add a state to command that indicates it's been resourced, and have the commit() behavior fail if not updated.
 interleaving with updating/commit on factory. use q?

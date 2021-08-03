@@ -3,7 +3,7 @@ import * as visual from '../../editor/VisualModel';
 import { CancellableRegistor } from '../../util/Cancellable';
 import { cart2vec, vec2vec } from '../../util/Conversion';
 import ContourManager, { Joint } from '../ContourManager';
-import { GeometryFactory } from '../Factory';
+import { GeometryFactory } from '../GeometryFactory';
 import LineFactory from '../line/LineFactory';
 import JoinCurvesFactory from './JoinCurvesFactory';
 import * as THREE from 'three';

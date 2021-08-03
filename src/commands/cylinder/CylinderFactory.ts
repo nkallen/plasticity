@@ -1,4 +1,4 @@
-import { GeometryFactory } from '../Factory'
+import { GeometryFactory } from '../GeometryFactory'
 import c3d from '../../../build/Release/c3d.node';
 import * as THREE from "three";
 import { EditorSignals } from '../../editor/EditorSignals'

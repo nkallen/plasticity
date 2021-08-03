@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { vec2cart } from "../../util/Conversion";
-import { GeometryFactory } from '../Factory';
+import { GeometryFactory } from '../GeometryFactory';
 
 export interface SpiralParams {
     p1: THREE.Vector3;

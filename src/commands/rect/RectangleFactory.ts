@@ -1,7 +1,7 @@
 import { PlaneSnap } from "../../editor/SnapManager";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { GeometryFactory } from '../Factory';
+import { GeometryFactory } from '../GeometryFactory';
 
 abstract class RectangleFactory extends GeometryFactory {
     p1!: THREE.Vector3;

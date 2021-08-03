@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { GeometryDatabase } from "../../editor/GeometryDatabase";
 import MaterialDatabase from "../../editor/MaterialDatabase";
-import { GeometryFactory, ValidationError } from '../Factory';
+import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 const curveMinimumPoints = new Map<c3d.SpaceType, number>();
 curveMinimumPoints.set(c3d.SpaceType.Polyline3D, 2);

@@ -3,7 +3,7 @@ import { EditorSignals } from '../../editor/EditorSignals';
 import { GeometryDatabase } from '../../editor/GeometryDatabase';
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import * as visual from '../../editor/VisualModel';
-import { GeometryFactory } from '../Factory';
+import { GeometryFactory } from '../GeometryFactory';
 
 export interface FilletParams {
     item: visual.Solid;
