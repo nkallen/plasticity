@@ -14,6 +14,13 @@ export default {
         "r": "gizmo:spiral:radius",
     },
 
+    "ispace-viewport[gizmo='extrude']": {
+        "a": "gizmo:extrude:race1",
+        "s": "gizmo:extrude:race2",
+        "d": "gizmo:extrude:distance1",
+        "f": "gizmo:extrude:distance2",
+    },
+
     "ispace-viewport[gizmo='move']": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",

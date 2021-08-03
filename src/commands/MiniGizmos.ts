@@ -45,8 +45,9 @@ export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
     update(camera: THREE.Camera) {
         // super.update(camera);
 
-        this.circle.lookAt(camera.position);
-        this.torus.lookAt(camera.position);
+        // this.circle.lookAt(camera.position);
+        // this.torus.lookAt(camera.position);
+        this.lookAt(camera.position);
     }
 }
 

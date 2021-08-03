@@ -160,6 +160,11 @@ keybindings.set("gizmo:polygon:subtract-vertex", "Subtract a vertex");
 keybindings.set("gizmo:spiral:angle", "Angle");
 keybindings.set("gizmo:spiral:radius", "Radius");
 keybindings.set("gizmo:spiral:length", "Length");
+keybindings.set("gizmo:extrude:race1", "Angle 1");
+keybindings.set("gizmo:extrude:distance1", "Distance 1");
+keybindings.set("gizmo:extrude:race2", "Angle 2");
+keybindings.set("gizmo:extrude:distance2", "Distance 2");
+
 
 export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {
