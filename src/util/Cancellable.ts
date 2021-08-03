@@ -84,11 +84,21 @@ export class CancellablePromise<T> extends ResourceRegistration implements Promi
     static all(ps: CancellablePromise<any>[]) {
         return new CancellablePromise<void>((resolve, reject) => {
             const cancel = () => {
-                for (const p of ps) p.cancel();
+                for (const p of ps) {
+                    p.promise.catch(err => {
+                        if (err !== Cancel) reject(err);
+                    });
+                    p.cancel();
+                }
                 reject(Cancel);
             }
             const finish = () => {
-                for (const p of ps) p.finish();
+                for (const p of ps) {
+                    p.promise.catch(err => {
+                        if (err !== Finish) reject(err);
+                    });
+                    p.finish();
+                }
                 resolve();
             }
             return { cancel, finish };
