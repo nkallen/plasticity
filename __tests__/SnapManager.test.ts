@@ -177,6 +177,10 @@ describe(AxisSnap, () => {
 
         i = { point: new THREE.Vector3(0, 1, 0) };
         expect(AxisSnap.X.project(i)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+
+        const moved = AxisSnap.X.move(new THREE.Vector3(0, 0, 1));
+        i = { point: new THREE.Vector3(1, 0, 1) };
+        expect(moved.project(i)).toApproximatelyEqual(new THREE.Vector3(1, 0, 1));
     });
 
     test("isValid", () => {

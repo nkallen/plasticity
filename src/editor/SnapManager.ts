@@ -278,6 +278,7 @@ export class AxisSnap extends Snap {
     static Z = new AxisSnap(new THREE.Vector3(0, 0, 1));
 
     readonly n: THREE.Vector3;
+    readonly o: THREE.Vector3;
 
     constructor(n: THREE.Vector3, o = new THREE.Vector3()) {
         n = n.normalize().multiplyScalar(1000);
@@ -291,10 +292,11 @@ export class AxisSnap extends Snap {
         super(snapper, undefined, snapper);
         snapper.userData.sort = 1;
         this.n = n.normalize();
+        this.o = o;
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
-        return this.n.clone().multiplyScalar(this.n.dot(intersection.point));
+        return this.n.clone().multiplyScalar(this.n.dot(intersection.point.clone().sub(this.o))).add(this.o);
     }
 
     isValid(pt: THREE.Vector3): boolean {
