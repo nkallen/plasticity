@@ -61,7 +61,7 @@ export class PointPicker {
                 let constructionPlane = viewport.constructionPlane;
 
                 const restrictions = this.restrictions.slice();
-                if (this.restrictionPoint != null) {
+                if (this.restrictionPoint !== undefined) {
                     constructionPlane = constructionPlane.restrict(this.restrictionPoint);
                     restrictions.push(constructionPlane);
                 }

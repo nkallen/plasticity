@@ -1,9 +1,9 @@
-import { CurveMemento } from './History';
 import c3d from '../../build/Release/c3d.node';
+import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from '../commands/ContourManager';
+import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../util/Conversion';
 import { GeometryDatabase } from './GeometryDatabase';
+import { CurveMemento } from './History';
 import * as visual from "./VisualModel";
-import { curve3d2curve2d, findWithSamePlacement, isSamePlacement, normalizePlacement } from '../util/Conversion';
-import { CurveInfo, Curve2dId, Transaction, Trim, PointOnCurve, Joint } from '../commands/ContourManager';
 
 export class PlanarCurveDatabase {
     private readonly curve2info = new Map<visual.SpaceInstance<visual.Curve3D>, CurveInfo>();
