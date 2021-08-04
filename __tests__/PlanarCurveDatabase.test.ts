@@ -373,4 +373,40 @@ describe("Joints", () => {
         expect(joints3.stop.on2.curve).toBe(curve2);
         expect(joints3.stop.on2.t).toBe(1);
     });
+});
+
+describe("findWithSamePlacement", () => {
+    test("two coplanar circles", async () => {
+        makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
+        makeCircle1.radius = 1;
+        const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await curves.add(circle1);
+
+        makeCircle2.center = new THREE.Vector3(0, 0, 0);
+        makeCircle2.radius = 1;
+        const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await curves.add(circle2);
+
+        const info = curves.lookup(circle1);
+        const coplanar = curves.findWithSamePlacement(info.placement);
+
+        expect(coplanar.length).toBe(2);
+    });
+
+    test("two parallel circles, not coplanar (i.e., off on Z)", async () => {
+        makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
+        makeCircle1.radius = 1;
+        const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await curves.add(circle1);
+
+        makeCircle2.center = new THREE.Vector3(0, 0, 1);
+        makeCircle2.radius = 1;
+        const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await curves.add(circle2);
+
+        const info = curves.lookup(circle1);
+        const coplanar = curves.findWithSamePlacement(info.placement);
+
+        expect(coplanar.length).toBe(1);
+    });
 })

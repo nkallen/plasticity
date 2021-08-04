@@ -36,8 +36,7 @@ export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): { 
 export function normalizePlacement(curve2d: c3d.Curve, placement: c3d.Placement3D, candidates: Set<c3d.Placement3D>) {
     let bestExistingPlacement;
     for (const candidate of candidates) {
-        const Z = candidate.GetAxisZ();
-        if (Z.Colinear(placement.GetAxisZ()) && vec2vec(Z).dot(cart2vec(placement.GetOrigin())) < 10e-4) {
+        if (isSamePlacement(placement, candidate)) {
             bestExistingPlacement = candidate;
             break;
         }
@@ -55,14 +54,11 @@ export function normalizePlacement(curve2d: c3d.Curve, placement: c3d.Placement3
     return bestExistingPlacement;
 }
 
-export function findWithSamePlacement(placement: c3d.Placement3D, candidates: { planarCurve: c3d.Curve, placement: c3d.Placement3D }[]) {
-    const coplanarCurves = [];
-    let normalizedPlacement = placement;
-    for (const candidate of candidates) {
-        if (candidate.placement.GetAxisZ().Colinear(placement.GetAxisZ())) {
-            coplanarCurves.push(candidate.planarCurve);
-            normalizedPlacement = candidate.placement;
-        }
-    }
-    return coplanarCurves;
+export function isSamePlacement(placement1: c3d.Placement3D, placement2: c3d.Placement3D): boolean {
+    const Z = placement1.GetAxisZ();
+    const origin = cart2vec(placement2.GetOrigin());
+    const delta = cart2vec(placement1.GetOrigin()).sub(origin);
+    const ZdotOffset = Math.abs(vec2vec(Z).dot(delta));
+
+    return Z.Colinear(placement2.GetAxisZ()) && ZdotOffset < 10e-4;
 }

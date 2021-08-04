@@ -2,6 +2,7 @@ import c3d from '../../build/Release/c3d.node';
 import { GeometryDatabase } from './GeometryDatabase';
 import * as visual from "./VisualModel";
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
+import { isSamePlacement } from '../util/Conversion';
 
 
 export class RegionManager {
@@ -22,7 +23,7 @@ export class RegionManager {
             const oldRegions = this.db.find(visual.PlaneInstance);
             for (const { model, view } of oldRegions) {
                 const p = model.GetPlacement();
-                if (placement.GetAxisZ().Colinear(p.GetAxisZ())) {
+                if (isSamePlacement(p, placement)) {
                     this.db.removeItem(view, 'automatic');
                 }
             }

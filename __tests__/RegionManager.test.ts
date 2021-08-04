@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import { ContourFilletFactory } from "../src/commands/curve/ContourFilletFactory";
 import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";
 import LineFactory from "../src/commands/line/LineFactory";
@@ -23,6 +24,14 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
     curves = new PlanarCurveDatabase(db);
     regions = new RegionManager(db, curves);
+});
+
+let makeCircle1: CenterCircleFactory;
+let makeCircle2: CenterCircleFactory;
+
+beforeEach(() => {
+    makeCircle1 = new CenterCircleFactory(db, materials, signals);
+    makeCircle2 = new CenterCircleFactory(db, materials, signals);
 })
 
 test("race condition", async () => {
@@ -64,4 +73,36 @@ test("race condition", async () => {
     await p1;
 
     expect(db.find(visual.PlaneInstance).length).toBe(0);
+});
+
+test("two overlapping coplanar circles", async () => {
+    makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
+    makeCircle1.radius = 1;
+    const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await curves.add(circle1);
+    await regions.updateCurve(circle1);
+
+    makeCircle2.center = new THREE.Vector3(0, 0, 0);
+    makeCircle2.radius = 1;
+    const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await curves.add(circle2);
+    await regions.updateCurve(circle2);
+
+    expect(db.find(visual.PlaneInstance).length).toBe(1);
+});
+
+test("two parallel circles, not coplanar (i.e., off on Z)", async () => {
+    makeCircle1.center = new THREE.Vector3(0, 0, 0);
+    makeCircle1.radius = 1;
+    const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await curves.add(circle1);
+    await regions.updateCurve(circle1);
+
+    makeCircle2.center = new THREE.Vector3(0, 0, 1);
+    makeCircle2.radius = 1;
+    const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    await curves.add(circle2);
+    await regions.updateCurve(circle2);
+
+    expect(db.find(visual.PlaneInstance).length).toBe(2);
 });
