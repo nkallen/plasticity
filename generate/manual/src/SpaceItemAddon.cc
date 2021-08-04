@@ -16,6 +16,8 @@
 #include "../include/Arc3D.h"
 #include "../include/Contour3D.h"
 #include "../include/TrimmedCurve3D.h"
+#include "../include/ConeSpiral.h"
+#include "../include/CurveSpiral.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -83,6 +85,10 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return Contour3D::NewInstance(env, (MbContour3D *)(_underlying));
     case st_TrimmedCurve3D:
         return TrimmedCurve3D::NewInstance(env, (MbTrimmedCurve3D *)(_underlying));
+    case st_ConeSpiral:
+        return ConeSpiral::NewInstance(env, (MbConeSpiral *)(_underlying));
+    case st_CurveSpiral:
+        return CurveSpiral::NewInstance(env, (MbCurveSpiral *)(_underlying));
 
         // case st_WireFrame:
         //     return Item::NewInstance(env, dynamic_cast<MbWireFrame *>(_underlying));
@@ -92,7 +98,9 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
     case st_Item:
         return Item::NewInstance(env, (MbItem *)(_underlying));
     default:
-        Napi::Error::New(env, "Invalid cast parameter").ThrowAsJavaScriptException();
+        std::ostringstream msg;
+        msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << "\n";
+        Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
         return env.Undefined();
     }
 }

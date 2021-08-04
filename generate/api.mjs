@@ -272,6 +272,21 @@ export default {
             extends: "Curve3D",
             dependencies: ["Curve3D.h"],
         },
+        Spiral: {
+            rawHeader: "cur_spiral.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h"],
+        },
+        ConeSpiral: {
+            rawHeader: "cur_cone_spiral.h",
+            extends: "Spiral",
+            dependencies: ["Spiral.h"],
+        },
+        CurveSpiral: {
+            rawHeader: "cur_curve_spiral.h",
+            extends: "Spiral",
+            dependencies: ["Spiral.h"],
+        },
         PlaneCurve: {
             rawHeader: "cur_plane_curve.h",
             extends: "Curve3D",
