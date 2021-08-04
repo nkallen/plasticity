@@ -20,75 +20,6 @@ export class PlanarCurveDatabase {
         this.placements.add(new c3d.Placement3D(origin, Z, X, false));
     }
 
-    private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
-        const { curve2info, planar2instance } = this;
-
-        const info = curve2info.get(curve);
-        if (info === undefined)
-            return;
-        curve2info.delete(curve);
-
-        const { fragments, planarCurve } = info;
-
-        planar2instance.delete(planarCurve.Id());
-
-        for (const fragment of fragments) {
-            fragment.then(f => this.db.removeItem(f, 'automatic'));
-        }
-        return info;
-    }
-
-    cascade(curve: visual.SpaceInstance<visual.Curve3D>, transaction: Transaction = { dirty: new Set(), deleted: new Set(), added: new Set() }) {
-        const { dirty, deleted, added } = transaction;
-
-        deleted.add(curve);
-
-        const { curve2info } = this;
-
-        const info = curve2info.get(curve);
-        if (info === undefined)
-            return transaction;
-        const { touched } = info;
-
-        const visited = dirty;
-        let walk = [...touched];
-        while (walk.length > 0) {
-            const touchee = walk.pop()!;
-            if (visited.has(touchee))
-                continue;
-            visited.add(touchee);
-            walk = walk.concat([...curve2info.get(touchee)!.touched]);
-        }
-
-        return transaction;
-    }
-
-    commit(data: Transaction) {
-        const promises = [];
-        for (const touchee of data.dirty) {
-            this.removeInfo(touchee);
-        }
-        for (const touchee of data.deleted) {
-            if (data.dirty.has(touchee))
-                continue;
-            this.removeInfo(touchee);
-        }
-        for (const touchee of data.dirty) {
-            if (data.deleted.has(touchee))
-                continue;
-            promises.push(this.add(touchee));
-        }
-        for (const touchee of data.added) {
-            if (data.deleted.has(touchee))
-                continue;
-            if (data.dirty.has(touchee))
-                continue;
-            promises.push(this.add(touchee));
-        }
-
-        return Promise.all(promises);
-    }
-
     /**
      * Summary of algorithm: to add a new curve, first find its intersections with all other curves.
      * Now, suppose there's one intersection along the parameter of the curve at i. This intersection
@@ -174,6 +105,75 @@ export class PlanarCurveDatabase {
             }
             promises.push(this.updateCurve(this.planar2instance.get(id)!, result));
         }
+        return Promise.all(promises);
+    }
+
+    private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
+        const { curve2info, planar2instance } = this;
+
+        const info = curve2info.get(curve);
+        if (info === undefined)
+            return;
+        curve2info.delete(curve);
+
+        const { fragments, planarCurve } = info;
+
+        planar2instance.delete(planarCurve.Id());
+
+        for (const fragment of fragments) {
+            fragment.then(f => this.db.removeItem(f, 'automatic'));
+        }
+        return info;
+    }
+
+    cascade(curve: visual.SpaceInstance<visual.Curve3D>, transaction: Transaction = { dirty: new Set(), deleted: new Set(), added: new Set() }) {
+        const { dirty, deleted, added } = transaction;
+
+        deleted.add(curve);
+
+        const { curve2info } = this;
+
+        const info = curve2info.get(curve);
+        if (info === undefined)
+            return transaction;
+        const { touched } = info;
+
+        const visited = dirty;
+        let walk = [...touched];
+        while (walk.length > 0) {
+            const touchee = walk.pop()!;
+            if (visited.has(touchee))
+                continue;
+            visited.add(touchee);
+            walk = walk.concat([...curve2info.get(touchee)!.touched]);
+        }
+
+        return transaction;
+    }
+
+    commit(data: Transaction) {
+        const promises = [];
+        for (const touchee of data.dirty) {
+            this.removeInfo(touchee);
+        }
+        for (const touchee of data.deleted) {
+            if (data.dirty.has(touchee))
+                continue;
+            this.removeInfo(touchee);
+        }
+        for (const touchee of data.dirty) {
+            if (data.deleted.has(touchee))
+                continue;
+            promises.push(this.add(touchee));
+        }
+        for (const touchee of data.added) {
+            if (data.deleted.has(touchee))
+                continue;
+            if (data.dirty.has(touchee))
+                continue;
+            promises.push(this.add(touchee));
+        }
+
         return Promise.all(promises);
     }
 
