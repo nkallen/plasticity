@@ -374,7 +374,7 @@ export class CameraPlaneSnap extends PlaneSnap {
         const { worldDirection } = this;
         camera.getWorldDirection(worldDirection);
 
-        this.snapper.position.copy(camera.position).add(worldDirection.clone().multiplyScalar(20));
+        this.snapper.position.copy(camera.position).add(worldDirection.clone().multiplyScalar(15));
         this.snapper.lookAt(worldDirection);
         this.snapper.updateMatrixWorld();
     }

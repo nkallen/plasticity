@@ -39,7 +39,7 @@ import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
 import { ObjectPicker } from "./ObjectPicker";
-import { PointPicker } from './PointPicker';
+import { PointInfo, PointPicker } from './PointPicker';
 import { PolygonFactory } from "./polygon/PolygonFactory";
 import { PolygonKeyboardEvent, PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
