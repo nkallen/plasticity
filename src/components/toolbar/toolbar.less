@@ -1,29 +1,40 @@
-ispace-toolbar {
-    button {
-        color: #aaa;
-        // background-color: #222;
-        position: relative;
-        border: 0px;
-        margin: 0px;
-        /* GNOME Web */
-        padding: 5px 8px;
-        text-transform: uppercase;
-        cursor: pointer;
-        outline: none;
+ispace-viewport {
+    ispace-toolbar {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: auto;
+        bottom: 12px;
+        background: #eee;
+        text-align: center;
+        visibility: hidden;
 
-        &:hover {
-            color: #fff;
-            background-color: #08f;
+        button {
+            color: #aaa;
+            // background-color: #222;
+            position: relative;
+            border: 0px;
+            margin: 0px;
+            /* GNOME Web */
+            padding: 5px 8px;
+            text-transform: uppercase;
+            cursor: pointer;
+            outline: none;
+
+            &:hover {
+                color: #fff;
+                background-color: #08f;
+            }
         }
-    }
 
-    button,
-    input {
-        height: 32px;
-    }
+        button,
+        input {
+            height: 32px;
+        }
 
-    button img {
-        width: 16px;
-        opacity: 0.5;
+        button img {
+            width: 16px;
+            opacity: 0.5;
+        }
     }
 }
