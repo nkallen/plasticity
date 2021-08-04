@@ -1,7 +1,7 @@
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from "../editor/EditorSignals";
 import * as visual from "../editor/VisualModel";
-import { PlanarCurveDatabase } from '../editor/PlanarCurveDatabase';
+import { PlanarCurveDatabase, RegionManager } from '../editor/PlanarCurveDatabase';
 
 export class CurveInfo {
     readonly touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
@@ -21,6 +21,7 @@ export default class ContourManager {
 
     constructor(
         private readonly curves: PlanarCurveDatabase,
+        private readonly regions: RegionManager,
         signals: EditorSignals,
     ) {
         // The order is important, because add creates info update subsequently uses;
@@ -34,7 +35,7 @@ export default class ContourManager {
 
     update(changed: visual.SpaceInstance<visual.Curve3D>) {
         switch (this.state.tag) {
-            case 'none': this.curves.update(changed); break;
+            case 'none': this.regions.updateCurve(changed); break;
             case 'transaction': break;
         }
     }
@@ -72,7 +73,7 @@ export default class ContourManager {
                     await this.curves.commit(transaction);
                     if (transaction.dirty.size > 0 || transaction.added.size > 0 || transaction.deleted.size > 0) {
                         for (const placement of this.state2placement(transaction)) {
-                            await this.curves._update(placement);
+                            await this.regions.updatePlacement(placement);
                         }
                     }
                 } finally {

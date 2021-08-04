@@ -4,7 +4,7 @@ import * as THREE from "three";
 import Command from '../commands/Command';
 import { CancelOrFinish, CommandExecutor } from "../commands/CommandExecutor";
 import ContourManager from "../commands/ContourManager";
-import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
+import { PlanarCurveDatabase, RegionManager } from "./PlanarCurveDatabase";
 import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
 import { SelectionCommandManager } from "../commands/SelectionCommandManager";
 import CommandRegistry from "../components/atom/CommandRegistry";
@@ -34,7 +34,8 @@ export class Editor {
     readonly sprites = new SpriteDatabase();
     readonly db = new GeometryDatabase(this.materials, this.signals);
     readonly curves = new PlanarCurveDatabase(this.db);
-    readonly contours = new ContourManager(this.curves, this.signals);
+    readonly regions = new RegionManager(this.db, this.curves);
+    readonly contours = new ContourManager(this.curves, this.regions, this.signals);
     readonly snaps = new SnapManager(this.db, this.sprites, this.signals);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();

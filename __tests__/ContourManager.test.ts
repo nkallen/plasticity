@@ -8,7 +8,7 @@ import LineFactory from "../src/commands/line/LineFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { PlanarCurveDatabase } from "../src/editor/PlanarCurveDatabase";
+import { PlanarCurveDatabase, RegionManager } from "../src/editor/PlanarCurveDatabase";
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
@@ -22,6 +22,7 @@ let makeCurve1: CurveFactory;
 let makeCurve2: CurveFactory;
 let makeCurve3: CurveFactory;
 let curves: PlanarCurveDatabase;
+let regions: RegionManager;
 let contours: ContourManager;
 let signals: EditorSignals;
 
@@ -36,7 +37,8 @@ beforeEach(() => {
     makeCurve2 = new CurveFactory(db, materials, signals);
     makeCurve3 = new CurveFactory(db, materials, signals);
     curves = new PlanarCurveDatabase(db);
-    contours = new ContourManager(curves, signals);
+    regions = new RegionManager(db, curves);
+    contours = new ContourManager(curves, regions, signals);
 })
 
 test("transactions batch add and removes", async () => {

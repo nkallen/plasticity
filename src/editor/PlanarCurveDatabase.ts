@@ -2,7 +2,7 @@ import { CurveMemento } from './History';
 import c3d from '../../build/Release/c3d.node';
 import { GeometryDatabase } from './GeometryDatabase';
 import * as visual from "./VisualModel";
-import { curve3d2curve2d, normalizePlacement } from '../util/Conversion';
+import { curve3d2curve2d, findWithSamePlacement, normalizePlacement } from '../util/Conversion';
 import { CurveInfo, Curve2dId, Transaction, Trim, PointOnCurve, Joint } from '../commands/ContourManager';
 
 export class PlanarCurveDatabase {
@@ -18,45 +18,6 @@ export class PlanarCurveDatabase {
         const Y = new c3d.Vector3D(0, 1, 0);
         const Z = new c3d.Vector3D(0, 0, 1);
         this.placements.add(new c3d.Placement3D(origin, Z, X, false));
-    }
-
-    update(changed: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
-        const info = this.curve2info.get(changed)!;
-        const placement = info.placement;
-        return this._update(placement);
-    }
-
-    _update(placement: c3d.Placement3D): Promise<void> {
-        return this.db.queue.enqueue(async () => {
-            const { curve2info } = this;
-
-            // First remove all old regions that are coplanar
-            const oldRegions = this.db.find(visual.PlaneInstance);
-            for (const { model, view } of oldRegions) {
-                const p = model.GetPlacement();
-                if (placement.GetAxisZ().Colinear(p.GetAxisZ())) {
-                    this.db.removeItem(view, 'automatic');
-                }
-            }
-
-            // Then, collect all coplanar curves,
-            const coplanarCurves = [];
-            let normalizedPlacement = placement;
-            for (const info of curve2info.values()) {
-                if (info.placement.GetAxisZ().Colinear(placement.GetAxisZ())) {
-                    coplanarCurves.push(info.planarCurve);
-                    normalizedPlacement = info.placement;
-                }
-            }
-
-            // Assemble regions
-            const { contours } = c3d.ContourGraph.OuterContoursBuilder(coplanarCurves);
-
-            const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
-            for (const region of regions) {
-                this.db.addItem(new c3d.PlaneInstance(region, normalizedPlacement), 'automatic');
-            }
-        });
     }
 
     private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
@@ -256,6 +217,10 @@ export class PlanarCurveDatabase {
         return this.curve2info.get(instance)!;
     }
 
+    findWithSamePlacement(placement: c3d.Placement3D): c3d.Curve[] {
+        return findWithSamePlacement(placement, [...this.curve2info.values()]);
+    }
+
     private addJoint(cross: c3d.CrossPoint) {
         const { on1: { curve: curve1, t: t1 }, on2: { curve: curve2, t: t2 } } = cross;
         const view1 = this.planar2instance.get(curve1.Id())!;
@@ -297,5 +262,40 @@ export class PlanarCurveDatabase {
         (this.curve2info as PlanarCurveDatabase['curve2info']) = m.curve2info;
         (this.planar2instance as PlanarCurveDatabase['planar2instance']) = m.planar2instance;
         (this.placements as PlanarCurveDatabase['placements']) = m.placements;
+    }
+}
+
+export class RegionManager {
+    constructor(
+        private readonly db: GeometryDatabase,
+        private readonly curves: PlanarCurveDatabase
+    ) { }
+
+    updateCurve(changed: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
+        const info = this.curves.lookup(changed)!;
+        const placement = info.placement;
+        return this.updatePlacement(placement);
+    }
+
+    updatePlacement(placement: c3d.Placement3D): Promise<void> {
+        return this.db.queue.enqueue(async () => {
+            // First remove all old regions that are coplanar
+            const oldRegions = this.db.find(visual.PlaneInstance);
+            for (const { model, view } of oldRegions) {
+                const p = model.GetPlacement();
+                if (placement.GetAxisZ().Colinear(p.GetAxisZ())) {
+                    this.db.removeItem(view, 'automatic');
+                }
+            }
+
+            const coplanarCurves = this.curves.findWithSamePlacement(placement);
+
+            const { contours } = c3d.ContourGraph.OuterContoursBuilder(coplanarCurves);
+
+            const regions = c3d.ActionRegion.GetCorrectRegions(contours, false);
+            for (const region of regions) {
+                this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
+            }
+        });
     }
 }

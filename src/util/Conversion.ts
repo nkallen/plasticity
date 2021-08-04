@@ -54,3 +54,15 @@ export function normalizePlacement(curve2d: c3d.Curve, placement: c3d.Placement3
 
     return bestExistingPlacement;
 }
+
+export function findWithSamePlacement(placement: c3d.Placement3D, candidates: { planarCurve: c3d.Curve, placement: c3d.Placement3D }[]) {
+    const coplanarCurves = [];
+    let normalizedPlacement = placement;
+    for (const candidate of candidates) {
+        if (candidate.placement.GetAxisZ().Colinear(placement.GetAxisZ())) {
+            coplanarCurves.push(candidate.planarCurve);
+            normalizedPlacement = candidate.placement;
+        }
+    }
+    return coplanarCurves;
+}
