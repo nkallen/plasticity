@@ -26,6 +26,7 @@ export class Model {
             result.push(cmd.RotateCommand);
             result.push(cmd.ScaleCommand);
             result.push(cmd.SelectFilletsCommand);
+            result.push(cmd.ClipCurveCommand);
         }
         if (selection.selectedSolids.size > 1) {
             result.push(cmd.UnionCommand);

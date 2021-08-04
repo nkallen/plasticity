@@ -70,6 +70,7 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     ) {
         super(db, materials, signals);
         this.preview.style = 1;
+        this.preview.push(new THREE.Vector3());
     }
 
     set type(t: c3d.SpaceType) {

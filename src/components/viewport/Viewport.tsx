@@ -329,11 +329,13 @@ export default (editor: EditorLike) => {
 
             let camera: THREE.Camera;
             let n: THREE.Vector3;
+            let enableNavControls = false;
             switch (view) {
                 case "3d":
-                    camera = perspectiveCamera;
+                    camera = orthographicCamera;
                     camera.position.set(-5, 15, 5);
                     n = new THREE.Vector3(0, 0, 1);
+                    enableNavControls = true;
                     break;
                 case "top":
                     camera = orthographicCamera;
@@ -355,7 +357,7 @@ export default (editor: EditorLike) => {
             camera.layers = visual.VisibleLayers;
 
             const navigationControls = new OrbitControls(camera, renderer.domElement);
-            if (camera.type == 'OrthographicCamera') navigationControls.enableRotate = false;
+            navigationControls.enableRotate = enableNavControls;
 
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());

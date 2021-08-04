@@ -14,7 +14,7 @@ import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboar
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
-import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
+import { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import TrimFactory from "./curve/TrimFactory";
@@ -39,7 +39,7 @@ import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
 import { ObjectPicker } from "./ObjectPicker";
-import { PointInfo, PointPicker } from './PointPicker';
+import { PointPicker } from './PointPicker';
 import { PolygonFactory } from "./polygon/PolygonFactory";
 import { PolygonKeyboardEvent, PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
@@ -406,9 +406,9 @@ export class CurveCommand extends Command {
             if (makeCurve.canBeClosed) pointPicker.addPointSnap(makeCurve.startPoint);
             try {
                 const { point } = await pointPicker.execute(async ({ point }) => {
-                    makeCurve.last = point;
-                    if (!makeCurve.preview.hasEnoughPoints) return;
+                    makeCurve.preview.last = point;
                     makeCurve.preview.closed = makeCurve.preview.wouldBeClosed(point);
+                    if (!makeCurve.preview.hasEnoughPoints) return;
                     await makeCurve.preview.update();
                 }, 'RejectOnFinish').resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
