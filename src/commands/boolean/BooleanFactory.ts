@@ -1,3 +1,4 @@
+import { PlaneSnap } from '../../editor/SnapManager';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
@@ -52,6 +53,8 @@ export class CutFactory extends GeometryFactory {
 
     contour!: c3d.Contour;
     placement!: c3d.Placement3D;
+
+    constructionPlane?: PlaneSnap;
 
     set curve(inst: visual.SpaceInstance<visual.Curve3D>) {
         const instance = this.db.lookup(inst);

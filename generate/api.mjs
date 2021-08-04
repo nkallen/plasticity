@@ -304,7 +304,11 @@ export default {
             rawHeader: "mb_cart_point.h",
             initializers: [
                 "double xx, double yy"
-            ]
+            ],
+            fields: [
+                "double x",
+                "double y",
+            ],
         },
         CartPoint3D: {
             rawHeader: "mb_cart_point3d.h",

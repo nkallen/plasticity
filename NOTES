@@ -1,4 +1,6 @@
-so for a line it first looks at the construction plane in the current active viewport and if both line endpoints are on a plane parallel to the x/y/z  axis directions of the cplane it will use that axis as a candidate direction. If there were no candidates from that it does the same using world x/y/z axis directions.
+so for a line it first looks at the construction plane in the current active viewport and if both line endpoints are on a plane parallel to the x/y/z  axis directions of the cplane it will use that axis as a candidate direction. 
+
+If there were no candidates from that it does the same using world x/y/z axis directions.
  
 Then if there are 2 candidates like with a vertical line that have both endpoints on a parallel plane to x and y axes, it takes a look at the bounding box of the other objects being used (like the base object in a boolean difference)  and picks a direction that will slice through the bounding box.
  

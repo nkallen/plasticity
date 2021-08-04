@@ -3,6 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from '../editor/GeometryDatabase';
 import * as visual from "../editor/VisualModel";
+import { curve3d2curve2d, normalizePlacement } from '../util/Conversion';
 
 class CurveInfo {
     readonly touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
@@ -249,7 +250,7 @@ export default class ContourManager {
         const inst = this.db.lookup(newCurve);
         const item = inst.GetSpaceItem()!;
         const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
-        const planarInfo = this.curve3d2curve2d(curve3d);
+        const planarInfo = this.planarizeAndNormalize(curve3d);
         if (planarInfo === undefined) return;
         const { curve: newPlanarCurve, placement } = planarInfo;
 
@@ -341,40 +342,13 @@ export default class ContourManager {
         return Promise.all(views);
     }
 
-    private curve3d2curve2d(curve3d: c3d.Curve3D): { curve: c3d.Curve, placement: c3d.Placement3D } | undefined {
-        const placement_ = new c3d.Placement3D();
-        if (curve3d.IsStraight(true)) {
-            if (!(curve3d instanceof c3d.PolyCurve3D)) throw new Error("invalid precondition");
-            const points2d = [];
-            for (const point of curve3d.GetPoints()) {
-                if (placement_.PointRelative(point) !== c3d.ItemLocation.OnItem) return;
-                const { x, y } = placement_.PointProjection(point);
-                points2d.push(new c3d.CartPoint(x, y));
-            }
-            const curve2d = c3d.ActionCurve.SplineCurve(points2d, false, c3d.PlaneType.Polyline);
-            return { curve: curve2d, placement: placement_ };
-        } else if (curve3d.IsPlanar()) {
-            const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.1));
-            let bestExistingPlacement;
-            for (const candidate of this.placements) {
-                if (candidate.GetAxisZ().Colinear(placement.GetAxisZ())) {
-                    bestExistingPlacement = candidate;
-                    break;
-                }
-            }
-            if (bestExistingPlacement === undefined) {
-                this.placements.add(placement);
-                bestExistingPlacement = placement;
-            }
-
-            // To objects can be coplanar but have different placements (e.g., different origins, same Z axis);
-            // Thus it's safest to normalize or else future operations like booleans may not work.
-            const matrix = placement.GetMatrixToPlace(bestExistingPlacement);
-            curve2d.Transform(matrix);
-
-            return { curve: curve2d, placement: bestExistingPlacement };
-        } else {
-        }
+    private planarizeAndNormalize(curve3d: c3d.Curve3D): { curve: c3d.Curve, placement: c3d.Placement3D } | undefined {
+        const hint = new c3d.Placement3D();
+        const planar = curve3d2curve2d(curve3d, hint);
+        if (planar === undefined) return;
+        const { curve, placement } = planar;
+        const bestExistingPlacement = normalizePlacement(curve, placement, this.placements);
+        return { curve, placement: bestExistingPlacement };
     }
 
     lookup(instance: visual.SpaceInstance<visual.Curve3D>): Readonly<CurveInfo> {

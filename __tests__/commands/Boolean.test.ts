@@ -43,25 +43,42 @@ describe('intersection', () => {
 })
 
 describe("cutting", () => {
-    describe('commit', () => {
-        test('takes a cutting curve and a solid and produces a divided solid', async () => {
-            const makeSphere = new SphereFactory(db, materials, signals);
-            makeSphere.center = new THREE.Vector3(0, 0, 0);
-            makeSphere.radius = 1;
-            const sphere = await makeSphere.commit() as visual.Solid;
+    test('takes a cutting curve and a solid and produces a divided solid', async () => {
+        const makeSphere = new SphereFactory(db, materials, signals);
+        makeSphere.center = new THREE.Vector3(0, 0, 0);
+        makeSphere.radius = 1;
+        const sphere = await makeSphere.commit() as visual.Solid;
 
-            const makeCurve = new CurveFactory(db, materials, signals);
-            makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
-            makeCurve.points.push(new THREE.Vector3(0, 2, 0.5));
-            makeCurve.points.push(new THREE.Vector3(2, 2, 0));
-            const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-    
-            const cut = new CutFactory(db, materials, signals);
-            cut.solid = sphere;
-            cut.curve = curve;
-            const result = await cut.commit() as visual.SpaceItem[];
+        const makeCurve = new CurveFactory(db, materials, signals);
+        makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+        makeCurve.points.push(new THREE.Vector3(0, 2, 0.5));
+        makeCurve.points.push(new THREE.Vector3(2, 2, 0));
+        const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            expect(result.length).toBe(2);
-        })
-    })
+        const cut = new CutFactory(db, materials, signals);
+        cut.solid = sphere;
+        cut.curve = curve;
+        const result = await cut.commit() as visual.SpaceItem[];
+
+        expect(result.length).toBe(2);
+    });
+
+    test.skip('works with lines', async () => {
+        const makeSphere = new SphereFactory(db, materials, signals);
+        makeSphere.center = new THREE.Vector3(0, 0, 0);
+        makeSphere.radius = 1;
+        const sphere = await makeSphere.commit() as visual.Solid;
+
+        const makeLine = new CurveFactory(db, materials, signals);
+        makeLine.points.push(new THREE.Vector3(-2, 2, 0));
+        makeLine.points.push(new THREE.Vector3(2, 2));
+        const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const cut = new CutFactory(db, materials, signals);
+        cut.solid = sphere;
+        cut.curve = line;
+        const result = await cut.commit() as visual.SpaceItem[];
+
+        expect(result.length).toBe(2);
+    });
 })
