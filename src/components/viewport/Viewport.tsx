@@ -315,10 +315,19 @@ export class Viewport {
         this._constructionPlane = plane;
         this.grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), plane.n);
         this.setNeedsRender();
+        if (this.constructionPlane instanceof CameraPlaneSnap) {
+            this.grid.visible = false;
+        } else {
+            this.grid.visible = true;
+        }
     }
 
-    foo() {
-        this.constructionPlane = new PlaneSnap(new THREE.Vector3(1, 1, 1));
+    toggleConstructionPlane() {
+        if (this.constructionPlane instanceof CameraPlaneSnap) {
+            this.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+        } else {
+            this.constructionPlane = new CameraPlaneSnap(this.camera);
+        }
     }
 }
 
@@ -381,10 +390,7 @@ export default (editor: EditorLike) => {
             camera.lookAt(new THREE.Vector3());
             camera.updateMatrixWorld();
 
-            // const constructionPlane = new CameraPlaneSnap(camera);
             const constructionPlane = new PlaneSnap(n);
-            grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
-            grid.renderOrder = -1;
 
             this.model = new Viewport(
                 editor,
