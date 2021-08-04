@@ -1084,7 +1084,7 @@ export class FilletCurveCommand extends Command {
     async execute(): Promise<void> {
         const controlPoints = [...this.editor.selection.selectedControlPoints];
         const factory = new JointOrPolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals);
-        factory.contours = this.editor.contours; // FIXME need to DI this in constructor of all factories
+        factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
         await factory.setControlPoints(controlPoints);
         const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
         gizmo.length = 0;

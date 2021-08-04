@@ -1,4 +1,4 @@
-import ContourManager from '../commands/ContourManager';
+import { PlanarCurveDatabase } from '../commands/ContourManager';
 import c3d from '../../build/Release/c3d.node';
 import { RefCounter } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
@@ -11,7 +11,7 @@ export class Memento {
         readonly db: GeometryMemento,
         readonly selection: SelectionMemento,
         readonly snaps: SnapMemento,
-        readonly contours: ContourMemento,
+        readonly contours: CurveMemento,
     ) { }
 }
 
@@ -45,11 +45,11 @@ export class SnapMemento {
     ) { }
 }
 
-export class ContourMemento {
+export class CurveMemento {
     constructor(
-        readonly curve2info: ContourManager["curve2info"],
-        readonly planar2instance: ContourManager["planar2instance"],
-        readonly placements: ContourManager["placements"],
+        readonly curve2info: PlanarCurveDatabase["curve2info"],
+        readonly planar2instance: PlanarCurveDatabase["planar2instance"],
+        readonly placements: PlanarCurveDatabase["placements"],
     ) { }
 }
 
@@ -64,7 +64,7 @@ export class EditorOriginator {
         readonly db: MementoOriginator<GeometryMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
-        readonly contours: MementoOriginator<ContourMemento>
+        readonly contours: MementoOriginator<CurveMemento>
     ) { }
 
     group(registry: Map<any, any>, fn: () => void) {

@@ -5,6 +5,7 @@ interleaving with updating/commit on factory. use q?
 draw on surface
 gizmo for contour sometimes disoriented
 regions not always updated when deleting
+refactor factory to take editorlike?
 
 fillet has two points, F key bound twice
 fillet needs to be in screen space

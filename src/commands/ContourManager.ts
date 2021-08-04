@@ -1,4 +1,4 @@
-import { ContourMemento } from '../editor/History';
+import { CurveMemento } from '../editor/History';
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from '../editor/GeometryDatabase';
@@ -14,41 +14,128 @@ class CurveInfo {
 
 type Curve2dId = bigint;
 type Trim = { trimmed: c3d.Curve, start: number, stop: number };
-
+type Transaction = { dirty: CurveSet, added: CurveSet, deleted: CurveSet }
 type CurveSet = Set<visual.SpaceInstance<visual.Curve3D>>;
-type State = { tag: 'none' } | { tag: 'transaction', dirty: CurveSet, added: CurveSet, deleted: CurveSet }
+type State = { tag: 'none' } | { tag: 'transaction', transaction: Transaction }
 
 export default class ContourManager {
+    private state: State = { tag: 'none' };
+
+    constructor(
+        private readonly curves: PlanarCurveDatabase,
+        signals: EditorSignals,
+    ) {
+        // The order is important, because add creates info update subsequently uses;
+        signals.userAddedCurve.add(c => this.add(c));
+        signals.userAddedCurve.add(c => this.update(c));
+
+        // Similarly, don't delete info necessary for update
+        signals.userRemovedCurve.add(c => this.update(c));
+        signals.userRemovedCurve.add(c => this.remove(c));
+    }
+
+    update(changed: visual.SpaceInstance<visual.Curve3D>) {
+        switch (this.state.tag) {
+            case 'none': this.curves.update(changed); break;
+            case 'transaction': break;
+        }
+    }
+
+    remove(curve: visual.SpaceInstance<visual.Curve3D>) {
+        switch (this.state.tag) {
+            case 'none': {
+                const data = this.curves.cascade(curve);
+                return this.curves.commit(data);
+            }
+            case 'transaction': {
+                this.curves.cascade(curve, this.state.transaction);
+            }
+        }
+    }
+
+    add(curve: visual.SpaceInstance<visual.Curve3D>) {
+        switch (this.state.tag) {
+            case 'none':
+                const result = this.curves.add(curve);
+                return result;
+            case 'transaction':
+                this.state.transaction.added.add(curve);
+                break;
+        }
+    }
+
+    async transaction(f: () => Promise<void>) {
+        switch (this.state.tag) {
+            case 'none': {
+                const transaction: Transaction = { dirty: new Set(), added: new Set(), deleted: new Set() };
+                this.state = { tag: 'transaction', transaction: transaction};
+                try {
+                    await f();
+                    await this.curves.commit(transaction);
+                    if (transaction.dirty.size > 0 || transaction.added.size > 0 || transaction.deleted.size > 0) {
+                        for (const placement of this.state2placement(transaction)) {
+                            await this.curves._update(placement);
+                        }
+                    }
+                } finally {
+                    this.state = { tag: 'none' };
+                }
+                return;
+            }
+            default: throw new Error("invalid state");
+        }
+    }
+
+    private state2placement(state: Transaction) {
+        const { dirty, added, deleted } = state;
+        const all = [];
+        for (const d of dirty) all.push(d);
+        for (const a of added) all.push(a);
+        for (const d of deleted) all.push(d);
+
+        const placements = [];
+        for (const c of all) {
+            const info = this.curves.lookup(c);
+            if (info !== undefined) placements.push(info.placement);
+        }
+
+        const result = [];
+        candidates: while (placements.length > 0) {
+            const candidate = placements.pop()!;
+            if (result.length === 0) result.push(candidate);
+            else {
+                already: for (const p of result)
+                    if (p.GetAxisZ().Colinear(candidate.GetAxisZ()))
+                        continue candidates;
+                result.push(candidate);
+            }
+        }
+        return result;
+    }
+}
+
+export class PlanarCurveDatabase {
     private readonly curve2info = new Map<visual.SpaceInstance<visual.Curve3D>, CurveInfo>();
     private readonly planar2instance = new Map<Curve2dId, visual.SpaceInstance<visual.Curve3D>>();
     private readonly placements = new Set<c3d.Placement3D>();
 
-    private state: State = { tag: 'none' };
-
     constructor(
-        private readonly db: GeometryDatabase,
-        signals: EditorSignals
+        private readonly db: GeometryDatabase
     ) {
-        this.add = this.add.bind(this);
-        this.remove = this.remove.bind(this);
-        this.update = this.update.bind(this);
-
         const origin = new c3d.CartPoint3D(0, 0, 0);
         const X = new c3d.Vector3D(1, 0, 0);
         const Y = new c3d.Vector3D(0, 1, 0);
         const Z = new c3d.Vector3D(0, 0, 1);
         this.placements.add(new c3d.Placement3D(origin, Z, X, false));
-
-        // The order is important, because add creates info update subsequently uses;
-        signals.userAddedCurve.add(this.add);
-        signals.userAddedCurve.add(this.update);
-
-        // Similarly, don't delete info necessary for update
-        signals.userRemovedCurve.add(this.update);
-        signals.userRemovedCurve.add(this.remove);
     }
 
-    private _update(placement: c3d.Placement3D) {
+    update(changed: visual.SpaceInstance<visual.Curve3D>) {
+        const info = this.curve2info.get(changed)!;
+        const placement = info.placement;
+        this._update(placement);
+    }
+
+    _update(placement: c3d.Placement3D) {
         return this.db.queue.enqueue(async () => {
             const { curve2info } = this;
 
@@ -81,17 +168,6 @@ export default class ContourManager {
         });
     }
 
-    update(changed: visual.SpaceInstance<visual.Curve3D>) {
-        switch (this.state.tag) {
-            case 'none': {
-                const info = this.curve2info.get(changed)!;
-                const placement = info.placement;
-                return this._update(placement);
-            }
-            case 'transaction': break;
-        }
-    }
-
     private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
         const { curve2info, planar2instance } = this;
 
@@ -109,17 +185,18 @@ export default class ContourManager {
         return info;
     }
 
-    private cascade(curve: visual.SpaceInstance<visual.Curve3D>) {
-        if (this.state.tag !== 'transaction') throw new Error("invalid state");
-        this.state.deleted.add(curve);
+    cascade(curve: visual.SpaceInstance<visual.Curve3D>, transaction: Transaction = { dirty: new Set(), deleted: new Set(), added: new Set() }) {
+        const { dirty, deleted, added } = transaction;
+
+        deleted.add(curve);
 
         const { curve2info } = this;
 
         const info = curve2info.get(curve);
-        if (info === undefined) return;
+        if (info === undefined) return transaction;
         const { touched } = info;
 
-        const visited = this.state.dirty;
+        const visited = dirty;
         let walk = [...touched];
         while (walk.length > 0) {
             const touchee = walk.pop()!;
@@ -127,106 +204,27 @@ export default class ContourManager {
             visited.add(touchee);
             walk = walk.concat([...curve2info.get(touchee)!.touched]);
         }
+
+        return transaction;
     }
 
-    remove(curve: visual.SpaceInstance<visual.Curve3D>) {
-        switch (this.state.tag) {
-            case 'none': {
-                this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
-                this.cascade(curve);
-                const result = this.commit();
-                this.state = { tag: 'none' };
-                return result;
-            }
-            case 'transaction': {
-                this.cascade(curve);
-            }
-        }
-    }
-
-
-    add(curve: visual.SpaceInstance<visual.Curve3D>) {
-        switch (this.state.tag) {
-            case 'none': {
-                this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
-                const result = this._add(curve);
-                this.state = { tag: 'none' };
-                return result;
-            }
-            case 'transaction': {
-                return this.state.added.add(curve);
-            }
-        }
-    }
-
-    async transaction(f: () => Promise<void>) {
-        switch (this.state.tag) {
-            case 'none': {
-                this.state = { tag: 'transaction', dirty: new Set(), added: new Set(), deleted: new Set() };
-                try {
-                    await f();
-                    await this.commit();
-                    if (this.state.dirty.size > 0 || this.state.added.size > 0 || this.state.deleted.size > 0) {
-                        for (const placement of this.state2placement(this.state)) {
-                            await this._update(placement);
-                        }
-                    }
-                } finally {
-                    this.state = { tag: 'none' };
-                }
-                return;
-            }
-            default: throw new Error("invalid state");
-        }
-    }
-
-    private state2placement(state: { dirty: CurveSet, added: CurveSet, deleted: CurveSet }) {
-        const { dirty, added, deleted } = state;
-        const { curve2info } = this;
-        const all = [];
-        for (const d of dirty) all.push(d);
-        for (const a of added) all.push(a);
-        for (const d of deleted) all.push(d);
-
-        const placements = [];
-        for (const c of all) {
-            const info = curve2info.get(c);
-            if (info !== undefined) placements.push(info.placement);
-        }
-
-        const result = [];
-        candidates: while (placements.length > 0) {
-            const candidate = placements.pop()!;
-            if (result.length === 0) result.push(candidate);
-            else {
-                already: for (const p of result)
-                    if (p.GetAxisZ().Colinear(candidate.GetAxisZ()))
-                        continue candidates;
-                result.push(candidate);
-            }
-        }
-        return result;
-    }
-
-    private commit() {
-        if (this.state.tag !== 'transaction') throw new Error("invalid state");
-
+    commit(data: Transaction) {
         const promises = [];
-        for (const touchee of this.state.dirty) {
+        for (const touchee of data.dirty) {
             this.removeInfo(touchee);
         }
-        for (const touchee of this.state.deleted) {
-            if (this.state.dirty.has(touchee)) continue;
+        for (const touchee of data.deleted) {
+            if (data.dirty.has(touchee)) continue;
             this.removeInfo(touchee);
         }
-        for (const touchee of this.state.dirty) {
-            if (this.state.deleted.has(touchee)) continue;
-            promises.push(this._add(touchee));
+        for (const touchee of data.dirty) {
+            if (data.deleted.has(touchee)) continue;
+            promises.push(this.add(touchee));
         }
-        for (const touchee of this.state.added) {
-            if (this.state.deleted.has(touchee)) continue;
-            if (this.state.dirty.has(touchee)) continue;
-            promises.push(this._add(touchee));
+        for (const touchee of data.added) {
+            if (data.deleted.has(touchee)) continue;
+            if (data.dirty.has(touchee)) continue;
+            promises.push(this.add(touchee));
         }
 
         return Promise.all(promises);
@@ -242,9 +240,7 @@ export default class ContourManager {
      * There are a lot of edge cases, e.g., circular (closed) curves, curves whose endpoints intersect the
      * startpoints of the next curve (a "joint"), etc. etc.
      */
-    _add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
-        if (this.state.tag !== 'transaction') throw new Error("invalid state");
-
+    add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
         const { curve2info, planar2instance } = this;
 
         const inst = this.db.lookup(newCurve);
@@ -321,6 +317,11 @@ export default class ContourManager {
         return Promise.all(promises);
     }
 
+    remove(curve: visual.SpaceInstance<visual.Curve3D>) {
+        const data = this.cascade(curve);
+        return this.commit(data);
+    }
+
     private updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[]) {
         const { curve2info, db } = this;
         const info = curve2info.get(instance)!;
@@ -383,17 +384,17 @@ export default class ContourManager {
             info2.joints.stop = new Joint(on2, on1);
     }
 
-    saveToMemento(registry: Map<any, any>): ContourMemento {
-        return new ContourMemento(
+    saveToMemento(registry: Map<any, any>): CurveMemento {
+        return new CurveMemento(
             new Map(this.curve2info),
             new Map(this.planar2instance),
             new Set(this.placements))
     }
 
-    restoreFromMemento(m: ContourMemento) {
-        (this.curve2info as ContourManager['curve2info']) = m.curve2info;
-        (this.planar2instance as ContourManager['planar2instance']) = m.planar2instance;
-        (this.placements as ContourManager['placements']) = m.placements;
+    restoreFromMemento(m: CurveMemento) {
+        (this.curve2info as PlanarCurveDatabase['curve2info']) = m.curve2info;
+        (this.planar2instance as PlanarCurveDatabase['planar2instance']) = m.planar2instance;
+        (this.placements as PlanarCurveDatabase['placements']) = m.placements;
     }
 }
 

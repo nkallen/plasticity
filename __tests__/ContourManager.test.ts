@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
-import ContourManager from '../src/commands/ContourManager';
+import ContourManager, { PlanarCurveDatabase } from '../src/commands/ContourManager';
 import { ContourFilletFactory } from "../src/commands/curve/ContourFilletFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";
@@ -21,21 +21,23 @@ let makeCircle3: CenterCircleFactory;
 let makeCurve1: CurveFactory;
 let makeCurve2: CurveFactory;
 let makeCurve3: CurveFactory;
+let curves: PlanarCurveDatabase;
 let contours: ContourManager;
 let signals: EditorSignals;
 
 beforeEach(() => {
     materials = new FakeMaterials();
-    silentSignals = new EditorSignals(); // not connected to the db, so these never trigger
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    makeCircle1 = new CenterCircleFactory(db, materials, silentSignals);
-    makeCircle2 = new CenterCircleFactory(db, materials, silentSignals);
-    makeCircle3 = new CenterCircleFactory(db, materials, silentSignals);
-    makeCurve1 = new CurveFactory(db, materials, silentSignals);
-    makeCurve2 = new CurveFactory(db, materials, silentSignals);
-    makeCurve3 = new CurveFactory(db, materials, silentSignals);
-    contours = new ContourManager(db, silentSignals);
+    makeCircle1 = new CenterCircleFactory(db, materials, signals);
+    makeCircle2 = new CenterCircleFactory(db, materials, signals);
+    makeCircle3 = new CenterCircleFactory(db, materials, signals);
+    makeCurve1 = new CurveFactory(db, materials, signals);
+    makeCurve2 = new CurveFactory(db, materials, signals);
+    makeCurve3 = new CurveFactory(db, materials, signals);
+    curves = new PlanarCurveDatabase(db);
+    silentSignals = new EditorSignals(); // not connected to the db, so these never trigger
+    contours = new ContourManager(curves, silentSignals);
 })
 
 test('adding and deleting a circle', async () => {
@@ -44,10 +46,10 @@ test('adding and deleting a circle', async () => {
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(1);
 
-    await contours.add(circle1);
+    await curves.add(circle1);
     expect(db.visibleObjects.length).toBe(2);
 
-    await contours.remove(circle1);
+    await curves.remove(circle1);
     await db.removeItem(circle1);
     expect(db.visibleObjects.length).toBe(0);
 })
@@ -58,7 +60,7 @@ test('three intersecting circles, added then deleted', async () => {
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(1);
 
-    await contours.add(circle1);
+    await curves.add(circle1);
     expect(db.visibleObjects.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
@@ -66,7 +68,7 @@ test('three intersecting circles, added then deleted', async () => {
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(3);
 
-    await contours.add(circle2);
+    await curves.add(circle2);
     expect(db.visibleObjects.length).toBe(2 + 4);
 
     makeCircle3.center = new THREE.Vector3(0, 1.1, 0);
@@ -74,14 +76,14 @@ test('three intersecting circles, added then deleted', async () => {
     const circle3 = await makeCircle3.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(6 + 1);
 
-    await contours.add(circle3);
+    await curves.add(circle3);
     expect(db.visibleObjects.length).toBe(3 + 8);
 
-    await contours.remove(circle3);
+    await curves.remove(circle3);
     await db.removeItem(circle3);
     expect(db.visibleObjects.length).toBe(6);
 
-    await contours.remove(circle2);
+    await curves.remove(circle2);
     await db.removeItem(circle2);
     expect(db.visibleObjects.length).toBe(2);
 });
@@ -92,7 +94,7 @@ test('two non-intersecting circles', async () => {
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(1);
 
-    await contours.add(circle1);
+    await curves.add(circle1);
     expect(db.visibleObjects.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 5, 0);
@@ -100,10 +102,10 @@ test('two non-intersecting circles', async () => {
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(3);
 
-    await contours.add(circle2);
+    await curves.add(circle2);
     expect(db.visibleObjects.length).toBe(4);
 
-    await contours.remove(circle2);
+    await curves.remove(circle2);
     await db.removeItem(circle2);
     expect(db.visibleObjects.length).toBe(2);
 });
@@ -114,7 +116,7 @@ test('open curve through circle, added then deleted', async () => {
     const circle = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(1);
 
-    await contours.add(circle);
+    await curves.add(circle);
     expect(db.visibleObjects.length).toBe(2);
 
     makeCurve1.points.push(new THREE.Vector3(-2, 2, 0))
@@ -123,10 +125,10 @@ test('open curve through circle, added then deleted', async () => {
     const curve = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(3);
 
-    await contours.add(curve);
+    await curves.add(curve);
     expect(db.visibleObjects.length).toBe(2 + 5);
 
-    await contours.remove(curve);
+    await curves.remove(curve);
     await db.removeItem(curve);
     expect(db.visibleObjects.length).toBe(2);
 });
@@ -146,7 +148,7 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
     expect(userAddedCurve.mock.calls.length).toBe(1);
     expect(objectAdded.mock.calls.length).toBe(1);
 
-    await contours.add(circle1);
+    await curves.add(circle1);
 
     expect(db.visibleObjects.length).toBe(2);
     expect(userAddedCurve.mock.calls.length).toBe(1);
@@ -161,7 +163,7 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
     expect(userAddedCurve.mock.calls.length).toBe(2);
     expect(objectAdded.mock.calls.length).toBe(3);
 
-    await contours.add(circle2);
+    await curves.add(circle2);
 
     expect(db.visibleObjects.length).toBe(2 + 4);
     expect(userAddedCurve.mock.calls.length).toBe(2);
@@ -174,7 +176,7 @@ test("removing circles in reverse order works", async () => {
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(1);
 
-    await contours.add(circle1);
+    await curves.add(circle1);
     expect(db.visibleObjects.length).toBe(2);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
@@ -182,10 +184,10 @@ test("removing circles in reverse order works", async () => {
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(3);
 
-    await contours.add(circle2);
+    await curves.add(circle2);
     expect(db.visibleObjects.length).toBe(2 + 4);
 
-    await contours.remove(circle1);
+    await curves.remove(circle1);
     await db.removeItem(circle1);
     expect(db.visibleObjects.length).toBe(2);
 })
@@ -195,7 +197,7 @@ test("removing lines in reverse order works", async () => {
     makeCurve1.points.push(new THREE.Vector3());
     makeCurve1.points.push(new THREE.Vector3(-2, 4, 0));
     const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await contours.add(curve1);
+    await curves.add(curve1);
 
     expect(db.visibleObjects.length).toBe(2);
 
@@ -203,7 +205,7 @@ test("removing lines in reverse order works", async () => {
     makeCurve2.points.push(new THREE.Vector3(-2, 4, 0));
     makeCurve2.points.push(new THREE.Vector3(0, 5, 0));
     const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await contours.add(curve2);
+    await curves.add(curve2);
 
     expect(db.visibleObjects.length).toBe(4);
 
@@ -211,19 +213,19 @@ test("removing lines in reverse order works", async () => {
     makeCurve3.points.push(new THREE.Vector3(0, 5, 0));
     makeCurve3.points.push(new THREE.Vector3());
     const curve3 = await makeCurve3.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await contours.add(curve3);
+    await curves.add(curve3);
 
     expect(db.visibleObjects.length).toBe(6);
 
-    await contours.remove(curve1);
+    await curves.remove(curve1);
     db.removeItem(curve1);
     expect(db.visibleObjects.length).toBe(4);
 
-    await contours.remove(curve2);
+    await curves.remove(curve2);
     await db.removeItem(curve2);
     expect(db.visibleObjects.length).toBe(2);
 
-    await contours.remove(curve3);
+    await curves.remove(curve3);
     await db.removeItem(curve3);
     expect(db.visibleObjects.length).toBe(0);
 });
@@ -233,33 +235,33 @@ test("race condition", async () => {
     makeLine1.p1 = new THREE.Vector3();
     makeLine1.p2 = new THREE.Vector3(1, 1, 0);
     const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await contours.add(line1);
+    await curves.add(line1);
 
     const makeLine2 = new LineFactory(db, materials, signals);
     makeLine2.p1 = new THREE.Vector3(1, 1, 0);
     makeLine2.p2 = new THREE.Vector3(0, 1, 0);
     const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await contours.add(line2);
+    await curves.add(line2);
 
-    await contours.remove(line1);
-    await contours.remove(line2);
+    await curves.remove(line1);
+    await curves.remove(line2);
     const makeContour = new JoinCurvesFactory(db, materials, signals);
     makeContour.push(line1);
     makeContour.push(line2);
     const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
-    await contours.add(contour);
+    await curves.add(contour);
 
     const makeFillet = new ContourFilletFactory(db, materials, signals);
     makeFillet.contour = contour;
     makeFillet.radiuses[0] = 0.1;
     const filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await contours.add(filleted);
+    await curves.add(filleted);
 
-    const p1 = contours.update(filleted);
+    const p1 = curves.update(filleted);
 
     db.removeItem(contour);
-    const p2 = contours.update(contour);
-    contours.remove(contour);
+    const p2 = curves.update(contour);
+    curves.remove(contour);
 
     // THIS IS KEY: p1 is initiated before p2. It shouldn't matter what order we await.
     // But it does matter unless the .update() uses the db's queue.
@@ -275,28 +277,28 @@ test("transactions", async () => {
         makeLine1.p1 = new THREE.Vector3();
         makeLine1.p2 = new THREE.Vector3(1, 1, 0);
         const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
-        await contours.add(line1);
+        await curves.add(line1);
 
         const makeLine2 = new LineFactory(db, materials, signals);
         makeLine2.p1 = new THREE.Vector3(1, 1, 0);
         makeLine2.p2 = new THREE.Vector3(0, 1, 0);
         const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
-        await contours.add(line2);
+        await curves.add(line2);
 
-        await contours.remove(line1);
-        await contours.remove(line2);
+        await curves.remove(line1);
+        await curves.remove(line2);
         const makeContour = new JoinCurvesFactory(db, materials, signals);
         makeContour.push(line1);
         makeContour.push(line2);
         const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
-        await contours.add(contour);
+        await curves.add(contour);
 
         const makeFillet = new ContourFilletFactory(db, materials, signals);
         makeFillet.contour = contour;
         makeFillet.radiuses[0] = 0.1;
         const filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
-        await contours.remove(contour);
-        await contours.add(filleted);
+        await curves.remove(contour);
+        await curves.add(filleted);
     });
 });
 
@@ -306,18 +308,18 @@ describe("Joints", () => {
         makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
         const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(1);
-        await contours.add(curve1);
+        await curves.add(curve1);
         expect(db.visibleObjects.length).toBe(2);
 
         makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
         makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(3);
-        await contours.add(curve2);
+        await curves.add(curve2);
         expect(db.visibleObjects.length).toBe(4);
 
-        const joints1 = contours.lookup(curve1).joints;
-        const joints2 = contours.lookup(curve2).joints;
+        const joints1 = curves.lookup(curve1).joints;
+        const joints2 = curves.lookup(curve2).joints;
 
         expect(joints1.start).toBeUndefined();
         expect(joints1.stop.on1.curve).toBe(curve1);
@@ -337,18 +339,18 @@ describe("Joints", () => {
         makeCurve1.points.push(new THREE.Vector3());
         const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(1);
-        await contours.add(curve1);
+        await curves.add(curve1);
         expect(db.visibleObjects.length).toBe(2);
 
         makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
         makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(3);
-        await contours.add(curve2);
+        await curves.add(curve2);
         expect(db.visibleObjects.length).toBe(4);
 
-        const joints1 = contours.lookup(curve1).joints;
-        const joints2 = contours.lookup(curve2).joints;
+        const joints1 = curves.lookup(curve1).joints;
+        const joints2 = curves.lookup(curve2).joints;
 
         expect(joints1.stop).toBeUndefined();
         expect(joints1.start.on1.curve).toBe(curve1);
@@ -368,18 +370,18 @@ describe("Joints", () => {
         makeCurve1.points.push(new THREE.Vector3(-2, -2, 0));
         const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(1);
-        await contours.add(curve1);
+        await curves.add(curve1);
         expect(db.visibleObjects.length).toBe(2);
 
         makeCurve2.points.push(new THREE.Vector3(-2, 2, 0));
         makeCurve2.points.push(new THREE.Vector3(-2, -2, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(3);
-        await contours.add(curve2);
+        await curves.add(curve2);
         expect(db.visibleObjects.length).toBe(4);
 
-        const joints1 = contours.lookup(curve1).joints;
-        const joints2 = contours.lookup(curve2).joints;
+        const joints1 = curves.lookup(curve1).joints;
+        const joints2 = curves.lookup(curve2).joints;
 
         expect(joints1.start).toBeUndefined();
         expect(joints1.stop.on1.curve).toBe(curve1);
@@ -399,26 +401,26 @@ describe("Joints", () => {
         makeCurve1.points.push(new THREE.Vector3(1, 1, 0));
         const curve1 = await makeCurve1.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(1);
-        await contours.add(curve1);
+        await curves.add(curve1);
         expect(db.visibleObjects.length).toBe(2);
 
         makeCurve2.points.push(new THREE.Vector3(1, 1, 0));
         makeCurve2.points.push(new THREE.Vector3(0, 1, 0));
         const curve2 = await makeCurve2.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(3);
-        await contours.add(curve2);
+        await curves.add(curve2);
         expect(db.visibleObjects.length).toBe(4);
 
         makeCurve3.points.push(new THREE.Vector3());
         makeCurve3.points.push(new THREE.Vector3(0, 1, 0));
         const curve3 = await makeCurve3.commit() as visual.SpaceInstance<visual.Curve3D>;
         expect(db.visibleObjects.length).toBe(5);
-        await contours.add(curve3);
+        await curves.add(curve3);
         expect(db.visibleObjects.length).toBe(6);
 
-        const joints1 = contours.lookup(curve1).joints;
-        const joints2 = contours.lookup(curve2).joints;
-        const joints3 = contours.lookup(curve3).joints;
+        const joints1 = curves.lookup(curve1).joints;
+        const joints2 = curves.lookup(curve2).joints;
+        const joints3 = curves.lookup(curve3).joints;
 
         expect(joints1.start.on1.curve).toBe(curve1);
         expect(joints1.start.on1.t).toBe(0);

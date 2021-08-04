@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
-import ContourManager from "../../src/commands/ContourManager";
+import ContourManager, { PlanarCurveDatabase } from "../../src/commands/ContourManager";
 import TrimFactory from "../../src/commands/curve/TrimFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -12,13 +12,15 @@ import '../matchers';
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
+let curves: PlanarCurveDatabase;
 let contours: ContourManager;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    contours = new ContourManager(db, signals);
+    curves = new PlanarCurveDatabase(db);
+    contours = new ContourManager(curves, signals);
 })
 
 let circle1: visual.SpaceInstance<visual.Curve3D>;
@@ -47,12 +49,13 @@ describe(TrimFactory, () => {
         trim = new TrimFactory(db, materials, signals);
     });
 
-    test("it works", async () => {
+    test("two overlapping circles, ", async () => {
         expect(db.find(visual.PlaneInstance).length).toBe(1);
         expect(db.find(visual.SpaceInstance).length).toBe(6);
-        const { fragments } = contours.lookup(circle1);
+        const { fragments } = curves.lookup(circle1);
         const fragment = await fragments[0] as visual.SpaceInstance<visual.Curve3D>;
         trim.fragment = fragment;
+
         await contours.transaction(async () => {
             await trim.commit();
         });

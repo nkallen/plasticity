@@ -1,12 +1,12 @@
+import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { CancellableRegistor } from '../../util/Cancellable';
 import { cart2vec, vec2vec } from '../../util/Conversion';
-import ContourManager, { Joint } from '../ContourManager';
+import { PlanarCurveDatabase, Joint } from '../ContourManager';
 import { GeometryFactory } from '../GeometryFactory';
 import LineFactory from '../line/LineFactory';
 import JoinCurvesFactory from './JoinCurvesFactory';
-import * as THREE from 'three';
 
 /**
  * Filleting curves is idiosyncratic. The underlying c3d method uses Contours only. Thus, to fillet a polyline, it
@@ -197,7 +197,7 @@ export class PolylineOrContourFilletFactory extends GeometryFactory implements C
 
 export class JointOrPolylineOrContourFilletFactory extends GeometryFactory {
     private factory: (PolylineOrContourFilletFactory | JointFilletFactory)[] = [];
-    contours!: ContourManager;
+    curves!: PlanarCurveDatabase;
 
     async setControlPoints(controlPoints: { index: number, parentItem: visual.SpaceInstance<visual.Curve3D> }[]) {
         const nonJoints = [];
@@ -206,7 +206,7 @@ export class JointOrPolylineOrContourFilletFactory extends GeometryFactory {
             const inst = this.db.lookup(cp.parentItem);
             const curve = inst.GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
             if (!curve.IsClosed() && (cp.index === 0 || cp.index === last)) {
-                const info = this.contours.lookup(cp.parentItem);
+                const info = this.curves.lookup(cp.parentItem);
                 const joint = cp.index === 0 ? info.joints.start : info.joints.stop;
                 if (joint === undefined) throw new Error("invalid precondition");
 

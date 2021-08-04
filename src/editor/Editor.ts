@@ -3,7 +3,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import Command from '../commands/Command';
 import { CancelOrFinish, CommandExecutor } from "../commands/CommandExecutor";
-import ContourManager from '../commands/ContourManager';
+import ContourManager, { PlanarCurveDatabase } from "../commands/ContourManager";
 import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
 import { SelectionCommandManager } from "../commands/SelectionCommandManager";
 import CommandRegistry from "../components/atom/CommandRegistry";
@@ -32,7 +32,8 @@ export class Editor {
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly sprites = new SpriteDatabase();
     readonly db = new GeometryDatabase(this.materials, this.signals);
-    readonly contours: ContourManager = new ContourManager(this.db, this.signals);
+    readonly curves = new PlanarCurveDatabase(this.db);
+    readonly contours = new ContourManager(this.curves, this.signals);
     readonly snaps = new SnapManager(this.db, this.sprites, this.signals);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
@@ -43,7 +44,7 @@ export class Editor {
     readonly scene = new THREE.Scene();
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this.db, this.selection, this.snaps, this.contours);
+    readonly originator = new EditorOriginator(this.db, this.selection, this.snaps, this.curves);
     readonly history = new History(this.originator, this.signals);
     readonly transactoins = new Transactions(this.db, this.signals);
     readonly executor = new CommandExecutor(this.selectionGizmo, this.registry, this.signals, this.originator, this.history, this.selection, this.contours);

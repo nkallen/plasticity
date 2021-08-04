@@ -11,7 +11,7 @@ import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
 import { CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 import { CancelOrFinish } from "./CommandExecutor";
-import ContourManager from "./ContourManager";
+import { PlanarCurveDatabase } from "./ContourManager";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
 /**
@@ -38,6 +38,7 @@ import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
 export interface EditorLike {
     db: GeometryDatabase,
+    curves: PlanarCurveDatabase,
     signals: EditorSignals,
     materials: MaterialDatabase,
     viewports: Viewport[],
@@ -47,7 +48,6 @@ export interface EditorLike {
     selection: HasSelection & ModifiesSelection,
     gizmos: GizmoMaterialDatabase,
     selectionInteraction: SelectionInteractionManager,
-    contours: ContourManager,
     layers: LayerManager,
     enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>
 }

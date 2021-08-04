@@ -4,7 +4,7 @@ import { EditorOriginator, History } from "../editor/History";
 import { HasSelection } from "../selection/SelectionManager";
 import { Cancel } from "../util/Cancellable";
 import Command from "./Command";
-import ContourManager from "./ContourManager";
+import PlanarCurveDatabase from "./ContourManager";
 import { SelectionCommandManager } from "./SelectionCommandManager";
 
 export type CancelOrFinish = 'cancel' | 'finish';
@@ -17,7 +17,7 @@ export class CommandExecutor {
         private readonly originator: EditorOriginator,
         private readonly history: History,
         private readonly selection: HasSelection,
-        private readonly contours: ContourManager,
+        private readonly contours: PlanarCurveDatabase,
     ) { }
 
     private active?: Command;
