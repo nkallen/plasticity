@@ -1,4 +1,4 @@
-import { PlanarCurveDatabase } from '../commands/ContourManager';
+import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import c3d from '../../build/Release/c3d.node';
 import { RefCounter } from '../util/Util';
 import { EditorSignals } from './EditorSignals';

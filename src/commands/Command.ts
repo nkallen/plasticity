@@ -11,7 +11,7 @@ import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
 import { CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 import { CancelOrFinish } from "./CommandExecutor";
-import { PlanarCurveDatabase } from "./ContourManager";
+import { PlanarCurveDatabase } from "../editor/PlanarCurveDatabase";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
 /**

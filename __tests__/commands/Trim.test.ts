@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
-import ContourManager, { PlanarCurveDatabase } from "../../src/commands/ContourManager";
+import ContourManager from "../../src/commands/ContourManager";
 import TrimFactory from "../../src/commands/curve/TrimFactory";
+import { PlanarCurveDatabase } from "../../src/editor/PlanarCurveDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
