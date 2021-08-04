@@ -4,10 +4,11 @@ import LineFactory from "../src/commands/line/LineFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { originSnap, PointSnap, Raycaster, SnapManager } from '../src/editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, originSnap, OrRestriction, PlaneSnap, PointSnap, Raycaster, SnapManager } from '../src/editor/SnapManager';
 import { SpriteDatabase } from "../src/editor/SpriteDatabase";
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
+import './matchers';
 
 let db: GeometryDatabase;
 let snaps: SnapManager;
@@ -140,3 +141,114 @@ test("saveToMemento & restoreFromMemento", async () => {
     expect(snaps.snappers.length).toBe(28);
     expect(snaps.pickers.length).toBe(25);
 });
+
+describe(PlaneSnap, () => {
+    test("project", () => {
+        let plane, i;
+        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
+        i = { point: new THREE.Vector3(0, 0, 0) };
+        expect(plane.project(i)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+
+        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 1));
+        i = { point: new THREE.Vector3(0, 0, 1) };
+        expect(plane.project(i)).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+    });
+
+    test("isValid", () => {
+        let plane, point;
+        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
+        expect(plane.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
+        expect(plane.isValid(new THREE.Vector3(0, 0, 1))).toBe(false);
+
+        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 1));
+        expect(plane.isValid(new THREE.Vector3(0, 0, 0))).toBe(false);
+        expect(plane.isValid(new THREE.Vector3(0, 0, 1))).toBe(true);
+    })
+})
+
+describe(AxisSnap, () => {
+    test("project", () => {
+        let i;
+        i = { point: new THREE.Vector3(0, 0, 0) };
+        expect(AxisSnap.X.project(i)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+
+        i = { point: new THREE.Vector3(1, 0, 0) };
+        expect(AxisSnap.X.project(i)).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+
+        i = { point: new THREE.Vector3(0, 1, 0) };
+        expect(AxisSnap.X.project(i)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+    });
+
+    test("isValid", () => {
+        expect(AxisSnap.X.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
+
+        expect(AxisSnap.X.isValid(new THREE.Vector3(1, 0, 0))).toBe(true);
+
+        expect(AxisSnap.X.isValid(new THREE.Vector3(0, 1, 0))).toBe(false);
+    })
+})
+
+describe(OrRestriction, () => {
+    test("isValid", () => {
+        const or = new OrRestriction([AxisSnap.X, AxisSnap.Y]);
+        expect(or.isValid(new THREE.Vector3(1, 0, 0))).toBe(true);
+        expect(or.isValid(new THREE.Vector3(0, 1, 0))).toBe(true);
+        expect(or.isValid(new THREE.Vector3(0, 0, 1))).toBe(false);
+    })
+})
+
+describe(CurveEdgeSnap, () => {
+    let box: visual.Solid;
+    let snap: CurveEdgeSnap;
+
+    beforeEach(async () => {
+        const makeBox = new BoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box = await makeBox.commit() as visual.Solid;
+        const edge = box.edges.get(0); // this is the edge from 0,0,0 to 0,1,0
+        const model = db.lookupTopologyItem(edge);
+        snap = new CurveEdgeSnap(edge, model);
+    })
+
+    test("project", () => {
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) })).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(1, 0.5, 0) })).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(snap.project({ point: new THREE.Vector3(2, 1, 0) })).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0.5, 1) })).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+    })
+
+    test("isValid", () => {
+        expect(snap.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(0, 0.5, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(0, 1, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(1, 0, 0))).toBe(false);
+        expect(snap.isValid(new THREE.Vector3(0, 0, 1))).toBe(false);
+    })
+})
+
+describe(PointSnap, () => {
+    test("project", () => {
+        let snap;
+        snap = new PointSnap(new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) })).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(1, 1, 1) })).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+
+        snap = new PointSnap(new THREE.Vector3(1, 1, 1));
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) })).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+        expect(snap.project({ point: new THREE.Vector3(1, 1, 1) })).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    })
+
+    test("isValid", () => {
+        let snap;
+        snap = new PointSnap(new THREE.Vector3(0, 0, 0));
+        expect(snap.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(1, 1, 1))).toBe(false);
+
+        snap = new PointSnap(new THREE.Vector3(1, 1, 1));
+        expect(snap.isValid(new THREE.Vector3(0, 0, 0))).toBe(false);
+        expect(snap.isValid(new THREE.Vector3(1, 1, 1))).toBe(true);
+    })
+})

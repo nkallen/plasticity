@@ -40,6 +40,7 @@ export class SnapManager {
         this.update();
     }
 
+    // FIXME move into the model of PointPicker?
     nearby(raycaster: Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
         const additionalPickers = [];
         for (const a of additional) if (a.picker !== undefined) additionalPickers.push(a.picker);
@@ -234,7 +235,9 @@ export class PointSnap extends Snap {
 export class CurveEdgeSnap extends Snap {
     t!: number;
 
-    constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
+    get view() { return this.snapper as visual.CurveEdge }
+
+    constructor(view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
         super(view);
     }
 
@@ -287,11 +290,11 @@ export class AxisSnap extends Snap {
 
         super(snapper, undefined, snapper);
         snapper.userData.sort = 1;
-        this.n = n;
+        this.n = n.normalize();
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
-        return intersection.point;
+        return this.n.clone().multiplyScalar(this.n.dot(intersection.point));
     }
 
     isValid(pt: THREE.Vector3): boolean {
@@ -308,7 +311,7 @@ export class PlaneSnap extends Snap {
     readonly p: THREE.Vector3;
 
     constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3()) {
-        const planeGeo = new THREE.PlaneGeometry(1000, 1000, 2, 2);
+        const planeGeo = new THREE.PlaneGeometry(10_000, 10_000, 2, 2);
         const mat = new THREE.MeshBasicMaterial();
         mat.side = THREE.DoubleSide;
         const mesh = new THREE.Mesh(planeGeo, mat);
@@ -322,7 +325,7 @@ export class PlaneSnap extends Snap {
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
         const { n, p } = this;
-        const plane = new THREE.Plane(n, p.dot(n));
+        const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, p);
         return plane.projectPoint(intersection.point, new THREE.Vector3());
     }
 
@@ -338,24 +341,22 @@ export class PlaneSnap extends Snap {
 }
 
 export class CameraPlaneSnap extends PlaneSnap {
-    private readonly camera: THREE.Camera;
     private readonly worldDirection: THREE.Vector3;
     private readonly projectionPoint: THREE.Vector3;
 
     constructor(camera: THREE.Camera) {
         super(new THREE.Vector3(), new THREE.Vector3());
-        this.camera = camera;
         this.worldDirection = new THREE.Vector3();
         this.projectionPoint = new THREE.Vector3();
         this.update(camera);
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        const { worldDirection, projectionPoint } = this;
+        const { worldDirection } = this;
 
         const plane = new THREE.Plane();
         plane.setFromNormalAndCoplanarPoint(worldDirection, this.snapper.position);
-        
+
         return Math.abs(plane.distanceToPoint(pt)) < 1e-4;
     }
 
