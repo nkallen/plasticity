@@ -2,10 +2,11 @@ import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import ContourManager from "../../src/commands/ContourManager";
 import TrimFactory from "../../src/commands/curve/TrimFactory";
-import { PlanarCurveDatabase } from "../../src/editor/PlanarCurveDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
+import { PlanarCurveDatabase } from "../../src/editor/PlanarCurveDatabase";
+import { RegionManager } from "../../src/editor/RegionManager";
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -14,6 +15,7 @@ let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 let curves: PlanarCurveDatabase;
+let regions: RegionManager;
 let contours: ContourManager;
 
 beforeEach(() => {
@@ -21,7 +23,8 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     curves = new PlanarCurveDatabase(db);
-    contours = new ContourManager(curves, signals);
+    regions = new RegionManager(db, curves);
+    contours = new ContourManager(curves, regions, signals);
 })
 
 let circle1: visual.SpaceInstance<visual.Curve3D>;

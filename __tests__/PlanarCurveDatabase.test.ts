@@ -14,7 +14,6 @@ import './matchers';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
-let silentSignals: EditorSignals;
 let makeCircle1: CenterCircleFactory;
 let makeCircle2: CenterCircleFactory;
 let makeCircle3: CenterCircleFactory;
@@ -225,47 +224,6 @@ test("removing lines in reverse order works", async () => {
     await curves.remove(curve3);
     await db.removeItem(curve3);
     expect(db.visibleObjects.length).toBe(0);
-});
-
-test("race condition", async () => {
-    const makeLine1 = new LineFactory(db, materials, signals);
-    makeLine1.p1 = new THREE.Vector3();
-    makeLine1.p2 = new THREE.Vector3(1, 1, 0);
-    const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await curves.add(line1);
-
-    const makeLine2 = new LineFactory(db, materials, signals);
-    makeLine2.p1 = new THREE.Vector3(1, 1, 0);
-    makeLine2.p2 = new THREE.Vector3(0, 1, 0);
-    const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await curves.add(line2);
-
-    await curves.remove(line1);
-    await curves.remove(line2);
-    const makeContour = new JoinCurvesFactory(db, materials, signals);
-    makeContour.push(line1);
-    makeContour.push(line2);
-    const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
-    await curves.add(contour);
-
-    const makeFillet = new ContourFilletFactory(db, materials, signals);
-    makeFillet.contour = contour;
-    makeFillet.radiuses[0] = 0.1;
-    const filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
-    await curves.add(filleted);
-
-    const p1 = curves.update(filleted);
-
-    db.removeItem(contour);
-    const p2 = curves.update(contour);
-    curves.remove(contour);
-
-    // THIS IS KEY: p1 is initiated before p2. It shouldn't matter what order we await.
-    // But it does matter unless the .update() uses the db's queue.
-    await p2;
-    await p1;
-
-    expect(db.find(visual.PlaneInstance).length).toBe(0);
 });
 
 describe("Joints", () => {
