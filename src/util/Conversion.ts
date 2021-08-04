@@ -28,9 +28,8 @@ export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): { 
         const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.01));
 
         return { curve: curve2d, placement };
-    } else {
-
     }
+    return undefined;
 }
 
 export function normalizePlacement(curve2d: c3d.Curve, placement: c3d.Placement3D, candidates: Set<c3d.Placement3D>) {

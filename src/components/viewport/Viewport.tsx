@@ -23,22 +23,6 @@ const far = 1000;
 const frustumSize = 20;
 const fog = new THREE.Fog(0x424242, 1, 100);
 
-// export interface Viewport {
-//     renderer: THREE.Renderer;
-//     camera: THREE.Camera;
-//     get constructionPlane(): PlaneSnap;
-//     set constructionPlane(p: PlaneSnap);
-//     enableControls(): void;
-//     disableControlsExcept(): void;
-//     overlay: THREE.Scene;
-//     lastPointerEvent?: PointerEvent;
-//     outlinePassSelection: OutlinePass;
-//     outlinePassHover: OutlinePass;
-//     setAttribute(name: string, value: string): void;
-//     removeAttribute(name: string): void;
-//     start(): void;
-// }
-
 export interface EditorLike extends selector.EditorLike {
     db: GeometryDatabase,
     helpers: Helpers,

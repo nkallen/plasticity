@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { cart2vec } from "../util/Conversion";
+import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
 import { RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
@@ -340,6 +340,10 @@ export class PlaneSnap extends Snap {
     }
 
     update(camera: THREE.Camera) { }
+
+    get placement() {
+        return new c3d.Placement3D(vec2cart(this.p), new c3d.Vector3D(this.n.x, this.n.y, this.n.z), false);
+    }
 }
 
 export class CameraPlaneSnap extends PlaneSnap {

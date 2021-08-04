@@ -485,7 +485,11 @@ export default {
         Placement3D: {
             rawHeader: "mb_placement3d.h",
             dependencies: ["Axis3D.h", "Vector3D.h", "Matrix.h"],
-            initializers: ["", "const MbCartPoint3D & org, const MbVector3D & axisZ, const MbVector3D & axisX, bool l = false"],
+            initializers: [
+                "",
+                "const MbCartPoint3D & org, const MbVector3D & axisZ, const MbVector3D & axisX, bool l = false",
+                "const MbCartPoint3D & org, const MbVector3D & axisZ, bool l = false"
+            ],
             functions: [
                 "MbPlacement3D & Move(const MbVector3D & to)",
                 "MbPlacement3D & Rotate(const MbAxis3D & axis, double angle)",

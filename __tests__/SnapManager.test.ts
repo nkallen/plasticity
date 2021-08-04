@@ -7,6 +7,7 @@ import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { AxisSnap, CurveEdgeSnap, originSnap, OrRestriction, PlaneSnap, PointSnap, Raycaster, SnapManager } from '../src/editor/SnapManager';
 import { SpriteDatabase } from "../src/editor/SpriteDatabase";
 import * as visual from '../src/editor/VisualModel';
+import { cart2vec, vec2vec } from "../src/util/Conversion";
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -155,7 +156,7 @@ describe(PlaneSnap, () => {
     });
 
     test("isValid", () => {
-        let plane, point;
+        let plane;
         plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
         expect(plane.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
         expect(plane.isValid(new THREE.Vector3(0, 0, 1))).toBe(false);
@@ -163,7 +164,20 @@ describe(PlaneSnap, () => {
         plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 1));
         expect(plane.isValid(new THREE.Vector3(0, 0, 0))).toBe(false);
         expect(plane.isValid(new THREE.Vector3(0, 0, 1))).toBe(true);
-    })
+    });
+
+    test("placement", () => {
+        let plane: PlaneSnap, placement: c3d.Placement3D;
+        plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
+        placement = plane.placement;
+        expect(cart2vec(placement.GetOrigin())).toApproximatelyEqual(new THREE.Vector3());
+        expect(vec2vec(placement.GetAxisZ())).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+
+        plane = new PlaneSnap(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+        placement = plane.placement;
+        expect(cart2vec(placement.GetOrigin())).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(vec2vec(placement.GetAxisZ())).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+    });
 })
 
 describe(AxisSnap, () => {

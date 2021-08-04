@@ -1,6 +1,7 @@
-import { PlaneSnap } from '../../editor/SnapManager';
 import c3d from '../../../build/Release/c3d.node';
+import { PlaneSnap } from '../../editor/SnapManager';
 import * as visual from '../../editor/VisualModel';
+import { curve3d2curve2d } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 abstract class BooleanFactory extends GeometryFactory {
@@ -59,10 +60,11 @@ export class CutFactory extends GeometryFactory {
     set curve(inst: visual.SpaceInstance<visual.Curve3D>) {
         const instance = this.db.lookup(inst);
         const item = instance.GetSpaceItem()!;
-        const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-        const { curve2d, placement } = curve.GetPlaneCurve(false);
-        if (!curve2d || !placement) throw new ValidationError("invalid curve");
-
+        const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+        const planar = curve3d2curve2d(curve3d, this.constructionPlane?.placement ?? new c3d.Placement3D());
+        if (planar === undefined) throw new ValidationError("Curve cannot be converted to planar");
+        const { curve: curve2d, placement } = planar;
+        
         this.contour = new c3d.Contour([curve2d], true);
         this.placement = placement;
     }

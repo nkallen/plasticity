@@ -1,14 +1,20 @@
-draw curve first line part is invisible
 cutting by line not working well
+  -- broken on non-XY plane
+  -- add navigationStart() and selector to broadcast viewportActivated event
+gizmo for contour sometimes disoriented
+
 interleaving with updating/commit on factory. use q?
 draw on surface
-gizmo for contour sometimes disoriented
-regions not always updated when deleting
 refactor factory to take editorlike?
 make a test of the queue to make the thing executes when all subthings are executed?
 
 fillet has two points, F key bound twice
 fillet needs to be in screen space
+fillet face
+variable fillet gizmo length is wrong
+position/orientation of fillet gizmo
+position/orientation of expand contract gizmo
+make gizmo also do chamfer?
 
 moving needs to have snapping
 stick to surface max

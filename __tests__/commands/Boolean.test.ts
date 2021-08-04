@@ -5,6 +5,7 @@ import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
+import { PlaneSnap } from "../../src/editor/SnapManager";
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -63,18 +64,19 @@ describe("cutting", () => {
         expect(result.length).toBe(2);
     });
 
-    test.skip('works with lines', async () => {
+    test.only('works with lines', async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3(0, 0, 0);
         makeSphere.radius = 1;
         const sphere = await makeSphere.commit() as visual.Solid;
 
         const makeLine = new CurveFactory(db, materials, signals);
-        makeLine.points.push(new THREE.Vector3(-2, 2, 0));
-        makeLine.points.push(new THREE.Vector3(2, 2));
+        makeLine.points.push(new THREE.Vector3(-2, -2, 0));
+        makeLine.points.push(new THREE.Vector3(2, 2, 0));
         const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const cut = new CutFactory(db, materials, signals);
+        cut.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
         cut.solid = sphere;
         cut.curve = line;
         const result = await cut.commit() as visual.SpaceItem[];
