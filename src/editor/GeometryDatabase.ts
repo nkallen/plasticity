@@ -33,7 +33,7 @@ export class GeometryDatabase {
         private readonly signals: EditorSignals) { }
 
     private counter = 0;
-
+    
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
     async addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
     async addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;

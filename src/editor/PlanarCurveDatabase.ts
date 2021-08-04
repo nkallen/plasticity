@@ -20,13 +20,13 @@ export class PlanarCurveDatabase {
         this.placements.add(new c3d.Placement3D(origin, Z, X, false));
     }
 
-    update(changed: visual.SpaceInstance<visual.Curve3D>) {
+    update(changed: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
         const info = this.curve2info.get(changed)!;
         const placement = info.placement;
-        this._update(placement);
+        return this._update(placement);
     }
 
-    _update(placement: c3d.Placement3D) {
+    _update(placement: c3d.Placement3D): Promise<void> {
         return this.db.queue.enqueue(async () => {
             const { curve2info } = this;
 
