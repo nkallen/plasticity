@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { EventDispatcher } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import SphereFactory from "../src/commands/sphere/SphereFactory";
-import { EditorLike, Model } from "../src/components/viewport/Viewport";
+import { EditorLike, Viewport } from "../src/components/viewport/Viewport";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { EditorOriginator } from "../src/editor/History";
@@ -16,16 +16,19 @@ import { PlaneSnap } from "../src/editor/SnapManager";
 import { Helpers } from "../src/util/Helpers";
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
+import Command from "../src/commands/Command";
+import { CancelOrFinish } from "../src/commands/CommandExecutor";
+import './matchers';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
-let viewport: Model;
+let viewport: Viewport;
 let editor: EditorLike;
 let sphere: visual.Solid;
 let selection: SelectionManager;
 let interaction: SelectionInteractionManager;
-let navigationControls: EventDispatcher;
+let navigationControls: OrbitControls;
 let originator: EditorOriginator;
 
 class FakeWebGLRenderer implements THREE.Renderer {
@@ -68,22 +71,22 @@ beforeEach(async () => {
         materials: materials,
         selectionInteraction: interaction,
         scene: new THREE.Scene(),
-        enqueue: () => {},
+        enqueue: (command: Command, cancelOrFinish?: CancelOrFinish) => Promise.resolve(),
     };
     const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;
     sphere = await makeSphere.commit() as visual.Solid;
-    navigationControls = new EventDispatcher() as any;
-    navigationControls.dispose = () => {};
-    viewport = new Model(
+    navigationControls = new EventDispatcher() as OrbitControls;
+    navigationControls.dispose = () => { };
+    viewport = new Viewport(
         editor,
         new FakeWebGLRenderer() as unknown as THREE.WebGLRenderer,
         document.createElement('viewport'),
         new THREE.Camera(),
         new PlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3()),
-        navigationControls as unknown as OrbitControls,
-        null,
+        navigationControls,
+        new THREE.GridHelper(),
     )
     viewport.start();
 });
@@ -95,18 +98,18 @@ afterEach(async () => {
 test("item selected", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
-    interaction.onClick([{object: sphere.faces.get(0), distance: 1, point}]);
-    signals.selectionChanged.dispatch({selection, point});
+    interaction.onClick([{ object: sphere.faces.get(0), distance: 1, point }]);
+    signals.selectionChanged.dispatch({ selection, point });
     expect(viewport.outlinePassSelection.selectedObjects).toEqual(sphere.outline);
     interaction.onClick([]);
-    signals.selectionChanged.dispatch({selection, point});
+    signals.selectionChanged.dispatch({ selection, point });
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
 });
 
 test("item hovered", () => {
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
-    interaction.onHover([{object: sphere.faces.get(0), distance: 1, point}]);
+    interaction.onHover([{ object: sphere.faces.get(0), distance: 1, point }]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual(sphere.outline);
     interaction.onHover([]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
@@ -114,10 +117,23 @@ test("item hovered", () => {
 
 test("navigation start & end", () => {
     expect(viewport.selector.enabled).toBeTruthy();
-    navigationControls.dispatchEvent({ type: 'start' });
+    navigationControls.dispatchEvent({ type: 'start', target: null });
     expect(viewport.selector.enabled).toBeTruthy();
-    navigationControls.dispatchEvent({ type: 'change' });
+    navigationControls.dispatchEvent({ type: 'change', target: null });
     expect(viewport.selector.enabled).toBeFalsy();
-    navigationControls.dispatchEvent({ type: 'end' });
+    navigationControls.dispatchEvent({ type: 'end', target: null });
     expect(viewport.selector.enabled).toBeTruthy();
+});
+
+test("changing construction plane changes grid orientation", () => {
+    const quat = new THREE.Quaternion();
+
+    expect(viewport.constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+    quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0));
+    expect(viewport.grid.quaternion.angleTo(quat)).toBeCloseTo(0)
+
+    viewport.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 1, 0));
+
+    quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 1, 0));
+    expect(viewport.grid.quaternion.angleTo(quat)).toBeCloseTo(0)
 });

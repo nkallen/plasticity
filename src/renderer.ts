@@ -21,6 +21,7 @@ import { Editor } from './editor/Editor';
 import registerDefaultCommands from './components/toolbar/icons';
 import CurveFactory from './commands/curve/CurveFactory';
 import LineFactory from './commands/line/LineFactory';
+import ViewportHeader from './components/viewport/ViewportHeader';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -52,6 +53,7 @@ Viewport(editor);
 Modifiers(editor);
 NumberScrubber(editor);
 Dialog(editor);
+ViewportHeader(editor);
 
 const box = new BoxFactory(editor.db, editor.materials, editor.signals);
 box.p1 = new THREE.Vector3();

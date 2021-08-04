@@ -23,21 +23,21 @@ const far = 1000;
 const frustumSize = 20;
 const fog = new THREE.Fog(0x424242, 1, 100);
 
-export interface Viewport {
-    renderer: THREE.Renderer;
-    camera: THREE.Camera;
-    get constructionPlane(): PlaneSnap;
-    set constructionPlane(p: PlaneSnap);
-    enableControls(): void;
-    disableControlsExcept(): void;
-    overlay: THREE.Scene;
-    lastPointerEvent?: PointerEvent;
-    outlinePassSelection: OutlinePass;
-    outlinePassHover: OutlinePass;
-    setAttribute(name: string, value: string): void;
-    removeAttribute(name: string): void;
-    start(): void;
-}
+// export interface Viewport {
+//     renderer: THREE.Renderer;
+//     camera: THREE.Camera;
+//     get constructionPlane(): PlaneSnap;
+//     set constructionPlane(p: PlaneSnap);
+//     enableControls(): void;
+//     disableControlsExcept(): void;
+//     overlay: THREE.Scene;
+//     lastPointerEvent?: PointerEvent;
+//     outlinePassSelection: OutlinePass;
+//     outlinePassHover: OutlinePass;
+//     setAttribute(name: string, value: string): void;
+//     removeAttribute(name: string): void;
+//     start(): void;
+// }
 
 export interface EditorLike extends selector.EditorLike {
     db: GeometryDatabase,
@@ -51,7 +51,7 @@ export interface EditorLike extends selector.EditorLike {
 
 type Control = { enabled: boolean, dispose(): void };
 
-export class Model implements Viewport {
+export class Viewport {
     readonly overlay = new THREE.Scene();
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
@@ -67,10 +67,11 @@ export class Model implements Viewport {
         readonly renderer: THREE.WebGLRenderer,
         readonly domElement: HTMLElement,
         readonly camera: THREE.Camera,
-        readonly constructionPlane: PlaneSnap,
+        constructionPlane: PlaneSnap,
         readonly navigationControls: OrbitControls,
-        readonly grid?: THREE.GridHelper,
+        readonly grid: THREE.GridHelper,
     ) {
+        this.constructionPlane = constructionPlane;
         const rendererDomElement = this.renderer.domElement;
 
         rendererDomElement.setAttribute("tabindex", "1");
@@ -119,11 +120,11 @@ export class Model implements Viewport {
         this.composer.addPass(helpersPass);
         this.composer.addPass(copyPass);
 
+        this.render = this.render.bind(this);
+        this.setNeedsRender = this.setNeedsRender.bind(this);
         this.outlineSelection = this.outlineSelection.bind(this);
         this.outlineHover = this.outlineHover.bind(this);
         this.outlineUnhover = this.outlineUnhover.bind(this);
-        this.render = this.render.bind(this);
-        this.setNeedsRender = this.setNeedsRender.bind(this);
         this.navigationStart = this.navigationStart.bind(this);
         this.navigationEnd = this.navigationEnd.bind(this);
         this.navigationChange = this.navigationChange.bind(this);
@@ -307,17 +308,34 @@ export class Model implements Viewport {
     dispose() {
         this.disposable.dispose();
     }
+
+    private _constructionPlane!: PlaneSnap;
+    get constructionPlane() { return this._constructionPlane }
+    set constructionPlane(plane: PlaneSnap) {
+        this._constructionPlane = plane;
+        this.grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), plane.n);
+        this.setNeedsRender();
+    }
+
+    foo() {
+        this.constructionPlane = new PlaneSnap(new THREE.Vector3(1, 1, 1));
+    }
+}
+
+export interface ViewportElement {
+    readonly model: Viewport;
 }
 
 export default (editor: EditorLike) => {
-    class Viewport extends HTMLElement implements Viewport {
-        private readonly model: Model;
+    class ViewportElement extends HTMLElement implements ViewportElement {
+        readonly model: Viewport;
 
         constructor() {
             super();
 
             const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
             const grid = new THREE.GridHelper(300, 300, 0x666666, 0x666666);
+            grid.renderOrder = -1;
             grid.layers.set(visual.Layers.Overlay);
 
             this.append(renderer.domElement);
@@ -368,7 +386,7 @@ export default (editor: EditorLike) => {
             grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
             grid.renderOrder = -1;
 
-            this.model = new Model(
+            this.model = new Viewport(
                 editor,
                 renderer,
                 this,
@@ -401,5 +419,5 @@ export default (editor: EditorLike) => {
         }
     }
 
-    customElements.define('ispace-viewport', Viewport);
+    customElements.define('ispace-viewport', ViewportElement);
 }

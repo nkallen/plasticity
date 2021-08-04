@@ -9,6 +9,12 @@ ispace-viewport:hover {
 }
 
 ispace-viewport {
+    flex: 1;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    position: relative;
+
     ispace-keybindings {
         position: absolute;
         left: 0px;
@@ -29,6 +35,30 @@ ispace-viewport {
                     padding: 0 2px;
                     margin: 5px;
                 }
+            }
+        }
+    }
+
+    ispace-viewport-header {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: auto;
+        top: 22px;
+        background: #aaa;
+        text-align: center;
+
+        button {
+            color: #999;
+            position: relative;
+            border: 0px;
+            margin: 0px;
+            cursor: pointer;
+            outline: none;
+
+            &:hover {
+                color: #fff;
+                background-color: #08f;
             }
         }
     }
