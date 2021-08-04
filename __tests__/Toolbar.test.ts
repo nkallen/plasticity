@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { MoveCommand, RotateCommand, ScaleCommand, SelectFilletsCommand } from "../src/commands/GeometryCommands";
+import { ClipCurveCommand, MoveCommand, RotateCommand, ScaleCommand, SelectFilletsCommand } from "../src/commands/GeometryCommands";
 import { Model } from "../src/components/toolbar/Toolbar";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
@@ -34,6 +34,6 @@ test('when a solid is selected you get move/rotate/scale', () => {
 
     selection.selectSolid(solid);
     expect(toolbar.commands).toEqual([
-        MoveCommand, RotateCommand, ScaleCommand, SelectFilletsCommand
+        MoveCommand, RotateCommand, ScaleCommand, SelectFilletsCommand, ClipCurveCommand
     ])
 })
