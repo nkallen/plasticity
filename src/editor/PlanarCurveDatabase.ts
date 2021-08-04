@@ -30,7 +30,7 @@ export class PlanarCurveDatabase {
      * There are a lot of edge cases, e.g., circular (closed) curves, curves whose endpoints intersect the
      * startpoints of the next curve (a "joint"), etc. etc.
      */
-    add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
+    async add(newCurve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
         const { curve2info, planar2instance } = this;
 
         const inst = this.db.lookup(newCurve);
@@ -38,7 +38,7 @@ export class PlanarCurveDatabase {
         const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
         const planarInfo = this.planarizeAndNormalize(curve3d);
         if (planarInfo === undefined)
-            return;
+            return Promise.resolve();
         const { curve: newPlanarCurve, placement } = planarInfo;
 
         const info = new CurveInfo(newPlanarCurve, placement);
@@ -105,15 +105,14 @@ export class PlanarCurveDatabase {
             }
             promises.push(this.updateCurve(this.planar2instance.get(id)!, result));
         }
-        return Promise.all(promises);
+        return Promise.all(promises).then(() => { });
     }
 
-    private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true) {
+    private removeInfo(curve: visual.SpaceInstance<visual.Curve3D>, invalidateCurvesThatTouch = true): CurveInfo | undefined {
         const { curve2info, planar2instance } = this;
 
         const info = curve2info.get(curve);
-        if (info === undefined)
-            return;
+        if (info === undefined) return;
         curve2info.delete(curve);
 
         const { fragments, planarCurve } = info;
@@ -126,8 +125,8 @@ export class PlanarCurveDatabase {
         return info;
     }
 
-    cascade(curve: visual.SpaceInstance<visual.Curve3D>, transaction: Transaction = { dirty: new Set(), deleted: new Set(), added: new Set() }) {
-        const { dirty, deleted, added } = transaction;
+    cascade(curve: visual.SpaceInstance<visual.Curve3D>, transaction: Transaction = { dirty: new Set(), removed: new Set(), added: new Set() }) {
+        const { dirty, removed: deleted, added } = transaction;
 
         deleted.add(curve);
 
@@ -151,38 +150,38 @@ export class PlanarCurveDatabase {
         return transaction;
     }
 
-    commit(data: Transaction) {
+    commit(data: Transaction): Promise<void> {
         const promises = [];
         for (const touchee of data.dirty) {
             this.removeInfo(touchee);
         }
-        for (const touchee of data.deleted) {
+        for (const touchee of data.removed) {
             if (data.dirty.has(touchee))
                 continue;
             this.removeInfo(touchee);
         }
         for (const touchee of data.dirty) {
-            if (data.deleted.has(touchee))
+            if (data.removed.has(touchee))
                 continue;
             promises.push(this.add(touchee));
         }
         for (const touchee of data.added) {
-            if (data.deleted.has(touchee))
+            if (data.removed.has(touchee))
                 continue;
             if (data.dirty.has(touchee))
                 continue;
             promises.push(this.add(touchee));
         }
 
-        return Promise.all(promises);
+        return Promise.all(promises).then(() => { });
     }
 
-    remove(curve: visual.SpaceInstance<visual.Curve3D>) {
+    remove(curve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
         const data = this.cascade(curve);
         return this.commit(data);
     }
 
-    private updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[]) {
+    private updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[]): Promise<void> {
         const { curve2info, db } = this;
         const info = curve2info.get(instance)!;
         for (const invalid of info.fragments) {
@@ -200,7 +199,7 @@ export class PlanarCurveDatabase {
             views.push(p);
         }
         info.fragments = views;
-        return Promise.all(views);
+        return Promise.all(views).then(() => { });
     }
 
     private planarizeAndNormalize(curve3d: c3d.Curve3D): { curve: c3d.Curve; placement: c3d.Placement3D; } | undefined {
@@ -240,8 +239,7 @@ export class PlanarCurveDatabase {
         const t2min = curve2.GetTMin();
         const t2max = curve2.GetTMax();
 
-        if (t1 !== t1min && t1 !== t1max)
-            return;
+        if (t1 !== t1min && t1 !== t1max) return;
 
         const on1 = new PointOnCurve(view1, t1, t1min, t1max);
         const on2 = new PointOnCurve(view2, t2, t2min, t2max);

@@ -11,22 +11,9 @@ export class RegionManager {
         private readonly curves: PlanarCurveDatabase
     ) { }
 
-    updateCurve(changed: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
-        const info = this.curves.lookup(changed)!;
-        const placement = info.placement;
-        return this.updatePlacement(placement);
-    }
-
     updatePlacement(placement: c3d.Placement3D): Promise<void> {
         return this.db.queue.enqueue(async () => {
-            // First remove all old regions that are coplanar
-            const oldRegions = this.db.find(visual.PlaneInstance);
-            for (const { model, view } of oldRegions) {
-                const p = model.GetPlacement();
-                if (isSamePlacement(p, placement)) {
-                    this.db.removeItem(view, 'automatic');
-                }
-            }
+            this.removeOnPlacement(placement);
 
             const coplanarCurves = this.curves.findWithSamePlacement(placement);
 
@@ -37,5 +24,15 @@ export class RegionManager {
                 this.db.addItem(new c3d.PlaneInstance(region, placement), 'automatic');
             }
         });
+    }
+
+    private removeOnPlacement(placement: c3d.Placement3D) {
+        const oldRegions = this.db.find(visual.PlaneInstance);
+        for (const { model, view } of oldRegions) {
+            const p = model.GetPlacement();
+            if (isSamePlacement(p, placement)) {
+                this.db.removeItem(view, 'automatic');
+            }
+        }
     }
 }

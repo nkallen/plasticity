@@ -3,6 +3,7 @@ import { EditorSignals } from "../editor/EditorSignals";
 import * as visual from "../editor/VisualModel";
 import { PlanarCurveDatabase } from '../editor/PlanarCurveDatabase';
 import { RegionManager } from "../editor/RegionManager";
+import { isSamePlacement } from 'src/util/Conversion';
 
 export class CurveInfo {
     readonly touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
@@ -13,7 +14,7 @@ export class CurveInfo {
 
 export type Curve2dId = bigint;
 export type Trim = { trimmed: c3d.Curve, start: number, stop: number };
-export type Transaction = { dirty: CurveSet, added: CurveSet, deleted: CurveSet }
+export type Transaction = { dirty: CurveSet, added: CurveSet, removed: CurveSet }
 type CurveSet = Set<visual.SpaceInstance<visual.Curve3D>>;
 type State = { tag: 'none' } | { tag: 'transaction', transaction: Transaction }
 
@@ -25,31 +26,20 @@ export default class ContourManager {
         private readonly regions: RegionManager,
         signals: EditorSignals,
     ) {
-        // The order is important, because add creates info update subsequently uses;
         signals.userAddedCurve.add(c => this.add(c));
-        signals.userAddedCurve.add(c => this.update(c));
-
-        // Similarly, don't delete info necessary for update
-        signals.userRemovedCurve.add(c => this.update(c));
         signals.userRemovedCurve.add(c => this.remove(c));
     }
 
-    update(changed: visual.SpaceInstance<visual.Curve3D>) {
+    async remove(curve: visual.SpaceInstance<visual.Curve3D>) {
         switch (this.state.tag) {
-            case 'none': this.regions.updateCurve(changed); break;
-            case 'transaction': break;
-        }
-    }
-
-    remove(curve: visual.SpaceInstance<visual.Curve3D>) {
-        switch (this.state.tag) {
-            case 'none': {
+            case 'none':
+                const info = this.curves.lookup(curve);
                 const data = this.curves.cascade(curve);
-                return this.curves.commit(data);
-            }
-            case 'transaction': {
+                await this.curves.commit(data);
+                await this.regions.updatePlacement(info.placement);
+                break;
+            case 'transaction':
                 this.curves.cascade(curve, this.state.transaction);
-            }
         }
     }
 
@@ -57,6 +47,8 @@ export default class ContourManager {
         switch (this.state.tag) {
             case 'none':
                 const result = this.curves.add(curve);
+                const info = this.curves.lookup(curve);
+                this.regions.updatePlacement(info.placement);
                 return result;
             case 'transaction':
                 this.state.transaction.added.add(curve);
@@ -67,13 +59,17 @@ export default class ContourManager {
     async transaction(f: () => Promise<void>) {
         switch (this.state.tag) {
             case 'none': {
-                const transaction: Transaction = { dirty: new Set(), added: new Set(), deleted: new Set() };
+                const transaction: Transaction = { dirty: new Set(), added: new Set(), removed: new Set() };
                 this.state = { tag: 'transaction', transaction: transaction};
                 try {
                     await f();
+                    const placements = new Set<c3d.Placement3D>();
+                    this.placementsAffectedByTransaction(transaction.dirty, placements);
+                    this.placementsAffectedByTransaction(transaction.removed, placements);
                     await this.curves.commit(transaction);
-                    if (transaction.dirty.size > 0 || transaction.added.size > 0 || transaction.deleted.size > 0) {
-                        for (const placement of this.state2placement(transaction)) {
+                    this.placementsAffectedByTransaction(transaction.added, placements);
+                    if (transaction.dirty.size > 0 || transaction.added.size > 0 || transaction.removed.size > 0) {
+                        for (const placement of placements) {
                             await this.regions.updatePlacement(placement);
                         }
                     }
@@ -86,31 +82,11 @@ export default class ContourManager {
         }
     }
 
-    private state2placement(state: Transaction) {
-        const { dirty, added, deleted } = state;
-        const all = [];
-        for (const d of dirty) all.push(d);
-        for (const a of added) all.push(a);
-        for (const d of deleted) all.push(d);
-
-        const placements = [];
-        for (const c of all) {
+    private placementsAffectedByTransaction(dirty: CurveSet, placements: Set<c3d.Placement3D>) {
+        for (const c of dirty) {
             const info = this.curves.lookup(c);
-            if (info !== undefined) placements.push(info.placement);
+            if (info !== undefined) placements.add(info.placement);
         }
-
-        const result = [];
-        candidates: while (placements.length > 0) {
-            const candidate = placements.pop()!;
-            if (result.length === 0) result.push(candidate);
-            else {
-                already: for (const p of result)
-                    if (p.GetAxisZ().Colinear(candidate.GetAxisZ()))
-                        continue candidates;
-                result.push(candidate);
-            }
-        }
-        return result;
     }
 }
 

@@ -112,3 +112,30 @@ test("when not using aggregated transactions, you get a lot more adds/deletes", 
     expect(added).toBe(9);
     expect(removed).toBe(7);
 });
+
+test("two overlapping coplanar circles, adding and removing creates the right regions", async () => {
+    let circle1, circle2;
+    await contours.transaction(async () => {
+        makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
+        makeCircle1.radius = 1;
+        circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    });
+    expect(db.find(visual.PlaneInstance).length).toBe(1);
+
+    await contours.transaction(async () => {
+        makeCircle2.center = new THREE.Vector3(0, 0, 0);
+        makeCircle2.radius = 1;
+        circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    });
+    expect(db.find(visual.PlaneInstance).length).toBe(1);
+
+    await contours.transaction(async () => {
+        db.removeItem(circle2);
+    });
+    expect(db.find(visual.PlaneInstance).length).toBe(1);
+
+    await contours.transaction(async () => {
+        db.removeItem(circle1);
+    });
+    expect(db.find(visual.PlaneInstance).length).toBe(0);
+});
