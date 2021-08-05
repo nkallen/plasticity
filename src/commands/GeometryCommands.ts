@@ -718,13 +718,15 @@ export class FilletCommand extends Command {
         const keyboard = new FilletKeyboardGizmo(this.editor);
         const pp = new PointPicker(this.editor);
         const restriction = pp.restrictToEdges(edges);
+        let added = 0;
         keyboard.execute(async e => {
             switch (e.tag) {
                 case 'add':
+                    added++;
                     const { point } = await pp.execute().resource(this);
                     const { view, model, t } = restriction.match;
                     const normal = model.EdgeNormal(t);
-                    const gizmo = new DistanceGizmo("fillet:distance", this.editor);
+                    const gizmo = new DistanceGizmo(`fillet:distance:${added}`, this.editor);
                     gizmo.relativeScale.setScalar(0.5);
                     gizmo.length = 1;
                     gizmo.position.copy(point);
