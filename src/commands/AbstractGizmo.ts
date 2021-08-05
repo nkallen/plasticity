@@ -187,7 +187,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
             throw new Error("Invalid camera type");
         }
 
-        this.scale.copy(this.relativeScale).multiplyScalar(factor * 1 / 7);
+        this.scale.copy(this.relativeScale).multiplyScalar(factor * 1 / 11);
         this.updateMatrixWorld();
     }
 

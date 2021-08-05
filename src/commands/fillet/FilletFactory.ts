@@ -1,3 +1,4 @@
+import { cart2vec, vec2cart, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from '../../editor/EditorSignals';
 import { GeometryDatabase } from '../../editor/GeometryDatabase';
@@ -23,10 +24,10 @@ export interface FilletParams {
 
 export default class FilletFactory extends GeometryFactory implements FilletParams {
     private _item!: visual.Solid;
-    private _edges!: visual.CurveEdge[];
+    private _edges!: c3d.CurveEdge[];
 
     private solid!: c3d.Solid;
-    curves!: c3d.EdgeFunction[];
+    edgeFunctions!: c3d.EdgeFunction[];
     functions!: Map<string, c3d.CubicFunction>;
 
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
@@ -55,24 +56,21 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         this.solid = this.db.lookup(this.item);
     }
 
-    get edges(): visual.CurveEdge[] {
-        return this._edges;
-    }
-
-    // FIXME the naming edges/curves is confusing
     set edges(edges: visual.CurveEdge[]) {
-        this._edges = edges;
-
-        const curves = [];
-        const functions = new Map<string, c3d.CubicFunction>();
+        const models = [];
+        
+        const edgeFunctions = [];
+        const name2function = new Map<string, c3d.CubicFunction>();
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge) as c3d.CurveEdge;
+            models.push(model);
             const fn = new c3d.CubicFunction(1, 1);
-            functions.set(edge.simpleName, fn);
-            curves.push(new c3d.EdgeFunction(model, fn));
+            name2function.set(edge.simpleName, fn);
+            edgeFunctions.push(new c3d.EdgeFunction(model, fn));
         }
-        this.curves = curves;
-        this.functions = functions;
+        this.edgeFunctions = edgeFunctions;
+        this.functions = name2function;
+        this._edges = models;
     }
 
     get distance() { return this.params.distance1 }
@@ -108,8 +106,21 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
 
     protected async computeGeometry() {
-        const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.curves, [], this.params, this.names);
+        const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.edgeFunctions, [], this.params, this.names);
         return result;
+    }
+
+    gizmo(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
+        const curveEdge = this._edges[0];
+        if (point !== undefined) {
+            const t = curveEdge.PointProjection(vec2cart(point))
+            const normal = vec2vec(curveEdge.EdgeNormal(t));
+            return { point, normal };
+        } else {
+            const normal = vec2vec(curveEdge.EdgeNormal(0.5));
+            point = cart2vec(curveEdge.Point(0.5));
+            return { point, normal};
+        }
     }
 
     async check(d: number) {
@@ -123,7 +134,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         params.keepCant = -1;
         params.strict = true;
 
-        await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.curves, [], params, this.names);
+        await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.edgeFunctions, [], params, this.names);
     }
 
     get originalItem() { return this.item }

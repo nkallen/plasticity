@@ -3,6 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
+import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
@@ -31,7 +32,7 @@ import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
-import { LengthGizmo } from "./MiniGizmos";
+import { DistanceGizmo, LengthGizmo } from "./MiniGizmos";
 import MirrorFactory from "./mirror/MirrorFactory";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
@@ -685,6 +686,8 @@ export class CutCommand extends Command {
 }
 
 export class FilletCommand extends Command {
+    point?: THREE.Vector3
+
     async execute(): Promise<void> {
         const edges = [...this.editor.selection.selectedEdges];
         const edge = edges[edges.length - 1];
@@ -698,13 +701,14 @@ export class FilletCommand extends Command {
         fillet.item = item;
         fillet.edges = edges;
 
-        const curveEdge = this.editor.db.lookupTopologyItem(edge) as c3d.CurveEdge;
-        const normal = curveEdge.EdgeNormal(0.5);
-        const filletGizmo = new FilletGizmo(this.editor, centroid, new THREE.Vector3(normal.x, normal.y, normal.z));
+        const gizmo = new DistanceGizmo("fillet:distance", this.editor);
+        const { point, normal } = fillet.gizmo(this.point);
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        gizmo.position.copy(point);
 
         const filletDialog = new FilletDialog(fillet, this.editor.signals);
         const dialog = filletDialog.execute(async params => {
-            filletGizmo.render(params.distance1);
+            gizmo.render(params.distance1);
             await fillet.update();
         }).resource(this);
 
@@ -732,7 +736,7 @@ export class FilletCommand extends Command {
             }
         }).resource(this);
 
-        filletGizmo.execute(async delta => {
+        gizmo.execute(async delta => {
             filletDialog.render();
             await max.exec(delta);
         }, mode.Persistent).resource(this);
@@ -1124,7 +1128,7 @@ export class SelectFilletsCommand extends Command {
 export class ClipCurveCommand extends Command {
     async execute(): Promise<void> {
         const makeCurve = new CurveWithPreviewFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        
+
         const pointPicker = new PointPicker(this.editor);
         pointPicker.restrictToConstructionPlane = true;
         while (true) {
@@ -1149,7 +1153,7 @@ export class ClipCurveCommand extends Command {
 
         const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cut.solid = this.editor.selection.selectedSolids.first;
-        
+
         const item = inst.GetSpaceItem()!;
         const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
         const { curve2d, placement } = curve.GetPlaneCurve(false, new c3d.PlanarCheckParams(1));
