@@ -61,16 +61,27 @@ beforeEach(() => {
     viewport.camera.position.set(0, 0, 1);
     viewport.camera.lookAt(0, 0, 0);
     editor.viewports.push(viewport);
-    gizmo = new FakeGizmo(editor);
 })
 
-test("basic drag interaction", () => {
-    const cb = () => { };
-    const sm = new GizmoStateMachine(gizmo, signals, cb);
+let start, end: number;
+let sm: GizmoStateMachine<() => void>;
 
+beforeEach(() => {
+    start = end = 0;
+    gizmo = new FakeGizmo(editor);
+    const cb = () => { };
+    sm = new GizmoStateMachine(gizmo, signals, cb);
+
+    gizmo.addEventListener('start', () => start++);
+    gizmo.addEventListener('end', () => end++);
+});
+
+test("basic drag interaction", () => {
     sm.update(viewport, { x: 0, y: 0, button: 0 });
     sm.pointerHover();
     expect(sm.state).toBe('hover');
+    expect(start).toBe(0);
+    expect(end).toBe(0);
 
     sm.update(viewport, { x: 0, y: 0, button: 0 });
     const onPointerDown = jest.spyOn(gizmo, 'onPointerDown');
@@ -78,6 +89,8 @@ test("basic drag interaction", () => {
     sm.pointerDown(() => { });
     expect(sm.state).toBe('dragging');
     expect(onPointerDown).toHaveBeenCalledTimes(1);
+    expect(start).toBe(1);
+    expect(end).toBe(0);
 
     sm.update(viewport, { x: 0.6, y: 0.6, button: -1 });
     const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
@@ -85,10 +98,43 @@ test("basic drag interaction", () => {
     sm.pointerMove();
     expect(sm.state).toBe('dragging');
     expect(onPointerMove).toHaveBeenCalledTimes(1);
+    expect(start).toBe(1);
+    expect(end).toBe(0);
 
     sm.update(viewport, { x: 0.6, y: 0.6, button: 0 });
     sm.pointerUp(() => { });
     expect(sm.state).toBe('none');
+    expect(start).toBe(1);
+    expect(end).toBe(1);
+});
+
+
+test("basic command interaction", () => {
+    expect(sm.state).toBe('none');
+    expect(start).toBe(0);
+    expect(end).toBe(0);
+
+    sm.update(viewport, { x: 0, y: 0, button: 0 });
+    sm.command(() => {}, () => {});
+
+    expect(sm.state).toBe('command');
+    expect(start).toBe(1);
+    expect(end).toBe(0);
+
+    sm.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+    const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
+    expect(onPointerMove).toHaveBeenCalledTimes(0);
+    sm.pointerMove();
+    expect(sm.state).toBe('command');
+    expect(onPointerMove).toHaveBeenCalledTimes(1);
+    expect(start).toBe(1);
+    expect(end).toBe(0);
+
+    sm.update(viewport, { x: 0.6, y: 0.6, button: 0 });
+    sm.pointerUp(() => { });
+    expect(sm.state).toBe('none');
+    expect(start).toBe(1);
+    expect(end).toBe(1);
 });
 
 test("commands are registered", done => {
@@ -102,7 +148,3 @@ test("commands are registered", done => {
 
     expect(gizmo.fakeCommand).toHaveBeenCalledTimes(1);
 });
-
-test("basic command interaction", () => {
-
-})

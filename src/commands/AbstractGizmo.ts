@@ -80,10 +80,10 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         return new CancellablePromise<void>((resolve, reject) => {
             // Aggregate the commands, like 'x' for :move:x
             const registry = this.editor.registry;
-            const commands = [];
+            const commands: [string, () => void][] = [];
             for (const picker of this.picker.children) {
                 if (picker.userData.command == null) continue;
-                const [name, fn] = picker.userData.command;
+                const [name, fn] = picker.userData.command as [string, () => void];
                 commands.push([name, fn]);
             }
             this.editor.signals.keybindingsRegistered.dispatch(commands.map(([name,]) => name));
@@ -305,6 +305,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.gizmo.update(this.camera); // FIXME: need to update the gizmo after calling fn. figure out a way to test
                 this.begin();
                 this.state = 'command';
+                this.gizmo.dispatchEvent({ type: 'start' });
                 break;
             default: break;
         }
@@ -317,6 +318,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
                 this.begin();
                 this.state = 'dragging';
+                this.gizmo.dispatchEvent({ type: 'start' });
                 start();
                 break;
             default: break;
@@ -351,6 +353,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
                 this.signals.gizmoChanged.dispatch();
                 this.state = 'none';
+                this.gizmo.dispatchEvent({ type: 'end' });
                 this.gizmo.onPointerUp(this.intersector, this);
                 finish();
                 break;
