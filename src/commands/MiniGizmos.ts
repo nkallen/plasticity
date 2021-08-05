@@ -10,9 +10,6 @@ import { AbstractGizmo, Disableable, EditorLike, GizmoLike, Intersector, mode, M
 const radius = 1;
 
 export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
-    private readonly circle: THREE.Mesh;
-    private readonly torus: THREE.Mesh;
-
     constructor(name: string, editor: EditorLike) {
         const [gizmoName,] = name.split(':');
 
@@ -31,9 +28,6 @@ export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
         picker.add(torus);
 
         super(gizmoName, editor, { handle, picker });
-
-        this.circle = circle;
-        this.torus = torus;
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -48,8 +42,6 @@ export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
     update(camera: THREE.Camera) {
         // super.update(camera);
 
-        // this.circle.lookAt(camera.position);
-        // this.torus.lookAt(camera.position);
         this.lookAt(camera.position);
     }
 }
