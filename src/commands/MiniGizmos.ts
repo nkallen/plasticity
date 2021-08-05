@@ -215,6 +215,7 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
 
     originalLength: number;
     currentLength: number;
+    get length() { return this.currentLength }
     set length(length: number) {
         this.render(length);
         this.originalLength = this.currentLength = length;

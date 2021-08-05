@@ -7,7 +7,6 @@ fillet has two points, F key bound twice
 fillet needs to be in screen space
 fillet face
 variable fillet gizmo length is wrong
-position/orientation of fillet gizmo
 position/orientation of expand contract gizmo
 make gizmo also do chamfer?
 

@@ -701,14 +701,14 @@ export class FilletCommand extends Command {
         fillet.item = item;
         fillet.edges = edges;
 
-        const gizmo = new DistanceGizmo("fillet:distance", this.editor);
+        const mainGizmo = new DistanceGizmo("fillet:distance", this.editor);
         const { point, normal } = fillet.gizmo(this.point);
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-        gizmo.position.copy(point);
+        mainGizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        mainGizmo.position.copy(point);
 
         const filletDialog = new FilletDialog(fillet, this.editor.signals);
         const dialog = filletDialog.execute(async params => {
-            gizmo.render(params.distance1);
+            mainGizmo.render(params.distance1);
             await fillet.update();
         }).resource(this);
 
@@ -724,7 +724,11 @@ export class FilletCommand extends Command {
                     const { point } = await pp.execute().resource(this);
                     const { view, model, t } = restriction.match;
                     const normal = model.EdgeNormal(t);
-                    const gizmo = new FilletGizmo(this.editor, point, new THREE.Vector3(normal.x, normal.y, normal.z));
+                    const gizmo = new DistanceGizmo("fillet:distance", this.editor);
+                    gizmo.relativeScale.setScalar(0.5);
+                    gizmo.length = 1;
+                    gizmo.position.copy(point);
+                    gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), vec2vec(normal));
                     const fn = fillet.functions.get(view.simpleName)!;
                     gizmo.execute(async delta => {
                         fn.InsertValue(t, delta);
@@ -736,7 +740,7 @@ export class FilletCommand extends Command {
             }
         }).resource(this);
 
-        gizmo.execute(async delta => {
+        mainGizmo.execute(async delta => {
             filletDialog.render();
             await max.exec(delta);
         }, mode.Persistent).resource(this);
