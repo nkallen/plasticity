@@ -68,7 +68,7 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
 
         this.add(distance1Gizmo, distance2Gizmo, thicknessGizmo);
 
-        thicknessGizmo.length = 0.3;
+        thicknessGizmo.length = 0;
 
         race1Gizmo.scale.setScalar(0.3);
         race2Gizmo.scale.setScalar(0.3);
@@ -93,7 +93,6 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
         });
 
         this.addGizmo(thicknessGizmo, thickness => {
-            console.log(thickness);
             params.thickness1 = params.thickness2 = thickness;
         });
 

@@ -51,7 +51,8 @@ export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
     }
 }
 
-const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, 0.1, 12, 1, false);
+const arrowLength = 0.1;
+const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, arrowLength, 12, 1, false);
 const lineGeometry = new LineGeometry();
 lineGeometry.setPositions([0, 0, 0, 0, 1, 0]);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -65,6 +66,9 @@ export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
     private readonly shaft: THREE.Mesh;
     private readonly plane: THREE.Mesh;
 
+    private worldQuaternion: THREE.Quaternion;
+    private worldPosition: THREE.Vector3;
+
     constructor(name: string, editor: EditorLike) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
@@ -75,7 +79,6 @@ export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
         const plane = new THREE.Mesh(planeGeometry, materials.invisible);
 
         const tip = new THREE.Mesh(arrowGeometry, materials.yellow);
-        tip.position.set(0, 1, 0);
         const shaft = new Line2(lineGeometry, materials.lineYellow);
         handle.add(tip, shaft);
 
@@ -90,6 +93,9 @@ export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
         this.tip = tip;
         this.knob = knob;
         this.plane = plane;
+
+        this.worldQuaternion = new THREE.Quaternion();
+        this.worldPosition = new THREE.Vector3();
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -100,9 +106,11 @@ export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect == null) return; // this only happens when the user is dragging through different viewports.
 
-        const length = planeIntersect.point.distanceTo(this.position);
+        let length = planeIntersect.point.sub(this.worldPosition).dot(new THREE.Vector3(0, 1, 0).applyQuaternion(this.worldQuaternion));
+        length = Math.max(length, 0);
+
         this.render(length);
-        cb(Math.abs(length - 1));
+        cb(length);
     }
 
     set length(length: number) {
@@ -111,17 +119,21 @@ export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
 
     render(length: number) {
         this.shaft.scale.y = length;
-        this.tip.position.set(0, length, 0);
+        this.tip.position.set(0, length + arrowLength/2, 0);
         this.knob.position.copy(this.tip.position);
     }
 
     update(camera: THREE.Camera) {
+        const { worldQuaternion, worldPosition } = this;
+        this.getWorldQuaternion(worldQuaternion);
+        this.getWorldPosition(worldPosition);
+
         const eye = new THREE.Vector3();
-        eye.copy(camera.position).sub(this.position).normalize();
+        eye.copy(camera.position).sub(worldPosition).normalize();
         const align = new THREE.Vector3();
         const dir = new THREE.Vector3();
 
-        const o = Y.clone().applyQuaternion(this.quaternion);
+        const o = Y.clone().applyQuaternion(worldQuaternion);
         align.copy(eye).cross(o);
         dir.copy(o).cross(align);
 
@@ -129,7 +141,7 @@ export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
         matrix.lookAt(new THREE.Vector3(), dir, align);
         this.plane.quaternion.setFromRotationMatrix(matrix);
         this.plane.updateMatrixWorld();
-        this.plane.position.copy(this.position);
+        this.plane.position.copy(worldPosition);
     }
 }
 
@@ -239,6 +251,6 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         matrix.lookAt(new THREE.Vector3(), dir, align);
         this.plane.quaternion.setFromRotationMatrix(matrix);
         this.plane.updateMatrixWorld();
-        this.plane.position.copy(this.position);
+        this.plane.position.copy(worldPosition);
     }
 }
