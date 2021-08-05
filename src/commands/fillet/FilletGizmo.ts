@@ -32,7 +32,7 @@ export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
         knob.userData.command = ['gizmo:fillet:distance', () => {}];
         picker.add(knob);
 
-        super("fillet", editor, { handle: handle, picker: picker });
+        super("fillet", editor, { handle, picker });
 
         this.position.copy(origin);
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);

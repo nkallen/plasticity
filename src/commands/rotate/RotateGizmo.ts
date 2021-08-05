@@ -80,15 +80,17 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
             return { circle, torus };
         })();
 
-        const helper = new THREE.Mesh(planeGeometry, materials.occlude);
-        helper.renderOrder = -1;
+        const occludeBackHalf = new THREE.Mesh(planeGeometry, materials.occlude);
+        occludeBackHalf.renderOrder = -1;
 
-        super("rotate", editor, { handle: handle, picker: picker, helper: helper });
+        super("rotate", editor, { handle, picker });
 
         this.circle = circle;
         this.torus = torus;
-        this.plane = helper;
+        this.plane = occludeBackHalf;
         this.position.copy(p1);
+
+        this.add(occludeBackHalf);
     }
 
     onPointerHover(intersect: Intersector): void {

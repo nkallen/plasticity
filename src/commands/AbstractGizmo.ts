@@ -27,7 +27,6 @@ interface GizmoView {
     handle: THREE.Object3D;
     picker: THREE.Object3D;
     delta?: THREE.Object3D;
-    helper?: THREE.Object3D;
 }
 
 export interface EditorLike {
@@ -54,7 +53,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     handle: THREE.Object3D;
     picker: THREE.Object3D;
     delta?: THREE.Object3D;
-    helper?: THREE.Object3D;
 
     constructor(protected readonly title: string, protected readonly editor: EditorLike, view: GizmoView) {
         super();
@@ -62,9 +60,8 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         this.handle = view.handle;
         this.picker = view.picker;
         this.delta = view.delta;
-        this.helper = view.helper;
 
-        const elements = [this.handle, this.picker, this.delta, this.helper];
+        const elements = [this.handle, this.picker, this.delta];
         const filtered = elements.filter(x => !!x) as THREE.Object3D[];
         this.add(...filtered);
     }

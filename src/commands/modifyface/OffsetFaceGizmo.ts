@@ -26,7 +26,7 @@ export class OffsetFaceGizmo extends AbstractGizmo<(radius: number) => void> {
 
         const handle = new THREE.Group();
         handle.add(sphere, line);
-        super("offset-face", editor, { handle: handle, picker: picker });
+        super("offset-face", editor, { handle, picker });
 
         this.position.copy(point);
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);

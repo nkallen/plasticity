@@ -27,7 +27,7 @@ export class ElementarySolidGizmo extends AbstractGizmo<(point: THREE.Vector3, i
             picker.add(pick);
         }
 
-        super("offset-face", editor, { handle: handle, picker: picker });
+        super("offset-face", editor, { handle, picker });
 
         this.plane = new THREE.Mesh(planeGeometry, materials.invisible);
     }
