@@ -693,18 +693,12 @@ export class FilletCommand extends Command {
         const edge = edges[edges.length - 1];
         const item = edge.parentItem as visual.Solid;
 
-        edge.geometry.computeBoundingBox();
-        const centroid = new THREE.Vector3();
-        edge.geometry.boundingBox!.getCenter(centroid);
-
         const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         fillet.item = item;
         fillet.edges = edges;
 
-        const mainGizmo = new DistanceGizmo("fillet:distance", this.editor);
-        const { point, normal } = fillet.gizmo(this.point);
-        mainGizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-        mainGizmo.position.copy(point);
+        const mainGizmo = new FilletGizmo(fillet, this.editor, this.point);
+        mainGizmo.showEdges();
 
         const filletDialog = new FilletDialog(fillet, this.editor.signals);
         const dialog = filletDialog.execute(async params => {
@@ -718,33 +712,24 @@ export class FilletCommand extends Command {
         const keyboard = new FilletKeyboardGizmo(this.editor);
         const pp = new PointPicker(this.editor);
         const restriction = pp.restrictToEdges(edges);
-        let added = 0;
         keyboard.execute(async e => {
             switch (e.tag) {
                 case 'add':
-                    added++;
                     const { point } = await pp.execute().resource(this);
-                    const { view, model, t } = restriction.match;
-                    const normal = model.EdgeNormal(t);
-                    const gizmo = new DistanceGizmo(`fillet:distance:${added}`, this.editor);
-                    gizmo.relativeScale.setScalar(0.5);
-                    gizmo.length = 1;
-                    gizmo.position.copy(point);
-                    gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), vec2vec(normal));
+                    const { view, t } = restriction.match;
                     const fn = fillet.functions.get(view.simpleName)!;
+                    const gizmo = mainGizmo.addVariable(point, restriction.match);
                     gizmo.execute(async delta => {
                         fn.InsertValue(t, delta);
-                        await fillet.update();
+                        fillet.update();
                     }, mode.Persistent).resource(this);
-                    break;
-                case 'undo':
                     break;
             }
         }).resource(this);
 
-        mainGizmo.execute(async delta => {
+        mainGizmo.execute(async params => {
             filletDialog.render();
-            await max.exec(delta);
+            await max.exec(params.distance1);
         }, mode.Persistent).resource(this);
 
         // Dialog OK/Cancel buttons trigger completion of the entire command.

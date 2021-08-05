@@ -1,67 +1,71 @@
 import * as THREE from "three";
-import { Line2 } from "three/examples/jsm/lines/Line2";
-import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "../AbstractGizmo";
+import { CurveEdgeSnap } from "../../editor/SnapManager";
+import { CancellablePromise } from "../../util/Cancellable";
+import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
+import { EditorLike, mode } from "../AbstractGizmo";
+import { CompositeGizmo, DistanceGizmo } from "../MiniGizmos";
+import { FilletParams } from './FilletFactory';
 
-const sphereGeometry = new THREE.SphereGeometry(0.1, 16, 16);
-const lineGeometry = new LineGeometry();
-lineGeometry.setPositions([0, 0, 0, 0, 1, 0]);
-const planeGeometry = new THREE.PlaneGeometry(10, 10, 2, 2);
+export class FilletGizmo extends CompositeGizmo<FilletParams> {
+    private readonly main = new DistanceGizmo("fillet:distance", this.editor);
+    private readonly variable: DistanceGizmo[] = [];
 
-export class FilletGizmo extends AbstractGizmo<(radius: number) => void> {
-    private readonly sphere: THREE.Mesh;
-    private readonly line: THREE.Mesh;
-    private readonly plane: THREE.Mesh;
-    private readonly normal: THREE.Vector3;
-
-    constructor(editor: EditorLike, origin: THREE.Vector3, normal: THREE.Vector3) {
-        const materials = editor.gizmos;
-
-        const plane = new THREE.Mesh(planeGeometry, materials.yellowTransparent);
-        plane.lookAt(0, 0, 1);
-        plane.updateMatrixWorld();
-
-        const sphere = new THREE.Mesh(sphereGeometry, materials.yellow);
-        const line = new Line2(lineGeometry, materials.lineYellow);
-        line.scale.y = 0;
-        const handle = new THREE.Group();
-        handle.add(sphere, line);
-
-        const picker = new THREE.Group();
-        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), materials.invisible);
-        knob.userData.command = ['gizmo:fillet:distance', () => {}];
-        picker.add(knob);
-
-        super("fillet", editor, { handle, picker });
-
-        this.position.copy(origin);
-        this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-        this.sphere = sphere;
-        this.line = line;
-        this.plane = plane;
-
-        plane.position.copy(origin);
-        plane.quaternion.copy(this.quaternion);
-        plane.updateMatrixWorld();
-        this.normal = normal;
+    constructor(params: FilletParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
+        super(params, editor);
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) { }
-    onPointerUp(intersect: Intersector, info: MovementInfo) { }
+    execute(cb: (params: FilletParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+        const { main, params } = this;
 
-    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
-        const planeIntersect = intersect(this.plane, true);
-        if (!planeIntersect) throw "corrupt intersection query";
+        const { point, normal } = this.gizmo(this.hint);
+        main.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        main.position.copy(point);
 
-        const delta = planeIntersect.point.sub(this.position).dot(this.normal);
+        this.add(main);
 
-        this.render(delta);
-        cb(Math.abs(delta));
+        this.addGizmo(main, length => {
+            params.distance1 = length;
+        });
+
+        return super.execute(cb, finishFast);
     }
 
-    render(delta: number) {
-        this.line.scale.y = delta;
-        this.sphere.position.set(0, delta, 0);
-        this.picker.position.copy(this.sphere.position);
+    private gizmo(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
+        const { params: { edges }, editor: { db } } = this;
+        const models = edges.map(view => db.lookupTopologyItem(view));
+        const curveEdge = models[0];
+
+        if (point !== undefined) {
+            const t = curveEdge.PointProjection(vec2cart(point))
+            const normal = vec2vec(curveEdge.EdgeNormal(t));
+            return { point, normal };
+        } else {
+            const normal = vec2vec(curveEdge.EdgeNormal(0.5));
+            point = cart2vec(curveEdge.Point(0.5));
+            return { point, normal };
+        }
+    }
+
+    render(length: number) {
+        this.main.render(length);
+    }
+
+    addVariable(point: THREE.Vector3, snap: CurveEdgeSnap): DistanceGizmo {
+        const { model, t } = snap;
+
+        const normal = model.EdgeNormal(t);
+        const gizmo = new DistanceGizmo(`fillet:distance:${this.variable.length}`, this.editor);
+        gizmo.relativeScale.setScalar(0.5);
+        gizmo.length = 1;
+        gizmo.position.copy(point);
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal));
+        this.variable.push(gizmo);
+
+        return gizmo;
+    }
+
+    showEdges() {
+        for (const edge of this.params.edges)
+            this.editor.db.temporaryObjects.add(edge.child.clone());
     }
 }

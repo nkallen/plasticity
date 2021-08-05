@@ -1,3 +1,4 @@
+import { GeometryDatabase } from "../editor/GeometryDatabase";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { EditorSignals } from "../editor/EditorSignals";
 import { EditorOriginator, History } from "../editor/History";
@@ -11,6 +12,7 @@ export type CancelOrFinish = 'cancel' | 'finish';
 
 export class CommandExecutor {
     constructor(
+        private readonly db: GeometryDatabase,
         private readonly selectionGizmo: SelectionCommandManager,
         private readonly registry: CommandRegistry,
         private readonly signals: EditorSignals,
@@ -75,6 +77,7 @@ export class CommandExecutor {
         } finally {
             document.body.removeAttribute("command");
             disposable.dispose();
+            this.db.temporaryObjects.clear();
         }
     }
 

@@ -1,4 +1,3 @@
-import { cart2vec, vec2cart, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from '../../editor/EditorSignals';
 import { GeometryDatabase } from '../../editor/GeometryDatabase';
@@ -20,11 +19,12 @@ export interface FilletParams {
     smoothCorner: c3d.CornerForm;
     keepCant: c3d.ThreeStates;
     strict: boolean;
+    functions: Map<string, c3d.CubicFunction>;
 }
 
 export default class FilletFactory extends GeometryFactory implements FilletParams {
     private _item!: visual.Solid;
-    private _edges!: c3d.CurveEdge[];
+    private _edges!: visual.CurveEdge[];
 
     private solid!: c3d.Solid;
     edgeFunctions!: c3d.EdgeFunction[];
@@ -56,21 +56,19 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         this.solid = this.db.lookup(this.item);
     }
 
+    get edges() { return this._edges }
     set edges(edges: visual.CurveEdge[]) {
-        const models = [];
-        
         const edgeFunctions = [];
         const name2function = new Map<string, c3d.CubicFunction>();
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge) as c3d.CurveEdge;
-            models.push(model);
             const fn = new c3d.CubicFunction(1, 1);
             name2function.set(edge.simpleName, fn);
             edgeFunctions.push(new c3d.EdgeFunction(model, fn));
         }
         this.edgeFunctions = edgeFunctions;
         this.functions = name2function;
-        this._edges = models;
+        this._edges = edges;
     }
 
     get distance() { return this.params.distance1 }
@@ -110,18 +108,6 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         return result;
     }
 
-    gizmo(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
-        const curveEdge = this._edges[0];
-        if (point !== undefined) {
-            const t = curveEdge.PointProjection(vec2cart(point))
-            const normal = vec2vec(curveEdge.EdgeNormal(t));
-            return { point, normal };
-        } else {
-            const normal = vec2vec(curveEdge.EdgeNormal(0.5));
-            point = cart2vec(curveEdge.Point(0.5));
-            return { point, normal};
-        }
-    }
 
     async check(d: number) {
         const params = new c3d.SmoothValues();

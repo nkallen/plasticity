@@ -51,7 +51,7 @@ export class Editor {
     readonly originator = new EditorOriginator(this.db, this.selection, this.snaps, this.curves);
     readonly history = new History(this.originator, this.signals);
     readonly transactoins = new Transactions(this.db, this.signals);
-    readonly executor = new CommandExecutor(this.selectionGizmo, this.registry, this.signals, this.originator, this.history, this.selection, this.contours);
+    readonly executor = new CommandExecutor(this.db, this.selectionGizmo, this.registry, this.signals, this.originator, this.history, this.selection, this.contours);
     readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);
 
     disposable = new CompositeDisposable();

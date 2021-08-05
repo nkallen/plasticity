@@ -33,7 +33,8 @@ export class ItemSelection<T extends visual.Item> extends AbstractSelection<T, c
 
 export class TopologyItemSelection<T extends visual.TopologyItem> extends AbstractSelection<T, string> {
     lookupById(id: string) {
-        return this.db.lookupTopologyItemById(id).views.values().next().value;
+        const views = [...this.db.lookupTopologyItemById(id).views];
+        return views[views.length - 1] as T;
     }
 }
 export class ControlPointSelection extends AbstractSelection<visual.ControlPoint, string> {
