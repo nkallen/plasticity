@@ -1,6 +1,3 @@
-cutting by line not working well
-  -- broken on non-XY plane
-  -- add navigationStart() and selector to broadcast viewportActivated event
 gizmo for contour sometimes disoriented
 
 interleaving with updating/commit on factory. use q?

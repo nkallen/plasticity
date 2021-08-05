@@ -36,7 +36,8 @@ export class GizmoMaterialDatabase {
     }));
 
     readonly yellow = new THREE.MeshBasicMaterial(Object.assign({
-        color: 0xffff00
+        color: 0xffff00,
+        side: THREE.DoubleSide,
     }));
 
     readonly yellowTransparent = new THREE.MeshBasicMaterial(Object.assign({

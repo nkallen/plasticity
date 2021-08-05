@@ -39,7 +39,7 @@ export interface EditorLike {
 }
 
 export interface GizmoLike<CB> {
-    execute(cb: CB): CancellablePromise<void>;
+    execute(cb: CB, finishFast?: mode): CancellablePromise<void>;
 }
 
 export enum mode { Persistent, Transitory };

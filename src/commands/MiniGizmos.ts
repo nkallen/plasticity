@@ -143,6 +143,9 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
     private readonly shaft: THREE.Mesh;
     private readonly plane: THREE.Mesh;
 
+    private worldQuaternion: THREE.Quaternion;
+    private worldPosition: THREE.Vector3;
+
     private readonly startPosition: THREE.Vector3;
 
     constructor(name: string, editor: EditorLike) {
@@ -152,7 +155,7 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         const handle = new THREE.Group();
         const picker = new THREE.Group();
 
-        const plane = new THREE.Mesh(planeGeometry, materials.invisible);
+        const plane = new THREE.Mesh(planeGeometry, materials.yellow);
 
         const tip = new THREE.Mesh(sphereGeometry, materials.yellow);
         tip.position.set(0, 1, 0);
@@ -174,6 +177,9 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         this.startPosition = new THREE.Vector3();
         this.originalLength = 0;
         this.currentLength = 0;
+
+        this.worldQuaternion = new THREE.Quaternion();
+        this.worldPosition = new THREE.Vector3();
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -192,7 +198,7 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
-        const dist = planeIntersect.point.sub(this.startPosition).dot(new THREE.Vector3(0, 1, 0).applyQuaternion(this.quaternion));
+        const dist = planeIntersect.point.sub(this.startPosition).dot(new THREE.Vector3(0, 1, 0).applyQuaternion(this.worldQuaternion));
         let length = this.originalLength + dist;
         length = Math.max(0, length);
         this.render(length);
@@ -214,14 +220,18 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
     }
 
     update(camera: THREE.Camera) {
+        const { worldQuaternion, worldPosition } = this;
+        this.getWorldQuaternion(worldQuaternion);
+        this.getWorldPosition(worldPosition);
+
         super.update(camera);
 
         const eye = new THREE.Vector3();
-        eye.copy(camera.position).sub(this.position).normalize();
+        eye.copy(camera.position).sub(worldPosition).normalize();
         const align = new THREE.Vector3();
         const dir = new THREE.Vector3();
 
-        const o = Y.clone().applyQuaternion(this.quaternion);
+        const o = Y.clone().applyQuaternion(worldQuaternion);
         align.copy(eye).cross(o);
         dir.copy(o).cross(align);
 
