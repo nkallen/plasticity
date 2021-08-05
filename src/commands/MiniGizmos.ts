@@ -1,8 +1,11 @@
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
+import { Cancel, CancellablePromise } from "../util/Cancellable";
+import { Helper } from "../util/Helpers";
 import { CircleGeometry } from "../util/Util";
-import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "./AbstractGizmo";
+import { AbstractGizmo, Disableable, EditorLike, GizmoLike, Intersector, mode, MovementInfo } from "./AbstractGizmo";
 
 const radius = 1;
 
@@ -252,5 +255,67 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         this.plane.quaternion.setFromRotationMatrix(matrix);
         this.plane.updateMatrixWorld();
         this.plane.position.copy(worldPosition);
+    }
+}
+
+export abstract class CompositeGizmo<P> extends THREE.Group implements GizmoLike<(p: P) => void>, Helper {
+    enabled = true;
+    private readonly gizmos: [(GizmoLike<any> & Helper & Disableable), (a: any) => void][] = [];
+
+    constructor(protected readonly params: P, protected readonly editor: EditorLike) {
+        super();
+    }
+
+    execute(compositeCallback: (params: P) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+        const disposables = new CompositeDisposable();
+
+        this.editor.helpers.add(this);
+        disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
+
+        const p = new CancellablePromise<void>((resolve, reject) => {
+            const cancel = () => {
+                disposables.dispose();
+                reject(Cancel);
+            }
+            const finish = () => {
+                disposables.dispose();
+                resolve();
+            }
+            return { cancel, finish };
+        });
+
+        const cancellables = [];
+        for (const [gizmo, miniCallback] of this.gizmos) {
+            const executingGizmo = gizmo.execute((x: any) => {
+                miniCallback(x);
+                compositeCallback(this.params);
+            }, finishFast);
+            cancellables.push(executingGizmo);
+        }
+
+        return CancellablePromise.all([p, ...cancellables]);
+    }
+
+    addGizmo<T>(gizmo: GizmoLike<(t: T) => void> & Helper & Disableable, cb: (t: T) => void) {
+        this.gizmos.push([gizmo, cb]);
+        gizmo.addEventListener('start', () => this.disableGizmosExcept(gizmo));
+        gizmo.addEventListener('end', () => this.enableGizmos());
+    }
+
+    private disableGizmosExcept<T>(except: GizmoLike<(t: T) => void> & Helper & Disableable) {
+        for (const [gizmo,] of this.gizmos) {
+            if (gizmo === except) continue;
+            gizmo.enabled = false;
+        }
+    }
+
+    private enableGizmos() {
+        for (const [gizmo,] of this.gizmos) {
+            gizmo.enabled = true;
+        }
+    }
+
+    update(camera: THREE.Camera) {
+        for (const [gizmo,] of this.gizmos) gizmo.update(camera);
     }
 }

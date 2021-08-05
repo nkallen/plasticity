@@ -38,6 +38,10 @@ export interface EditorLike {
     gizmos: GizmoMaterialDatabase
 }
 
+export interface Disableable {
+    enabled: boolean;
+}
+
 export interface GizmoLike<CB> {
     execute(cb: CB, finishFast?: mode): CancellablePromise<void>;
 }
@@ -45,6 +49,8 @@ export interface GizmoLike<CB> {
 export enum mode { Persistent, Transitory };
 
 export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {
+    enabled = true;
+
     handle: THREE.Object3D;
     picker: THREE.Object3D;
     delta?: THREE.Object3D;
@@ -90,8 +96,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
             disposables.add(new Disposable(() => this.editor.signals.keybindingsCleared.dispatch([])));
 
             for (const viewport of this.editor.viewports) {
-                const renderer = viewport.renderer;
-                const domElement = renderer.domElement;
+                const { renderer: { domElement } } = viewport;
 
                 viewport.setAttribute("gizmo", this.title); // for gizmo-specific keyboard command selectors
                 disposables.add(new Disposable(() => viewport.removeAttribute("gizmo")));
@@ -272,9 +277,9 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.pointer = pointer;
     }
 
-    intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
+    private intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
 
-    begin() {
+    private begin() {
         const intersection = this.intersector(this.cameraPlane, true);
         if (!intersection) throw "corrupt intersection query";
 
@@ -296,6 +301,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     command(fn: () => void, start: () => void): void {
+        if (!this.gizmo.enabled) return;
+
         switch (this.state) {
             case 'none':
             case 'hover':
@@ -312,6 +319,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     pointerDown(start: () => void): void {
+        if (!this.gizmo.enabled) return;
+
         switch (this.state) {
             case 'hover':
                 if (this.pointer.button !== 0) return;
@@ -326,6 +335,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     pointerMove(): void {
+        if (!this.gizmo.enabled) return;
+
         switch (this.state) {
             case 'dragging':
                 if (this.pointer.button !== -1) return;
@@ -341,11 +352,13 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.gizmo.onPointerMove(this.cb, this.intersector, this);
                 this.signals.gizmoChanged.dispatch();
                 break;
-            default: throw new Error('invalid state');
+            default: throw new Error('invalid state: ' + this.state);
         }
     }
 
     pointerUp(finish: () => void): void {
+        if (!this.gizmo.enabled) return;
+
         switch (this.state) {
             case 'dragging':
             case 'command':
@@ -362,6 +375,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     pointerHover(): void {
+        if (!this.gizmo.enabled) return;
+
         switch (this.state) {
             case 'none':
             case 'hover':
