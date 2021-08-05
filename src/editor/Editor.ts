@@ -28,6 +28,7 @@ THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
 export class Editor {
     readonly viewports: Viewport[] = [];
+    private _activeViewport?: Viewport;
 
     readonly signals = new EditorSignals(); 
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
@@ -58,9 +59,12 @@ export class Editor {
     constructor() {
         this.onWindowResize = this.onWindowResize.bind(this);
         this.onWindowLoad = this.onWindowLoad.bind(this);
+        this.onViewportActivated = this.onViewportActivated.bind(this);
 
         window.addEventListener('resize', this.onWindowResize, false);
         window.addEventListener('load', this.onWindowLoad, false);
+
+        this.signals.viewportActivated.add(this.onViewportActivated);
 
         this.disposable.add(new Disposable(() => window.removeEventListener('resize', this.onWindowResize)));
         this.disposable.add(new Disposable(() => window.removeEventListener('load', this.onWindowLoad)));
@@ -99,5 +103,10 @@ export class Editor {
 
     onWindowLoad() {
         this.signals.windowLoaded.dispatch();
+    }
+
+    get activeViewport() { return this._activeViewport }
+    onViewportActivated(v: Viewport) {
+        this._activeViewport = v;
     }
 }

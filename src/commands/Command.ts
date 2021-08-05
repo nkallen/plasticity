@@ -49,6 +49,7 @@ export interface EditorLike {
     gizmos: GizmoMaterialDatabase,
     selectionInteraction: SelectionInteractionManager,
     layers: LayerManager,
+    activeViewport?: Viewport,
     enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>
 }
 

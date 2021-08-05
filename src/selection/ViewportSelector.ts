@@ -57,6 +57,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         this.onDownPosition.fromArray(array);
 
         document.addEventListener('pointerup', this.onPointerUp);
+        this.dispatchEvent({ type: 'start' });
     }
 
     onPointerHover(event: PointerEvent): void {
@@ -83,6 +84,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         }
 
         document.removeEventListener('pointerup', this.onPointerUp);
+        this.dispatchEvent({ type: 'end' });
     }
 
     protected abstract processClick(intersects: THREE.Intersection[]): void;

@@ -112,6 +112,8 @@ export class Viewport {
         this.navigationStart = this.navigationStart.bind(this);
         this.navigationEnd = this.navigationEnd.bind(this);
         this.navigationChange = this.navigationChange.bind(this);
+        this.selectionStart = this.selectionStart.bind(this);
+        this.selectionEnd = this.selectionEnd.bind(this);
 
         this.controls.add(this.selector);
         this.controls.add(this.navigationControls);
@@ -142,6 +144,9 @@ export class Viewport {
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);
 
+        this.selector.addEventListener('start', this.selectionStart);
+        this.selector.addEventListener('end', this.selectionEnd);
+
         this.started = true;
         this.render(-1);
 
@@ -163,6 +168,8 @@ export class Viewport {
 
             this.navigationControls.removeEventListener('change', this.setNeedsRender);
             this.navigationControls.removeEventListener('start', this.navigationStart);
+            this.selector.removeEventListener('start', this.selectionStart);
+            this.selector.removeEventListener('end', this.selectionEnd);
 
             this.started = false;
         }));
@@ -265,21 +272,28 @@ export class Viewport {
         }
     }
 
-    navigationStart() {
+    private navigationStart() {
         this.navigationControls.addEventListener('change', this.navigationChange);
         this.navigationControls.addEventListener('end', this.navigationEnd);
+        this.editor.signals.viewportActivated.dispatch(this);
     }
 
-    navigationChange() {
+    private navigationChange() {
         this.disableControlsExcept(this.navigationControls);
         this.constructionPlane.update(this.camera);
     }
 
-    navigationEnd() {
+    private navigationEnd() {
         this.enableControls();
         this.navigationControls.removeEventListener('change', this.navigationChange);
         this.navigationControls.removeEventListener('end', this.navigationEnd);
     }
+
+    private selectionStart() {
+        this.editor.signals.viewportActivated.dispatch(this);
+    }
+
+    private selectionEnd() { }
 
     setAttribute(name: string, value: string) {
         this.domElement.setAttribute(name, value);

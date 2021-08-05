@@ -19,6 +19,7 @@ import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import Command from "../src/commands/Command";
 import { CancelOrFinish } from "../src/commands/CommandExecutor";
 import './matchers';
+import { MakeViewport } from "../__mocks__/FakeViewport";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -28,32 +29,7 @@ let editor: EditorLike;
 let sphere: visual.Solid;
 let selection: SelectionManager;
 let interaction: SelectionInteractionManager;
-let navigationControls: OrbitControls;
 let originator: EditorOriginator;
-
-class FakeWebGLRenderer implements THREE.Renderer {
-    domElement = document.createElement("canvas");
-
-    render(scene: THREE.Object3D, camera: THREE.Camera): void { }
-    setSize(width: number, height: number, updateStyle?: boolean): void { }
-
-    getPixelRatio(): number {
-        throw new Error("Method not implemented.");
-    };
-
-    setPixelRatio(value: number): void { };
-
-    getSize(target: THREE.Vector2): THREE.Vector2 {
-        return new THREE.Vector2();
-    };
-
-    getRenderTarget() { return null }
-    setRenderTarget() { }
-    clear() { }
-    clearDepth() { }
-    getClearColor() { }
-    getClearAlpha() { }
-}
 
 beforeEach(async () => {
     materials = new FakeMaterials();
@@ -77,17 +53,8 @@ beforeEach(async () => {
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;
     sphere = await makeSphere.commit() as visual.Solid;
-    navigationControls = new EventDispatcher() as OrbitControls;
-    navigationControls.dispose = () => { };
-    viewport = new Viewport(
-        editor,
-        new FakeWebGLRenderer() as unknown as THREE.WebGLRenderer,
-        document.createElement('viewport'),
-        new THREE.Camera(),
-        new PlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3()),
-        navigationControls,
-        new THREE.GridHelper(),
-    )
+    viewport = MakeViewport(editor);
+    viewport.constructionPlane =  new PlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3());
     viewport.start();
 });
 
@@ -117,11 +84,11 @@ test("item hovered", () => {
 
 test("navigation start & end", () => {
     expect(viewport.selector.enabled).toBeTruthy();
-    navigationControls.dispatchEvent({ type: 'start', target: null });
+    viewport.navigationControls.dispatchEvent({ type: 'start', target: null });
     expect(viewport.selector.enabled).toBeTruthy();
-    navigationControls.dispatchEvent({ type: 'change', target: null });
+    viewport.navigationControls.dispatchEvent({ type: 'change', target: null });
     expect(viewport.selector.enabled).toBeFalsy();
-    navigationControls.dispatchEvent({ type: 'end', target: null });
+    viewport.navigationControls.dispatchEvent({ type: 'end', target: null });
     expect(viewport.selector.enabled).toBeTruthy();
 });
 

@@ -3,19 +3,20 @@
  */
  jest.mock('atom-keymap');
 
- import { Editor } from '../../src/editor/Editor';
- import { PointPicker } from '../../src/commands/PointPicker';
- import { FakeViewport } from "../../__mocks__/FakeViewport";
- import '../matchers';
  import * as THREE from "three";
+import { PointPicker } from '../../src/commands/PointPicker';
+import { Viewport } from "../../src/components/viewport/Viewport";
+import { Editor } from '../../src/editor/Editor';
+import { MakeViewport } from "../../__mocks__/FakeViewport";
+import '../matchers';
  
  let editor: Editor;
- let viewport: FakeViewport;
+ let viewport: Viewport;
  let pointPicker: PointPicker;
  
  beforeEach(() => {
      editor = new Editor();
-     viewport = new FakeViewport();
+     viewport = MakeViewport(editor);
      pointPicker = new PointPicker(editor);
      editor.viewports.push(viewport);
  });

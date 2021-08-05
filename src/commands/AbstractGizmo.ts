@@ -274,7 +274,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
 
-    begin(): void {
+    begin() {
         const intersection = this.intersector(this.cameraPlane, true);
         if (!intersection) throw "corrupt intersection query";
 

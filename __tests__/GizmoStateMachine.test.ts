@@ -5,13 +5,14 @@ import * as THREE from "three";
 import { AbstractGizmo, EditorLike, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import CommandRegistry from "../src/components/atom/CommandRegistry";
+import { Viewport } from "../src/components/viewport/Viewport";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { Helpers } from "../src/util/Helpers";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import { FakeViewport } from "../__mocks__/FakeViewport";
+import { MakeViewport } from "../__mocks__/FakeViewport";
 
 class FakeGizmo extends AbstractGizmo<() => void> {
     fakeCommand: jest.Mock;
@@ -38,7 +39,7 @@ class FakeGizmo extends AbstractGizmo<() => void> {
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
-let viewport: FakeViewport;
+let viewport: Viewport;
 let editor: EditorLike;
 let gizmo: FakeGizmo;
 let selection: SelectionManager;
@@ -49,17 +50,18 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
-    viewport = new FakeViewport();
-    viewport.camera.position.set(0, 0, 1);
-    viewport.camera.lookAt(0, 0, 0);
     editor = {
-        viewports: [viewport],
+        viewports: [],
         helpers: new Helpers(signals),
         registry: new CommandRegistry(),
         signals: signals,
         gizmos: gizmos,
     };
-    gizmo = new FakeGizmo(editor); // FIXME type error
+    viewport = MakeViewport(editor);
+    viewport.camera.position.set(0, 0, 1);
+    viewport.camera.lookAt(0, 0, 0);
+    editor.viewports.push(viewport);
+    gizmo = new FakeGizmo(editor);
 })
 
 test("basic drag interaction", () => {

@@ -4,6 +4,7 @@ import { HasSelection } from '../selection/SelectionManager';
 import Command from '../commands/Command';
 import { AbstractDialog } from '../commands/fillet/FilletDialog';
 import c3d from '../build/Release/c3d.node';
+import { Viewport } from '../components/viewport/Viewport';
 
 export class EditorSignals {
     objectAdded: signals.Signal<visual.Item> = new signals.Signal();
@@ -33,4 +34,5 @@ export class EditorSignals {
     dialogRemoved: signals.Signal = new signals.Signal();
     userAddedCurve: signals.Signal<visual.SpaceInstance<visual.Curve3D>> = new signals.Signal();
     userRemovedCurve: signals.Signal<visual.SpaceInstance<visual.Curve3D>> = new signals.Signal();
+    viewportActivated: signals.Signal<Viewport> = new signals.Signal();
 }

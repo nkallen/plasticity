@@ -677,6 +677,7 @@ export class DifferenceCommand extends Command {
 export class CutCommand extends Command {
     async execute(): Promise<void> {
         const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
         cut.solid = this.editor.selection.selectedSolids.first;
         cut.curve = this.editor.selection.selectedCurves.first;
         await cut.commit();
