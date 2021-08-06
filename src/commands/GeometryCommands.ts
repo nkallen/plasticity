@@ -25,6 +25,7 @@ import { ElementarySolidGizmo } from "./elementary_solid/ElementarySolidGizmo";
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
 import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
+import ChamferFactory from "./fillet/ChamferFactory";
 import { FilletDialog } from "./fillet/FilletDialog";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
@@ -738,6 +739,27 @@ export class FilletCommand extends Command {
         await this.finished;
 
         const selection = await fillet.commit() as visual.Solid;
+        this.editor.selection.selectSolid(selection);
+    }
+}
+
+export class ChamferCommand extends Command {
+    async execute(): Promise<void> {
+        const edges = [...this.editor.selection.selectedEdges];
+        const edge = edges[edges.length - 1];
+        const item = edge.parentItem as visual.Solid;
+
+        const chamfer = new ChamferFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        chamfer.item = item;
+        chamfer.edges = edges;
+
+        const gizmo = new DistanceGizmo("chamfer:distance", this.editor);
+        await gizmo.execute(async distance => {
+            chamfer.distance = distance;
+            chamfer.update();
+        }, mode.Persistent).resource(this);
+
+        const selection = await chamfer.commit() as visual.Solid;
         this.editor.selection.selectSolid(selection);
     }
 }
