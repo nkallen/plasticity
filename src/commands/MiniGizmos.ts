@@ -145,6 +145,8 @@ const sphereGeometry = new THREE.SphereGeometry(0.1, 16, 16);
 // The distance gizmo is a pin with a ball on top for moving objects. It's initial length is always 1,
 // unlike the length gizmo, whose length is equal to the value it emits.
 export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
+    allowNegative: boolean;
+
     readonly tip: THREE.Mesh;
     private readonly knob: THREE.Mesh;
     private readonly shaft: THREE.Mesh;
@@ -187,6 +189,8 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
 
         this.worldQuaternion = new THREE.Quaternion();
         this.worldPosition = new THREE.Vector3();
+
+        this.allowNegative = false;
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -207,7 +211,7 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
 
         const dist = planeIntersect.point.sub(this.startPosition).dot(new THREE.Vector3(0, 1, 0).applyQuaternion(this.worldQuaternion));
         let length = this.originalLength + dist;
-        length = Math.max(0, length);
+        if (!this.allowNegative) length = Math.max(0, length);
         this.render(length);
         this.currentLength = length;
         cb(length);

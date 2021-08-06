@@ -7,9 +7,10 @@ import { OffsetFaceParams } from './ModifyFaceFactory';
 
 export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
     private readonly main = new DistanceGizmo("offset-face:distance", this.editor);
-
+    
     constructor(params: OffsetFaceParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
+        this.main.allowNegative = true;
     }
 
     execute(cb: (params: OffsetFaceParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {

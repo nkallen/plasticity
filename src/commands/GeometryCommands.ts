@@ -773,8 +773,6 @@ export class OffsetFaceCommand extends Command {
         offsetFace.solid = parent;
         offsetFace.faces = faces;
 
-        console.log(this.point);
-
         const gizmo = new OffsetFaceGizmo(offsetFace, this.editor, this.point);
 
         await gizmo.execute(async params => {
