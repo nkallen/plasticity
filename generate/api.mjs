@@ -628,35 +628,15 @@ export default {
             extends: "TopologyItem",
             dependencies: ["TopologyItem.h", "Vector3D.h", "Placement3D.h", "Surface.h"],
             functions: [
-                {
-                    signature: "bool GetAnyPointOn(MbCartPoint3D & point, MbVector3D & normal)",
-                    point: isReturn,
-                    normal: isReturn,
-                },
-                {
-                    signature: "void Normal(double u, double v, MbVector3D & result)",
-                    result: isReturn
-                },
-                {
-                    signature: "void Point(double faceU, double faceV, MbCartPoint3D & point)",
-                    point: isReturn
-                },
-                {
-                    signature: "bool GetPlacement(MbPlacement3D * result)",
-                    result: isReturn,
-                    return: isErrorBool
-                },
-                {
-                    signature: "bool GetControlPlacement(MbPlacement3D & result)",
-                    result: isReturn,
-                    return: isErrorBool
-                },
-                {
-                    signature: "bool GetSurfacePlacement(MbPlacement3D & result)",
-                    result: isReturn,
-                    return: isErrorBool
-                },
-                { signature: "MbeSpaceType IsA()", isManual: true }
+                { signature: "bool GetAnyPointOn(MbCartPoint3D & point, MbVector3D & normal)", point: isReturn, normal: isReturn, },
+                { signature: "void Normal(double u, double v, MbVector3D & result)", result: isReturn },
+                { signature: "void Point(double faceU, double faceV, MbCartPoint3D & point)", point: isReturn },
+                { signature: "bool GetPlacement(MbPlacement3D * result)", result: isReturn, return: isErrorBool },
+                { signature: "bool GetControlPlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
+                { signature: "bool GetSurfacePlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
+                { signature: "MbeSpaceType IsA()", isManual: true },
+                { signature: "MbeItemLocation NearPointProjection(const MbCartPoint3D & point, double & u, double & v, MbVector3D & normal, c3d::IndicesPair & edgeLoc, ptrdiff_t & corner)", u: isReturn, v: isReturn, normal: isReturn, edgeLoc: isReturn, corner: isReturn, return: { name: "location" } },
+                { signature: "void GetFaceParam(const double surfaceU, const double surfaceV, double &faceU, double &faceV)", faceU: isReturn, faceV: isReturn}
             ]
         },
         Vertex: {

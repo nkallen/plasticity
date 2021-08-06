@@ -169,6 +169,7 @@ keybindings.set("gizmo:extrude:distance1", "Distance 1");
 keybindings.set("gizmo:extrude:race2", "Angle 2");
 keybindings.set("gizmo:extrude:distance2", "Distance 2");
 keybindings.set("gizmo:extrude:thickness", "Thickness");
+keybindings.set("gizmo:offset-face:distance", "Distance");
 
 export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {

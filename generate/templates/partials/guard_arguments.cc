@@ -12,6 +12,8 @@
                 || !info[<%- arg.jsIndex %>].IsBoolean())) {
             <%_ } else if (arg.isArray) { _%>
                 || !info[<%- arg.jsIndex %>].IsArray())) {
+            <%_ } else if (arg.isArray) { _%>
+                || !(info[<%- arg.jsIndex %>].IsArray()) && Napi::Array(env, info[<%- arg.jsIndex %>]).Length() == 2) {
             <%_ } else { _%>
                 || !(<% if (arg.isNullable) { %>info[<%- arg.jsIndex %>].IsNull() || <% } %>(info[<%- arg.jsIndex %>].IsObject() && info[<%-arg.cppIndex %>].ToObject().InstanceOf(<%- arg.cppType %>::GetConstructor(env)))))) {
             <%_ } _%>

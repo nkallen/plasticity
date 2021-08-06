@@ -1,16 +1,20 @@
-interleaving with updating/commit on factory. use q?
-draw on surface
-refactor factory to take editorlike?
-make a test of the queue to make the thing executes when all subthings are executed?
-
-fillet face
 position/orientation of expand contract gizmo
 make gizmo also do chamfer?
+stick to surface max
+
+
+interleaving with updating/commit on factory. use q?
+refactor factory to take editorlike?
+  -         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
+
+draw on surface
+
 
 moving needs to have snapping
-stick to surface max
 redo fillet gizmos
 drag and drop points
+
+fillet face
 
 BUG/CRASH:
 # 1

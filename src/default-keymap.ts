@@ -22,6 +22,11 @@ export default {
         "t": "gizmo:extrude:thickness",
     },
 
+    "ispace-viewport[gizmo='offset-face']": {
+        "d": "gizmo:offset-face:distance",
+        "s": "gizmo:extrude:race2",
+    },
+
     "ispace-viewport[gizmo='move']": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",

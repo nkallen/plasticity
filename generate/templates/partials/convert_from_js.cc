@@ -2,6 +2,8 @@
     <%- arg.const %> double <%- arg.name %> = info[<%- arg.jsIndex %>].ToNumber().DoubleValue();
 <%_ } else if (arg.isNumber) { _%>
     <%- arg.const %> int <%- arg.name %> = info[<%- arg.jsIndex %>].ToNumber().Int64Value();
+<%_ } else if (arg.isNumberPair) { _%>
+    <%- arg.const %> int <%- arg.name %> = info[<%- arg.jsIndex %>].ToNumber().Int64Value();
 <%_ } else if (arg.rawType == "bool") { _%>
     <%- arg.const %> bool <%- arg.name %> = info[<%- arg.jsIndex %>].ToBoolean();
 <%_ } else if (arg.jsType == "Array") { _%>

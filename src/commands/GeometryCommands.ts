@@ -763,25 +763,21 @@ export class CharacterCurveCommand extends Command {
 
 
 export class OffsetFaceCommand extends Command {
+    point?: THREE.Vector3
+
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
-        const face = faces[0];
 
         const offsetFace = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         offsetFace.solid = parent;
         offsetFace.faces = faces;
 
-        // FIXME move this and things like it into the factory
-        const faceModel = this.editor.db.lookupTopologyItem(face);
-        const normal_ = faceModel.Normal(0.5, 0.5);
-        const normal = new THREE.Vector3(normal_.x, normal_.y, normal_.z);
-        const point_ = faceModel.Point(0.5, 0.5);
-        const point = new THREE.Vector3(point_.x, point_.y, point_.z);
-        const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
+        console.log(this.point);
 
-        await gizmo.execute(async delta => {
-            offsetFace.direction = new THREE.Vector3(delta, 0, 0);
+        const gizmo = new OffsetFaceGizmo(offsetFace, this.editor, this.point);
+
+        await gizmo.execute(async params => {
             await offsetFace.update();
         }).resource(this);
 
@@ -885,21 +881,14 @@ export class FilletFaceCommand extends Command {
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
-        const face = faces[0];
 
         const refilletFace = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         refilletFace.solid = parent;
         refilletFace.faces = faces;
 
-        const faceModel = this.editor.db.lookupTopologyItem(face);
-        const normal_ = faceModel.Normal(0.5, 0.5);
-        const normal = new THREE.Vector3(normal_.x, normal_.y, normal_.z);
-        const point_ = faceModel.Point(0.5, 0.5);
-        const point = new THREE.Vector3(point_.x, point_.y, point_.z);
-        const gizmo = new OffsetFaceGizmo(this.editor, point, normal);
+        const gizmo = new OffsetFaceGizmo(refilletFace, this.editor);
 
-        await gizmo.execute(async delta => {
-            refilletFace.direction = new THREE.Vector3(delta, 0, 0);
+        await gizmo.execute(async params => {
             await refilletFace.update();
         }).resource(this);
 

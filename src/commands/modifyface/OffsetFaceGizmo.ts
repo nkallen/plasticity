@@ -1,79 +1,47 @@
 import * as THREE from "three";
-import { Line2 } from "three/examples/jsm/lines/Line2";
-import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "../AbstractGizmo";
+import { CancellablePromise } from "../../util/Cancellable";
+import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
+import { EditorLike, mode } from "../AbstractGizmo";
+import { CompositeGizmo, DistanceGizmo } from "../MiniGizmos";
+import { OffsetFaceParams } from './ModifyFaceFactory';
 
-const sphereGeometry = new THREE.SphereGeometry(0.1, 10, 8);
-const lineGeometry = new LineGeometry();
-lineGeometry.setPositions([0, 0, 0, 0, 1, 0]);
-const planeGeometry = new THREE.PlaneGeometry(10, 10, 2, 2);
+export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
+    private readonly main = new DistanceGizmo("offset-face:distance", this.editor);
 
-export class OffsetFaceGizmo extends AbstractGizmo<(radius: number) => void> {
-    private readonly normal: THREE.Vector3;
-    private readonly plane: THREE.Mesh;
-    private readonly pointStart: THREE.Vector3;
-    private readonly pointEnd: THREE.Vector3;
-    private readonly sphere: THREE.Mesh;
-    private readonly line: THREE.Mesh;
-
-    constructor(editor: EditorLike, point: THREE.Vector3, normal: THREE.Vector3) {
-        const materials = editor.gizmos;
-
-        const sphere = new THREE.Mesh(sphereGeometry, materials.yellow);
-        const line = new Line2(lineGeometry, materials.lineYellow);
-        line.scale.y = 0;
-        const picker = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0, 1, 4, 1, false), materials.invisible);
-
-        const handle = new THREE.Group();
-        handle.add(sphere, line);
-        super("offset-face", editor, { handle, picker });
-
-        this.position.copy(point);
-        this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-        this.normal = normal;
-        this.plane = new THREE.Mesh(planeGeometry, materials.invisible);
-
-        this.pointStart = new THREE.Vector3();
-        this.pointEnd = new THREE.Vector3();
-        this.line = line;
-        this.sphere = sphere;
+    constructor(params: OffsetFaceParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
+        super(params, editor);
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo): void {
-        const planeIntersect = intersect(this.plane, true);
-        if (!planeIntersect) throw "corrupt intersection query";
-        this.pointStart.copy(planeIntersect.point);
+    execute(cb: (params: OffsetFaceParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+        const { main, params } = this;
+
+        const { point, normal } = this.placement(this.hint);
+        main.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        main.position.copy(point);
+
+        this.add(main);
+
+        this.addGizmo(main, distance => {
+            params.distance = distance;
+        });
+
+        return super.execute(cb, finishFast);
     }
 
-    onPointerUp(intersect: Intersector, info: MovementInfo) { }
+    private placement(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
+        const { params: { faces }, editor: { db } } = this;
+        const models = faces.map(view => db.lookupTopologyItem(view));
+        const face = models[models.length - 1];
 
-
-    onPointerMove(cb: (radius: number) => void, intersect: Intersector, _info: MovementInfo): void {
-        const planeIntersect = intersect(this.plane, true);
-        if (planeIntersect == null) return; // this only happens when the is dragging through different viewports.
-
-        this.pointEnd.copy(planeIntersect.point);
-
-        const delta = this.pointEnd.sub(this.pointStart).dot(this.normal);
-        this.line.scale.y = delta;
-        this.sphere.position.set(0, delta, 0);
-        cb(delta);
+        if (point !== undefined) {
+            const { u, v, normal } = face.NearPointProjection(vec2cart(point));
+            const { faceU, faceV } = face.GetFaceParam(u,v);
+            const projected = cart2vec(face.Point(faceU, faceV));
+            return { point: point, normal: vec2vec(normal) };
+        } else {
+            const { normal, point } = face.GetAnyPointOn();
+            return { point: cart2vec(point), normal: vec2vec(normal) };
+        }
     }
 
-    update(camera: THREE.Camera): void {
-        super.update(camera);
-
-        const eye = new THREE.Vector3();
-        eye.copy(camera.position).sub(this.position).normalize();
-        const align = new THREE.Vector3();
-        const dir = new THREE.Vector3();
-
-        align.copy(eye).cross(this.normal);
-        dir.copy(this.normal).cross(align);
-
-        const matrix = new THREE.Matrix4();
-        matrix.lookAt(new THREE.Vector3(0, 0, 0), dir, align);
-        this.plane.quaternion.setFromRotationMatrix(matrix);
-        this.plane.updateMatrixWorld();
-    }
 }

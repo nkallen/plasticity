@@ -296,6 +296,10 @@ class TypeDeclaration {
         return /Array/.test(this.rawType) || /List/.test(this.rawType) || /LIterator/.test(this.rawType);
     }
 
+    get isNumberPair() {
+        return /IndicesPair/.test(this.rawType);
+    }
+
     get isStructArray() {
         return /SArray/.test(this.rawType);
     }

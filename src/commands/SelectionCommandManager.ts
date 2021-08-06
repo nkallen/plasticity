@@ -24,7 +24,9 @@ export class SelectionCommandManager {
             command.point = point;
             return command;
         } else if (this.editor.selection.selectedFaces.size > 0) {
-            return new OffsetFaceCommand(this.editor);
+            const command = new OffsetFaceCommand(this.editor);
+            command.point = point;
+            return command;
         } else if (this.editor.selection.selectedEdges.size > 0) {
             const command = new FilletCommand(this.editor);
             command.point = point;

@@ -2,6 +2,10 @@
     _to = Napi::Number::New(env, <%- (arg.isPointer) ? '*' : '' %><%- arg.name %>);
 <%_ } else if (arg.isBoolean) { _%>
     _to = Napi::Boolean::New(env, <%- arg.name %>);
+<%_ } else if (arg.isNumberPair) { _%>
+    Napi::Uint32Array arr_<%- arg.name %> = Napi::Uint32Array::New(env, 2);
+    arr_<%- arg.name %>[0] = Napi::Number::New(env, <%- arg.name %>->first);
+    _to = arr_<%- arg.name %>;
 <%_ } else if (arg.isArray) { _%>
     Napi::Array arr_<%- arg.name %> = Napi::Array::New(env);
     for (size_t i = 0; i < <%- arg.name %>->Count(); i++) {
