@@ -39,7 +39,11 @@ export default {
 
     "ispace-viewport[gizmo='fillet']": {
         "a": "gizmo:fillet:add",
-        "f": "gizmo:fillet:distance",
+        "d": "gizmo:fillet:distance",
+    },
+
+    "ispace-viewport[gizmo='chamfer']": {
+        "d": "gizmo:fillet:distance",
     },
 
     "ispace-viewport[gizmo='rotate']": {
@@ -68,6 +72,7 @@ export default {
         "R": "command:center-rectangle",
         "s": "command:scale",
         "b": "command:fillet",
+        "shift-c": "command:chamfer",
         "f": "command:fillet-curve",
         "e": "command:extrude",
         "x": "command:delete",

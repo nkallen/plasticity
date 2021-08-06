@@ -8,6 +8,7 @@ import { GeometryFactory } from '../GeometryFactory';
 export interface ChamferParams {
     item: visual.Solid;
     edges: visual.CurveEdge[];
+    distance: number;
     distance1: number;
     distance2: number;
     begLength: number;

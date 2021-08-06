@@ -26,6 +26,7 @@ import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/Ellips
 import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import ChamferFactory from "./fillet/ChamferFactory";
+import { ChamferGizmo } from "./fillet/ChamferGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
@@ -753,9 +754,9 @@ export class ChamferCommand extends Command {
         chamfer.item = item;
         chamfer.edges = edges;
 
-        const gizmo = new DistanceGizmo("chamfer:distance", this.editor);
+        const gizmo = new ChamferGizmo(chamfer, this.editor);
+        gizmo.showEdges();
         await gizmo.execute(async distance => {
-            chamfer.distance = distance;
             chamfer.update();
         }, mode.Persistent).resource(this);
 

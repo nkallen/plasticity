@@ -191,6 +191,7 @@ export default (editor: Editor): void => {
         'command:difference': () => editor.enqueue(new cmd.DifferenceCommand(editor)),
         'command:cut': () => editor.enqueue(new cmd.CutCommand(editor)),
         'command:fillet': () => editor.enqueue(new cmd.FilletCommand(editor)),
+        'command:chamfer': () => editor.enqueue(new cmd.ChamferCommand(editor)),
         'command:fillet-curve': () => editor.enqueue(new cmd.FilletCurveCommand(editor)),
         'command:modify-face': () => editor.enqueue(new cmd.OffsetFaceCommand(editor)),
         'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),
