@@ -2,28 +2,39 @@ import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
-import { CompositeGizmo, DistanceGizmo } from "../MiniGizmos";
+import { AngleGizmo, CompositeGizmo, DistanceGizmo } from "../MiniGizmos";
 import { ChamferParams } from "./ChamferFactory";
+import c3d from '../../../build/Release/c3d.node';
 
 export class ChamferGizmo extends CompositeGizmo<ChamferParams> {
-    private readonly main = new DistanceGizmo("chamfer:distance", this.editor);
-    private readonly variable: DistanceGizmo[] = [];
+    private readonly distance = new DistanceGizmo("chamfer:distance", this.editor);
+    private readonly angle = new AngleGizmo("chamfer:angle", this.editor);
 
     constructor(params: ChamferParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
     }
 
     execute(cb: (params: ChamferParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { main, params } = this;
+        const { distance, angle, params } = this;
 
         const { point, normal } = this.placement(this.hint);
-        main.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-        main.position.copy(point);
+        distance.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        distance.position.copy(point);
+        angle.position.copy(point);
+        angle.scale.setScalar(0.3);
 
-        this.add(main);
+        this.add(distance);
+        this.add(angle);
 
-        this.addGizmo(main, length => {
-            params.distance = length;
+        angle.intialAngle = Math.PI / 4;
+
+        this.addGizmo(distance, length => {
+            params.distance1 = length;
+            params.distance2 = params.distance1 * Math.tan(angle.intialAngle);
+        });
+
+        this.addGizmo(angle, angle => {
+            params.distance2 = params.distance1 * Math.tan(angle);
         });
 
         return super.execute(cb, finishFast);
@@ -47,7 +58,7 @@ export class ChamferGizmo extends CompositeGizmo<ChamferParams> {
     }
 
     render(length: number) {
-        this.main.render(length);
+        this.distance.render(length);
     }
 
     showEdges() {

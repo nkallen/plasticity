@@ -43,7 +43,8 @@ export default {
     },
 
     "ispace-viewport[gizmo='chamfer']": {
-        "d": "gizmo:fillet:distance",
+        "d": "gizmo:chamfer:distance",
+        "a": "gizmo:chamfer:angle",
     },
 
     "ispace-viewport[gizmo='rotate']": {

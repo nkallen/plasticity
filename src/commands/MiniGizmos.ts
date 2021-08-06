@@ -10,6 +10,8 @@ import { AbstractGizmo, Disableable, EditorLike, GizmoLike, Intersector, mode, M
 const radius = 1;
 
 export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
+    intialAngle: number;
+
     constructor(name: string, editor: EditorLike) {
         const [gizmoName,] = name.split(':');
 
@@ -28,14 +30,17 @@ export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
         picker.add(torus);
 
         super(gizmoName, editor, { handle, picker });
+        this.intialAngle = 0;
     }
 
     onPointerHover(intersect: Intersector): void { }
     onPointerDown(intersect: Intersector, info: MovementInfo) { }
-    onPointerUp(intersect: Intersector, info: MovementInfo) { }
+    onPointerUp(intersect: Intersector, info: MovementInfo) {
+        this.intialAngle += info.angle;
+     }
 
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
-        const angle = info.angle;
+        const angle = info.angle + this.intialAngle;
         cb(angle);
     }
 

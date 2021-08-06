@@ -19,30 +19,30 @@ export interface ChamferParams {
 }
 
 export default class ChamferFactory extends GeometryFactory implements ChamferParams {
-    
+
     private solid!: c3d.Solid;
-    
+
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
         super(db, materials, signals);
 
         const params = new c3d.SmoothValues();
         params.distance1 = 0;
         params.distance2 = 0;
-        params.form = c3d.SmoothForm.Chamfer;
+        params.form = c3d.SmoothForm.Slant1;
         params.prolong = false;
         params.smoothCorner = 2;
         this.params = params;
     }
-    
+
     params: c3d.SmoothValues;
-    
+
     private _item!: visual.Solid;
     get item(): visual.Solid { return this._item }
     set item(item: visual.Solid) {
         this._item = item;
         this.solid = this.db.lookup(this.item);
     }
-    
+
     private models: c3d.CurveEdge[] = [];
     private _edges!: visual.CurveEdge[];
     get edges() { return this._edges }
@@ -54,12 +54,12 @@ export default class ChamferFactory extends GeometryFactory implements ChamferPa
         this._edges = edges;
     }
 
-    get distance() { return this.params.distance1 }
-    set distance(d: number) {
-        const { params } = this;
-        params.distance1 = d;
-        params.distance2 = d;
-    }
+    // get distance() { return this.params.distance1 }
+    // set distance(d: number) {
+    //     const { params } = this;
+    //     params.distance1 = d;
+    //     params.distance2 = d;
+    // }
 
     get distance1() { return this.params.distance1 }
     set distance1(d: number) { this.params.distance1 = d }
