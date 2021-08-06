@@ -213,8 +213,6 @@ export abstract class TopologyItem extends THREE.Object3D {
 export abstract class Edge extends TopologyItem { }
 
 export class CurveEdge extends Edge {
-    private readonly line: Line2;
-    private readonly occludedLine: Line2;
     get child() { return this.line };
 
     static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial): CurveEdge {
@@ -234,10 +232,8 @@ export class CurveEdge extends Edge {
         return result;
     }
 
-    private constructor(line: Line2, occludedLine: Line2) {
+    private constructor(private readonly line: Line2, readonly occludedLine: Line2) {
         super()
-        this.line = line;
-        this.occludedLine = occludedLine;
         this.add(line, occludedLine);
         occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
     }

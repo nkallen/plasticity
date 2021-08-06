@@ -1119,15 +1119,15 @@ export class SelectFilletsCommand extends Command {
 export class ClipCurveCommand extends Command {
     async execute(): Promise<void> {
         const makeCurve = new CurveWithPreviewFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
         pointPicker.restrictToConstructionPlane = true;
         while (true) {
             try {
                 const { point } = await pointPicker.execute(async ({ point }) => {
-                    makeCurve.last = point;
+                    makeCurve.preview.last = point;
                     if (!makeCurve.preview.hasEnoughPoints) return;
-                    makeCurve.preview.closed = makeCurve.preview.wouldBeClosed(point);
                     await makeCurve.preview.update();
                 }, 'RejectOnFinish').resource(this);
 
@@ -1139,19 +1139,9 @@ export class ClipCurveCommand extends Command {
             }
         }
 
-        const inst = await makeCurve.underlying.computeGeometry();
-        makeCurve.cancel();
-
-        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
         cut.solid = this.editor.selection.selectedSolids.first;
-
-        const item = inst.GetSpaceItem()!;
-        const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-        const { curve2d, placement } = curve.GetPlaneCurve(false, new c3d.PlanarCheckParams(1));
-        if (!curve2d || !placement) throw new ValidationError("invalid curve");
-
-        cut.contour = new c3d.Contour([curve2d], true);
-        cut.placement = placement;
+        cut.curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const result = await cut.commit() as visual.Solid[];
         this.editor.selection.selectSolid(result[0]);

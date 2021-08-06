@@ -17,7 +17,7 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
     execute(cb: (params: FilletParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
         const { main, params } = this;
 
-        const { point, normal } = this.gizmo(this.hint);
+        const { point, normal } = this.placement(this.hint);
         main.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         main.position.copy(point);
 
@@ -30,7 +30,7 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         return super.execute(cb, finishFast);
     }
 
-    private gizmo(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
+    private placement(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
         const { params: { edges }, editor: { db } } = this;
         const models = edges.map(view => db.lookupTopologyItem(view));
         const curveEdge = models[models.length - 1];
@@ -67,6 +67,6 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
 
     showEdges() {
         for (const edge of this.params.edges)
-            this.editor.db.temporaryObjects.add(edge.child.clone());
+            this.editor.db.temporaryObjects.add(edge.occludedLine.clone());
     }
 }
