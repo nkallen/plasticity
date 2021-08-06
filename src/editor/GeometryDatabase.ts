@@ -1,4 +1,4 @@
-import { SequentialExecutor } from '../util/Executor';
+import { SequentialExecutor } from '../util/SequentialExecutor';
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
 import { assertUnreachable, GConstructor } from '../util/Util';

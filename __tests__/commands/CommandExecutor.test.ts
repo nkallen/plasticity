@@ -17,7 +17,7 @@ import { RegionManager } from "../../src/editor/RegionManager";
 import { SnapManager } from "../../src/editor/SnapManager";
 import { SpriteDatabase } from "../../src/editor/SpriteDatabase";
 import { SelectionManager } from "../../src/selection/SelectionManager";
-import { Delay } from "../../src/util/Executor";
+import { Delay } from "../../src/util/SequentialExecutor";
 import { FakeMaterials, FakeSprites } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
