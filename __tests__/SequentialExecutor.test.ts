@@ -2,7 +2,7 @@ import { Delay, SequentialExecutor } from "../src/util/SequentialExecutor";
 import './matchers';
 
 describe(SequentialExecutor, () => {
-    test('it wait for first job to finish before executing second', async () => {
+    test('it waits for first job to finish before executing second', async () => {
         const delay1 = new Delay<void>();
         const delay2 = new Delay<void>();
 
@@ -49,7 +49,7 @@ describe(SequentialExecutor, () => {
         expect(foo).toBe(true);
         expect(bar).toBe(false);
 
-        delay1.reject(new Error("fuck"));
+        delay1.reject(new Error());
         await expect(p1).rejects.toThrow();
 
         expect(foo).toBe(true);

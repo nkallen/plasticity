@@ -1,46 +1,51 @@
-const nothing = async () => {};
+const nothing = async () => { };
 
 // There are some "jobs"/tasks that are composed as sequences of promises, and we must not interleave jobs.
 // Thus, the Executor class prevents that. Cf, CommandExecutor for a more idiosyncratic version of this pattern.
+type Queue = Array<[() => Promise<any>, Delay<any>]>;
 export class SequentialExecutor {
-    private readonly queue = new Array<[() => Promise<any>, Delay<any>]>();
+    private recursive = false;
+    private readonly queue: Queue = [];
+    private readonly recursiveQueue: Queue = [];
     private active = false;
 
     async enqueue<T>(f: () => Promise<T>) {
         const completionOfThisJob = new Delay<T>();
-        this.queue.push([f, completionOfThisJob]);
+        const queue = this.recursive ? this.recursiveQueue : this.queue;
+        queue.push([f, completionOfThisJob]);
 
-        if (!this.active) this.dequeue();
-
+        if (!this.active) {
+            this.active = true;
+            this.dequeue(this.queue);
+        }
         return completionOfThisJob.promise;
     }
-
-    private async dequeue() {
-        this.active = true;
-        while (this.queue.length > 0) {
-            const [job, delay] = this.queue.pop()!;
+    
+    private async dequeue(queue: Queue, deactivateOnCompletion = true) {
+        while (queue.length > 0) {
+            const [job, delay] = queue.pop()!;
             try {
-                const queueLengthBefore = this.queue.length;
-                const result = await job();
-                const queueLengthAfter = this.queue.length;
-                if (queueLengthAfter === queueLengthBefore)
+                this.recursive = true;
+                const promise = job();
+                this.recursive = false;
+                const result = await promise;
+                if (this.recursiveQueue.length === 0)
                     delay.resolve(result);
                 else {
-                    const completionOfRecursivelyEnqueuedItems = new Delay<void>();
-                    completionOfRecursivelyEnqueuedItems.promise.then(() => delay.resolve(result));
-                    this.queue.push([nothing, completionOfRecursivelyEnqueuedItems]);
+                    await this.dequeue(this.recursiveQueue, false);
+                    delay.resolve(result);
                 }
             } catch (e) {
                 console.warn(e);
                 delay.reject(e);
             }
         }
-        this.active = false;
+        if (deactivateOnCompletion) this.active = false;
     }
 }
 
 export class Delay<T> {
-    readonly resolve!:(value: T | PromiseLike<T>) => void;
+    readonly resolve!: (value: T | PromiseLike<T>) => void;
     readonly reject!: (reason?: any) => void;
     readonly promise: Promise<T>;
 
