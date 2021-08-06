@@ -19,45 +19,6 @@ afterEach(() => {
     editor.disposable.dispose();
 });
 
-test('enqueue cancels active commands and executes the most recent', async () => {
-    const command1 = new CenterCircleCommand(editor);
-    const command2 = new CenterCircleCommand(editor);
-    const command3 = new CenterCircleCommand(editor);
-
-    editor.enqueue(command1);
-    await Promise.resolve();
-    editor.enqueue(command2);
-    await Promise.resolve();
-    editor.enqueue(command3);
-    await Promise.resolve();
-
-    expect(command1['state']).toBe('Cancelled');
-    expect(command2['state']).toBe('None');
-    expect(command3['state']).toBe('None');
-});
-
-class ErroringCommand extends Command {
-    async execute(): Promise<void> {
-        throw new Error("I'm an error");
-    }
-}
-
-class FastCommand extends Command {
-    async execute(): Promise<void> {
-    }
-}
-
-test('erroring commands are ok, allowing subsequent commands to procede', async () => {
-    const command1 = new ErroringCommand(editor);
-    const command2 = new FastCommand(editor);
-
-    await editor.enqueue(command1);
-    await editor.enqueue(command2);
-
-    expect(command1['state']).toBe('Cancelled');
-    expect(command2['state']).toBe('Finished');
-});
-
 test('keeps track of active viewport', () => {
     const viewport1 = MakeViewport(editor);
     const viewport2 = MakeViewport(editor);
