@@ -11,6 +11,7 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
     constructor(params: OffsetFaceParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
         this.main.allowNegative = true;
+        this.main.constantLength = true;
     }
 
     execute(cb: (params: OffsetFaceParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
@@ -38,7 +39,7 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
             const { u, v, normal } = face.NearPointProjection(vec2cart(point));
             const { faceU, faceV } = face.GetFaceParam(u,v);
             const projected = cart2vec(face.Point(faceU, faceV));
-            return { point: point, normal: vec2vec(normal) };
+            return { point: projected, normal: vec2vec(normal) };
         } else {
             const { normal, point } = face.GetAnyPointOn();
             return { point: cart2vec(point), normal: vec2vec(normal) };

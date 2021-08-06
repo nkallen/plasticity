@@ -114,7 +114,7 @@ export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
 
     render(length: number) {
         this.shaft.scale.y = length;
-        this.tip.position.set(0, length + arrowLength/2, 0);
+        this.tip.position.set(0, length + arrowLength / 2, 0);
         this.knob.position.copy(this.tip.position);
     }
 
@@ -146,6 +146,7 @@ const sphereGeometry = new THREE.SphereGeometry(0.1, 16, 16);
 // unlike the length gizmo, whose length is equal to the value it emits.
 export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
     allowNegative: boolean;
+    constantLength: boolean;
 
     readonly tip: THREE.Mesh;
     private readonly knob: THREE.Mesh;
@@ -155,6 +156,7 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
     private worldQuaternion: THREE.Quaternion;
     private worldPosition: THREE.Vector3;
 
+    private readonly startMousePosition: THREE.Vector3;
     private readonly startPosition: THREE.Vector3;
 
     constructor(name: string, editor: EditorLike) {
@@ -183,6 +185,7 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         this.knob = knob;
         this.plane = plane;
 
+        this.startMousePosition = new THREE.Vector3();
         this.startPosition = new THREE.Vector3();
         this.originalLength = 0;
         this.currentLength = 0;
@@ -191,6 +194,7 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
         this.worldPosition = new THREE.Vector3();
 
         this.allowNegative = false;
+        this.constantLength = false;
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -202,14 +206,15 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
     onPointerDown(intersect: Intersector, info: MovementInfo) {
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) throw new Error("invalid precondition");
-        this.startPosition.copy(planeIntersect.point);
+        this.startMousePosition.copy(planeIntersect.point);
+        this.startPosition.copy(this.position);
     }
 
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
-        const dist = planeIntersect.point.sub(this.startPosition).dot(new THREE.Vector3(0, 1, 0).applyQuaternion(this.worldQuaternion));
+        const dist = planeIntersect.point.sub(this.startMousePosition).dot(new THREE.Vector3(0, 1, 0).applyQuaternion(this.worldQuaternion));
         let length = this.originalLength + dist;
         if (!this.allowNegative) length = Math.max(0, length);
         this.render(length);
@@ -226,9 +231,13 @@ export class DistanceGizmo extends AbstractGizmo<(distance: number) => void> {
     }
 
     render(length: number) {
-        this.shaft.scale.y = length + 1;
-        this.tip.position.set(0, length + 1, 0);
-        this.knob.position.copy(this.tip.position);
+        if (this.constantLength) {
+            this.position.set(0, length, 0).applyQuaternion(this.worldQuaternion).add(this.startPosition);
+        } else {
+            this.shaft.scale.y = length + 1;
+            this.tip.position.set(0, length + 1, 0);
+            this.knob.position.copy(this.tip.position);
+        }
     }
 
     update(camera: THREE.Camera) {
