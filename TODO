@@ -1,6 +1,6 @@
-position/orientation of expand contract gizmo
-make gizmo also do chamfer?
+add draft solid to offset face gizmo as angle gizmo, angling all adjacent faces
 stick to surface max
+redo Dialogs and show errors
 
 
 interleaving with updating/commit on factory. use q?
