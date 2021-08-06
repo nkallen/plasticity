@@ -33,12 +33,13 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
     private gizmo(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
         const { params: { edges }, editor: { db } } = this;
         const models = edges.map(view => db.lookupTopologyItem(view));
-        const curveEdge = models[0];
+        const curveEdge = models[models.length - 1];
 
         if (point !== undefined) {
             const t = curveEdge.PointProjection(vec2cart(point))
             const normal = vec2vec(curveEdge.EdgeNormal(t));
-            return { point, normal };
+            const projected = cart2vec(curveEdge.Point(t));
+            return { point: projected, normal };
         } else {
             const normal = vec2vec(curveEdge.EdgeNormal(0.5));
             point = cart2vec(curveEdge.Point(0.5));
