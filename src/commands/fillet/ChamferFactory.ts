@@ -54,13 +54,6 @@ export default class ChamferFactory extends GeometryFactory implements ChamferPa
         this._edges = edges;
     }
 
-    // get distance() { return this.params.distance1 }
-    // set distance(d: number) {
-    //     const { params } = this;
-    //     params.distance1 = d;
-    //     params.distance2 = d;
-    // }
-
     get distance1() { return this.params.distance1 }
     set distance1(d: number) { this.params.distance1 = d }
     get distance2() { return this.params.distance2 }
