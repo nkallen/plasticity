@@ -824,7 +824,7 @@ export class DraftSolidCommand extends Command {
             draftSolid.axis = axis;
             draftSolid.angle = angle;
             draftSolid.update();
-        }).resource(this);
+        }, mode.Persistent).resource(this);
 
         await draftSolid.commit();
     }
