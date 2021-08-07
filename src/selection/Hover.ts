@@ -54,8 +54,8 @@ export class HoverStrategy implements SelectionStrategy {
     region(object: Region, parentItem: PlaneInstance<Region>): boolean {
         if (!this.hovered.mode.has(SelectionMode.Face)) return false;
         if (!this.hovered.regions.has(parentItem)) {
-        this.hovered.removeAll();
-        this.hovered.addRegion(parentItem);
+            this.hovered.removeAll();
+            this.hovered.addRegion(parentItem);
         }
 
         return true;
