@@ -47,6 +47,6 @@ export class RebuildCommand extends Command {
             await factory.update();
         }).resource(this);
         const selection = await factory.commit() as visual.Solid;
-        this.editor.selection.selectSolid(selection);
+        this.editor.selection.selected.addSolid(selection);
     }
 }

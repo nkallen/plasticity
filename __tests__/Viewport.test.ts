@@ -66,10 +66,10 @@ test("item selected", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
     interaction.onClick([{ object: sphere.faces.get(0), distance: 1, point }]);
-    signals.selectionChanged.dispatch({ selection, point });
+    signals.selectionChanged.dispatch({ selection: selection.selected, point });
     expect(viewport.outlinePassSelection.selectedObjects).toEqual(sphere.outline);
     interaction.onClick([]);
-    signals.selectionChanged.dispatch({ selection, point });
+    signals.selectionChanged.dispatch({ selection: selection.selected, point });
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
 });
 

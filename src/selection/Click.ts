@@ -3,37 +3,44 @@ import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { ModifiesSelection } from "./SelectionManager";
 
 export class ClickStrategy implements SelectionStrategy {
-    constructor(private selection: ModifiesSelection) { }
+    constructor(
+        private selected: ModifiesSelection,
+        private hovered: ModifiesSelection
+    ) { }
 
     emptyIntersection(): void {
-        this.selection.deselectAll();
+        this.selected.removeAll();
+        this.hovered.removeAll();
     }
 
     curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (this.selection.mode.has(SelectionMode.Curve)) {
-            if (this.selection.selectedCurves.has(parentItem)) {
-                this.selection.deselectCurve(parentItem);
+        if (this.selected.mode.has(SelectionMode.Curve)) {
+            if (this.selected.curves.has(parentItem)) {
+                this.selected.removeCurve(parentItem);
             } else {
-                this.selection.selectCurve(parentItem);
-                if (this.selection.hasSelectedChildren(parentItem)) {
-                    this.selection.deselectChildren(parentItem);
+                this.selected.addCurve(parentItem);
+                if (this.selected.hasSelectedChildren(parentItem)) {
+                    this.selected.deselectChildren(parentItem);
                 }
             }
+            this.hovered.removeAll();
             return true;
         }
         return false;
     }
 
     solid(object: TopologyItem, parentItem: Solid): boolean {
-        if (this.selection.mode.has(SelectionMode.Solid)) {
-            if (this.selection.selectedSolids.has(parentItem)) {
+        if (this.selected.mode.has(SelectionMode.Solid)) {
+            if (this.selected.solids.has(parentItem)) {
                 if (this.topologicalItem(object, parentItem)) {
-                    this.selection.deselectSolid(parentItem);
+                    this.selected.removeSolid(parentItem);
+                    this.hovered.removeAll();
                     return true;
                 }
                 return false;
-            } else if (!this.selection.hasSelectedChildren(parentItem)) {
-                this.selection.selectSolid(parentItem);
+            } else if (!this.selected.hasSelectedChildren(parentItem)) {
+                this.selected.addSolid(parentItem);
+                this.hovered.removeAll();
                 return true;
             }
         }
@@ -41,48 +48,51 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
-        if (this.selection.mode.has(SelectionMode.Face) && object instanceof Face) {
-            if (this.selection.selectedFaces.has(object)) {
-                this.selection.deselectFace(object, parentItem);
+        if (this.selected.mode.has(SelectionMode.Face) && object instanceof Face) {
+            if (this.selected.faces.has(object)) {
+                this.selected.removeFace(object, parentItem);
             } else {
-                this.selection.selectFace(object, parentItem);
+                this.selected.addFace(object, parentItem);
             }
+            this.hovered.removeAll();
             return true;
-        } else if (this.selection.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
-            if (this.selection.selectedEdges.has(object)) {
-                this.selection.deselectEdge(object, parentItem);
+        } else if (this.selected.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
+            if (this.selected.edges.has(object)) {
+                this.selected.removeEdge(object, parentItem);
             } else {
-                this.selection.selectEdge(object, parentItem);
+                this.selected.addEdge(object, parentItem);
             }
+            this.hovered.removeAll();
             return true;
         }
         return false;
     }
 
     region(object: Region, parentItem: PlaneInstance<Region>): boolean {
-        if (this.selection.mode.has(SelectionMode.Face)) {
-            if (this.selection.selectedRegions.has(parentItem)) {
-                this.selection.deselectRegion(parentItem);
-            } else {
-                this.selection.selectRegion(parentItem);
-            }
-            return true;
+        if (!this.selected.mode.has(SelectionMode.Face)) return false;
+        
+        if (this.selected.regions.has(parentItem)) {
+            this.selected.removeRegion(parentItem);
+        } else {
+            this.selected.addRegion(parentItem);
         }
-        return false;
+        this.hovered.removeAll();
+        return true;
     }
 
     controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (!this.selection.mode.has(SelectionMode.ControlPoint)) return false;
-        if (!this.selection.selectedCurves.has(parentItem) && !this.selection.hasSelectedChildren(parentItem)) return false;
+        if (!this.selected.mode.has(SelectionMode.ControlPoint)) return false;
+        if (!this.selected.curves.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) return false;
 
-        if (this.selection.selectedControlPoints.has(object)) {
-            this.selection.deselectControlPoint(object, parentItem);
+        if (this.selected.controlPoints.has(object)) {
+            this.selected.removeControlPoint(object, parentItem);
         } else {
-            if (this.selection.selectedCurves.has(parentItem)) {
-                this.selection.deselectCurve(parentItem);
+            if (this.selected.curves.has(parentItem)) {
+                this.selected.removeCurve(parentItem);
             }
-            this.selection.selectControlPoint(object, parentItem);
+            this.selected.addControlPoint(object, parentItem);
         }
+        this.hovered.removeAll();
         return true;
     }
 }

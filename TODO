@@ -3,12 +3,16 @@ refactor hovering code in Hover.ts to be hoverFace, hoverSolid, etc.;
   - allow hovering multiple items given the need from the creator history
   - rename modifiers/creator
 
+look into making navigation controller less sensitive (at least 3 px movement), or switch to middle mouse movement
+
 add draft solid to offset face gizmo as angle gizmo, angling all adjacent faces
 bug: make a cylinder, move it left / right, select deselect, it errors in console with cast param
 bug: select unselect region, says invalid data
 stick to surface max
 more solid creators
 redo Dialogs and show errors
+
+delete Transactions.ts and booleanregion and deleteregion;
 
 masking? like in zbrush; imagine a box atop a cylinder. I want to max the box so I can clip curve just that.
 

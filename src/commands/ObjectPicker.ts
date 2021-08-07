@@ -6,7 +6,7 @@ import { GeometryDatabase } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
 import { SelectionInteractionManager, SelectionMode } from '../selection/SelectionInteraction';
-import { HasSelection, SelectionManager } from '../selection/SelectionManager';
+import { HasSelection, Selection, SelectionManager } from '../selection/SelectionManager';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { Cancel, CancellablePromise } from '../util/Cancellable';
 
@@ -45,7 +45,7 @@ class MyViewportSelector extends AbstractViewportSelector {
 export class ObjectPicker {
     constructor(private readonly editor: EditorLike) { }
 
-    execute(cb?: (o: visual.Item | visual.TopologyItem | visual.ControlPoint) => void): CancellablePromise<HasSelection> {
+    execute(cb?: (o: visual.Item | visual.TopologyItem | visual.ControlPoint | visual.Region) => void): CancellablePromise<HasSelection> {
         return new CancellablePromise((resolve, reject) => {
             const editor = this.editor;
 
@@ -56,7 +56,7 @@ export class ObjectPicker {
             }
             const finish = () => {
                 disposables.dispose();
-                resolve(selection);
+                resolve(selection.selected);
             }
             
             const signals = new EditorSignals();

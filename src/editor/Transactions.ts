@@ -11,7 +11,7 @@ export default class Transactions {
         signals.objectSelected.add(o => this.selected(o));
     }
 
-    selected(object: visual.SpaceItem | visual.TopologyItem | visual.ControlPoint) {
+    selected(object: visual.SpaceItem | visual.TopologyItem | visual.ControlPoint | visual.Region) {
         if (object instanceof visual.Item) {
             const model = this.db.lookup(object);
             for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {

@@ -28,7 +28,6 @@ THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
 export class Editor {
     readonly viewports: Viewport[] = [];
-    private _activeViewport?: Viewport;
 
     readonly signals = new EditorSignals(); 
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
@@ -43,15 +42,15 @@ export class Editor {
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
     readonly selection = new SelectionManager(this.db, this.materials, this.signals);
-    readonly layers = new LayerManager(this.selection, this.signals);
+    readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly scene = new THREE.Scene();
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this.db, this.selection, this.snaps, this.curves);
+    readonly originator = new EditorOriginator(this.db, this.selection.selected, this.snaps, this.curves);
     readonly history = new History(this.originator, this.signals);
     readonly transactoins = new Transactions(this.db, this.signals);
-    readonly executor = new CommandExecutor(this.db, this.selectionGizmo, this.registry, this.signals, this.originator, this.history, this.selection, this.contours);
+    readonly executor = new CommandExecutor(this.db, this.selectionGizmo, this.registry, this.signals, this.originator, this.history, this.selection.selected, this.contours);
     readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);
 
     disposable = new CompositeDisposable();
@@ -105,6 +104,7 @@ export class Editor {
         this.signals.windowLoaded.dispatch();
     }
 
+    private _activeViewport?: Viewport;
     get activeViewport() { return this._activeViewport }
     onViewportActivated(v: Viewport) {
         this._activeViewport = v;

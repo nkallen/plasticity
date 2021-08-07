@@ -18,20 +18,21 @@ export class SelectionCommandManager {
 
     commandFor(command?: Command): Command | undefined {
         const point = command instanceof ChangeSelectionCommand ? command.intersection?.point : new THREE.Vector3();
+        const selected = this.editor.selection.selected;
 
-        if (this.editor.selection.selectedRegions.size > 0) {
+        if (selected.regions.size > 0) {
             const command = new ExtrudeRegionCommand(this.editor);
             command.point = point;
             return command;
-        } else if (this.editor.selection.selectedFaces.size > 0) {
+        } else if (selected.faces.size > 0) {
             const command = new OffsetFaceCommand(this.editor);
             command.point = point;
             return command;
-        } else if (this.editor.selection.selectedEdges.size > 0) {
+        } else if (selected.edges.size > 0) {
             const command = new FilletCommand(this.editor);
             command.point = point;
             return command;
-        } else if (this.editor.selection.selectedControlPoints.size > 0) {
+        } else if (selected.controlPoints.size > 0) {
             return new ChangePointCommand(this.editor);
         }
     }

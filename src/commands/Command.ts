@@ -5,13 +5,13 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
+import { PlanarCurveDatabase } from "../editor/PlanarCurveDatabase";
 import { SnapManager } from "../editor/SnapManager";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
-import { HasSelection, ModifiesSelection } from "../selection/SelectionManager";
+import { HasSelectedAndHovered } from "../selection/SelectionManager";
 import { CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 import { CancelOrFinish } from "./CommandExecutor";
-import { PlanarCurveDatabase } from "../editor/PlanarCurveDatabase";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
 /**
@@ -45,7 +45,7 @@ export interface EditorLike {
     snaps: SnapManager,
     helpers: Helpers,
     registry: CommandRegistry,
-    selection: HasSelection & ModifiesSelection,
+    selection: HasSelectedAndHovered,
     gizmos: GizmoMaterialDatabase,
     selectionInteraction: SelectionInteractionManager,
     layers: LayerManager,

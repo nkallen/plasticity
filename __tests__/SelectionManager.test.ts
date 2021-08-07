@@ -7,7 +7,6 @@ import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import * as visual from '../src/editor/VisualModel';
-import { HighlightManager } from '../src/selection/HighlightManager';
 import { SelectionInteractionManager } from '../src/selection/SelectionInteraction';
 import { SelectionManager } from '../src/selection/SelectionManager';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
@@ -66,13 +65,13 @@ describe('onClick', () => {
             object: circle.underlying
         });
 
-        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.selected.curves.size).toBe(0);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedCurves.size).toBe(1);
+        expect(selectionManager.selected.curves.size).toBe(1);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.selected.curves.size).toBe(0);
     });
 
     test('clicking on a curve then a control point selects the control point', () => {
@@ -83,7 +82,7 @@ describe('onClick', () => {
         }];
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedCurves.size).toBe(1);
+        expect(selectionManager.selected.curves.size).toBe(1);
 
         intersections = [{
             distance: 1,
@@ -92,12 +91,12 @@ describe('onClick', () => {
         }];
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(selectionManager.selectedControlPoints.size).toBe(1);
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.selected.controlPoints.size).toBe(1);
 
         interactionManager.onClick([]);
-        expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(selectionManager.selectedControlPoints.size).toBe(0);
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.selected.controlPoints.size).toBe(0);
     });
 
     test("delete curve removes the selection", () => {
@@ -108,7 +107,7 @@ describe('onClick', () => {
         }];
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedCurves.size).toBe(1);
+        expect(selectionManager.selected.curves.size).toBe(1);
 
         intersections = [{
             distance: 1,
@@ -117,12 +116,12 @@ describe('onClick', () => {
         }];
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(selectionManager.selectedControlPoints.size).toBe(1);
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.selected.controlPoints.size).toBe(1);
 
-        selectionManager.delete(curve);
-        expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(selectionManager.selectedControlPoints.size).toBe(0);
+        selectionManager.selected.delete(curve);
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.selected.controlPoints.size).toBe(0);
     });
 
     test("reselecting curve removes control point selection", () => {
@@ -133,7 +132,7 @@ describe('onClick', () => {
         }];
 
         interactionManager.onClick(intersectCurve);
-        expect(selectionManager.selectedCurves.size).toBe(1);
+        expect(selectionManager.selected.curves.size).toBe(1);
 
         const intersectControlPoint = [{
             distance: 1,
@@ -142,12 +141,12 @@ describe('onClick', () => {
         }];
 
         interactionManager.onClick(intersectControlPoint);
-        expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(selectionManager.selectedControlPoints.size).toBe(1);
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.selected.controlPoints.size).toBe(1);
 
         interactionManager.onClick(intersectCurve);
-        expect(selectionManager.selectedCurves.size).toBe(1);
-        expect(selectionManager.selectedControlPoints.size).toBe(0);
+        expect(selectionManager.selected.curves.size).toBe(1);
+        expect(selectionManager.selected.controlPoints.size).toBe(0);
     });
 
     test('clicking on a region selects the region', () => {
@@ -158,13 +157,13 @@ describe('onClick', () => {
             object: region.underlying
         });
 
-        expect(selectionManager.selectedRegions.size).toBe(0);
+        expect(selectionManager.selected.regions.size).toBe(0);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedRegions.size).toBe(1);
+        expect(selectionManager.selected.regions.size).toBe(1);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedRegions.size).toBe(0);
+        expect(selectionManager.selected.regions.size).toBe(0);
     });
 
     test('saveToMemento & restoreFromMemento', () => {
@@ -175,20 +174,20 @@ describe('onClick', () => {
             object: circle.underlying
         });
 
-        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.selected.curves.size).toBe(0);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedCurves.size).toBe(1);
+        expect(selectionManager.selected.curves.size).toBe(1);
 
-        const memento = selectionManager.saveToMemento(new Map());
+        const memento = selectionManager.selected.saveToMemento(new Map());
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedCurves.size).toBe(0);
+        expect(selectionManager.selected.curves.size).toBe(0);
 
-        selectionManager.restoreFromMemento(memento);
+        selectionManager.selected.restoreFromMemento(memento);
 
-        expect(selectionManager.selectedCurves.size).toBe(1);
-        circle = [...selectionManager.selectedCurves][0];
+        expect(selectionManager.selected.curves.size).toBe(1);
+        circle = [...selectionManager.selected.curves][0];
     });
 
     test('clicking on a face selects the solid', () => {
@@ -200,13 +199,13 @@ describe('onClick', () => {
             object: face
         });
 
-        expect(selectionManager.selectedSolids.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedSolids.size).toBe(1);
+        expect(selectionManager.selected.solids.size).toBe(1);
 
         interactionManager.onClick([]);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedFaces.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.faces.size).toBe(0);
     });
 
     test('clicking on a solid then the face selects the face', () => {
@@ -218,19 +217,18 @@ describe('onClick', () => {
             object: face
         });
 
-        expect(selectionManager.selectedSolids.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedSolids.size).toBe(1);
+        expect(selectionManager.selected.solids.size).toBe(1);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedFaces.size).toBe(1);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.faces.size).toBe(1);
 
         interactionManager.onClick([]);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedFaces.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.faces.size).toBe(0);
     });
-
 
     test("clicking on an solid's edge item selects the edge", () => {
         const intersections = [];
@@ -241,20 +239,20 @@ describe('onClick', () => {
             object: edge
         });
 
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedSolids.size).toBe(1);
-        expect(selectionManager.selectedEdges.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.selected.edges.size).toBe(0);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(1);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(1);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
     });
 
     test("delete solid removes the selection", () => {
@@ -266,15 +264,15 @@ describe('onClick', () => {
             object: edge
         });
 
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
         interactionManager.onClick(intersections);
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedEdges.size).toBe(1);
+        expect(selectionManager.selected.edges.size).toBe(1);
 
-        selectionManager.delete(solid);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(0);
+        selectionManager.selected.delete(solid);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
     });
 
     test("deleting, then undoing, then deleting again", () => {
@@ -286,25 +284,25 @@ describe('onClick', () => {
             object: edge
         });
 
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
         interactionManager.onClick(intersections);
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedEdges.size).toBe(1);
+        expect(selectionManager.selected.edges.size).toBe(1);
 
-        const before = selectionManager.saveToMemento(new Map());
+        const before = selectionManager.selected.saveToMemento(new Map());
 
-        selectionManager.delete(solid);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(0);
+        selectionManager.selected.delete(solid);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
 
-        selectionManager.restoreFromMemento(before);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(1);
+        selectionManager.selected.restoreFromMemento(before);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(1);
 
-        selectionManager.delete(solid);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(0);
+        selectionManager.selected.delete(solid);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
     });
 
     test("clicking on both a edge and a face selects the edge", () => {
@@ -321,17 +319,17 @@ describe('onClick', () => {
             }
         ];
 
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedSolids.size).toBe(1);
-        expect(selectionManager.selectedEdges.size).toBe(0);
-        expect(selectionManager.selectedFaces.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.selected.edges.size).toBe(0);
+        expect(selectionManager.selected.faces.size).toBe(0);
 
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedSolids.size).toBe(0);
-        expect(selectionManager.selectedEdges.size).toBe(1);
-        expect(selectionManager.selectedFaces.size).toBe(0);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(1);
+        expect(selectionManager.selected.faces.size).toBe(0);
     });
 
     test("signals", () => {
@@ -384,7 +382,123 @@ describe('onPointerMove', () => {
         expect(unhov).toHaveBeenCalledWith(solid);
     });
 
-    test("hovering over a edge of a selected solid changes material", () => {
+    test('hovering over a curve adds the curve to the hover selection', () => {
+        const intersections = [];
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: circle.underlying
+        });
+
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.hovered.curves.size).toBe(0);
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.hovered.curves.size).toBe(1);
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selected.curves.size).toBe(1);
+        expect(selectionManager.hovered.curves.size).toBe(0);
+    })
+
+    test('clicking on a curve then hovering a control point adds the control point to the hover selection', () => {
+        let intersections = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying as THREE.Object3D
+        }];
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selected.curves.size).toBe(1);
+
+        intersections = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying.points.findByIndex(0)
+        }];
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.curves.size).toBe(1);
+        expect(selectionManager.selected.controlPoints.size).toBe(0);
+        expect(selectionManager.hovered.controlPoints.size).toBe(1);
+
+        interactionManager.onHover([]);
+        expect(selectionManager.selected.curves.size).toBe(1);
+        expect(selectionManager.selected.controlPoints.size).toBe(0);
+        expect(selectionManager.hovered.controlPoints.size).toBe(0);
+    });
+
+    test('hovering a region adds it to the hover selection', () => {
+        const intersections = [];
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: region.underlying
+        });
+
+        expect(selectionManager.selected.regions.size).toBe(0);
+        expect(selectionManager.hovered.regions.size).toBe(0);
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.regions.size).toBe(0);
+        expect(selectionManager.hovered.regions.size).toBe(1);
+
+        // and we don't unhover once it's hovered.
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.regions.size).toBe(0);
+        expect(selectionManager.hovered.regions.size).toBe(1);
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selected.regions.size).toBe(1);
+        expect(selectionManager.hovered.regions.size).toBe(0);
+    });
+
+    test('clicking on a solid then the hovering the face adds the face to the collection', () => {
+        const face = solid.faces.get(0);
+        const intersections = [];
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: face
+        });
+
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.selected.faces.size).toBe(0);
+        expect(selectionManager.hovered.faces.size).toBe(0);
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(1);
+        expect(selectionManager.hovered.faces.size).toBe(0);
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.faces.size).toBe(0);
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.selected.faces.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.faces.size).toBe(1);
+
+        // hovering again should be a no-op
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.selected.faces.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.faces.size).toBe(1);
+
+        interactionManager.onClick([]);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.faces.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.faces.size).toBe(0);
+    });
+
+    test('clicking on a solid then the hovering the edge adds the edge to the collection', () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
@@ -392,21 +506,131 @@ describe('onPointerMove', () => {
             point: new THREE.Vector3(),
             object: edge
         });
-        const highlighter = new HighlightManager(db);
+
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(0);
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(1);
+        expect(selectionManager.hovered.edges.size).toBe(0);
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(0);
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.selected.edges.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(1);
+
+        interactionManager.onClick([]);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(0);
+    });
+
+    test('hovering on a new item unhovers the old item', () => {
+        let intersections = [];
+        let edge = solid.edges.get(0);
+        intersections = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: edge
+        }];
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(0);
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.selected.edges.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(1);
+
+        edge = solid.edges.get(2);
+        intersections = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: edge
+        }];
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.selected.edges.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(1);
+    });
+
+    test("delete solid removes the hover selection", () => {
+        const intersections = [];
+        const edge = solid.edges.get(0);
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: edge
+        });
+
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(0);
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(1);
+        expect(selectionManager.hovered.edges.size).toBe(0);
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(0);
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.solids.size).toBe(1);
+        expect(selectionManager.selected.edges.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(1);
+
+        selectionManager.hovered.delete(solid);
+        selectionManager.selected.delete(solid);
+        expect(selectionManager.selected.solids.size).toBe(0);
+        expect(selectionManager.selected.edges.size).toBe(0);
+        expect(selectionManager.hovered.solids.size).toBe(0);
+        expect(selectionManager.hovered.edges.size).toBe(0);
+    });
+})
+
+describe(SelectionManager, () => {
+    test("hovering over an edge of a selected solid changes material", () => {
+        const intersections = [];
+        const edge = solid.edges.get(0);
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: edge
+        });
 
         expect(edge.child.material).toBe(materials.line(edge));
         interactionManager.onClick(intersections);
-        expect(selectionManager.selectedSolids.size).toBe(1);
+        expect(selectionManager.selected.solids.size).toBe(1);
 
         interactionManager.onHover(intersections);
-        selectionManager.hover.highlight(highlighter);
+        selectionManager.highlight();
         expect(edge.child.material).toBe(materials.hover(edge));
-        selectionManager.hover.unhighlight(highlighter);
+        selectionManager.unhighlight();
 
         interactionManager.onHover([]);
-        selectionManager.hover?.highlight(highlighter);
+        selectionManager.highlight();
         expect(edge.child.material).toBe(materials.line(edge));
-        selectionManager.hover?.unhighlight(highlighter);
+        selectionManager.unhighlight();
     });
 
     test('hovering on a curve highlights the curve', () => {
@@ -416,18 +640,18 @@ describe('onPointerMove', () => {
             point: new THREE.Vector3(),
             object: circle.underlying
         });
-        const highlighter = new HighlightManager(db);
 
-        expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(selectionManager.hover).toBeUndefined();
+        expect(selectionManager.hovered.curves.size).toBe(0);
 
         interactionManager.onHover(intersections);
-        selectionManager.hover.highlight(highlighter);
+        expect(selectionManager.hovered.curves.size).toBe(1);
+
+        selectionManager.highlight();
         expect(circle.underlying.line.material).toBe(materials.hover(circle));
-        selectionManager.hover.unhighlight(highlighter);
+        selectionManager.unhighlight();
 
         interactionManager.onHover([]);
-        expect(selectionManager.hover).toBeUndefined();
+        expect(selectionManager.hovered.curves.size).toBe(0);
         expect(circle.underlying.line.material).toBe(materials.line(circle));
     });
 
@@ -437,16 +661,17 @@ describe('onPointerMove', () => {
             point: new THREE.Vector3(),
             object: circle.underlying
         }];
-        const highlighter = new HighlightManager(db);
 
-        expect(selectionManager.selectedCurves.size).toBe(0);
-        expect(selectionManager.hover).toBeUndefined();
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.hovered.curves.size).toBe(0);
 
         interactionManager.onHover(intersectionsCircle);
-        selectionManager.hover.highlight(highlighter);
+        expect(selectionManager.hovered.curves.size).toBe(1);
+
+        selectionManager.highlight();
         expect(circle.underlying.line.material).toBe(materials.hover(circle));
-        selectionManager.hover.unhighlight(highlighter);
-        
+        selectionManager.unhighlight();
+
         const intersectionsControlPoint = [{
             distance: 1,
             point: new THREE.Vector3(),
@@ -454,7 +679,46 @@ describe('onPointerMove', () => {
         }];
 
         interactionManager.onHover(intersectionsControlPoint);
-        expect(selectionManager.hover).toBeUndefined();
+        expect(selectionManager.hovered.curves.size).toBe(0);
         expect(circle.underlying.line.material).toBe(materials.line(circle));
     });
-})
+
+    test("selecting and hovering an item, then highlight/unhighlight, doesn't error", () => {
+        const intersections = [];
+        intersections.push({
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: region.underlying
+        });
+
+        expect(selectionManager.selected.regions.size).toBe(0);
+        selectionManager.highlight();
+        expect(region.underlying.child.material).toBe(materials.region());
+        selectionManager.unhighlight();
+        expect(region.underlying.child.material).toBe(materials.region());
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.regions.size).toBe(0);
+        expect(selectionManager.hovered.regions.size).toBe(1);
+        selectionManager.highlight();
+        expect(region.underlying.child.material).toBe(materials.hover(region));
+        selectionManager.unhighlight();
+        expect(region.underlying.child.material).toBe(materials.region());
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selected.regions.size).toBe(1);
+        expect(selectionManager.hovered.regions.size).toBe(0);
+        selectionManager.highlight();
+        expect(region.underlying.child.material).toBe(materials.highlight(region));
+        selectionManager.unhighlight();
+        expect(region.underlying.child.material).toBe(materials.region());
+
+        interactionManager.onHover(intersections);
+        expect(selectionManager.selected.regions.size).toBe(1);
+        expect(selectionManager.hovered.regions.size).toBe(1);
+        selectionManager.highlight();
+        expect(region.underlying.child.material).toBe(materials.hover(region));
+        selectionManager.unhighlight();
+        expect(region.underlying.child.material).toBe(materials.region());
+    })
+});

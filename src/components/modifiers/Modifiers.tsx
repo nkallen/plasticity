@@ -15,18 +15,18 @@ export class Model {
 
     get item() {
         const { selection } = this;
-        if (selection.selectedSolids.size == 0) throw new Error("invalid precondition");
+        if (selection.solids.size == 0) throw new Error("invalid precondition");
 
-        const solid = selection.selectedSolids.first;
+        const solid = selection.solids.first;
         return solid;
     }
 
     get creators() {
         const { db, selection } = this;
-        if (selection.selectedSolids.size == 0) return [];
+        if (selection.solids.size == 0) return [];
 
         const result: [number, c3d.Creator][] = [];
-        const solid = selection.selectedSolids.first!;
+        const solid = selection.solids.first!;
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
             const creator = model.GetCreator(i)!;
@@ -40,7 +40,7 @@ export class Model {
 export default (editor: Editor) => {
     class Modifiers extends HTMLElement {
         private readonly dispose = new CompositeDisposable();
-        private readonly model = new Model(editor.selection, editor.db);
+        private readonly model = new Model(editor.selection.selected, editor.db);
 
         constructor() {
             super();
@@ -120,13 +120,13 @@ export default (editor: Editor) => {
                     const index = model.GetFaceIndex(topo.Cast<c3d.Face>(c3d.TopologyType.Face));
                     const { views } = db.lookupTopologyItemById(visual.Face.simpleName(solid.simpleName, index))
                     const view = views.values().next().value as visual.Face;
-                    selection.hoverFace(view, solid);
+                    selection.hovered.addFace(view, solid);
                 }
             }
         }
 
         mouseLeave(e: PointerEvent) {
-            editor.selection.unhover();
+            editor.selection.hovered.removeAll();
         }
     }
     customElements.define('ispace-creator', Creator);

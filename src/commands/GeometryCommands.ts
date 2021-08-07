@@ -334,7 +334,7 @@ export class SpiralCommand extends Command {
 export class RegionCommand extends Command {
     async execute(): Promise<void> {
         const region = new RegionFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        region.contours = [...this.editor.selection.selectedCurves];
+        region.contours = [...this.editor.selection.selected.curves];
         await region.commit();
     }
 }
@@ -342,7 +342,7 @@ export class RegionCommand extends Command {
 export class RegionBooleanCommand extends Command {
     async execute(): Promise<void> {
         const region = new RegionBooleanFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        region.regions = [...this.editor.selection.selectedRegions];
+        region.regions = [...this.editor.selection.selected.regions];
         await region.commit();
     }
 }
@@ -439,7 +439,7 @@ export class LineCommand extends CurveCommand {
 export class JoinCurvesCommand extends Command {
     async execute(): Promise<void> {
         const contour = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        for (const curve of this.editor.selection.selectedCurves) contour.push(curve);
+        for (const curve of this.editor.selection.selected.curves) contour.push(curve);
         await contour.commit();
     }
 }
@@ -551,7 +551,7 @@ export class BoxCommand extends Command {
 
 export class MoveCommand extends Command {
     async execute(): Promise<void> {
-        const objects = [...this.editor.selection.selectedSolids, ...this.editor.selection.selectedCurves];
+        const objects = [...this.editor.selection.selected.solids, ...this.editor.selection.selected.curves];
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
@@ -582,7 +582,7 @@ export class MoveCommand extends Command {
 export class ScaleCommand extends Command {
     async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
-        const objects = [...this.editor.selection.selectedSolids];
+        const objects = [...this.editor.selection.selected.solids];
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const { point: origin } = await pointPicker.execute().resource(this);
@@ -615,7 +615,7 @@ export class ScaleCommand extends Command {
 
 export class RotateCommand extends Command {
     async execute(): Promise<void> {
-        const objects = [...this.editor.selection.selectedSolids];
+        const objects = [...this.editor.selection.selected.solids];
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
@@ -640,7 +640,7 @@ export class RotateCommand extends Command {
 
 export class UnionCommand extends Command {
     async execute(): Promise<void> {
-        const items = [...this.editor.selection.selectedSolids];
+        const items = [...this.editor.selection.selected.solids];
         const object1 = items[0]!;
         const object2 = items[1]!;
 
@@ -653,7 +653,7 @@ export class UnionCommand extends Command {
 
 export class IntersectionCommand extends Command {
     async execute(): Promise<void> {
-        const items = [...this.editor.selection.selectedSolids];
+        const items = [...this.editor.selection.selected.solids];
         const object1 = items[0]!;
         const object2 = items[1]!;
 
@@ -666,7 +666,7 @@ export class IntersectionCommand extends Command {
 
 export class DifferenceCommand extends Command {
     async execute(): Promise<void> {
-        const items = [...this.editor.selection.selectedSolids];
+        const items = [...this.editor.selection.selected.solids];
         const object1 = items[0]!;
         const object2 = items[1]!;
 
@@ -681,8 +681,8 @@ export class CutCommand extends Command {
     async execute(): Promise<void> {
         const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
-        cut.solid = this.editor.selection.selectedSolids.first;
-        cut.curve = this.editor.selection.selectedCurves.first;
+        cut.solid = this.editor.selection.selected.solids.first;
+        cut.curve = this.editor.selection.selected.curves.first;
         await cut.commit();
     }
 }
@@ -691,7 +691,7 @@ export class FilletCommand extends Command {
     point?: THREE.Vector3
 
     async execute(): Promise<void> {
-        const edges = [...this.editor.selection.selectedEdges];
+        const edges = [...this.editor.selection.selected.edges];
         const edge = edges[edges.length - 1];
         const item = edge.parentItem as visual.Solid;
 
@@ -740,13 +740,13 @@ export class FilletCommand extends Command {
         await this.finished;
 
         const selection = await fillet.commit() as visual.Solid;
-        this.editor.selection.selectSolid(selection);
+        this.editor.selection.selected.addSolid(selection);
     }
 }
 
 export class ChamferCommand extends Command {
     async execute(): Promise<void> {
-        const edges = [...this.editor.selection.selectedEdges];
+        const edges = [...this.editor.selection.selected.edges];
         const edge = edges[edges.length - 1];
         const item = edge.parentItem as visual.Solid;
 
@@ -761,7 +761,7 @@ export class ChamferCommand extends Command {
         }, mode.Persistent).resource(this);
 
         const selection = await chamfer.commit() as visual.Solid;
-        this.editor.selection.selectSolid(selection);
+        this.editor.selection.selected.addSolid(selection);
     }
 }
 
@@ -788,7 +788,7 @@ export class OffsetFaceCommand extends Command {
     point?: THREE.Vector3
 
     async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selectedFaces];
+        const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
 
         const offsetFace = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -807,7 +807,7 @@ export class OffsetFaceCommand extends Command {
 
 export class DraftSolidCommand extends Command {
     async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selectedFaces];
+        const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
 
         const face = faces[0];
@@ -833,7 +833,7 @@ export class DraftSolidCommand extends Command {
 
 export class RemoveFaceCommand extends Command {
     async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selectedFaces];
+        const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
 
         const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -846,7 +846,7 @@ export class RemoveFaceCommand extends Command {
 
 export class PurifyFaceCommand extends Command {
     async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selectedFaces];
+        const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
 
         const removeFace = new PurifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -859,7 +859,7 @@ export class PurifyFaceCommand extends Command {
 
 export class CreateFaceCommand extends Command {
     async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selectedFaces];
+        const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
 
         const removeFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -872,7 +872,7 @@ export class CreateFaceCommand extends Command {
 
 export class ActionFaceCommand extends Command {
     async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selectedFaces];
+        const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
         const face = faces[0];
 
@@ -897,7 +897,7 @@ export class ActionFaceCommand extends Command {
 
 export class RefilletFaceCommand extends Command {
     async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selectedFaces];
+        const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
 
         const refilletFace = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -922,7 +922,7 @@ export class MergerFaceCommand extends Command { async execute(): Promise<void> 
 
 export class LoftCommand extends Command {
     async execute(): Promise<void> {
-        const curves = [...this.editor.selection.selectedCurves];
+        const curves = [...this.editor.selection.selected.curves];
         const loft = new LoftFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         loft.contours = curves;
         await loft.commit();
@@ -931,7 +931,7 @@ export class LoftCommand extends Command {
 
 export class ExtrudeCommand extends Command {
     async execute(): Promise<void> {
-        const curves = [...this.editor.selection.selectedCurves];
+        const curves = [...this.editor.selection.selected.curves];
         const extrude = new ExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         extrude.curves = curves;
 
@@ -952,7 +952,7 @@ export class ExtrudeRegionCommand extends Command {
     point?: THREE.Vector3
 
     async execute(): Promise<void> {
-        const regions = [...this.editor.selection.selectedRegions];
+        const regions = [...this.editor.selection.selected.regions];
         const extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         extrude.region = regions[0];
 
@@ -972,13 +972,13 @@ export class ExtrudeRegionCommand extends Command {
         }).resource(this);
 
         await extrude.commit();
-        this.editor.selection.deselectRegion(regions[0]);
+        this.editor.selection.selected.removeRegion(regions[0]);
     }
 }
 
 export class MirrorCommand extends Command {
     async execute(): Promise<void> {
-        const curves = [...this.editor.selection.selectedCurves];
+        const curves = [...this.editor.selection.selected.curves];
         const mirror = new MirrorFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         mirror.curve = curves[0];
 
@@ -999,7 +999,7 @@ export class MirrorCommand extends Command {
 
 export class DeleteCommand extends Command {
     async execute(): Promise<void> {
-        const items = [...this.editor.selection.selectedCurves, ...this.editor.selection.selectedSolids, ...this.editor.selection.selectedRegions];
+        const items = [...this.editor.selection.selected.curves, ...this.editor.selection.selected.solids, ...this.editor.selection.selected.regions];
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
     }
@@ -1007,7 +1007,7 @@ export class DeleteCommand extends Command {
 
 export class ModeCommand extends Command {
     async execute(): Promise<void> {
-        const object = [...this.editor.selection.selectedSolids][0];
+        const object = [...this.editor.selection.selected.solids][0];
         let model = this.editor.db.lookup(object);
         model = model.Duplicate().Cast<c3d.Solid>(c3d.SpaceType.Solid);
 
@@ -1033,7 +1033,7 @@ export class ModeCommand extends Command {
 
 export class ChangePointCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoint = this.editor.selection.selectedControlPoints.first;
+        const controlPoint = this.editor.selection.selected.controlPoints.first;
 
         const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         changePoint.controlPoint = controlPoint;
@@ -1049,20 +1049,20 @@ export class ChangePointCommand extends Command {
 
         const newCurve = newInstance.underlying;
         const newPoint = newCurve.points.findByIndex(controlPoint.index)!;
-        this.editor.selection.selectControlPoint(newPoint, newInstance);
+        this.editor.selection.selected.addControlPoint(newPoint, newInstance);
     }
 }
 
 export class RemovePointCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoint = this.editor.selection.selectedControlPoints.first;
+        const controlPoint = this.editor.selection.selected.controlPoints.first;
         const instance = controlPoint.parentItem;
 
         const removePoint = new RemovePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         removePoint.controlPoint = controlPoint;
 
         const newInstance = await removePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
-        this.editor.selection.selectCurve(newInstance);
+        this.editor.selection.selected.addCurve(newInstance);
     }
 }
 
@@ -1074,7 +1074,7 @@ export class TrimCommand extends Command {
         const picker = new ObjectPicker(this.editor);
         picker.allowCurveFragments();
         const selection = await picker.execute().resource(this);
-        const fragment = selection.selectedCurves.first;
+        const fragment = selection.curves.first;
         if (fragment === undefined) return;
 
         const factory = new TrimFactory(this.editor.db, this.editor.materials, this.editor.signals);
@@ -1087,7 +1087,7 @@ export class TrimCommand extends Command {
 
 export class FilletCurveCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoints = [...this.editor.selection.selectedControlPoints];
+        const controlPoints = [...this.editor.selection.selected.controlPoints];
         const factory = new JointOrPolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals);
         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
         await factory.setControlPoints(controlPoints);
@@ -1111,7 +1111,7 @@ export class FilletCurveCommand extends Command {
 
 export class SelectFilletsCommand extends Command {
     async execute(): Promise<void> {
-        const solid = this.editor.selection.selectedSolids.first;
+        const solid = this.editor.selection.selected.solids.first;
         const model = this.editor.db.lookup(solid);
         const shell = model.GetShell()!;
         const removableFaces = c3d.ActionDirect.CollectFacesForModification(shell, c3d.ModifyingType.Purify, 1);
@@ -1120,7 +1120,7 @@ export class SelectFilletsCommand extends Command {
         for (const id of ids) {
             const { views } = this.editor.db.lookupTopologyItemById(id);
             const view = views.values().next().value;
-            this.editor.selection.selectFace(view, solid);
+            this.editor.selection.selected.addFace(view, solid);
         }
     }
 }
@@ -1149,10 +1149,10 @@ export class ClipCurveCommand extends Command {
         }
 
         cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
-        cut.solid = this.editor.selection.selectedSolids.first;
+        cut.solid = this.editor.selection.selected.solids.first;
         cut.curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const result = await cut.commit() as visual.Solid[];
-        this.editor.selection.selectSolid(result[0]);
+        this.editor.selection.selected.addSolid(result[0]);
     }
 }

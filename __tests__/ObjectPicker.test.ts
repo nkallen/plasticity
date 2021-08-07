@@ -41,9 +41,15 @@ test("selecting, deleting, then deselectAll works", async () => {
     const promise = objectPicker.execute(() => {});
 
     interaction.onClick([{ object: item.underlying, point: new THREE.Vector3(), distance: 0 }]);
-    expect(selection.selectCurve.length).toBe(1);
+    expect(selection.selected.curves.size).toBe(1);
 
-    db.removeItem(item);
+    await db.removeItem(item);
 
-    expect(selection.selectedCurves.size).toBe(0);
+    expect(selection.selected.curves.size).toBe(0);
+
+    promise.finish();
+
+    selection.selected.removeAll();
+
+    expect(selection.selected.curves.size).toBe(0);
 });

@@ -9,8 +9,8 @@ import { Viewport } from '../components/viewport/Viewport';
 export class EditorSignals {
     objectAdded: signals.Signal<visual.Item> = new signals.Signal();
     objectRemoved: signals.Signal<visual.Item> = new signals.Signal();
-    objectSelected: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint> = new signals.Signal();
-    objectDeselected: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint> = new signals.Signal();
+    objectSelected: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint | visual.Region> = new signals.Signal();
+    objectDeselected: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint | visual.Region> = new signals.Signal();
     objectHovered: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint | visual.Region> = new signals.Signal();
     objectUnhovered: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint | visual.Region> = new signals.Signal();
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }> = new signals.Signal();

@@ -30,8 +30,8 @@ export class SelectionInteractionManager {
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals
     ) {
-        this.clickStrategy = new ClickStrategy(selection);
-        this.hoverStrategy = new HoverStrategy(selection, materials, signals);
+        this.clickStrategy = new ClickStrategy(selection.selected, selection.hovered);
+        this.hoverStrategy = new HoverStrategy(selection.selected, selection.hovered);
     }
 
     private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy): THREE.Intersection | undefined {

@@ -2,10 +2,9 @@
  * @jest-environment jsdom
  */
 
-import Command, { EditorLike } from "../../src/commands/Command";
+import Command from "../../src/commands/Command";
 import { CommandExecutor } from "../../src/commands/CommandExecutor";
 import ContourManager from "../../src/commands/ContourManager";
-import { CenterCircleCommand } from '../../src/commands/GeometryCommands';
 import { SelectionCommandManager } from "../../src/commands/SelectionCommandManager";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { EditorSignals } from "../../src/editor/EditorSignals";
@@ -16,7 +15,7 @@ import { PlanarCurveDatabase } from "../../src/editor/PlanarCurveDatabase";
 import { RegionManager } from "../../src/editor/RegionManager";
 import { SnapManager } from "../../src/editor/SnapManager";
 import { SpriteDatabase } from "../../src/editor/SpriteDatabase";
-import { SelectionManager } from "../../src/selection/SelectionManager";
+import { Selection, SelectionManager } from "../../src/selection/SelectionManager";
 import { Delay } from "../../src/util/SequentialExecutor";
 import { FakeMaterials, FakeSprites } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -30,7 +29,7 @@ describe(CommandExecutor, () => {
     let originator: EditorOriginator;
     let history: History;
     let snaps: SnapManager;
-    let selection: SelectionManager;
+    let selection: Selection;
     let curves: PlanarCurveDatabase;
     let sprites: SpriteDatabase;
     let editor: any
@@ -43,7 +42,8 @@ describe(CommandExecutor, () => {
         signals = new EditorSignals();
         db = new GeometryDatabase(materials, signals);
         registry = new CommandRegistry();
-        selection = new SelectionManager(db, materials, signals);
+        const selman = new SelectionManager(db, materials, signals);
+        selection = selman.selected;
         snaps = new SnapManager(db, sprites, signals);
         curves = new PlanarCurveDatabase(db);
         regions = new RegionManager(db, curves);

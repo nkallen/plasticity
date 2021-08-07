@@ -2,7 +2,6 @@ import * as THREE from "three";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import c3d from '../../build/Release/c3d.node';
 import { GeometryDatabase } from "../editor/GeometryDatabase";
-import * as visual from '../editor/VisualModel';
 
 export class HighlightManager {
     constructor(
@@ -42,10 +41,12 @@ export class HighlightManager {
         for (const id of collection) {
             const { view, model } = this.db.lookupItemById(id);
             if (!(model instanceof c3d.PlaneInstance || model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
+
             const newMaterial = mat(model);
             view.traverse(o => {
                 if (o instanceof Line2 || o instanceof THREE.Mesh) {
-                    o.userData.oldMaterial = o.material;
+                    if (o.userData.oldMaterial == undefined)
+                        o.userData.oldMaterial = o.material;
                     o.material = newMaterial;
                 }
             })
@@ -55,12 +56,12 @@ export class HighlightManager {
     unhighlightItems(collection: Iterable<c3d.SimpleName>) {
         for (const id of collection) {
             const { view, model } = this.db.lookupItemById(id);
-            if (!(model instanceof c3d.PlaneInstance || model instanceof c3d.SpaceInstance)) {
-                throw new Error("invalid precondition");
-            }
+            if (!(model instanceof c3d.PlaneInstance || model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
+
             view.traverse(o => {
                 if (o instanceof Line2 || o instanceof THREE.Mesh) {
-                    o.material = o.userData.oldMaterial;
+                    if (o.userData.oldMaterial !== undefined)
+                        o.material = o.userData.oldMaterial;
                     delete o.userData.oldMaterial;
                 } else if (o instanceof THREE.Sprite) {
                     o.visible = false;

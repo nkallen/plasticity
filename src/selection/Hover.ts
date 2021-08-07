@@ -1,25 +1,22 @@
-import MaterialDatabase from "../editor/MaterialDatabase";
-import { EditorSignals } from "../editor/EditorSignals";
-import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
-import { HighlightManager } from "./HighlightManager";
+import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
-import { HasSelection, ModifiesSelection } from "./SelectionManager";
+import { ModifiesSelection } from "./SelectionManager";
 
 export class HoverStrategy implements SelectionStrategy {
     constructor(
-        private readonly selection: ModifiesSelection,
-        private readonly materials: MaterialDatabase,
-        private readonly signals: EditorSignals,
+        private selected: ModifiesSelection,
+        private hovered: ModifiesSelection
     ) { }
 
     emptyIntersection(): void {
-        this.selection.unhover();
+        this.hovered.removeAll();
     }
 
-    curve3D(object: Curve3D, parentCurve: SpaceInstance<Curve3D>): boolean {
-        if (this.selection.mode.has(SelectionMode.Curve) && !this.selection.selectedCurves.has(parentCurve)) {
-            if (!this.selection.hover?.isEqual(parentCurve)) {
-                this.selection.hoverCurve(parentCurve);
+    curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean {
+        if (this.hovered.mode.has(SelectionMode.Curve) && !this.selected.curves.has(parentItem)) {
+            if (!this.hovered.curves.has(parentItem)) {
+                this.hovered.removeAll();
+                this.hovered.addCurve(parentItem);
             }
             return true;
         }
@@ -27,24 +24,27 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     solid(object: TopologyItem, parentItem: Solid): boolean {
-        if (!this.selection.selectedSolids.has(parentItem) && !this.selection.hasSelectedChildren(parentItem)) {
-            if (!this.selection.hover?.isEqual(parentItem)) {
-                this.selection.hoverSolid(parentItem);
+        if (!this.selected.solids.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) {
+            if (!this.hovered.solids.has(parentItem)) {
+                this.hovered.removeAll();
+                this.hovered.addSolid(parentItem);
             }
             return true;
         }
         return false;
     }
 
-    topologicalItem(object: TopologyItem, _parentItem: Solid): boolean {
-        if (this.selection.mode.has(SelectionMode.Face) && object instanceof Face && !this.selection.selectedFaces.has(object)) {
-            if (!this.selection.hover?.isEqual(object)) {
-                this.selection.hoverFace(object, _parentItem);
+    topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
+        if (this.hovered.mode.has(SelectionMode.Face) && object instanceof Face && !this.selected.faces.has(object)) {
+            if (!this.hovered.faces.has(object)) {
+                this.hovered.removeAll();
+                this.hovered.addFace(object, parentItem);
             }
             return true;
-        } else if (this.selection.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selection.selectedEdges.has(object)) {
-            if (!this.selection.hover?.isEqual(object)) {
-                this.selection.hoverEdge(object, _parentItem);
+        } else if (this.hovered.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selected.edges.has(object)) {
+            if (!this.hovered.edges.has(object)) {
+                this.hovered.removeAll();
+                this.hovered.addEdge(object, parentItem);
             }
             return true;
         }
@@ -52,61 +52,24 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     region(object: Region, parentItem: PlaneInstance<Region>): boolean {
-        if (!this.selection.mode.has(SelectionMode.Face)) return false;
-        if (this.selection.selectedRegions.has(parentItem)) return false;
-        this.selection.hoverRegion(parentItem);
+        if (!this.hovered.mode.has(SelectionMode.Face)) return false;
+        if (!this.hovered.regions.has(parentItem)) {
+        this.hovered.removeAll();
+        this.hovered.addRegion(parentItem);
+        }
 
         return true;
     }
 
     controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (!this.selection.mode.has(SelectionMode.ControlPoint)) return false;
-        if (!this.selection.selectedCurves.has(parentItem) && !this.selection.hasSelectedChildren(parentItem)) return false;
+        if (!this.hovered.mode.has(SelectionMode.ControlPoint)) return false;
+        if (!this.selected.curves.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) return false;
 
-        if (!this.selection.selectedControlPoints.has(object)) {
-            this.selection.hoverControlPoint(object, parentItem)
+        if (!this.selected.controlPoints.has(object)) {
+            this.hovered.removeAll();
+            this.hovered.addControlPoint(object, parentItem)
             return true;
         }
         return false;
-    }
-}
-
-export class Hoverable {
-    constructor(
-        private readonly object: Item | TopologyItem | ControlPoint | Region,
-        private readonly materials: MaterialDatabase,
-        private readonly signals: EditorSignals
-    ) {
-        signals.objectHovered.dispatch(object);
-    }
-
-    dispose(): void {
-        this.signals.objectUnhovered.dispatch(this.object);
-    }
-
-    isEqual(other: Item | TopologyItem | ControlPoint): boolean {
-        return this.object.simpleName === other.simpleName;
-    }
-
-    highlight(highlighter: HighlightManager) {
-        const { object, materials } = this;
-        if (object instanceof PlaneInstance || object instanceof SpaceInstance) {
-            highlighter.highlightItems([object.simpleName], o => materials.hover(o));
-        } else if (object instanceof TopologyItem) {
-            highlighter.highlightTopologyItems([object.simpleName], o => materials.hover(o));
-        } else if (object instanceof ControlPoint) { 
-            highlighter.highlightControlPoints([object.simpleName], o => materials.hover(o));
-        }
-    }
-
-    unhighlight(highlighter: HighlightManager) {
-        const { object } = this;
-        if (object instanceof PlaneInstance || object instanceof SpaceInstance) {
-            highlighter.unhighlightItems([object.simpleName]);
-        } else if (object instanceof TopologyItem) {
-            highlighter.unhighlightTopologyItems([object.simpleName]);
-        } else if (object instanceof ControlPoint) {
-            highlighter.unhighlightControlPoints([object.simpleName])
-        }
     }
 }

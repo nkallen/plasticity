@@ -32,7 +32,7 @@ export default class LayerManager {
 
     controlPoints() {
         const { selection } = this;
-        if (selection.selectedCurves.size > 0 || selection.selectedControlPoints.size > 0)
+        if (selection.curves.size > 0 || selection.controlPoints.size > 0)
             this.showControlPoints();
         else this.hideControlPoints();
     }
