@@ -13,15 +13,13 @@ export class HoverStrategy implements SelectionStrategy {
     ) { }
 
     emptyIntersection(): void {
-        this.selection.hover?.dispose();
-        this.selection.hover = undefined;
+        this.selection.unhover();
     }
 
     curve3D(object: Curve3D, parentCurve: SpaceInstance<Curve3D>): boolean {
         if (this.selection.mode.has(SelectionMode.Curve) && !this.selection.selectedCurves.has(parentCurve)) {
             if (!this.selection.hover?.isEqual(parentCurve)) {
-                this.selection.hover?.dispose();
-                this.selection.hover = new Hoverable(parentCurve, this.materials, this.signals);
+                this.selection.hoverCurve(parentCurve);
             }
             return true;
         }
@@ -31,8 +29,7 @@ export class HoverStrategy implements SelectionStrategy {
     solid(object: TopologyItem, parentItem: Solid): boolean {
         if (!this.selection.selectedSolids.has(parentItem) && !this.selection.hasSelectedChildren(parentItem)) {
             if (!this.selection.hover?.isEqual(parentItem)) {
-                this.selection.hover?.dispose();
-                this.selection.hover = new Hoverable(parentItem, this.materials, this.signals);
+                this.selection.hoverSolid(parentItem);
             }
             return true;
         }
@@ -55,14 +52,11 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     region(object: Region, parentItem: PlaneInstance<Region>): boolean {
-        if (this.selection.mode.has(SelectionMode.Face)) {
-            if (this.selection.selectedRegions.has(parentItem)) { }
-            this.selection.hover?.dispose();
-            // FIXME regions aren't actually hover/highlighting
-            this.selection.hover = new Hoverable(object, this.materials, this.signals);
-            return true;
-        }
-        return false;
+        if (!this.selection.mode.has(SelectionMode.Face)) return false;
+        if (this.selection.selectedRegions.has(parentItem)) return false;
+        this.selection.hoverRegion(parentItem);
+
+        return true;
     }
 
     controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean {
@@ -70,8 +64,7 @@ export class HoverStrategy implements SelectionStrategy {
         if (!this.selection.selectedCurves.has(parentItem) && !this.selection.hasSelectedChildren(parentItem)) return false;
 
         if (!this.selection.selectedControlPoints.has(object)) {
-            this.selection.hover?.dispose();
-            this.selection.hover = new Hoverable(object, this.materials, this.signals);
+            this.selection.hoverControlPoint(object, parentItem)
             return true;
         }
         return false;

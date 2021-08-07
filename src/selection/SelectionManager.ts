@@ -27,17 +27,27 @@ export interface ModifiesSelection extends HasSelection {
     deselectFace(object: visual.Face, parentItem: visual.Solid): void;
     selectFace(object: visual.Face, parentItem: visual.Solid): void;
     hoverFace(object: visual.Face, parentItem: visual.Solid): void;
+
     deselectRegion(object: visual.PlaneInstance<visual.Region>): void;
     selectRegion(object: visual.PlaneInstance<visual.Region>): void;
+    hoverRegion(object: visual.PlaneInstance<visual.Region>): void;
+
     deselectEdge(object: visual.CurveEdge, parentItem: visual.Solid): void;
     selectEdge(object: visual.CurveEdge, parentItem: visual.Solid): void;
     hoverEdge(object: visual.Edge, parentItem: visual.Solid): void;
+
     deselectSolid(solid: visual.Solid): void;
     selectSolid(solid: visual.Solid): void;
+    hoverSolid(solid: visual.Solid): void;
+
     deselectCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
     selectCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
+    hoverCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
+
     deselectControlPoint(index: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
     selectControlPoint(index: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
+    hoverControlPoint(index: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
+
     deselectAll(): void;
     unhover(): void;
 }
@@ -118,11 +128,6 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.hover = new Hoverable(face, this.materials, this.signals);
     }
 
-    unhover() {
-        this.hover?.dispose();
-        this.hover = undefined;
-    }
-
     deselectRegion(object: visual.PlaneInstance<visual.Region>) {
         this.selectedRegionIds.delete(object.simpleName);
         this.signals.objectDeselected.dispatch(object);
@@ -132,6 +137,11 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.unhover();
         this.selectedRegionIds.add(object.simpleName);
         this.signals.objectSelected.dispatch(object);
+    }
+
+    hoverRegion(object: visual.PlaneInstance<visual.Region>) {
+        this.unhover();
+        this.hover = new Hoverable(object, this.materials, this.signals);
     }
 
     deselectEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
@@ -165,6 +175,11 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.signals.objectSelected.dispatch(solid);
     }
 
+    hoverSolid(solid: visual.Solid) {
+        this.unhover();
+        this.hover = new Hoverable(solid, this.materials, this.signals);
+    }
+
     deselectCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
         this.selectedCurveIds.delete(curve.simpleName);
         this.signals.objectDeselected.dispatch(curve);
@@ -174,6 +189,11 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.unhover();
         this.selectedCurveIds.add(curve.simpleName);
         this.signals.objectSelected.dispatch(curve);
+    }
+
+    hoverCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
+        this.unhover();
+        this.hover = new Hoverable(curve, this.materials, this.signals);
     }
 
     selectControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
@@ -188,6 +208,11 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
         this.selectedControlPointIds.delete(point.simpleName);
         this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectDeselected.dispatch(point);
+    }
+
+    hoverControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
+        this.unhover();
+        this.hover = new Hoverable(point, this.materials, this.signals);
     }
 
     deselectAll(): void {
@@ -211,6 +236,11 @@ export class SelectionManager implements HasSelection, ModifiesSelection {
             this.signals.objectDeselected.dispatch(views.entries().next().value);
         }
         this.parentsWithSelectedChildren.clear();
+    }
+
+    unhover() {
+        this.hover?.dispose();
+        this.hover = undefined;
     }
 
     delete(item: visual.Item) {
