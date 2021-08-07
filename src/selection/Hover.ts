@@ -3,11 +3,11 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { HighlightManager } from "./HighlightManager";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
-import { HasSelection } from "./SelectionManager";
+import { HasSelection, ModifiesSelection } from "./SelectionManager";
 
 export class HoverStrategy implements SelectionStrategy {
     constructor(
-        private readonly selection: HasSelection,
+        private readonly selection: ModifiesSelection,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals,
     ) { }
@@ -42,14 +42,12 @@ export class HoverStrategy implements SelectionStrategy {
     topologicalItem(object: TopologyItem, _parentItem: Solid): boolean {
         if (this.selection.mode.has(SelectionMode.Face) && object instanceof Face && !this.selection.selectedFaces.has(object)) {
             if (!this.selection.hover?.isEqual(object)) {
-                this.selection.hover?.dispose();
-                this.selection.hover = new Hoverable(object, this.materials, this.signals);
+                this.selection.hoverFace(object, _parentItem);
             }
             return true;
         } else if (this.selection.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selection.selectedEdges.has(object)) {
             if (!this.selection.hover?.isEqual(object)) {
-                this.selection.hover?.dispose();
-                this.selection.hover = new Hoverable(object, this.materials, this.signals);
+                this.selection.hoverEdge(object, _parentItem);
             }
             return true;
         }

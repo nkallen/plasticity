@@ -404,4 +404,33 @@ declare module "*c3d.node" {
         Inside = ItemLocation.InItem,    ///< \ru Точка внутри замкнутой кривой. \en Inside the curve. 
     };
 
+    declare enum ProcessState {
+        Error         = -3, ///< \ru Ошибка. \en Error. 
+        Skip          = -2, ///< \ru Пропущено. \en Has been skipped. 
+        Stop          = -1, ///< \ru Остановлено. \en Has been stopped. 
+        Success       =  0, ///< \ru Выполнено. \en Done. 
+        SelfIntersect = 24, ///< \ru Выполнено. Объект самопересекается. \en Done. Self-intersecting object.
+    };
+
+    declare enum TopologyType {
+
+        Undefined    =   0,  ///< \ru Неизвестный объект. \en Unknown object. 
+        TopItem      =   1,  ///< \ru Топологический объект. \en A topological object. \n
+      
+        Vertex       = 101,  ///< \ru Вершина. \en A vertex. 
+      
+        Edge         = 201,  ///< \ru Ребро, проходящее по кривой. \en An edge passing along a curve. 
+        CurveEdge    = 202,  ///< \ru Ребро, проходящее по кривой пересечения поверхностей. \en An edge passing along a surface intersection curve. 
+        OrientedEdge = 203,  ///< \ru Ориентированное ребро. \en Oriented edge. 
+      
+        Loop         = 301,  ///< \ru Цикл. \en A loop. 
+      
+        Face         = 401,  ///< \ru Грань. \en A face. \n
+      
+        FaceShell    = 501,  ///< \ru Множество граней. \en A set of faces. \n
+      
+        FreeItem     = 600,  ///< \ru Тип для объектов, созданных пользователем. \en Type for the user-defined objects.
+      
+      };
+
 }

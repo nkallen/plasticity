@@ -85,7 +85,7 @@ export default {
         Creator: {
             rawHeader: "creator.h",
             extends: "RefItem",
-            dependencies: ["RefItem.h", "ControlData3D.h"],
+            dependencies: ["RefItem.h", "ControlData3D.h", "SpaceItem.h", "SNameMaker.h"],
             enum: 'CreatorType',
             functions: [
                 "MbeCreatorType IsA()",
@@ -93,6 +93,11 @@ export default {
                 { signature: "MbCreator * Cast()", isManual: true },
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
                 "void SetBasisPoints(const MbControlData3D & cd)",
+                { signature: "void GetBasisItems(RPArray<MbSpaceItem> & items)", items: isReturn },
+                "size_t GetCreatorsCount(MbeCreatorType ct)",
+                "const MbSNameMaker & GetYourNameMaker()",
+                "MbeProcessState GetStatus()",
+                "void SetStatus(MbeProcessState l)",
             ]
         },
         Transactions: {
@@ -186,6 +191,7 @@ export default {
                 "size_t GetEdgeIndex(const MbCurveEdge & edge)",
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
                 "void SetBasisPoints(const MbControlData3D & cd)",
+                { signature: "void GetItems(RPArray<MbTopologyItem> items)", items: isReturn },
             ]
         },
         RegTransform: {
@@ -544,7 +550,10 @@ export default {
         NameMaker: {
             rawHeader: "name_item.h",
             extends: "RefItem",
-            dependencies: ["RefItem.h"]
+            dependencies: ["RefItem.h", "TopologyItem.h"],
+            functions: [
+                "bool IsChild(const MbTopologyItem & t)"
+            ]
         },
         SNameMaker: {
             rawHeader: "name_item.h",
@@ -590,11 +599,13 @@ export default {
             dependencies: ["AttributeContainer.h", "Name.h", "Cube.h"],
             extends: "AttributeContainer",
             functions: [
+                "MbeTopologyType IsA()",
                 "const MbName & GetName()",
                 "SimpleName GetMainName()",
                 "SimpleName GetFirstName()",
                 "SimpleName GetNameHash()",
                 "void AddYourGabaritTo(MbCube & cube)",
+                { signature: "MbTopologyItem * Cast()", isManual: true },
             ]
         },
         Edge: {
@@ -645,7 +656,6 @@ export default {
                 { signature: "bool GetPlacement(MbPlacement3D * result)", result: isReturn, return: isErrorBool },
                 { signature: "bool GetControlPlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
                 { signature: "bool GetSurfacePlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
-                { signature: "MbeSpaceType IsA()", isManual: true },
                 { signature: "MbeItemLocation NearPointProjection(const MbCartPoint3D & point, double & u, double & v, MbVector3D & normal, c3d::IndicesPair & edgeLoc, ptrdiff_t & corner)", u: isReturn, v: isReturn, normal: isReturn, edgeLoc: isReturn, corner: isReturn, return: { name: "location" } },
                 { signature: "void GetFaceParam(const double surfaceU, const double surfaceV, double & faceU, double & faceV)", faceU: isReturn, faceV: isReturn },
                 { signature: "void GetOuterEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
@@ -1245,5 +1255,7 @@ export default {
         "MbeItemLocation",
         "MbeLocation",
         "MbeIntersectionType",
+        "MbeProcessState",
+        "MbeTopologyType",
     ]
 }

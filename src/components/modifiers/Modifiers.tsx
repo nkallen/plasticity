@@ -74,6 +74,8 @@ export default (editor: Editor) => {
         constructor() {
             super();
             this.render = this.render.bind(this);
+            this.mouseEnter = this.mouseEnter.bind(this);
+            this.mouseLeave = this.mouseLeave.bind(this);
         }
 
         private _index!: number;
@@ -92,10 +94,39 @@ export default (editor: Editor) => {
 
         render() {
             render(
-                <div class="header">
-                    <input type="checkbox" />
-                    <div class="name">{c3d.CreatorType[this.creator.IsA()]}</div>
-                </div>, this);
+                <>
+                    <div class="header" onPointerEnter={this.mouseEnter} onPointerLeave={this.mouseLeave}>
+                        <input type="checkbox" />
+                        <div class="name">{c3d.CreatorType[this.creator.IsA()]} ({c3d.ProcessState[this.creator.GetStatus()]})</div>
+                        <div># Basis Items: {this.creator.GetBasisItems().length}</div>
+                    </div>
+                    {this.creator.GetBasisItems().map(item => {
+                        return <div>Item: {c3d.SpaceType[item.IsA()]}</div>
+                    })}
+                </>
+                , this);
+        }
+
+        mouseEnter(e: PointerEvent) {
+            const { item, creator } = this;
+            const { db, selection } = editor;
+
+            const solid = item as visual.Solid;
+            const model = db.lookup(solid);
+            const name = creator.GetYourNameMaker();
+
+            for (const topo of model.GetItems()) {
+                if (name.IsChild(topo) && topo.IsA() === c3d.TopologyType.Face) {
+                    const index = model.GetFaceIndex(topo.Cast<c3d.Face>(c3d.TopologyType.Face));
+                    const { views } = db.lookupTopologyItemById(visual.Face.simpleName(solid.simpleName, index))
+                    const view = views.values().next().value as visual.Face;
+                    selection.hoverFace(view, solid);
+                }
+            }
+        }
+
+        mouseLeave(e: PointerEvent) {
+            editor.selection.unhover();
         }
     }
     customElements.define('ispace-creator', Creator);

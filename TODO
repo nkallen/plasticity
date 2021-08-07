@@ -1,3 +1,8 @@
+refactor hovering code in Hover.ts to be hoverFace, hoverSolid, etc.; 
+  - make .hover private, and .hover.isEqual a method
+  - allow hovering multiple items given the need from the creator history
+  - rename modifiers/creator
+    
 add draft solid to offset face gizmo as angle gizmo, angling all adjacent faces
 bug: make a cylinder, move it left / right, select deselect, it errors in console with cast param
 bug: select unselect region, says invalid data
