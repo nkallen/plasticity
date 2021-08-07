@@ -54,7 +54,7 @@ export class Model {
                 });
                 if (all) {
                     result.push(cmd.PurifyFaceCommand);
-                    result.push(cmd.FilletFaceCommand);
+                    result.push(cmd.RefilletFaceCommand);
                 }
             } catch { }
             result.push(cmd.RemoveFaceCommand);

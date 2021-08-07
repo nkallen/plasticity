@@ -1,5 +1,8 @@
 add draft solid to offset face gizmo as angle gizmo, angling all adjacent faces
+bug: make a cylinder, move it left / right, select deselect, it errors in console with cast param
+bug: select unselect region, says invalid data
 stick to surface max
+more solid creators
 redo Dialogs and show errors
 
 

@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
+import { cart2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
@@ -31,13 +31,13 @@ import { FilletDialog } from "./fillet/FilletDialog";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
-import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import { DistanceGizmo, LengthGizmo } from "./MiniGizmos";
 import MirrorFactory from "./mirror/MirrorFactory";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
-import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, OffsetFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
+import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
+import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import MoveFactory from './move/MoveFactory';
 import { MoveGizmo } from './move/MoveGizmo';
@@ -784,7 +784,6 @@ export class CharacterCurveCommand extends Command {
     }
 }
 
-
 export class OffsetFaceCommand extends Command {
     point?: THREE.Vector3
 
@@ -806,7 +805,6 @@ export class OffsetFaceCommand extends Command {
     }
 }
 
-
 export class DraftSolidCommand extends Command {
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selectedFaces];
@@ -814,8 +812,7 @@ export class DraftSolidCommand extends Command {
 
         const face = faces[0];
         const faceModel = this.editor.db.lookupTopologyItem(face);
-        const point_ = faceModel.Point(0.5, 0.5);
-        const point = new THREE.Vector3(point_.x, point_.y, point_.z);
+        const point = cart2vec(faceModel.Point(0.5, 0.5));
         const gizmo = new RotateGizmo(this.editor, point);
 
         const draftSolid = new DraftSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -898,7 +895,7 @@ export class ActionFaceCommand extends Command {
     }
 }
 
-export class FilletFaceCommand extends Command {
+export class RefilletFaceCommand extends Command {
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selectedFaces];
         const parent = faces[0].parentItem as visual.Solid
@@ -907,7 +904,9 @@ export class FilletFaceCommand extends Command {
         refilletFace.solid = parent;
         refilletFace.faces = faces;
 
-        const gizmo = new OffsetFaceGizmo(refilletFace, this.editor);
+        const gizmo = new DistanceGizmo("refillet-face:distance", this.editor);
+        gizmo.constantLength = true;
+        gizmo.allowNegative = true;
 
         await gizmo.execute(async params => {
             await refilletFace.update();

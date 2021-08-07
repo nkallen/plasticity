@@ -403,4 +403,5 @@ declare module "*c3d.node" {
         OnCurve = ItemLocation.OnItem,    ///< \ru Точка на кривой. \en On the curve. 
         Inside = ItemLocation.InItem,    ///< \ru Точка внутри замкнутой кривой. \en Inside the curve. 
     };
+
 }

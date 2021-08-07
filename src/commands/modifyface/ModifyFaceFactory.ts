@@ -5,16 +5,22 @@ import { GeometryFactory } from '../GeometryFactory';
 
 export interface OffsetFaceParams {
     distance: number;
+    angle: number;
     faces: visual.Face[];
 }
 
-abstract class ModifyFaceFactory extends GeometryFactory {
+export interface FilletFaceParams {
+    distance: number;
+    faces: visual.Face[];
+}
+
+export abstract class ModifyFaceFactory extends GeometryFactory {
     protected abstract operationType: c3d.ModifyingType;
     direction = new THREE.Vector3();
 
     protected facesModel!: c3d.Face[];
     protected solidModel!: c3d.Solid;
-    private names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
+    protected names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
 
     private _solid!: visual.Solid;
     get solid() { return this._solid }
@@ -62,12 +68,7 @@ export class ActionFaceFactory extends ModifyFaceFactory {
     operationType = c3d.ModifyingType.Action;
 }
 
-export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFaceParams {
-    operationType = c3d.ModifyingType.Offset;
-    set distance(d: number) { this.direction = new THREE.Vector3(d, 0, 0) }
-}
-
-export class FilletFaceFactory extends ModifyFaceFactory implements OffsetFaceParams {
+export class FilletFaceFactory extends ModifyFaceFactory implements FilletFaceParams {
     operationType = c3d.ModifyingType.Fillet;
     set distance(d: number) { this.direction = new THREE.Vector3(d, 0, 0) }
 }

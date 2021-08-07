@@ -39,7 +39,7 @@ describe('commit', () => {
         draftSolid.solid = solid;
         draftSolid.faces = [face];
         draftSolid.angle = 4.75;
-        draftSolid.axis = new THREE.Vector3(1, 0, 0);
+        draftSolid.axis = new THREE.Vector3(0, 0, 1);
         draftSolid.origin = new THREE.Vector3(0.5, 1, 0.5);
         expect(solid).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5));
         await draftSolid.update();

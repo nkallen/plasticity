@@ -2,29 +2,36 @@ import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
-import { CompositeGizmo, DistanceGizmo } from "../MiniGizmos";
+import { AngleGizmo, CompositeGizmo, DistanceGizmo } from "../MiniGizmos";
 import { OffsetFaceParams } from './ModifyFaceFactory';
 
 export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
-    private readonly main = new DistanceGizmo("offset-face:distance", this.editor);
-    
+    private readonly distance = new DistanceGizmo("offset-face:distance", this.editor);
+    private readonly angle = new AngleGizmo("offset-face:angle", this.editor);
+
     constructor(params: OffsetFaceParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
-        this.main.allowNegative = true;
-        this.main.constantLength = true;
+        this.distance.allowNegative = true;
+        this.distance.constantLength = true;
     }
 
     execute(cb: (params: OffsetFaceParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { main, params } = this;
+        const { distance, angle, params } = this;
 
         const { point, normal } = this.placement(this.hint);
-        main.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-        main.position.copy(point);
+        distance.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        distance.position.copy(point);
+        angle.scale.setScalar(0.3);
 
-        this.add(main);
+        this.add(distance);
+        distance.add(angle);
 
-        this.addGizmo(main, distance => {
+        this.addGizmo(distance, distance => {
             params.distance = distance;
+        });
+
+        this.addGizmo(angle, angle => {
+            params.angle = angle;
         });
 
         return super.execute(cb, finishFast);

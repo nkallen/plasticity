@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import BoxFactory from "../../src/commands/box/BoxFactory";
-import { OffsetFaceFactory } from '../../src/commands/modifyface/ModifyFaceFactory';
+import { OffsetFaceFactory } from '../../src/commands/modifyface/OffsetFaceFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';

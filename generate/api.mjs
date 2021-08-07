@@ -55,7 +55,7 @@ export default {
             rawHeader: "space_item.h",
             extends: "RefItem",
             enum: 'SpaceType',
-            dependencies: ["RefItem.h", "RegDuplicate.h", "RegTransform.h", "Matrix3D.h", "Vector3D.h", "Axis3D.h"],
+            dependencies: ["RefItem.h", "RegDuplicate.h", "RegTransform.h", "Matrix3D.h", "Vector3D.h", "Axis3D.h", "Cube.h"],
             functions: [
                 "MbeSpaceType IsA()",
                 "MbeSpaceType Type()",
@@ -67,6 +67,7 @@ export default {
                 "void Refresh()",
                 // { signature: "MbSpaceItem * Duplicate(MbRegDuplicate * iReg = NULL)", isManual: true },
                 "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)",
+                "void AddYourGabaritTo(MbCube & cube)",
             ]
         },
         ControlData3D: {
@@ -128,17 +129,25 @@ export default {
         Path: {
             rawHeader: "name_item.h"
         },
+        Rect: {
+            rawHeader: "mb_rect.h",
+            functions: [
+                "double GetTop()",
+                "double GetBottom()",
+                "double GetLeft()",
+                "double GetRight()",
+            ]
+        },
         Cube: {
             rawHeader: "mb_cube.h",
-            dependencies: ["CartPoint3D.h", "Matrix3D.h"],
+            dependencies: ["CartPoint3D.h", "Matrix3D.h", "Placement3D.h", "Rect.h"],
             initializers: [
+                "",
                 "const MbCartPoint3D & p0, const MbCartPoint3D & p1, bool normalize = false"
             ],
             functions: [
-                {
-                    signature: "bool CalculateMatrix(size_t pIndex, const MbCartPoint3D & point, const MbCartPoint3D & fixedPoint, bool useFixed, bool isotropy, MbMatrix3D & matrix)",
-                    matrix: isReturn
-                }
+                { signature: "bool CalculateMatrix(size_t pIndex, const MbCartPoint3D & point, const MbCartPoint3D & fixedPoint, bool useFixed, bool isotropy, MbMatrix3D & matrix)", matrix: isReturn },
+                { signature: "void ProjectionRect(const MbPlacement3D & place, MbRect & rect)", rect: isReturn }
             ]
         },
         BooleanFlags: {
@@ -504,9 +513,11 @@ export default {
                 "const MbVector3D & GetAxisX()",
                 "void Normalize()",
                 "void Reset()",
+                "void Invert()",
                 { signature: "void PointProjection(const MbCartPoint3D &p, double &x, double &y)", x: isReturn, y: isReturn },
                 "MbeItemLocation PointRelative(const MbCartPoint3D &pnt, double eps = Math::angleRegion)",
                 { signature: "bool GetMatrixToPlace(const MbPlacement3D & p, MbMatrix & matrix, double eps = Math::angleRegion)", matrix: isReturn, return: ignore },
+                { signature: "void GetVectorFrom(double x1, double y1, double z1, MbVector3D & v, MbeLocalSystemType3D type=ls_CartesianSystem)", v: isReturn },
             ]
         },
         FormNote: {
@@ -576,14 +587,14 @@ export default {
         },
         TopologyItem: {
             rawHeader: "topology_item.h",
-            dependencies: ["AttributeContainer.h", "Name.h"],
+            dependencies: ["AttributeContainer.h", "Name.h", "Cube.h"],
             extends: "AttributeContainer",
             functions: [
                 "const MbName & GetName()",
                 "SimpleName GetMainName()",
                 "SimpleName GetFirstName()",
                 "SimpleName GetNameHash()",
-
+                "void AddYourGabaritTo(MbCube & cube)",
             ]
         },
         Edge: {
@@ -626,7 +637,7 @@ export default {
         Face: {
             rawHeader: "topology.h",
             extends: "TopologyItem",
-            dependencies: ["TopologyItem.h", "Vector3D.h", "Placement3D.h", "Surface.h"],
+            dependencies: ["TopologyItem.h", "Vector3D.h", "Placement3D.h", "Surface.h", "CurveEdge.h"],
             functions: [
                 { signature: "bool GetAnyPointOn(MbCartPoint3D & point, MbVector3D & normal)", point: isReturn, normal: isReturn, },
                 { signature: "void Normal(double u, double v, MbVector3D & result)", result: isReturn },
@@ -636,7 +647,11 @@ export default {
                 { signature: "bool GetSurfacePlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
                 { signature: "MbeSpaceType IsA()", isManual: true },
                 { signature: "MbeItemLocation NearPointProjection(const MbCartPoint3D & point, double & u, double & v, MbVector3D & normal, c3d::IndicesPair & edgeLoc, ptrdiff_t & corner)", u: isReturn, v: isReturn, normal: isReturn, edgeLoc: isReturn, corner: isReturn, return: { name: "location" } },
-                { signature: "void GetFaceParam(const double surfaceU, const double surfaceV, double &faceU, double &faceV)", faceU: isReturn, faceV: isReturn}
+                { signature: "void GetFaceParam(const double surfaceU, const double surfaceV, double & faceU, double & faceV)", faceU: isReturn, faceV: isReturn },
+                { signature: "void GetOuterEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
+                // { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
+                { signature: "void GetNeighborFaces(RPArray<MbFace> & faces)", faces: isReturn },
+                "bool HasNeighborFace()",
             ]
         },
         Vertex: {
