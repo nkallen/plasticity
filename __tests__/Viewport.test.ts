@@ -2,24 +2,22 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
-import { EventDispatcher } from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import Command from "../src/commands/Command";
+import { CancelOrFinish } from "../src/commands/CommandExecutor";
 import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorLike, Viewport } from "../src/components/viewport/Viewport";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { EditorOriginator } from "../src/editor/History";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
+import { PlaneSnap } from "../src/editor/SnapManager";
+import * as visual from '../src/editor/VisualModel';
 import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";
 import { SelectionManager } from "../src/selection/SelectionManager";
-import { PlaneSnap } from "../src/editor/SnapManager";
 import { Helpers } from "../src/util/Helpers";
-import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
-import Command from "../src/commands/Command";
-import { CancelOrFinish } from "../src/commands/CommandExecutor";
-import './matchers';
 import { MakeViewport } from "../__mocks__/FakeViewport";
+import './matchers';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -46,9 +44,8 @@ beforeEach(async () => {
         originator: originator,
         materials: materials,
         selectionInteraction: interaction,
-        scene: new THREE.Scene(),
         enqueue: (command: Command, cancelOrFinish?: CancelOrFinish) => Promise.resolve(),
-    };
+    } as EditorLike;
     const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;

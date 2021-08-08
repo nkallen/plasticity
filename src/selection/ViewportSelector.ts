@@ -128,7 +128,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         }
     }
 
-    onPointerUp(event: PointerEvent): void {
+    onPointerUp(event: PointerEvent) {
         if (!this.enabled) return;
         if (event.button !== 0) return;
 
@@ -149,7 +149,6 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 this.selectionBox.endPoint.set(this.normalizedMousePosition.x, this.normalizedMousePosition.y, 0.5);
                 this.selectionHelper.onSelectOver();
                 const selected = this.selectionBox.select();
-                console.log(selected);
 
                 this.state.disposable.dispose();
                 this.state = { tag: 'none' };
