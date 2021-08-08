@@ -169,7 +169,9 @@ export default {
             extends: "SpaceItem",
             dependencies: ["SpaceItem.h"],
             functions: [
-                "const MbSurface & GetSurface()"
+                "const MbSurface & GetSurface()",
+                "double GetUEpsilon()",
+                "double GetVEpsilon()",
             ]
         },
         Solid: {
@@ -520,6 +522,8 @@ export default {
                 "void Normalize()",
                 "void Reset()",
                 "void Invert()",
+                "double GetXEpsilon()",
+                "double GetYEpsilon()",
                 { signature: "void PointProjection(const MbCartPoint3D &p, double &x, double &y)", x: isReturn, y: isReturn },
                 "MbeItemLocation PointRelative(const MbCartPoint3D &pnt, double eps = Math::angleRegion)",
                 { signature: "bool GetMatrixToPlace(const MbPlacement3D & p, MbMatrix & matrix, double eps = Math::angleRegion)", matrix: isReturn, return: ignore },
@@ -648,7 +652,25 @@ export default {
         ContourOnSurface: {
             rawHeader: "cur_contour_on_surface.h",
             extends: "Curve3D",
-            dependencies: ["Curve3D.h"],
+            dependencies: ["Curve3D.h", "Surface.h", "Contour.h"],
+            initializers: [
+                "const MbSurface & surface, const MbContour & contour, bool same",
+                "const MbSurface & surf, int sense",
+            ],
+            functions: [
+                "const MbContour & GetContour()",
+                "const MbSurface & GetSurface()"
+            ]
+        },
+        ContourOnPlane: {
+            rawHeader: "cur_contour_on_plane.h",
+            extends: "ContourOnSurface",
+            dependencies: ["ContourOnSurface.h", "Plane.h"],
+            initializers: [
+                "const MbPlane & plane, const MbContour & contour, bool same",
+                "const MbPlane & plane, int sense",
+                "const MbPlane & plane",
+            ]
         },
         Loop: {
             rawHeader: "topology.h",
@@ -661,7 +683,7 @@ export default {
         Face: {
             rawHeader: "topology.h",
             extends: "TopologyItem",
-            dependencies: ["TopologyItem.h", "Vector3D.h", "Placement3D.h", "Surface.h", "CurveEdge.h"],
+            dependencies: ["TopologyItem.h", "Vector3D.h", "Placement3D.h", "Surface.h", "CurveEdge.h", "Loop.h"],
             functions: [
                 { signature: "bool GetAnyPointOn(MbCartPoint3D & point, MbVector3D & normal)", point: isReturn, normal: isReturn, },
                 { signature: "void Normal(double u, double v, MbVector3D & result)", result: isReturn },
@@ -677,6 +699,8 @@ export default {
                 "bool HasNeighborFace()",
                 "size_t GetLoopsCount()",
                 "const MbSurface & GetSurface()",
+                "MbLoop * GetLoop(size_t index)",
+                "bool IsSameSense()"
             ]
         },
         Vertex: {
@@ -1174,12 +1198,12 @@ export default {
         },
         ActionCurve: {
             rawHeader: "action_curve.h",
-            dependencies: ["CartPoint.h", "Curve.h"],
+            dependencies: ["CartPoint.h", "Curve.h", "Contour.h"],
             functions: [
                 "MbResultType Arc(const MbCartPoint & center, const SArray<MbCartPoint> & points, bool curveClosed, double angle, double & a, double & b, MbCurve *& result)",
                 "MbResultType SplineCurve(const SArray<MbCartPoint> & points, bool closed, MbePlaneType curveType, MbCurve *& result)",
                 // { signature: "MbResultType IntersectContour(MbCurve & newCurve, RPArray<MbCurve> & curves, MbContour *& result)" },
-
+                "MbContour * OffsetContour(const MbContour & cntr, double rad, double xEpsilon, double yEpsilon, bool modifySegments, VERSION version = Math::DefaultMathVersion())",
             ]
         },
         ActionCurve3D: {

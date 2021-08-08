@@ -18,6 +18,8 @@
 #include "../include/TrimmedCurve3D.h"
 #include "../include/ConeSpiral.h"
 #include "../include/CurveSpiral.h"
+#include "../include/ContourOnSurface.h"
+#include "../include/ContourOnPlane.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -89,6 +91,10 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return ConeSpiral::NewInstance(env, (MbConeSpiral *)(_underlying));
     case st_CurveSpiral:
         return CurveSpiral::NewInstance(env, (MbCurveSpiral *)(_underlying));
+    case st_ContourOnSurface:
+        return ContourOnSurface::NewInstance(env, (MbContourOnSurface *)(_underlying));
+    case st_ContourOnPlane:
+        return ContourOnPlane::NewInstance(env, (MbContourOnPlane *)(_underlying));
 
         // case st_WireFrame:
         //     return Item::NewInstance(env, dynamic_cast<MbWireFrame *>(_underlying));

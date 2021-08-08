@@ -40,6 +40,7 @@ export class Model {
         if (selection.faces.size > 0) {
             result.push(cmd.OffsetFaceCommand);
             result.push(cmd.DraftSolidCommand);
+            result.push(cmd.OffsetLoopCommand);
             const face = selection.faces.first;
             const parent = face.parentItem as visual.Solid;
             const solid = db.lookup(parent);

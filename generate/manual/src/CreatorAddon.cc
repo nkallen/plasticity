@@ -116,7 +116,9 @@ Napi::Value cast(MbCreator * _underlying, const Napi::CallbackInfo &info)
     case ct_ReverseCreator:
         return ReverseCreator::NewInstance(env, (MbReverseCreator *)(_underlying));
     default:
-        Napi::Error::New(env, "Invalid cast parameter").ThrowAsJavaScriptException();
+        std::ostringstream msg;
+        msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << "\n";
+        Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
         return env.Undefined();
     }
 }

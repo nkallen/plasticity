@@ -37,10 +37,9 @@ export class PlanarCurveDatabase {
         const item = inst.GetSpaceItem()!;
         const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
         const planarInfo = this.planarizeAndNormalize(curve3d);
-        if (planarInfo === undefined)
-            return Promise.resolve();
-        const { curve: newPlanarCurve, placement } = planarInfo;
+        if (planarInfo === undefined) return Promise.resolve();
 
+        const { curve: newPlanarCurve, placement } = planarInfo;
         const info = new CurveInfo(newPlanarCurve, placement);
         curve2info.set(newCurve, info);
         planar2instance.set(newPlanarCurve.Id(), newCurve);
@@ -150,26 +149,25 @@ export class PlanarCurveDatabase {
         return transaction;
     }
 
-    commit(data: Transaction): Promise<void> {
+    async commit(data: Transaction): Promise<void> {
         const promises = [];
         for (const touchee of data.dirty) {
             this.removeInfo(touchee);
         }
         for (const touchee of data.removed) {
-            if (data.dirty.has(touchee))
-                continue;
+            if (data.dirty.has(touchee)) continue;
+
             this.removeInfo(touchee);
         }
         for (const touchee of data.dirty) {
-            if (data.removed.has(touchee))
-                continue;
+            if (data.removed.has(touchee)) continue;
+
             promises.push(this.add(touchee));
         }
         for (const touchee of data.added) {
-            if (data.removed.has(touchee))
-                continue;
-            if (data.dirty.has(touchee))
-                continue;
+            if (data.removed.has(touchee)) continue;
+            if (data.dirty.has(touchee)) continue;
+
             promises.push(this.add(touchee));
         }
 
@@ -205,8 +203,8 @@ export class PlanarCurveDatabase {
     private planarizeAndNormalize(curve3d: c3d.Curve3D): { curve: c3d.Curve; placement: c3d.Placement3D; } | undefined {
         const hint = new c3d.Placement3D();
         const planar = curve3d2curve2d(curve3d, hint);
-        if (planar === undefined)
-            return;
+        if (planar === undefined) return;
+
         const { curve, placement } = planar;
         const bestExistingPlacement = normalizePlacement(curve, placement, this.placements);
         return { curve, placement: bestExistingPlacement };

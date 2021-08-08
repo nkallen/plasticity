@@ -68,9 +68,7 @@ export default class ContourManager {
                     await this.curves.commit(transaction);
                     this.placementsAffectedByTransaction(transaction.added, placements);
                     if (transaction.dirty.size > 0 || transaction.added.size > 0 || transaction.removed.size > 0) {
-                        for (const placement of placements) {
-                            await this.regions.updatePlacement(placement);
-                        }
+                        for (const p of placements) await this.regions.updatePlacement(p);
                     }
                 } finally {
                     this.state = { tag: 'none' };

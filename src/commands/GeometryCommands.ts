@@ -18,6 +18,7 @@ import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFact
 import { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
+import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
 import ElementarySolidFactory from "./elementary_solid/ElementarySolidFactory";
@@ -1154,5 +1155,36 @@ export class ClipCurveCommand extends Command {
 
         const result = await cut.commit() as visual.Solid[];
         this.editor.selection.selected.addSolid(result[0]);
+    }
+}
+
+export class OffsetLoopCommand extends Command {
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selected.faces];
+        const face = faces[0];
+        const parent = faces[0].parentItem as visual.Solid
+        const model = this.editor.db.lookupTopologyItem(face);
+        let contour: c3d.ContourOnSurface | undefined;
+        const surface = model.GetSurface().GetSurface();
+        for (let i = 0, l = model.GetLoopsCount(); i < l; i++) {
+            const loop = model.GetLoop(i)!;
+            contour = loop.MakeContourOnSurface(surface, model.IsSameSense(), false);
+            break;
+        }
+        if (contour === undefined) return;
+
+        const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        offsetContour.surface = contour.GetSurface();
+        offsetContour.model = contour.GetContour();
+
+        const gizmo = new LengthGizmo("offset-loop:distance", this.editor);
+        await gizmo.execute(async distance => {
+            offsetContour.distance = distance;
+            offsetContour.update();
+        }, mode.Persistent).resource(this);
+
+        this.editor.selection.selected.removeFace(face, parent);
+
+        const foo = await offsetContour.commit();
     }
 }

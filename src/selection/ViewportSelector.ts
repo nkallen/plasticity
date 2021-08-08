@@ -128,11 +128,11 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         }
     }
 
-    onPointerUp(event: PointerEvent) {
+    onPointerUp(upEvent: PointerEvent) {
         if (!this.enabled) return;
-        if (event.button !== 0) return;
+        if (upEvent.button !== 0) return;
 
-        getMousePosition(this.domElement, event.clientX, event.clientY, this.currentPosition);
+        getMousePosition(this.domElement, upEvent.clientX, upEvent.clientY, this.currentPosition);
 
         switch (this.state.tag) {
             case 'down':

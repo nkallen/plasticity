@@ -151,7 +151,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 } else {
                     const e = this.state.error;
                     if (e instanceof ValidationError || e.isC3dError)
-                        console.warn(e.message);
+                        console.warn(`${this.constructor.name}: ${e.message}`);
                     else throw e;
                 }
                 break;
