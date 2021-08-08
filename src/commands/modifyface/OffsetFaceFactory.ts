@@ -1,6 +1,6 @@
-import { cart2vec, vec2vec } from '../../util/Conversion';
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
+import { ValidationError } from '../GeometryFactory';
 import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
 
 
@@ -14,11 +14,13 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
 
         let solid = solidModel;
 
+        let transformed = false;
         if (direction.lengthSq() > 0) {
             const params = new c3d.ModifyValues();
             params.way = c3d.ModifyingType.Offset;
             params.direction = new c3d.Vector3D(direction.x, direction.y, direction.z);
             solid = await c3d.ActionDirect.FaceModifiedSolid_async(solid, c3d.CopyMode.Copy, params, facesModel, this.names);
+            transformed = true;
         }
         if (angle !== 0) {
             const face = facesModel[0];
@@ -35,9 +37,9 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
             placement.Move(v);
             
             const names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
-            const drafted = await c3d.ActionSolid.DraftSolid(solid, c3d.CopyMode.Copy, placement, angle, faces, c3d.FacePropagation.All, false, names);
-            return drafted;
+            solid = await c3d.ActionSolid.DraftSolid_async(solid, c3d.CopyMode.Copy, placement, angle, faces, c3d.FacePropagation.All, false, names);
         }
-        return solid;
+        if (transformed) return solid;
+        else throw new ValidationError("no changes");
     }
 }
