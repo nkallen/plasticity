@@ -383,6 +383,12 @@ export default (editor: EditorLike) => {
 
             const navigationControls = new OrbitControls(camera, renderer.domElement);
             navigationControls.enableRotate = enableNavControls;
+            navigationControls.mouseButtons = {
+                // @ts-expect-error
+                LEFT: undefined,
+                MIDDLE: THREE.MOUSE.ROTATE,
+                RIGHT: THREE.MOUSE.PAN
+            }
 
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());

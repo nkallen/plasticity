@@ -1,5 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
+import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
+import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.js';
 import Command, * as cmd from "../commands/Command";
 import { CancelOrFinish } from "../commands/CommandExecutor";
 import { ChangeSelectionCommand } from "../commands/CommandLike";
@@ -13,14 +15,19 @@ export interface EditorLike extends cmd.EditorLike {
     enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>;
 }
 
+type State = { tag: 'none' } | { tag: 'down' } | { tag: 'box' }
+
 export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
     enabled = true;
 
     private readonly raycaster = new THREE.Raycaster();
-    private readonly mouse = new THREE.Vector2();
 
-    private readonly onDownPosition = new THREE.Vector2();
-    private readonly onUpPosition = new THREE.Vector2();
+    private readonly mouse = new THREE.Vector2(); // normalized device coordinates
+    private readonly onDownPosition = new THREE.Vector2(); // screen coordinates
+    private readonly currentPosition = new THREE.Vector2(); // screen coordinates
+
+    private readonly selectionBox = new SelectionBox(this.camera, new THREE.Scene());
+    private readonly selectionHelper = new SelectionHelper(this.selectionBox, undefined, 'select-box');
 
     private readonly disposable = new CompositeDisposable();
 
@@ -41,32 +48,29 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
 
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
-        this.onPointerHover = this.onPointerHover.bind(this);
+        this.onPointerMove = this.onPointerMove.bind(this);
 
         domElement.addEventListener('pointerdown', this.onPointerDown);
-        domElement.addEventListener('pointermove', this.onPointerHover);
+        domElement.addEventListener('pointermove', this.onPointerMove);
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointerdown', this.onPointerDown)));
-        this.disposable.add(new Disposable(() => domElement.removeEventListener('pointermove', this.onPointerHover)));
+        this.disposable.add(new Disposable(() => domElement.removeEventListener('pointermove', this.onPointerMove)));
     }
 
     onPointerDown(event: PointerEvent): void {
         if (!this.enabled) return;
         if (event.button !== 0) return;
 
-        const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
-        this.onDownPosition.fromArray(array);
+        getMousePosition(this.domElement, event.clientX, event.clientY, this.onDownPosition);
 
         document.addEventListener('pointerup', this.onPointerUp);
         this.dispatchEvent({ type: 'start' });
     }
 
-    onPointerHover(event: PointerEvent): void {
+    onPointerMove(event: PointerEvent): void {
         if (!this.enabled) return;
 
-        const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
-        const point = new THREE.Vector2();
-        point.fromArray(array);
-        const intersects = this.getIntersects(point, [...this.db.visibleObjects]);
+        getMousePosition(this.domElement, event.clientX, event.clientY, this.currentPosition);
+        const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
         this.processHover(intersects);
     }
 
@@ -74,11 +78,10 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         if (!this.enabled) return;
         if (event.button !== 0) return;
 
-        const array = this.getMousePosition(this.domElement, event.clientX, event.clientY);
-        this.onUpPosition.fromArray(array);
+        getMousePosition(this.domElement, event.clientX, event.clientY, this.currentPosition);
 
-        if (this.onDownPosition.distanceTo(this.onUpPosition) === 0) {
-            const intersects = this.getIntersects(this.onUpPosition, [...this.db.visibleObjects]);
+        if (this.onDownPosition.distanceTo(this.currentPosition) === 0) {
+            const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
 
             this.processClick(intersects);
         }
@@ -90,13 +93,8 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
     protected abstract processClick(intersects: THREE.Intersection[]): void;
     protected abstract processHover(intersects: THREE.Intersection[]): void;
 
-    private getMousePosition(dom: HTMLElement, x: number, y: number) {
-        const rect = dom.getBoundingClientRect();
-        return [(x - rect.left) / rect.width, (y - rect.top) / rect.height];
-    }
-
     private getIntersects(point: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
-        this.mouse.set((point.x * 2) - 1, - (point.y * 2) + 1);
+        screen2normalized(point, this.mouse);
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
         return this.raycaster.intersectObjects(objects, false);
@@ -107,6 +105,15 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
     }
 }
 
+function screen2normalized(from: THREE.Vector2, to: THREE.Vector2) {
+    to.set((from.x * 2) - 1, - (from.y * 2) + 1);
+}
+
+
+function getMousePosition(dom: HTMLElement, x: number, y: number, to: THREE.Vector2) {
+    const rect = dom.getBoundingClientRect();
+    to.set((x - rect.left) / rect.width, (y - rect.top) / rect.height);
+}
 export class ViewportSelector extends AbstractViewportSelector {
     constructor(
         camera: THREE.Camera,

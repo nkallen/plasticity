@@ -1,6 +1,3 @@
-refactor hovering code in Hover.ts to be hoverFace, hoverSolid, etc.; 
-  - make .hover private, and .hover.isEqual a method
-  - allow hovering multiple items given the need from the creator history
   - rename modifiers/creator
 
 look into making navigation controller less sensitive (at least 3 px movement), or switch to middle mouse movement
