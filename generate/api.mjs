@@ -169,7 +169,7 @@ export default {
             extends: "SpaceItem",
             dependencies: ["SpaceItem.h"],
             functions: [
-                // "const MbSurface & GetSurface()"
+                "const MbSurface & GetSurface()"
             ]
         },
         Solid: {
@@ -645,6 +645,19 @@ export default {
                 "MbFace * GetFaceMinus()",
             ]
         },
+        ContourOnSurface: {
+            rawHeader: "cur_contour_on_surface.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h"],
+        },
+        Loop: {
+            rawHeader: "topology.h",
+            extends: "TopItem",
+            dependencies: ["TopItem.h", "Surface.h", "ContourOnSurface.h"],
+            functions: [
+                "MbContourOnSurface & MakeContourOnSurface(const MbSurface & surf, bool faceSense, bool doExact=false)"
+            ]
+        },
         Face: {
             rawHeader: "topology.h",
             extends: "TopologyItem",
@@ -662,6 +675,8 @@ export default {
                 // { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
                 { signature: "void GetNeighborFaces(RPArray<MbFace> & faces)", faces: isReturn },
                 "bool HasNeighborFace()",
+                "size_t GetLoopsCount()",
+                "const MbSurface & GetSurface()",
             ]
         },
         Vertex: {
