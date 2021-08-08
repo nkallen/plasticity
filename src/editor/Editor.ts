@@ -44,7 +44,6 @@ export class Editor {
     readonly selection = new SelectionManager(this.db, this.materials, this.signals);
     readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals);
-    readonly scene = new THREE.Scene();
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
     readonly originator = new EditorOriginator(this.db, this.selection.selected, this.snaps, this.curves);
@@ -70,8 +69,6 @@ export class Editor {
 
         this.registry.attach(window);
         this.keymaps.defaultTarget = document.body;
-
-        this.scene.background = new THREE.Color(0x424242);
 
         const d = this.registry.add("ispace-workspace", {
             'undo': () => this.undo(),

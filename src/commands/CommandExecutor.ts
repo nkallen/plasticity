@@ -7,6 +7,7 @@ import { Cancel } from "../util/Cancellable";
 import Command from "./Command";
 import PlanarCurveDatabase from "./ContourManager";
 import { SelectionCommandManager } from "./SelectionCommandManager";
+import { ValidationError } from "./GeometryFactory";
 
 export type CancelOrFinish = 'cancel' | 'finish';
 
@@ -49,7 +50,10 @@ export class CommandExecutor {
                 const command = this.selectionGizmo.commandFor(next);
                 if (command !== undefined) await this.enqueue(command);
             } catch (e) {
-                if (e !== Cancel) console.warn(e);
+                if (e !== Cancel) {
+                    if (e instanceof ValidationError) console.warn(`${next.title}: ${e.message}`);
+                    else console.warn(e);
+                }
             } finally { delete this.active }
         }
     }
@@ -67,7 +71,7 @@ export class CommandExecutor {
             this.signals.objectDeselected.addOnce(() => selectionChanged = true);
             await this.contours.transaction(async () => {
                 await command.execute();
-                command.finish();    
+                command.finish();
             })
             if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
             this.history.add("Command", state);

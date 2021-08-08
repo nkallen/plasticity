@@ -163,6 +163,18 @@ export class GeometryDatabase {
         return difference;
     }
 
+    _scene = new THREE.Scene();
+    get scene(): THREE.Scene {
+        return this._scene;
+    }
+
+    rebuildScene() {
+        this._scene.clear();
+        for (const v of this.visibleObjects) this._scene.add(v);
+        this._scene.add(this.temporaryObjects);
+        return this._scene;
+    }
+
     private async meshes(obj: c3d.Item, id: c3d.SimpleName, precision_distance: [number, number][]): Promise<visual.Item> {
         let builder;
         switch (obj.IsA()) {

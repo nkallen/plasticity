@@ -1,5 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
+import { Scene } from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
@@ -30,7 +31,6 @@ export interface EditorLike extends selector.EditorLike {
     signals: EditorSignals,
     selection: SelectionManager,
     originator: EditorOriginator,
-    scene: THREE.Scene,
 }
 
 type Control = { enabled: boolean, dispose(): void };
@@ -73,7 +73,7 @@ export class Viewport {
         this.composer = new EffectComposer(this.renderer, renderTarget);
         this.composer.setPixelRatio(window.devicePixelRatio);
 
-        this.renderPass = new RenderPass(editor.scene, this.camera);
+        this.renderPass = new RenderPass(editor.db.scene, this.camera);
         const overlayPass = new RenderPass(this.overlay, this.camera);
         const helpersPass = new RenderPass(editor.helpers.scene, this.camera);
         const copyPass = new ShaderPass(CopyShader);
@@ -83,14 +83,14 @@ export class Viewport {
         helpersPass.clear = false;
         helpersPass.clearDepth = true;
 
-        const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
+        const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
         outlinePassSelection.edgeStrength = 5;
         outlinePassSelection.edgeGlow = 0;
         outlinePassSelection.edgeThickness = 1.0;
         outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
         this.outlinePassSelection = outlinePassSelection;
 
-        const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.scene, this.camera);
+        const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
         outlinePassHover.edgeStrength = 3;
         outlinePassHover.edgeGlow = 0;
         outlinePassHover.edgeThickness = 1.0;
@@ -188,30 +188,27 @@ export class Viewport {
         if (!this.needsRender) return;
 
         try {
+            const scene = this.editor.db.scene;
+
             // prepare the scene, once per frame:
             if (frameNumber > this.lastFrameNumber) {
-                const scene = this.editor.scene;
-                scene.clear();
-                for (const v of this.editor.db.visibleObjects) {
-                    scene.add(v);
-                }
-                scene.add(this.editor.db.temporaryObjects);
+                this.editor.db.rebuildScene();
+                scene.background = new THREE.Color(0x424242);
                 scene.add(this.editor.helpers.axes);
-
-                if (this.grid) this.editor.scene.add(this.grid);
-                const oldFog = this.editor.scene.fog;
-                this.editor.scene.fog = fog;
+                if (this.grid) scene.add(this.grid);
+                scene.fog = fog;
                 this.editor.selection.highlight();
             }
 
             const resolution = new THREE.Vector2(this.offsetWidth, this.offsetHeight);
             this.editor.signals.renderPrepared.dispatch({ camera: this.camera, resolution });
+
             this.composer.render();
 
             if (frameNumber > this.lastFrameNumber) {
                 this.editor.selection.unhighlight();
-                if (this.grid) this.editor.scene.remove(this.grid);
-                // this.editor.scene.fog = oldFog;
+                if (this.grid) scene.remove(this.grid);
+                scene.remove(this.editor.helpers.axes);
             }
         } finally {
             this.needsRender = false;

@@ -54,8 +54,7 @@ beforeEach(() => {
         viewports: [],
         helpers: new Helpers(signals),
         registry: new CommandRegistry(),
-        signals: signals,
-        gizmos: gizmos,
+        signals, gizmos, db
     };
     viewport = MakeViewport(editor);
     viewport.camera.position.set(0, 0, 1);

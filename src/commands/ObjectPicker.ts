@@ -76,10 +76,7 @@ export class ObjectPicker {
                 viewport.disableControlsExcept();
                 disposables.add(new Disposable(() => viewport.enableControls()));
 
-                const camera = viewport.camera;
-                const renderer = viewport.renderer;
-                const domElement = renderer.domElement;
-                const selector = new MyViewportSelector(camera, domElement, editor, selection, finish);
+                const selector = new MyViewportSelector(viewport.camera, viewport.renderer.domElement, editor, selection, finish);
 
                 disposables.add(new Disposable(() => selector.dispose()));
             }
