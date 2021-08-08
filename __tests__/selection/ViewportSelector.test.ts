@@ -35,6 +35,8 @@ beforeEach(() => {
     selectionInteraction = new SelectionInteractionManager(selection, materials, signals);
     editor = { db, enqueue, selectionInteraction } as unknown as EditorLike;
     domElement = document.createElement('canvas');
+    const parent = document.createElement('div');
+    parent.appendChild(domElement);
     camera = new THREE.PerspectiveCamera();
     selector = new ViewportSelector(camera, domElement, editor);
 });
@@ -93,4 +95,29 @@ test('hover and click on viewport will enqueue a change selection command', asyn
     expect(end).toHaveBeenCalledTimes(1);
     expect(enqueue).toHaveBeenCalledTimes(1);
     expect(enqueue.mock.calls[0][0]).toBeInstanceOf(ChangeSelectionCommand);
+});
+
+test('click and drag makes a box selection', async () => {
+    const start = jest.fn(), end = jest.fn();
+    selector.addEventListener('start', start);
+    selector.addEventListener('end', end);
+
+    domElement.dispatchEvent(pointerdown);
+    expect(start).toHaveBeenCalledTimes(1);
+    expect(end).toHaveBeenCalledTimes(0);
+    expect(enqueue).toHaveBeenCalledTimes(0);
+
+    const pointermove = new MouseEvent('pointermove', { button: 0, clientX: 50, clientY: 50 });
+    domElement.dispatchEvent(pointermove);
+    expect(start).toHaveBeenCalledTimes(1);
+    expect(end).toHaveBeenCalledTimes(0);
+    expect(enqueue).toHaveBeenCalledTimes(0);
+    expect(selection.hovered.solids.size).toBe(0);
+    expect(selection.selected.solids.size).toBe(0);
+
+    document.dispatchEvent(pointerup);
+    expect(start).toHaveBeenCalledTimes(1);
+    expect(end).toHaveBeenCalledTimes(1);
+    // expect(enqueue).toHaveBeenCalledTimes(1);
+    // expect(enqueue.mock.calls[0][0]).toBeInstanceOf(ChangeSelectionCommand);
 });

@@ -150,6 +150,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 this.selectionHelper.onSelectOver();
                 const selected = this.selectionBox.select();
 
+                this.dispatchEvent({ type: 'end' });
                 this.state.disposable.dispose();
                 this.state = { tag: 'none' };
 
