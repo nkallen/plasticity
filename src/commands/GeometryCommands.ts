@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { cart2vec } from "../util/Conversion";
+import { cart2vec, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
@@ -1168,20 +1168,29 @@ export class OffsetLoopCommand extends Command {
         const surface = model.GetSurface().GetSurface();
         for (let i = 0, l = model.GetLoopsCount(); i < l; i++) {
             const loop = model.GetLoop(i)!;
-            contour = loop.MakeContourOnSurface(surface, model.IsSameSense(), false);
+            contour = loop.MakeContourOnSurface(surface, model.IsSameSense(), true);
             break;
         }
         if (contour === undefined) return;
+        const center = contour.GetContour().GetWeightCentre();
 
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         offsetContour.surface = contour.GetSurface();
         offsetContour.model = contour.GetContour();
 
-        const gizmo = new LengthGizmo("offset-loop:distance", this.editor);
+        const gizmo = new DistanceGizmo("offset-loop:distance", this.editor);
+        const point = model.Point(center.x, center.y);
+        const normal = model.Normal(center.x, center.y);
+        gizmo.position.copy(cart2vec(point));
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal));
+
+        console.log(model.GetControlPlacement().GetOrigin());
+
         await gizmo.execute(async distance => {
             offsetContour.distance = distance;
             offsetContour.update();
         }, mode.Persistent).resource(this);
+
 
         this.editor.selection.selected.removeFace(face, parent);
 

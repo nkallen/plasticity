@@ -62,22 +62,32 @@ export default class ExtrudeFactory extends AbstractExtrudeFactory {
         const result: c3d.Contour[] = [];
         for (const curve of this.curves) {
             const inst = this.db.lookup(curve);
-            const item = inst.GetSpaceItem();
-            if (item === null) throw new Error("invalid precondition");
-            const model = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            const { curve2d } = model.GetPlaneCurve(false);
-            result.push(new c3d.Contour([curve2d], true));
+            const item = inst.GetSpaceItem()!;
+
+            if (item.IsA() === c3d.SpaceType.ContourOnSurface || item.IsA() === c3d.SpaceType.ContourOnPlane) {
+                const model = item.Cast<c3d.ContourOnSurface>(item.IsA());
+                result.push(model.GetContour());
+            } else {
+                const model = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+                const { curve2d } = model.GetPlaneCurve(false);
+                result.push(new c3d.Contour([curve2d], true));
+            }
         }
         return result;
     }
 
     protected get surface() {
         const inst = this.db.lookup(this.curves[0]);
-        const item = inst.GetSpaceItem();
-        if (item === null) throw new Error("invalid precondition");
-        const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-        const { placement } = curve.GetPlaneCurve(false);
-        return new c3d.Plane(placement, 0);
+        const item = inst.GetSpaceItem()!;
+
+        if (item.IsA() === c3d.SpaceType.ContourOnSurface || item.IsA() === c3d.SpaceType.ContourOnPlane) {
+            const model = item.Cast<c3d.ContourOnSurface>(item.IsA());
+            return model.GetSurface();
+        } else {
+            const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            const { placement } = curve.GetPlaneCurve(false);
+            return new c3d.Plane(placement, 0);
+        }
     }
 }
 

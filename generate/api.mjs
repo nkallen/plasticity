@@ -226,6 +226,7 @@ export default {
                 "double GetTMax()",
                 "double GetTMin()",
                 "double GetPeriod()",
+                { signature: "bool GetWeightCentre(MbCartPoint & point)", point: isReturn, return: isErrorBool },
                 { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint & point)", point: isReturn },
                 { signature: "void PointOn(double &t, MbCartPoint &p)", p: isReturn },
                 { signature: "void _PointOn(double &t, MbCartPoint &p)", p: isReturn },
@@ -587,7 +588,12 @@ export default {
         Matrix: {
             rawHeader: "mb_matrix.h",
             dependencies: ["Placement.h"],
-            initializers: ["const MbPlacement & place"]
+            initializers: ["", "const MbPlacement & place"],
+            functions: [
+                "void Scale(double s)",
+                "void ScaleX(double s)",
+                "void ScaleY(double s)",
+            ]
         },
         Matrix3D: {
             rawHeader: "mb_matrix3d.h",
@@ -693,6 +699,7 @@ export default {
                 { signature: "bool GetSurfacePlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
                 { signature: "MbeItemLocation NearPointProjection(const MbCartPoint3D & point, double & u, double & v, MbVector3D & normal, c3d::IndicesPair & edgeLoc, ptrdiff_t & corner)", u: isReturn, v: isReturn, normal: isReturn, edgeLoc: isReturn, corner: isReturn, return: { name: "location" } },
                 { signature: "void GetFaceParam(const double surfaceU, const double surfaceV, double & faceU, double & faceV)", faceU: isReturn, faceV: isReturn },
+                { signature: "void GetSurfaceParam(const double faceU, const double faceV, double & surfaceU, double & surfaceV)", surfaceU: isReturn, surfaceV: isReturn },
                 { signature: "void GetOuterEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
                 // { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
                 { signature: "void GetNeighborFaces(RPArray<MbFace> & faces)", faces: isReturn },
@@ -1198,12 +1205,13 @@ export default {
         },
         ActionCurve: {
             rawHeader: "action_curve.h",
-            dependencies: ["CartPoint.h", "Curve.h", "Contour.h"],
+            dependencies: ["CartPoint.h", "Curve.h", "Contour.h", "Curve3D.h"],
             functions: [
                 "MbResultType Arc(const MbCartPoint & center, const SArray<MbCartPoint> & points, bool curveClosed, double angle, double & a, double & b, MbCurve *& result)",
                 "MbResultType SplineCurve(const SArray<MbCartPoint> & points, bool closed, MbePlaneType curveType, MbCurve *& result)",
                 // { signature: "MbResultType IntersectContour(MbCurve & newCurve, RPArray<MbCurve> & curves, MbContour *& result)" },
                 "MbContour * OffsetContour(const MbContour & cntr, double rad, double xEpsilon, double yEpsilon, bool modifySegments, VERSION version = Math::DefaultMathVersion())",
+                "MbResultType SurfaceBoundContour(const MbSurface & surface, const MbCurve3D & spaceCurve, VERSION version = Math::DefaultMathVersion(), MbContour *& result)"
             ]
         },
         ActionCurve3D: {

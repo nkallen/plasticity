@@ -4,6 +4,7 @@ need explode/separate command
 stick to surface max
 more solid creators
 redo Dialogs and show errors
+BUG: initiate extrude cannot cancel?
 
 delete Transactions.ts and booleanregion and deleteregion;
 

@@ -217,15 +217,17 @@ export class GeometryDatabase {
                 if (underlying.Family() !== c3d.SpaceType.Curve3D) throw new Error("invalid precondition");
 
                 const edges = mesh.GetEdges();
-                if (edges.length != 1) throw new Error("invalid precondition");
-                const edge = edges[0];
+                if (edges.length === 0) throw new Error(`invalid precondition: no edges`);
 
                 const lineMaterial = this.materials.line(instance);
                 const pointMaterial = this.materials.controlPoint();
 
                 const pointGroup = visual.ControlPointGroup.build(underlying, id, pointMaterial);
 
-                const line = visual.Curve3D.build(edge, id, pointGroup, lineMaterial);
+                let line;
+                if (edges.length > 1) line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, this.materials.lineDashed());
+                else line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, this.materials.lineDashed());
+
                 curveBuilder.addLOD(line, distance);
                 break;
             }

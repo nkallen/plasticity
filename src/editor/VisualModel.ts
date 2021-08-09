@@ -89,15 +89,16 @@ export type FragmentInfo = { start: number, stop: number, untrimmedAncestor: Spa
 
 export class Curve3D extends SpaceItem {
     disposable = new CompositeDisposable();
-    readonly line: Line2;
-    readonly points: ControlPointGroup;
 
-    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial): Curve3D {
+    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial, occludedMaterial: LineMaterial): Curve3D {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
 
-        const built = new Curve3D(line, points, edge.name, edge.simpleName);
+        const occludedLine = new Line2(geometry, occludedMaterial);
+        occludedLine.computeLineDistances();
+
+        const built = new Curve3D(line, occludedLine, points, edge.name, edge.simpleName);
 
         built.layers.set(Layers.Curve);
         line.layers.set(Layers.Curve);
@@ -105,12 +106,11 @@ export class Curve3D extends SpaceItem {
         return built;
     }
 
-    private constructor(line: Line2, points: ControlPointGroup, name: c3d.Name, simpleName: number) {
+    private constructor(readonly line: Line2, readonly occludedLine: Line2, readonly points: ControlPointGroup, name: c3d.Name, simpleName: number) {
         super();
-        this.add(line);
-        this.add(points);
-        this.points = points;
-        this.line = line;
+        this.add(line, occludedLine, points);
+        occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
+
         this.userData.name = name;
         this.userData.simpleName = simpleName;
         this.renderOrder = RenderOrder.CurveSegment;

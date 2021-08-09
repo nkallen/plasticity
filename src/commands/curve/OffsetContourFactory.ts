@@ -10,11 +10,16 @@ export default class OffsetContourFactory extends GeometryFactory {
     protected async computeGeometry() {
         const { model, distance, surface } = this;
 
-        const offset = c3d.ActionCurve.OffsetContour(model, distance, surface.GetUEpsilon(), surface.GetVEpsilon(), true);
+        const offset = c3d.ActionCurve.OffsetContour(model, distance, surface.GetUEpsilon(), surface.GetVEpsilon(), false);
+        // const mat = new c3d.Matrix();
+        // mat.ScaleX(1.01);
+        // model.Transform(mat)
 
-        if (offset === null) throw new ValidationError("invalid curve");
+        // if (offset === null) throw new ValidationError("invalid curve");
 
-        const contourOnSurface = new c3d.ContourOnSurface(surface, offset, false);
+        // const plane = new c3d.Plane(placement, 0);
+
+        const contourOnSurface = new c3d.ContourOnSurface(surface, offset!, false);
 
         return new c3d.SpaceInstance(contourOnSurface);
     }
