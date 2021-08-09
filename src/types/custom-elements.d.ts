@@ -1,4 +1,4 @@
-import { ChangeEvent } from "src/components/modifiers/NumberScrubber";
+import { ChangeEvent } from "src/components/creators/NumberScrubber";
 import * as visual from '../../VisualModel';
 import c3d from '../../../build/Release/c3d.node';
 

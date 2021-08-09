@@ -1,5 +1,3 @@
-  - rename modifiers/creator
-curve 3d needs dashed line too
 need explode/separate command
 stick to surface max
 more solid creators
@@ -87,7 +85,6 @@ BUGS for c3d
 FUTURE:
 
 dialog box for settings
-modifiers
 
 test case for contour curve failing to extrude;
 fillet curve thingy

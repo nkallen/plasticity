@@ -38,7 +38,7 @@ export class Model {
 }
 
 export default (editor: Editor) => {
-    class Modifiers extends HTMLElement {
+    class Creators extends HTMLElement {
         private readonly dispose = new CompositeDisposable();
         private readonly model = new Model(editor.selection.selected, editor.db);
 
@@ -68,7 +68,7 @@ export default (editor: Editor) => {
             this.dispose.dispose();
         }
     }
-    customElements.define('ispace-modifiers', Modifiers);
+    customElements.define('ispace-creators', Creators);
 
     class Creator<C extends c3d.Creator, T> extends HTMLElement {
         constructor() {
