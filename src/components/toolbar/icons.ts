@@ -68,14 +68,13 @@ icons.set(cmd.ThreePointRectangleCommand, threePointRectangle);
 icons.set(cmd.CornerRectangleCommand, cornerRectangle);
 icons.set(cmd.CenterRectangleCommand, centerRectangle);
 icons.set(cmd.CylinderCommand, cylinder);
-icons.set(cmd.BoxCommand, box);
+icons.set(cmd.ThreePointBoxCommand, box);
+icons.set(cmd.CornerBoxCommand, box);
 icons.set(cmd.LoftCommand, loft);
 icons.set(cmd.ExtrudeCommand, extrude);
 icons.set(cmd.ExtrudeRegionCommand, extrude);
 icons.set(cmd.MirrorCommand, mirror);
 icons.set(cmd.JoinCurvesCommand, join);
-// icons.set(cmd.RegionCommand, mirror);
-// icons.set(cmd.RegionBooleanCommand, mirror);
 icons.set(cmd.SpiralCommand, spiral);
 icons.set(cmd.CharacterCurveCommand, characterCurve);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
@@ -119,7 +118,8 @@ tooltips.set(cmd.ThreePointRectangleCommand, "Three point rectangle");
 tooltips.set(cmd.CornerRectangleCommand, "Corner rectangle");
 tooltips.set(cmd.CenterRectangleCommand, "Center rectangle");
 tooltips.set(cmd.CylinderCommand, "Cylinder");
-tooltips.set(cmd.BoxCommand, "Box");
+tooltips.set(cmd.ThreePointBoxCommand, "Three point Box");
+tooltips.set(cmd.CornerBoxCommand, "Corner box");
 tooltips.set(cmd.LoftCommand, "Loft");
 tooltips.set(cmd.ExtrudeCommand, "Extrude");
 tooltips.set(cmd.MirrorCommand, "Mirror");
@@ -186,8 +186,8 @@ export default (editor: Editor): void => {
         'command:center-rectangle': () => editor.enqueue(new cmd.CenterRectangleCommand(editor)),
         'command:line': () => editor.enqueue(new cmd.LineCommand(editor)),
         'command:curve': () => editor.enqueue(new cmd.CurveCommand(editor)),
-        'command:rect': () => editor.enqueue(new cmd.ThreePointRectangleCommand(editor)),
-        'command:box': () => editor.enqueue(new cmd.BoxCommand(editor)),
+        'command:corner-rectangle': () => editor.enqueue(new cmd.CornerRectangleCommand(editor)),
+        'command:corner-box': () => editor.enqueue(new cmd.CornerBoxCommand(editor)),
         'command:union': () => editor.enqueue(new cmd.UnionCommand(editor)),
         'command:intersection': () => editor.enqueue(new cmd.IntersectionCommand(editor)),
         'command:difference': () => editor.enqueue(new cmd.DifferenceCommand(editor)),

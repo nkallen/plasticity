@@ -7,7 +7,7 @@ import { cart2vec, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
-import { ThreePointBoxFactory } from './box/BoxFactory';
+import { CornerBoxFactory, ThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
 import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
@@ -447,7 +447,7 @@ export class ThreePointRectangleCommand extends Command {
             line.p2 = p2;
             line.update();
         }).resource(this);
-        await line.cancel();
+        line.cancel();
 
         const rect = new ThreePointRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
@@ -507,7 +507,7 @@ export class CenterRectangleCommand extends Command {
     }
 }
 
-export class BoxCommand extends Command {
+export class ThreePointBoxCommand extends Command {
     async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
 
@@ -535,6 +535,40 @@ export class BoxCommand extends Command {
         box.p3 = p3;
         await pointPicker.execute(({ point: p4 }) => {
             box.p4 = p4;
+            box.update();
+        }).resource(this);
+        await box.commit();
+    }
+}
+
+export class CornerBoxCommand extends Command {
+    async execute(): Promise<void> {
+        const pointPicker = new PointPicker(this.editor);
+        const { point: p1 } = await pointPicker.execute().resource(this);
+
+        pointPicker.restrictToPlaneThroughPoint(p1);
+        pointPicker.straightSnaps.delete(AxisSnap.X);
+        pointPicker.straightSnaps.delete(AxisSnap.Y);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
+        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
+
+        const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        rect.p1 = p1;
+        const { point: p2 } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+            rect.p2 = p2;
+            rect.constructionPlane = constructionPlane;
+            rect.update();
+        }).resource(this);
+        rect.cancel();
+
+        pointPicker.straightSnaps.add(AxisSnap.Z);
+
+        const box = new CornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        box.p1 = p1;
+        box.p2 = p2;
+        await pointPicker.execute(({ point: p3 }) => {
+            box.p3 = p3;
             box.update();
         }).resource(this);
         await box.commit();

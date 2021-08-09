@@ -9,7 +9,7 @@ import * as visual from '../../src/editor/VisualModel';
 import FilletFactory from "../../src/commands/fillet/FilletFactory";
 
 let db: GeometryDatabase;
-let makeBox: BoxFactory;
+let makeBox: ThreePointBoxFactory;
 let makeFillet: FilletFactory;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;

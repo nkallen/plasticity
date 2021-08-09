@@ -8,7 +8,7 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 let db: GeometryDatabase;
-let makeBox: BoxFactory;
+let makeBox: ThreePointBoxFactory;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 
