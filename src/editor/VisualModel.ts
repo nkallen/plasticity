@@ -4,7 +4,7 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
-import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
+import { BetterRaycastingPoint, BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { applyMixins } from '../util/Util';
 
 /**
@@ -102,6 +102,7 @@ export class Curve3D extends SpaceItem {
 
         built.layers.set(Layers.Curve);
         line.layers.set(Layers.Curve);
+        occludedLine.layers.set(Layers.Curve);
 
         return built;
     }
@@ -363,7 +364,7 @@ export class ControlPointGroup extends THREE.Group {
         return result;
     }
 
-    findByIndex(i: number): ControlPoint | undefined {
+    findByIndex(i: number): ControlPoint {
         if (i >= this.length) throw new Error("invalid precondition");
         return new ControlPoint(
             this.parentItem,
@@ -560,7 +561,7 @@ export interface Intersection {
 
 export function filter(intersections: THREE.Intersection[]): Intersection[] {
     const map = new Map<Selectable, [THREE.Vector3, number]>();
-    intersections: for (const intersection of intersections) {
+    for (const intersection of intersections) {
         const { object, point, distance } = intersection;
         if (!isSelectable(object)) continue;
 
@@ -587,11 +588,11 @@ function isSelectable(object: THREE.Object3D): boolean {
 }
 
 function findSelectable(object: THREE.Object3D, index?: number): Selectable {
-    if (object instanceof BetterRaycastingPoints) {
-        const controlPointGroup = object.parent! as ControlPointGroup;
+    if (object instanceof BetterRaycastingPoint) {
+        const controlPointGroup = object.parent.parent! as ControlPointGroup;
         if (!(controlPointGroup instanceof ControlPointGroup))
             throw new Error("invalid precondition: " + parent.constructor.name);
-        return controlPointGroup.findByIndex(index!)!
+        return controlPointGroup.findByIndex(object.index)!;
     } else {
         const parent = object.parent!;
         if (!(parent instanceof Item || parent instanceof TopologyItem || parent instanceof Region || parent instanceof Curve3D))

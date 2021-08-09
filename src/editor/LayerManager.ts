@@ -39,10 +39,11 @@ export default class LayerManager {
 
     showControlPoints() {
         visual.VisibleLayers.enable(visual.Layers.ControlPoint);
+        visual.SelectableLayers.enable(visual.Layers.ControlPoint);
     }
 
     hideControlPoints() {
         visual.VisibleLayers.disable(visual.Layers.ControlPoint);
-
+        visual.SelectableLayers.disable(visual.Layers.ControlPoint);
     }
 }

@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
+import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
 import * as THREE from "three";
-import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 import Command, * as cmd from "../commands/Command";
 import { CancelOrFinish } from "../commands/CommandExecutor";
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
@@ -40,7 +40,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
     private readonly onDownPosition = new THREE.Vector2(); // screen coordinates
     private readonly currentPosition = new THREE.Vector2(); // screen coordinates
 
-    private readonly selectionBox = new SelectionBox(this.camera, this.db.scene);
+    private readonly selectionBox = new BetterSelectionBox(this.camera, this.db.scene);
     private readonly selectionHelper = new SelectionHelper(this.domElement, 'select-box');
 
     private readonly disposable = new CompositeDisposable();

@@ -1175,8 +1175,6 @@ export class OffsetLoopCommand extends Command {
         gizmo.position.copy(cart2vec(point));
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal));
 
-        console.log(model.GetControlPlacement().GetOrigin());
-
         await gizmo.execute(async distance => {
             offsetContour.distance = distance;
             offsetContour.update();
