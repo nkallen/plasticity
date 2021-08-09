@@ -1,6 +1,6 @@
 need explode/separate command
-stick to surface max
-more solid creators
+stick to surface max / draw on surface
+redo and more solid creators
 redo Dialogs and show errors
 
 delete Transactions.ts;
@@ -11,7 +11,6 @@ interleaving with updating/commit on factory. use q?
 refactor factory to take editorlike?
   -         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
 
-draw on surface
 
 
 moving needs to have snapping
@@ -19,6 +18,10 @@ redo fillet gizmos
 drag and drop points
 
 fillet face
+
+right click repeat
+
+change selection mode 123 keys
 
 BUG/CRASH:
 # 1
@@ -33,21 +36,18 @@ BUG/CRASH:
 
 # transaction history
 - delete creator
+- select topo items
 - mute creator, etc.
 - handle rebuild errors
+- there is a bug where fillet seems to highlight everything
 
 # move keybindings outside of loop keybindings
 - onPointerDown and on command (registry.addOne), store the viewport the pointer is over
 - keep lastPointerEvent as a global on editor
 - dispatch keyboard events to the target of lastPointerEvent
 
-boolean cut should take line direction into account
-
 # c++ changes:
 rename Id() .id
-Cast should automatically take IsA();
-
-redo all the basic commands (creating a box, etc.,) including the gui
 
 audit array conversion is reserving and freeing elements:
     ::AddRefItems( curveArray );
@@ -67,14 +67,6 @@ auto save last object, auto lastGood
 
 BUG:
 
-onpointermove needs to take an async cb
-
-
-it seems clear that scheduling stuff isn't entirely working; things can backlog somehow. all updating should automatically be scheduled.
-
-both point picker and abstract gizmo take callbacks that should be async, because they call update which is potentially async
-cylinder not working in many cases
-
 BUGS for c3d
 - crashes when extruding composite curve
 - lots of push pull grow/shrink crashes
@@ -85,35 +77,17 @@ FUTURE:
 
 dialog box for settings
 
-test case for contour curve failing to extrude;
-fillet curve thingy
-
-right click repeat
-
-box selection
-
-bug: outlines broken by grid, axes missing
-
-audit all doCommit to ensure visibility is set to true on failure;
-  - perhaps the catch on Editor should call cancel
-
-go through all factories and see if you can return more specific types from doCommit, like:
-    -  Promise<visual.SpaceInstance<visual.Curve3D>> 
-
-audit VisualModel to see if we can simplify the recursive raycasting. It was originally introduced for LODs, but maybe it can be done with deep raycasting and hit filtering.
+bug: outlines broken by grid
 
 --
 
 Viewport week:
 - keybindings to create/remove viewports
-
-Gizmo week:
-- point-picker style move/etc.
-- Dialogs
+- change view with keybinding
 
 Cleanup week:
-- Lint to require return values of fn's.
 - add dispose methods anywhere there is signal.add or .addEventListener
+- audit geometry disposable
 
 Snap week:
 - Prettier snap display
@@ -122,6 +96,3 @@ Snap week:
 
 File save / open
 
-expose selection to console as well as commands with editor already injected.
-select method should be more direct
-change selection mode 123 keys
