@@ -124,6 +124,18 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 screen2normalized(this.currentPosition, this.normalizedMousePosition);
                 this.selectionBox.endPoint.set(this.normalizedMousePosition.x, this.normalizedMousePosition.y, 0.5);
                 this.selectionHelper.onSelectMove(moveEvent);
+
+                const selected = this.selectionBox.select();
+                const set = new Set<visual.Selectable>();
+                for (const item of selected) {
+                    if (!item.layers.test(visual.SelectableLayers)) continue;
+                    const parent = item.parent!;
+                    if (!parent.visible) continue;
+
+                    set.add(parent as visual.Selectable);
+                }
+                this.processBoxHover(set);
+
                 break;
         }
     }
@@ -148,7 +160,17 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 screen2normalized(this.currentPosition, this.normalizedMousePosition);
                 this.selectionBox.endPoint.set(this.normalizedMousePosition.x, this.normalizedMousePosition.y, 0.5);
                 this.selectionHelper.onSelectOver();
+
                 const selected = this.selectionBox.select();
+                const set = new Set<visual.Selectable>();
+                for (const item of selected) {
+                    if (!item.layers.test(visual.SelectableLayers)) continue;
+                    const parent = item.parent!;
+                    if (!parent.visible) continue;
+
+                    set.add(parent as visual.Selectable);
+                }
+                this.processBoxSelect(set);
 
                 this.dispatchEvent({ type: 'end' });
                 this.state.disposable.dispose();
@@ -158,6 +180,9 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
             default: throw new Error('invalid state: ' + this.state.tag);
         }
     }
+
+    protected abstract processBoxHover(selected: Set<visual.Selectable>): void;
+    protected abstract processBoxSelect(selected: Set<visual.Selectable>): void;
 
     protected abstract processClick(intersects: THREE.Intersection[]): void;
     protected abstract processHover(intersects: THREE.Intersection[]): void;
@@ -189,6 +214,14 @@ export class ViewportSelector extends AbstractViewportSelector {
         super(camera, domElement, editor.db, editor.signals);
     }
 
+    protected processBoxHover(selected: Set<visual.Selectable>) {
+        this.editor.selectionInteraction.onBoxHover(selected);
+    }
+
+    protected processBoxSelect(selected: Set<visual.Selectable>) {
+        this.editor.selectionInteraction.onBoxSelect(selected);
+    }
+
     protected processClick(intersects: THREE.Intersection[]) {
         const command = new ChangeSelectionCommand(this.editor, intersects);
         this.editor.enqueue(command, 'finish');
@@ -202,7 +235,6 @@ export class ViewportSelector extends AbstractViewportSelector {
 // Time thresholds are in milliseconds, distance thresholds are in pixels.
 const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
 const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummated
-
 
 class SelectionHelper {
     private readonly element: HTMLElement;

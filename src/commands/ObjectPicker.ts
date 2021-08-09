@@ -32,6 +32,8 @@ class MyViewportSelector extends AbstractViewportSelector {
         this.selection.mode.add(SelectionMode.Curve);
     }
 
+    // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
+    // Ttis class is used in commands temporarily modify the selection
     protected processClick(intersections: THREE.Intersection[]) {
         this.interaction.onClick(intersections);
         if (intersections.length === 0) this.onEmptyIntersection();
@@ -45,7 +47,7 @@ class MyViewportSelector extends AbstractViewportSelector {
 export class ObjectPicker {
     constructor(private readonly editor: EditorLike) { }
 
-    execute(cb?: (o: visual.Item | visual.TopologyItem | visual.ControlPoint | visual.Region) => void): CancellablePromise<HasSelection> {
+    execute(cb?: (o: visual.Selectable) => void): CancellablePromise<HasSelection> {
         return new CancellablePromise((resolve, reject) => {
             const editor = this.editor;
 

@@ -53,8 +53,8 @@ export interface ModifiesSelection extends HasSelection {
 
 interface SignalLike {
     objectRemovedFromDatabase: signals.Signal<visual.Item>;
-    objectAdded: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint | visual.Region>;
-    objectRemoved: signals.Signal<visual.Item | visual.TopologyItem | visual.ControlPoint | visual.Region>;
+    objectAdded: signals.Signal<visual.Selectable>;
+    objectRemoved: signals.Signal<visual.Selectable>;
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
 }
 

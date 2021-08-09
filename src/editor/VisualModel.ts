@@ -145,7 +145,8 @@ export class Curve3D extends SpaceItem {
 
     befragment(start: number, stop: number, ancestor: SpaceInstance<Curve3D>) {
         this.layers.set(Layers.CurveFragment);
-        this.line.layers.set(Layers.CurveFragment);
+        this.traverse(child => child.layers.set(Layers.CurveFragment));
+
         this.userData.start = start;
         this.userData.stop = stop;
         this.userData.untrimmedAncestor = ancestor;
@@ -197,13 +198,13 @@ export class Region extends PlaneItem {
 export abstract class TopologyItem extends THREE.Object3D {
     private _useNominal: undefined;
 
-    get parentItem(): Item {
+    get parentItem(): Solid {
         const result = this.parent?.parent?.parent?.parent;
-        if (!(result instanceof Item)) {
+        if (!(result instanceof Solid)) {
             console.error(this);
             throw new Error("Invalid precondition");
         }
-        return result as Item;
+        return result as Solid;
     }
 
     get simpleName(): string { return this.userData.simpleName }
@@ -614,3 +615,5 @@ export const SelectableLayers = new THREE.Layers();
 SelectableLayers.enableAll();
 SelectableLayers.disable(Layers.CurveFragment);
 SelectableLayers.disable(Layers.ControlPoint);
+
+export type Selectable = Item | TopologyItem | ControlPoint | Region;

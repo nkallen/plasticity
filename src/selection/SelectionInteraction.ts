@@ -75,6 +75,44 @@ export class SelectionInteractionManager {
     onHover(intersections: THREE.Intersection[]): void {
         this.onIntersection(intersections, this.hoverStrategy);
     }
+
+    onBoxHover(selected: Set<visual.Selectable>) {
+        const selection = this.selection;
+        selection.hovered.removeAll();
+
+        for (const object of selected) {
+            if (object instanceof visual.Face) {
+                selection.hovered.addFace(object, object.parentItem);
+            } else if (object instanceof visual.CurveEdge) {
+                selection.hovered.addEdge(object, object.parentItem);
+            } else if (object instanceof visual.Curve3D) {
+                selection.hovered.addCurve(object.parentItem);
+            } else if (object instanceof visual.ControlPoint) {
+                selection.hovered.addControlPoint(object, object.parentItem);
+            } else if (object instanceof visual.Region) {
+                selection.hovered.addRegion(object.parentItem);
+            }
+        }
+    }
+
+    onBoxSelect(selected: Set<visual.Selectable>) {
+        const selection = this.selection;
+        selection.hovered.removeAll();
+
+        for (const object of selected) {
+            if (object instanceof visual.Face) {
+                selection.selected.addFace(object, object.parentItem);
+            } else if (object instanceof visual.CurveEdge) {
+                selection.selected.addEdge(object, object.parentItem);
+            } else if (object instanceof visual.Curve3D) {
+                selection.selected.addCurve(object.parentItem);
+            } else if (object instanceof visual.ControlPoint) {
+                selection.selected.addControlPoint(object, object.parentItem);
+            } else if (object instanceof visual.Region) {
+                selection.selected.addRegion(object.parentItem);
+            }
+        }
+    }
 }
 
 const map = new Map<any, number>();
