@@ -7,7 +7,7 @@ import { cart2vec, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
-import BoxFactory from './box/BoxFactory';
+import { ThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
 import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
@@ -518,7 +518,7 @@ export class BoxCommand extends Command {
             line.p2 = p2;
             line.update();
         }).resource(this);
-        await line.cancel();
+        line.cancel();
 
         const rect = new ThreePointRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
@@ -527,9 +527,9 @@ export class BoxCommand extends Command {
             rect.p3 = p3;
             rect.update();
         }).resource(this);
-        await rect.cancel();
+        rect.cancel();
 
-        const box = new BoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const box = new ThreePointBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         box.p1 = p1;
         box.p2 = p2;
         box.p3 = p3;

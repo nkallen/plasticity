@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import * as THREE from 'three';
-import BoxFactory from '../../src/commands/box/BoxFactory';
+import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from '../../src/commands/CommandLike';
 import { EditorLike } from '../../src/components/viewport/Viewport';
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -45,7 +45,7 @@ let solid: visual.Solid;
 
 beforeEach(async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
-    const makeBox = new BoxFactory(db, materials, signals);
+    const makeBox = new ThreePointBoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();
     makeBox.p2 = new THREE.Vector3(1, 0, 0);
     makeBox.p3 = new THREE.Vector3(1, 1, 0);

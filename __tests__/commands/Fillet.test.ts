@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import BoxFactory from "../../src/commands/box/BoxFactory";
+import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -18,7 +18,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    makeBox = new BoxFactory(db, materials, signals);
+    makeBox = new ThreePointBoxFactory(db, materials, signals);
     makeFillet = new FilletFactory(db, materials, signals);
 })
 

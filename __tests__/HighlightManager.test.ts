@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import BoxFactory from '../src/commands/box/BoxFactory';
+import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import { CenterCircleFactory } from '../src/commands/circle/CircleFactory';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
@@ -25,7 +25,7 @@ beforeEach(async () => {
     db = new GeometryDatabase(materials, signals);
     highlighter = new HighlightManager(db);
 
-    const makeBox = new BoxFactory(db, materials, signals);
+    const makeBox = new ThreePointBoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();
     makeBox.p2 = new THREE.Vector3(1, 0, 0);
     makeBox.p3 = new THREE.Vector3(1, 1, 0);
