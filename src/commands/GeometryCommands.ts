@@ -47,7 +47,6 @@ import { PointPicker } from './PointPicker';
 import { PolygonFactory } from "./polygon/PolygonFactory";
 import { PolygonKeyboardEvent, PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
-import { RegionBooleanFactory } from "./region/RegionBooleanFactory";
 import { RegionFactory } from "./region/RegionFactory";
 import RotateFactory from './rotate/RotateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
@@ -336,14 +335,6 @@ export class RegionCommand extends Command {
     async execute(): Promise<void> {
         const region = new RegionFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         region.contours = [...this.editor.selection.selected.curves];
-        await region.commit();
-    }
-}
-
-export class RegionBooleanCommand extends Command {
-    async execute(): Promise<void> {
-        const region = new RegionBooleanFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        region.regions = [...this.editor.selection.selected.regions];
         await region.commit();
     }
 }

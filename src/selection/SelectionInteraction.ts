@@ -45,10 +45,8 @@ export class SelectionInteractionManager {
             const object = intersection.object;
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
-                if (this.selection.mode.has(SelectionMode.Solid)) {
-                    if (strategy.solid(object, parentItem as Solid)) return intersection;
-                }
-                if (strategy.topologicalItem(object, parentItem as Solid)) return intersection;
+                if (strategy.solid(object, parentItem)) return intersection;
+                if (strategy.topologicalItem(object, parentItem)) return intersection;
             } else if (object instanceof Curve3D) {
                 const parentItem = object.parentItem;
                 if (strategy.curve3D(object, parentItem)) return intersection;
@@ -76,42 +74,12 @@ export class SelectionInteractionManager {
         this.onIntersection(intersections, this.hoverStrategy);
     }
 
-    onBoxHover(selected: Set<visual.Selectable>) {
-        const selection = this.selection;
-        selection.hovered.removeAll();
-
-        for (const object of selected) {
-            if (object instanceof visual.Face) {
-                selection.hovered.addFace(object, object.parentItem);
-            } else if (object instanceof visual.CurveEdge) {
-                selection.hovered.addEdge(object, object.parentItem);
-            } else if (object instanceof visual.Curve3D) {
-                selection.hovered.addCurve(object.parentItem);
-            } else if (object instanceof visual.ControlPoint) {
-                selection.hovered.addControlPoint(object, object.parentItem);
-            } else if (object instanceof visual.Region) {
-                selection.hovered.addRegion(object.parentItem);
-            }
-        }
+    onBoxHover(hover: Set<visual.Selectable>) {
+        this.hoverStrategy.box(hover);
     }
 
-    onBoxSelect(selected: Set<visual.Selectable>) {
-        const selection = this.selection;
-        selection.hovered.removeAll();
-
-        for (const object of selected) {
-            if (object instanceof visual.Face) {
-                selection.selected.addFace(object, object.parentItem);
-            } else if (object instanceof visual.CurveEdge) {
-                selection.selected.addEdge(object, object.parentItem);
-            } else if (object instanceof visual.Curve3D) {
-                selection.selected.addCurve(object.parentItem);
-            } else if (object instanceof visual.ControlPoint) {
-                selection.selected.addControlPoint(object, object.parentItem);
-            } else if (object instanceof visual.Region) {
-                selection.selected.addRegion(object.parentItem);
-            }
-        }
+    onBoxSelect(select: Set<visual.Selectable>) {
+        this.clickStrategy.box(select);
     }
 }
 

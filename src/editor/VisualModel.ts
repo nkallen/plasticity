@@ -122,20 +122,6 @@ export class Curve3D extends SpaceItem {
         return result;
     }
 
-    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        if (!this.layers.test(raycaster.layers)) return;
-
-        this.points.raycast(raycaster, intersects);
-        
-        const is: THREE.Intersection[] = [];
-        this.line.raycast(raycaster, is);
-        if (is.length > 0) {
-            const i = is[0];
-            i.object = this;
-            intersects.push(i);
-        }
-    }
-
     get fragmentInfo(): FragmentInfo | undefined {
         const layer = new THREE.Layers();
         layer.set(Layers.CurveFragment);
@@ -313,7 +299,7 @@ export class FaceGroup extends THREE.Group {
 // individual point, we "fake" it by creating a dummy object (cf findByIndex). Performance
 // optimizations aside, we do our usual raycast proxying to children, but we also have a completely
 // different screen-space raycasting algorithm in BetterRaycastingPoints.
-export class ControlPointGroup extends THREE.Object3D {
+export class ControlPointGroup extends THREE.Group {
     static build(item: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial): ControlPointGroup {
         let points: c3d.CartPoint3D[] = [];
         switch (item.Type()) {
@@ -393,19 +379,6 @@ export class ControlPointGroup extends THREE.Object3D {
     }
 
     get parentId(): number { return this.userData.parentId }
-
-    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        if (!raycaster.layers.test(this.layers)) return;
-        if (this.points === undefined) return;
-
-        const is: THREE.Intersection[] = [];
-        this.points.raycast(raycaster, is);
-        if (is.length > 0) {
-            const i = is[0];
-            i.object = this.findByIndex(i.index!)!;
-            intersects.push(i);
-        }
-    }
 }
 
 /**
@@ -414,7 +387,7 @@ export class ControlPointGroup extends THREE.Object3D {
  */
 abstract class GeometryDisposable<T extends THREE.BufferGeometry> {
     abstract get geometry(): T;
-    dispose() { this.geometry.dispose() }
+    dispose() { this.geometry?.dispose() }
 }
 
 export interface SpaceItem extends DisposableLike { }
@@ -446,60 +419,6 @@ applyMixins(CurveEdgeGroup, [HasDisposable]);
 applyMixins(Region, [HasDisposable]);
 
 /**
- * We also want some recursive raycasting behavior. Why don't we just use instersectObjects(recursive: true)?
- */
-
-abstract class RaycastsRecursively {
-    abstract children: THREE.Object3D[];
-
-    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        for (const child of this.children) {
-            child.raycast(raycaster, intersects);
-        }
-    }
-}
-
-applyMixins(Solid, [RaycastsRecursively]);
-applyMixins(FaceGroup, [RaycastsRecursively]);
-applyMixins(CurveEdgeGroup, [RaycastsRecursively]);
-applyMixins(SpaceInstance, [RaycastsRecursively]);
-applyMixins(PlaneInstance, [RaycastsRecursively]);
-
-export class RecursiveGroup extends THREE.Group { }
-applyMixins(RecursiveGroup, [RaycastsRecursively]);
-
-/**
- * Similarly, for Face and CurveEdge, they are simple proxy/wrappers around their one child.
- * Their parents are LOD objects.
- */
-
-abstract class ObjectWrapper<T extends THREE.BufferGeometry = THREE.BufferGeometry, M extends THREE.Material | THREE.Material[] = THREE.Material | THREE.Material[]>
-    extends THREE.Object3D {
-    abstract get parentItem(): Item;
-    abstract child: THREE.Mesh<T, M>;
-    get geometry() { return this.child.geometry };
-
-    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        const is = raycaster.intersectObject(this.child);
-        if (is.length > 0) {
-            const i = is[0];
-            i.object = this;
-            intersects.push(i);
-        }
-    }
-}
-
-export interface Face extends ObjectWrapper { }
-export interface CurveEdge extends ObjectWrapper<LineGeometry, LineMaterial> { }
-// export interface Curve3D extends ObjectWrapper<LineGeometry, LineMaterial> { }
-export interface Region extends ObjectWrapper { }
-
-applyMixins(Face, [ObjectWrapper]);
-applyMixins(CurveEdge, [ObjectWrapper]);
-// applyMixins(Curve3D, [ObjectWrapper]);
-applyMixins(Region, [ObjectWrapper]);
-
-/**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.
  */
 
@@ -513,7 +432,7 @@ export class SolidBuilder {
     private readonly solid = new Solid();
 
     addLOD(edges: CurveEdgeGroup, faces: FaceGroup, distance?: number) {
-        const level = new RecursiveGroup();
+        const level = new THREE.Group();
         level.add(edges);
         level.add(faces);
         this.solid.disposable.add(new Disposable(() => edges.dispose()));
@@ -617,3 +536,66 @@ SelectableLayers.disable(Layers.CurveFragment);
 SelectableLayers.disable(Layers.ControlPoint);
 
 export type Selectable = Item | TopologyItem | ControlPoint | Region;
+
+// The following two methods are used for raycast (point and click) and box selection --
+// They take primitive view objects (Line2, Mesh, etc.), filter out the irrelevant (invisible, etc.),
+// and return higher level view objects (Face, CurveEdge, Region, etc.).
+
+export function select(selected: THREE.Mesh[]): Set<Selectable> {
+    const set = new Set<Selectable>();
+    for (const object of selected) {
+        if (!isSelectable(object)) continue;
+
+        const selectable = findSelectable(object);
+        set.add(selectable);
+    }
+    return set;
+}
+
+export interface Intersection {
+    object: Selectable;
+    point: THREE.Vector3;
+    distance: number;
+}
+
+export function filter(intersections: THREE.Intersection[]): Intersection[] {
+    const map = new Map<Selectable, [THREE.Vector3, number]>();
+    intersections: for (const intersection of intersections) {
+        const { object, point, distance } = intersection;
+        if (!isSelectable(object)) continue;
+
+        const selectable = findSelectable(intersection.object, intersection.index);
+        map.set(selectable, [point, distance]);
+    }
+    const result: Intersection[] = [];
+    for (const [object, [point, distance]] of map) {
+        result.push({ object, point, distance });
+    }
+    result.sort((a, b) => a.distance - b.distance);
+    return result;
+}
+
+function isSelectable(object: THREE.Object3D): boolean {
+    if (!object.layers.test(SelectableLayers)) return false;
+
+    let parent: THREE.Object3D | null = object;
+    while (parent) {
+        if (!parent.visible) return false;
+        parent = parent.parent;
+    }
+    return true;
+}
+
+function findSelectable(object: THREE.Object3D, index?: number): Selectable {
+    if (object instanceof BetterRaycastingPoints) {
+        const controlPointGroup = object.parent! as ControlPointGroup;
+        if (!(controlPointGroup instanceof ControlPointGroup))
+            throw new Error("invalid precondition: " + parent.constructor.name);
+        return controlPointGroup.findByIndex(index!)!
+    } else {
+        const parent = object.parent!;
+        if (!(parent instanceof Item || parent instanceof TopologyItem || parent instanceof Region || parent instanceof Curve3D))
+            throw new Error("invalid precondition: " + parent.constructor.name);
+        return object.parent as Selectable;
+    }
+}

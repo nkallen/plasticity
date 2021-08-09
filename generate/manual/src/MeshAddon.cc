@@ -116,7 +116,10 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
                 if (!polygon->IsVisible())
                     continue;
 
-                const MbEdge *edge = (MbEdge *)item;
+                const MbCurveEdge *edge = (MbCurveEdge *)item;
+
+                if (edge->IsPole())
+                    continue;
 
                 jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
                 jsInfo.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(edge->GetName())));

@@ -9,7 +9,7 @@ import c3d from '../../../build/Release/c3d.node';
  * But these represent actions/state-changes that are meant to be atomic (for the purpose of UNDO).
  */
 
-export class ChangeSelectionCommand extends Command {
+export class ClickChangeSelectionCommand extends Command {
     constructor(
         editor: cmd.EditorLike,
         private readonly intersections: THREE.Intersection[]
@@ -22,6 +22,19 @@ export class ChangeSelectionCommand extends Command {
     async execute(): Promise<void> {
         const intersection = this.editor.selectionInteraction.onClick(this.intersections);
         this.intersection = intersection;
+    }
+}
+
+export class BoxChangeSelectionCommand extends Command {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly selected: Set<visual.Selectable>
+    ) {
+        super(editor);
+    }
+
+    async execute(): Promise<void> {
+        this.editor.selectionInteraction.onBoxSelect(this.selected);
     }
 }
 

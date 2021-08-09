@@ -4,7 +4,7 @@ import MaterialDatabase from '../editor/MaterialDatabase';
 import * as gizmo from './AbstractGizmo';
 import Command, * as cmd from './Command';
 import { CancelOrFinish } from './CommandExecutor';
-import { ChangeSelectionCommand } from './CommandLike';
+import { ClickChangeSelectionCommand } from './CommandLike';
 import { ChangePointCommand, ExtrudeRegionCommand, FilletCommand, OffsetFaceCommand } from './GeometryCommands';
 
 export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
@@ -17,7 +17,7 @@ export class SelectionCommandManager {
     constructor(private readonly editor: EditorLike) { }
 
     commandFor(command?: Command): Command | undefined {
-        const point = command instanceof ChangeSelectionCommand ? command.intersection?.point : new THREE.Vector3();
+        const point = command instanceof ClickChangeSelectionCommand ? command.intersection?.point : new THREE.Vector3();
         const selected = this.editor.selection.selected;
 
         if (selected.regions.size > 0) {

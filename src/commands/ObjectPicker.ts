@@ -42,6 +42,13 @@ class MyViewportSelector extends AbstractViewportSelector {
     protected processHover(intersects: THREE.Intersection[]) {
         this.editor.selectionInteraction.onHover(intersects);
     }
+
+    protected processBoxHover(selected: Set<visual.Selectable>): void {
+        throw new Error('Method not implemented.');
+    }
+    protected processBoxSelect(selected: Set<visual.Selectable>): void {
+        throw new Error('Method not implemented.');
+    }
 }
 
 export class ObjectPicker {

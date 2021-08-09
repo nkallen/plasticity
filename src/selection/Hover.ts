@@ -1,4 +1,4 @@
-import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
+import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Selectable, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { ModifiesSelection } from "./SelectionManager";
 
@@ -71,5 +71,31 @@ export class HoverStrategy implements SelectionStrategy {
             return true;
         }
         return false;
+    }
+
+    box(set: Set<Selectable>) {
+        const { hovered, selected } = this;
+        hovered.removeAll();
+
+        for (const object of set) {
+            if (object instanceof Face || object instanceof CurveEdge) {
+                const parentItem = object.parentItem;
+                if (!selected.hasSelectedChildren(parentItem)) {
+                    hovered.addSolid(parentItem);
+                    return;
+                }
+                if (object instanceof Face) {
+                    hovered.addFace(object, object.parentItem);
+                } else if (object instanceof CurveEdge) {
+                    hovered.addEdge(object, object.parentItem);
+                }
+            } else if (object instanceof Curve3D) {
+                hovered.addCurve(object.parentItem);
+            } else if (object instanceof ControlPoint) {
+                hovered.addControlPoint(object, object.parentItem);
+            } else if (object instanceof Region) {
+                hovered.addRegion(object.parentItem);
+            }
+        }
     }
 }

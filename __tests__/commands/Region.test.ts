@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
-import { RegionBooleanFactory } from "../../src/commands/region/RegionBooleanFactory";
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -44,45 +43,5 @@ describe('create regions', () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3());
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
-    })
-})
-
-describe('boolean regions', () => {
-    let regionBoolean: RegionBooleanFactory;
-
-    beforeEach(() => {
-        regionBoolean = new RegionBooleanFactory(db, materials, signals);
-    });
-
-    test('invokes the appropriate c3d commands', async () => {
-        makeCircle1.center = new THREE.Vector3(0.5, 0, 0);
-        makeCircle1.radius = 1;
-        const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        makeCircle2.center = new THREE.Vector3(-0.5, 0, 0);
-        makeCircle2.radius = 1;
-        const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        makeRegion1.contours = [circle1];
-        const regions1 = await makeRegion1.commit() as visual.PlaneInstance<visual.Region>[];
-        expect(regions1.length).toBe(1);
-        const region1 = regions1[0];
-
-        makeRegion2.contours = [circle2];
-        const regions2 = await makeRegion2.commit() as visual.PlaneInstance<visual.Region>[];
-        expect(regions2.length).toBe(1);
-        const region2 = regions2[0];
-
-        regionBoolean.regions = [region1, region2];
-        const boolean = await regionBoolean.commit() as visual.PlaneInstance<visual.Region>[];
-        expect(boolean.length).toBe(1);
-        const item = boolean[0];
-
-        const bbox = new THREE.Box3().setFromObject(item);
-        const center = new THREE.Vector3();
-        bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3());
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, -0.87, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.5, 0.87, 0));
     })
 })

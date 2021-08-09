@@ -125,7 +125,7 @@ tooltips.set(cmd.ExtrudeCommand, "Extrude");
 tooltips.set(cmd.MirrorCommand, "Mirror");
 tooltips.set(cmd.JoinCurvesCommand, "Join curves");
 tooltips.set(cmd.RegionCommand, "Region");
-tooltips.set(cmd.RegionBooleanCommand, "Region Boolean");
+// tooltips.set(cmd.RegionBooleanCommand, "Region Boolean");
 tooltips.set(cmd.ExtrudeRegionCommand, "Extrude");
 tooltips.set(cmd.SpiralCommand, "Spiral");
 tooltips.set(cmd.CharacterCurveCommand, "Custom Function");

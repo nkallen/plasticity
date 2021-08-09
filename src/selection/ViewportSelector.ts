@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 import Command, * as cmd from "../commands/Command";
 import { CancelOrFinish } from "../commands/CommandExecutor";
-import { ChangeSelectionCommand } from "../commands/CommandLike";
+import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
 import { EditorSignals } from "../editor/EditorSignals";
 import { GeometryDatabase } from "../editor/GeometryDatabase";
 import { EditorOriginator } from "../editor/History";
@@ -101,7 +101,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         switch (this.state.tag) {
             case 'none':
                 const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
-                this.processHover(intersects);
+                this.processHover(visual.filter(intersects));
                 break;
             case 'down':
                 const { downEvent, disposable } = this.state;
@@ -126,15 +126,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 this.selectionHelper.onSelectMove(moveEvent);
 
                 const selected = this.selectionBox.select();
-                const set = new Set<visual.Selectable>();
-                for (const item of selected) {
-                    if (!item.layers.test(visual.SelectableLayers)) continue;
-                    const parent = item.parent!;
-                    if (!parent.visible) continue;
-
-                    set.add(parent as visual.Selectable);
-                }
-                this.processBoxHover(set);
+                this.processBoxHover(visual.select(selected));
 
                 break;
         }
@@ -149,7 +141,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         switch (this.state.tag) {
             case 'down':
                 const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
-                this.processClick(intersects);
+                this.processClick(visual.filter(intersects));
 
                 this.state.disposable.dispose();
                 this.state = { tag: 'none' };
@@ -162,15 +154,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 this.selectionHelper.onSelectOver();
 
                 const selected = this.selectionBox.select();
-                const set = new Set<visual.Selectable>();
-                for (const item of selected) {
-                    if (!item.layers.test(visual.SelectableLayers)) continue;
-                    const parent = item.parent!;
-                    if (!parent.visible) continue;
-
-                    set.add(parent as visual.Selectable);
-                }
-                this.processBoxSelect(set);
+                this.processBoxSelect(visual.select(selected));
 
                 this.dispatchEvent({ type: 'end' });
                 this.state.disposable.dispose();
@@ -191,7 +175,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         screen2normalized(screenPoint, this.normalizedMousePosition);
         this.raycaster.setFromCamera(this.normalizedMousePosition, this.camera);
 
-        return this.raycaster.intersectObjects(objects, false);
+        return this.raycaster.intersectObjects(objects, true);
     }
 
     dispose() { this.disposable.dispose() }
@@ -219,11 +203,12 @@ export class ViewportSelector extends AbstractViewportSelector {
     }
 
     protected processBoxSelect(selected: Set<visual.Selectable>) {
-        this.editor.selectionInteraction.onBoxSelect(selected);
+        const command = new BoxChangeSelectionCommand(this.editor, selected);
+        this.editor.enqueue(command, 'finish');
     }
 
     protected processClick(intersects: THREE.Intersection[]) {
-        const command = new ChangeSelectionCommand(this.editor, intersects);
+        const command = new ClickChangeSelectionCommand(this.editor, intersects);
         this.editor.enqueue(command, 'finish');
     }
 
