@@ -991,7 +991,7 @@ export class MirrorCommand extends Command {
 
 export class DeleteCommand extends Command {
     async execute(): Promise<void> {
-        const items = [...this.editor.selection.selected.curves, ...this.editor.selection.selected.solids, ...this.editor.selection.selected.regions];
+        const items = [...this.editor.selection.selected.curves, ...this.editor.selection.selected.solids];
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
     }
