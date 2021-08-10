@@ -1,6 +1,5 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { Scene } from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
@@ -10,7 +9,7 @@ import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { EditorSignals } from '../../editor/EditorSignals';
 import { GeometryDatabase } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
-import { CameraPlaneSnap, PlaneSnap } from "../../editor/SnapManager";
+import { CameraPlaneSnap, ConstructionPlaneSnap, PlaneSnap } from "../../editor/SnapManager";
 import * as visual from "../../editor/VisualModel";
 import { ControlPoint, Region, Solid, SpaceItem, TopologyItem } from "../../editor/VisualModel";
 import { SelectionManager } from "../../selection/SelectionManager";
@@ -319,7 +318,7 @@ export class Viewport {
 
     toggleConstructionPlane() {
         if (this.constructionPlane instanceof CameraPlaneSnap) {
-            this.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+            this.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(0, 0, 1));
         } else {
             this.constructionPlane = new CameraPlaneSnap(this.camera);
         }

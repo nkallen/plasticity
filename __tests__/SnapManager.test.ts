@@ -74,6 +74,7 @@ describe("snap()", () => {
     let point: THREE.Vector3;
     beforeEach(() => {
         point = new THREE.Vector3(1, 0, 0);
+        // Basically, say you intersect with everything
         intersect.mockImplementation(as => as.map(a => {
             return {
                 object: a,
@@ -88,11 +89,31 @@ describe("snap()", () => {
         expect(p).toEqual(new THREE.Vector3());
     })
 
+    test("priority sorting of snap targets", async () => {
+        const planeSnap = new PlaneSnap();
+        {
+            const [[snap, p],] = snaps.snap(raycaster, [planeSnap]);
+            expect(snap).toBe(originSnap);
+            expect(p).toEqual(new THREE.Vector3());
+        } {
+            planeSnap.priority = 0;
+            const [[snap, p],] = snaps.snap(raycaster, [planeSnap]);
+            expect(snap).toBe(planeSnap);
+            expect(p).toEqual(point);
+        }
+    })
+
     test("restrictions", async () => {
         const pointSnap = new PointSnap(new THREE.Vector3(1, 1, 1));
-        const [[snap, p],] = snaps.snap(raycaster, [pointSnap], [pointSnap]);
-        expect(snap).toBe(pointSnap);
-        expect(new THREE.Vector3(1, 1, 1)).toEqual(p);
+
+        {
+            const [[snap, p],] = snaps.snap(raycaster, [pointSnap], []);
+            expect(snap).toBe(originSnap);
+        } {
+            const [[snap, p],] = snaps.snap(raycaster, [pointSnap], [pointSnap]);
+            expect(snap).toBe(pointSnap);
+            expect(p).toEqual(new THREE.Vector3(1, 1, 1));
+        }
     });
 });
 
@@ -100,6 +121,7 @@ describe("nearby()", () => {
     let point: THREE.Vector3;
     beforeEach(() => {
         point = new THREE.Vector3();
+        // Basically, say you intersect with everything
         intersect.mockImplementation(a => [{
             object: a[0],
             point: point

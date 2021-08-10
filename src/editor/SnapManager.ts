@@ -374,6 +374,13 @@ export class PlaneSnap extends Snap {
     }
 }
 
+// The main purpose of this class is to have a lower priority in raycasting than other, explicitly added snaps.
+export class ConstructionPlaneSnap extends PlaneSnap {
+    move(pt: THREE.Vector3): PlaneSnap {
+        return new ConstructionPlaneSnap(this.n, pt);
+    }
+}
+
 export class CameraPlaneSnap extends PlaneSnap {
     private readonly worldDirection: THREE.Vector3;
     private readonly projectionPoint: THREE.Vector3;
@@ -421,6 +428,7 @@ const map = new Map<any, number>();
 map.set(PointSnap, 1);
 map.set(AxisSnap, 2);
 map.set(PlaneSnap, 3);
+map.set(ConstructionPlaneSnap, 4);
 
 function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
     const x = i1.object.userData.snap.priority ?? map.get(i1.object.userData.snap.constructor);

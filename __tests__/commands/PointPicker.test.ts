@@ -4,7 +4,7 @@ import { Model } from '../../src/commands/PointPicker';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../../src/editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../../src/editor/SnapManager';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials, FakeSprites } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -44,7 +44,7 @@ describe('restrictToPlaneThroughPoint', () => {
         const snaps = pointPicker.snapsFor(new PlaneSnap());
         expect(snaps.length).toBe(1);
         expect(snaps[0]).toBeInstanceOf(PlaneSnap);
-    
+
         const planeSnap = snaps[0] as PlaneSnap;
         expect(planeSnap.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         expect(planeSnap.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
@@ -134,5 +134,38 @@ describe('restrictToEdges', () => {
         expect(snaps[0]).toBeInstanceOf(PlaneSnap);
         expect(snaps[1]).toBeInstanceOf(CurveEdgeSnap);
         expect(snaps[2]).toBeInstanceOf(CurveEdgeSnap);
+    })
+});
+
+describe.only('restrictToLine', () => {
+    beforeEach(() => {
+        expect(pointPicker.restrictionsFor(new PlaneSnap()).length).toBe(0);
+        pointPicker.restrictToLine(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1));
+    })
+
+    test("restrictionsFor", () => {
+        const restrictions = pointPicker.restrictionsFor(new PlaneSnap());
+        expect(restrictions.length).toBe(1);
+        expect(restrictions[0]).toBeInstanceOf(LineSnap);
+        const lineSnap = restrictions[0] as LineSnap;
+        expect(lineSnap.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(lineSnap.o).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+    })
+
+    test("snapsFor", () => {
+        const constructionPlane = new PlaneSnap();
+        const snaps = pointPicker.snapsFor(constructionPlane);
+        expect(snaps.length).toBe(2);
+        expect(snaps[0]).toBeInstanceOf(PlaneSnap);
+        expect(snaps[1]).toBeInstanceOf(PlaneSnap);
+
+        let planeSnap;
+        planeSnap = snaps[0] as PlaneSnap;
+        expect(planeSnap).toBe(constructionPlane);
+
+        planeSnap = snaps[1] as PlaneSnap;
+        expect(planeSnap.n).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
+        expect(planeSnap.p).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+
     })
 });

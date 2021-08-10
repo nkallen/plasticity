@@ -89,13 +89,17 @@ export class Model {
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
-        const line = new LineSnap(origin, direction);
+        const line = new LineSnap(direction, origin);
         this.restrictions.push(line);
 
         const p = new THREE.Vector3(1, 0, 0);
         p.cross(direction);
+        if (p.lengthSq() < 10e-5) {
+            const p = new THREE.Vector3(0, 1, 0);
+            p.cross(direction);    
+        }
+
         const plane = new PlaneSnap(p, origin);
-        plane.priority = 0;
         this.otherAddedSnaps.push(plane);
     }
 
