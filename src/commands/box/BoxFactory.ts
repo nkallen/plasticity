@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from "../../editor/SnapManager";
 import { vec2cart } from "../../util/Conversion";
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import { CenterRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../rect/RectangleFactory";
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 }
@@ -45,6 +45,8 @@ export class ThreePointBoxFactory extends BoxFactory {
 
         const heightNormal = this.heightNormal(p1, p2, p3);
         const h = height.copy(upper).sub(p3).dot(heightNormal);
+        
+        if (Math.abs(h) < 10e-5) throw new ValidationError("invalid height");
 
         const p4 = heightNormal.multiplyScalar(h).add(p3);
         if (h < 0) return { p1: p2, p2: p1, p3, p4 }

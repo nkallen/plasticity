@@ -1,4 +1,4 @@
-import { CompositeDisposable, Disposable, DisposableLike } from 'event-kit';
+import { DisposableLike } from 'event-kit';
 import * as THREE from "three";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
@@ -24,10 +24,12 @@ import { applyMixins } from '../util/Util';
 
 export abstract class SpaceItem extends THREE.Object3D {
     private _useNominal: undefined;
+    abstract dispose(): void;
 }
 
 export abstract class PlaneItem extends THREE.Object3D {
     private _useNominal: undefined;
+    abstract dispose(): void;
 }
 
 export abstract class Item extends SpaceItem {
@@ -44,7 +46,6 @@ export abstract class Item extends SpaceItem {
 
 export class Solid extends Item {
     private _useNominal3: undefined;
-    disposable = new CompositeDisposable();
     get edges() { return this.lod.children[0].children[0] as CurveEdgeGroup }
     get faces() { return this.lod.children[0].children[1] as FaceGroup }
     get outline() {
@@ -54,19 +55,36 @@ export class Solid extends Item {
         }
         return result;
     }
+
+    dispose() {
+        for (const level of this.lod.children) {
+            const edges = level.children[0] as CurveEdgeGroup;
+            const faces = level.children[1] as FaceGroup;
+
+            edges.dispose();
+            faces.dispose();
+        }
+    }
 }
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
     private _useNominal3: undefined;
     get underlying() { return this.lod.children[0] as T }
     get levels() { return this.lod.children as T[] }
-    disposable = new CompositeDisposable();
+
+    dispose() {
+        for (const l of this.levels) l.dispose();
+    }
 }
 
 export class PlaneInstance<T extends PlaneItem> extends Item {
     private _useNominal3: undefined;
     get underlying() { return this.lod.children[0] as T }
-    disposable = new CompositeDisposable();
+    get levels() { return this.lod.children as T[] }
+
+    dispose() {
+        for (const l of this.levels) l.dispose();
+    }
 }
 
 // This only extends THREE.Object3D for type-compatibility with raycasting
@@ -88,8 +106,6 @@ export class ControlPoint extends THREE.Object3D {
 export type FragmentInfo = { start: number, stop: number, untrimmedAncestor: SpaceInstance<Curve3D> };
 
 export class Curve3D extends SpaceItem {
-    disposable = new CompositeDisposable();
-
     static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial, occludedMaterial: LineMaterial): Curve3D {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
@@ -140,16 +156,21 @@ export class Curve3D extends SpaceItem {
         // FIXME rethink this -- but fragments don't need control points, and we don't want them ever being visible/raycast targets/
         this.points.clear();
     }
+
+    dispose() {
+        this.line.geometry.dispose();
+        this.occludedLine.geometry.dispose();
+        this.points.dispose();
+    }
 }
 
 export class Surface extends SpaceItem {
-    disposable = new CompositeDisposable();
+    // FIXME
+    dispose() {}
 }
 
 export class Region extends PlaneItem {
-    private readonly mesh: THREE.Mesh;
     get child() { return this.mesh };
-    disposable = new CompositeDisposable();
 
     static build(grid: c3d.MeshBuffer, material: THREE.Material): Region {
         const geometry = new THREE.BufferGeometry();
@@ -171,15 +192,17 @@ export class Region extends PlaneItem {
         return result;
     }
 
-    private constructor(mesh: THREE.Mesh) {
+    private constructor(private readonly mesh: THREE.Mesh) {
         super()
-        this.mesh = mesh;
         this.renderOrder = RenderOrder.Face;
         this.add(mesh);
-        this.disposable.add(new Disposable(() => this.mesh.geometry.dispose()))
     }
 
     get simpleName() { return this.parentItem.simpleName }
+
+    dispose() {
+        this.mesh.geometry.dispose();
+    }
 }
 
 export abstract class TopologyItem extends THREE.Object3D {
@@ -196,6 +219,8 @@ export abstract class TopologyItem extends THREE.Object3D {
 
     get simpleName(): string { return this.userData.simpleName }
     get index(): number { return this.userData.index }
+
+    abstract dispose(): void;
 }
 
 export abstract class Edge extends TopologyItem { }
@@ -225,6 +250,11 @@ export class CurveEdge extends Edge {
         this.add(line, occludedLine);
         occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
     }
+
+    dispose() {
+        this.line.geometry.dispose();
+        this.occludedLine.geometry.dispose();
+    }
 }
 export class Vertex {
     static build(edge: c3d.EdgeBuffer, material: LineMaterial) {
@@ -232,7 +262,6 @@ export class Vertex {
 }
 
 export class Face extends TopologyItem {
-    private readonly mesh: THREE.Mesh;
     get child() { return this.mesh };
 
     static simpleName(parentId: c3d.SimpleName, index: number) {
@@ -256,17 +285,19 @@ export class Face extends TopologyItem {
         return result;
     }
 
-    private constructor(mesh: THREE.Mesh) {
+    private constructor(private readonly mesh: THREE.Mesh) {
         super()
-        this.mesh = mesh;
         this.renderOrder = RenderOrder.Face;
         this.add(mesh);
+    }
+
+    dispose() {
+        this.mesh.geometry.dispose();
     }
 }
 
 export class CurveEdgeGroup extends THREE.Group {
     private _useNominal: undefined;
-    disposable = new CompositeDisposable();
 
     *[Symbol.iterator]() {
         for (const child of this.children) {
@@ -277,11 +308,14 @@ export class CurveEdgeGroup extends THREE.Group {
     get(i: number): CurveEdge {
         return this.children[i] as CurveEdge;
     }
+
+    dispose() {
+        for (const edge of this) edge.dispose();
+    }
 }
 
 export class FaceGroup extends THREE.Group {
     private _useNominal: undefined;
-    disposable = new CompositeDisposable();
 
     *[Symbol.iterator]() {
         for (const child of this.children) {
@@ -291,6 +325,10 @@ export class FaceGroup extends THREE.Group {
 
     get(i: number): Face {
         return this.children[i] as Face;
+    }
+
+    dispose() {
+        for (const face of this) face.dispose();
     }
 }
 
@@ -380,44 +418,11 @@ export class ControlPointGroup extends THREE.Group {
     }
 
     get parentId(): number { return this.userData.parentId }
+
+    dispose() {
+        this.points?.geometry.dispose();
+    }
 }
-
-/**
- * In order to deal with garbage collection issues around geometry disposal, we also mixin
- * some basic dispose utilities
- */
-abstract class GeometryDisposable<T extends THREE.BufferGeometry> {
-    abstract get geometry(): T;
-    dispose() { this.geometry?.dispose() }
-}
-
-export interface SpaceItem extends DisposableLike { }
-export interface PlaneItem extends DisposableLike { }
-
-export interface Face extends GeometryDisposable<THREE.BufferGeometry> { }
-export interface CurveEdge extends GeometryDisposable<LineGeometry> { }
-export interface Curve3D extends GeometryDisposable<LineGeometry> { }
-applyMixins(Face, [GeometryDisposable]);
-applyMixins(CurveEdge, [GeometryDisposable]);
-applyMixins(Curve3D, [GeometryDisposable]);
-
-abstract class HasDisposable {
-    abstract disposable: Disposable;
-    dispose() { this.disposable.dispose(); }
-}
-
-export interface Curve3D extends HasDisposable { }
-export interface Solid extends HasDisposable { }
-export interface CurveEdgeGroup extends HasDisposable { };
-export interface FaceGroup extends HasDisposable { }
-
-applyMixins(Curve3D, [HasDisposable]);
-applyMixins(Solid, [HasDisposable]);
-applyMixins(SpaceInstance, [HasDisposable]);
-applyMixins(PlaneInstance, [HasDisposable]);
-applyMixins(FaceGroup, [HasDisposable]);
-applyMixins(CurveEdgeGroup, [HasDisposable]);
-applyMixins(Region, [HasDisposable]);
 
 /**
  * Finally, we have some builder functions to enforce type-safety when building the object graph.
@@ -436,8 +441,6 @@ export class SolidBuilder {
         const level = new THREE.Group();
         level.add(edges);
         level.add(faces);
-        this.solid.disposable.add(new Disposable(() => edges.dispose()));
-        this.solid.disposable.add(new Disposable(() => faces.dispose()));
         this.solid.lod.addLevel(level, distance);
     }
 
@@ -453,7 +456,6 @@ export class SpaceInstanceBuilder<T extends SpaceItem> {
 
     addLOD(t: T, distance?: number) {
         this.instance.lod.addLevel(t, distance);
-        this.instance.disposable.add(new Disposable(() => t.dispose()));
     }
 
     build(): SpaceInstance<T> {
@@ -467,7 +469,6 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
 
     addLOD(t: T, distance?: number) {
         this.instance.lod.addLevel(t, distance);
-        this.instance.disposable.add(new Disposable(() => t.dispose()));
     }
 
     build(): PlaneInstance<T> {
@@ -480,7 +481,6 @@ export class FaceGroupBuilder {
 
     addFace(face: Face) {
         this.faceGroup.add(face);
-        this.faceGroup.disposable.add(new Disposable(() => face.dispose()));
     }
 
     build() {
@@ -493,7 +493,6 @@ export class CurveEdgeGroupBuilder {
 
     addEdge(edge: CurveEdge) {
         this.curveEdgeGroup.add(edge);
-        this.curveEdgeGroup.disposable.add(new Disposable(() => edge.dispose()));
     }
 
     build() {
