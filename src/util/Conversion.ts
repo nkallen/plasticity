@@ -13,7 +13,8 @@ export function vec2vec(from: c3d.Vector3D): THREE.Vector3 {
     return new THREE.Vector3(from.x, from.y, from.z);
 }
 
-export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): { curve: c3d.Curve, placement: c3d.Placement3D } | undefined {
+export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D }
+export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): ContourAndPlacement | undefined {
     if (curve3d.IsStraight(true)) {
         if (!(curve3d instanceof c3d.PolyCurve3D)) throw new Error("invalid precondition");
         const points2d = [];

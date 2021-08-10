@@ -1,37 +1,38 @@
+import { ContourAndPlacement, curve3d2curve2d } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export default class LoftFactory extends GeometryFactory {
-    contours!: visual.SpaceInstance<visual.Curve3D>[];
+    private _curves!: visual.SpaceInstance<visual.Curve3D>[];
+    private models!: { contour: c3d.Contour, placement: c3d.Placement3D }[];
     spine?: visual.SpaceInstance<visual.Curve3D>;
 
-    protected async doUpdate() { }
+    private readonly names = new c3d.SNameMaker(c3d.CreatorType.CurveLoftedSolid, c3d.ESides.SideNone, 0);
 
-    protected async doCommit() {
-        const contours = [], placements = [];
-        for (const c of this.contours) {
-            const inst = this.db.lookup(c);
-            const item = inst.GetSpaceItem();
-            if (item === null) throw new Error("invalid precondition");
-            const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            const { curve2d, placement } = curve.GetPlaneCurve(false);
-            const contour = new c3d.Contour([curve2d], true);
-            contours.push(contour);
-            placements.push(placement);
-        };
-        // const inst = this.db.lookup(this.spine);
-        // const item = inst.GetSpaceItem();
-        // const spine = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+    set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
+        this._curves = curves;
+        const models = [];
 
-        const names = new c3d.SNameMaker(c3d.CreatorType.CurveLoftedSolid, c3d.ESides.SideNone, 0);
-        const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
-        const params = new c3d.LoftedValues();
-        const solid = c3d.ActionSolid.LoftedSolid(placements, contours, null, params, [], names, ns);
-        
-        const r = await this.db.addItem(solid);
-        return r;
+        for (const curve of curves) {
+            const instance = this.db.lookup(curve);
+            const item = instance.GetSpaceItem()!;
+            const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+            const planar = curve3d2curve2d(curve3d, new c3d.Placement3D());
+            if (planar === undefined) throw new ValidationError("Curve cannot be converted to planar");
+            const contour = new c3d.Contour([planar.curve], true);
+            models.push({ contour, placement: planar.placement });
+        }
+        this.models = models;
     }
 
-    protected doCancel() { }
+
+    protected async computeGeometry() {
+        const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
+        const params = new c3d.LoftedValues();
+        const placements = this.models.map(m => m.placement);
+        const contours = this.models.map(m => m.contour);
+        const solid = c3d.ActionSolid.LoftedSolid(placements, contours, null, params, [], this.names, ns);
+        return solid;
+    }
 }

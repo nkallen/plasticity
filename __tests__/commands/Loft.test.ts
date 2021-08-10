@@ -37,7 +37,7 @@ describe('commit', () => {
         makeCircle3.radius = 2;
         const circle3 = await makeCircle3.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        loft.contours = [circle1, circle2, circle3];
+        loft.curves = [circle1, circle2, circle3];
         const result = await loft.commit() as visual.SpaceItem;
 
         const bbox = new THREE.Box3().setFromObject(result);

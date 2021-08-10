@@ -987,7 +987,7 @@ export class LoftCommand extends Command {
     async execute(): Promise<void> {
         const curves = [...this.editor.selection.selected.curves];
         const loft = new LoftFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        loft.contours = curves;
+        loft.curves = curves;
         await loft.commit();
     }
 }
