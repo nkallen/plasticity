@@ -10,6 +10,7 @@ type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4
 abstract class BoxFactory extends GeometryFactory {
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
+    p3!: THREE.Vector3;
 
     names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
 
@@ -20,24 +21,29 @@ abstract class BoxFactory extends GeometryFactory {
         return c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, this.names);
     }
 
+    private static readonly AB = new THREE.Vector3();
+    private static readonly BC = new THREE.Vector3();
+    private static readonly _heightNormal = new THREE.Vector3();
+
+    static heightNormal(p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3) {
+        const { AB, BC, _heightNormal } = this;
+        AB.copy(p2).sub(p1)
+        BC.copy(p3).sub(p2);
+        return _heightNormal.copy(AB).cross(BC).normalize();
+    }
+
     protected abstract orthogonal(): FourCorners;
 }
 
 export class ThreePointBoxFactory extends BoxFactory {
-    p3!: THREE.Vector3;
     p4!: THREE.Vector3;
 
-    static AB = new THREE.Vector3();
-    static BC = new THREE.Vector3();
-    static heightNormal = new THREE.Vector3();
-    static height = new THREE.Vector3();
+    private static readonly height = new THREE.Vector3();
 
     static reorientHeight(p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, upper: THREE.Vector3): FourCorners {
-        const { AB, BC, heightNormal, height } = this;
+        const { height } = this;
 
-        AB.copy(p2).sub(p1)
-        BC.copy(p3).sub(p2);
-        heightNormal.copy(AB).cross(BC).normalize();
+        const heightNormal = this.heightNormal(p1, p2, p3);
         const h = height.copy(upper).sub(p3).dot(heightNormal);
 
         const p4 = heightNormal.multiplyScalar(h).add(p3);
@@ -51,10 +57,7 @@ export class ThreePointBoxFactory extends BoxFactory {
     }
 }
 
-const Z = new THREE.Vector3(0, 0, 1);
-
 abstract class DiagonalBoxFactory extends BoxFactory {
-    p3!: THREE.Vector3;
     constructionPlane = new PlaneSnap();
 
     protected orthogonal() {
@@ -65,6 +68,13 @@ abstract class DiagonalBoxFactory extends BoxFactory {
     }
 
     abstract get corner1(): THREE.Vector3;
+
+    get heightNormal() {
+        const { corner1, p2: corner2, constructionPlane } = this;
+        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, constructionPlane);
+
+        return BoxFactory.heightNormal(p1, p2, p3);
+    }
 }
 
 export class CornerBoxFactory extends DiagonalBoxFactory {

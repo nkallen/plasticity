@@ -209,7 +209,7 @@ export class PointSnap extends Snap {
         picker.position.copy(position);
 
         super(snapper, picker);
-        this.projection = position;
+        this.projection = position.clone();
         snapper.userData.sort = 0;
     }
 
@@ -281,7 +281,7 @@ export class AxisSnap extends Snap {
     readonly o: THREE.Vector3;
 
     constructor(n: THREE.Vector3, o = new THREE.Vector3()) {
-        n = n.normalize().multiplyScalar(1000);
+        n = n.clone().normalize().multiplyScalar(1000);
         const points = [
             o.x - n.x, o.y - n.y, o.z - n.z,
             o.x + n.x, o.y + n.y, o.z + n.z];
@@ -292,19 +292,24 @@ export class AxisSnap extends Snap {
         super(snapper, undefined, snapper);
         snapper.userData.sort = 1;
         this.n = n.normalize();
-        this.o = o;
+        this.o = o.clone();
+        this.valid = new THREE.Vector3();
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
-        return this.n.clone().multiplyScalar(this.n.dot(intersection.point.clone().sub(this.o))).add(this.o);
+        const { n, o } = this;
+        return n.clone().multiplyScalar(n.dot(intersection.point.clone().sub(o))).add(o);
     }
 
+    private readonly valid: THREE.Vector3;
     isValid(pt: THREE.Vector3): boolean {
-        return pt.clone().cross(this.n).lengthSq() < 10e-6
+        const { n, o } = this;
+        return this.valid.copy(pt).sub(o).cross(n).lengthSq() < 10e-6
     }
 
     move(o: THREE.Vector3) {
-        return new AxisSnap(this.n, o.clone().add(this.snapper.position));
+        const { n } = this;
+        return new AxisSnap(this.n, o.clone().add(this.o));
     }
 }
 

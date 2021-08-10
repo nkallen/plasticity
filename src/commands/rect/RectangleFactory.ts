@@ -25,11 +25,11 @@ abstract class RectangleFactory extends GeometryFactory {
 export class ThreePointRectangleFactory extends RectangleFactory {
     p3!: THREE.Vector3;
 
-    static AB = new THREE.Vector3();
-    static BC = new THREE.Vector3();
-    static heightNormal = new THREE.Vector3();
-    static depthNormal = new THREE.Vector3();
-    static p4 = new THREE.Vector3();
+    private static readonly AB = new THREE.Vector3();
+    private static readonly BC = new THREE.Vector3();
+    private static readonly heightNormal = new THREE.Vector3();
+    private static readonly depthNormal = new THREE.Vector3();
+    private static readonly p4 = new THREE.Vector3();
 
     static orthogonal(p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3): FourCorners {
         const { AB, BC, heightNormal, depthNormal, p4 } = this;
@@ -57,10 +57,10 @@ export class ThreePointRectangleFactory extends RectangleFactory {
 export abstract class DiagonalRectangleFactory extends RectangleFactory {
     constructionPlane = new PlaneSnap();
 
-    static quat = new THREE.Quaternion();
-    static inv = new THREE.Quaternion();
-    static c1 = new THREE.Vector3();
-    static c2 = new THREE.Vector3();
+    private static readonly quat = new THREE.Quaternion();
+    private static readonly inv = new THREE.Quaternion();
+    private static readonly c1 = new THREE.Vector3();
+    private static readonly c2 = new THREE.Vector3();
 
     static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, constructionPlane: PlaneSnap): FourCorners {
         const { quat, inv, c1, c2 } = this;
@@ -92,8 +92,8 @@ export class CornerRectangleFactory extends DiagonalRectangleFactory {
 }
 
 export class CenterRectangleFactory extends DiagonalRectangleFactory {
-    static AB = new THREE.Vector3();
-    static _corner1 = new THREE.Vector3();
+    private static readonly AB = new THREE.Vector3();
+    private static readonly _corner1 = new THREE.Vector3();
 
     static corner1(p1: THREE.Vector3, p2: THREE.Vector3) {
         const { AB, _corner1 } = this;

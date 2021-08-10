@@ -543,7 +543,7 @@ export class ThreePointBoxCommand extends Command {
 
 export class CornerBoxCommand extends Command {
     async execute(): Promise<void> {
-        const pointPicker = new PointPicker(this.editor);
+        let pointPicker = new PointPicker(this.editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
 
         pointPicker.restrictToPlaneThroughPoint(p1);
@@ -562,11 +562,13 @@ export class CornerBoxCommand extends Command {
         }).resource(this);
         rect.cancel();
 
-        pointPicker.straightSnaps.add(AxisSnap.Z);
-
         const box = new CornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         box.p1 = p1;
         box.p2 = p2;
+
+        pointPicker = new PointPicker(this.editor);
+        pointPicker.restrictToLine(p2, box.heightNormal);
+
         await pointPicker.execute(({ point: p3 }) => {
             box.p3 = p3;
             box.update();

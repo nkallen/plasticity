@@ -66,7 +66,7 @@ describe(CenterBoxFactory, () => {
         makeBox = new CenterBoxFactory(db, materials, signals);
     })
 
-    test.only('invokes the appropriate c3d commands', async () => {
+    test('invokes the appropriate c3d commands', async () => {
         makeBox.p1 = new THREE.Vector3(0, 0, 0);
         makeBox.p2 = new THREE.Vector3(1, 1, 0);
         makeBox.p3 = new THREE.Vector3(0, 0, 1);

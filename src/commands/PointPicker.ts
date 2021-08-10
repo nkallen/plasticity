@@ -23,10 +23,10 @@ type mode = 'RejectOnFinish' | 'ResolveOnFinish'
 
 export class Model {
     private readonly pickedPointSnaps = new Array<PointSnap>(); // Snaps inferred from points the user actually picked
+    straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]); // Snaps going straight off the last picked point
     private readonly otherAddedSnaps = new Array<Snap>();
     private readonly restrictions = new Array<Restriction>();
     restrictToConstructionPlane = false;
-    straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]);
     private restrictionPoint?: THREE.Vector3;
 
     constructor(
@@ -86,6 +86,12 @@ export class Model {
 
     restrictToPlaneThroughPoint(point: THREE.Vector3) {
         this.restrictionPoint = point;
+    }
+
+    restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
+        const line = new AxisSnap(direction, origin);
+        this.otherAddedSnaps.push(line);
+        this.restrictions.push(line);
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {
@@ -213,6 +219,7 @@ export class PointPicker {
 
     get straightSnaps() { return this.model.straightSnaps }
     restrictToPlaneThroughPoint(pt: THREE.Vector3) { this.model.restrictToPlaneThroughPoint(pt) }
+    restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) { this.model.restrictToLine(origin, direction) }
     addPlacement(pt: THREE.Vector3) { this.model.addPlacement(pt) }
     undo() { this.model.undo() }
     addPointSnap(pt: THREE.Vector3) { this.model.addPointSnap(pt) }

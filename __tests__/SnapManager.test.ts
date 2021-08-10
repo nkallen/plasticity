@@ -203,7 +203,15 @@ describe(AxisSnap, () => {
         expect(AxisSnap.X.isValid(new THREE.Vector3(1, 0, 0))).toBe(true);
 
         expect(AxisSnap.X.isValid(new THREE.Vector3(0, 1, 0))).toBe(false);
-    })
+    });
+
+    test("isValid when line is moved", () => {
+        const axis = AxisSnap.Z.move(new THREE.Vector3(1, 0, 0));
+        expect(axis.isValid(new THREE.Vector3(1, 0, 0))).toBe(true);
+        expect(axis.isValid(new THREE.Vector3(1, 0, 1))).toBe(true);
+        expect(axis.isValid(new THREE.Vector3(1, 0, 10))).toBe(true);
+        expect(axis.isValid(new THREE.Vector3(1, 1, 10))).toBe(false);
+    });
 })
 
 describe(OrRestriction, () => {
