@@ -349,9 +349,9 @@ export class CylinderCommand extends Command {
 
         pointPicker.restrictToPlaneThroughPoint(p1);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
-
-        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
+        const { point: p2 } = await pointPicker.execute(({ point: p2, info: { constructionPlane }}) => {
             circle.point = p2;
+            circle.constructionPlane = constructionPlane;
             circle.update();
         }).resource(this);
         circle.cancel();

@@ -19,17 +19,42 @@ beforeEach(() => {
     makeCylinder = new CylinderFactory(db, materials, signals);
 })
 
-describe('commit', () => {
-    test('invokes the appropriate c3d commands', async () => {
-        makeCylinder.base = new THREE.Vector3();
-        makeCylinder.radius = new THREE.Vector3(1, 0, 0);
-        makeCylinder.height = new THREE.Vector3(0, 0, 10);
-        const item = await makeCylinder.commit() as visual.SpaceItem;
-        const bbox = new THREE.Box3().setFromObject(item);
-        const center = new THREE.Vector3();
-        bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 5));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 10));
-    })
-})
+test('upright cylinder', async () => {
+    makeCylinder.base = new THREE.Vector3();
+    makeCylinder.radius = new THREE.Vector3(1, 0, 0);
+    makeCylinder.height = new THREE.Vector3(0, 0, 10);
+    const item = await makeCylinder.commit() as visual.SpaceItem;
+    const bbox = new THREE.Box3().setFromObject(item);
+    const center = new THREE.Vector3();
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 5));
+    expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, 0));
+    expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 10));
+});
+
+test('sideways that starts off vertical but ends sideways X cylinder', async () => {
+    makeCylinder.base = new THREE.Vector3();
+    makeCylinder.radius = new THREE.Vector3(1, 0, 0); // radius set as if we were going in Z
+    makeCylinder.height = new THREE.Vector3(10, 0, 0); // but actualyl we turn towards X
+    const item = await makeCylinder.commit() as visual.SpaceItem;
+    const bbox = new THREE.Box3().setFromObject(item);
+    const center = new THREE.Vector3();
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(5, 0, 0));
+    expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, -1));
+    expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(10, 1, 1));
+});
+
+test('sideways that starts off vertical but ends sideways Y cylinder', async () => {
+    makeCylinder.base = new THREE.Vector3();
+    makeCylinder.radius = new THREE.Vector3(1, 0, 0); // radius set as if we were going in Z
+    makeCylinder.height = new THREE.Vector3(0, 10, 0); // but actualyl we turn towards X
+    const item = await makeCylinder.commit() as visual.SpaceItem;
+    const bbox = new THREE.Box3().setFromObject(item);
+    const center = new THREE.Vector3();
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(0, 5, 0));
+    expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, -1));
+    expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 10, 1));
+});
+

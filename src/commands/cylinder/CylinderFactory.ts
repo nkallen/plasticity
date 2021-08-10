@@ -1,51 +1,36 @@
-import { GeometryFactory } from '../GeometryFactory'
-import c3d from '../../../build/Release/c3d.node';
 import * as THREE from "three";
-import { EditorSignals } from '../../editor/EditorSignals'
-import MaterialDatabase from '../../editor/MaterialDatabase';
-import { GeometryDatabase } from '../../editor/GeometryDatabase';
+import c3d from '../../../build/Release/c3d.node';
+import { vec2cart } from '../../util/Conversion';
+import { GeometryFactory } from '../GeometryFactory';
 
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
 export default class CylinderFactory extends GeometryFactory {
     base!: THREE.Vector3;
     radius!: THREE.Vector3;
     height!: THREE.Vector3;
-    mesh: THREE.Line | THREE.Mesh;
 
-    constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
-        super(db, materials, signals);
+    names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
 
-        const geometry = new THREE.CylinderGeometry(0, 0, 0, 32);
-        this.mesh = new THREE.Mesh(geometry, materials.mesh());
-        this.mesh.up = new THREE.Vector3(0, 1, 0);
-        this.db.temporaryObjects.add(this.mesh);
-    }
+    private readonly Z = new THREE.Vector3();
+    private readonly _radius = new THREE.Vector3();
 
-    async doUpdate() {
-        this.mesh.geometry.dispose();
-        const radiusLength = this.base.distanceTo(this.radius);
-        const heightLength = this.base.distanceTo(this.height);
-        this.mesh.geometry = new THREE.CylinderGeometry(radiusLength, radiusLength, heightLength, 32);
-        const direction = this.height.clone().sub(this.base);
-        this.mesh.position.copy(this.base.clone().add(direction.multiplyScalar(0.5)));
-        this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
-    }
+    async computeGeometry() {
+        const { base, height } = this;
 
-    async doCommit() {
-        this.db.temporaryObjects.remove(this.mesh);
-        const n = this.height.clone().sub(this.base);
-        const z = -(n.x + n.y) / n.z
-        const radius = this.base.clone().add(new THREE.Vector3(1, 1, z).normalize().multiplyScalar(this.radius.distanceTo(this.base)));
-        const points = [
-            new c3d.CartPoint3D(this.base.x, this.base.y, this.base.z),
-            new c3d.CartPoint3D(this.height.x, this.height.y, this.height.z),
-            new c3d.CartPoint3D(radius.x, radius.y, radius.z),
-        ];
-        const names = new c3d.SNameMaker(1, c3d.ESides.SideNone, 0);
-        const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Cylinder, names);
-        return this.db.addItem(sphere);
-    }
+        const { Z, _radius } = this;
 
-    doCancel() {
-        this.db.temporaryObjects.remove(this.mesh);
+        Z.copy(this.height).sub(this.base);
+        const radius = _radius.copy(this.radius).sub(this.base).length();
+
+        _radius.copy(Z).cross(X).normalize().multiplyScalar(radius);
+        if (_radius.lengthSq() < 10e-5) {
+            _radius.copy(Z).cross(Y).normalize().multiplyScalar(radius);
+        }
+
+        const points = [vec2cart(base), vec2cart(height), vec2cart(_radius)]
+
+        const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Cylinder, this.names);
+        return sphere;
     }
 }
