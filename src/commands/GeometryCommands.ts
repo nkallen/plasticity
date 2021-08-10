@@ -991,8 +991,16 @@ export class LoftCommand extends Command {
         const loft = new LoftFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         loft.curves = curves;
         await loft.update();
+        const spine = loft.spine;
 
-        const { point, Z } = loft.spine[0];
+        // const curve = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        // curve.type = c3d.SpaceType.Bezier3D;
+        // for (const { point, Z } of spine) {
+        //     curve.points.push(point);
+        // }
+        // await curve.update();
+
+        const { point, Z } = spine[0];
         const gizmo = new LengthGizmo("loft:thickness", this.editor);
         gizmo.position.copy(point);
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), Z);
@@ -1002,6 +1010,7 @@ export class LoftCommand extends Command {
             loft.update();
         }, mode.Persistent).resource(this);
 
+        // curve.cancel();
         await loft.commit();
     }
 }

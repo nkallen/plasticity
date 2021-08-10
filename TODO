@@ -1,9 +1,11 @@
+can't rotate curves
 redo and more solid creators
 redo move/rotate/scale
 need explode/separate command
 stick to surface max / draw on surface
 redo Dialogs and show errors
 
+creat curve on spine
 rx90
 
 in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
