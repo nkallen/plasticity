@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { GeometryDatabase } from '../editor/GeometryDatabase';
-import { AxisSnap, CurveEdgeSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
 import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
 
@@ -45,7 +45,7 @@ export class Model {
     restrictionsFor(constructionPlane: PlaneSnap): Restriction[] {
         const restrictions = this.restrictions.slice();
         if (this.restrictionPoint !== undefined) {
-            constructionPlane = constructionPlane.restrict(this.restrictionPoint);
+            constructionPlane = constructionPlane.move(this.restrictionPoint);
             restrictions.push(constructionPlane);
         }
         if (this.restrictToConstructionPlane) restrictions.push(constructionPlane);
@@ -55,7 +55,7 @@ export class Model {
     snapsFor(constructionPlane: PlaneSnap): Snap[] {
         let restrictedConstructionPlane = constructionPlane;
         if (this.restrictionPoint !== undefined) {
-            restrictedConstructionPlane = constructionPlane.restrict(this.restrictionPoint);
+            restrictedConstructionPlane = constructionPlane.move(this.restrictionPoint);
         }
         return [restrictedConstructionPlane, ...this.snaps]
     }
@@ -89,9 +89,14 @@ export class Model {
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
-        const line = new AxisSnap(direction, origin);
-        this.otherAddedSnaps.push(line);
+        const line = new LineSnap(origin, direction);
         this.restrictions.push(line);
+
+        const p = new THREE.Vector3(1, 0, 0);
+        p.cross(direction);
+        const plane = new PlaneSnap(p, origin);
+        plane.priority = 0;
+        this.otherAddedSnaps.push(plane);
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {

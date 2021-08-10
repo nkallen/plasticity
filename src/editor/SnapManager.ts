@@ -59,7 +59,7 @@ export class SnapManager {
     snap(raycaster: Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): [Snap, THREE.Vector3][] {
         const snappers = [...this.snappers, ...additional.map(a => a.snapper)];
         const snapperIntersections = raycaster.intersectObjects(snappers);
-        snapperIntersections.sort((s1, s2) => s1.object.userData.sort - s2.object.userData.sort);
+        snapperIntersections.sort(sortIntersections);
         const result: [Snap, THREE.Vector3][] = [];
 
         for (const intersection of snapperIntersections) {
@@ -182,6 +182,7 @@ export abstract class Snap implements Restriction {
     snapper: THREE.Object3D;
     picker?: THREE.Object3D;
     helper?: THREE.Object3D;
+    priority?: number;
 
     constructor(snapper: THREE.Object3D, picker?: THREE.Object3D, helper?: THREE.Object3D) {
         snapper.userData.snap = this;
@@ -210,7 +211,6 @@ export class PointSnap extends Snap {
 
         super(snapper, picker);
         this.projection = position.clone();
-        snapper.userData.sort = 0;
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -290,7 +290,6 @@ export class AxisSnap extends Snap {
         const snapper = new THREE.Line(geometry, new THREE.LineBasicMaterial());
 
         super(snapper, undefined, snapper);
-        snapper.userData.sort = 1;
         this.n = n.normalize();
         this.o = o.clone();
         this.valid = new THREE.Vector3();
@@ -301,7 +300,7 @@ export class AxisSnap extends Snap {
         return n.clone().multiplyScalar(n.dot(intersection.point.clone().sub(o))).add(o);
     }
 
-    private readonly valid: THREE.Vector3;
+    protected readonly valid: THREE.Vector3;
     isValid(pt: THREE.Vector3): boolean {
         const { n, o } = this;
         return this.valid.copy(pt).sub(o).cross(n).lengthSq() < 10e-6
@@ -313,21 +312,43 @@ export class AxisSnap extends Snap {
     }
 }
 
+// A line snap looks like an axis snap (it has a Line helper) but valid click targets are actually
+// any where other than the line's origin. It's used mainly for extruding, where you want to limit
+// the direction of extrusion but allow the user to move the mouse wherever.
+export class LineSnap extends AxisSnap {
+    project(intersection: THREE.Intersection): THREE.Vector3 {
+        const { n, o } = this;
+        return n.clone().multiplyScalar(n.dot(intersection.point.clone().sub(o))).add(o);
+    }
+
+    isValid(pt: THREE.Vector3): boolean {
+        const { n, o } = this;
+        return Math.abs(this.valid.copy(pt).sub(o).dot(n)) > 10e-6
+    }
+}
+
+const planeGeo = new THREE.PlaneGeometry(10_000, 10_000, 2, 2);
+const mat = new THREE.MeshBasicMaterial();
+mat.side = THREE.DoubleSide;
+
 export class PlaneSnap extends Snap {
+    static X = new PlaneSnap(new THREE.Vector3(1, 0, 0));
+    static Y = new PlaneSnap(new THREE.Vector3(0, 1, 0));
+    static Z = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+
     readonly n: THREE.Vector3;
     readonly p: THREE.Vector3;
 
     constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3()) {
-        const planeGeo = new THREE.PlaneGeometry(10_000, 10_000, 2, 2);
-        const mat = new THREE.MeshBasicMaterial();
-        mat.side = THREE.DoubleSide;
+        n = n.clone();
+        p = p.clone();
         const mesh = new THREE.Mesh(planeGeo, mat);
         mesh.lookAt(n);
         mesh.position.copy(p);
         super(mesh);
         this.n = n;
         this.p = p;
-        mesh.userData.sort = 2;
+        this.valid = new THREE.Vector3();
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -336,12 +357,14 @@ export class PlaneSnap extends Snap {
         return plane.projectPoint(intersection.point, new THREE.Vector3());
     }
 
-    restrict(pt: THREE.Vector3): PlaneSnap {
+    move(pt: THREE.Vector3): PlaneSnap {
         return new PlaneSnap(this.n, pt);
     }
 
+    private readonly valid: THREE.Vector3;
     isValid(pt: THREE.Vector3): boolean {
-        return Math.abs(pt.clone().sub(this.snapper.position).dot(this.n)) < 10e-4;
+        const { n, p } = this;
+        return Math.abs(pt.clone().sub(p).dot(n)) < 10e-4;
     }
 
     update(camera: THREE.Camera) { }
@@ -393,3 +416,19 @@ export class CameraPlaneSnap extends PlaneSnap {
 }
 
 export const originSnap = new PointSnap();
+
+const map = new Map<any, number>();
+map.set(PointSnap, 1);
+map.set(AxisSnap, 2);
+map.set(PlaneSnap, 3);
+
+function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
+    const x = i1.object.userData.snap.priority ?? map.get(i1.object.userData.snap.constructor);
+    const y = i2.object.userData.snap.priority ?? map.get(i2.object.userData.snap.constructor)
+    if (x === undefined || y === undefined) {
+        console.error(i1);
+        console.error(i2);
+        throw new Error("invalid precondition");
+    }
+    return x - y;
+}
