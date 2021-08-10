@@ -252,6 +252,7 @@ export default {
             ],
             functions: [
                 "double GetArea(double sag = 1*Math::deviateSag)",
+                "size_t GetSegmentsCount()",
             ]
         },
         PlanarCheckParams: {
@@ -529,6 +530,7 @@ export default {
                 "MbeItemLocation PointRelative(const MbCartPoint3D &pnt, double eps = Math::angleRegion)",
                 { signature: "bool GetMatrixToPlace(const MbPlacement3D & p, MbMatrix & matrix, double eps = Math::angleRegion)", matrix: isReturn, return: ignore },
                 { signature: "void GetVectorFrom(double x1, double y1, double z1, MbVector3D & v, MbeLocalSystemType3D type=ls_CartesianSystem)", v: isReturn },
+                { signature: "void GetPointFrom(double x1, double y1, double z1, MbCartPoint3D & p, MbeLocalSystemType3D type=ls_CartesianSystem)", p: isReturn },
             ]
         },
         FormNote: {
@@ -557,7 +559,7 @@ export default {
             extends: "RefItem",
             dependencies: ["RefItem.h", "TopologyItem.h"],
             functions: [
-                "bool IsChild(const MbTopologyItem & t)"
+                "bool IsChild(const MbTopologyItem & t)",
             ]
         },
         SNameMaker: {
@@ -565,7 +567,10 @@ export default {
             extends: "NameMaker",
             dependencies: ["NameMaker.h"],
             initializers: [
-                "SimpleName _mainName, MbSNameMaker::ESides _sideAdd, SimpleName _buttAdd"
+                "SimpleName _mainName, MbSNameMaker::ESides _sideAdd, SimpleName _buttAdd",
+            ],
+            functions: [
+                "void Add(const SimpleName & ent)"
             ]
         },
         StepData: {
@@ -882,13 +887,6 @@ export default {
                 "bool mergeFaces, bool mergeEdges"
             ]
         },
-        LoftedValues: {
-            cppClassName: "_LoftedValues",
-            rawClassName: "LoftedValues",
-            jsClassName: "LoftedValues",
-            rawHeader: "op_swept_parameter.h",
-            initializers: [""]
-        },
         SweptValues: {
             isPOD: true,
             rawHeader: "op_swept_parameter.h",
@@ -899,6 +897,18 @@ export default {
                 "double thickness1",
                 "double thickness2",
                 "bool shellClosed",
+            ]
+        },
+        LoftedValues: {
+            extends: "SweptValues",
+            dependencies: ["_SweptValues.h"],
+            cppClassName: "_LoftedValues",
+            rawClassName: "LoftedValues",
+            jsClassName: "LoftedValues",
+            rawHeader: "op_swept_parameter.h",
+            initializers: [""],
+            fields: [
+                "bool closed",
             ]
         },
         SweptSide: {

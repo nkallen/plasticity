@@ -15,7 +15,7 @@ import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboar
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
-import { CurveWithPreviewFactory } from "./curve/CurveFactory";
+import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import OffsetContourFactory from "./curve/OffsetContourFactory";
@@ -284,6 +284,8 @@ export class PolygonCommand extends Command {
         const { point } = await pointPicker.execute().resource(this);
         polygon.center = point;
 
+        pointPicker.restrictToPlaneThroughPoint(point);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
         await pointPicker.execute(({ point, info: { constructionPlane } }) => {
             polygon.constructionPlane = constructionPlane;
             polygon.p2 = point;
@@ -349,7 +351,7 @@ export class CylinderCommand extends Command {
 
         pointPicker.restrictToPlaneThroughPoint(p1);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
-        const { point: p2 } = await pointPicker.execute(({ point: p2, info: { constructionPlane }}) => {
+        const { point: p2 } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             circle.point = p2;
             circle.constructionPlane = constructionPlane;
             circle.update();
@@ -988,6 +990,18 @@ export class LoftCommand extends Command {
         const curves = [...this.editor.selection.selected.curves];
         const loft = new LoftFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         loft.curves = curves;
+        await loft.update();
+
+        const { point, Z } = loft.spine[0];
+        const gizmo = new LengthGizmo("loft:thickness", this.editor);
+        gizmo.position.copy(point);
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), Z);
+        gizmo.length = 0;
+        await gizmo.execute(async thickness => {
+            loft.thickness = thickness;
+            loft.update();
+        }, mode.Persistent).resource(this);
+
         await loft.commit();
     }
 }

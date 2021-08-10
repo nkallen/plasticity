@@ -106,6 +106,9 @@ class ClassDeclaration {
             const superclassFunctions = superclass.desc.functions;
             const superclassFunctionsWithoutManuals = superclassFunctions.filter(f => !f.isManual);
             this.desc.functions = this.desc.functions.concat(superclassFunctionsWithoutManuals);
+            const superclassFields = superclass.desc.fields || [];
+            this.desc.fields = (this.desc.fields || []).concat(superclassFields);
+            console.log(this.desc.fields);
             if (superclass.freeFunctionName) {
                 this.freeFunctionName = superclass.freeFunctionName;
             }
