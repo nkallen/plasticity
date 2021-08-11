@@ -10,9 +10,7 @@ import { AbstractGizmo, Disableable, EditorLike, GizmoLike, Intersector, mode, M
 const radius = 1;
 const zeroVector = new THREE.Vector3();
 
-export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
-    intialAngle: number;
-
+abstract class CircularGizmo extends AbstractGizmo<(angle: number) => void> {
     constructor(name: string, editor: EditorLike) {
         const [gizmoName,] = name.split(':');
 
@@ -31,6 +29,19 @@ export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
         picker.add(torus);
 
         super(gizmoName, editor, { handle, picker });
+    }
+
+    update(camera: THREE.Camera) {
+        // super.update(camera);
+        this.lookAt(camera.position);
+    }
+}
+
+export class AngleGizmo extends CircularGizmo {
+    intialAngle: number;
+
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor);
         this.intialAngle = 0;
     }
 
@@ -44,11 +55,38 @@ export class AngleGizmo extends AbstractGizmo<(angle: number) => void> {
         const angle = info.angle + this.intialAngle;
         cb(angle);
     }
+}
 
-    update(camera: THREE.Camera) {
-        // super.update(camera);
+export class CircleMagnitudeGizmo extends CircularGizmo {
+    denominator = 0;
 
-        this.lookAt(camera.position);
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor);
+    }
+
+    onPointerHover(intersect: Intersector): void { }
+    onPointerUp(intersect: Intersector, info: MovementInfo) { }
+    
+    onPointerDown(intersect: Intersector, info: MovementInfo) {
+        const { pointStart2d, center2d } = info;
+
+        this.denominator = pointStart2d.distanceTo(center2d);
+    }
+
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
+        const { pointEnd2d, center2d } = info;
+
+        const magnitude = pointEnd2d.distanceTo(center2d) / this.denominator;
+        this.render(magnitude);
+        cb(magnitude);
+    }
+
+    set magnitude(magnitude: number) {
+        this.render(magnitude);
+    }
+
+    render(magnitude: number) {
+        this.scale.setScalar(magnitude);
     }
 }
 
