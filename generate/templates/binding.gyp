@@ -6,6 +6,7 @@
             "cflags_cc!": ["-fno-exceptions"],
             "sources": [
                 "./lib/c3d/index.cc",
+                "./lib/c3d/src/TopologyItemAddon.cc",
                 "./lib/c3d/src/SpaceItemAddon.cc",
                 "./lib/c3d/src/SpaceInstanceAddon.cc",
                 "./lib/c3d/src/CreatorAddon.cc",

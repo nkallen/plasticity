@@ -30,7 +30,6 @@ export class Model {
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
             const creator = model.GetCreator(i)!;
-            console.log(creator.IsA(), creator.Type());
             result.push([i, creator.Cast<c3d.Creator>(creator.IsA())]);
         }
 

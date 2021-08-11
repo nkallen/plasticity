@@ -1,9 +1,10 @@
+import { mat2mat, vec2cart } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../GeometryFactory';
 
-abstract class TranslationFactory extends GeometryFactory {
+abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
     private models!: c3d.Item[];
 
@@ -23,16 +24,7 @@ abstract class TranslationFactory extends GeometryFactory {
     get matrix(): THREE.Matrix4 {
         const { transform, _matrix } = this;
         const mat = transform.GetMatrix();
-        const row0 = mat.GetAxisX();
-        const row1 = mat.GetAxisY();
-        const row2 = mat.GetAxisZ();
-        const row3 = mat.GetOrigin();
-        _matrix.set(
-            row0.x, row0.y, row0.z, 1,
-            row1.x, row1.y, row1.z, 0,
-            row2.x, row2.y, row2.z, 0,
-            row3.x, row3.y, row3.z, 1,
-        );
+        mat2mat(mat, _matrix);
         return _matrix;
     }
 
@@ -41,6 +33,7 @@ abstract class TranslationFactory extends GeometryFactory {
 
         for (const item of this.items) {
             matrix.decompose(item.position, item.quaternion, item.scale);
+            item.updateMatrixWorld();
         }
     }
 
@@ -72,9 +65,11 @@ abstract class TranslationFactory extends GeometryFactory {
     }
 
     protected abstract get transform(): c3d.TransformValues
+
+    get originalItem() { return this.items }
 }
 
-export default class MoveFactory extends TranslationFactory {
+export class MoveFactory extends TranslateFactory {
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
 
@@ -87,5 +82,35 @@ export default class MoveFactory extends TranslationFactory {
         const vec = new c3d.Vector3D(delta.x, delta.y, delta.z);
         params.Move(vec);
         return params;
+    }
+}
+
+export class RotateFactory extends TranslateFactory {
+    point!: THREE.Vector3
+    axis!: THREE.Vector3;
+    angle!: number;
+
+    async doUpdate() {
+        const { items, point, axis, angle } = this;
+        for (const item of items) {
+            item.position.set(0, 0, 0);
+
+            item.position.sub(point);
+            item.position.applyAxisAngle(axis, angle);
+            item.position.add(point);
+            item.quaternion.setFromAxisAngle(axis, angle);
+        }
+    }
+
+    protected get transform(): c3d.TransformValues {
+        const { axis, angle, point } = this;
+
+        const mat = new c3d.Matrix3D();
+        const p = new c3d.CartPoint3D(point.x, point.y, point.z);
+        const v = new c3d.Vector3D(axis.x, axis.y, axis.z);
+        const axi = new c3d.Axis3D(p, v);
+        const rotation = mat.Rotate(axi, angle);
+
+        return new c3d.TransformValues(rotation);
     }
 }

@@ -602,10 +602,11 @@ export default {
         },
         Matrix3D: {
             rawHeader: "mb_matrix3d.h",
-            dependencies: ["CartPoint3D.h", "Vector3D.h"],
+            dependencies: ["CartPoint3D.h", "Vector3D.h", "Axis3D.h"],
             initializers: [""],
             functions: [
                 "void Scale(double sx, double sy, double sz)",
+                "MbMatrix3D & Rotate(const MbAxis3D & axis, double angle)",
                 "void Symmetry(const MbCartPoint3D & origin, MbVector3D & normal)",
                 "MbVector3D GetRow(size_t i)",
                 "MbVector3D GetColumn(size_t i)",
@@ -613,6 +614,8 @@ export default {
                 "const MbVector3D & GetAxisY()",
                 "const MbVector3D & GetAxisZ()",
                 "const MbVector3D & GetOrigin()",
+                "double El(size_t i, size_t j)",
+                { signature: "void GetOffset(MbCartPoint3D & p)", p: isReturn }
             ]
         },
         TopologyItem: {
@@ -753,7 +756,9 @@ export default {
             functions: [
                 "void Move(const MbVector3D & to)",
                 "void Rotate(const MbAxis3D & axis, double ang)",
-                "const MbMatrix3D & GetMatrix()"
+                "const MbMatrix3D & GetMatrix()",
+                "void SetFixed(bool b)",
+                "MbCartPoint3D & SetFixedPoint()"
             ]
         },
         SmoothValues: {

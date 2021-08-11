@@ -13,6 +13,21 @@ export function vec2vec(from: c3d.Vector3D): THREE.Vector3 {
     return new THREE.Vector3(from.x, from.y, from.z);
 }
 
+export function mat2mat(mat: c3d.Matrix3D, into = new THREE.Matrix4): THREE.Matrix4 {
+    const row0 = mat.GetAxisX();
+    const row1 = mat.GetAxisY();
+    const row2 = mat.GetAxisZ();
+    const row3 = mat.GetOrigin();
+    const col3 = mat.GetOffset();
+    into.set(
+        row0.x, row0.y, row0.z, col3.x,
+        row1.x, row1.y, row1.z, col3.y,
+        row2.x, row2.y, row2.z, col3.z,
+        row3.x, row3.y, row3.z, 1,
+    );
+    return into;
+}
+
 export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D }
 export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): ContourAndPlacement | undefined {
     if (curve3d.IsStraight(true)) {

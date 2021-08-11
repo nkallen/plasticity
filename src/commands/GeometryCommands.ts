@@ -15,7 +15,7 @@ import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboar
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
-import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
+import { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import OffsetContourFactory from "./curve/OffsetContourFactory";
@@ -40,20 +40,21 @@ import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
-import MoveFactory from './move/MoveFactory';
-import { MoveGizmo } from './move/MoveGizmo';
 import { ObjectPicker } from "./ObjectPicker";
 import { PointPicker } from './PointPicker';
 import { PolygonFactory } from "./polygon/PolygonFactory";
 import { PolygonKeyboardEvent, PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
 import { RegionFactory } from "./region/RegionFactory";
-import RotateFactory from './rotate/RotateFactory';
+import { RotateFactory } from './translate/TranslateFactory';
 import { RotateGizmo } from './rotate/RotateGizmo';
 import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
+import { MoveGizmo } from './translate/MoveGizmo';
+import { MoveFactory } from './translate/TranslateFactory';
+import { ValidationError } from "./GeometryFactory";
 
 export class SphereCommand extends Command {
     async execute(): Promise<void> {
@@ -680,7 +681,9 @@ export class ScaleCommand extends Command {
 
 export class RotateCommand extends Command {
     async execute(): Promise<void> {
-        const objects = [...this.editor.selection.selected.solids];
+        const objects = [...this.editor.selection.selected.solids, ...this.editor.selection.selected.curves];
+
+        if (objects.length === 0) throw new ValidationError("Select something first");
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
