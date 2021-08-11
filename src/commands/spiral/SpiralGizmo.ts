@@ -23,11 +23,8 @@ export class SpiralGizmo implements GizmoLike<(params: SpiralParams) => void> {
         const length = axis.length();
         axis.normalize();
 
-        angleGizmo.position.copy(p2);
-        angleGizmo.relativeScale.setScalar(radius);
-
         lengthGizmo.position.copy(p1);
-        lengthGizmo.length = length;
+        lengthGizmo.magnitude = length;
         const quat = new THREE.Quaternion();
         quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
         lengthGizmo.quaternion.copy(quat);
@@ -35,7 +32,10 @@ export class SpiralGizmo implements GizmoLike<(params: SpiralParams) => void> {
         radiusGizmo.position.copy(p1);
         quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), axis);
         radiusGizmo.quaternion.copy(quat);
-        radiusGizmo.length = params.radius;
+        radiusGizmo.magnitude = params.radius;
+
+        lengthGizmo.tip.add(angleGizmo);
+        angleGizmo.scale.setScalar(radius);
 
         const a = angleGizmo.execute(angle => {
             params.angle = angle;
@@ -44,12 +44,11 @@ export class SpiralGizmo implements GizmoLike<(params: SpiralParams) => void> {
         const l = lengthGizmo.execute(length => {
             p2.copy(axis).multiplyScalar(length).add(p1);
             params.p2 = p2;
-            angleGizmo.position.copy(p2);
             cb(params);
         }, finishFast);
         const r = radiusGizmo.execute(radius => {
             params.radius = radius;
-            angleGizmo.relativeScale.setScalar(radius);
+            angleGizmo.scale.setScalar(radius);
             cb(params);
         }, finishFast);
 

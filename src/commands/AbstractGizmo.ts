@@ -179,7 +179,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     readonly relativeScale = new THREE.Vector3(1, 1, 1);
 
     // Scale the gizmo so it has a uniform size regardless of camera position/zoom
-    update(camera: THREE.Camera) {
+    scaleIndependentOfZoom(camera: THREE.Camera) {
         let factor;
         if (camera instanceof THREE.OrthographicCamera) {
             factor = (camera.top - camera.bottom) / camera.zoom;
@@ -191,6 +191,10 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
         this.scale.copy(this.relativeScale).multiplyScalar(factor * 1 / 11);
         this.updateMatrixWorld();
+    }
+
+    update(camera: THREE.Camera) {
+        this.scaleIndependentOfZoom(camera);
     }
 
     protected static getPointer(domElement: HTMLElement, event: PointerEvent): Pointer {

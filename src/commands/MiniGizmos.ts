@@ -60,21 +60,29 @@ export class AngleGizmo extends CircularGizmo {
 class MagnitudeStateMachine {
     private currentMagnitude: number;
 
+    min = Number.NEGATIVE_INFINITY;
+
     constructor(private originalMagnitude: number) {
         this.currentMagnitude = originalMagnitude;
     }
 
     get original() { return this.originalMagnitude }
+    set original(magnitude: number) {
+        this.originalMagnitude = this.currentMagnitude = magnitude;
+    }
 
     start() { }
 
-    get current() { return this.currentMagnitude }
+    get current() {
+        return Math.max(this.currentMagnitude, this.min);
+    }
+
     set current(magnitude: number) {
         this.currentMagnitude = magnitude;
     }
 
     stop() {
-        this.originalMagnitude = this.currentMagnitude;
+        this.original = this.currentMagnitude;
     }
 }
 
@@ -104,8 +112,8 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
 
         const magnitude = this.state.original * pointEnd2d.distanceTo(center2d) / this.denominator!;
         this.state.current = magnitude;
-        this.render(magnitude);
-        cb(magnitude);
+        this.render(this.state.current);
+        cb(this.state.current);
     }
 
     render(magnitude: number) {
@@ -115,7 +123,6 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
 
 export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => void>  {
     protected state: MagnitudeStateMachine;
-    get magnitude() { return this.state.current }
 
     readonly tip: THREE.Mesh;
     protected readonly knob: THREE.Mesh;
@@ -129,17 +136,17 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     private originalPosition?: THREE.Vector3;
     private localY: THREE.Vector3;
 
-    constructor(name: string, editor: EditorLike, info: { tip: THREE.Mesh, knob: THREE.Mesh, shaft: THREE.Mesh }) {
+    constructor(name: string, editor: EditorLike, info: { tip: THREE.Mesh, knob: THREE.Mesh, shaft: THREE.Mesh }, state: MagnitudeStateMachine) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
 
         const plane = new THREE.Mesh(planeGeometry, materials.yellow);
-        
+
         const { tip, knob, shaft } = info;
-        
+
         const handle = new THREE.Group();
         handle.add(tip, shaft);
-        
+
         const picker = new THREE.Group();
         knob.position.copy(tip.position);
         picker.add(knob);
@@ -157,7 +164,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.worldPosition = new THREE.Vector3();
         this.localY = new THREE.Vector3();
 
-        this.state = new MagnitudeStateMachine(1);
+        this.state = state;
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -179,9 +186,15 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
         const dist = planeIntersect.point.sub(this.startMousePosition).dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion));
         let length = this.state.original + dist;
-        this.render(length);
         this.state.current = length;
-        cb(length);
+        this.render(this.state.current);
+        cb(this.state.current);
+    }
+
+    get magnitude() { return this.state.current }
+    set magnitude(mag: number) {
+        this.state.original = mag;
+        this.render(this.state.current)
     }
 
     render(length: number) {
@@ -194,8 +207,6 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         const { worldQuaternion, worldPosition } = this;
         this.getWorldQuaternion(worldQuaternion);
         this.getWorldPosition(worldPosition);
-
-        super.update(camera);
 
         const eye = new THREE.Vector3();
         eye.copy(camera.position).sub(worldPosition).normalize();
@@ -226,7 +237,12 @@ export class ScaleAxisGizmo extends AbstractAxisGizmo {
         knob.userData.command = [`gizmo:${name}`, () => { }];
         knob.position.copy(tip.position);
 
-        super(name, editor, {tip, knob, shaft});
+        super(name, editor, { tip, knob, shaft }, new MagnitudeStateMachine(1));
+    }
+
+    update(camera: THREE.Camera) {
+        super.update(camera);
+        this.scaleIndependentOfZoom(camera);
     }
 }
 
@@ -239,88 +255,31 @@ const Z = new THREE.Vector3(0, 0, 1);
 
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 
-export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
-    private readonly tip: THREE.Mesh;
-    private readonly knob: THREE.Mesh;
-    private readonly shaft: THREE.Mesh;
-    private readonly plane: THREE.Mesh;
-
-    private worldQuaternion: THREE.Quaternion;
-    private worldPosition: THREE.Vector3;
-
+export class LengthGizmo extends AbstractAxisGizmo {
     constructor(name: string, editor: EditorLike) {
-        const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
 
-        const handle = new THREE.Group();
-        const picker = new THREE.Group();
-
-        const plane = new THREE.Mesh(planeGeometry, materials.invisible);
-
-        const tip = new THREE.Mesh(arrowGeometry, materials.yellow);
+        const tip = new THREE.Mesh(boxGeometry, materials.yellow);
+        tip.position.set(0, 1, 0);
         const shaft = new Line2(lineGeometry, materials.lineYellow);
-        handle.add(tip, shaft);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
         knob.userData.command = [`gizmo:${name}`, () => { }];
         knob.position.copy(tip.position);
-        picker.add(knob);
 
-        super(gizmoName, editor, { handle, picker });
-
-        this.shaft = shaft;
-        this.tip = tip;
-        this.knob = knob;
-        this.plane = plane;
-
-        this.worldQuaternion = new THREE.Quaternion();
-        this.worldPosition = new THREE.Vector3();
-    }
-
-    onPointerHover(intersect: Intersector): void { }
-    onPointerDown(intersect: Intersector, info: MovementInfo) { }
-    onPointerUp(intersect: Intersector, info: MovementInfo) { }
-
-    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
-        const planeIntersect = intersect(this.plane, true);
-        if (planeIntersect == null) return; // this only happens when the user is dragging through different viewports.
-
-        let length = planeIntersect.point.sub(this.worldPosition).dot(new THREE.Vector3(0, 1, 0).applyQuaternion(this.worldQuaternion));
         length = Math.max(length, 0);
 
-        this.render(length);
-        cb(length);
+        const state = new MagnitudeStateMachine(0);
+        state.min = 0;
+        super(name, editor, { tip, knob, shaft }, state);
+        this.render(this.state.current);
     }
+}
 
-    set length(length: number) {
-        this.render(length);
-    }
-
-    render(length: number) {
-        this.shaft.scale.y = length;
-        this.tip.position.set(0, length + arrowLength / 2, 0);
-        this.knob.position.copy(this.tip.position);
-    }
-
+export class MagnitudeGizmo extends LengthGizmo {
     update(camera: THREE.Camera) {
-        const { worldQuaternion, worldPosition } = this;
-        this.getWorldQuaternion(worldQuaternion);
-        this.getWorldPosition(worldPosition);
-
-        const eye = new THREE.Vector3();
-        eye.copy(camera.position).sub(worldPosition).normalize();
-        const align = new THREE.Vector3();
-        const dir = new THREE.Vector3();
-
-        const o = Y.clone().applyQuaternion(worldQuaternion);
-        align.copy(eye).cross(o);
-        dir.copy(o).cross(align);
-
-        const matrix = new THREE.Matrix4();
-        matrix.lookAt(new THREE.Vector3(), dir, align);
-        this.plane.quaternion.setFromRotationMatrix(matrix);
-        this.plane.updateMatrixWorld();
-        this.plane.position.copy(worldPosition);
+        super.update(camera);
+        this.scaleIndependentOfZoom(camera);
     }
 }
 

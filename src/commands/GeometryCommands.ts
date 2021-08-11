@@ -35,7 +35,7 @@ import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
-import { DistanceGizmo, LengthGizmo } from "./MiniGizmos";
+import { DistanceGizmo, LengthGizmo, MagnitudeGizmo } from "./MiniGizmos";
 import MirrorFactory from "./mirror/MirrorFactory";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
@@ -991,10 +991,9 @@ export class LoftCommand extends Command {
         // await curve.update();
 
         const { point, Z } = spine[0];
-        const gizmo = new LengthGizmo("loft:thickness", this.editor);
+        const gizmo = new MagnitudeGizmo("loft:thickness", this.editor);
         gizmo.position.copy(point);
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), Z);
-        gizmo.length = 0;
         await gizmo.execute(async thickness => {
             loft.thickness = thickness;
             loft.update();
@@ -1168,7 +1167,6 @@ export class FilletCurveCommand extends Command {
         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
         await factory.setControlPoints(controlPoints);
         const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
-        gizmo.length = 0;
 
         const cornerAngle = factory.cornerAngle;
         gizmo.position.copy(cornerAngle.origin);
