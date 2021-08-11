@@ -278,6 +278,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     private intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
 
+    private worldPosition = new THREE.Vector3();
     private begin() {
         const intersection = this.intersector(this.cameraPlane, true);
         if (!intersection) throw "corrupt intersection query";
@@ -285,7 +286,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
         switch (this.state) {
             case 'none':
             case 'hover':
-                const center3d = this.gizmo.position.clone().project(this.camera);
+                const { worldPosition } = this;
+                const center3d = this.gizmo.getWorldPosition(worldPosition).project(this.camera);
                 this.center2d.set(center3d.x, center3d.y);
                 this.pointStart3d.copy(intersection.point);
                 this.pointStart2d.set(this.pointer.x, this.pointer.y);
