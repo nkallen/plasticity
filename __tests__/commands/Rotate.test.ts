@@ -31,7 +31,7 @@ beforeEach(async () => {
 
 test('update', async () => {
     rotate.items = [box];
-    rotate.point = new THREE.Vector3();
+    rotate.pivot = new THREE.Vector3();
     rotate.axis = new THREE.Vector3(0, 0, 1);
     rotate.angle = Math.PI / 2;
     expect(box).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
@@ -44,7 +44,7 @@ test('commit', async () => {
     expect(box).toHaveCentroidNear(new THREE.Vector3(0, 0, 0.5));
 
     rotate.items = [box];
-    rotate.point = new THREE.Vector3();
+    rotate.pivot = new THREE.Vector3();
     rotate.axis = new THREE.Vector3(1, 0, 0);
     rotate.angle = Math.PI;
     const rotated = (await rotate.commit())[0];

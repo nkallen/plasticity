@@ -52,6 +52,7 @@ import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
 import { MoveGizmo } from './translate/MoveGizmo';
 import { RotateGizmo } from './translate/RotateGizmo';
+import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
 
 export class SphereCommand extends Command {
@@ -645,33 +646,22 @@ export class MoveCommand extends Command {
 
 export class ScaleCommand extends Command {
     async execute(): Promise<void> {
-        const pointPicker = new PointPicker(this.editor);
-        const objects = [...this.editor.selection.selected.solids];
+        const objects = [...this.editor.selection.selected.solids, ...this.editor.selection.selected.curves];
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const { point: origin } = await pointPicker.execute().resource(this);
-        line.p1 = origin;
-
-        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
-            line.p2 = p2;
-            line.update();
-        }).resource(this);
-        await line.cancel();
-
-        const line2 = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        line.p1 = origin;
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
 
         const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         scale.items = objects;
-        scale.origin = line2.p1 = origin;
-        scale.p2 = p2;
-        await pointPicker.execute(({ point: p3 }) => {
-            line2.p2 = p3;
-            scale.p3 = p3
-            line2.update();
+        scale.pivot = centroid;
+
+        const gizmo = new ScaleGizmo(scale, this.editor);
+        gizmo.position.copy(centroid);
+        await gizmo.execute(s => {
             scale.update();
         }).resource(this);
-        await line2.cancel();
 
         await scale.commit();
     }
@@ -685,13 +675,12 @@ export class RotateCommand extends Command {
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
-
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
         const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rotate.items = objects;
-        rotate.point = centroid;
+        rotate.pivot = centroid;
 
         const rotateGizmo = new RotateGizmo(this.editor, centroid);
         await rotateGizmo.execute((axis, angle) => {
