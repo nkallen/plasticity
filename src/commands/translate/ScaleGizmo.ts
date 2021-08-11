@@ -4,14 +4,18 @@ import { mode } from "../AbstractGizmo";
 import { CircleMagnitudeGizmo, CompositeGizmo, ScaleAxisGizmo } from "../MiniGizmos";
 import { ScaleParams } from "./TranslateFactory";
 
-const X = new THREE.Vector3(1,0,0);
-const Y = new THREE.Vector3(0,1,0);
-const Z = new THREE.Vector3(0,0,1);
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
 
 export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
-    private readonly x = new ScaleAxisGizmo("scale:x", this.editor);
-    private readonly y = new ScaleAxisGizmo("scale:y", this.editor);
-    private readonly z = new ScaleAxisGizmo("scale:z", this.editor);
+    private readonly materials = this.editor.gizmos;
+    private readonly red = { tip: this.materials.red, shaft: this.materials.lineRed };
+    private readonly green = { tip: this.materials.green, shaft: this.materials.lineGreen };
+    private readonly blue = { tip: this.materials.blue, shaft: this.materials.lineBlue };
+    private readonly x = new ScaleAxisGizmo("scale:x", this.editor, this.red);
+    private readonly y = new ScaleAxisGizmo("scale:y", this.editor, this.green);
+    private readonly z = new ScaleAxisGizmo("scale:z", this.editor, this.blue);
     private readonly xyz = new CircleMagnitudeGizmo("scale:xyz", this.editor);
 
     execute(cb: (params: ScaleParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {

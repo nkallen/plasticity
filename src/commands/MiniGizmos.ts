@@ -2,6 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { Cancel, CancellablePromise } from "../util/Cancellable";
 import { Helper } from "../util/Helpers";
 import { CircleGeometry } from "../util/Util";
@@ -94,6 +95,8 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
     constructor(name: string, editor: EditorLike) {
         super(name, editor);
         this.state = new MagnitudeStateMachine(1);
+        this.relativeScale.setScalar(0.7);
+        this.render(1);
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -118,6 +121,7 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
 
     render(magnitude: number) {
         this.scale.setScalar(magnitude);
+        this.scale.multiply(this.relativeScale);
     }
 }
 
@@ -226,12 +230,12 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 }
 
 export class ScaleAxisGizmo extends AbstractAxisGizmo {
-    constructor(name: string, editor: EditorLike) {
+    constructor(name: string, editor: EditorLike, material?: { tip: THREE.MeshBasicMaterial, shaft: LineMaterial }) {
         const materials = editor.gizmos;
-
-        const tip = new THREE.Mesh(boxGeometry, materials.yellow);
+        material ??= { tip: materials.yellow, shaft: materials.lineYellow }
+        const tip = new THREE.Mesh(boxGeometry, material.tip);
         tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, materials.lineYellow);
+        const shaft = new Line2(lineGeometry, material.shaft);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
         knob.userData.command = [`gizmo:${name}`, () => { }];
