@@ -58,14 +58,17 @@ export class AngleGizmo extends CircularGizmo {
 }
 
 export class CircleMagnitudeGizmo extends CircularGizmo {
-    denominator = 0;
+    private denominator = 1;
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor);
+        this.originalMagnitude = this.currentMagnitude = 1;
     }
 
     onPointerHover(intersect: Intersector): void { }
-    onPointerUp(intersect: Intersector, info: MovementInfo) { }
+    onPointerUp(intersect: Intersector, info: MovementInfo) {
+        this.originalMagnitude = this.currentMagnitude;
+    }
     
     onPointerDown(intersect: Intersector, info: MovementInfo) {
         const { pointStart2d, center2d } = info;
@@ -76,13 +79,17 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
         const { pointEnd2d, center2d } = info;
 
-        const magnitude = pointEnd2d.distanceTo(center2d) / this.denominator;
+        const magnitude = this.originalMagnitude * pointEnd2d.distanceTo(center2d) / this.denominator!;
+        this.currentMagnitude = magnitude;
         this.render(magnitude);
         cb(magnitude);
     }
 
+    private originalMagnitude: number;
+    private currentMagnitude: number;
     set magnitude(magnitude: number) {
         this.render(magnitude);
+        this.originalMagnitude = this.currentMagnitude = length;
     }
 
     render(magnitude: number) {
