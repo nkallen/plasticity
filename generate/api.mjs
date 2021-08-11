@@ -737,12 +737,17 @@ export default {
             rawClassName: "TransformValues",
             jsClassName: "TransformValues",
             rawHeader: "op_shell_parameter.h",
-            dependencies: ["Matrix3D.h", "CartPoint3D.h"],
+            dependencies: ["Matrix3D.h", "CartPoint3D.h", "Axis3D.h", "Matrix3D.h"],
             initializers: [
                 "",
                 "const MbMatrix3D & m",
                 "const MbMatrix3D & m, const MbCartPoint3D & f, bool fix = false, bool iso = false",
                 "double sX, double sY, double sZ, const MbCartPoint3D & fP"
+            ],
+            functions: [
+                "void Move(const MbVector3D & to)",
+                "void Rotate(const MbAxis3D & axis, double ang)",
+                "const MbMatrix3D & GetMatrix()"
             ]
         },
         SmoothValues: {

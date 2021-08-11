@@ -1,6 +1,6 @@
 import * as THREE from "three";
+import { CenterBoxFactory } from "../../src/commands/box/BoxFactory";
 import MoveFactory from '../../src/commands/move/MoveFactory';
-import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -10,8 +10,9 @@ import '../matchers';
 
 let db: GeometryDatabase;
 let move: MoveFactory;
-let materials: Required<MaterialDatabase>;
+let materials: MaterialDatabase;
 let signals: EditorSignals;
+let box: visual.Solid;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -20,33 +21,31 @@ beforeEach(() => {
     move = new MoveFactory(db, materials, signals);
 })
 
-describe('update', () => {
-    test('moves the visual object', async () => {
-        const item = new visual.Solid();
-        move.items = [item];
-        move.p1 = new THREE.Vector3();
-        move.p2 = new THREE.Vector3(1, 0, 0);
-        expect(item.position).toEqual(new THREE.Vector3(0, 0, 0));
-        await move.update();
-        expect(item.position).toEqual(new THREE.Vector3(1, 0, 0));
-    });
+beforeEach(async () => {
+    const makeBox = new CenterBoxFactory(db, materials, signals);
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 1, 0);
+    makeBox.p3 = new THREE.Vector3(0, 0, 1);
+    box = await makeBox.commit() as visual.Solid;
 });
 
-describe('commit', () => {
-    test('invokes the appropriate c3d commands', async () => {
-        const makeSphere = new SphereFactory(db, materials, signals);
-        makeSphere.center = new THREE.Vector3();
-        makeSphere.radius = 1;
-        const sphere = await makeSphere.commit() as visual.Solid;
+test('update', async () => {
+    move.items = [box];
+    move.p1 = new THREE.Vector3();
+    move.p2 = new THREE.Vector3(1, 0, 0);
+    expect(box.position).toEqual(new THREE.Vector3(0, 0, 0));
+    await move.update();
+    expect(box.position).toEqual(new THREE.Vector3(1, 0, 0));
+});
 
-        move.items = [sphere];
-        move.p1 = new THREE.Vector3();
-        move.p2 = new THREE.Vector3(1, 0, 0);
-        const moveds = await move.commit() as visual.Solid[];
-        const bbox = new THREE.Box3();
-        for (const moved of moveds) bbox.setFromObject(moved);
-        const center = new THREE.Vector3();
-        bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-    })
+test('commit', async () => {
+    move.items = [box];
+    move.p1 = new THREE.Vector3();
+    move.p2 = new THREE.Vector3(1, 0, 0);
+    const moveds = await move.commit() as visual.Solid[];
+    const bbox = new THREE.Box3();
+    bbox.setFromObject(moveds[0]);
+    const center = new THREE.Vector3();
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0.5));
 })
