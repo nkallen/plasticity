@@ -37,6 +37,17 @@ export default {
         "s": "gizmo:move:screen",
     },
 
+    "ispace-viewport[gizmo='scale']": {
+        "x": "gizmo:scale:x",
+        "y": "gizmo:scale:y",
+        "z": "gizmo:scale:z",
+        "Z": "gizmo:scale:xy",
+        "X": "gizmo:scale:yz",
+        "Y": "gizmo:scale:xz",
+        "s": "gizmo:scale:xyz",
+    },
+
+
     "ispace-viewport[gizmo='fillet']": {
         "a": "gizmo:fillet:add",
         "d": "gizmo:fillet:distance",
