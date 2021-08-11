@@ -21,10 +21,28 @@ export default class MoveFactory extends GeometryFactory {
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.TransformedSolid, c3d.ESides.SideNone, 0);
 
+    private readonly _matrix = new THREE.Matrix4();
+    get matrix(): THREE.Matrix4 {
+        const { transform, _matrix } = this;
+        const mat = transform.GetMatrix();
+        const row0 = mat.GetAxisX();
+        const row1 = mat.GetAxisY();
+        const row2 = mat.GetAxisZ();
+        const row3 = mat.GetOrigin();
+        _matrix.set(
+            row0.x, row0.y, row0.z, 1,
+            row1.x, row1.y, row1.z, 0,
+            row2.x, row2.y, row2.z, 0,
+            row3.x, row3.y, row3.z, 1,
+        );
+        return _matrix;
+    }
+
     async doUpdate() {
-        const { p1, p2 } = this;
+        const { matrix } = this;
+
         for (const item of this.items) {
-            item.position.add(p2).sub(p1);
+            matrix.decompose(item.position, item.quaternion, item.scale);
         }
     }
 

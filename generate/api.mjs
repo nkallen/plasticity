@@ -606,7 +606,13 @@ export default {
             initializers: [""],
             functions: [
                 "void Scale(double sx, double sy, double sz)",
-                "void Symmetry(const MbCartPoint3D & origin, MbVector3D & normal)"
+                "void Symmetry(const MbCartPoint3D & origin, MbVector3D & normal)",
+                "MbVector3D GetRow(size_t i)",
+                "MbVector3D GetColumn(size_t i)",
+                "const MbVector3D & GetAxisX()",
+                "const MbVector3D & GetAxisY()",
+                "const MbVector3D & GetAxisZ()",
+                "const MbVector3D & GetOrigin()",
             ]
         },
         TopologyItem: {
