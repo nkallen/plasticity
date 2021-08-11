@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { mode } from "../AbstractGizmo";
-import { CircleMagnitudeGizmo, CompositeGizmo, FooGizmo, ScaleAxisGizmo } from "../MiniGizmos";
+import { CircleMagnitudeGizmo, CompositeGizmo, PlanarMagnitudeGizmo, ScaleAxisGizmo } from "../MiniGizmos";
 import { ScaleParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -16,7 +16,7 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     private readonly x = new ScaleAxisGizmo("scale:x", this.editor, this.red);
     private readonly y = new ScaleAxisGizmo("scale:y", this.editor, this.green);
     private readonly z = new ScaleAxisGizmo("scale:z", this.editor, this.blue);
-    private readonly xy = new FooGizmo("scale:xy", this.editor);
+    private readonly xy = new PlanarMagnitudeGizmo("scale:xy", this.editor);
     private readonly xyz = new CircleMagnitudeGizmo("scale:xyz", this.editor);
 
     execute(cb: (params: ScaleParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
