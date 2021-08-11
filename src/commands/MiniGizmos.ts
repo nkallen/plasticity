@@ -57,39 +57,53 @@ export class AngleGizmo extends CircularGizmo {
     }
 }
 
+class MagnitudeStateMachine {
+    private currentMagnitude: number;
+
+    constructor(private originalMagnitude: number) {
+        this.currentMagnitude = originalMagnitude;
+    }
+
+    get original() { return this.originalMagnitude }
+
+    start() {}
+
+    set current(magnitude: number) {
+        this.currentMagnitude = magnitude;
+    }
+
+    stop() {
+        this.originalMagnitude = this.currentMagnitude;
+    }
+}
+
 export class CircleMagnitudeGizmo extends CircularGizmo {
     private denominator = 1;
+    private magnitude: MagnitudeStateMachine;
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor);
-        this.originalMagnitude = this.currentMagnitude = 1;
+        this.magnitude = new MagnitudeStateMachine(1);
     }
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
-        this.originalMagnitude = this.currentMagnitude;
+        this.magnitude.stop();
     }
     
     onPointerDown(intersect: Intersector, info: MovementInfo) {
         const { pointStart2d, center2d } = info;
-
         this.denominator = pointStart2d.distanceTo(center2d);
+        this.magnitude.start();
     }
 
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
         const { pointEnd2d, center2d } = info;
 
-        const magnitude = this.originalMagnitude * pointEnd2d.distanceTo(center2d) / this.denominator!;
-        this.currentMagnitude = magnitude;
+        const magnitude = this.magnitude.original * pointEnd2d.distanceTo(center2d) / this.denominator!;
+        this.magnitude.current = magnitude;
         this.render(magnitude);
         cb(magnitude);
-    }
-
-    private originalMagnitude: number;
-    private currentMagnitude: number;
-    set magnitude(magnitude: number) {
-        this.render(magnitude);
-        this.originalMagnitude = this.currentMagnitude = length;
     }
 
     render(magnitude: number) {
