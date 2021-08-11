@@ -4,6 +4,7 @@ import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
 import { AngleGizmo, CompositeGizmo, DistanceGizmo } from "../MiniGizmos";
 import { OffsetFaceParams } from './ModifyFaceFactory';
+import c3d from '../../build/Release/c3d.node';
 
 export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
     private readonly distance = new DistanceGizmo("offset-face:distance", this.editor);
@@ -42,8 +43,12 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
         const models = faces.map(view => db.lookupTopologyItem(view));
         const face = models[models.length - 1];
 
-        if (point !== undefined) {
-            const { u, v, normal } = face.NearPointProjection(vec2cart(point));
+        return OffsetFaceGizmo.placement(face, point);
+    }
+
+    static placement(face: c3d.Face, hint?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
+        if (hint !== undefined) {
+            const { u, v, normal } = face.NearPointProjection(vec2cart(hint));
             const { faceU, faceV } = face.GetFaceParam(u,v);
             const projected = cart2vec(face.Point(faceU, faceV));
             return { point: projected, normal: vec2vec(normal) };
@@ -52,5 +57,4 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
             return { point: cart2vec(point), normal: vec2vec(normal) };
         }
     }
-
 }

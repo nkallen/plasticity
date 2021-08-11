@@ -955,19 +955,23 @@ export class RefilletFaceCommand extends Command {
         const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
 
-        const refilletFace = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        refilletFace.solid = parent;
-        refilletFace.faces = faces;
+        const refillet = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        refillet.solid = parent;
+        refillet.faces = faces;
 
         const gizmo = new DistanceGizmo("refillet-face:distance", this.editor);
-        gizmo.constantLength = true;
+        const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(faces[0]));
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        gizmo.position.copy(point);
+        
         gizmo.state.min = Number.NEGATIVE_INFINITY;
 
-        await gizmo.execute(async params => {
-            await refilletFace.update();
+        await gizmo.execute(async distance => {
+            refillet.distance = distance;
+            await refillet.update();
         }).resource(this);
 
-        await refilletFace.commit();
+        await refillet.commit();
     }
 }
 
