@@ -113,15 +113,15 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
     }
 }
 
-export class LineMagnitudeGizmo extends AbstractGizmo<(mag: number) => void>  {
-    private state: MagnitudeStateMachine;
+export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => void>  {
+    protected state: MagnitudeStateMachine;
     get magnitude() { return this.state.current }
 
     readonly tip: THREE.Mesh;
-    private readonly knob: THREE.Mesh;
-    private readonly shaft: THREE.Mesh;
-    private readonly plane: THREE.Mesh;
+    protected readonly knob: THREE.Mesh;
+    protected readonly shaft: THREE.Mesh;
 
+    private readonly plane: THREE.Mesh;
     private worldQuaternion: THREE.Quaternion;
     private worldPosition: THREE.Vector3;
 
@@ -129,22 +129,18 @@ export class LineMagnitudeGizmo extends AbstractGizmo<(mag: number) => void>  {
     private originalPosition?: THREE.Vector3;
     private localY: THREE.Vector3;
 
-    constructor(name: string, editor: EditorLike) {
+    constructor(name: string, editor: EditorLike, info: { tip: THREE.Mesh, knob: THREE.Mesh, shaft: THREE.Mesh }) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
 
-        const handle = new THREE.Group();
-        const picker = new THREE.Group();
-
         const plane = new THREE.Mesh(planeGeometry, materials.yellow);
-
-        const tip = new THREE.Mesh(boxGeometry, materials.yellow);
-        tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, materials.lineYellow);
+        
+        const { tip, knob, shaft } = info;
+        
+        const handle = new THREE.Group();
         handle.add(tip, shaft);
-
-        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
-        knob.userData.command = [`gizmo:${name}`, () => { }];
+        
+        const picker = new THREE.Group();
         knob.position.copy(tip.position);
         picker.add(knob);
 
@@ -163,7 +159,6 @@ export class LineMagnitudeGizmo extends AbstractGizmo<(mag: number) => void>  {
 
         this.state = new MagnitudeStateMachine(1);
     }
-
 
     onPointerHover(intersect: Intersector): void { }
 
@@ -216,6 +211,22 @@ export class LineMagnitudeGizmo extends AbstractGizmo<(mag: number) => void>  {
         this.plane.quaternion.setFromRotationMatrix(matrix);
         this.plane.updateMatrixWorld();
         this.plane.position.copy(worldPosition);
+    }
+}
+
+export class ScaleAxisGizmo extends AbstractAxisGizmo {
+    constructor(name: string, editor: EditorLike) {
+        const materials = editor.gizmos;
+
+        const tip = new THREE.Mesh(boxGeometry, materials.yellow);
+        tip.position.set(0, 1, 0);
+        const shaft = new Line2(lineGeometry, materials.lineYellow);
+
+        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
+        knob.userData.command = [`gizmo:${name}`, () => { }];
+        knob.position.copy(tip.position);
+
+        super(name, editor, {tip, knob, shaft});
     }
 }
 
