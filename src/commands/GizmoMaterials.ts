@@ -15,6 +15,7 @@ export class GizmoMaterialDatabase {
     readonly invisible = new THREE.MeshBasicMaterial(Object.assign({
         transparent: true,
         depthWrite: false,
+        depthTest: false,
         opacity: 0.0,
     }, depthInfo));
 

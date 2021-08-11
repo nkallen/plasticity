@@ -138,6 +138,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
     private readonly startMousePosition: THREE.Vector3;
     private readonly localY: THREE.Vector3;
+    protected originalPosition?: THREE.Vector3;
 
     constructor(name: string, editor: EditorLike, info: { tip: THREE.Mesh, knob: THREE.Mesh, shaft: THREE.Mesh }, state: MagnitudeStateMachine) {
         const [gizmoName,] = name.split(':');
@@ -180,6 +181,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) throw new Error("invalid precondition");
         this.startMousePosition.copy(planeIntersect.point);
+        if (this.originalPosition === undefined) this.originalPosition = new THREE.Vector3().copy(this.position);
     }
 
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
@@ -291,17 +293,19 @@ export class MagnitudeGizmo extends LengthGizmo {
 export class PlanarMagnitudeGizmo extends AbstractGizmo<(magnitude: number) => void> {
     private denominator: number;
     private state: MagnitudeStateMachine;
+    get magnitude() { return this.state.current }
 
     protected readonly knob: THREE.Mesh;
     private plane: THREE.Mesh;
     private readonly startMousePosition: THREE.Vector3;
     private readonly worldPosition: THREE.Vector3;
 
-    constructor(name: string, editor: EditorLike) {
+    constructor(name: string, editor: EditorLike, material?: THREE.MeshBasicMaterial) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
+        material ??= materials.yellow;
 
-        const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.15), materials.yellowTransparent);
+        const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.15), material);
         handle.position.set(0.3, 0.3, 0);
 
         const knob = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), materials.invisible);
@@ -354,6 +358,7 @@ export class PlanarMagnitudeGizmo extends AbstractGizmo<(magnitude: number) => v
         this.getWorldPosition(worldPosition);
         this.plane.position.copy(worldPosition);
         this.plane.updateMatrixWorld();
+        super.update(camera);
     }
 
     render(magnitude: number) {

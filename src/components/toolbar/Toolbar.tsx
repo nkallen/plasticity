@@ -168,7 +168,11 @@ export default (editor: Editor) => {
                         return;
                     }
                     const keystroke = humanizeKeystrokes(bindings[0].keystrokes);
-                    return <li><span class="keystroke">{keystroke}</span>{keybindings.get(command)}</li>
+                    const desc = keybindings.get(command);
+                    if (desc === undefined) {
+                        console.warn("Description missing from (icons.ts)", command);
+                    }
+                    return <li><span class="keystroke">{keystroke}</span>{desc}</li>
                 })}
             </ul>;
             render(result, this);
