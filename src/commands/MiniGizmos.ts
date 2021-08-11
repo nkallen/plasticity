@@ -49,7 +49,7 @@ export class AngleGizmo extends CircularGizmo {
     onPointerDown(intersect: Intersector, info: MovementInfo) { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
         this.intialAngle += info.angle;
-     }
+    }
 
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
         const angle = info.angle + this.intialAngle;
@@ -66,8 +66,9 @@ class MagnitudeStateMachine {
 
     get original() { return this.originalMagnitude }
 
-    start() {}
+    start() { }
 
+    get current() { return this.currentMagnitude }
     set current(magnitude: number) {
         this.currentMagnitude = magnitude;
     }
@@ -79,35 +80,142 @@ class MagnitudeStateMachine {
 
 export class CircleMagnitudeGizmo extends CircularGizmo {
     private denominator = 1;
-    private magnitude: MagnitudeStateMachine;
+    private state: MagnitudeStateMachine;
+    get magnitude() { return this.state.current }
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor);
-        this.magnitude = new MagnitudeStateMachine(1);
+        this.state = new MagnitudeStateMachine(1);
     }
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
-        this.magnitude.stop();
+        this.state.stop();
     }
-    
+
     onPointerDown(intersect: Intersector, info: MovementInfo) {
         const { pointStart2d, center2d } = info;
         this.denominator = pointStart2d.distanceTo(center2d);
-        this.magnitude.start();
+        this.state.start();
     }
 
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
         const { pointEnd2d, center2d } = info;
 
-        const magnitude = this.magnitude.original * pointEnd2d.distanceTo(center2d) / this.denominator!;
-        this.magnitude.current = magnitude;
+        const magnitude = this.state.original * pointEnd2d.distanceTo(center2d) / this.denominator!;
+        this.state.current = magnitude;
         this.render(magnitude);
         cb(magnitude);
     }
 
     render(magnitude: number) {
         this.scale.setScalar(magnitude);
+    }
+}
+
+export class LineMagnitudeGizmo extends AbstractGizmo<(mag: number) => void>  {
+    private state: MagnitudeStateMachine;
+    get magnitude() { return this.state.current }
+
+    readonly tip: THREE.Mesh;
+    private readonly knob: THREE.Mesh;
+    private readonly shaft: THREE.Mesh;
+    private readonly plane: THREE.Mesh;
+
+    private worldQuaternion: THREE.Quaternion;
+    private worldPosition: THREE.Vector3;
+
+    private readonly startMousePosition: THREE.Vector3;
+    private originalPosition?: THREE.Vector3;
+    private localY: THREE.Vector3;
+
+    constructor(name: string, editor: EditorLike) {
+        const [gizmoName,] = name.split(':');
+        const materials = editor.gizmos;
+
+        const handle = new THREE.Group();
+        const picker = new THREE.Group();
+
+        const plane = new THREE.Mesh(planeGeometry, materials.yellow);
+
+        const tip = new THREE.Mesh(boxGeometry, materials.yellow);
+        tip.position.set(0, 1, 0);
+        const shaft = new Line2(lineGeometry, materials.lineYellow);
+        handle.add(tip, shaft);
+
+        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
+        knob.userData.command = [`gizmo:${name}`, () => { }];
+        knob.position.copy(tip.position);
+        picker.add(knob);
+
+        super(gizmoName, editor, { handle, picker });
+
+        this.shaft = shaft;
+        this.tip = tip;
+        this.knob = knob;
+        this.plane = plane;
+
+        this.startMousePosition = new THREE.Vector3();
+
+        this.worldQuaternion = new THREE.Quaternion();
+        this.worldPosition = new THREE.Vector3();
+        this.localY = new THREE.Vector3();
+
+        this.state = new MagnitudeStateMachine(1);
+    }
+
+
+    onPointerHover(intersect: Intersector): void { }
+
+    onPointerUp(intersect: Intersector, info: MovementInfo) {
+        this.state.stop();
+    }
+
+    onPointerDown(intersect: Intersector, info: MovementInfo) {
+        const planeIntersect = intersect(this.plane, true);
+        if (planeIntersect === undefined) throw new Error("invalid precondition");
+        this.startMousePosition.copy(planeIntersect.point);
+        if (this.originalPosition === undefined) this.originalPosition = new THREE.Vector3().copy(this.position);
+    }
+
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
+        const planeIntersect = intersect(this.plane, true);
+        if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
+
+        const dist = planeIntersect.point.sub(this.startMousePosition).dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion));
+        let length = this.state.original + dist;
+        this.render(length);
+        this.state.current = length;
+        cb(length);
+    }
+
+    render(length: number) {
+        this.shaft.scale.y = length;
+        this.tip.position.set(0, length, 0);
+        this.knob.position.copy(this.tip.position);
+    }
+
+    update(camera: THREE.Camera) {
+        const { worldQuaternion, worldPosition } = this;
+        this.getWorldQuaternion(worldQuaternion);
+        this.getWorldPosition(worldPosition);
+
+        super.update(camera);
+
+        const eye = new THREE.Vector3();
+        eye.copy(camera.position).sub(worldPosition).normalize();
+        const align = new THREE.Vector3();
+        const dir = new THREE.Vector3();
+
+        const o = Y.clone().applyQuaternion(worldQuaternion);
+        align.copy(eye).cross(o);
+        dir.copy(o).cross(align);
+
+        const matrix = new THREE.Matrix4();
+        matrix.lookAt(new THREE.Vector3(), dir, align);
+        this.plane.quaternion.setFromRotationMatrix(matrix);
+        this.plane.updateMatrixWorld();
+        this.plane.position.copy(worldPosition);
     }
 }
 
@@ -206,6 +314,7 @@ export class LengthGizmo extends AbstractGizmo<(distance: number) => void> {
 }
 
 const sphereGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
 
 // The distance gizmo is a pin with a ball on top for moving objects. It's initial length is always 1,
 // unlike the length gizmo, whose length is equal to the value it emits.
