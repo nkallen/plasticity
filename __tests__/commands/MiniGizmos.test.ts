@@ -17,7 +17,6 @@ let gizmos: GizmoMaterialDatabase;
 let signals: EditorSignals;
 let helpers: Helpers;
 let editor: EditorLike;
-let viewport: Viewport;
 
 beforeEach(() => {
     signals = new EditorSignals();
@@ -63,23 +62,10 @@ class MyCompositeGizmo extends CompositeGizmo<Params> {
 }
 
 export class MockGizmo extends AbstractGizmo<(n: number) => void> {
-    stateMachine!: GizmoStateMachine<(n: number) => void>;
-
     constructor(name: string, editor: EditorLike) {
         const handle = new THREE.Object3D();
         const picker = new THREE.Object3D();
         super(name, editor, { handle, picker });
-    }
-
-    execute(cb: (n: number) => void, finishFast: mode = mode.Transitory): CancellablePromise<void> {
-        const stateMachine = new GizmoStateMachine(this as AbstractGizmo<(n: number) => void>, signals, cb);
-        this.stateMachine = stateMachine;
-
-        return new CancellablePromise<void>((resolve, reject) => {
-            const cancel = () => { reject(Cancel) }
-            const finish = () => { resolve() }
-            return { cancel, finish };
-        })
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -88,6 +74,7 @@ export class MockGizmo extends AbstractGizmo<(n: number) => void> {
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) {
         cb(0);
     }
+    deactivate() { }
 }
 
 describe(CompositeGizmo, () => {
@@ -114,10 +101,12 @@ describe(CompositeGizmo, () => {
         let called = 0;
         const cancellable = gizmo.execute(params => called++);
         const stateMachine = gizmo.angle.stateMachine;
+        expect(called).toBe(0);
 
         stateMachine.update(viewport, { x: 0, y: 0, button: 0 });
         stateMachine.command(() => { }, () => { });
         expect(stateMachine.state).toBe('command');
+        expect(called).toBe(0);
 
         stateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
         stateMachine.pointerMove();

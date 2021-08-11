@@ -39,10 +39,6 @@ export interface EditorLike {
     gizmos: GizmoMaterialDatabase
 }
 
-export interface Disableable {
-    enabled: boolean;
-}
-
 export interface GizmoLike<CB> {
     execute(cb: CB, finishFast?: mode): CancellablePromise<void>;
 }
@@ -50,7 +46,7 @@ export interface GizmoLike<CB> {
 export enum mode { Persistent, Transitory };
 
 export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {
-    enabled = true;
+    stateMachine?: GizmoStateMachine<CB>;
 
     handle: THREE.Object3D;
     picker: THREE.Object3D;
@@ -78,6 +74,8 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         }
 
         const stateMachine = new GizmoStateMachine(this, this.editor.signals, cb);
+        this.stateMachine = stateMachine;
+        disposables.add(new Disposable(() => this.stateMachine = undefined));
 
         return new CancellablePromise<void>((resolve, reject) => {
             // Aggregate the commands, like 'x' for :move:x
@@ -240,6 +238,7 @@ export interface MovementInfo {
 // gizmo user interaction. It deals with the hover->click->drag->unclick case (the traditional
 // gizmo interactions) as well as the keyboardCommand->move->click->unclick case (blender modal-style).
 export class GizmoStateMachine<T> implements MovementInfo {
+    isActive = true;
     state: 'none' | 'hover' | 'dragging' | 'command' = 'none';
     private pointer!: Pointer;
 
@@ -303,8 +302,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     command(fn: () => void, start: () => void): void {
-        if (!this.gizmo.enabled) return;
-
+        if (!this.isActive) return;
+        
         switch (this.state) {
             case 'none':
             case 'hover':
@@ -321,7 +320,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     pointerDown(start: () => void): void {
-        if (!this.gizmo.enabled) return;
+        if (!this.isActive) return;
 
         switch (this.state) {
             case 'hover':
@@ -337,7 +336,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     pointerMove(): void {
-        if (!this.gizmo.enabled) return;
+        if (!this.isActive) return;
 
         switch (this.state) {
             case 'dragging':
@@ -359,7 +358,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     pointerUp(finish: () => void): void {
-        if (!this.gizmo.enabled) return;
+        if (!this.isActive) return;
 
         switch (this.state) {
             case 'dragging':
@@ -377,7 +376,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     pointerHover(): void {
-        if (!this.gizmo.enabled) return;
+        if (!this.isActive) return;
 
         switch (this.state) {
             case 'none':

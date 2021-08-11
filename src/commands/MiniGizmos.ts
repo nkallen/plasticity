@@ -6,7 +6,7 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { Cancel, CancellablePromise } from "../util/Cancellable";
 import { Helper } from "../util/Helpers";
 import { CircleGeometry } from "../util/Util";
-import { AbstractGizmo, Disableable, EditorLike, GizmoLike, Intersector, mode, MovementInfo } from "./AbstractGizmo";
+import { AbstractGizmo, EditorLike, GizmoLike, Intersector, mode, MovementInfo } from "./AbstractGizmo";
 
 const radius = 1;
 const zeroVector = new THREE.Vector3();
@@ -84,6 +84,10 @@ class MagnitudeStateMachine {
 
     stop() {
         this.original = this.currentMagnitude;
+    }
+
+    revert() {
+        this.currentMagnitude = this.original;
     }
 }
 
@@ -408,8 +412,7 @@ export class DistanceGizmo extends AbstractAxisGizmo {
 }
 
 export abstract class CompositeGizmo<P> extends THREE.Group implements GizmoLike<(p: P) => void>, Helper {
-    enabled = true;
-    private readonly gizmos: [(GizmoLike<any> & Helper & Disableable), (a: any) => void][] = [];
+    private readonly gizmos: [AbstractGizmo<any>, (a: any) => void][] = [];
 
     constructor(protected readonly params: P, protected readonly editor: EditorLike) {
         super();
@@ -445,22 +448,21 @@ export abstract class CompositeGizmo<P> extends THREE.Group implements GizmoLike
         return CancellablePromise.all([p, ...cancellables]);
     }
 
-    addGizmo<T>(gizmo: GizmoLike<(t: T) => void> & Helper & Disableable, cb: (t: T) => void) {
+    addGizmo<T>(gizmo: AbstractGizmo<(t: T) => void>, cb: (t: T) => void) {
         this.gizmos.push([gizmo, cb]);
-        gizmo.addEventListener('start', () => this.disableGizmosExcept(gizmo));
-        gizmo.addEventListener('end', () => this.enableGizmos());
+        gizmo.addEventListener('start', () => this.deactivateGizmosExcept(gizmo));
+        gizmo.addEventListener('end', () => this.activateGizmos());
     }
 
-    private disableGizmosExcept<T>(except: GizmoLike<(t: T) => void> & Helper & Disableable) {
+    private deactivateGizmosExcept<T>(except: AbstractGizmo<(t: T) => void>) {
         for (const [gizmo,] of this.gizmos) {
-            if (gizmo === except) continue;
-            gizmo.enabled = false;
+            gizmo.stateMachine!.isActive = gizmo === except;
         }
     }
 
-    private enableGizmos() {
+    private activateGizmos() {
         for (const [gizmo,] of this.gizmos) {
-            gizmo.enabled = true;
+            gizmo.stateMachine!.isActive = true;
         }
     }
 

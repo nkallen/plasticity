@@ -180,6 +180,7 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         if (!this.mode) throw new Error("invalid state");
         switch (this.mode.tag) {
             case 'X':
+                console.trace("hi");
             case 'Y':
             case 'Z':
             case 'XY':
