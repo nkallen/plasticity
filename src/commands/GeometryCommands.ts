@@ -32,6 +32,7 @@ import { FilletDialog } from "./fillet/FilletDialog";
 import FilletFactory, { Max } from './fillet/FilletFactory';
 import { FilletGizmo } from './fillet/FilletGizmo';
 import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
+import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import { DistanceGizmo, LengthGizmo } from "./MiniGizmos";
@@ -46,15 +47,12 @@ import { PolygonFactory } from "./polygon/PolygonFactory";
 import { PolygonKeyboardEvent, PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
 import { RegionFactory } from "./region/RegionFactory";
-import { RotateFactory } from './translate/TranslateFactory';
-import { RotateGizmo } from './rotate/RotateGizmo';
-import ScaleFactory from "./scale/ScaleFactory";
 import SphereFactory from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
 import { MoveGizmo } from './translate/MoveGizmo';
-import { MoveFactory } from './translate/TranslateFactory';
-import { ValidationError } from "./GeometryFactory";
+import { RotateGizmo } from './translate/RotateGizmo';
+import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
 
 export class SphereCommand extends Command {
     async execute(): Promise<void> {

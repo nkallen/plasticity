@@ -90,6 +90,8 @@ export class RotateFactory extends TranslateFactory {
     axis!: THREE.Vector3;
     angle!: number;
 
+    // I'm honestly not sure why we can't use apply matrices as in TranslateFactory above,
+    // but this will work.
     async doUpdate() {
         const { items, point, axis, angle } = this;
         for (const item of items) {
@@ -112,5 +114,15 @@ export class RotateFactory extends TranslateFactory {
         const rotation = mat.Rotate(axi, angle);
 
         return new c3d.TransformValues(rotation);
+    }
+}
+
+export class ScaleFactory extends TranslateFactory {
+    scale!: THREE.Vector3;
+    pivot!: THREE.Vector3;
+
+    protected get transform(): c3d.TransformValues {
+        const { scale, pivot } = this;
+        return new c3d.TransformValues(scale.x, scale.y, scale.z, vec2cart(pivot));
     }
 }
