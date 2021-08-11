@@ -137,8 +137,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     private worldPosition: THREE.Vector3;
 
     private readonly startMousePosition: THREE.Vector3;
-    protected originalPosition?: THREE.Vector3;
-    private localY: THREE.Vector3;
+    private readonly localY: THREE.Vector3;
 
     constructor(name: string, editor: EditorLike, info: { tip: THREE.Mesh, knob: THREE.Mesh, shaft: THREE.Mesh }, state: MagnitudeStateMachine) {
         const [gizmoName,] = name.split(':');
@@ -181,7 +180,6 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) throw new Error("invalid precondition");
         this.startMousePosition.copy(planeIntersect.point);
-        if (this.originalPosition === undefined) this.originalPosition = new THREE.Vector3().copy(this.position);
     }
 
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
@@ -287,6 +285,84 @@ export class MagnitudeGizmo extends LengthGizmo {
     update(camera: THREE.Camera) {
         super.update(camera);
         this.scaleIndependentOfZoom(camera);
+    }
+}
+
+export class FooGizmo extends AbstractGizmo<(magnitude: number) => void> {
+    private denominator: number;
+
+    protected readonly knob: THREE.Mesh;
+    private plane: THREE.Mesh;
+    private readonly startMousePosition: THREE.Vector3;
+    private readonly xy: THREE.Vector3;
+    private readonly worldQuaternion: THREE.Quaternion;
+    private readonly worldPosition: THREE.Vector3;
+    private readonly offset: THREE.Vector3;
+
+    constructor(name: string, editor: EditorLike) {
+        const [gizmoName,] = name.split(':');
+        const materials = editor.gizmos;
+
+        const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.15), materials.yellowTransparent);
+        handle.position.set(0.3, 0.3, 0);
+
+        const knob = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), materials.invisible);
+        knob.position.copy(handle.position);
+        knob.userData.command = [`gizmo:${name}`, () => { }];
+        const picker = new THREE.Group();
+        picker.add(knob);
+        
+        super(gizmoName, editor, { handle, picker });
+        
+        this.knob = knob;
+        this.plane = new THREE.Mesh(planeGeometry, materials.invisible);
+        this.startMousePosition = new THREE.Vector3();
+        this.xy = new THREE.Vector3();
+        this.worldQuaternion = new THREE.Quaternion();
+        this.worldPosition = new THREE.Vector3();
+        this.offset = new THREE.Vector3();
+        this.denominator = 1;
+    }
+
+    onPointerHover(intersect: Intersector): void { }
+    onPointerUp(intersect: Intersector, info: MovementInfo) { }
+
+    onPointerDown(intersect: Intersector, info: MovementInfo) {
+        const planeIntersect = intersect(this.plane, true);
+        if (planeIntersect === undefined) throw new Error("invalid precondition");
+        this.startMousePosition.copy(planeIntersect.point);
+        this.denominator = this.startMousePosition.distanceTo(this.position);
+    }
+
+    onPointerMove(cb: (magnitude: number) => void, intersect: Intersector, info: MovementInfo): void {
+        const { xy, worldQuaternion, plane, denominator } = this;
+
+        const planeIntersect = intersect(plane, true);
+        if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
+
+        const multiplicand = xy.set(1, 1, 0).applyQuaternion(worldQuaternion);
+
+        let result = planeIntersect.point.sub(this.position).length();
+        console.log(result, denominator);
+        result /= denominator;
+        this.render(result);
+        cb(result);
+    }
+
+    update(camera: THREE.Camera) {
+        const { worldQuaternion, worldPosition } = this;
+        this.getWorldQuaternion(worldQuaternion);
+        this.getWorldPosition(worldPosition);
+        this.plane.quaternion.copy(worldQuaternion);
+        this.plane.position.copy(worldPosition);
+        this.plane.updateMatrixWorld();
+    }
+
+    render(magnitude: number) {
+        const offset = this.offset;
+        offset.set(0.3 + magnitude - 1, 0.3 + magnitude - 1, 0);
+        this.handle.position.copy(offset);
+        this.knob.position.copy(offset); // FIXME when picker isn't a group, fix this
     }
 }
 

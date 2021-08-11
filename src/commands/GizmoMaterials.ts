@@ -14,6 +14,7 @@ const depthInfo = {
 export class GizmoMaterialDatabase {
     readonly invisible = new THREE.MeshBasicMaterial(Object.assign({
         transparent: true,
+        depthWrite: false,
         opacity: 0.0,
     }, depthInfo));
 
@@ -42,17 +43,20 @@ export class GizmoMaterialDatabase {
 
     readonly yellowTransparent = new THREE.MeshBasicMaterial(Object.assign({
         opacity: 0.25,
-        color: 0xffff00
+        color: 0xffff00,
+        side: THREE.DoubleSide,
     }, depthInfo));
 
     readonly magentaTransparent = new THREE.MeshBasicMaterial(Object.assign({
         opacity: 0.25,
-        color: 0xff00ff
+        color: 0xff00ff,
+        side: THREE.DoubleSide,
     }, depthInfo));
 
     readonly cyanTransparent = new THREE.MeshBasicMaterial(Object.assign({
         opacity: 0.25,
-        color: 0x00ffff
+        color: 0x00ffff,
+        side: THREE.DoubleSide,
     }, depthInfo));
 
     readonly line = new LineMaterial(Object.assign({
