@@ -3,11 +3,9 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../GeometryFactory';
 
-export default class MoveFactory extends GeometryFactory {
+abstract class TranslationFactory extends GeometryFactory {
     _items!: visual.Item[];
     private models!: c3d.Item[];
-    p1!: THREE.Vector3;
-    p2!: THREE.Vector3;
 
     get items() { return this._items }
     set items(items: visual.Item[]) {
@@ -72,6 +70,13 @@ export default class MoveFactory extends GeometryFactory {
             item.scale.set(1, 1, 1);
         }
     }
+
+    protected abstract get transform(): c3d.TransformValues
+}
+
+export default class MoveFactory extends TranslationFactory {
+    p1!: THREE.Vector3;
+    p2!: THREE.Vector3;
 
     private readonly delta = new THREE.Vector3();
     protected get transform(): c3d.TransformValues {
