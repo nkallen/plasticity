@@ -57,7 +57,7 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         const normal = model.EdgeNormal(t);
         const gizmo = new DistanceGizmo(`fillet:distance:${this.variable.length}`, this.editor);
         gizmo.relativeScale.setScalar(0.5);
-        gizmo.length = 1;
+        gizmo.magnitude = 1;
         gizmo.position.copy(point);
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal));
         this.variable.push(gizmo);

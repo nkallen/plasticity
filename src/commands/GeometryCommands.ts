@@ -961,7 +961,7 @@ export class RefilletFaceCommand extends Command {
 
         const gizmo = new DistanceGizmo("refillet-face:distance", this.editor);
         gizmo.constantLength = true;
-        gizmo.allowNegative = true;
+        gizmo.state.min = Number.NEGATIVE_INFINITY;
 
         await gizmo.execute(async params => {
             await refilletFace.update();

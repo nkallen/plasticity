@@ -11,7 +11,7 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
 
     constructor(params: OffsetFaceParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
-        this.distance.allowNegative = true;
+        this.distance.state.min = Number.NEGATIVE_INFINITY;
         this.distance.constantLength = true;
     }
 
