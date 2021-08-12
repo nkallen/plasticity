@@ -1,4 +1,4 @@
-import { mat2mat, vec2cart } from "../../util/Conversion";
+import { cart2vec, mat2mat, vec2cart } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
@@ -69,17 +69,19 @@ abstract class TranslateFactory extends GeometryFactory {
     get originalItem() { return this.items }
 }
 
-export class MoveFactory extends TranslateFactory {
-    p1!: THREE.Vector3;
-    p2!: THREE.Vector3;
+export interface MoveParams {
+    move: THREE.Vector3;
+    pivot: THREE.Vector3;
+}
 
-    private readonly delta = new THREE.Vector3();
+export class MoveFactory extends TranslateFactory implements MoveParams {
+    move!: THREE.Vector3;
+    pivot!: THREE.Vector3;
+
     protected get transform(): c3d.TransformValues {
-        const { delta, p1, p2 } = this;
-
-        delta.copy(p2).sub(p1);
+        const { move } = this;
         const params = new c3d.TransformValues();
-        const vec = new c3d.Vector3D(delta.x, delta.y, delta.z);
+        const vec = new c3d.Vector3D(move.x, move.y, move.z);
         params.Move(vec);
         return params;
     }

@@ -27,11 +27,11 @@ export class ChamferGizmo extends CompositeGizmo<ChamferParams> {
         this.add(distance);
         this.add(angle);
 
-        angle.intialAngle = Math.PI / 4;
+        angle.magnitude = Math.PI / 4;
 
         this.addGizmo(distance, length => {
             params.distance1 = length;
-            params.distance2 = params.distance1 * Math.tan(angle.intialAngle);
+            params.distance2 = params.distance1 * Math.tan(angle.magnitude);
         });
 
         this.addGizmo(angle, angle => {

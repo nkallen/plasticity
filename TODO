@@ -1,7 +1,4 @@
 redo move/rotate/scale
-GizmoStateMachine should have an interrupt() method that cleanly transitions its state back to none, and calls onInterrupt() on its parent gizmo
-
-
 
 need explode/separate command
 stick to surface max / draw on surface

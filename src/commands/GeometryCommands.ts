@@ -52,6 +52,7 @@ import { MoveGizmo } from './translate/MoveGizmo';
 import { RotateGizmo } from './translate/RotateGizmo';
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
+import { _MoveGizmo } from "./translate/_MoveGizmo";
 
 export class SphereCommand extends Command {
     async execute(): Promise<void> {
@@ -621,24 +622,17 @@ export class MoveCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        line.p1 = centroid;
-
         const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        move.p1 = centroid;
+        move.pivot = centroid;
         move.items = objects;
 
-        const moveGizmo = new MoveGizmo(this.editor);
-        moveGizmo.position.copy(centroid);
-        await moveGizmo.execute(delta => {
-            line.p2 = line.p1.clone().add(delta);
-            move.p2 = move.p1.clone().add(delta);
-            line.update();
+        const gizmo = new MoveGizmo(move, this.editor);
+        gizmo.position.copy(centroid);
+        await gizmo.execute(s => {
             move.update();
         }).resource(this);
-        Promise.all([
-            line.cancel(),
-            move.commit()]);
+        
+        await move.commit();
     }
 }
 
@@ -936,7 +930,7 @@ export class ActionFaceCommand extends Command {
         const faceModel = this.editor.db.lookupTopologyItem(face);
         const point_ = faceModel.Point(0.5, 0.5);
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
-        const gizmo = new MoveGizmo(this.editor);
+        const gizmo = new _MoveGizmo(this.editor);
         gizmo.position.copy(point);
 
         await gizmo.execute(async delta => {
@@ -961,7 +955,7 @@ export class RefilletFaceCommand extends Command {
         const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(faces[0]));
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         gizmo.position.copy(point);
-        
+
         gizmo.state.min = Number.NEGATIVE_INFINITY;
 
         await gizmo.execute(async distance => {
@@ -1089,7 +1083,7 @@ export class ChangePointCommand extends Command {
         const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         changePoint.controlPoint = controlPoint;
 
-        const gizmo = new MoveGizmo(this.editor);
+        const gizmo = new _MoveGizmo(this.editor);
         gizmo.position.copy(changePoint.originalPosition);
         await gizmo.execute(delta => {
             changePoint.delta = delta;

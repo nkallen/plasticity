@@ -71,6 +71,8 @@ class MagnitudeStateMachine {
 
 export class AngleGizmo extends CircularGizmo {
     private state: MagnitudeStateMachine;
+    get magnitude() { return this.state.current }
+    set magnitude(m: number) { this.state.original = m }
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor);
@@ -210,11 +212,13 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
         const dist = planeIntersect.point.sub(this.startMousePosition).dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion));
-        let length = this.state.original + this.sign * dist;
+        let length = this.accumulate(this.state.original, this.sign, dist);
         this.state.current = length;
         this.render(this.state.current);
         cb(this.state.current);
     }
+
+    protected abstract accumulate(original: number, sign: number, dist: number): number;
 
     get magnitude() { return this.state.current }
     set magnitude(mag: number) {
@@ -269,6 +273,35 @@ export class ScaleAxisGizmo extends AbstractAxisGizmo {
         super.update(camera);
         this.scaleIndependentOfZoom(camera);
     }
+
+    protected accumulate(original: number, sign: number, dist: number): number {
+        return original + sign * dist
+    }
+}
+
+export class MoveAxisGizmo extends AbstractAxisGizmo {
+    constructor(name: string, editor: EditorLike, material?: { tip: THREE.MeshBasicMaterial, shaft: LineMaterial }) {
+        const materials = editor.gizmos;
+        material ??= { tip: materials.yellow, shaft: materials.lineYellow }
+        const tip = new THREE.Mesh(arrowGeometry, material.tip);
+        tip.position.set(0, 1, 0);
+        const shaft = new Line2(lineGeometry, material.shaft);
+
+        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
+        knob.userData.command = [`gizmo:${name}`, () => { }];
+        knob.position.copy(tip.position);
+
+        super(name, editor, { tip, knob, shaft }, new MagnitudeStateMachine(0));
+    }
+
+    update(camera: THREE.Camera) {
+        super.update(camera);
+        this.scaleIndependentOfZoom(camera);
+    }
+
+    protected accumulate(original: number, sign: number, dist: number): number {
+        return original + dist
+    }
 }
 
 const arrowLength = 0.1;
@@ -301,6 +334,10 @@ export class LengthGizmo extends AbstractAxisGizmo {
         state.min = 0;
         super(name, editor, { tip, knob, shaft }, state);
         this.render(this.state.current);
+    }
+
+    protected accumulate(original: number, sign: number, dist: number): number {
+        return original + sign * dist
     }
 }
 
@@ -430,6 +467,10 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     update(camera: THREE.Camera) {
         super.update(camera);
         this.scaleIndependentOfZoom(camera);
+    }
+
+    protected accumulate(original: number, sign: number, dist: number): number {
+        return original + sign * dist
     }
 }
 
