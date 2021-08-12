@@ -3,13 +3,13 @@ import { CurveEdgeSnap } from "../../editor/SnapManager";
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
-import { DistanceGizmo } from "../MiniGizmos";
+import { DashedLineMagnitudeHelper, DistanceGizmo } from "../MiniGizmos";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { FilletParams } from './FilletFactory';
 
 export class FilletGizmo extends CompositeGizmo<FilletParams> {
-    private readonly main = new DistanceGizmo("fillet:distance", this.editor);
-    private readonly variable: DistanceGizmo[] = [];
+    private readonly main = new MagnitudeGizmo("fillet:distance", this.editor);
+    private readonly variable: MagnitudeGizmo[] = [];
 
     constructor(params: FilletParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
@@ -29,6 +29,10 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         });
 
         return super.execute(cb, finishFast);
+    }
+
+    prepare() {
+        this.main.relativeScale.setScalar(0.8);
     }
 
     private placement(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
@@ -52,11 +56,11 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         this.main.render(length);
     }
 
-    addVariable(point: THREE.Vector3, snap: CurveEdgeSnap): DistanceGizmo {
+    addVariable(point: THREE.Vector3, snap: CurveEdgeSnap): MagnitudeGizmo {
         const { model, t } = snap;
 
         const normal = model.EdgeNormal(t);
-        const gizmo = new DistanceGizmo(`fillet:distance:${this.variable.length}`, this.editor);
+        const gizmo = new MagnitudeGizmo(`fillet:distance:${this.variable.length}`, this.editor);
         gizmo.relativeScale.setScalar(0.5);
         gizmo.magnitude = 1;
         gizmo.position.copy(point);
@@ -69,5 +73,23 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
     showEdges() {
         for (const edge of this.params.edges)
             this.editor.db.temporaryObjects.add(edge.occludedLine.clone());
+    }
+
+    get shouldRescaleOnZoom() {
+        return false;
+    }
+}
+
+class MagnitudeGizmo extends DistanceGizmo {
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor, new DashedLineMagnitudeHelper());
+    }
+
+    protected accumulate(original: number, sign: number, dist: number): number {
+        return original + sign * dist;
+    }
+
+    get shouldRescaleOnZoom() {
+        return true;
     }
 }

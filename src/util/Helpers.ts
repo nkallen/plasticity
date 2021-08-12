@@ -10,6 +10,8 @@ import * as visual from "../editor/VisualModel";
 // so that it appears behind things.
 
 export abstract class Helper extends THREE.Object3D {
+    get shouldRescaleOnZoom() { return this.parent?.type === 'Scene' }
+
     update(camera: THREE.Camera) {
         this.scaleIndependentOfZoom(camera);
     }
@@ -20,7 +22,7 @@ export abstract class Helper extends THREE.Object3D {
 
     // Scale the gizmo so it has a uniform size regardless of camera position/zoom
     scaleIndependentOfZoom(camera: THREE.Camera) {
-        if (this.parent?.type !== 'Scene') return;
+        if (!this.shouldRescaleOnZoom) return;
 
         let factor;
         if (camera instanceof THREE.OrthographicCamera) {

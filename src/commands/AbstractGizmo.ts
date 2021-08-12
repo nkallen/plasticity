@@ -168,11 +168,13 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 this.editor.signals.gizmoChanged.dispatch();
             }
             const cancel = () => {
+                stateMachine.finish();
                 disposables.dispose();
                 this.editor.signals.gizmoChanged.dispatch();
                 reject(Cancel);
             }
             const finish = () => {
+                stateMachine.finish();
                 disposables.dispose();
                 this.editor.signals.gizmoChanged.dispatch();
                 resolve();
@@ -386,10 +388,15 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.state.clearEventHandlers.dispose();
                 this.gizmo.dispatchEvent({ type: 'interrupt' });
                 this.gizmo.onInterrupt(this.cb);
+                this.gizmo.helper?.onEnd();
             case 'hover':
                 this.state = { tag: 'none' };
             default: break;
         }
+    }
+
+    finish() {
+        this.gizmo.helper?.onEnd();
     }
 
     static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean): THREE.Intersection | undefined {

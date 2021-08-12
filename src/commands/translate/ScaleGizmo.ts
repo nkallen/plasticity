@@ -96,11 +96,6 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
         this.scale.setScalar(magnitude);
         this.scale.multiply(this.relativeScale);
     }
-
-    update(camera: THREE.Camera) {
-        super.update(camera);
-        this.scaleIndependentOfZoom(camera);
-    }
 }
 
 export class ScaleAxisGizmo extends AbstractAxisGizmo {
@@ -118,11 +113,6 @@ export class ScaleAxisGizmo extends AbstractAxisGizmo {
         const helper = new DashedLineMagnitudeHelper();
 
         super(name, editor, { tip, knob, shaft, helper }, new MagnitudeStateMachine(1));
-    }
-
-    update(camera: THREE.Camera) {
-        super.update(camera);
-        this.scaleIndependentOfZoom(camera);
     }
 
     protected accumulate(original: number, sign: number, dist: number): number {

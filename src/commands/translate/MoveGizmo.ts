@@ -4,7 +4,7 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxisGizmo, arrowGeometry, CircularGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo, VectorStateMachine } from "../MiniGizmos";
+import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo, VectorStateMachine } from "../MiniGizmos";
 import { MoveParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -33,8 +33,8 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 
     prepare() {
         const { x, y, z, xy, yz, xz, screen } = this;
-        for (const o of [x, y, z, xy, yz, xz]) o.relativeScale.setScalar(0.8);
-        screen.relativeScale.setScalar(0.25);
+        for (const o of [x, y, z, xy, yz, xz]) o.scale.setScalar(0.8);
+        screen.scale.setScalar(0.25);
     }
 
     execute(cb: (params: MoveParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
@@ -105,11 +105,6 @@ export class CircleMoveGizmo extends CircularGizmo<THREE.Vector3> {
         this.state.current = delta;
         cb(delta);
     }
-
-    update(camera: THREE.Camera) {
-        super.update(camera);
-        this.scaleIndependentOfZoom(camera);
-    }
 }
 
 export class MoveAxisGizmo extends AbstractAxisGizmo {
@@ -124,12 +119,12 @@ export class MoveAxisGizmo extends AbstractAxisGizmo {
         knob.userData.command = [`gizmo:${name}`, () => { }];
         knob.position.copy(tip.position);
 
-        super(name, editor, { tip, knob, shaft }, new MagnitudeStateMachine(0));
-    }
+        // @ts-ignore-error("it only considers color, so it's ok")
+        const helper = new AxisHelper(material.tip);
 
-    update(camera: THREE.Camera) {
-        super.update(camera);
-        this.scaleIndependentOfZoom(camera);
+        super(name, editor, { tip, knob, shaft, helper }, new MagnitudeStateMachine(0));
+
+        this.add(helper);
     }
 
     protected accumulate(original: number, sign: number, dist: number): number {

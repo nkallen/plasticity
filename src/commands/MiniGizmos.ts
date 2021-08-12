@@ -20,8 +20,8 @@ import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } fro
  */
 
 const radius = 1;
- const zeroVector = new THREE.Vector3();
- 
+const zeroVector = new THREE.Vector3();
+
 class AbstractValueStateMachine<T> {
     private currentMagnitude: T;
 
@@ -50,7 +50,7 @@ export class MagnitudeStateMachine extends AbstractValueStateMachine<number> {
 
 export class VectorStateMachine extends AbstractValueStateMachine<THREE.Vector3> { }
 
-export class QuaternionStateMachine extends AbstractValueStateMachine<THREE.Quaternion> {}
+export class QuaternionStateMachine extends AbstractValueStateMachine<THREE.Quaternion> { }
 
 export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void> {
     protected state: AbstractValueStateMachine<T>;
@@ -96,7 +96,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     eye: THREE.Vector3;
     private worldPosition: THREE.Vector3;
     update(camera: THREE.Camera) {
-        this.scaleIndependentOfZoom(camera);
+        super.update(camera);
         this.lookAt(camera.position);
 
         const { worldPosition } = this;
@@ -215,6 +215,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     }
 
     update(camera: THREE.Camera) {
+        super.update(camera);
         const { worldQuaternion, worldPosition } = this;
         this.getWorldQuaternion(worldQuaternion);
         this.getWorldPosition(worldPosition);
@@ -299,7 +300,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
         const materials = editor.gizmos;
         material ??= materials.yellow;
 
-        const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 0.25), material);
+        const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), material);
         handle.position.set(0.5, 0.5, 0);
 
         const knob = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), materials.invisible);
@@ -354,9 +355,7 @@ export const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
 // The distance gizmo is a pin with a ball on top for moving objects. It's initial length is always 1,
 // unlike the length gizmo, whose length is equal to the value it emits.
 export class DistanceGizmo extends AbstractAxisGizmo {
-    constantLength: boolean;
-
-    constructor(name: string, editor: EditorLike) {
+    constructor(name: string, editor: EditorLike, helper?: GizmoHelper) {
         const materials = editor.gizmos;
 
         const tip = new THREE.Mesh(sphereGeometry, materials.yellow);
@@ -369,22 +368,12 @@ export class DistanceGizmo extends AbstractAxisGizmo {
 
         const state = new MagnitudeStateMachine(0);
         state.min = 0;
-        super(name, editor, { tip, knob, shaft }, state);
-
-        this.constantLength = false;
+        console.log(helper);
+        super(name, editor, { tip, knob, shaft, helper }, state);
     }
 
     render(length: number) {
-        if (this.constantLength) {
-            this.position.set(0, length, 0).applyQuaternion(this.quaternion).add(this.originalPosition ?? zeroVector);
-        } else {
-            super.render(length + 1);
-        }
-    }
-
-    update(camera: THREE.Camera) {
-        super.update(camera);
-        this.scaleIndependentOfZoom(camera);
+        super.render(length + 1);
     }
 
     protected accumulate(original: number, sign: number, dist: number): number {
@@ -392,11 +381,15 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     }
 }
 
-
+// "Helpers" appear when the user starts interacting with the gizmo (after click)
+// For values that grow/shink a dashed line works well, and for things that move
+// along axes, a line appearing showing the direction is nice.
+let id = 0;
 export class DashedLineMagnitudeHelper implements GizmoHelper {
     private readonly element: SVGSVGElement;
     private readonly line: SVGLineElement;
-    private parentElement!: HTMLElement;
+    private parentElement?: HTMLElement;
+    private state: 'none' | 'started' = 'none';
 
     constructor() {
         this.element = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -411,25 +404,37 @@ export class DashedLineMagnitudeHelper implements GizmoHelper {
 
 
     onStart(parentElement: HTMLElement, position: THREE.Vector2) {
-        parentElement.appendChild(this.element);
-        this.parentElement = parentElement;
+        switch (this.state) {
+            case 'none':
+                parentElement.appendChild(this.element);
+                this.parentElement = parentElement;
 
-        const converted = this.toSVGCoordinates(position);
+                const converted = this.toSVGCoordinates(position);
 
-        this.line.setAttribute('x1', String(converted.x));
-        this.line.setAttribute('y1', String(converted.y));
-        this.line.setAttribute('x2', String(converted.x));
-        this.line.setAttribute('y2', String(converted.y));
+                this.line.setAttribute('x1', String(converted.x));
+                this.line.setAttribute('y1', String(converted.y));
+                this.line.setAttribute('x2', String(converted.x));
+                this.line.setAttribute('y2', String(converted.y));
+
+                this.state = 'started';
+                break;
+            default: throw new Error("invalid state");
+        }
     }
 
     onMove(position: THREE.Vector2) {
-        const converted = this.toSVGCoordinates(position);
-        this.line.setAttribute('x2', String(converted.x));
-        this.line.setAttribute('y2', String(converted.y));
+        switch (this.state) {
+            case 'started':
+                const converted = this.toSVGCoordinates(position);
+                this.line.setAttribute('x2', String(converted.x));
+                this.line.setAttribute('y2', String(converted.y));
+                break;
+            default: throw new Error("invalid state");
+        }
     }
 
     get aspectRatio() {
-        const box = this.parentElement.parentElement!;
+        const box = this.parentElement!.parentElement!;
         const aspectRatio = box.offsetWidth / box.offsetHeight;
         return aspectRatio;
     }
@@ -442,6 +447,32 @@ export class DashedLineMagnitudeHelper implements GizmoHelper {
     }
 
     onEnd() {
-        this.element.parentElement!.removeChild(this.element);
+        switch (this.state) {
+            case 'started':
+                this.parentElement!.removeChild(this.element);
+                this.state = 'none';
+        }
+    }
+}
+
+const helperGeometry = new THREE.BufferGeometry();
+const points = [];
+points.push(new THREE.Vector3(0, -100, 0));
+points.push(new THREE.Vector3(0, 100, 0));
+helperGeometry.setFromPoints(points);
+
+const yellow = new THREE.LineBasicMaterial({ color: 0xffff00 });
+
+export class AxisHelper extends THREE.Line {
+    constructor(material: THREE.LineBasicMaterial) {
+        super(helperGeometry, material);
+        this.visible = false;
+    }
+    onStart(parentElement: HTMLElement, position: THREE.Vector2): void {
+        this.visible = true;
+    }
+    onMove(position: THREE.Vector2): void { }
+    onEnd(): void {
+        this.visible = false;
     }
 }
