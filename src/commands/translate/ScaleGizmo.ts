@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { mode } from "../AbstractGizmo";
-import { CircleMagnitudeGizmo, PlanarMagnitudeGizmo, ScaleAxisGizmo } from "../MiniGizmos";
+import { CircleScaleGizmo, PlanarScaleGizmo, ScaleAxisGizmo } from "../MiniGizmos";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { ScaleParams } from "./TranslateFactory";
 
@@ -24,10 +24,10 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     private readonly x = new ScaleAxisGizmo("scale:x", this.editor, this.red);
     private readonly y = new ScaleAxisGizmo("scale:y", this.editor, this.green);
     private readonly z = new ScaleAxisGizmo("scale:z", this.editor, this.blue);
-    private readonly xy = new PlanarMagnitudeGizmo("scale:xy", this.editor, this.yellow);
-    private readonly yz = new PlanarMagnitudeGizmo("scale:yz", this.editor, this.cyan);
-    private readonly xz = new PlanarMagnitudeGizmo("scale:xz", this.editor, this.magenta);
-    private readonly xyz = new CircleMagnitudeGizmo("scale:xyz", this.editor);
+    private readonly xy = new PlanarScaleGizmo("scale:xy", this.editor, this.yellow);
+    private readonly yz = new PlanarScaleGizmo("scale:yz", this.editor, this.cyan);
+    private readonly xz = new PlanarScaleGizmo("scale:xz", this.editor, this.magenta);
+    private readonly xyz = new CircleScaleGizmo("scale:xyz", this.editor);
 
     execute(cb: (params: ScaleParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
         const { x, y, z, xy, yz, xz, xyz, params } = this;
@@ -43,9 +43,9 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
 
         const set = () => {
             params.scale.set(
-                xy.magnitude * xz.magnitude * x.magnitude,
-                xy.magnitude * yz.magnitude * y.magnitude,
-                xz.magnitude * yz.magnitude * z.magnitude).multiplyScalar(xyz.magnitude);
+                xy.value * xz.value * x.magnitude,
+                xy.value * yz.value * y.magnitude,
+                xz.value * yz.value * z.magnitude).multiplyScalar(xyz.value);
         }
 
         this.addGizmo(x, set);
