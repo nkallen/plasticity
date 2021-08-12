@@ -96,6 +96,15 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                 viewport.setAttribute("gizmo", this.title); // for gizmo-specific keyboard command selectors
                 disposables.add(new Disposable(() => viewport.removeAttribute("gizmo")));
 
+                const addEventHandlers = () => {
+                    domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
+                    domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+                    return new Disposable(() => {
+                        domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+                        domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
+                    });
+                }
+
                 // First, register any keyboard commands for each viewport, like 'x' for :move:x
                 for (const [name, fn] of commands) { // FIXME I'm skeptical this belongs in a loop
                     const disp = registry.addOne(domElement, name, () => {
@@ -107,8 +116,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                         stateMachine.update(viewport, pointer);
                         stateMachine.command(fn, () => {
                             viewport.disableControlsExcept();
-                            domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
-                            domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+                            return addEventHandlers();
                         });
                     });
                     disposables.add(disp);
@@ -120,8 +128,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                     stateMachine.update(viewport, pointer);
                     stateMachine.pointerDown(() => {
                         viewport.disableControlsExcept();
-                        domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
-                        domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+                        return addEventHandlers();
                     });
                 }
 
@@ -140,8 +147,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
                             resolve();
                         }
                         viewport.enableControls();
-                        domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
-                        domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
                     });
                 }
 
@@ -238,9 +243,10 @@ export interface MovementInfo {
 // This class handles computing some useful data (like click start and click end) of the
 // gizmo user interaction. It deals with the hover->click->drag->unclick case (the traditional
 // gizmo interactions) as well as the keyboardCommand->move->click->unclick case (blender modal-style).
+type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'dragging', clearEventHandlers: Disposable } | { tag: 'command', clearEventHandlers: Disposable }
 export class GizmoStateMachine<T> implements MovementInfo {
     isActive = true;
-    state: 'none' | 'hover' | 'dragging' | 'command' = 'none';
+    state: State = { tag: 'none' };
     private pointer!: Pointer;
 
     private readonly cameraPlane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
@@ -284,7 +290,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         const intersection = this.intersector(this.cameraPlane, true);
         if (!intersection) throw "corrupt intersection query";
 
-        switch (this.state) {
+        switch (this.state.tag) {
             case 'none':
             case 'hover':
                 const { worldPosition } = this;
@@ -302,33 +308,31 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.signals.gizmoChanged.dispatch();
     }
 
-    command(fn: () => void, start: () => void): void {
-        switch (this.state) {
+    command(fn: () => void, start: () => Disposable): void {
+        switch (this.state.tag) {
             case 'none':
             case 'hover':
-                start();
-            case 'command':
+                const clearEventHandlers = start();
                 fn();
                 this.gizmo.update(this.camera); // FIXME: need to update the gizmo after calling fn. figure out a way to test
                 this.begin();
-                this.state = 'command';
+                this.state = { tag: 'command', clearEventHandlers };
                 this.gizmo.dispatchEvent({ type: 'start' });
-                break;
             default: break;
         }
     }
 
-    pointerDown(start: () => void): void {
+    pointerDown(start: () => Disposable): void {
         if (!this.isActive) return;
 
-        switch (this.state) {
+        switch (this.state.tag) {
             case 'hover':
                 if (this.pointer.button !== 0) return;
 
                 this.begin();
-                this.state = 'dragging';
+                const clearEventHandlers = start();
+                this.state = { tag: 'dragging', clearEventHandlers };
                 this.gizmo.dispatchEvent({ type: 'start' });
-                start();
                 break;
             default: break;
         }
@@ -337,7 +341,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     pointerMove(): void {
         if (!this.isActive) return;
 
-        switch (this.state) {
+        switch (this.state.tag) {
             case 'dragging':
                 if (this.pointer.button !== -1) return;
             case 'command':
@@ -359,13 +363,14 @@ export class GizmoStateMachine<T> implements MovementInfo {
     pointerUp(finish: () => void): void {
         if (!this.isActive) return;
 
-        switch (this.state) {
+        switch (this.state.tag) {
             case 'dragging':
             case 'command':
                 if (this.pointer.button !== 0) return;
 
+                this.state.clearEventHandlers.dispose();
                 this.signals.gizmoChanged.dispatch();
-                this.state = 'none';
+                this.state = { tag: 'none' };
                 this.gizmo.dispatchEvent({ type: 'end' });
                 this.gizmo.onPointerUp(this.intersector, this);
                 finish();
@@ -377,24 +382,25 @@ export class GizmoStateMachine<T> implements MovementInfo {
     pointerHover(): void {
         if (!this.isActive) return;
 
-        switch (this.state) {
+        switch (this.state.tag) {
             case 'none':
             case 'hover':
                 this.gizmo.onPointerHover(this.intersector);
                 const intersect = this.intersector(this.gizmo.picker, true);
-                this.state = !!intersect ? 'hover' : 'none';
+                this.state = { tag: !!intersect ? 'hover' : 'none' };
                 break;
             default: break;
         }
     }
 
     interrupt() {
-        switch (this.state) {
+        switch (this.state.tag) {
             case 'command':
             case 'dragging':
+                this.state.clearEventHandlers.dispose();
                 this.gizmo.onInterrupt(this.cb);
             case 'hover':
-                this.state = 'none';
+                this.state = { tag: 'none' };
             default: break;
         }
     }

@@ -85,7 +85,7 @@ class MagnitudeStateMachine {
     }
 
     revert() {
-        this.currentMagnitude = this.original;
+        this.current = this.original;
     }
 }
 
@@ -101,7 +101,9 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
         this.render(this.state.current);
     }
 
-    onInterrupt(cb: (radius: number) => void) { }
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.revert();
+     }
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
@@ -175,7 +177,9 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.state = state;
     }
 
-    onInterrupt(cb: (radius: number) => void) { }
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.revert();
+    }
 
     onPointerHover(intersect: Intersector): void { }
 
@@ -330,7 +334,9 @@ export class PlanarMagnitudeGizmo extends AbstractGizmo<(magnitude: number) => v
         this.state = new MagnitudeStateMachine(1);
     }
 
-    onInterrupt(cb: (magnitude: number) => void) { }
+    onInterrupt(cb: (magnitude: number) => void) {
+        this.state.revert();
+     }
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {

@@ -10,6 +10,7 @@ import { Cancel, CancellablePromise } from "../../src/util/Cancellable";
 import { Helpers } from "../../src/util/Helpers";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import { Disposable } from "event-kit";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -62,20 +63,32 @@ class MyCompositeGizmo extends CompositeGizmo<Params> {
 }
 
 export class MockGizmo extends AbstractGizmo<(n: number) => void> {
+    interrupt: jest.Mock<any, any>;
+    hover: jest.Mock<any, any>;
+    down: jest.Mock<any, any>;
+    up_: jest.Mock<any, any>;
+    move: jest.Mock<any, any>;
+
     constructor(name: string, editor: EditorLike) {
         const handle = new THREE.Object3D();
         const picker = new THREE.Object3D();
         super(name, editor, { handle, picker });
+
+        this.interrupt = jest.fn();
+        this.hover = jest.fn();
+        this.down = jest.fn();
+        this.up_ = jest.fn();
+        this.move = jest.fn();
     }
 
-    onInterrupt(cb: (angle: number) => void) { }
-    onPointerHover(intersect: Intersector): void { }
-    onPointerDown(intersect: Intersector, info: MovementInfo) { }
-    onPointerUp(intersect: Intersector, info: MovementInfo) { }
+    onInterrupt(cb: (angle: number) => void) {this.interrupt() }
+    onPointerHover(intersect: Intersector) { this.hover() }
+    onPointerDown(intersect: Intersector, info: MovementInfo) { this.down() }
+    onPointerUp(intersect: Intersector, info: MovementInfo) { this.up_() }
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) {
+        this.move()
         cb(0);
     }
-    deactivate() { }
 }
 
 describe(CompositeGizmo, () => {
@@ -105,8 +118,8 @@ describe(CompositeGizmo, () => {
         expect(called).toBe(0);
 
         stateMachine.update(viewport, { x: 0, y: 0, button: 0 });
-        stateMachine.command(() => { }, () => { });
-        expect(stateMachine.state).toBe('command');
+        stateMachine.command(() => { }, () => new Disposable(jest.fn()));
+        expect(stateMachine.state.tag).toBe('command');
         expect(called).toBe(0);
 
         stateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
@@ -128,7 +141,7 @@ describe(CompositeGizmo, () => {
         const distanceStateMachine = gizmo.distance.stateMachine;
 
         angleStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
-        angleStateMachine.command(() => { }, () => { });
+        angleStateMachine.command(() => { }, () => new Disposable(jest.fn()));
         angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
         angleStateMachine.pointerMove();
 
@@ -136,7 +149,7 @@ describe(CompositeGizmo, () => {
 
         // Nothing happens for pointerDown/pointerMove events while the other state machine is active:
         distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
-        distanceStateMachine.pointerDown(() => {});
+        distanceStateMachine.pointerDown(() => new Disposable(jest.fn()));
         distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
         distanceStateMachine.pointerMove();
 
@@ -146,7 +159,7 @@ describe(CompositeGizmo, () => {
         angleStateMachine.pointerUp(() => { });
 
         distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
-        distanceStateMachine.command(() => { }, () => { });
+        distanceStateMachine.command(() => { }, () => new Disposable(jest.fn()));
         distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
         distanceStateMachine.pointerMove();
 
@@ -163,38 +176,56 @@ describe(CompositeGizmo, () => {
 
 
     test("execute() mutex can be interrupted by a command", async () => {
-        let called = 0;
-        const cancellable = gizmo.execute(params => called++);
+        const execute = jest.fn();
+        const cancellable = gizmo.execute(execute);
         const angleStateMachine = gizmo.angle.stateMachine;
         const distanceStateMachine = gizmo.distance.stateMachine;
 
         angleStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
-        angleStateMachine.command(() => { }, () => { });
+        const angleClearEvents = jest.fn();
+        angleStateMachine.command(() => { }, () => new Disposable(angleClearEvents));
         angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
         angleStateMachine.pointerMove();
 
-        expect(called).toBe(1);
+        expect(execute).toHaveBeenCalledTimes(1);
 
         // Nothing happens for pointerDown/pointerMove events while the other state machine is active:
         distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
-        distanceStateMachine.pointerDown(() => {});
+        distanceStateMachine.pointerDown(() => new Disposable(jest.fn()));
         distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
         distanceStateMachine.pointerMove();
 
-        expect(called).toBe(1);
+        expect(execute).toHaveBeenCalledTimes(1);
 
         // But invoking a command will steal focus
+        expect(gizmo.angle.interrupt).toHaveBeenCalledTimes(0);
+        expect(angleClearEvents).toHaveBeenCalledTimes(0);
         distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
-        distanceStateMachine.command(() => { }, () => { });
+        const distanceClearEvents = jest.fn();
+        distanceStateMachine.command(() => { }, () => new Disposable(distanceClearEvents));
+        expect(gizmo.angle.interrupt).toHaveBeenCalledTimes(1);
+        expect(angleClearEvents).toHaveBeenCalledTimes(1);
+
         distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
         distanceStateMachine.pointerMove();
 
-        expect(called).toBe(2);
+        expect(execute).toHaveBeenCalledTimes(2);
 
-        distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: 0 });
-        distanceStateMachine.pointerUp(() => { });
+        // And we can steal it back
+        expect(gizmo.distance.interrupt).toHaveBeenCalledTimes(0);
+        expect(distanceClearEvents).toHaveBeenCalledTimes(0);
+        angleStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        angleStateMachine.command(() => { }, () => new Disposable(angleClearEvents));
+        expect(gizmo.distance.interrupt).toHaveBeenCalledTimes(1);
+        expect(distanceClearEvents).toHaveBeenCalledTimes(1);
+        
+        angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        angleStateMachine.pointerMove();
 
-        expect(called).toBe(2);
+        expect(execute).toHaveBeenCalledTimes(3);
+
+        angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: 0 });
+        angleStateMachine.pointerUp(() => { });
 
         cancellable.finish();
         await cancellable;

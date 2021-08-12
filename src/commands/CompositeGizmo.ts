@@ -50,7 +50,12 @@ export abstract class CompositeGizmo<P> extends THREE.Group implements GizmoLike
 
     private deactivateGizmosExcept<T>(except: AbstractGizmo<(t: T) => void>) {
         for (const [gizmo,] of this.gizmos) {
-            gizmo.stateMachine!.isActive = gizmo === except;
+            if (gizmo === except) {
+                gizmo.stateMachine!.isActive = true;
+            } else {
+                gizmo.stateMachine!.interrupt();
+                gizmo.stateMachine!.isActive = false;
+            }
         }
     }
 

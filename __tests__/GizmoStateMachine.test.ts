@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import { Disposable } from "event-kit";
 import * as THREE from "three";
 import { AbstractGizmo, EditorLike, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
@@ -79,15 +80,16 @@ beforeEach(() => {
 test("basic drag interaction", () => {
     sm.update(viewport, { x: 0, y: 0, button: 0 });
     sm.pointerHover();
-    expect(sm.state).toBe('hover');
+    expect(sm.state.tag).toBe('hover');
     expect(start).toBe(0);
     expect(end).toBe(0);
 
     sm.update(viewport, { x: 0, y: 0, button: 0 });
     const onPointerDown = jest.spyOn(gizmo, 'onPointerDown');
     expect(onPointerDown).toHaveBeenCalledTimes(0);
-    sm.pointerDown(() => { });
-    expect(sm.state).toBe('dragging');
+    const clearEventHandlers = jest.fn();
+    sm.pointerDown(() => new Disposable(clearEventHandlers));
+    expect(sm.state.tag).toBe('dragging');
     expect(onPointerDown).toHaveBeenCalledTimes(1);
     expect(start).toBe(1);
     expect(end).toBe(0);
@@ -96,27 +98,30 @@ test("basic drag interaction", () => {
     const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
     expect(onPointerMove).toHaveBeenCalledTimes(0);
     sm.pointerMove();
-    expect(sm.state).toBe('dragging');
+    expect(sm.state.tag).toBe('dragging');
     expect(onPointerMove).toHaveBeenCalledTimes(1);
     expect(start).toBe(1);
     expect(end).toBe(0);
 
+    expect(clearEventHandlers).toHaveBeenCalledTimes(0);
     sm.update(viewport, { x: 0.6, y: 0.6, button: 0 });
     sm.pointerUp(() => { });
-    expect(sm.state).toBe('none');
+    expect(clearEventHandlers).toHaveBeenCalledTimes(1);
+    expect(sm.state.tag).toBe('none');
     expect(start).toBe(1);
     expect(end).toBe(1);
 });
 
 test("basic command interaction", () => {
-    expect(sm.state).toBe('none');
+    expect(sm.state.tag).toBe('none');
     expect(start).toBe(0);
     expect(end).toBe(0);
 
     sm.update(viewport, { x: 0, y: 0, button: 0 });
-    sm.command(() => {}, () => {});
+    const clearEventHandlers = jest.fn();
+    sm.command(() => {}, () => new Disposable(clearEventHandlers));
 
-    expect(sm.state).toBe('command');
+    expect(sm.state.tag).toBe('command');
     expect(start).toBe(1);
     expect(end).toBe(0);
 
@@ -124,27 +129,30 @@ test("basic command interaction", () => {
     const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
     expect(onPointerMove).toHaveBeenCalledTimes(0);
     sm.pointerMove();
-    expect(sm.state).toBe('command');
+    expect(sm.state.tag).toBe('command');
     expect(onPointerMove).toHaveBeenCalledTimes(1);
     expect(start).toBe(1);
     expect(end).toBe(0);
 
+    expect(clearEventHandlers).toHaveBeenCalledTimes(0);
     sm.update(viewport, { x: 0.6, y: 0.6, button: 0 });
     sm.pointerUp(() => { });
-    expect(sm.state).toBe('none');
+    expect(clearEventHandlers).toHaveBeenCalledTimes(1);
+    expect(sm.state.tag).toBe('none');
     expect(start).toBe(1);
     expect(end).toBe(1);
 });
 
 test("interrupt", () => {
-    expect(sm.state).toBe('none');
+    expect(sm.state.tag).toBe('none');
     expect(start).toBe(0);
     expect(end).toBe(0);
 
     sm.update(viewport, { x: 0, y: 0, button: 0 });
-    sm.command(() => {}, () => {});
+    const clearEventHandlers = jest.fn();
+    sm.command(() => {}, () => new Disposable(clearEventHandlers));
 
-    expect(sm.state).toBe('command');
+    expect(sm.state.tag).toBe('command');
     expect(start).toBe(1);
     expect(end).toBe(0);
 
@@ -152,16 +160,18 @@ test("interrupt", () => {
     const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
     expect(onPointerMove).toHaveBeenCalledTimes(0);
     sm.pointerMove();
-    expect(sm.state).toBe('command');
+    expect(sm.state.tag).toBe('command');
     expect(onPointerMove).toHaveBeenCalledTimes(1);
     expect(start).toBe(1);
     expect(end).toBe(0);
 
     const onInterrupt = jest.spyOn(gizmo, 'onInterrupt');
+    expect(clearEventHandlers).toHaveBeenCalledTimes(0);
     expect(onInterrupt).toHaveBeenCalledTimes(0);
     sm.interrupt();
     expect(onInterrupt).toHaveBeenCalledTimes(1);
-    expect(sm.state).toBe('none');
+    expect(clearEventHandlers).toHaveBeenCalledTimes(1);
+    expect(sm.state.tag).toBe('none');
     expect(start).toBe(1);
     expect(end).toBe(0);
 });
