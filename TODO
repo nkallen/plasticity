@@ -1,6 +1,5 @@
 rx90
-redo move/rotate/scale
-dashed line for things
+lines indicating axes
 
 need explode/separate command
 stick to surface max / draw on surface

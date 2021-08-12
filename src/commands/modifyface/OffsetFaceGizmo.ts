@@ -21,12 +21,12 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
         const { distance, angle, params } = this;
 
         const { point, normal } = this.placement(this.hint);
-        distance.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-        distance.position.copy(point);
-        angle.scale.setScalar(0.3);
+        this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        this.position.copy(point);
+        angle.relativeScale.setScalar(0.3);
 
-        this.add(distance);
-        distance.add(angle);
+        this.add(distance, angle);
+        // distance.add(angle);
 
         this.addGizmo(distance, distance => {
             params.distance = distance;

@@ -372,7 +372,7 @@ export class DistanceGizmo extends AbstractAxisGizmo {
 
     render(length: number) {
         if (this.constantLength) {
-            this.position.set(0, length, 0).applyQuaternion(this.worldQuaternion).add(this.originalPosition ?? zeroVector);
+            this.position.set(0, length, 0).applyQuaternion(this.quaternion).add(this.originalPosition ?? zeroVector);
         } else {
             super.render(length + 1);
         }

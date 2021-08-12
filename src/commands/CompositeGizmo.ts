@@ -5,7 +5,7 @@ import { Helper } from "../util/Helpers";
 import { AbstractGizmo, EditorLike, GizmoLike, mode } from "./AbstractGizmo";
 
 
-export abstract class CompositeGizmo<P> extends THREE.Group implements GizmoLike<(p: P) => void>, Helper {
+export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: P) => void> {
     private readonly gizmos: [AbstractGizmo<any>, (a: any) => void][] = [];
 
     constructor(protected readonly params: P, protected readonly editor: EditorLike) {
@@ -70,7 +70,7 @@ export abstract class CompositeGizmo<P> extends THREE.Group implements GizmoLike
     }
 
     update(camera: THREE.Camera) {
-        for (const [gizmo,] of this.gizmos)
-            gizmo.update(camera);
+        super.update(camera);
+        for (const [gizmo,] of this.gizmos) gizmo.update(camera);
     }
 }

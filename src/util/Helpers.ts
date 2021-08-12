@@ -9,8 +9,31 @@ import * as visual from "../editor/VisualModel";
 // The axes helper is also here, though it's rendered as a normal pass,
 // so that it appears behind things.
 
-export interface Helper extends THREE.Object3D {
-    update(camera: THREE.Camera): void;
+export abstract class Helper extends THREE.Object3D {
+    update(camera: THREE.Camera) {
+        this.scaleIndependentOfZoom(camera);
+    }
+
+    // Since gizmos tend to scale as the camera moves in and out, set the
+    // you can make it bigger or smaller with this:
+    readonly relativeScale = new THREE.Vector3(1, 1, 1);
+
+    // Scale the gizmo so it has a uniform size regardless of camera position/zoom
+    scaleIndependentOfZoom(camera: THREE.Camera) {
+        if (this.parent?.type !== 'Scene') return;
+
+        let factor;
+        if (camera instanceof THREE.OrthographicCamera) {
+            factor = (camera.top - camera.bottom) / camera.zoom;
+        } else if (camera instanceof THREE.PerspectiveCamera) {
+            factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360) / camera.zoom, 7);
+        } else {
+            throw new Error("Invalid camera type");
+        }
+
+        this.scale.copy(this.relativeScale).multiplyScalar(factor * 1 / 11);
+        this.updateMatrixWorld();
+    }
 }
 
 export class Helpers {

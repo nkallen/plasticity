@@ -45,7 +45,7 @@ export interface GizmoLike<CB> {
 
 export enum mode { Persistent, Transitory };
 
-export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper {
+export abstract class AbstractGizmo<CB> extends Helper {
     stateMachine?: GizmoStateMachine<CB>;
 
     handle: THREE.Object3D;
@@ -179,29 +179,6 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
             }
             return { cancel, finish };
         });
-    }
-
-    // Since gizmos tend to scale as the camera moves in and out, set the
-    // you can make it bigger or smaller with this:
-    readonly relativeScale = new THREE.Vector3(1, 1, 1);
-
-    // Scale the gizmo so it has a uniform size regardless of camera position/zoom
-    scaleIndependentOfZoom(camera: THREE.Camera) {
-        let factor;
-        if (camera instanceof THREE.OrthographicCamera) {
-            factor = (camera.top - camera.bottom) / camera.zoom;
-        } else if (camera instanceof THREE.PerspectiveCamera) {
-            factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360) / camera.zoom, 7);
-        } else {
-            throw new Error("Invalid camera type");
-        }
-
-        this.scale.copy(this.relativeScale).multiplyScalar(factor * 1 / 11);
-        this.updateMatrixWorld();
-    }
-
-    update(camera: THREE.Camera) {
-        this.scaleIndependentOfZoom(camera);
     }
 
     protected static getPointer(domElement: HTMLElement, event: PointerEvent): Pointer {

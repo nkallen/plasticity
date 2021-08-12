@@ -38,6 +38,7 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
             
             const names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
             solid = await c3d.ActionSolid.DraftSolid_async(solid, c3d.CopyMode.Copy, placement, angle, faces, c3d.FacePropagation.All, false, names);
+            transformed = true;
         }
         if (transformed) return solid;
         else throw new ValidationError("no changes");
