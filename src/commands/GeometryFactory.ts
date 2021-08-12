@@ -68,7 +68,18 @@ export abstract class GeometryFactory extends ResourceRegistration {
             const promises = [];
             const unarray = await this.computeGeometry();
             const geometries = toArray(unarray);
-            for (const geometry of geometries) {
+            let detached: c3d.Item[] = [];
+            const names = new c3d.SNameMaker(c3d.CreatorType.DetachSolid, c3d.ESides.SideNone, 0);
+            for (const item of geometries) {
+                if (item instanceof c3d.Solid) {
+                    const { parts } = c3d.ActionSolid.DetachParts(item, false, names);
+                    detached = detached.concat(parts);
+                    detached.push(item);
+                } else {
+                    detached.push(item);
+                }
+            }
+            for (const geometry of detached) {
                 promises.push(this.db.addItem(geometry));
             }
             const result = await Promise.all(promises);

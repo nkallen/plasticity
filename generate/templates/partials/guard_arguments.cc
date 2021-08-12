@@ -15,7 +15,7 @@
             <%_ } else if (arg.isArray) { _%>
                 || !(info[<%- arg.jsIndex %>].IsArray()) && Napi::Array(env, info[<%- arg.jsIndex %>]).Length() == 2) {
             <%_ } else { _%>
-                || !(<% if (arg.isNullable) { %>info[<%- arg.jsIndex %>].IsNull() || <% } %>(info[<%- arg.jsIndex %>].IsObject() && info[<%-arg.cppIndex %>].ToObject().InstanceOf(<%- arg.cppType %>::GetConstructor(env)))))) {
+                || !(<% if (arg.isNullable) { %>info[<%- arg.jsIndex %>].IsNull() || <% } %>(info[<%- arg.jsIndex %>].IsObject() && info[<%-arg.jsIndex %>].ToObject().InstanceOf(<%- arg.cppType %>::GetConstructor(env)))))) {
             <%_ } _%>
                 <%_ if (promise) { _%>
                     deferred.Reject(Napi::String::New(env, "<%-arg.jsType%> <%-arg.name%> is required."));

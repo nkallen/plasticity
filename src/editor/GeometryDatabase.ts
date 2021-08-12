@@ -7,7 +7,7 @@ import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import * as visual from './VisualModel';
 
-const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5], [0.0001, 0.5]];
+const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5]];
 
 export interface TemporaryObject {
     get underlying(): visual.Item;
@@ -33,16 +33,15 @@ export class GeometryDatabase {
         private readonly signals: EditorSignals) { }
 
     private counter = 0;
-    
+
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
     async addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
     async addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
     async addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;
     async addItem(model: c3d.Item, agent: Agent = 'user'): Promise<visual.Item> {
+        const current = this.counter++;
         return this.queue.enqueue(async () => {
-            const current = this.counter++;
-
-            const view = await this.meshes(model, current, precision_distance);
+            const view = await this.meshes(model, current, precision_distance); // FIXME it would be nice to move this out of the queue but tests fail
 
             this.geometryModel.set(current, { view, model });
             view.traverse(t => {

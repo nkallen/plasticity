@@ -34,7 +34,7 @@ beforeEach(() => {
     makeCircle2 = new CenterCircleFactory(db, materials, signals);
 })
 
-test("two overlapping coplanar circles", async () => {
+test.only("two overlapping coplanar circles", async () => {
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
