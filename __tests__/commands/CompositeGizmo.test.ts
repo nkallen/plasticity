@@ -68,6 +68,7 @@ export class MockGizmo extends AbstractGizmo<(n: number) => void> {
         super(name, editor, { handle, picker });
     }
 
+    onInterrupt(cb: (angle: number) => void) { }
     onPointerHover(intersect: Intersector): void { }
     onPointerDown(intersect: Intersector, info: MovementInfo) { }
     onPointerUp(intersect: Intersector, info: MovementInfo) { }
