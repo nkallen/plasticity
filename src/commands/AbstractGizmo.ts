@@ -398,6 +398,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
             case 'command':
             case 'dragging':
                 this.state.clearEventHandlers.dispose();
+                this.gizmo.dispatchEvent({ type: 'interrupt' });
                 this.gizmo.onInterrupt(this.cb);
             case 'hover':
                 this.state = { tag: 'none' };

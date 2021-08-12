@@ -13,6 +13,14 @@ export function vec2vec(from: c3d.Vector3D): THREE.Vector3 {
     return new THREE.Vector3(from.x, from.y, from.z);
 }
 
+export function quat2axisAngle(quat: THREE.Quaternion): { axis: THREE.Vector3, angle: number } {
+    const angle = 2 * Math.acos(quat.w);
+    const d = Math.sqrt(1 - quat.w * quat.w);
+    const axis = new THREE.Vector3(quat.x / d, quat.y / d, quat.z / d);
+    return {axis,angle};
+}
+
+
 export function mat2mat(mat: c3d.Matrix3D, into = new THREE.Matrix4): THREE.Matrix4 {
     const row0 = mat.GetAxisX();
     const row1 = mat.GetAxisY();

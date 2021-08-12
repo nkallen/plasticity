@@ -38,7 +38,7 @@ class AbstractValueStateMachine<T> {
     set current(magnitude: T) { this.currentMagnitude = magnitude }
 
     start() { }
-    stop() { this.original = this.currentMagnitude }
+    push() { this.original = this.currentMagnitude }
     revert() { this.current = this.original }
 }
 
@@ -49,6 +49,8 @@ export class MagnitudeStateMachine extends AbstractValueStateMachine<number> {
 }
 
 export class VectorStateMachine extends AbstractValueStateMachine<THREE.Vector3> { }
+
+export class QuaternionStateMachine extends AbstractValueStateMachine<THREE.Quaternion> {}
 
 export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void> {
     protected state: AbstractValueStateMachine<T>;
@@ -75,6 +77,9 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
         super(gizmoName, editor, { handle, picker });
 
         this.state = state;
+
+        this.eye = new THREE.Vector3();
+        this.worldPosition = new THREE.Vector3();
     }
 
     onInterrupt(cb: (value: T) => void) {
@@ -84,12 +89,19 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
-        this.state.stop();
+        this.state.push();
     }
 
+    eye: THREE.Vector3;
+    private worldPosition: THREE.Vector3;
     update(camera: THREE.Camera) {
         this.scaleIndependentOfZoom(camera);
         this.lookAt(camera.position);
+
+        const { worldPosition } = this;
+        this.getWorldPosition(worldPosition);
+
+        this.eye.copy(camera.position).sub(worldPosition).normalize();
     }
 }
 
@@ -164,7 +176,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     onPointerHover(intersect: Intersector): void { }
 
     onPointerUp(intersect: Intersector, info: MovementInfo) {
-        this.state.stop();
+        this.state.push();
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) {
@@ -308,7 +320,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
-        this.state.stop();
+        this.state.push();
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) {

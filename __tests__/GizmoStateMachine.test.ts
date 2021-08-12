@@ -35,7 +35,7 @@ class FakeGizmo extends AbstractGizmo<() => void> {
     onInterrupt(cb: () => void): void { }
     onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void { }
     onPointerDown(intersect: Intersector): void { }
-    onPointerUp(intersect: Intersector, info: MovementInfo): void {}
+    onPointerUp(intersect: Intersector, info: MovementInfo): void { }
 }
 
 let db: GeometryDatabase;
@@ -64,17 +64,18 @@ beforeEach(() => {
     editor.viewports.push(viewport);
 })
 
-let start, end: number;
+let start, end, interrupt: number;
 let sm: GizmoStateMachine<() => void>;
 
 beforeEach(() => {
-    start = end = 0;
+    start = end = interrupt = 0;
     gizmo = new FakeGizmo(editor);
     const cb = () => { };
     sm = new GizmoStateMachine(gizmo, signals, cb);
 
     gizmo.addEventListener('start', () => start++);
     gizmo.addEventListener('end', () => end++);
+    gizmo.addEventListener('interrupt', () => interrupt++);
 });
 
 test("basic drag interaction", () => {
@@ -119,7 +120,7 @@ test("basic command interaction", () => {
 
     sm.update(viewport, { x: 0, y: 0, button: 0 });
     const clearEventHandlers = jest.fn();
-    sm.command(() => {}, () => new Disposable(clearEventHandlers));
+    sm.command(() => { }, () => new Disposable(clearEventHandlers));
 
     expect(sm.state.tag).toBe('command');
     expect(start).toBe(1);
@@ -150,7 +151,7 @@ test("interrupt", () => {
 
     sm.update(viewport, { x: 0, y: 0, button: 0 });
     const clearEventHandlers = jest.fn();
-    sm.command(() => {}, () => new Disposable(clearEventHandlers));
+    sm.command(() => { }, () => new Disposable(clearEventHandlers));
 
     expect(sm.state.tag).toBe('command');
     expect(start).toBe(1);
@@ -174,6 +175,7 @@ test("interrupt", () => {
     expect(sm.state.tag).toBe('none');
     expect(start).toBe(1);
     expect(end).toBe(0);
+    expect(interrupt).toBe(1);
 });
 
 
