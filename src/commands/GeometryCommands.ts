@@ -11,7 +11,7 @@ import { CenterBoxFactory, CornerBoxFactory, ThreePointBoxFactory } from './box/
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
 import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
-import { CircleKeyboardEvent, CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
+import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
@@ -42,7 +42,7 @@ import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import { ObjectPicker } from "./ObjectPicker";
 import { PointPicker } from './PointPicker';
 import { PolygonFactory } from "./polygon/PolygonFactory";
-import { PolygonKeyboardEvent, PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
+import { PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
 import { RegionFactory } from "./region/RegionFactory";
 import SphereFactory from './sphere/SphereFactory';
@@ -75,8 +75,8 @@ export class CenterCircleCommand extends Command {
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const keyboard = new CircleKeyboardGizmo(this.editor);
-        keyboard.execute((e: CircleKeyboardEvent) => {
-            switch (e.tag) {
+        keyboard.execute(e => {
+            switch (e) {
                 case 'mode':
                     circle.toggleMode();
                     circle.update();
@@ -105,8 +105,8 @@ export class TwoPointCircleCommand extends Command {
         const circle = new TwoPointCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const keyboard = new CircleKeyboardGizmo(this.editor);
-        keyboard.execute((e: CircleKeyboardEvent) => {
-            switch (e.tag) {
+        keyboard.execute(e => {
+            switch (e) {
                 case 'mode':
                     circle.toggleMode();
                     circle.update();
@@ -266,8 +266,8 @@ export class PolygonCommand extends Command {
         const polygon = new PolygonFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const keyboard = new PolygonKeyboardGizmo(this.editor);
-        keyboard.execute((e: PolygonKeyboardEvent) => {
-            switch (e.tag) {
+        keyboard.execute(e => {
+            switch (e) {
                 case 'add-vertex':
                     polygon.vertexCount++;
                     break;
@@ -759,8 +759,8 @@ export class FilletCommand extends Command {
         const keyboard = new FilletKeyboardGizmo(this.editor);
         const pp = new PointPicker(this.editor);
         const restriction = pp.restrictToEdges(edges);
-        keyboard.execute(async e => {
-            switch (e.tag) {
+        keyboard.execute(async s => {
+            switch (s) {
                 case 'add':
                     const { point } = await pp.execute().resource(this);
                     const { view, t } = restriction.match;

@@ -16,7 +16,7 @@ export interface EditorLike {
     registry: CommandRegistry,
 }
 
-export abstract class CommandKeyboardInput<CB> {
+export abstract class AbstractCommandKeyboardInput<CB> {
     constructor(
         protected readonly title: string,
         protected readonly editor: EditorLike,
@@ -55,4 +55,11 @@ export abstract class CommandKeyboardInput<CB> {
     }
 
     protected abstract resolve(cb: CB, command: string): void;
+}
+
+export class CommandKeyboardInput extends AbstractCommandKeyboardInput<(s: string) => void> {
+    protected resolve(cb: (s: string) => void, command: string) {
+        const components = command.split(':')
+        cb(components[components.length - 1]);
+    }
 }

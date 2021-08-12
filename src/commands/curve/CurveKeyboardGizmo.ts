@@ -1,4 +1,4 @@
-import { CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
+import { AbstractCommandKeyboardInput, CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
 import c3d from '../../../build/Release/c3d.node';
 
 const commands = new Array<string>();
@@ -18,7 +18,7 @@ commands.push('gizmo:curve:undo');
 
 export type CurveKeyboardEvent = { tag: 'type', type: number } | { tag: 'undo' }
 
-export class CurveKeyboardGizmo extends CommandKeyboardInput<(e: CurveKeyboardEvent) => void> {
+export class CurveKeyboardGizmo extends AbstractCommandKeyboardInput<(e: CurveKeyboardEvent) => void> {
     constructor(editor: EditorLike) {
         super('curve', editor, commands);
     }
@@ -35,7 +35,7 @@ export class CurveKeyboardGizmo extends CommandKeyboardInput<(e: CurveKeyboardEv
 }
 
 export type LineKeyboardEvent = { tag: 'undo' };
-export class LineKeyboardGizmo extends CommandKeyboardInput<(e: LineKeyboardEvent) => void> {
+export class LineKeyboardGizmo extends AbstractCommandKeyboardInput<(e: LineKeyboardEvent) => void> {
     constructor(editor: EditorLike) {
         super('line', editor, ['gizmo:line:undo']);
     }
