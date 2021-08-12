@@ -9,7 +9,11 @@ const radius = 1;
 const zeroVector = new THREE.Vector3();
 
 abstract class CircularGizmo extends AbstractGizmo<(angle: number) => void> {
-    constructor(name: string, editor: EditorLike) {
+    protected state: MagnitudeStateMachine;
+    get magnitude() { return this.state.current }
+    set magnitude(m: number) { this.state.original = m }
+
+    constructor(name: string, editor: EditorLike, state: MagnitudeStateMachine) {
         const [gizmoName,] = name.split(':');
 
         const materials = editor.gizmos;
@@ -27,85 +31,8 @@ abstract class CircularGizmo extends AbstractGizmo<(angle: number) => void> {
         picker.add(torus);
 
         super(gizmoName, editor, { handle, picker });
-    }
 
-    update(camera: THREE.Camera) {
-        // super.update(camera);
-        this.lookAt(camera.position);
-    }
-}
-
-class MagnitudeStateMachine {
-    private currentMagnitude: number;
-
-    min = Number.NEGATIVE_INFINITY;
-
-    constructor(private originalMagnitude: number) {
-        this.currentMagnitude = originalMagnitude;
-    }
-
-    get original() { return this.originalMagnitude }
-    set original(magnitude: number) {
-        this.originalMagnitude = this.currentMagnitude = magnitude;
-    }
-
-    start() { }
-
-    get current() {
-        return Math.max(this.currentMagnitude, this.min);
-    }
-
-    set current(magnitude: number) {
-        this.currentMagnitude = magnitude;
-    }
-
-    stop() {
-        this.original = this.currentMagnitude;
-    }
-
-    revert() {
-        this.current = this.original;
-    }
-}
-
-
-export class AngleGizmo extends CircularGizmo {
-    private state: MagnitudeStateMachine;
-    get magnitude() { return this.state.current }
-    set magnitude(m: number) { this.state.original = m }
-
-    constructor(name: string, editor: EditorLike) {
-        super(name, editor);
-        this.state = new MagnitudeStateMachine(0);
-    }
-
-    onInterrupt(cb: (angle: number) => void) {
-        this.state.revert();
-        cb(this.state.current);
-    }
-    onPointerHover(intersect: Intersector): void { }
-    onPointerDown(intersect: Intersector, info: MovementInfo) { }
-    onPointerUp(intersect: Intersector, info: MovementInfo) {
-        this.state.stop();
-    }
-
-    onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
-        const angle = info.angle + this.state.original;
-        this.state.current = angle;
-        cb(this.state.current);
-    }
-}
-
-export class CircleMagnitudeGizmo extends CircularGizmo {
-    private denominator = 1;
-    private state: MagnitudeStateMachine;
-    get magnitude() { return this.state.current }
-
-    constructor(name: string, editor: EditorLike) {
-        super(name, editor);
-        this.state = new MagnitudeStateMachine(1);
-        this.relativeScale.setScalar(0.7);
-        this.render(this.state.current);
+        this.state = state;
     }
 
     onInterrupt(cb: (radius: number) => void) {
@@ -116,6 +43,63 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
         this.state.stop();
+    }
+
+    update(camera: THREE.Camera) {
+        // super.update(camera);
+        this.lookAt(camera.position);
+    }
+}
+
+class AbstractStateMachine<T> {
+    private currentMagnitude: T;
+
+    constructor(private originalMagnitude: T) {
+        this.currentMagnitude = originalMagnitude;
+    }
+
+    get original() { return this.originalMagnitude }
+    set original(magnitude: T) {
+        this.originalMagnitude = this.currentMagnitude = magnitude;
+    }
+
+    get current() { return this.currentMagnitude }
+    set current(magnitude: T) { this.currentMagnitude = magnitude }
+
+    start() { }
+    stop() { this.original = this.currentMagnitude }
+    revert() { this.current = this.original }
+}
+
+class MagnitudeStateMachine extends AbstractStateMachine<number> {
+    min = Number.NEGATIVE_INFINITY;
+    get current() { return Math.max(super.current, this.min) }
+    set current(magnitude: number) { super.current = magnitude }
+}
+
+class VectorStateMachine extends AbstractStateMachine<THREE.Vector3> { }
+
+export class AngleGizmo extends CircularGizmo {
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor, new MagnitudeStateMachine(0));
+    }
+
+    onPointerDown(intersect: Intersector, info: MovementInfo) { }
+
+    onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
+        const angle = info.angle + this.state.original;
+        this.state.current = angle;
+        cb(this.state.current);
+    }
+}
+
+export class CircleMagnitudeGizmo extends CircularGizmo {
+    private denominator = 1;
+
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor, new MagnitudeStateMachine(1));
+        this.relativeScale.setScalar(0.7);
+        this.render(this.state.current);
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) {
