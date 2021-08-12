@@ -134,8 +134,9 @@ describe(CompositeGizmo, () => {
 
         expect(called).toBe(1);
 
+        // Nothing happens for pointerDown/pointerMove events while the other state machine is active:
         distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
-        distanceStateMachine.command(() => { }, () => { });
+        distanceStateMachine.pointerDown(() => {});
         distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
         distanceStateMachine.pointerMove();
 
@@ -153,6 +154,47 @@ describe(CompositeGizmo, () => {
 
         distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: 0 });
         distanceStateMachine.pointerUp(() => { });
+
+        expect(called).toBe(2);
+
+        cancellable.finish();
+        await cancellable;
+    });
+
+
+    test("execute() mutex can be interrupted by a command", async () => {
+        let called = 0;
+        const cancellable = gizmo.execute(params => called++);
+        const angleStateMachine = gizmo.angle.stateMachine;
+        const distanceStateMachine = gizmo.distance.stateMachine;
+
+        angleStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        angleStateMachine.command(() => { }, () => { });
+        angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        angleStateMachine.pointerMove();
+
+        expect(called).toBe(1);
+
+        // Nothing happens for pointerDown/pointerMove events while the other state machine is active:
+        distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        distanceStateMachine.pointerDown(() => {});
+        distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        distanceStateMachine.pointerMove();
+
+        expect(called).toBe(1);
+
+        // But invoking a command will steal focus
+        distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        distanceStateMachine.command(() => { }, () => { });
+        distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        distanceStateMachine.pointerMove();
+
+        expect(called).toBe(2);
+
+        distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: 0 });
+        distanceStateMachine.pointerUp(() => { });
+
+        expect(called).toBe(2);
 
         cancellable.finish();
         await cancellable;

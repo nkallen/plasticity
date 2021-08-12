@@ -303,8 +303,6 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     command(fn: () => void, start: () => void): void {
-        if (!this.isActive) return;
-
         switch (this.state) {
             case 'none':
             case 'hover':
