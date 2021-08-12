@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CircleGeometry } from "../util/Util";
-import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "./AbstractGizmo";
+import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 
 /**
  * In this file are a collection of "mini" gizmos that can be used alone or composed into a more complex gizmo.
@@ -64,6 +64,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 
         const handle = new THREE.Group();
         const picker = new THREE.Group();
+        const helper = new DashedLineMagnitudeHelper();
 
         const geometry = new LineGeometry();
         geometry.setPositions(CircleGeometry(radius, 64));
@@ -74,7 +75,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
         torus.userData.command = [`gizmo:${name}`, () => { }];
         picker.add(torus);
 
-        super(gizmoName, editor, { handle, picker });
+        super(gizmoName, editor, { handle, picker, helper });
 
         this.state = state;
 
@@ -136,13 +137,13 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     private readonly localY: THREE.Vector3;
     protected originalPosition?: THREE.Vector3;
 
-    constructor(name: string, editor: EditorLike, info: { tip: THREE.Mesh, knob: THREE.Mesh, shaft: THREE.Mesh }, state: MagnitudeStateMachine) {
+    constructor(name: string, editor: EditorLike, info: { tip: THREE.Mesh, knob: THREE.Mesh, shaft: THREE.Mesh, helper?: GizmoHelper }, state: MagnitudeStateMachine) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
 
         const plane = new THREE.Mesh(planeGeometry, materials.yellow);
 
-        const { tip, knob, shaft } = info;
+        const { tip, knob, shaft, helper } = info;
 
         const handle = new THREE.Group();
         handle.add(tip, shaft);
@@ -151,7 +152,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         knob.position.copy(tip.position);
         picker.add(knob);
 
-        super(gizmoName, editor, { handle, picker });
+        super(gizmoName, editor, { handle, picker, helper });
 
         this.shaft = shaft;
         this.tip = tip;
@@ -289,7 +290,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
     protected readonly startMousePosition: THREE.Vector3;
     protected readonly worldPosition: THREE.Vector3;
 
-    constructor(name: string, editor: EditorLike, state: AbstractValueStateMachine<T>, material?: THREE.MeshBasicMaterial) {
+    constructor(name: string, editor: EditorLike, state: AbstractValueStateMachine<T>, material?: THREE.MeshBasicMaterial, helper?: GizmoHelper) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
         material ??= materials.yellow;
@@ -303,7 +304,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
         const picker = new THREE.Group();
         picker.add(knob);
 
-        super(gizmoName, editor, { handle, picker });
+        super(gizmoName, editor, { handle, picker, helper });
 
         this.knob = knob;
         this.plane = new THREE.Mesh(planeGeometry, materials.invisible);
@@ -387,3 +388,56 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     }
 }
 
+
+export class DashedLineMagnitudeHelper implements GizmoHelper {
+    private readonly element: SVGSVGElement;
+    private readonly line: SVGLineElement;
+    private parentElement!: HTMLElement;
+
+    constructor() {
+        this.element = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        this.element.setAttribute('height', '100%');
+        this.element.setAttribute('viewBox', '0 0 1 1');
+        this.element.setAttribute('preserveAspectRatio', 'xMinYMin')
+        this.element.classList.add('gizmo-helper');
+
+        this.line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        this.element.appendChild(this.line);
+    }
+
+
+    onStart(parentElement: HTMLElement, position: THREE.Vector2) {
+        parentElement.appendChild(this.element);
+        this.parentElement = parentElement;
+
+        const converted = this.toSVGCoordinates(position);
+
+        this.line.setAttribute('x1', String(converted.x));
+        this.line.setAttribute('y1', String(converted.y));
+        this.line.setAttribute('x2', String(converted.x));
+        this.line.setAttribute('y2', String(converted.y));
+    }
+
+    onMove(position: THREE.Vector2) {
+        const converted = this.toSVGCoordinates(position);
+        this.line.setAttribute('x2', String(converted.x));
+        this.line.setAttribute('y2', String(converted.y));
+    }
+
+    get aspectRatio() {
+        const box = this.parentElement.parentElement!;
+        const aspectRatio = box.offsetWidth / box.offsetHeight;
+        return aspectRatio;
+    }
+
+    private readonly converted = new THREE.Vector2();
+    toSVGCoordinates(from: THREE.Vector2): THREE.Vector2 {
+        this.converted.x = this.aspectRatio * (from.x + 1) / 2;
+        this.converted.y = (from.y - 1) / -2;
+        return this.converted;
+    }
+
+    onEnd() {
+        this.element.parentElement!.removeChild(this.element);
+    }
+}

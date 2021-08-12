@@ -1,10 +1,11 @@
+rx90
 redo move/rotate/scale
+dashed line for things
 
 need explode/separate command
 stick to surface max / draw on surface
 redo Dialogs and show errors
 creat curve on spine
-rx90
 make spiral composite gizmo
  -- maybe add thickness?
 curve movement not working well

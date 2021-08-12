@@ -68,6 +68,17 @@ ispace-viewport {
         background-color: rgba(75, 160, 255, 0.3);
         position: fixed;
     }
+
+    svg.gizmo-helper {
+        position: fixed;
+        pointer-events: none;
+
+        line {
+            stroke: black;
+            stroke-width: 0.001;
+            stroke-dasharray: 0.003;
+        }
+    }
 }
 
 ispace-viewport canvas:focus {

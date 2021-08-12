@@ -27,7 +27,7 @@ import { GizmoMaterialDatabase } from "./GizmoMaterials";
 interface GizmoView {
     handle: THREE.Object3D;
     picker: THREE.Object3D;
-    delta?: THREE.Object3D;
+    helper?: GizmoHelper;
 }
 
 export interface EditorLike {
@@ -50,6 +50,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
 
     handle: THREE.Object3D;
     picker: THREE.Object3D;
+    helper?: GizmoHelper;
 
     constructor(protected readonly title: string, protected readonly editor: EditorLike, view: GizmoView) {
         super();
@@ -57,6 +58,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
         this.handle = view.handle;
         this.picker = view.picker;
         this.picker.visible = false;
+        this.helper = view.helper;
 
         this.add(this.handle, this.picker);
     }
@@ -270,8 +272,10 @@ export class GizmoStateMachine<T> implements MovementInfo {
     ) { }
 
     private camera!: THREE.Camera;
+    private viewport!: Viewport;
     update(viewport: Viewport, pointer: Pointer) {
         const camera = viewport.camera;
+        this.viewport = viewport;
         this.camera = camera;
         this.eye.copy(camera.position).sub(this.gizmo.position).normalize();
         this.gizmo.update(camera);
@@ -299,6 +303,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.pointStart3d.copy(intersection.point);
                 this.pointStart2d.set(this.pointer.x, this.pointer.y);
                 this.gizmo.onPointerDown(this.intersector, this);
+                this.gizmo.helper?.onStart(this.viewport.domElement, this.center2d);
                 break;
             case 'command':
                 this.pointerMove();
@@ -353,7 +358,9 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 const startRadius = this.pointStart2d.clone().sub(this.center2d);
                 this.angle = Math.atan2(this.endRadius.y, this.endRadius.x) - Math.atan2(startRadius.y, startRadius.x);
 
+                this.gizmo.helper?.onMove(this.pointEnd2d);
                 this.gizmo.onPointerMove(this.cb, this.intersector, this);
+
                 this.signals.gizmoChanged.dispatch();
                 break;
             default: throw new Error('invalid state: ' + this.state);
@@ -373,6 +380,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.state = { tag: 'none' };
                 this.gizmo.dispatchEvent({ type: 'end' });
                 this.gizmo.onPointerUp(this.intersector, this);
+                this.gizmo.helper?.onEnd();
+
                 finish();
                 break;
             default: break;
@@ -414,4 +423,10 @@ export class GizmoStateMachine<T> implements MovementInfo {
             }
         }
     }
+}
+
+export interface GizmoHelper {
+    onStart(parentElement: HTMLElement, position: THREE.Vector2): void;
+    onMove(position: THREE.Vector2): void;
+    onEnd(): void;
 }

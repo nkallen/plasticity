@@ -1,11 +1,11 @@
 import * as THREE from "three";
+import { Line2 } from "three/examples/jsm/lines/Line2";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
-import { AbstractAxisGizmo, boxGeometry, CircularGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
 import { CompositeGizmo } from "../CompositeGizmo";
+import { AbstractAxisGizmo, boxGeometry, CircularGizmo, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
 import { ScaleParams } from "./TranslateFactory";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
-import { Line2 } from "three/examples/jsm/lines/Line2";
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -115,7 +115,9 @@ export class ScaleAxisGizmo extends AbstractAxisGizmo {
         knob.userData.command = [`gizmo:${name}`, () => { }];
         knob.position.copy(tip.position);
 
-        super(name, editor, { tip, knob, shaft }, new MagnitudeStateMachine(1));
+        const helper = new DashedLineMagnitudeHelper();
+
+        super(name, editor, { tip, knob, shaft, helper }, new MagnitudeStateMachine(1));
     }
 
     update(camera: THREE.Camera) {
@@ -131,7 +133,8 @@ export class ScaleAxisGizmo extends AbstractAxisGizmo {
 export class PlanarScaleGizmo extends PlanarGizmo<number> {
     constructor(name: string, editor: EditorLike, material?: THREE.MeshBasicMaterial) {
         const state = new MagnitudeStateMachine(1);
-        super(name, editor, state, material);
+        const helper = new DashedLineMagnitudeHelper();
+        super(name, editor, state, material, helper);
     }
 
     onPointerMove(cb: (value: number) => void, intersect: Intersector, info: MovementInfo): void {
