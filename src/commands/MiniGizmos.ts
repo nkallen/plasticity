@@ -271,7 +271,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
 
     protected readonly knob: THREE.Mesh;
     protected plane: THREE.Mesh;
-    private readonly startMousePosition: THREE.Vector3;
+    protected readonly startMousePosition: THREE.Vector3;
     protected readonly worldPosition: THREE.Vector3;
 
     constructor(name: string, editor: EditorLike, state: AbstractValueStateMachine<T>, material?: THREE.MeshBasicMaterial) {
@@ -309,6 +309,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) {
+        this.updatePlane();
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) throw new Error("invalid precondition");
         this.state.start();
@@ -316,13 +317,12 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
         this.denominator = this.startMousePosition.distanceTo(this.worldPosition);
     }
 
-    update(camera: THREE.Camera) {
+    private updatePlane() {
         const { plane, worldPosition } = this;
         this.getWorldQuaternion(plane.quaternion);
         this.getWorldPosition(worldPosition);
         this.plane.position.copy(worldPosition);
         this.plane.updateMatrixWorld();
-        super.update(camera);
     }
 
     render(value: T) { }
