@@ -35,27 +35,6 @@ abstract class CircularGizmo extends AbstractGizmo<(angle: number) => void> {
     }
 }
 
-export class AngleGizmo extends CircularGizmo {
-    intialAngle: number;
-
-    constructor(name: string, editor: EditorLike) {
-        super(name, editor);
-        this.intialAngle = 0;
-    }
-
-    onInterrupt(cb: (angle: number) => void) { }
-    onPointerHover(intersect: Intersector): void { }
-    onPointerDown(intersect: Intersector, info: MovementInfo) { }
-    onPointerUp(intersect: Intersector, info: MovementInfo) {
-        this.intialAngle += info.angle;
-    }
-
-    onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
-        const angle = info.angle + this.intialAngle;
-        cb(angle);
-    }
-}
-
 class MagnitudeStateMachine {
     private currentMagnitude: number;
 
@@ -89,6 +68,32 @@ class MagnitudeStateMachine {
     }
 }
 
+
+export class AngleGizmo extends CircularGizmo {
+    private state: MagnitudeStateMachine;
+
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor);
+        this.state = new MagnitudeStateMachine(0);
+    }
+
+    onInterrupt(cb: (angle: number) => void) {
+        this.state.revert();
+        cb(this.state.current);
+    }
+    onPointerHover(intersect: Intersector): void { }
+    onPointerDown(intersect: Intersector, info: MovementInfo) { }
+    onPointerUp(intersect: Intersector, info: MovementInfo) {
+        this.state.stop();
+    }
+
+    onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
+        const angle = info.angle + this.state.original;
+        this.state.current = angle;
+        cb(this.state.current);
+    }
+}
+
 export class CircleMagnitudeGizmo extends CircularGizmo {
     private denominator = 1;
     private state: MagnitudeStateMachine;
@@ -103,7 +108,8 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
 
     onInterrupt(cb: (radius: number) => void) {
         this.state.revert();
-     }
+        cb(this.state.current);
+    }
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
@@ -143,6 +149,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     private worldPosition: THREE.Vector3;
 
     private readonly startMousePosition: THREE.Vector3;
+    private sign: number;
     private readonly localY: THREE.Vector3;
     protected originalPosition?: THREE.Vector3;
 
@@ -169,6 +176,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.plane = plane;
 
         this.startMousePosition = new THREE.Vector3();
+        this.sign = 1;
 
         this.worldQuaternion = new THREE.Quaternion();
         this.worldPosition = new THREE.Vector3();
@@ -179,6 +187,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
     onInterrupt(cb: (radius: number) => void) {
         this.state.revert();
+        cb(this.state.current);
     }
 
     onPointerHover(intersect: Intersector): void { }
@@ -191,6 +200,8 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) throw new Error("invalid precondition");
         this.startMousePosition.copy(planeIntersect.point);
+        this.sign = Math.sign(planeIntersect.point.dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion)));
+
         if (this.originalPosition === undefined) this.originalPosition = new THREE.Vector3().copy(this.position);
     }
 
@@ -199,7 +210,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
         const dist = planeIntersect.point.sub(this.startMousePosition).dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion));
-        let length = this.state.original + dist;
+        let length = this.state.original + this.sign * dist;
         this.state.current = length;
         this.render(this.state.current);
         cb(this.state.current);
@@ -336,7 +347,8 @@ export class PlanarMagnitudeGizmo extends AbstractGizmo<(magnitude: number) => v
 
     onInterrupt(cb: (magnitude: number) => void) {
         this.state.revert();
-     }
+        cb(this.state.current);
+    }
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
