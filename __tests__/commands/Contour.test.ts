@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { Joint, PointOnCurve } from "../../src/commands/ContourManager";
+import { Joint, PointOnCurve } from "../../src/editor/ContourManager";
 import ContourFactory from '../../src/commands/curve/ContourFactory';
 import { ContourFilletFactory, JointFilletFactory, JointOrPolylineOrContourFilletFactory, Polyline2ContourFactory, PolylineFilletFactory, PolylineOrContourFilletFactory } from "../../src/commands/curve/ContourFilletFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";

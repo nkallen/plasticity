@@ -1,8 +1,8 @@
 import c3d from '../../build/Release/c3d.node';
-import { EditorSignals } from "../editor/EditorSignals";
-import { PlanarCurveDatabase } from '../editor/PlanarCurveDatabase';
-import { RegionManager } from "../editor/RegionManager";
-import * as visual from "../editor/VisualModel";
+import { EditorSignals } from "./EditorSignals";
+import { PlanarCurveDatabase } from './PlanarCurveDatabase';
+import { RegionManager } from "./RegionManager";
+import * as visual from "./VisualModel";
 
 export class CurveInfo {
     readonly touched = new Set<visual.SpaceInstance<visual.Curve3D>>();

@@ -4,7 +4,7 @@
 
 import Command from "../../src/commands/Command";
 import { CommandExecutor } from "../../src/commands/CommandExecutor";
-import ContourManager from "../../src/commands/ContourManager";
+import ContourManager from "../../src/editor/ContourManager";
 import { SelectionCommandManager } from "../../src/commands/SelectionCommandManager";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { EditorSignals } from "../../src/editor/EditorSignals";

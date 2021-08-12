@@ -5,7 +5,7 @@ import { EditorOriginator, History } from "../editor/History";
 import { HasSelection } from "../selection/SelectionManager";
 import { Cancel } from "../util/Cancellable";
 import Command from "./Command";
-import PlanarCurveDatabase from "./ContourManager";
+import PlanarCurveDatabase from "../editor/ContourManager";
 import { SelectionCommandManager } from "./SelectionCommandManager";
 import { ValidationError } from "./GeometryFactory";
 

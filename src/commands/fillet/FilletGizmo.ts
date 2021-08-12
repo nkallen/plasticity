@@ -3,7 +3,8 @@ import { CurveEdgeSnap } from "../../editor/SnapManager";
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
-import { CompositeGizmo, DistanceGizmo } from "../MiniGizmos";
+import { DistanceGizmo } from "../MiniGizmos";
+import { CompositeGizmo } from "../CompositeGizmo";
 import { FilletParams } from './FilletFactory';
 
 export class FilletGizmo extends CompositeGizmo<FilletParams> {

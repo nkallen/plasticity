@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { mode } from "../AbstractGizmo";
-import { AngleGizmo, CompositeGizmo, DistanceGizmo, LengthGizmo, MagnitudeGizmo } from "../MiniGizmos";
+import { AngleGizmo, DistanceGizmo, LengthGizmo, MagnitudeGizmo } from "../MiniGizmos";
+import { CompositeGizmo } from "../CompositeGizmo";
 import { ExtrudeParams } from "./ExtrudeFactory";
 
 export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {

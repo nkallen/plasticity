@@ -2,7 +2,8 @@ import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
-import { AngleGizmo, CompositeGizmo, DistanceGizmo } from "../MiniGizmos";
+import { AngleGizmo, DistanceGizmo } from "../MiniGizmos";
+import { CompositeGizmo } from "../CompositeGizmo";
 import { ChamferParams } from "./ChamferFactory";
 import c3d from '../../../build/Release/c3d.node';
 

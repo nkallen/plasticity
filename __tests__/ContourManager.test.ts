@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
-import ContourManager from '../src/commands/ContourManager';
+import ContourManager from '../src/editor/ContourManager';
 import { ContourFilletFactory } from "../src/commands/curve/ContourFilletFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";

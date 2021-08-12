@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { AbstractGizmo, EditorLike, GizmoStateMachine, Intersector, mode, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
-import { CompositeGizmo } from "../../src/commands/MiniGizmos";
+import { CompositeGizmo } from "../../src/commands/CompositeGizmo";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';

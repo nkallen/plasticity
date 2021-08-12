@@ -3,7 +3,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import Command from '../commands/Command';
 import { CancelOrFinish, CommandExecutor } from "../commands/CommandExecutor";
-import ContourManager from "../commands/ContourManager";
+import ContourManager from "./ContourManager";
 import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { RegionManager } from "./RegionManager";
 import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";

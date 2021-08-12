@@ -1,5 +1,5 @@
 import c3d from '../../build/Release/c3d.node';
-import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from '../commands/ContourManager';
+import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../util/Conversion';
 import { GeometryDatabase } from './GeometryDatabase';
 import { CurveMemento } from './History';

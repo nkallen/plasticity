@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { mode } from "../AbstractGizmo";
-import { CircleMagnitudeGizmo, CompositeGizmo, PlanarMagnitudeGizmo, ScaleAxisGizmo } from "../MiniGizmos";
+import { CircleMagnitudeGizmo, PlanarMagnitudeGizmo, ScaleAxisGizmo } from "../MiniGizmos";
+import { CompositeGizmo } from "../CompositeGizmo";
 import { ScaleParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
