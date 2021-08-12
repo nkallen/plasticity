@@ -46,6 +46,7 @@ export class AngleGizmo extends CircularGizmo {
         this.intialAngle = 0;
     }
 
+    onInterrupt(cb: (angle: number) => void) { }
     onPointerHover(intersect: Intersector): void { }
     onPointerDown(intersect: Intersector, info: MovementInfo) { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
@@ -102,6 +103,8 @@ export class CircleMagnitudeGizmo extends CircularGizmo {
         this.relativeScale.setScalar(0.7);
         this.render(this.state.current);
     }
+
+    onInterrupt(cb: (radius: number) => void) { }
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {
@@ -174,6 +177,8 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
         this.state = state;
     }
+
+    onInterrupt(cb: (radius: number) => void) { }
 
     onPointerHover(intersect: Intersector): void { }
 
@@ -327,6 +332,8 @@ export class PlanarMagnitudeGizmo extends AbstractGizmo<(magnitude: number) => v
         this.denominator = 1;
         this.state = new MagnitudeStateMachine(1);
     }
+
+    onInterrupt(cb: (magnitude: number) => void) { }
 
     onPointerHover(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo) {

@@ -65,6 +65,7 @@ export abstract class AbstractGizmo<CB> extends THREE.Object3D implements Helper
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
     abstract onPointerDown(intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(intersect: Intersector, info: MovementInfo): void;
+    abstract onInterrupt(cb: CB): void;
 
     execute(cb: CB, finishFast: mode = mode.Transitory): CancellablePromise<void> {
         const disposables = new CompositeDisposable();
@@ -303,7 +304,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     command(fn: () => void, start: () => void): void {
         if (!this.isActive) return;
-        
+
         switch (this.state) {
             case 'none':
             case 'hover':
@@ -385,6 +386,17 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 const intersect = this.intersector(this.gizmo.picker, true);
                 this.state = !!intersect ? 'hover' : 'none';
                 break;
+            default: break;
+        }
+    }
+
+    interrupt() {
+        switch (this.state) {
+            case 'command':
+            case 'dragging':
+                this.gizmo.onInterrupt(this.cb);
+            case 'hover':
+                this.state = 'none';
             default: break;
         }
     }

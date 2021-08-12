@@ -31,6 +31,7 @@ class FakeGizmo extends AbstractGizmo<() => void> {
         this.fakeCommand = fakeCommand;
     }
 
+    onInterrupt(cb: () => void): void { }
     onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void { }
     onPointerDown(intersect: Intersector): void { }
     onPointerUp(intersect: Intersector, info: MovementInfo): void {}
@@ -55,7 +56,7 @@ beforeEach(() => {
         helpers: new Helpers(signals),
         registry: new CommandRegistry(),
         signals, gizmos, db
-    };
+    } as EditorLike;
     viewport = MakeViewport(editor);
     viewport.camera.position.set(0, 0, 1);
     viewport.camera.lookAt(0, 0, 0);
@@ -107,7 +108,6 @@ test("basic drag interaction", () => {
     expect(end).toBe(1);
 });
 
-
 test("basic command interaction", () => {
     expect(sm.state).toBe('none');
     expect(start).toBe(0);
@@ -135,6 +135,37 @@ test("basic command interaction", () => {
     expect(start).toBe(1);
     expect(end).toBe(1);
 });
+
+test("interrupt", () => {
+    expect(sm.state).toBe('none');
+    expect(start).toBe(0);
+    expect(end).toBe(0);
+
+    sm.update(viewport, { x: 0, y: 0, button: 0 });
+    sm.command(() => {}, () => {});
+
+    expect(sm.state).toBe('command');
+    expect(start).toBe(1);
+    expect(end).toBe(0);
+
+    sm.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+    const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
+    expect(onPointerMove).toHaveBeenCalledTimes(0);
+    sm.pointerMove();
+    expect(sm.state).toBe('command');
+    expect(onPointerMove).toHaveBeenCalledTimes(1);
+    expect(start).toBe(1);
+    expect(end).toBe(0);
+
+    const onInterrupt = jest.spyOn(gizmo, 'onInterrupt');
+    expect(onInterrupt).toHaveBeenCalledTimes(0);
+    sm.interrupt();
+    expect(onInterrupt).toHaveBeenCalledTimes(1);
+    expect(sm.state).toBe('none');
+    expect(start).toBe(1);
+    expect(end).toBe(0);
+});
+
 
 test("commands are registered", done => {
     editor.registry.attach(viewport.renderer.domElement);

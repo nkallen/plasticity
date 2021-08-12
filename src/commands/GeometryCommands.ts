@@ -21,8 +21,6 @@ import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
-import ElementarySolidFactory from "./elementary_solid/ElementarySolidFactory";
-import { ElementarySolidGizmo } from "./elementary_solid/ElementarySolidGizmo";
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
 import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
@@ -1081,32 +1079,6 @@ export class DeleteCommand extends Command {
         const items = [...this.editor.selection.selected.curves, ...this.editor.selection.selected.solids];
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
-    }
-}
-
-export class ModeCommand extends Command {
-    async execute(): Promise<void> {
-        const object = [...this.editor.selection.selected.solids][0];
-        let model = this.editor.db.lookup(object);
-        model = model.Duplicate().Cast<c3d.Solid>(c3d.SpaceType.Solid);
-
-        const l = model.GetCreatorsCount();
-        let recent = model.SetCreator(l - 1);
-        if (recent === null) throw new Error("invalid precondition");
-        switch (recent.IsA()) {
-            case c3d.CreatorType.ElementarySolid:
-                const factory = new ElementarySolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-                factory.solid = object;
-                const gizmo = new ElementarySolidGizmo(this.editor, factory.points);
-                await gizmo.execute(async (point, index) => {
-                    factory.points[index] = point;
-                    await factory.update();
-                }).resource(this);
-
-                await factory.commit();
-
-                break;
-        }
     }
 }
 

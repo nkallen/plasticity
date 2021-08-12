@@ -206,7 +206,6 @@ export default (editor: Editor): void => {
         'command:fillet-curve': () => editor.enqueue(new cmd.FilletCurveCommand(editor)),
         'command:modify-face': () => editor.enqueue(new cmd.OffsetFaceCommand(editor)),
         'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),
-        'command:mode': () => editor.enqueue(new cmd.ModeCommand(editor)),
         'command:extrude': () => editor.enqueue(new cmd.ExtrudeCommand(editor)),
         'command:trim': () => editor.enqueue(new cmd.TrimCommand(editor)),
     })

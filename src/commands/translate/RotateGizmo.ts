@@ -93,6 +93,8 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
         this.add(occludeBackHalf);
     }
 
+    onInterrupt(cb: (axis: THREE.Vector3, angle: number) => void) {}
+
     onPointerHover(intersect: Intersector): void {
         this.picker.updateMatrixWorld();
         const picker = intersect(this.picker, true);

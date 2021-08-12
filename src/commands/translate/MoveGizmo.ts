@@ -160,6 +160,8 @@ export class MoveGizmo extends AbstractGizmo<(delta: THREE.Vector3) => void> {
         this.torus = torus;
     }
 
+    onInterrupt(cb: (delta: THREE.Vector3) => void) {}
+
     onPointerHover(intersect: Intersector): void {
         const picker = intersect(this.picker, true);
         if (picker) this.mode = picker.object.userData.mode as Mode;
