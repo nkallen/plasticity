@@ -1,5 +1,6 @@
 rx90
 lines indicating axes
+audit all scale scaleIndependentOfZoom
 
 need explode/separate command
 stick to surface max / draw on surface

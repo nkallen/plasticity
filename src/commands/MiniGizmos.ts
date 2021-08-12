@@ -249,7 +249,7 @@ const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 // a world-space length, and thus shouldn't rescale with view. Whereas the magnitude
 // gizmo is just a scalar quantity and SHOULD scale with view.
 export class LengthGizmo extends AbstractAxisGizmo {
-    constructor(name: string, editor: EditorLike) {
+    constructor(name: string, editor: EditorLike, helper?: GizmoHelper) {
         const materials = editor.gizmos;
 
         const tip = new THREE.Mesh(boxGeometry, materials.yellow);
@@ -264,7 +264,7 @@ export class LengthGizmo extends AbstractAxisGizmo {
 
         const state = new MagnitudeStateMachine(0);
         state.min = 0;
-        super(name, editor, { tip, knob, shaft }, state);
+        super(name, editor, { tip, knob, shaft, helper }, state);
         this.render(this.state.current);
     }
 
@@ -277,6 +277,10 @@ export class MagnitudeGizmo extends LengthGizmo {
     update(camera: THREE.Camera) {
         super.update(camera);
         this.scaleIndependentOfZoom(camera);
+    }
+
+    protected accumulate(original: number, sign: number, dist: number): number {
+        return original + dist
     }
 }
 
@@ -384,7 +388,7 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     }
 
     protected accumulate(original: number, sign: number, dist: number): number {
-        return original + sign * dist
+        return original + dist
     }
 }
 
