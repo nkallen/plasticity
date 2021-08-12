@@ -93,7 +93,7 @@ export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
 
 export class CircleMoveGizmo extends CircularGizmo<THREE.Vector3> {
     constructor(name: string, editor: EditorLike) {
-        super(name, editor, new VectorStateMachine(new THREE.Vector3()));
+        super(name, editor, editor.gizmos.line, new VectorStateMachine(new THREE.Vector3()));
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) {

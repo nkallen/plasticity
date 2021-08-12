@@ -1,8 +1,12 @@
+import { CancellablePromise } from "../../util/Cancellable";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { CircleGeometry } from "../../util/Util";
-import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "../AbstractGizmo";
+import { AbstractGizmo, EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
+import { CompositeGizmo } from "../CompositeGizmo";
+import { AngleGizmo } from "../MiniGizmos";
+import { RotateParams } from "./TranslateFactory";
 
 type State = 'X' | 'Y' | 'Z' | 'screen';
 type Mode = {
@@ -10,7 +14,7 @@ type Mode = {
     axis: THREE.Vector3;
 }
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
-export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: number) => void> {
+export class _RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: number) => void> {
     private mode?: Mode;
     private readonly circle: THREE.Mesh;
     private readonly torus: THREE.Mesh;
@@ -135,3 +139,80 @@ export class RotateGizmo extends AbstractGizmo<(axis: THREE.Vector3, angle: numb
     }
 }
 
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
+const _X = new THREE.Vector3(-1, 0, 0);
+const _Y = new THREE.Vector3(0, -1, 0);
+const _Z = new THREE.Vector3(0, 0, -1);
+
+export class RotateGizmo extends CompositeGizmo<RotateParams> {
+    private readonly materials = this.editor.gizmos;
+    private readonly red = this.materials.lineRed;
+    private readonly green = this.materials.lineGreen;
+    private readonly blue = this.materials.lineBlue;
+    private readonly white = this.materials.line;
+    private readonly x = new AxisAngleGizmo("rotate:x", this.editor, this.red);
+    private readonly y = new AxisAngleGizmo("rotate:y", this.editor, this.green);
+    private readonly z = new AxisAngleGizmo("rotate:z", this.editor, this.blue);
+    private readonly screen = new AngleGizmo("rotate:screen", this.editor, this.white);
+    private readonly occludeBackHalf: THREE.Mesh;
+
+    constructor(params: RotateParams, editor: EditorLike) {
+        super(params, editor);
+
+        const occludeBackHalf = new THREE.Mesh(planeGeometry, this.materials.occlude);
+        occludeBackHalf.renderOrder = -1;
+        this.add(occludeBackHalf);
+        this.occludeBackHalf = occludeBackHalf;
+    }
+
+    prepare() {
+        const { x, y, z, screen } = this;
+        for (const o of [x, y, z]) o.relativeScale.setScalar(0.7);
+        screen.relativeScale.setScalar(0.8);
+    }
+
+    execute(cb: (params: RotateParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+        const { x, y, z, screen, params } = this;
+        const originalPosition = this.position.clone();
+
+        x.quaternion.setFromUnitVectors(Z, X);
+        y.quaternion.setFromUnitVectors(Z, Y);
+        z.quaternion.setFromUnitVectors(Z, Z);
+
+        this.add(x, y, z, screen);
+
+        const set = () => {
+
+        }
+
+        this.addGizmo(x, set);
+        this.addGizmo(y, set);
+        this.addGizmo(z, set);
+
+        this.addGizmo(screen, set);
+
+        return super.execute(cb, finishFast);
+    }
+
+    update(camera: THREE.Camera): void {
+        super.update(camera);
+
+        const eye = new THREE.Vector3();
+        eye.copy(camera.position).sub(this.position).normalize();
+
+        this.occludeBackHalf.lookAt(camera.position);
+        this.occludeBackHalf.position.copy(this.screen.position);
+        this.occludeBackHalf.position.add(eye.clone().multiplyScalar(-0.01))
+        this.occludeBackHalf.updateMatrixWorld();
+    }
+}
+
+export class AxisAngleGizmo extends AngleGizmo {
+    update(camera: THREE.Camera) {
+        // do not face camera
+        this.scaleIndependentOfZoom(camera);
+     }
+}

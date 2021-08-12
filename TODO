@@ -7,6 +7,8 @@ creat curve on spine
 rx90
 make spiral composite gizmo
  -- maybe add thickness?
+curve movement not working well
+variable fillet is broken
 
 in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
   - shift should turn current axis snap into constraint?

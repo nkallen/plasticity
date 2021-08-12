@@ -72,7 +72,7 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
     private denominator = 1;
 
     constructor(name: string, editor: EditorLike) {
-        super(name, editor, new MagnitudeStateMachine(1));
+        super(name, editor, editor.gizmos.line, new MagnitudeStateMachine(1));
         this.relativeScale.setScalar(0.7);
         this.render(this.state.current);
     }

@@ -87,7 +87,13 @@ export class MoveFactory extends TranslateFactory implements MoveParams {
     }
 }
 
-export class RotateFactory extends TranslateFactory {
+export interface RotateParams {
+    pivot: THREE.Vector3
+    axis: THREE.Vector3;
+    angle: number;
+}
+
+export class RotateFactory extends TranslateFactory implements RotateParams {
     pivot!: THREE.Vector3
     axis!: THREE.Vector3;
     angle!: number;

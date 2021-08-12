@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CircleGeometry } from "../util/Util";
 import { AbstractGizmo, EditorLike, Intersector, MovementInfo } from "./AbstractGizmo";
 
@@ -54,7 +55,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     get value() { return this.state.current }
     set value(m: T) { this.state.original = m }
 
-    constructor(name: string, editor: EditorLike, state: AbstractValueStateMachine<T>) {
+    constructor(name: string, editor: EditorLike, material: LineMaterial, state: AbstractValueStateMachine<T>) {
         const [gizmoName,] = name.split(':');
 
         const materials = editor.gizmos;
@@ -64,7 +65,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 
         const geometry = new LineGeometry();
         geometry.setPositions(CircleGeometry(radius, 64));
-        const circle = new Line2(geometry, materials.line);
+        const circle = new Line2(geometry, material);
         handle.add(circle);
 
         const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
@@ -87,13 +88,15 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     }
 
     update(camera: THREE.Camera) {
+        this.scaleIndependentOfZoom(camera);
         this.lookAt(camera.position);
     }
 }
 
 export class AngleGizmo extends CircularGizmo<number> {
-    constructor(name: string, editor: EditorLike) {
-        super(name, editor, new MagnitudeStateMachine(0));
+    constructor(name: string, editor: EditorLike, material?: LineMaterial) {
+        material ??= editor.gizmos.line;
+        super(name, editor, material, new MagnitudeStateMachine(0));
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) { }

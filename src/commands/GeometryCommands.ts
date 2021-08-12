@@ -673,10 +673,9 @@ export class RotateCommand extends Command {
         rotate.items = objects;
         rotate.pivot = centroid;
 
-        const rotateGizmo = new RotateGizmo(this.editor, centroid);
-        await rotateGizmo.execute((axis, angle) => {
-            rotate.axis = axis;
-            rotate.angle = angle;
+        const gizmo = new RotateGizmo(rotate, this.editor);
+        gizmo.position.copy(centroid);
+        await gizmo.execute(params => {
             rotate.update();
         }).resource(this);
 
@@ -859,16 +858,14 @@ export class DraftSolidCommand extends Command {
         const face = faces[0];
         const faceModel = this.editor.db.lookupTopologyItem(face);
         const point = cart2vec(faceModel.Point(0.5, 0.5));
-        const gizmo = new RotateGizmo(this.editor, point);
 
         const draftSolid = new DraftSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         draftSolid.solid = parent;
         draftSolid.faces = faces;
-        draftSolid.origin = point;
+        draftSolid.pivot = point;
 
-        await gizmo.execute((axis, angle) => {
-            draftSolid.axis = axis;
-            draftSolid.angle = angle;
+        const gizmo = new RotateGizmo(draftSolid, this.editor);
+        await gizmo.execute(params => {
             draftSolid.update();
         }, mode.Persistent).resource(this);
 
