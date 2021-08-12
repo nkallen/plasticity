@@ -131,11 +131,11 @@ test("lookupTopologyItemById", async () => {
     solid.traverse(o => {
         if (o instanceof visual.Face) faces.push(o);
     })
-    expect(faces.length).toBe(3 * 6);
+    expect(faces.length).toBe(2 * 6);
 
     expect(db.lookupTopologyItem(faces[0])).toBeTruthy();
     const { model, views } = db.lookupTopologyItemById(faces[0].simpleName);
-    expect(views.size).toBe(3);
+    expect(views.size).toBe(2);
     expect(model).toBeInstanceOf(c3d.Face);
 
     db.removeItem(solid);
@@ -152,10 +152,10 @@ test("lookupControlPointById", async () => {
     instance.traverse(o => {
         if (o instanceof visual.ControlPointGroup) controlPoints.push(o);
     })
-    expect(controlPoints.length).toBe(3);
+    expect(controlPoints.length).toBe(2);
 
     const { index, views } = db.lookupControlPointById(controlPoints[0].findByIndex(0).simpleName);
-    expect(views.size).toBe(3);
+    expect(views.size).toBe(2);
     expect(index).toBe(0);
 
     db.removeItem(instance);
