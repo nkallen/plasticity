@@ -1,57 +1,58 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, GizmoLike, mode } from "../AbstractGizmo";
+import { CompositeGizmo } from "../CompositeGizmo";
 import { AngleGizmo, LengthGizmo } from "../MiniGizmos";
 import { SpiralParams } from "./SpiralFactory";
 
-export class SpiralGizmo implements GizmoLike<(params: SpiralParams) => void> {
-    private readonly angleGizmo: AngleGizmo;
-    private readonly lengthGizmo: LengthGizmo;
-    private readonly radiusGizmo: LengthGizmo;
+const Y = new THREE.Vector3(0, 1, 0);
+const X = new THREE.Vector3(1, 0, 0);
 
-    constructor(private readonly params: SpiralParams, editor: EditorLike) {
-        this.angleGizmo = new AngleGizmo("spiral:angle", editor);
-        this.lengthGizmo = new LengthGizmo("spiral:length", editor);
-        this.radiusGizmo = new LengthGizmo("spiral:radius", editor);
-    }
+export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
+    private readonly angleGizmo = new AngleGizmo("spiral:angle", this.editor);
+    private readonly lengthGizmo = new LengthGizmo("spiral:length", this.editor);
+    private readonly radiusGizmo = new LengthGizmo("spiral:radius", this.editor);
 
     execute(cb: (params: SpiralParams) => void, finishFast: mode = mode.Transitory): CancellablePromise<void> {
         const { angleGizmo, lengthGizmo, radiusGizmo, params } = this;
         const { p2, p1, angle, radius } = params;
 
         const axis = new THREE.Vector3().copy(p2).sub(p1);
-        const length = axis.length();
         axis.normalize();
 
         lengthGizmo.position.copy(p1);
-        lengthGizmo.magnitude = length;
+        lengthGizmo.magnitude = axis.length();
         const quat = new THREE.Quaternion();
-        quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
+        quat.setFromUnitVectors(Y, axis);
         lengthGizmo.quaternion.copy(quat);
 
         radiusGizmo.position.copy(p1);
-        quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), axis);
+        quat.setFromUnitVectors(X, axis);
         radiusGizmo.quaternion.copy(quat);
         radiusGizmo.magnitude = params.radius;
 
         lengthGizmo.tip.add(angleGizmo);
         angleGizmo.scale.setScalar(radius);
 
-        const a = angleGizmo.execute(angle => {
+        this.add(lengthGizmo, radiusGizmo);
+
+        this.addGizmo(angleGizmo, angle => {
             params.angle = angle;
             cb(params);
-        }, finishFast);
-        const l = lengthGizmo.execute(length => {
+        });
+        this.addGizmo(lengthGizmo, length => {
             p2.copy(axis).multiplyScalar(length).add(p1);
             params.p2 = p2;
             cb(params);
-        }, finishFast);
-        const r = radiusGizmo.execute(radius => {
+        });
+        this.addGizmo(radiusGizmo, radius => {
             params.radius = radius;
             angleGizmo.scale.setScalar(radius);
             cb(params);
-        }, finishFast);
+        });
 
-        return CancellablePromise.all([a, l, r]);
+        return super.execute(cb, finishFast);
     }
+
+    get shouldRescaleOnZoom() { return false }
 }
