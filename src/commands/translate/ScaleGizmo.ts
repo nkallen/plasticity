@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
-import { mode } from "../AbstractGizmo";
-import { CircleScaleGizmo, PlanarScaleGizmo, ScaleAxisGizmo } from "../MiniGizmos";
+import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
+import { AbstractAxisGizmo, boxGeometry, CircularGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { ScaleParams } from "./TranslateFactory";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
+import { Line2 } from "three/examples/jsm/lines/Line2";
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -57,5 +59,88 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
         this.addGizmo(xyz, set);
 
         return super.execute(cb, finishFast);
+    }
+}
+
+
+export class CircleScaleGizmo extends CircularGizmo<number> {
+    private denominator = 1;
+
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor, new MagnitudeStateMachine(1));
+        this.relativeScale.setScalar(0.7);
+        this.render(this.state.current);
+    }
+
+    onPointerDown(intersect: Intersector, info: MovementInfo) {
+        const { pointStart2d, center2d } = info;
+        this.denominator = pointStart2d.distanceTo(center2d);
+        this.state.start();
+    }
+
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
+        const { pointEnd2d, center2d } = info;
+
+        const magnitude = this.state.original * pointEnd2d.distanceTo(center2d) / this.denominator!;
+        this.state.current = magnitude;
+        this.render(this.state.current);
+        cb(this.state.current);
+    }
+
+    render(magnitude: number) {
+        this.scale.setScalar(magnitude);
+        this.scale.multiply(this.relativeScale);
+    }
+}
+
+export class ScaleAxisGizmo extends AbstractAxisGizmo {
+    constructor(name: string, editor: EditorLike, material?: { tip: THREE.MeshBasicMaterial, shaft: LineMaterial }) {
+        const materials = editor.gizmos;
+        material ??= { tip: materials.yellow, shaft: materials.lineYellow }
+        const tip = new THREE.Mesh(boxGeometry, material.tip);
+        tip.position.set(0, 1, 0);
+        const shaft = new Line2(lineGeometry, material.shaft);
+
+        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
+        knob.userData.command = [`gizmo:${name}`, () => { }];
+        knob.position.copy(tip.position);
+
+        super(name, editor, { tip, knob, shaft }, new MagnitudeStateMachine(1));
+    }
+
+    update(camera: THREE.Camera) {
+        super.update(camera);
+        this.scaleIndependentOfZoom(camera);
+    }
+
+    protected accumulate(original: number, sign: number, dist: number): number {
+        return original + sign * dist
+    }
+}
+
+export class PlanarScaleGizmo extends PlanarGizmo<number> {
+    constructor(name: string, editor: EditorLike, material?: THREE.MeshBasicMaterial) {
+        const state = new MagnitudeStateMachine(1);
+        super(name, editor, state, material);
+    }
+
+    onPointerMove(cb: (value: number) => void, intersect: Intersector, info: MovementInfo): void {
+        const { plane, denominator, state } = this;
+
+        const planeIntersect = intersect(plane, true);
+        if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
+
+        let magnitude = planeIntersect.point.sub(this.worldPosition).length();
+        magnitude *= state.original;
+        magnitude /= denominator;
+
+        this.state.current = magnitude;
+        this.render(magnitude);
+        cb(magnitude);
+    }
+
+    render(magnitude: number) {
+        this.handle.position.set(0.3 * magnitude, 0.3 * magnitude, 0);
+        this.knob.position.copy(this.handle.position);
     }
 }
