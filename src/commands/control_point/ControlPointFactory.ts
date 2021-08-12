@@ -4,6 +4,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { cart2vec, vec2cart } from "../../util/Conversion";
 import { GeometryFactory } from '../GeometryFactory';
+import { MoveParams } from "../translate/TranslateFactory";
 
 abstract class ControlPointFactory extends GeometryFactory {
     protected curve!: c3d.Curve3D;
@@ -38,13 +39,14 @@ abstract class ControlPointFactory extends GeometryFactory {
     }
 }
 
-export class ChangePointFactory extends ControlPointFactory {
-    delta!: THREE.Vector3;
+export class ChangePointFactory extends ControlPointFactory implements MoveParams {
+    pivot = new THREE.Vector3();
+    move!: THREE.Vector3;
     private newPosition = new THREE.Vector3();
 
     async computeGeometry() {
-        const { originalPosition, controlPoint: { index }, delta, curve, newPosition } = this;
-        newPosition.copy(originalPosition).add(delta);
+        const { originalPosition, controlPoint: { index }, move, curve, newPosition } = this;
+        newPosition.copy(originalPosition).add(move);
 
         if (curve instanceof c3d.PolyCurve3D) {
             curve.ChangePoint(index, vec2cart(newPosition));

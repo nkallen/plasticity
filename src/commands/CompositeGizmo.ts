@@ -12,7 +12,11 @@ export abstract class CompositeGizmo<P> extends THREE.Group implements GizmoLike
         super();
     }
 
+    protected prepare() {}
+
     execute(compositeCallback: (params: P) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+        this.prepare();
+
         const disposables = new CompositeDisposable();
 
         this.editor.helpers.add(this);

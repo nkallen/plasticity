@@ -52,7 +52,6 @@ import { MoveGizmo } from './translate/MoveGizmo';
 import { RotateGizmo } from './translate/RotateGizmo';
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
-import { _MoveGizmo } from "./translate/_MoveGizmo";
 
 export class SphereCommand extends Command {
     async execute(): Promise<void> {
@@ -930,11 +929,10 @@ export class ActionFaceCommand extends Command {
         const faceModel = this.editor.db.lookupTopologyItem(face);
         const point_ = faceModel.Point(0.5, 0.5);
         const point = new THREE.Vector3(point_.x, point_.y, point_.z);
-        const gizmo = new _MoveGizmo(this.editor);
+        const gizmo = new MoveGizmo(actionFace, this.editor);
         gizmo.position.copy(point);
 
         await gizmo.execute(async delta => {
-            actionFace.direction = delta;
             await actionFace.update();
         }).resource(this);
 
@@ -1083,10 +1081,9 @@ export class ChangePointCommand extends Command {
         const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         changePoint.controlPoint = controlPoint;
 
-        const gizmo = new _MoveGizmo(this.editor);
+        const gizmo = new MoveGizmo(changePoint, this.editor);
         gizmo.position.copy(changePoint.originalPosition);
         await gizmo.execute(delta => {
-            changePoint.delta = delta;
             changePoint.update();
         }).resource(this);
 

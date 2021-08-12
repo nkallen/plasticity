@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../GeometryFactory';
+import { MoveParams } from '../translate/TranslateFactory';
 
 export interface OffsetFaceParams {
     distance: number;
@@ -64,8 +65,12 @@ export class CreateFaceFactory extends ModifyFaceFactory {
     operationType = c3d.ModifyingType.Create;
 }
 
-export class ActionFaceFactory extends ModifyFaceFactory {
+export class ActionFaceFactory extends ModifyFaceFactory implements MoveParams {
     operationType = c3d.ModifyingType.Action;
+    pivot = new THREE.Vector3();
+    set move(direction: THREE.Vector3) {
+        this.direction = direction;
+    }
 }
 
 export class FilletFaceFactory extends ModifyFaceFactory implements FilletFaceParams {

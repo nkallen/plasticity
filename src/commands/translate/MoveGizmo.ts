@@ -31,6 +31,12 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
     private readonly xz = new PlanarMoveGizmo("move:xz", this.editor, this.magenta);
     private readonly screen = new CircleMoveGizmo("move:screen", this.editor);
 
+    prepare() {
+        const { x, y, z, xy, yz, xz, screen } = this;
+        for (const o of [x, y, z, xy, yz, xz]) o.relativeScale.setScalar(0.8);
+        screen.relativeScale.setScalar(0.25);
+    }
+
     execute(cb: (params: MoveParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
         const { x, y, z, xy, yz, xz, screen, params } = this;
         const originalPosition = this.position.clone();
@@ -88,7 +94,6 @@ export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
 export class CircleMoveGizmo extends CircularGizmo<THREE.Vector3> {
     constructor(name: string, editor: EditorLike) {
         super(name, editor, new VectorStateMachine(new THREE.Vector3()));
-        this.relativeScale.setScalar(0.7);
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) {
@@ -99,6 +104,11 @@ export class CircleMoveGizmo extends CircularGizmo<THREE.Vector3> {
         const delta = info.pointEnd3d.sub(info.pointStart3d).add(this.state.original);
         this.state.current = delta;
         cb(delta);
+    }
+
+    update(camera: THREE.Camera) {
+        super.update(camera);
+        this.scaleIndependentOfZoom(camera);
     }
 }
 

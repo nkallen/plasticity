@@ -87,7 +87,6 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     }
 
     update(camera: THREE.Camera) {
-        // super.update(camera);
         this.lookAt(camera.position);
     }
 }
@@ -221,8 +220,8 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     }
 }
 
-const arrowLength = 0.1;
-export const arrowGeometry = new THREE.CylinderGeometry(0, 0.03, arrowLength, 12, 1, false);
+const arrowLength = 0.2;
+export const arrowGeometry = new THREE.CylinderGeometry(0, 0.1, arrowLength, 12, 1, false);
 export const lineGeometry = new LineGeometry();
 lineGeometry.setPositions([0, 0, 0, 0, 1, 0]);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -280,8 +279,8 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
         const materials = editor.gizmos;
         material ??= materials.yellow;
 
-        const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.15), material);
-        handle.position.set(0.3, 0.3, 0);
+        const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 0.25), material);
+        handle.position.set(0.5, 0.5, 0);
 
         const knob = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), materials.invisible);
         knob.position.copy(handle.position);

@@ -31,8 +31,8 @@ beforeEach(async () => {
 
 test('update', async () => {
     move.items = [box];
-    move.p1 = new THREE.Vector3();
-    move.p2 = new THREE.Vector3(1, 0, 0);
+    move.pivot = new THREE.Vector3();
+    move.move = new THREE.Vector3(1, 0, 0);
     expect(box.position).toEqual(new THREE.Vector3(0, 0, 0));
     await move.update();
     expect(box.position).toEqual(new THREE.Vector3(1, 0, 0));
@@ -40,8 +40,8 @@ test('update', async () => {
 
 test('commit', async () => {
     move.items = [box];
-    move.p1 = new THREE.Vector3();
-    move.p2 = new THREE.Vector3(1, 0, 0);
+    move.pivot = new THREE.Vector3();
+    move.move = new THREE.Vector3(1, 0, 0);
     const moveds = await move.commit() as visual.Solid[];
     const bbox = new THREE.Box3();
     bbox.setFromObject(moveds[0]);

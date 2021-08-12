@@ -43,7 +43,7 @@ describe(ChangePointFactory, () => {
 
     test('invokes the appropriate c3d commands', async () => {
         changePoint.controlPoint = curve.underlying.points.findByIndex(0);
-        changePoint.delta = new THREE.Vector3(-2, -2, 0);
+        changePoint.move = new THREE.Vector3(-2, -2, 0);
         const newCurve = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
         const bbox = new THREE.Box3().setFromObject(newCurve);
         const center = new THREE.Vector3();

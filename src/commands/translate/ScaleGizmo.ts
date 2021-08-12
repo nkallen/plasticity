@@ -31,6 +31,12 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     private readonly xz = new PlanarScaleGizmo("scale:xz", this.editor, this.magenta);
     private readonly xyz = new CircleScaleGizmo("scale:xyz", this.editor);
 
+    prepare() {
+        const { x, y, z, xyz, xy, yz, xz } = this;
+        for (const o of [x, y, z, xy, yz, xz]) o.relativeScale.setScalar(0.8);
+        xyz.relativeScale.setScalar(0.85);
+    }
+
     execute(cb: (params: ScaleParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
         const { x, y, z, xy, yz, xz, xyz, params } = this;
 
@@ -62,7 +68,6 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     }
 }
 
-
 export class CircleScaleGizmo extends CircularGizmo<number> {
     private denominator = 1;
 
@@ -90,6 +95,11 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
     render(magnitude: number) {
         this.scale.setScalar(magnitude);
         this.scale.multiply(this.relativeScale);
+    }
+
+    update(camera: THREE.Camera) {
+        super.update(camera);
+        this.scaleIndependentOfZoom(camera);
     }
 }
 
