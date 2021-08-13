@@ -113,7 +113,7 @@ export class ScaleAxisGizmo extends AbstractAxisGizmo {
 
         const helper = new DashedLineMagnitudeHelper();
 
-        super(name, editor, { tip, knob, shaft, helper }, new MagnitudeStateMachine(1));
+        super(name, editor, { tip, knob, shaft, helper, material }, new MagnitudeStateMachine(1));
     }
 
     protected accumulate(original: number, sign: number, dist: number): number {

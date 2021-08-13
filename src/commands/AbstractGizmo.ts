@@ -57,13 +57,13 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
         this.handle = view.handle;
         this.picker = view.picker;
-        this.picker.visible = false;
         this.helper = view.helper;
 
         this.add(this.handle, this.picker);
     }
 
-    onPointerHover(_intersector: Intersector) { }
+    onPointerEnter(intersector: Intersector) { }
+    onPointerLeave(intersector: Intersector) { }
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
     abstract onPointerDown(intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(intersect: Intersector, info: MovementInfo): void;
@@ -371,12 +371,24 @@ export class GizmoStateMachine<T> implements MovementInfo {
         if (!this.isActive) return;
 
         switch (this.state.tag) {
-            case 'none':
-            case 'hover':
-                this.gizmo.onPointerHover(this.intersector);
+            case 'none': {
                 const intersect = this.intersector(this.gizmo.picker, true);
-                this.state = { tag: !!intersect ? 'hover' : 'none' };
+                if (intersect !== undefined) {
+                    this.gizmo.onPointerEnter(this.intersector);
+                    this.state = { tag: 'hover' }
+                    this.signals.gizmoChanged.dispatch();
+                }
                 break;
+            }
+            case 'hover': {
+                const intersect = this.intersector(this.gizmo.picker, true);
+                if (intersect === undefined) {
+                    this.gizmo.onPointerLeave(this.intersector);
+                    this.state = { tag: 'none' }
+                    this.signals.gizmoChanged.dispatch();
+                }
+                break;
+            }
             default: break;
         }
     }

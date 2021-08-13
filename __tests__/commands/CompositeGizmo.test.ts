@@ -82,7 +82,6 @@ export class MockGizmo extends AbstractGizmo<(n: number) => void> {
     }
 
     onInterrupt(cb: (angle: number) => void) {this.interrupt() }
-    onPointerHover(intersect: Intersector) { this.hover() }
     onPointerDown(intersect: Intersector, info: MovementInfo) { this.down() }
     onPointerUp(intersect: Intersector, info: MovementInfo) { this.up_() }
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) {

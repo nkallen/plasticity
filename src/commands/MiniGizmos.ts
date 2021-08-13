@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CircleGeometry } from "../util/Util";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 import { GizmoMaterial } from "./GizmoMaterials";
@@ -21,7 +20,6 @@ import { GizmoMaterial } from "./GizmoMaterials";
  */
 
 const radius = 1;
-const zeroVector = new THREE.Vector3();
 
 class AbstractValueStateMachine<T> {
     private currentMagnitude: T;
@@ -58,6 +56,9 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     get value() { return this.state.current }
     set value(m: T) { this.state.original = m }
 
+    private readonly material: GizmoMaterial;
+    private readonly circle: Line2;
+
     constructor(name: string, editor: EditorLike, material: GizmoMaterial, state: AbstractValueStateMachine<T>) {
         const [gizmoName,] = name.split(':');
 
@@ -72,7 +73,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
         const circle = new Line2(geometry, material.line2);
         handle.add(circle);
 
-        const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
+        const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.35, 4, 24), materials.invisible);
         torus.userData.command = [`gizmo:${name}`, () => { }];
         picker.add(torus);
 
@@ -82,6 +83,9 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 
         this.eye = new THREE.Vector3();
         this.worldPosition = new THREE.Vector3();
+
+        this.material = material;
+        this.circle = circle;
     }
 
     onInterrupt(cb: (value: T) => void) {
@@ -89,7 +93,14 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
         cb(this.state.current);
     }
 
-    onPointerHover(intersect: Intersector): void { }
+    onPointerEnter(intersect: Intersector) {
+        this.circle.material = this.material.hover.line2;
+    }
+
+    onPointerLeave(intersect: Intersector) {
+        this.circle.material = this.material.line2;
+    }
+
     onPointerUp(intersect: Intersector, info: MovementInfo) {
         this.state.push();
     }
@@ -138,13 +149,15 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     private readonly localY: THREE.Vector3;
     protected originalPosition?: THREE.Vector3;
 
-    constructor(name: string, editor: EditorLike, info: { tip: THREE.Mesh, knob: THREE.Mesh, shaft: THREE.Mesh, helper?: GizmoHelper }, state: MagnitudeStateMachine) {
+    private readonly material: GizmoMaterial;
+
+    constructor(name: string, editor: EditorLike, info: { tip: THREE.Mesh, knob: THREE.Mesh, shaft: THREE.Mesh, helper?: GizmoHelper, material: GizmoMaterial }, state: MagnitudeStateMachine) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
 
-        const plane = new THREE.Mesh(planeGeometry, materials.yellow.mesh);
+        const plane = new THREE.Mesh(planeGeometry, materials.invisible);
 
-        const { tip, knob, shaft, helper } = info;
+        const { tip, knob, shaft, helper, material } = info;
 
         const handle = new THREE.Group();
         handle.add(tip, shaft);
@@ -159,6 +172,8 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.tip = tip;
         this.knob = knob;
         this.plane = plane;
+
+        this.material = material;
 
         this.startMousePosition = new THREE.Vector3();
         this.sign = 1;
@@ -179,7 +194,15 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         cb(this.state.current);
     }
 
-    onPointerHover(intersect: Intersector): void { }
+    onPointerEnter(intersect: Intersector) {
+        this.shaft.material = this.material.hover.line2;
+        this.tip.material = this.material.hover.mesh;
+    }
+
+    onPointerLeave(intersect: Intersector) {
+        this.shaft.material = this.material.line2;
+        this.tip.material = this.material.mesh;
+    }
 
     onPointerUp(intersect: Intersector, info: MovementInfo) {
         this.state.push();
@@ -275,7 +298,7 @@ export class LengthGizmo extends AbstractAxisGizmo {
 
         const state = new MagnitudeStateMachine(0);
         state.min = 0;
-        super(name, editor, { tip, knob, shaft, helper }, state);
+        super(name, editor, { tip, knob, shaft, helper, material: materials.yellow }, state);
         this.render(this.state.current);
     }
 
@@ -305,11 +328,12 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
     protected readonly startMousePosition: THREE.Vector3;
     protected readonly worldPosition: THREE.Vector3;
 
+    protected readonly material: GizmoMaterial;
+
     constructor(name: string, editor: EditorLike, state: AbstractValueStateMachine<T>, material?: GizmoMaterial, helper?: GizmoHelper) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
         material ??= materials.yellow;
-
         const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), material.mesh);
         handle.position.set(0.5, 0.5, 0);
 
@@ -327,6 +351,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
         this.worldPosition = new THREE.Vector3();
         this.denominator = 1;
         this.state = state;
+        this.material = material;
     }
 
     onInterrupt(cb: (value: T) => void) {
@@ -334,7 +359,17 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
         cb(this.state.current);
     }
 
-    onPointerHover(intersect: Intersector): void { }
+
+    onPointerEnter(intersect: Intersector) {
+        const handle = this.handle as THREE.Mesh;
+        handle.material = this.material.hover.mesh;
+    }
+
+    onPointerLeave(intersect: Intersector) {
+        const handle = this.handle as THREE.Mesh;
+        handle.material = this.material.mesh;
+    }
+
     onPointerUp(intersect: Intersector, info: MovementInfo) {
         this.state.push();
     }
@@ -378,8 +413,7 @@ export class DistanceGizmo extends AbstractAxisGizmo {
 
         const state = new MagnitudeStateMachine(0);
         state.min = 0;
-        console.log(helper);
-        super(name, editor, { tip, knob, shaft, helper }, state);
+        super(name, editor, { tip, knob, shaft, helper, material: materials.yellow }, state);
     }
 
     render(length: number) {

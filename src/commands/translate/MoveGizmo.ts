@@ -122,7 +122,7 @@ export class MoveAxisGizmo extends AbstractAxisGizmo {
 
         const helper = new AxisHelper(material.line);
 
-        super(name, editor, { tip, knob, shaft, helper }, new MagnitudeStateMachine(0));
+        super(name, editor, { tip, knob, shaft, helper, material }, new MagnitudeStateMachine(0));
 
         this.add(helper);
     }
