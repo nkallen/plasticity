@@ -3,9 +3,8 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo } from "../fillet/FilletGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
-import { AbstractAxisGizmo, boxGeometry, CircularGizmo, DashedLineMagnitudeHelper, LengthGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
+import { AbstractAxialScaleGizmo, boxGeometry, CircularGizmo, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
 import { ScaleParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);

@@ -2,17 +2,22 @@ import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
-import { AngleGizmo, DistanceGizmo, MagnitudeGizmo } from "../MiniGizmos";
 import { CompositeGizmo } from "../CompositeGizmo";
+import { AngleGizmo } from "../MiniGizmos";
 import { ChamferParams } from "./ChamferFactory";
-import c3d from '../../../build/Release/c3d.node';
+import { MagnitudeGizmo } from "./FilletGizmo";
 
 export class ChamferGizmo extends CompositeGizmo<ChamferParams> {
     private readonly distance = new MagnitudeGizmo("chamfer:distance", this.editor);
-    private readonly angle = new AngleGizmo("chamfer:angle", this.editor);
+    private readonly angle = new AngleGizmo("chamfer:angle", this.editor, this.editor.gizmos.white);
 
     constructor(params: ChamferParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
+    }
+
+    prepare() {
+        this.distance.relativeScale.setScalar(0.8);
+        this.angle.relativeScale.setScalar(0.3);
     }
 
     execute(cb: (params: ChamferParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
@@ -22,7 +27,6 @@ export class ChamferGizmo extends CompositeGizmo<ChamferParams> {
         distance.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         distance.position.copy(point);
         angle.position.copy(point);
-        angle.scale.setScalar(0.3);
 
         this.add(distance);
         this.add(angle);
@@ -65,5 +69,9 @@ export class ChamferGizmo extends CompositeGizmo<ChamferParams> {
     showEdges() {
         for (const edge of this.params.edges)
             this.editor.db.temporaryObjects.add(edge.occludedLine.clone());
+    }
+
+    get shouldRescaleOnZoom() {
+        return false;
     }
 }

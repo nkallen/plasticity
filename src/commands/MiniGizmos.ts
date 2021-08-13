@@ -346,6 +346,59 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     }
 }
 
+// This gizmo behaves somewhere between a scale and a move gizmo
+export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
+    readonly helper = new DashedLineMagnitudeHelper();
+
+    private denominator = 1;
+
+    constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
+        super(name, editor);
+    }
+
+    get value() { return this.state.current }
+    set value(mag: number) {
+        this.state.original = mag;
+        this.render(this.state.current)
+    }
+
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.revert();
+        cb(this.state.current);
+    }
+
+    onPointerUp(intersect: Intersector, info: MovementInfo) {
+        this.state.push();
+    }
+
+    onPointerDown(intersect: Intersector, info: MovementInfo) {
+        const { pointStart2d, center2d } = info;
+        this.denominator = pointStart2d.distanceTo(center2d);
+        this.state.start();
+    }
+
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
+        const { pointEnd2d, center2d } = info;
+
+        const magnitude = this.accumulate(this.state.original, pointEnd2d.distanceTo(center2d), this.denominator)
+        this.state.current = magnitude;
+        this.render(this.state.current);
+        cb(this.state.current);
+    }
+
+    render(length: number) {
+        this.shaft.scale.y = length + 1;
+        this.tip.position.set(0, length + 1, 0);
+        this.knob.position.copy(this.tip.position);
+    }
+
+    get shouldRescaleOnZoom() { return true }
+
+    protected accumulate(original: number, dist: number, denom: number): number {
+        return original + dist - denom;
+    }
+}
+
 // "Helpers" appear when the user starts interacting with the gizmo (after click)
 // For values that grow/shink a dashed line works well, and for things that move
 // along axes, a line appearing showing the direction is nice.
