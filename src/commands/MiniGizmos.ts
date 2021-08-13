@@ -130,7 +130,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
     private readonly plane: THREE.Mesh;
     protected worldQuaternion: THREE.Quaternion;
-    private worldPosition: THREE.Vector3;
+    protected worldPosition: THREE.Vector3;
 
     private readonly startMousePosition: THREE.Vector3;
     private sign: number;
@@ -165,6 +165,10 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.worldQuaternion = new THREE.Quaternion();
         this.worldPosition = new THREE.Vector3();
         this.localY = new THREE.Vector3();
+
+        this.eye = new THREE.Vector3();
+        this.align = new THREE.Vector3();
+        this.dir = new THREE.Vector3();
 
         this.state = state;
     }
@@ -214,28 +218,33 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.knob.position.copy(this.tip.position);
     }
 
+    protected eye: THREE.Vector3;
+    protected align: THREE.Vector3;
+    private dir: THREE.Vector3;
+
     update(camera: THREE.Camera) {
         super.update(camera);
         const { worldQuaternion, worldPosition } = this;
         this.getWorldQuaternion(worldQuaternion);
         this.getWorldPosition(worldPosition);
 
-        const eye = new THREE.Vector3();
+        const { eye, align, dir } = this;
+
         eye.copy(camera.position).sub(worldPosition).normalize();
-        const align = new THREE.Vector3();
-        const dir = new THREE.Vector3();
 
         const o = Y.clone().applyQuaternion(worldQuaternion);
         align.copy(eye).cross(o);
         dir.copy(o).cross(align);
 
         const matrix = new THREE.Matrix4();
-        matrix.lookAt(new THREE.Vector3(), dir, align);
+        matrix.lookAt(origin, dir, align);
         this.plane.quaternion.setFromRotationMatrix(matrix);
         this.plane.updateMatrixWorld();
         this.plane.position.copy(worldPosition);
     }
 }
+
+const origin = new THREE.Vector3();
 
 const arrowLength = 0.2;
 export const arrowGeometry = new THREE.CylinderGeometry(0, 0.1, arrowLength, 12, 1, false);

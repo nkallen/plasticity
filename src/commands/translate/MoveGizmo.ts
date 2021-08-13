@@ -132,4 +132,21 @@ export class MoveAxisGizmo extends AbstractAxisGizmo {
     }
 
     render(length: number) { }
+
+    update(camera: THREE.Camera) {
+        super.update(camera);
+
+        const { eye, worldQuaternion } = this;
+
+        // hide objects facing the camera
+        this.visible = true;
+        const dot = localY.copy(Y).applyQuaternion(worldQuaternion).dot(eye);
+        if (Math.abs(dot) > AXIS_HIDE_TRESHOLD) {
+            this.visible = false;
+        }
+    }
 }
+
+const localY = new THREE.Vector3
+
+const AXIS_HIDE_TRESHOLD = 0.99;

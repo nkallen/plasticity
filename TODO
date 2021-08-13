@@ -1,8 +1,10 @@
+hide arrows when facing camera
+hover more intense
 stick to surface max / draw on surface
-redo Dialogs and show errors
 creat curve on spine
 curve movement not working well
 variable fillet is broken
+redo Dialogs and show errors
 
 in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
   - shift should turn current axis snap into constraint?
@@ -19,7 +21,7 @@ refactor factory to take editorlike?
 
 moving needs to have snapping
 redo fillet gizmos
-drag and drop points
+drag and drop points    
 
 fillet face
 
