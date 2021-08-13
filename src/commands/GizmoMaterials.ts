@@ -26,6 +26,7 @@ export class GizmoMaterialDatabase {
         depthWrite: false,
         depthTest: false,
         opacity: 0.0,
+        side: THREE.DoubleSide,
     }, depthInfo));
 
     readonly occlude = new THREE.MeshBasicMaterial(Object.assign({
@@ -36,18 +37,18 @@ export class GizmoMaterialDatabase {
 
     static make(num: number, side = THREE.FrontSide): GizmoMaterial {
         const color = new THREE.Color(num);
-        const normalColor = color.offsetHSL(0, -0.1, 0);
+        const normalColor = color.offsetHSL(0, -0.2, 0);
         const hoverColor = color.offsetHSL(0, 0, 0);
         const a = normalColor.getHex();
         const b = hoverColor.getHex();
         return {
-            mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.5, color: a }, depthInfo, { side })),
-            line2: new LineMaterial(Object.assign({ color: a, opacity: 0.5, linewidth: 3, }, depthInfo, { side })),
-            line: new THREE.LineBasicMaterial({ opacity: 0.5, color: a, }),
+            mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.7, color: a }, depthInfo, { side })),
+            line2: new LineMaterial(Object.assign({ color: a, opacity: 0.7, linewidth: 3, }, depthInfo, { side })),
+            line: new THREE.LineBasicMaterial({ opacity: 0.7, color: a, }),
             hover: {
-                mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.8, color: b }, depthInfo, { side })),
-                line2: new LineMaterial(Object.assign({ color: b, opacity: 0.8, linewidth: 3, }, depthInfo, { side })),
-                line: new THREE.LineBasicMaterial({ opacity: 0.8, color: b, }),
+                mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.9, color: b }, depthInfo, { side })),
+                line2: new LineMaterial(Object.assign({ color: b, opacity: 0.9, linewidth: 3, }, depthInfo, { side })),
+                line: new THREE.LineBasicMaterial({ opacity: 0.9, color: b, }),
             }
         }
     }

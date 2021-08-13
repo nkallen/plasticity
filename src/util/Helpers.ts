@@ -10,10 +10,20 @@ import * as visual from "../editor/VisualModel";
 // so that it appears behind things.
 
 export abstract class Helper extends THREE.Object3D {
+    protected readonly eye = new THREE.Vector3();
+    protected readonly worldPosition = new THREE.Vector3();
+    protected readonly worldQuaternion = new THREE.Quaternion();
+
     get shouldRescaleOnZoom() { return this.parent?.type === 'Scene' }
 
     update(camera: THREE.Camera) {
         this.scaleIndependentOfZoom(camera);
+
+        const { worldPosition, worldQuaternion } = this;
+        this.getWorldPosition(worldPosition);
+        this.getWorldQuaternion(worldQuaternion);
+
+        this.eye.copy(camera.position).sub(worldPosition).normalize();
     }
 
     // Since gizmos tend to scale as the camera moves in and out, set the

@@ -81,9 +81,6 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 
         this.state = state;
 
-        this.eye = new THREE.Vector3();
-        this.worldPosition = new THREE.Vector3();
-
         this.material = material;
         this.circle = circle;
     }
@@ -105,16 +102,11 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
         this.state.push();
     }
 
-    eye: THREE.Vector3;
-    private worldPosition: THREE.Vector3;
+    get shouldLookAtCamera() { return true }
+
     update(camera: THREE.Camera) {
         super.update(camera);
-        this.lookAt(camera.position);
-
-        const { worldPosition } = this;
-        this.getWorldPosition(worldPosition);
-
-        this.eye.copy(camera.position).sub(worldPosition).normalize();
+        if (this.shouldLookAtCamera) this.lookAt(camera.position);
     }
 }
 
@@ -124,7 +116,7 @@ export class AngleGizmo extends CircularGizmo<number> {
         super(name, editor, material, new MagnitudeStateMachine(0));
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) { }
+    onPointerDown(intersect: Intersector, info: MovementInfo) {}
 
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
         const angle = info.angle + this.state.original;
@@ -145,8 +137,6 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     protected readonly shaft: THREE.Mesh;
 
     private readonly plane: THREE.Mesh;
-    protected worldQuaternion: THREE.Quaternion;
-    protected worldPosition: THREE.Vector3;
 
     private readonly startMousePosition: THREE.Vector3;
     private sign: number;
@@ -180,11 +170,6 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
         this.startMousePosition = new THREE.Vector3();
         this.sign = 1;
-
-        this.worldQuaternion = new THREE.Quaternion();
-        this.worldPosition = new THREE.Vector3();
-
-        this.eye = new THREE.Vector3();
 
         this.state = state;
     }
@@ -242,15 +227,10 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.knob.position.copy(this.tip.position);
     }
 
-    protected eye: THREE.Vector3;
-
     update(camera: THREE.Camera) {
         super.update(camera);
-        const { worldQuaternion, worldPosition } = this;
-        this.getWorldQuaternion(worldQuaternion);
-        this.getWorldPosition(worldPosition);
 
-        const { eye } = this;
+        const { eye, worldPosition, worldQuaternion } = this;
 
         eye.copy(camera.position).sub(worldPosition).normalize();
 
@@ -324,7 +304,6 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
     protected readonly knob: THREE.Mesh;
     protected plane: THREE.Mesh;
     protected readonly startMousePosition: THREE.Vector3;
-    protected readonly worldPosition: THREE.Vector3;
 
     protected readonly material: GizmoMaterial;
 
@@ -346,7 +325,6 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
         this.knob = knob;
         this.plane = new THREE.Mesh(planeGeometry, materials.invisible);
         this.startMousePosition = new THREE.Vector3();
-        this.worldPosition = new THREE.Vector3();
         this.denominator = 1;
         this.state = state;
         this.material = material;

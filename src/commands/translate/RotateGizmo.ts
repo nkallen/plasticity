@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
-import { EditorLike, mode } from "../AbstractGizmo";
+import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AngleGizmo, QuaternionStateMachine } from "../MiniGizmos";
 import { RotateParams } from "./TranslateFactory";
@@ -88,9 +88,25 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
     }
 }
 
+const localZ = new THREE.Vector3();
+
 export class AxisAngleGizmo extends AngleGizmo {
-    update(camera: THREE.Camera) {
-        // do not face camera
-        this.scaleIndependentOfZoom(camera);
+    private sign: number;
+
+    constructor(name: string, editor: EditorLike, material: GizmoMaterial) {
+        super(name, editor, material);
+        this.sign = 1;
     }
+
+    onPointerDown(intersect: Intersector, info: MovementInfo) {
+        this.sign = Math.sign(this.eye.dot(localZ.set(0, 0, 1).applyQuaternion(this.worldQuaternion)));
+    }
+
+    onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
+        const angle = this.sign * info.angle + this.state.original;
+        this.state.current = angle;
+        cb(this.state.current);
+    }
+
+    get shouldLookAtCamera() { return false }
 }

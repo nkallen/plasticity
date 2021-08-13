@@ -57,6 +57,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
         this.handle = view.handle;
         this.picker = view.picker;
+        this.picker.visible = false; // Not sure why this is necessary, but invisible pickers seem to be occluding handles
         this.helper = view.helper;
 
         this.add(this.handle, this.picker);
