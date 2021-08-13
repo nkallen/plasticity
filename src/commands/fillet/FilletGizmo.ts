@@ -5,7 +5,8 @@ import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { AbstractGizmo, EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
+import { GizmoMaterial } from "../GizmoMaterials";
+import { AbstractAxisGizmo, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
 import { FilletParams } from './FilletFactory';
 
 export class FilletGizmo extends CompositeGizmo<FilletParams> {
@@ -81,34 +82,14 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
     }
 }
 
-// This gizmo is like the distance gizmo but it doesn't just go in one direction.
-export class MagnitudeGizmo extends AbstractGizmo<(mag: number) => void> {
-    readonly state = new MagnitudeStateMachine(0);
-    protected readonly material = this.editor.gizmos.default;
-    readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);
-    protected readonly shaft = new Line2(lineGeometry, this.material.line2);
-    protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
+// This gizmo behaves somewhere between a scale and a move gizmo
+export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
     readonly helper = new DashedLineMagnitudeHelper();
 
     private denominator = 1;
 
-    constructor(
-        private readonly longName: string,
-        editor: EditorLike,
-    ) {
-        super(longName.split(':')[0], editor);
-        this.state.min = 0;
-        this.setup();
-    }
-
-    private setup() {
-        this.knob.userData.command = [`gizmo:${this.longName}`, () => { }];
-        this.tip.position.set(0, 1, 0);
-        this.knob.position.copy(this.tip.position);
-        this.render(this.state.current);
-
-        this.handle.add(this.tip, this.shaft);
-        this.picker.add(this.knob);
+    constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
+        super(name, editor);
     }
 
     get value() { return this.state.current }
@@ -135,7 +116,7 @@ export class MagnitudeGizmo extends AbstractGizmo<(mag: number) => void> {
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
         const { pointEnd2d, center2d } = info;
 
-        const magnitude = this.state.original + pointEnd2d.distanceTo(center2d) - this.denominator;
+        const magnitude = this.accumulate(this.state.original, pointEnd2d.distanceTo(center2d), this.denominator)
         this.state.current = magnitude;
         this.render(this.state.current);
         cb(this.state.current);
@@ -148,4 +129,20 @@ export class MagnitudeGizmo extends AbstractGizmo<(mag: number) => void> {
     }
 
     get shouldRescaleOnZoom() { return true }
+
+    protected accumulate(original: number, dist: number, denom: number): number {
+        return original + dist - denom;
+    }
+}
+
+export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
+    readonly state = new MagnitudeStateMachine(0);
+    readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);
+    protected readonly shaft = new Line2(lineGeometry, this.material.line2);
+    protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
+
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor, editor.gizmos.default);
+        this.setup();
+    }
 }

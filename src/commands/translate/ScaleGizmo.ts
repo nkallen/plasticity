@@ -3,6 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
+import { AbstractAxialScaleGizmo } from "../fillet/FilletGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
 import { AbstractAxisGizmo, boxGeometry, CircularGizmo, DashedLineMagnitudeHelper, LengthGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
 import { ScaleParams } from "./TranslateFactory";
@@ -97,7 +98,7 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
     }
 }
 
-export class ScaleAxisGizmo extends AbstractAxisGizmo {
+export class ScaleAxisGizmo extends AbstractAxialScaleGizmo {
     readonly state = new MagnitudeStateMachine(1);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(boxGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
@@ -105,12 +106,12 @@ export class ScaleAxisGizmo extends AbstractAxisGizmo {
     readonly helper = new DashedLineMagnitudeHelper();
 
     constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
-        super(name, editor);
+        super(name, editor, material);
         this.setup();
     }
 
-    protected accumulate(original: number, sign: number, dist: number): number {
-        return original + sign * dist
+    protected accumulate(original: number, dist: number, denom: number): number {
+        return original * dist / denom;
     }
 }
 
