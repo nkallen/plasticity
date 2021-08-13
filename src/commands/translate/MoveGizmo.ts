@@ -109,9 +109,8 @@ export class CircleMoveGizmo extends CircularGizmo<THREE.Vector3> {
 }
 
 export class MoveAxisGizmo extends AbstractAxisGizmo {
-    constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
+    constructor(name: string, editor: EditorLike, material: GizmoMaterial) {
         const materials = editor.gizmos;
-        material ??= materials.yellow
         const tip = new THREE.Mesh(arrowGeometry, material.mesh);
         tip.position.set(0, 1, 0);
         const shaft = new Line2(lineGeometry, material.line2);
@@ -147,6 +146,6 @@ export class MoveAxisGizmo extends AbstractAxisGizmo {
     }
 }
 
-const localY = new THREE.Vector3
+const localY = new THREE.Vector3();
 
 const AXIS_HIDE_TRESHOLD = 0.99;

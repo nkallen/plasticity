@@ -7,18 +7,17 @@ const depthInfo = {
     depthWrite: true,
     fog: false,
     toneMapped: false,
-    side: THREE.DoubleSide,
     transparent: true,
 };
 
-export interface Foo {
+export interface ActiveGizmoMaterial {
     mesh: THREE.MeshBasicMaterial;
     line2: LineMaterial;
     line: THREE.LineBasicMaterial;
 }
 
-export interface GizmoMaterial extends Foo {
-    hover: Foo;
+export interface GizmoMaterial extends ActiveGizmoMaterial {
+    hover: ActiveGizmoMaterial;
 }
 
 export class GizmoMaterialDatabase {
@@ -35,19 +34,25 @@ export class GizmoMaterialDatabase {
         opacity: 0,
     }, depthInfo));
 
-    static make(color: number): GizmoMaterial {
+    static make(num: number, side = THREE.FrontSide): GizmoMaterial {
+        const color = new THREE.Color(num);
+        const normalColor = color.offsetHSL(0, -0.1, 0);
+        const hoverColor = color.offsetHSL(0, 0, 0);
+        const a = normalColor.getHex();
+        const b = hoverColor.getHex();
         return {
-            mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.25, color }, depthInfo)),
-            line2: new LineMaterial(Object.assign({ color, opacity: 0.25, linewidth: 3, }, depthInfo)),
-            line: new THREE.LineBasicMaterial({ opacity: 0.25, color, }),
+            mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.5, color: a }, depthInfo, { side })),
+            line2: new LineMaterial(Object.assign({ color: a, opacity: 0.5, linewidth: 3, }, depthInfo, { side })),
+            line: new THREE.LineBasicMaterial({ opacity: 0.5, color: a, }),
             hover: {
-                mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.7, color }, depthInfo)),
-                line2: new LineMaterial(Object.assign({ color, opacity: 0.7, linewidth: 3, }, depthInfo)),
-                line: new THREE.LineBasicMaterial({ opacity: 0.7, color, }),
+                mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.8, color: b }, depthInfo, { side })),
+                line2: new LineMaterial(Object.assign({ color: b, opacity: 0.8, linewidth: 3, }, depthInfo, { side })),
+                line: new THREE.LineBasicMaterial({ opacity: 0.8, color: b, }),
             }
         }
     }
 
+    readonly default: GizmoMaterial;
     readonly red: GizmoMaterial;
     readonly green: GizmoMaterial;
     readonly blue: GizmoMaterial;
@@ -62,16 +67,17 @@ export class GizmoMaterialDatabase {
         this.green = GizmoMaterialDatabase.make(0x00ff00);
         this.blue = GizmoMaterialDatabase.make(0x0000ff);
         this.white = GizmoMaterialDatabase.make(0xffffff);
+        this.default = GizmoMaterialDatabase.make(0xffff00);
 
-        this.yellow = GizmoMaterialDatabase.make(0xffff00);
-        this.cyan = GizmoMaterialDatabase.make(0x00ffff);
-        this.magenta = GizmoMaterialDatabase.make(0xff00ff);
+        this.yellow = GizmoMaterialDatabase.make(0xffff00, THREE.DoubleSide);
+        this.cyan = GizmoMaterialDatabase.make(0x00ffff, THREE.DoubleSide);
+        this.magenta = GizmoMaterialDatabase.make(0xff00ff, THREE.DoubleSide);
 
         this.lines = [
-            this.white.line2, this.red.line2, this.green.line2, this.blue.line2, this.yellow.line2,
-            this.white.hover.line2, this.red.hover.line2, this.green.hover.line2, this.blue.hover.line2, this.yellow.hover.line2
+            this.white.line2, this.red.line2, this.green.line2, this.blue.line2, this.yellow.line2, this.default.line2,
+            this.white.hover.line2, this.red.hover.line2, this.green.hover.line2, this.blue.hover.line2, this.yellow.hover.line2, this.default.hover.line2
         ];
-        
+
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
     }
 

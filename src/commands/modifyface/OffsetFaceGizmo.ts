@@ -67,7 +67,7 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
 class MyDistanceGizmo extends DistanceGizmo {
     constructor(name: string, editor: EditorLike) {
         // @ts-expect-error
-        const helper = new AxisHelper(editor.gizmos.yellow);
+        const helper = new AxisHelper(editor.gizmos.default);
         super(name, editor, helper);
         this.add(helper);
     }

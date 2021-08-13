@@ -133,6 +133,10 @@ export class AngleGizmo extends CircularGizmo<number> {
     }
 }
 
+const localY = new THREE.Vector3();
+const dir = new THREE.Vector3();
+const align = new THREE.Vector3();
+
 export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => void>  {
     state: MagnitudeStateMachine;
 
@@ -146,7 +150,6 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
     private readonly startMousePosition: THREE.Vector3;
     private sign: number;
-    private readonly localY: THREE.Vector3;
     protected originalPosition?: THREE.Vector3;
 
     private readonly material: GizmoMaterial;
@@ -180,11 +183,8 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
         this.worldQuaternion = new THREE.Quaternion();
         this.worldPosition = new THREE.Vector3();
-        this.localY = new THREE.Vector3();
 
         this.eye = new THREE.Vector3();
-        this.align = new THREE.Vector3();
-        this.dir = new THREE.Vector3();
 
         this.state = state;
     }
@@ -212,7 +212,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) throw new Error("invalid precondition");
         this.startMousePosition.copy(planeIntersect.point);
-        this.sign = Math.sign(planeIntersect.point.dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion)));
+        this.sign = Math.sign(planeIntersect.point.dot(localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion)));
 
         if (this.originalPosition === undefined) this.originalPosition = new THREE.Vector3().copy(this.position);
     }
@@ -221,7 +221,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
-        const dist = planeIntersect.point.sub(this.startMousePosition).dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion));
+        const dist = planeIntersect.point.sub(this.startMousePosition).dot(localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion));
         let length = this.accumulate(this.state.original, this.sign, dist);
         this.state.current = length;
         this.render(this.state.current);
@@ -243,8 +243,6 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     }
 
     protected eye: THREE.Vector3;
-    protected align: THREE.Vector3;
-    private dir: THREE.Vector3;
 
     update(camera: THREE.Camera) {
         super.update(camera);
@@ -252,7 +250,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.getWorldQuaternion(worldQuaternion);
         this.getWorldPosition(worldPosition);
 
-        const { eye, align, dir } = this;
+        const { eye } = this;
 
         eye.copy(camera.position).sub(worldPosition).normalize();
 
@@ -286,9 +284,9 @@ export class LengthGizmo extends AbstractAxisGizmo {
     constructor(name: string, editor: EditorLike, helper?: GizmoHelper) {
         const materials = editor.gizmos;
 
-        const tip = new THREE.Mesh(boxGeometry, materials.yellow.mesh);
+        const tip = new THREE.Mesh(boxGeometry, materials.default.mesh);
         tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, materials.yellow.line2);
+        const shaft = new Line2(lineGeometry, materials.default.line2);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
         knob.userData.command = [`gizmo:${name}`, () => { }];
@@ -298,7 +296,7 @@ export class LengthGizmo extends AbstractAxisGizmo {
 
         const state = new MagnitudeStateMachine(0);
         state.min = 0;
-        super(name, editor, { tip, knob, shaft, helper, material: materials.yellow }, state);
+        super(name, editor, { tip, knob, shaft, helper, material: materials.default }, state);
         this.render(this.state.current);
     }
 
@@ -333,7 +331,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
     constructor(name: string, editor: EditorLike, state: AbstractValueStateMachine<T>, material?: GizmoMaterial, helper?: GizmoHelper) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
-        material ??= materials.yellow;
+        material ??= materials.default;
         const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), material.mesh);
         handle.position.set(0.5, 0.5, 0);
 
@@ -403,9 +401,9 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     constructor(name: string, editor: EditorLike, helper?: GizmoHelper) {
         const materials = editor.gizmos;
 
-        const tip = new THREE.Mesh(sphereGeometry, materials.yellow.mesh);
+        const tip = new THREE.Mesh(sphereGeometry, materials.default.mesh);
         tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, materials.yellow.line2);
+        const shaft = new Line2(lineGeometry, materials.default.line2);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
         knob.userData.command = [`gizmo:${name}`, () => { }];
@@ -413,7 +411,7 @@ export class DistanceGizmo extends AbstractAxisGizmo {
 
         const state = new MagnitudeStateMachine(0);
         state.min = 0;
-        super(name, editor, { tip, knob, shaft, helper, material: materials.yellow }, state);
+        super(name, editor, { tip, knob, shaft, helper, material: materials.default }, state);
     }
 
     render(length: number) {
