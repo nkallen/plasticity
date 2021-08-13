@@ -246,6 +246,8 @@ export class Viewport {
             camera.left = frustumSize * aspect / - 2;
             camera.right = frustumSize * aspect / 2;
         } else throw new Error("Invalid camera");
+        camera.near = near;
+        camera.far = far;
         camera.updateProjectionMatrix();
 
         this.renderer.setSize(offsetWidth, offsetHeight);
@@ -344,7 +346,7 @@ export default (editor: EditorLike) => {
             this.append(renderer.domElement);
 
             const view = this.getAttribute("view");
-            const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
+            const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, 0, far);
             orthographicCamera.zoom = 3;
             const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, 1, near, far);
 
@@ -354,7 +356,7 @@ export default (editor: EditorLike) => {
             switch (view) {
                 case "3d":
                     camera = orthographicCamera;
-                    camera.position.set(-5, 15, 5);
+                    camera.position.set(-5, 55, 5);
                     n = new THREE.Vector3(0, 0, 1);
                     enableNavControls = true;
                     break;

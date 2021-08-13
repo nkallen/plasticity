@@ -4,6 +4,7 @@ import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CircleGeometry } from "../util/Util";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
+import { GizmoMaterial } from "./GizmoMaterials";
 
 /**
  * In this file are a collection of "mini" gizmos that can be used alone or composed into a more complex gizmo.
@@ -57,7 +58,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     get value() { return this.state.current }
     set value(m: T) { this.state.original = m }
 
-    constructor(name: string, editor: EditorLike, material: LineMaterial, state: AbstractValueStateMachine<T>) {
+    constructor(name: string, editor: EditorLike, material: GizmoMaterial, state: AbstractValueStateMachine<T>) {
         const [gizmoName,] = name.split(':');
 
         const materials = editor.gizmos;
@@ -68,7 +69,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 
         const geometry = new LineGeometry();
         geometry.setPositions(CircleGeometry(radius, 64));
-        const circle = new Line2(geometry, material);
+        const circle = new Line2(geometry, material.line2);
         handle.add(circle);
 
         const torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1, 4, 24), materials.invisible);
@@ -107,8 +108,8 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 }
 
 export class AngleGizmo extends CircularGizmo<number> {
-    constructor(name: string, editor: EditorLike, material?: LineMaterial) {
-        material ??= editor.gizmos.line;
+    constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
+        material ??= editor.gizmos.white;
         super(name, editor, material, new MagnitudeStateMachine(0));
     }
 
@@ -141,7 +142,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
 
-        const plane = new THREE.Mesh(planeGeometry, materials.yellow);
+        const plane = new THREE.Mesh(planeGeometry, materials.yellow.mesh);
 
         const { tip, knob, shaft, helper } = info;
 
@@ -262,9 +263,9 @@ export class LengthGizmo extends AbstractAxisGizmo {
     constructor(name: string, editor: EditorLike, helper?: GizmoHelper) {
         const materials = editor.gizmos;
 
-        const tip = new THREE.Mesh(boxGeometry, materials.yellow);
+        const tip = new THREE.Mesh(boxGeometry, materials.yellow.mesh);
         tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, materials.lineYellow);
+        const shaft = new Line2(lineGeometry, materials.yellow.line2);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
         knob.userData.command = [`gizmo:${name}`, () => { }];
@@ -304,12 +305,12 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
     protected readonly startMousePosition: THREE.Vector3;
     protected readonly worldPosition: THREE.Vector3;
 
-    constructor(name: string, editor: EditorLike, state: AbstractValueStateMachine<T>, material?: THREE.MeshBasicMaterial, helper?: GizmoHelper) {
+    constructor(name: string, editor: EditorLike, state: AbstractValueStateMachine<T>, material?: GizmoMaterial, helper?: GizmoHelper) {
         const [gizmoName,] = name.split(':');
         const materials = editor.gizmos;
         material ??= materials.yellow;
 
-        const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), material);
+        const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), material.mesh);
         handle.position.set(0.5, 0.5, 0);
 
         const knob = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), materials.invisible);
@@ -367,9 +368,9 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     constructor(name: string, editor: EditorLike, helper?: GizmoHelper) {
         const materials = editor.gizmos;
 
-        const tip = new THREE.Mesh(sphereGeometry, materials.yellow);
+        const tip = new THREE.Mesh(sphereGeometry, materials.yellow.mesh);
         tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, materials.lineYellow);
+        const shaft = new Line2(lineGeometry, materials.yellow.line2);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
         knob.userData.command = [`gizmo:${name}`, () => { }];
@@ -469,8 +470,6 @@ const points = [];
 points.push(new THREE.Vector3(0, -100, 0));
 points.push(new THREE.Vector3(0, 100, 0));
 helperGeometry.setFromPoints(points);
-
-const yellow = new THREE.LineBasicMaterial({ color: 0xffff00 });
 
 export class AxisHelper extends THREE.Line {
     constructor(material: THREE.LineBasicMaterial) {

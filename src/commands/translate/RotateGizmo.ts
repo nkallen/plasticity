@@ -12,10 +12,10 @@ const Z = new THREE.Vector3(0, 0, 1);
 
 export class RotateGizmo extends CompositeGizmo<RotateParams> {
     private readonly materials = this.editor.gizmos;
-    private readonly red = this.materials.lineRed;
-    private readonly green = this.materials.lineGreen;
-    private readonly blue = this.materials.lineBlue;
-    private readonly white = this.materials.line;
+    private readonly red = this.materials.red;
+    private readonly green = this.materials.green;
+    private readonly blue = this.materials.blue;
+    private readonly white = this.materials.white;
     private readonly x = new AxisAngleGizmo("rotate:x", this.editor, this.red);
     private readonly y = new AxisAngleGizmo("rotate:y", this.editor, this.green);
     private readonly z = new AxisAngleGizmo("rotate:z", this.editor, this.blue);

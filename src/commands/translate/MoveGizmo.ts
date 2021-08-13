@@ -4,6 +4,7 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
+import { GizmoMaterial } from "../GizmoMaterials";
 import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo, VectorStateMachine } from "../MiniGizmos";
 import { MoveParams } from "./TranslateFactory";
 
@@ -17,12 +18,12 @@ const _Z = new THREE.Vector3(0, 0, -1);
 
 export class MoveGizmo extends CompositeGizmo<MoveParams> {
     private readonly materials = this.editor.gizmos;
-    private readonly red = { tip: this.materials.red, shaft: this.materials.lineRed };
-    private readonly green = { tip: this.materials.green, shaft: this.materials.lineGreen };
-    private readonly blue = { tip: this.materials.blue, shaft: this.materials.lineBlue };
-    private readonly yellow = this.materials.yellowTransparent;
-    private readonly magenta = this.materials.magentaTransparent;
-    private readonly cyan = this.materials.cyanTransparent;
+    private readonly red = this.materials.red;
+    private readonly green = this.materials.green;
+    private readonly blue = this.materials.blue;
+    private readonly yellow = this.materials.yellow;
+    private readonly cyan = this.materials.cyan;
+    private readonly magenta = this.materials.magenta;
     private readonly x = new MoveAxisGizmo("move:x", this.editor, this.red);
     private readonly y = new MoveAxisGizmo("move:y", this.editor, this.green);
     private readonly z = new MoveAxisGizmo("move:z", this.editor, this.blue);
@@ -73,7 +74,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 }
 
 export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
-    constructor(name: string, editor: EditorLike, material?: THREE.MeshBasicMaterial) {
+    constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
         const state = new VectorStateMachine(new THREE.Vector3());
         super(name, editor, state, material);
     }
@@ -93,7 +94,7 @@ export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
 
 export class CircleMoveGizmo extends CircularGizmo<THREE.Vector3> {
     constructor(name: string, editor: EditorLike) {
-        super(name, editor, editor.gizmos.line, new VectorStateMachine(new THREE.Vector3()));
+        super(name, editor, editor.gizmos.white, new VectorStateMachine(new THREE.Vector3()));
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) {
@@ -108,19 +109,18 @@ export class CircleMoveGizmo extends CircularGizmo<THREE.Vector3> {
 }
 
 export class MoveAxisGizmo extends AbstractAxisGizmo {
-    constructor(name: string, editor: EditorLike, material?: { tip: THREE.MeshBasicMaterial, shaft: LineMaterial }) {
+    constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
         const materials = editor.gizmos;
-        material ??= { tip: materials.yellow, shaft: materials.lineYellow }
-        const tip = new THREE.Mesh(arrowGeometry, material.tip);
+        material ??= materials.yellow
+        const tip = new THREE.Mesh(arrowGeometry, material.mesh);
         tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, material.shaft);
+        const shaft = new Line2(lineGeometry, material.line2);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
         knob.userData.command = [`gizmo:${name}`, () => { }];
         knob.position.copy(tip.position);
 
-        // @ts-ignore-error("it only considers color, so it's ok")
-        const helper = new AxisHelper(material.tip);
+        const helper = new AxisHelper(material.line);
 
         super(name, editor, { tip, knob, shaft, helper }, new MagnitudeStateMachine(0));
 

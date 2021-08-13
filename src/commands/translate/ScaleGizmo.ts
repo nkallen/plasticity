@@ -4,6 +4,7 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
+import { GizmoMaterial } from "../GizmoMaterials";
 import { AbstractAxisGizmo, boxGeometry, CircularGizmo, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
 import { ScaleParams } from "./TranslateFactory";
 
@@ -17,12 +18,12 @@ const _Z = new THREE.Vector3(0, 0, -1);
 
 export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     private readonly materials = this.editor.gizmos;
-    private readonly red = { tip: this.materials.red, shaft: this.materials.lineRed };
-    private readonly green = { tip: this.materials.green, shaft: this.materials.lineGreen };
-    private readonly blue = { tip: this.materials.blue, shaft: this.materials.lineBlue };
-    private readonly yellow = this.materials.yellowTransparent;
-    private readonly magenta = this.materials.magentaTransparent;
-    private readonly cyan = this.materials.cyanTransparent;
+    private readonly red = this.materials.red;
+    private readonly green = this.materials.green;
+    private readonly blue = this.materials.blue;
+    private readonly yellow = this.materials.yellow;
+    private readonly magenta = this.materials.magenta;
+    private readonly cyan = this.materials.cyan;
     private readonly x = new ScaleAxisGizmo("scale:x", this.editor, this.red);
     private readonly y = new ScaleAxisGizmo("scale:y", this.editor, this.green);
     private readonly z = new ScaleAxisGizmo("scale:z", this.editor, this.blue);
@@ -72,7 +73,7 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
     private denominator = 1;
 
     constructor(name: string, editor: EditorLike) {
-        super(name, editor, editor.gizmos.line, new MagnitudeStateMachine(1));
+        super(name, editor, editor.gizmos.white, new MagnitudeStateMachine(1));
         this.relativeScale.setScalar(0.7);
         this.render(this.state.current);
     }
@@ -99,12 +100,12 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
 }
 
 export class ScaleAxisGizmo extends AbstractAxisGizmo {
-    constructor(name: string, editor: EditorLike, material?: { tip: THREE.MeshBasicMaterial, shaft: LineMaterial }) {
+    constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
         const materials = editor.gizmos;
-        material ??= { tip: materials.yellow, shaft: materials.lineYellow }
-        const tip = new THREE.Mesh(boxGeometry, material.tip);
+        material ??= materials.yellow
+        const tip = new THREE.Mesh(boxGeometry, material.mesh);
         tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, material.shaft);
+        const shaft = new Line2(lineGeometry, material.line2);
 
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
         knob.userData.command = [`gizmo:${name}`, () => { }];
@@ -121,7 +122,7 @@ export class ScaleAxisGizmo extends AbstractAxisGizmo {
 }
 
 export class PlanarScaleGizmo extends PlanarGizmo<number> {
-    constructor(name: string, editor: EditorLike, material?: THREE.MeshBasicMaterial) {
+    constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
         const state = new MagnitudeStateMachine(1);
         const helper = new DashedLineMagnitudeHelper();
         super(name, editor, state, material, helper);

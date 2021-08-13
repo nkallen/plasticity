@@ -32,7 +32,7 @@ describe('setResolution', () => {
     test('GizmoMaterialDatabase', () => {
         const r1 = new THREE.Vector2(640, 480);
         signals.renderPrepared.dispatch({camera: null, resolution: r1});
-        const line = gizmos.lineBlue;
+        const line = gizmos.blue.line2;
         expect(line.resolution).toEqual(r1);
 
         const r2 = new THREE.Vector2(1024, 768);
