@@ -10,9 +10,9 @@ import * as visual from "../editor/VisualModel";
 // so that it appears behind things.
 
 export abstract class Helper extends THREE.Object3D {
-    protected readonly eye = new THREE.Vector3();
-    protected readonly worldPosition = new THREE.Vector3();
-    protected readonly worldQuaternion = new THREE.Quaternion();
+    readonly eye = new THREE.Vector3();
+    readonly worldPosition = new THREE.Vector3();
+    readonly worldQuaternion = new THREE.Quaternion();
 
     get shouldRescaleOnZoom() { return this.parent?.type === 'Scene' }
 

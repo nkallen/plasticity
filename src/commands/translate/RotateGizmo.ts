@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
+import { GizmoMaterial } from "../GizmoMaterials";
 import { AngleGizmo, QuaternionStateMachine } from "../MiniGizmos";
 import { RotateParams } from "./TranslateFactory";
 

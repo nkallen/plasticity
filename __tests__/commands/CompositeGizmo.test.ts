@@ -70,9 +70,11 @@ export class MockGizmo extends AbstractGizmo<(n: number) => void> {
     move: jest.Mock<any, any>;
 
     constructor(name: string, editor: EditorLike) {
+        super(name, editor);
         const handle = new THREE.Object3D();
         const picker = new THREE.Object3D();
-        super(name, editor, { handle, picker });
+
+        this.setup({ handle, picker });
 
         this.interrupt = jest.fn();
         this.hover = jest.fn();
@@ -81,7 +83,7 @@ export class MockGizmo extends AbstractGizmo<(n: number) => void> {
         this.move = jest.fn();
     }
 
-    onInterrupt(cb: (angle: number) => void) {this.interrupt() }
+    onInterrupt(cb: (angle: number) => void) { this.interrupt() }
     onPointerDown(intersect: Intersector, info: MovementInfo) { this.down() }
     onPointerUp(intersect: Intersector, info: MovementInfo) { this.up_() }
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) {
@@ -217,7 +219,7 @@ describe(CompositeGizmo, () => {
         angleStateMachine.command(() => { }, () => new Disposable(angleClearEvents));
         expect(gizmo.distance.interrupt).toHaveBeenCalledTimes(1);
         expect(distanceClearEvents).toHaveBeenCalledTimes(1);
-        
+
         angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
         angleStateMachine.pointerMove();
 

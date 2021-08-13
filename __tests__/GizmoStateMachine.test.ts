@@ -19,6 +19,8 @@ class FakeGizmo extends AbstractGizmo<() => void> {
     fakeCommand: jest.Mock;
 
     constructor(editor: EditorLike) {
+        super("fake", editor);
+
         const picker = new THREE.Group();
         const p = new THREE.Mesh(new THREE.SphereGeometry(0.1));
         picker.add(p);
@@ -28,7 +30,7 @@ class FakeGizmo extends AbstractGizmo<() => void> {
             handle: new THREE.Object3D(),
             picker: picker,
         };
-        super("fake", editor, view);
+        this.setup(view);
         this.fakeCommand = fakeCommand;
     }
 

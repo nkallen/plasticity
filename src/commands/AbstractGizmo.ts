@@ -48,13 +48,15 @@ export enum mode { Persistent, Transitory };
 export abstract class AbstractGizmo<CB> extends Helper {
     stateMachine?: GizmoStateMachine<CB>;
 
-    handle: THREE.Object3D;
-    picker: THREE.Object3D;
+    handle!: THREE.Object3D;
+    picker!: THREE.Object3D;
     helper?: GizmoHelper;
 
-    constructor(protected readonly title: string, protected readonly editor: EditorLike, view: GizmoView) {
+    constructor(protected readonly title: string, protected readonly editor: EditorLike) {
         super();
+    }
 
+    protected setup(view: GizmoView) {
         this.handle = view.handle;
         this.picker = view.picker;
         this.picker.visible = false; // Not sure why this is necessary, but invisible pickers seem to be occluding handles
