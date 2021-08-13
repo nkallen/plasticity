@@ -51,9 +51,9 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
 
         const set = () => {
             params.scale.set(
-                xy.value * xz.value * x.magnitude,
-                xy.value * yz.value * y.magnitude,
-                xz.value * yz.value * z.magnitude).multiplyScalar(xyz.value);
+                xy.value * xz.value * x.value,
+                xy.value * yz.value * y.value,
+                xz.value * yz.value * z.value).multiplyScalar(xyz.value);
         }
 
         this.addGizmo(x, set);
@@ -74,7 +74,6 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
     constructor(name: string, editor: EditorLike) {
         super(name, editor, editor.gizmos.white, new MagnitudeStateMachine(1));
         this.render(this.state.current);
-        this.editor.signals.gizmoChanged.dispatch();
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) {

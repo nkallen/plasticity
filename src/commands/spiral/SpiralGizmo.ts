@@ -21,7 +21,7 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
         axis.normalize();
 
         lengthGizmo.position.copy(p1);
-        lengthGizmo.magnitude = axis.length();
+        lengthGizmo.value = axis.length();
         const quat = new THREE.Quaternion();
         quat.setFromUnitVectors(Y, axis);
         lengthGizmo.quaternion.copy(quat);
@@ -29,7 +29,7 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
         radiusGizmo.position.copy(p1);
         quat.setFromUnitVectors(X, axis);
         radiusGizmo.quaternion.copy(quat);
-        radiusGizmo.magnitude = params.radius;
+        radiusGizmo.value = params.radius;
 
         lengthGizmo.tip.add(angleGizmo);
         angleGizmo.scale.setScalar(radius);

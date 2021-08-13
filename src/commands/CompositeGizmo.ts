@@ -4,7 +4,6 @@ import { Cancel, CancellablePromise } from "../util/Cancellable";
 import { Helper } from "../util/Helpers";
 import { AbstractGizmo, EditorLike, GizmoLike, mode } from "./AbstractGizmo";
 
-
 export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: P) => void> {
     private readonly gizmos: [AbstractGizmo<any>, (a: any) => void][] = [];
 

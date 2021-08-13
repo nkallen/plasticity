@@ -52,7 +52,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
         this.add(x, y, z, xy, yz, xz, screen);
 
         const set = () => {
-            const delta = new THREE.Vector3(x.magnitude, y.magnitude, z.magnitude);
+            const delta = new THREE.Vector3(x.value, y.value, z.value);
             delta.add(screen.value);
             delta.add(xy.value);
             delta.add(yz.value);

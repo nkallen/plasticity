@@ -189,8 +189,8 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
     protected abstract accumulate(original: number, sign: number, dist: number): number;
 
-    get magnitude() { return this.state.current }
-    set magnitude(mag: number) {
+    get value() { return this.state.current }
+    set value(mag: number) {
         this.state.original = mag;
         this.render(this.state.current)
     }
@@ -218,8 +218,6 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.plane.updateMatrixWorld();
         this.plane.position.copy(worldPosition);
     }
-
-    get value() { return this.state.current }
 }
 
 const origin = new THREE.Vector3();
