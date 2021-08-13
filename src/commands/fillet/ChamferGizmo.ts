@@ -2,13 +2,13 @@ import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
-import { AngleGizmo, DistanceGizmo } from "../MiniGizmos";
+import { AngleGizmo, DistanceGizmo, MagnitudeGizmo } from "../MiniGizmos";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { ChamferParams } from "./ChamferFactory";
 import c3d from '../../../build/Release/c3d.node';
 
 export class ChamferGizmo extends CompositeGizmo<ChamferParams> {
-    private readonly distance = new DistanceGizmo("chamfer:distance", this.editor);
+    private readonly distance = new MagnitudeGizmo("chamfer:distance", this.editor);
     private readonly angle = new AngleGizmo("chamfer:angle", this.editor);
 
     constructor(params: ChamferParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {

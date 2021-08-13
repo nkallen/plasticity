@@ -24,7 +24,7 @@ import { GizmoMaterialDatabase } from "./GizmoMaterials";
  * when a user types "x" with the move gizmo active, it starts moving along the x axis.
  */
 
-interface GizmoView {
+export interface GizmoView {
     handle: THREE.Object3D;
     picker: THREE.Object3D;
     helper?: GizmoHelper;
@@ -48,20 +48,14 @@ export enum mode { Persistent, Transitory };
 export abstract class AbstractGizmo<CB> extends Helper {
     stateMachine?: GizmoStateMachine<CB>;
 
-    handle!: THREE.Object3D;
-    picker!: THREE.Object3D;
+    protected handle = new THREE.Group();
+    picker = new THREE.Group();
     helper?: GizmoHelper;
 
     constructor(protected readonly title: string, protected readonly editor: EditorLike) {
         super();
-    }
 
-    protected setup(view: GizmoView) {
-        this.handle = view.handle;
-        this.picker = view.picker;
         this.picker.visible = false; // Not sure why this is necessary, but invisible pickers seem to be occluding handles
-        this.helper = view.helper;
-
         this.add(this.handle, this.picker);
     }
 

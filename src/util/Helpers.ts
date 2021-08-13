@@ -32,6 +32,7 @@ export abstract class Helper extends THREE.Object3D {
 
     // Scale the gizmo so it has a uniform size regardless of camera position/zoom
     scaleIndependentOfZoom(camera: THREE.Camera) {
+        this.scale.copy(this.relativeScale);
         if (!this.shouldRescaleOnZoom) return;
 
         let factor;
@@ -43,7 +44,7 @@ export abstract class Helper extends THREE.Object3D {
             throw new Error("Invalid camera type");
         }
 
-        this.scale.copy(this.relativeScale).multiplyScalar(factor * 1 / 11);
+        this.scale.multiplyScalar(factor * 1 / 11);
         this.updateMatrixWorld();
     }
 }

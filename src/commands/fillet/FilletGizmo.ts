@@ -80,10 +80,8 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
     }
 }
 
-class MagnitudeGizmo extends DistanceGizmo {
-    constructor(name: string, editor: EditorLike) {
-        super(name, editor, new DashedLineMagnitudeHelper());
-    }
+export class MagnitudeGizmo extends DistanceGizmo {
+    readonly helper = new DashedLineMagnitudeHelper();
 
     protected accumulate(original: number, sign: number, dist: number): number {
         return original + sign * dist;

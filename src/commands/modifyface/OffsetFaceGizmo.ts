@@ -1,15 +1,16 @@
 import * as THREE from "three";
+import { Line2 } from "three/examples/jsm/lines/Line2";
+import c3d from '../../build/Release/c3d.node';
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
-import { EditorLike, GizmoHelper, mode } from "../AbstractGizmo";
-import { AngleGizmo, AxisHelper, DistanceGizmo } from "../MiniGizmos";
+import { EditorLike, mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
+import { AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
 import { OffsetFaceParams } from './ModifyFaceFactory';
-import c3d from '../../build/Release/c3d.node';
 
 export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
-    private readonly distance = new MyDistanceGizmo("offset-face:distance", this.editor);
-    private readonly angle = new AngleGizmo("offset-face:angle", this.editor);
+    private readonly distance = new ExtrudeLikeGizmo("offset-face:distance", this.editor);
+    private readonly angle = new AngleGizmo("offset-face:angle", this.editor, this.editor.gizmos.white);
 
     constructor(params: OffsetFaceParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
@@ -17,7 +18,8 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
     }
 
     prepare() {
-        this.distance.scale.setScalar(0.8);
+        this.distance.relativeScale.setScalar(0.8);
+        this.angle.relativeScale.setScalar(0.3);
     }
 
     execute(cb: (params: OffsetFaceParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
@@ -26,7 +28,6 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
         const { point, normal } = this.placement(this.hint);
         this.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         this.position.copy(point);
-        angle.scale.setScalar(0.3);
 
         this.add(distance);
         distance.add(angle);
@@ -64,15 +65,26 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
     }
 }
 
-class MyDistanceGizmo extends DistanceGizmo {
+export class ExtrudeLikeGizmo extends AbstractAxisGizmo {
+    readonly state = new MagnitudeStateMachine(0);
+    protected material = this.editor.gizmos.default;
+    readonly helper = new AxisHelper(this.material.line);
+    readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.editor.gizmos.default.mesh);
+    protected readonly shaft = new Line2(lineGeometry, this.editor.gizmos.default.line2);
+    protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
+
     constructor(name: string, editor: EditorLike) {
-        // @ts-expect-error
-        const helper = new AxisHelper(editor.gizmos.default);
-        super(name, editor, helper);
-        this.add(helper);
+        super(name, editor);
+        this.setup();
+        this.add(this.helper);
     }
 
+    // The handle has constant length
     render(length: number) {
-        super.render(0);
+        super.render(1);
+    }
+
+    protected accumulate(original: number, sign: number, dist: number): number {
+        return original + dist
     }
 }

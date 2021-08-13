@@ -34,8 +34,8 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
 
     prepare() {
         const { x, y, z, screen } = this;
-        for (const o of [x, y, z]) o.scale.setScalar(0.7);
-        screen.scale.setScalar(0.8);
+        for (const o of [x, y, z]) o.relativeScale.setScalar(0.7);
+        screen.relativeScale.setScalar(0.8);
     }
 
     execute(cb: (params: RotateParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {

@@ -4,12 +4,13 @@ import { mode } from "../AbstractGizmo";
 import { AngleGizmo, DistanceGizmo, LengthGizmo, MagnitudeGizmo } from "../MiniGizmos";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { ExtrudeParams } from "./ExtrudeFactory";
+import { ExtrudeLikeGizmo } from "../modifyface/OffsetFaceGizmo";
 
 export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
     private readonly race1Gizmo = new AngleGizmo("extrude:race1", this.editor);
-    private readonly distance1Gizmo = new DistanceGizmo("extrude:distance1", this.editor);
+    private readonly distance1Gizmo = new ExtrudeLikeGizmo("extrude:distance1", this.editor);
     private readonly race2Gizmo = new AngleGizmo("extrude:race2", this.editor);
-    private readonly distance2Gizmo = new DistanceGizmo("extrude:distance2", this.editor);
+    private readonly distance2Gizmo = new ExtrudeLikeGizmo("extrude:distance2", this.editor);
     private readonly thicknessGizmo = new MagnitudeGizmo("extrude:thickness", this.editor);
 
     execute(cb: (params: ExtrudeParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {

@@ -1,11 +1,10 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
-import { AbstractAxisGizmo, boxGeometry, CircularGizmo, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
+import { AbstractAxisGizmo, boxGeometry, CircularGizmo, DashedLineMagnitudeHelper, LengthGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
 import { ScaleParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -74,8 +73,8 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor, editor.gizmos.white, new MagnitudeStateMachine(1));
-        this.relativeScale.setScalar(0.7);
         this.render(this.state.current);
+        this.editor.signals.gizmoChanged.dispatch();
     }
 
     onPointerDown(intersect: Intersector, info: MovementInfo) {
@@ -94,26 +93,21 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
     }
 
     render(magnitude: number) {
-        this.scale.setScalar(magnitude);
-        this.scale.multiply(this.relativeScale);
+        this.torus.scale.setScalar(magnitude);
+        this.circle.scale.setScalar(magnitude);
     }
 }
 
 export class ScaleAxisGizmo extends AbstractAxisGizmo {
-    constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
-        const materials = editor.gizmos;
-        material ??= materials.yellow
-        const tip = new THREE.Mesh(boxGeometry, material.mesh);
-        tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, material.line2);
+    readonly state = new MagnitudeStateMachine(1);
+    readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(boxGeometry, this.material.mesh);
+    protected readonly shaft = new Line2(lineGeometry, this.material.line2);
+    protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
+    readonly helper = new DashedLineMagnitudeHelper();
 
-        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
-        knob.userData.command = [`gizmo:${name}`, () => { }];
-        knob.position.copy(tip.position);
-
-        const helper = new DashedLineMagnitudeHelper();
-
-        super(name, editor, { tip, knob, shaft, helper, material }, new MagnitudeStateMachine(1));
+    constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
+        super(name, editor);
+        this.setup();
     }
 
     protected accumulate(original: number, sign: number, dist: number): number {
@@ -122,11 +116,8 @@ export class ScaleAxisGizmo extends AbstractAxisGizmo {
 }
 
 export class PlanarScaleGizmo extends PlanarGizmo<number> {
-    constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
-        const state = new MagnitudeStateMachine(1);
-        const helper = new DashedLineMagnitudeHelper();
-        super(name, editor, state, material, helper);
-    }
+    readonly state = new MagnitudeStateMachine(1);
+    readonly helper = new DashedLineMagnitudeHelper();
 
     onPointerMove(cb: (value: number) => void, intersect: Intersector, info: MovementInfo): void {
         const { plane, denominator, state } = this;

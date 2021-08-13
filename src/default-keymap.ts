@@ -24,7 +24,7 @@ export default {
 
     "ispace-viewport[gizmo='offset-face']": {
         "d": "gizmo:offset-face:distance",
-        "s": "gizmo:extrude:angle",
+        "a": "gizmo:offset-face:angle",
     },
 
     "ispace-viewport[gizmo='move']": {

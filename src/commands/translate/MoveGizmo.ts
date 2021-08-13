@@ -5,7 +5,7 @@ import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
-import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo, VectorStateMachine } from "../MiniGizmos";
+import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, DistanceGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo, VectorStateMachine } from "../MiniGizmos";
 import { MoveParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -34,8 +34,8 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 
     prepare() {
         const { x, y, z, xy, yz, xz, screen } = this;
-        for (const o of [x, y, z, xy, yz, xz]) o.scale.setScalar(0.8);
-        screen.scale.setScalar(0.25);
+        for (const o of [x, y, z, xy, yz, xz]) o.relativeScale.setScalar(0.8);
+        screen.relativeScale.setScalar(0.25);
     }
 
     execute(cb: (params: MoveParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
@@ -74,10 +74,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 }
 
 export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
-    constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
-        const state = new VectorStateMachine(new THREE.Vector3());
-        super(name, editor, state, material);
-    }
+    readonly state = new VectorStateMachine(new THREE.Vector3());
 
     onPointerMove(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
         const { plane, startMousePosition, state } = this;
@@ -85,7 +82,7 @@ export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
         const planeIntersect = intersect(plane, true);
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
-        const delta = planeIntersect.point.sub(startMousePosition).add(state.original);
+        const delta = planeIntersect.point.clone().sub(startMousePosition).add(state.original);
 
         this.state.current = delta;
         cb(delta);
@@ -93,37 +90,31 @@ export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
 }
 
 export class CircleMoveGizmo extends CircularGizmo<THREE.Vector3> {
+    private readonly delta = new THREE.Vector3();
+    helper = undefined;
+
     constructor(name: string, editor: EditorLike) {
         super(name, editor, editor.gizmos.white, new VectorStateMachine(new THREE.Vector3()));
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) {
-        this.state.start();
-    }
-
     onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
-        const delta = info.pointEnd3d.sub(info.pointStart3d).add(this.state.original);
-        this.state.current = delta;
-        cb(delta);
+        this.delta.copy(info.pointEnd3d).sub(info.pointStart3d).add(this.state.original);
+        this.state.current = this.delta.clone();
+        cb(this.state.current);
     }
 }
 
 export class MoveAxisGizmo extends AbstractAxisGizmo {
-    constructor(name: string, editor: EditorLike, material: GizmoMaterial) {
-        const materials = editor.gizmos;
-        const tip = new THREE.Mesh(arrowGeometry, material.mesh);
-        tip.position.set(0, 1, 0);
-        const shaft = new Line2(lineGeometry, material.line2);
+    readonly state = new MagnitudeStateMachine(0);
+    readonly tip = new THREE.Mesh(arrowGeometry, this.material.mesh);
+    protected readonly shaft = new Line2(lineGeometry, this.material.line2);
+    protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
+    readonly helper = new AxisHelper(this.material.line);
 
-        const knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), materials.invisible);
-        knob.userData.command = [`gizmo:${name}`, () => { }];
-        knob.position.copy(tip.position);
-
-        const helper = new AxisHelper(material.line);
-
-        super(name, editor, { tip, knob, shaft, helper, material }, new MagnitudeStateMachine(0));
-
-        this.add(helper);
+    constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
+        super(name, editor);
+        this.setup();
+        this.add(this.helper);
     }
 
     protected accumulate(original: number, sign: number, dist: number): number {
