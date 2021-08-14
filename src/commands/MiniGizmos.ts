@@ -252,12 +252,6 @@ export class LengthGizmo extends AbstractAxisGizmo { // DO NOT SUBCLASS or the a
     }
 }
 
-export class MagnitudeGizmo extends LengthGizmo {
-    protected accumulate(original: number, sign: number, dist: number): number {
-        return original + dist
-    }
-}
-
 export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
     protected denominator = 1;
     abstract readonly state: AbstractValueStateMachine<T>;

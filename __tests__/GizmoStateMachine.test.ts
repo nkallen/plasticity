@@ -21,16 +21,11 @@ class FakeGizmo extends AbstractGizmo<() => void> {
     constructor(editor: EditorLike) {
         super("fake", editor);
 
-        const picker = new THREE.Group();
         const p = new THREE.Mesh(new THREE.SphereGeometry(0.1));
-        picker.add(p);
         const fakeCommand = jest.fn();
         p.userData.command = ['gizmo:fake:key', fakeCommand];
-        const view = {
-            handle: new THREE.Object3D(),
-            picker: picker,
-        };
-        this.setup(view);
+        this.picker.add(p);
+        this.handle.add(new THREE.Object3D());
         this.fakeCommand = fakeCommand;
     }
 

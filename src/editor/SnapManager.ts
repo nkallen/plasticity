@@ -1,12 +1,21 @@
 import * as THREE from "three";
+import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../build/Release/c3d.node';
-import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
+import { cart2vec, vec2cart } from "../util/Conversion";
 import { RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { SnapMemento } from "./History";
 import { SpriteDatabase } from "./SpriteDatabase";
 import * as visual from './VisualModel';
+
+export enum Layers {
+    PointSnap,
+    CurveEdgeSnap,
+    AxisSnap,
+    PlaneSnap,
+    ConstructionPlaneSnap
+}
 
 export interface Raycaster {
     intersectObjects(objects: THREE.Object3D[], recursive?: boolean, optionalTarget?: THREE.Intersection[]): THREE.Intersection[];
@@ -20,8 +29,10 @@ export class SnapManager {
     private readonly endPoints = new Set<Snap>();
     private readonly garbageDisposal = new RefCounter<c3d.SimpleName>();
 
-    pickers: THREE.Object3D[] = []; // visual objects indicating nearby snap points
-    snappers: THREE.Object3D[] = []; // actual snap points
+    private nearbys: THREE.Object3D[] = []; // visual objects indicating nearby snap points
+    private snappers: THREE.Object3D[] = []; // actual snap points
+
+    readonly layers = new THREE.Layers();
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -37,17 +48,20 @@ export class SnapManager {
         signals.objectAdded.add(item => this.add(item));
         signals.objectRemoved.add(item => this.delete(item));
 
+        this.layers.enableAll();
+
         this.update();
     }
 
     // FIXME move into the model of PointPicker?
-    nearby(raycaster: Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
-        const additionalPickers = [];
-        for (const a of additional) if (a.picker !== undefined) additionalPickers.push(a.picker);
+    nearby(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
+        const additionalNearbys = [];
+        for (const a of additional) if (a.nearby !== undefined) additionalNearbys.push(a.nearby);
 
-        const pickerIntersections = raycaster.intersectObjects([...this.pickers, ...additionalPickers]);
+        raycaster.layers = this.layers;
+        const intersections = raycaster.intersectObjects([...this.nearbys, ...additionalNearbys]);
         const result = [];
-        for (const intersection of pickerIntersections) {
+        for (const intersection of intersections) {
             if (!this.satisfiesRestrictions(intersection.object.position, restrictions)) continue;
 
             const sprite = this.hoverIndicatorFor(intersection);
@@ -56,8 +70,10 @@ export class SnapManager {
         return result;
     }
 
-    snap(raycaster: Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): [Snap, THREE.Vector3][] {
+    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): [Snap, THREE.Vector3][] {
         const snappers = [...this.snappers, ...additional.map(a => a.snapper)];
+
+        raycaster.layers = this.layers;
         const snapperIntersections = raycaster.intersectObjects(snappers);
         snapperIntersections.sort(sortIntersections);
         const result: [Snap, THREE.Vector3][] = [];
@@ -81,9 +97,9 @@ export class SnapManager {
         const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.endPoints];
         for (const a of all) {
             a.snapper.userData.snapper = a;
-            if (a.picker !== undefined) a.picker.userData.snapper = a;
+            if (a.nearby !== undefined) a.nearby.userData.snapper = a;
         }
-        this.pickers = all.map((s) => s.picker).filter(x => !!x) as THREE.Object3D[];
+        this.nearbys = all.map((s) => s.nearby).filter(x => !!x) as THREE.Object3D[];
         this.snappers = all.map((s) => s.snapper);
     }
 
@@ -179,21 +195,22 @@ export interface Restriction {
 }
 
 export abstract class Snap implements Restriction {
-    snapper: THREE.Object3D;
-    picker?: THREE.Object3D;
-    helper?: THREE.Object3D;
-    priority?: number;
+    abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
+    readonly nearby?: THREE.Object3D; // a slightly larger object for raycasting when showing nearby snap points
+    readonly helper?: THREE.Object3D; // another indicator
+    protected readonly priority?: number;
+    protected abstract layer: Layers;
 
-    constructor(snapper: THREE.Object3D, picker?: THREE.Object3D, helper?: THREE.Object3D) {
+    protected init() {
+        const { snapper, nearby, helper } = this;
         snapper.userData.snap = this;
-        if (picker != null) picker.userData.snap = this;
+        if (nearby != null) nearby.userData.snap = this;
         snapper.updateMatrixWorld();
-        picker?.updateMatrixWorld();
+        nearby?.updateMatrixWorld();
         helper?.updateMatrixWorld();
 
-        this.snapper = snapper;
-        this.picker = picker;
-        this.helper = helper;
+        snapper.layers.set(this.layer);
+        nearby?.layers.set(this.layer);
     }
 
     abstract project(intersection: THREE.Intersection): THREE.Vector3;
@@ -201,16 +218,20 @@ export abstract class Snap implements Restriction {
 }
 
 export class PointSnap extends Snap {
+    readonly snapper = new THREE.Mesh(PointSnap.snapperGeometry);
+    readonly nearby = new THREE.Mesh(PointSnap.nearbyGeometry);
     private readonly projection: THREE.Vector3;
+    private static snapperGeometry = new THREE.SphereGeometry(0.1);
+    private static nearbyGeometry = new THREE.SphereGeometry(0.2);
+    protected layer = Layers.PointSnap;
 
     constructor(position = new THREE.Vector3()) {
-        const snapper = new THREE.Mesh(new THREE.SphereGeometry(0.1));
-        const picker = new THREE.Mesh(new THREE.SphereGeometry(0.2));
-        snapper.position.copy(position);
-        picker.position.copy(position);
+        super();
 
-        super(snapper, picker);
+        this.snapper.position.copy(position);
+        this.nearby.position.copy(position);
         this.projection = position.clone();
+        super.init();
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -234,11 +255,12 @@ export class PointSnap extends Snap {
 
 export class CurveEdgeSnap extends Snap {
     t!: number;
+    readonly snapper = new Line2(this.view.child.geometry);
+    protected readonly layer = Layers.CurveEdgeSnap;
 
-    get view() { return this.snapper as visual.CurveEdge }
-
-    constructor(view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
-        super(view);
+    constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
+        super();
+        this.init();
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -273,6 +295,8 @@ export class OrRestriction<R extends Restriction> implements Restriction {
 }
 
 export class AxisSnap extends Snap {
+    readonly snapper: THREE.Line;
+
     static X = new AxisSnap(new THREE.Vector3(1, 0, 0));
     static Y = new AxisSnap(new THREE.Vector3(0, 1, 0));
     static Z = new AxisSnap(new THREE.Vector3(0, 0, 1));
@@ -280,19 +304,23 @@ export class AxisSnap extends Snap {
     readonly n: THREE.Vector3;
     readonly o: THREE.Vector3;
 
+    protected readonly layer = Layers.AxisSnap;
+
+    // FIXME we're leaking the geometry memory
     constructor(n: THREE.Vector3, o = new THREE.Vector3()) {
+        super();
         n = n.clone().normalize().multiplyScalar(1000);
         const points = [
             o.x - n.x, o.y - n.y, o.z - n.z,
             o.x + n.x, o.y + n.y, o.z + n.z];
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-        const snapper = new THREE.Line(geometry, new THREE.LineBasicMaterial());
+        this.snapper = new THREE.Line(geometry, new THREE.LineBasicMaterial());
 
-        super(snapper, undefined, snapper);
         this.n = n.normalize();
         this.o = o.clone();
-        this.valid = new THREE.Vector3();
+
+        this.init();
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -300,7 +328,7 @@ export class AxisSnap extends Snap {
         return n.clone().multiplyScalar(n.dot(intersection.point.clone().sub(o))).add(o);
     }
 
-    protected readonly valid: THREE.Vector3;
+    protected readonly valid = new THREE.Vector3();
     isValid(pt: THREE.Vector3): boolean {
         const { n, o } = this;
         return this.valid.copy(pt).sub(o).cross(n).lengthSq() < 10e-6
@@ -332,6 +360,9 @@ const mat = new THREE.MeshBasicMaterial();
 mat.side = THREE.DoubleSide;
 
 export class PlaneSnap extends Snap {
+    readonly snapper = new THREE.Mesh(planeGeo, mat);
+    protected readonly layer: Layers = Layers.PlaneSnap;
+
     static X = new PlaneSnap(new THREE.Vector3(1, 0, 0));
     static Y = new PlaneSnap(new THREE.Vector3(0, 1, 0));
     static Z = new PlaneSnap(new THREE.Vector3(0, 0, 1));
@@ -340,15 +371,16 @@ export class PlaneSnap extends Snap {
     readonly p: THREE.Vector3;
 
     constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3()) {
+        super();
+
         n = n.clone();
         p = p.clone();
-        const mesh = new THREE.Mesh(planeGeo, mat);
-        mesh.lookAt(n);
-        mesh.position.copy(p);
-        super(mesh);
+        this.snapper.lookAt(n);
+        this.snapper.position.copy(p);
         this.n = n;
         this.p = p;
-        this.valid = new THREE.Vector3();
+
+        this.init();
     }
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
@@ -361,7 +393,7 @@ export class PlaneSnap extends Snap {
         return new PlaneSnap(this.n, pt);
     }
 
-    private readonly valid: THREE.Vector3;
+    private readonly valid = new THREE.Vector3();
     isValid(pt: THREE.Vector3): boolean {
         const { n, p } = this;
         return Math.abs(pt.clone().sub(p).dot(n)) < 10e-4;
@@ -376,6 +408,8 @@ export class PlaneSnap extends Snap {
 
 // The main purpose of this class is to have a lower priority in raycasting than other, explicitly added snaps.
 export class ConstructionPlaneSnap extends PlaneSnap {
+    protected readonly layer = Layers.ConstructionPlaneSnap;
+
     move(pt: THREE.Vector3): PlaneSnap {
         return new ConstructionPlaneSnap(this.n, pt);
     }
@@ -426,9 +460,10 @@ export const originSnap = new PointSnap();
 
 const map = new Map<any, number>();
 map.set(PointSnap, 1);
-map.set(AxisSnap, 2);
-map.set(PlaneSnap, 3);
-map.set(ConstructionPlaneSnap, 4);
+map.set(CurveEdgeSnap, 2);
+map.set(AxisSnap, 3);
+map.set(PlaneSnap, 4);
+map.set(ConstructionPlaneSnap, 5);
 
 function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
     const x = i1.object.userData.snap.priority ?? map.get(i1.object.userData.snap.constructor);

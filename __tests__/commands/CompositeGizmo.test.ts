@@ -74,8 +74,6 @@ export class MockGizmo extends AbstractGizmo<(n: number) => void> {
         const handle = new THREE.Object3D();
         const picker = new THREE.Object3D();
 
-        this.setup({ handle, picker });
-
         this.interrupt = jest.fn();
         this.hover = jest.fn();
         this.down = jest.fn();
