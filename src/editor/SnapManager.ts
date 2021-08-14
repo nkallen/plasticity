@@ -308,11 +308,9 @@ export class FaceSnap extends Snap {
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
         const { model } = this;
-        console.time("pp");
         const { u, v, normal } = model.NearPointProjection(vec2cart(intersection.point));
         const { faceU, faceV } = model.GetFaceParam(u, v);
         const projected = cart2vec(model.Point(faceU, faceV));
-        console.timeEnd("pp");
         return new THREE.Vector3(projected.x, projected.y, projected.z);
     }
 
