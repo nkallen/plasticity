@@ -348,8 +348,8 @@ export class DistanceGizmo extends AbstractAxisGizmo {
 
 // This gizmo behaves somewhere between a scale and a move gizmo
 export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
-    readonly helper = new DashedLineMagnitudeHelper();
-
+    readonly helper: GizmoHelper = new DashedLineMagnitudeHelper();
+    protected readonly handleLength: number = 1;
     private denominator = 1;
 
     constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
@@ -387,12 +387,10 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
     }
 
     render(length: number) {
-        this.shaft.scale.y = length + 1;
-        this.tip.position.set(0, length + 1, 0);
+        this.shaft.scale.y = length + this.handleLength;
+        this.tip.position.set(0, length + this.handleLength, 0);
         this.knob.position.copy(this.tip.position);
     }
-
-    get shouldRescaleOnZoom() { return true }
 
     protected accumulate(original: number, dist: number, denom: number): number {
         if (original === 0) return original + dist - denom;
@@ -479,7 +477,7 @@ points.push(new THREE.Vector3(0, -100, 0));
 points.push(new THREE.Vector3(0, 100, 0));
 helperGeometry.setFromPoints(points);
 
-export class AxisHelper extends THREE.Line {
+export class AxisHelper extends THREE.Line implements GizmoHelper {
     constructor(material: THREE.LineBasicMaterial) {
         super(helperGeometry, material);
         this.visible = false;
@@ -491,4 +489,30 @@ export class AxisHelper extends THREE.Line {
     onEnd(): void {
         this.visible = false;
     }
+}
+
+export class CompositeHelper extends THREE.Object3D implements GizmoHelper {
+    constructor(private readonly helpers: GizmoHelper[]) {
+        super();
+        for (const helper of helpers) {
+            if (helper instanceof THREE.Object3D) this.add(helper);
+        }
+    }
+    onStart(parentElement: HTMLElement, position: THREE.Vector2): void {
+        for (const helper of this.helpers) {
+            helper.onStart(parentElement, position);
+        }
+    }
+    onMove(position: THREE.Vector2): void {
+        for (const helper of this.helpers) {
+            helper.onMove(position);
+        }
+    }
+    onEnd(): void {
+        for (const helper of this.helpers) {
+            helper.onEnd();
+        }
+    }
+
+
 }

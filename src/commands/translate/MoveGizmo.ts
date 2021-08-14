@@ -36,6 +36,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
         const { x, y, z, xy, yz, xz, screen } = this;
         for (const o of [x, y, z, xy, yz, xz]) o.relativeScale.setScalar(0.8);
         screen.relativeScale.setScalar(0.25);
+        this.add(x, y, z, xy, yz, xz, screen);
     }
 
     execute(cb: (params: MoveParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
@@ -48,8 +49,6 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 
         yz.quaternion.setFromUnitVectors(Z, _X);
         xz.quaternion.setFromUnitVectors(Z, _Y);
-
-        this.add(x, y, z, xy, yz, xz, screen);
 
         const set = () => {
             const delta = new THREE.Vector3(x.value, y.value, z.value);

@@ -92,4 +92,6 @@ export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
         super(name, editor, editor.gizmos.default);
         this.setup();
     }
+
+    get shouldRescaleOnZoom() { return true }
 }

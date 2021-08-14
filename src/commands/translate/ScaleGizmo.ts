@@ -4,7 +4,7 @@ import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
-import { AbstractAxialScaleGizmo, boxGeometry, CircularGizmo, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
+import { AbstractAxialScaleGizmo, AxisHelper, boxGeometry, CircularGizmo, CompositeHelper, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
 import { ScaleParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -33,8 +33,11 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
 
     prepare() {
         const { x, y, z, xyz, xy, yz, xz } = this;
-        for (const o of [x, y, z, xy, yz, xz]) o.relativeScale.setScalar(0.8);
+        for (const o of [x, y, z]) o.relativeScale.setScalar(0.8);
+        for (const o of [xy, yz, xz]) o.relativeScale.setScalar(0.8);
         xyz.relativeScale.setScalar(0.85);
+
+        this.add(x, y, z, xy, yz, xz, xyz);
     }
 
     execute(cb: (params: ScaleParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
@@ -46,8 +49,6 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
 
         yz.quaternion.setFromUnitVectors(Z, _X);
         xz.quaternion.setFromUnitVectors(Z, _Y);
-
-        this.add(x, y, z, xy, yz, xz, xyz);
 
         const set = () => {
             params.scale.set(
@@ -102,10 +103,12 @@ export class ScaleAxisGizmo extends AbstractAxialScaleGizmo {
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(boxGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
-    readonly helper = new DashedLineMagnitudeHelper();
+    readonly helper = new CompositeHelper([new DashedLineMagnitudeHelper(), new AxisHelper(this.material.line)]);
+    protected readonly handleLength = 0;
 
     constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
         super(name, editor, material);
+        this.add(this.helper);
         this.setup();
     }
 
