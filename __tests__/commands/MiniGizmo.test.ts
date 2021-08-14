@@ -245,17 +245,20 @@ describe(ScaleAxisGizmo, () => {
         const cb = jest.fn();
         let info = {} as MovementInfo;
 
+        const center2d = new THREE.Vector2();
+        const pointStart2d = new THREE.Vector2(0.1, 0.1);
+
         gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        gizmo.onPointerDown(intersector, { pointStart2d, center2d } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(0.2, 0.2) } as MovementInfo);
         expect(gizmo.value).toBe(2);
         gizmo.onPointerUp(intersector, info)
         gizmo.onPointerLeave(intersector);
 
         gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
-        expect(gizmo.value).toBe(3);
+        gizmo.onPointerDown(intersector, { pointStart2d, center2d } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(0.2, 0.2) } as MovementInfo);
+        expect(gizmo.value).toBe(4);
 
         gizmo.onInterrupt(intersector);
         expect(gizmo.value).toBe(2);

@@ -395,7 +395,8 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
     get shouldRescaleOnZoom() { return true }
 
     protected accumulate(original: number, dist: number, denom: number): number {
-        return original + dist - denom;
+        if (original === 0) return original + dist - denom;
+        else return original + ((dist-denom) * original) / denom;
     }
 }
 

@@ -81,6 +81,7 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         return false;
     }
 }
+
 export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
     readonly state = new MagnitudeStateMachine(0);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);

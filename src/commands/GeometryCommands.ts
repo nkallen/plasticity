@@ -631,7 +631,9 @@ export class MoveCommand extends Command {
             move.update();
         }).resource(this);
         
-        await move.commit();
+        const selection = await move.commit();
+        this.editor.selection.selected.add(selection);
+
     }
 }
 
@@ -654,7 +656,8 @@ export class ScaleCommand extends Command {
             scale.update();
         }).resource(this);
 
-        await scale.commit();
+        const selection = await scale.commit();
+        this.editor.selection.selected.add(selection);
     }
 }
 
@@ -679,7 +682,8 @@ export class RotateCommand extends Command {
             rotate.update();
         }).resource(this);
 
-        await rotate.commit();
+        const selection = await rotate.commit();
+        this.editor.selection.selected.add(selection);
     }
 }
 

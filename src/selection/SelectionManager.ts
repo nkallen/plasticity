@@ -5,7 +5,7 @@ import { GeometryDatabase } from '../editor/GeometryDatabase';
 import { SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
-import { RefCounter } from '../util/Util';
+import { assertUnreachable, RefCounter } from '../util/Util';
 import { HighlightManager } from './HighlightManager';
 import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './Selection';
 import { SelectionMode } from './SelectionInteraction';
@@ -93,6 +93,19 @@ export class Selection implements HasSelection, ModifiesSelection {
 
     deselectChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>) {
         return this.parentsWithSelectedChildren.delete(solid.simpleName)
+    }
+
+    add(items: visual.Item | visual.Item[]) {
+        if (items instanceof visual.Item) items = [items];
+        for (const item of items) {
+            if (item instanceof visual.Solid) {
+                this.addSolid(item);
+            } else if (item instanceof visual.SpaceInstance) {
+                this.addCurve(item);
+            } else if (item instanceof visual.PlaneInstance) {
+                this.addRegion(item);
+            } else throw new Error("invalid type");
+        }
     }
 
     removeFace(object: visual.Face, parentItem: visual.Solid) {
