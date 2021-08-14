@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { RefCounter } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
 import { GeometryDatabase } from './GeometryDatabase';
-import { Snap } from './SnapManager';
+import { FaceSnap, PointSnap, Snap } from './SnapManager';
 
 export class Memento {
     constructor(
@@ -39,9 +39,10 @@ export class SelectionMemento {
 export class SnapMemento {
     constructor(
         readonly garbageDisposal: RefCounter<c3d.SimpleName>,
-        readonly begPoints: Set<Snap>,
-        readonly midPoints: Set<Snap>,
-        readonly endPoints: Set<Snap>
+        readonly faces: Set<FaceSnap>,
+        readonly begPoints: Set<PointSnap>,
+        readonly midPoints: Set<PointSnap>,
+        readonly endPoints: Set<PointSnap>
     ) { }
 }
 

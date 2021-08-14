@@ -1,7 +1,10 @@
+make refcounter use Redisposable object, the use of closures is not self-documenting
 stick to surface max / draw on surface
 creat curve on spine
 curve movement not working well
 redo Dialogs and show errors
+duplicate
+duplicate edges to curves
 
 in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
   - shift should turn current axis snap into constraint?

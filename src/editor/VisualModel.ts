@@ -46,8 +46,9 @@ export abstract class Item extends SpaceItem {
 
 export class Solid extends Item {
     private _useNominal3: undefined;
-    get edges() { return this.lod.children[0].children[0] as CurveEdgeGroup }
-    get faces() { return this.lod.children[0].children[1] as FaceGroup }
+    // the higher detail ones are later
+    get edges() { return this.lod.children[this.lod.children.length - 1].children[0] as CurveEdgeGroup }
+    get faces() { return this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup }
     get outline() {
         const result = [];
         for (const child of this.lod.children) {
@@ -69,7 +70,7 @@ export class Solid extends Item {
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
     private _useNominal3: undefined;
-    get underlying() { return this.lod.children[0] as T }
+    get underlying() { return this.lod.children[this.lod.children.length - 1] as T }
     get levels() { return this.lod.children as T[] }
 
     dispose() {
@@ -79,7 +80,7 @@ export class SpaceInstance<T extends SpaceItem> extends Item {
 
 export class PlaneInstance<T extends PlaneItem> extends Item {
     private _useNominal3: undefined;
-    get underlying() { return this.lod.children[0] as T }
+    get underlying() { return this.lod.children[this.lod.children.length - 1] as T }
     get levels() { return this.lod.children as T[] }
 
     dispose() {
@@ -166,7 +167,7 @@ export class Curve3D extends SpaceItem {
 
 export class Surface extends SpaceItem {
     // FIXME
-    dispose() {}
+    dispose() { }
 }
 
 export class Region extends PlaneItem {

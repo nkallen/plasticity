@@ -87,8 +87,8 @@ const map = new Map<any, number>();
 map.set(visual.ControlPoint, 0);
 map.set(visual.Curve3D, 1);
 map.set(visual.CurveEdge, 2);
-map.set(visual.Face, 3);
-map.set(visual.Region, 4);
+map.set(visual.Region, 3);
+map.set(visual.Face, 4);
 
 function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
     const x = map.get(i1.object.constructor);

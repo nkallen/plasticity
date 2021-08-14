@@ -1,11 +1,10 @@
 import * as THREE from "three";
-import { Points } from "three";
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import LineFactory from "../src/commands/line/LineFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, Layers, originSnap, OrRestriction, PlaneSnap, PointSnap, Raycaster, SnapManager } from '../src/editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, FaceSnap, Layers, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/SnapManager';
 import { SpriteDatabase } from "../src/editor/SpriteDatabase";
 import * as visual from '../src/editor/VisualModel';
 import { cart2vec, vec2vec } from "../src/util/Conversion";
@@ -18,7 +17,7 @@ let materials: MaterialDatabase;
 let sprites: SpriteDatabase;
 let signals: EditorSignals;
 let intersect: jest.Mock<any, any>;
-let raycaster: Raycaster;
+let raycaster: THREE.Raycaster;
 let camera: THREE.Camera;
 let bbox: THREE.Box3;
 
@@ -35,7 +34,7 @@ beforeEach(() => {
     intersect = jest.fn();
     raycaster = {
         intersectObjects: intersect
-    }
+    } as unknown as THREE.Raycaster;
 })
 
 test("initial state", () => {
@@ -52,7 +51,7 @@ test("adding solid", async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
 
-    expect(snaps.snappers.length).toBe(28);
+    expect(snaps.snappers.length).toBe(34);
     expect(snaps.nearbys.length).toBe(25);
 
     db.removeItem(box);
@@ -155,7 +154,7 @@ test("saveToMemento & restoreFromMemento", async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
 
-    expect(snaps.snappers.length).toBe(28);
+    expect(snaps.snappers.length).toBe(34);
     expect(snaps.nearbys.length).toBe(25);
 
     const memento = snaps.saveToMemento(new Map());
@@ -167,7 +166,7 @@ test("saveToMemento & restoreFromMemento", async () => {
 
     snaps.restoreFromMemento(memento);
 
-    expect(snaps.snappers.length).toBe(28);
+    expect(snaps.snappers.length).toBe(34);
     expect(snaps.nearbys.length).toBe(25);
 });
 
@@ -295,6 +294,58 @@ describe(CurveEdgeSnap, () => {
         const [[match, point]] = snaps.snap(raycaster, [snap], [snap]);
         expect(match).toBe(snap);
         expect(point).toApproximatelyEqual(new THREE.Vector3())
+    })
+})
+
+describe(FaceSnap, () => {
+    let box: visual.Solid;
+    let snap: FaceSnap;
+
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box = await makeBox.commit() as visual.Solid;
+        const face = box.faces.get(0);
+        const model = db.lookupTopologyItem(face);
+        snap = new FaceSnap(face, model);
+    })
+
+    test("project", () => {
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(1, 0.5, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 0));
+        expect(snap.project({ point: new THREE.Vector3(2, 1, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0.5, 1) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+    })
+
+    test("isValid", () => {
+        expect(snap.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(0, 0.5, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(0, 1, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(1, 0, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(10, 0, 0))).toBe(false);
+        expect(snap.isValid(new THREE.Vector3(0, 0, 1))).toBe(false);
+    })
+
+    test("integration", () => {
+        const face = box.faces.get(1);
+        const raycaster = new THREE.Raycaster();
+        bbox.setFromObject(face);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        camera.lookAt(center);
+        raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+
+        snaps.layers.set(Layers.FaceSnap);
+
+        // NOTE: the face is automatically to the snapman added via signals
+        const [[match, point]] = snaps.snap(raycaster, [], []);
+        expect(match).toBeInstanceOf(FaceSnap);
+        const expectation = match as FaceSnap;
+        expect(expectation.view).toBe(face);
+        expect(point).toApproximatelyEqual(new THREE.Vector3(0, 0, 1))
     })
 })
 

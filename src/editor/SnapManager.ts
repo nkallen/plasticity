@@ -14,19 +14,17 @@ export enum Layers {
     CurveEdgeSnap,
     AxisSnap,
     PlaneSnap,
-    ConstructionPlaneSnap
-}
-
-export interface Raycaster {
-    intersectObjects(objects: THREE.Object3D[], recursive?: boolean, optionalTarget?: THREE.Intersection[]): THREE.Intersection[];
+    ConstructionPlaneSnap,
+    FaceSnap
 }
 
 export class SnapManager {
     private readonly basicSnaps = new Set<Snap>();
 
-    private readonly begPoints = new Set<Snap>();
-    private readonly midPoints = new Set<Snap>();
-    private readonly endPoints = new Set<Snap>();
+    private readonly begPoints = new Set<PointSnap>();
+    private readonly midPoints = new Set<PointSnap>();
+    private readonly endPoints = new Set<PointSnap>();
+    private readonly faces = new Set<FaceSnap>();
     private readonly garbageDisposal = new RefCounter<c3d.SimpleName>();
 
     private nearbys: THREE.Object3D[] = []; // visual objects indicating nearby snap points
@@ -94,7 +92,7 @@ export class SnapManager {
     }
 
     private update() {
-        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.endPoints];
+        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.endPoints, ...this.faces];
         for (const a of all) {
             a.snapper.userData.snapper = a;
             if (a.nearby !== undefined) a.nearby.userData.snapper = a;
@@ -110,6 +108,10 @@ export class SnapManager {
                 const d = this.addEdge(edge);
                 fns.push(d);
             }
+            for (const face of item.faces) {
+                const d = this.addFace(face);
+                fns.push(d);
+            }
         } else if (item instanceof visual.SpaceInstance) {
             const d = this.addCurve(item);
             fns.push(d);
@@ -121,8 +123,19 @@ export class SnapManager {
         this.update();
     }
 
+    private addFace(face: visual.Face) {
+        const model = this.db.lookupTopologyItem(face);
+
+        const faceSnap = new FaceSnap(face, model);
+        this.faces.add(faceSnap);
+
+        return () => {
+            this.faces.delete(faceSnap);
+        };
+    }
+
     private addEdge(edge: visual.CurveEdge) {
-        const model = this.db.lookupTopologyItem(edge) as c3d.Edge;
+        const model = this.db.lookupTopologyItem(edge);
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
         const begSnap = new PointSnap(cart2vec(begPt));
@@ -177,12 +190,14 @@ export class SnapManager {
     saveToMemento(registry: Map<any, any>): SnapMemento {
         return new SnapMemento(
             new RefCounter(this.garbageDisposal),
+            new Set(this.faces),
             new Set(this.begPoints),
             new Set(this.midPoints),
             new Set(this.endPoints));
     }
 
     restoreFromMemento(m: SnapMemento) {
+        (this.faces as SnapManager['faces']) = m.faces;
         (this.begPoints as SnapManager['begPoints']) = m.begPoints;
         (this.midPoints as SnapManager['midPoints']) = m.midPoints;
         (this.endPoints as SnapManager['endPoints']) = m.endPoints;
@@ -275,6 +290,37 @@ export class CurveEdgeSnap extends Snap {
         const t = this.model.PointProjection(new c3d.CartPoint3D(pt.x, pt.y, pt.z));
         const on = this.model.Point(t);
         const result = pt.distanceToSquared(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
+        return result;
+    }
+}
+
+export class FaceSnap extends Snap {
+    readonly snapper = new THREE.Mesh(this.view.child.geometry);
+    protected readonly layer = Layers.FaceSnap;
+
+    private u!: number;
+    private v!: number;
+
+    constructor(readonly view: visual.Face, readonly model: c3d.Face) {
+        super();
+        this.init();
+    }
+
+    project(intersection: THREE.Intersection): THREE.Vector3 {
+        const { model } = this;
+        const { u, v, normal } = model.NearPointProjection(vec2cart(intersection.point));
+        const { faceU, faceV } = model.GetFaceParam(u, v);
+        const projected = cart2vec(model.Point(faceU, faceV));
+        this.u = u; this.v = v;
+        return new THREE.Vector3(projected.x, projected.y, projected.z);
+    }
+
+    isValid(point: THREE.Vector3): boolean {
+        const { model } = this;
+        const { u, v, normal } = model.NearPointProjection(vec2cart(point));
+        const { faceU, faceV } = model.GetFaceParam(u, v);
+        const projected = cart2vec(model.Point(faceU, faceV));
+        const result = point.distanceToSquared(new THREE.Vector3(projected.x, projected.y, projected.z)) < 10e-4;
         return result;
     }
 }
@@ -461,9 +507,10 @@ export const originSnap = new PointSnap();
 const map = new Map<any, number>();
 map.set(PointSnap, 1);
 map.set(CurveEdgeSnap, 2);
-map.set(AxisSnap, 3);
-map.set(PlaneSnap, 4);
-map.set(ConstructionPlaneSnap, 5);
+map.set(FaceSnap, 3);
+map.set(AxisSnap, 4);
+map.set(PlaneSnap, 5);
+map.set(ConstructionPlaneSnap, 6);
 
 function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
     const x = i1.object.userData.snap.priority ?? map.get(i1.object.userData.snap.constructor);
