@@ -18,6 +18,8 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
         const { race1Gizmo, distance1Gizmo, race2Gizmo, distance2Gizmo, thicknessGizmo } = this;
         race1Gizmo.relativeScale.setScalar(0.3);
         race2Gizmo.relativeScale.setScalar(0.3);
+        distance1Gizmo.relativeScale.setScalar(0.8);
+        distance2Gizmo.relativeScale.setScalar(0.8);
 
         this.add(distance1Gizmo, distance2Gizmo, thicknessGizmo);
 

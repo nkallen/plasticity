@@ -1,7 +1,8 @@
+import { PointPicker } from "../commands/PointPicker";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../build/Release/c3d.node';
-import { cart2vec, vec2cart } from "../util/Conversion";
+import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
 import { RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
@@ -230,6 +231,8 @@ export abstract class Snap implements Restriction {
 
     abstract project(intersection: THREE.Intersection): THREE.Vector3;
     abstract isValid(pt: THREE.Vector3): boolean;
+
+    addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {}
 }
 
 export class PointSnap extends Snap {
@@ -298,9 +301,6 @@ export class FaceSnap extends Snap {
     readonly snapper = new THREE.Mesh(this.view.child.geometry);
     protected readonly layer = Layers.FaceSnap;
 
-    private u!: number;
-    private v!: number;
-
     constructor(readonly view: visual.Face, readonly model: c3d.Face) {
         super();
         this.init();
@@ -308,10 +308,11 @@ export class FaceSnap extends Snap {
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
         const { model } = this;
+        console.time("pp");
         const { u, v, normal } = model.NearPointProjection(vec2cart(intersection.point));
         const { faceU, faceV } = model.GetFaceParam(u, v);
         const projected = cart2vec(model.Point(faceU, faceV));
-        this.u = u; this.v = v;
+        console.timeEnd("pp");
         return new THREE.Vector3(projected.x, projected.y, projected.z);
     }
 
@@ -322,6 +323,10 @@ export class FaceSnap extends Snap {
         const projected = cart2vec(model.Point(faceU, faceV));
         const result = point.distanceToSquared(new THREE.Vector3(projected.x, projected.y, projected.z)) < 10e-4;
         return result;
+    }
+
+    addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {
+        pointPicker.restrictToFace(this.view, point);
     }
 }
 

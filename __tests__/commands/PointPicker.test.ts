@@ -137,6 +137,41 @@ describe('restrictToEdges', () => {
     })
 });
 
+describe('restrictToFace', () => {
+    let box: visual.Solid;
+    let planeSnap: PlaneSnap;
+
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box = await makeBox.commit() as visual.Solid;
+    });
+
+    beforeEach(() => {
+        expect(pointPicker.restrictionsFor(new PlaneSnap()).length).toBe(0);
+        planeSnap = pointPicker.restrictToFace(box.faces.get(0), new THREE.Vector3(0.5, 0.5, 0)); // bottom face
+    })
+
+    test("restrictionsFor", () => {
+        const restrictions = pointPicker.restrictionsFor(new PlaneSnap());
+        expect(restrictions.length).toBe(1);
+        expect(restrictions[0]).toBe(planeSnap);
+        expect(planeSnap.isValid(new THREE.Vector3(0, 0.5, 0))).toBe(true);
+        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0, 0))).toBe(true);
+        expect(planeSnap.isValid(new THREE.Vector3(1, 1, 0))).toBe(true);
+        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0.5, 1))).toBe(false);
+    })
+
+    test("snapsFor", () => {
+        const snaps = pointPicker.snapsFor(new PlaneSnap());
+        expect(snaps.length).toBe(1);
+        expect(snaps[0]).toBe(planeSnap);
+    })
+});
+
 describe('restrictToLine', () => {
     beforeEach(() => {
         expect(pointPicker.restrictionsFor(new PlaneSnap()).length).toBe(0);

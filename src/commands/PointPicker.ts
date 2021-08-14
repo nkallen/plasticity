@@ -1,9 +1,10 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
+import { cart2vec, vec2cart, vec2vec } from '../util/Conversion';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { GeometryDatabase } from '../editor/GeometryDatabase';
-import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
 import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
 
@@ -28,6 +29,7 @@ export class Model {
     private readonly restrictions = new Array<Restriction>();
     restrictToConstructionPlane = false;
     private restrictionPoint?: THREE.Vector3;
+    restrictionPlane?: PlaneSnap;
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -44,20 +46,26 @@ export class Model {
 
     restrictionsFor(constructionPlane: PlaneSnap): Restriction[] {
         const restrictions = this.restrictions.slice();
-        if (this.restrictionPoint !== undefined) {
-            constructionPlane = constructionPlane.move(this.restrictionPoint);
+        constructionPlane = this.actualConstructionPlaneGiven(constructionPlane);
+        if (this.restrictionPlane !== undefined || this.restrictionPoint !== undefined || this.restrictToConstructionPlane) {
             restrictions.push(constructionPlane);
         }
-        if (this.restrictToConstructionPlane) restrictions.push(constructionPlane);
         return restrictions;
     }
 
     snapsFor(constructionPlane: PlaneSnap): Snap[] {
-        let restrictedConstructionPlane = constructionPlane;
-        if (this.restrictionPoint !== undefined) {
-            restrictedConstructionPlane = constructionPlane.move(this.restrictionPoint);
+        constructionPlane = this.actualConstructionPlaneGiven(constructionPlane);
+        return [constructionPlane, ...this.snaps]
+    }
+
+    actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap) {
+        let constructionPlane = baseConstructionPlane;
+        if (this.restrictionPlane !== undefined) {
+            constructionPlane = this.restrictionPlane;
+        } else if (this.restrictionPoint !== undefined) {
+            constructionPlane = constructionPlane.move(this.restrictionPoint);
         }
-        return [restrictedConstructionPlane, ...this.snaps]
+        return constructionPlane;
     }
 
     private get axesOfLastPickedPoint(): Snap[] {
@@ -74,8 +82,7 @@ export class Model {
         this.otherAddedSnaps.push(new PointSnap(point));
     }
 
-    // FIXME this needs to take a quaternion
-    addPlacement(point: THREE.Vector3) {
+    addAxesAt(point: THREE.Vector3) {
         const axes = new PointSnap(point).axes(this.straightSnaps);
         for (const axis of axes) this.otherAddedSnaps.push(axis);
     }
@@ -96,11 +103,19 @@ export class Model {
         p.cross(direction);
         if (p.lengthSq() < 10e-5) {
             const p = new THREE.Vector3(0, 1, 0);
-            p.cross(direction);    
+            p.cross(direction);
         }
 
         const plane = new PlaneSnap(p, origin);
         this.otherAddedSnaps.push(plane);
+    }
+
+    restrictToFace(face: visual.Face, point: THREE.Vector3): PlaneSnap {
+        const model = this.db.lookupTopologyItem(face);
+        const { normal } = model.NearPointProjection(vec2cart(point));
+        const plane = new PlaneSnap(vec2vec(normal), point);
+        this.restrictionPlane = plane;
+        return plane;
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {
@@ -169,8 +184,7 @@ export class PointPicker {
                     // if within snap range, change point to snap position
                     const snappers = model.snap(raycaster, constructionPlane);
                     for (const [snap, point] of snappers) {
-                        // FIXME passing possibly wrong (non-restricted) construction plane?
-                        const info = { snap, constructionPlane };
+                        const info = { snap, constructionPlane: this.model.actualConstructionPlaneGiven(constructionPlane) };
                         if (cb !== undefined) cb({ point, info });
                         mesh.position.copy(point);
                         mesh.userData = info;
@@ -229,9 +243,10 @@ export class PointPicker {
     get straightSnaps() { return this.model.straightSnaps }
     restrictToPlaneThroughPoint(pt: THREE.Vector3) { this.model.restrictToPlaneThroughPoint(pt) }
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) { this.model.restrictToLine(origin, direction) }
-    addPlacement(pt: THREE.Vector3) { this.model.addPlacement(pt) }
+    addAxesAt(pt: THREE.Vector3) { this.model.addAxesAt(pt) }
     undo() { this.model.undo() }
     addPointSnap(pt: THREE.Vector3) { this.model.addPointSnap(pt) }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
+    restrictToFace(face: visual.Face, point: THREE.Vector3) { return this.model.restrictToFace(face, point) }
     set restrictToConstructionPlane(v: boolean) { this.model.restrictToConstructionPlane = v }
 }

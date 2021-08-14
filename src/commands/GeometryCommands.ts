@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { AxisSnap } from "../editor/SnapManager";
+import { AxisSnap, FaceSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
 import { cart2vec, vec2vec } from "../util/Conversion";
@@ -85,10 +85,11 @@ export class CenterCircleCommand extends Command {
         }).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const { point } = await pointPicker.execute().resource(this);
+        const { point, info: { snap } } = await pointPicker.execute().resource(this);
         circle.center = point;
 
         pointPicker.restrictToPlaneThroughPoint(point);
+        snap.addAdditionalRestrictionsTo(pointPicker, point);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             circle.point = p2;
@@ -359,8 +360,9 @@ export class CylinderCommand extends Command {
         const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cylinder.base = p1;
         cylinder.radius = p2;
+
         pointPicker = new PointPicker(this.editor);
-        pointPicker.addPlacement(p1);
+        pointPicker.addAxesAt(p1);
         await pointPicker.execute(({ point: p3 }) => {
             cylinder.height = p3;
             cylinder.update();
@@ -630,7 +632,7 @@ export class MoveCommand extends Command {
         await gizmo.execute(s => {
             move.update();
         }).resource(this);
-        
+
         const selection = await move.commit();
         this.editor.selection.selected.add(selection);
 
@@ -696,7 +698,8 @@ export class UnionCommand extends Command {
         const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         union.item1 = object1;
         union.item2 = object2;
-        await union.commit();
+        const selection = await union.commit();
+        this.editor.selection.selected.add(selection);
     }
 }
 

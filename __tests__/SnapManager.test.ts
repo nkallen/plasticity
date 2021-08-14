@@ -308,7 +308,7 @@ describe(FaceSnap, () => {
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
         box = await makeBox.commit() as visual.Solid;
-        const face = box.faces.get(0);
+        const face = box.faces.get(0); // bottom face
         const model = db.lookupTopologyItem(face);
         snap = new FaceSnap(face, model);
     })
