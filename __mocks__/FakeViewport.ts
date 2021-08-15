@@ -31,11 +31,12 @@ export function MakeViewport(editor: EditorLike) {
     const canvas = document.createElement('canvas');
     // @ts-expect-error('Cannot mock DomRect')
     canvas.getBoundingClientRect = () => { return { left: 0, top: 0, width: 100, height: 100 } };
-    const camera = new THREE.PerspectiveCamera();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1);
+    const domElement = document.createElement('ispace-viewport');
     const viewport = new Viewport(
         editor,
         new FakeWebGLRenderer(canvas) as unknown as THREE.WebGLRenderer,
-        document.createElement('ispace-viewport'),
+        domElement,
         camera,
         new PlaneSnap(),
         new OrbitControls(camera, canvas),

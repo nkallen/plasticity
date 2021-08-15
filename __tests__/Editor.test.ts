@@ -1,7 +1,6 @@
 /**
  * @jest-environment jsdom
  */
-jest.mock('atom-keymap');
 
 import { Editor } from '../src/editor/Editor';
 import { MakeViewport } from '../__mocks__/FakeViewport';

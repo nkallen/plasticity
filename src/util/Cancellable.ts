@@ -30,7 +30,7 @@ export abstract class ResourceRegistration implements Cancellable, Finishable {
 export const Cancel = { tag: 'Cancel' };
 export const Finish = { tag: 'Finish' };
 
-type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => { cancel: (() => void), finish: (() => void) };
+export type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => { cancel: (() => void), finish: (() => void) };
 
 type State = 'None' | 'Cancelled' | 'Finished';
 

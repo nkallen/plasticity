@@ -1,7 +1,6 @@
 /**
  * @jest-environment jsdom
  */
- jest.mock('atom-keymap');
 
  import * as THREE from "three";
 import { PointPicker } from '../../src/commands/PointPicker';
