@@ -465,15 +465,15 @@ export class DashedLineMagnitudeHelper implements GizmoHelper {
     }
 }
 
-const helperGeometry = new THREE.BufferGeometry();
+const axisGeometry = new THREE.BufferGeometry();
 const points = [];
-points.push(new THREE.Vector3(0, -100, 0));
-points.push(new THREE.Vector3(0, 100, 0));
-helperGeometry.setFromPoints(points);
+points.push(new THREE.Vector3(0, -100_000, 0));
+points.push(new THREE.Vector3(0, 100_000, 0));
+axisGeometry.setFromPoints(points);
 
 export class AxisHelper extends THREE.Line implements GizmoHelper {
     constructor(material: THREE.LineBasicMaterial) {
-        super(helperGeometry, material);
+        super(axisGeometry, material);
         this.visible = false;
     }
     onStart(parentElement: HTMLElement, position: THREE.Vector2): void {

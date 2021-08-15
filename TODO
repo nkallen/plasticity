@@ -1,4 +1,3 @@
-bug: cyclinder is broken again (offcenter shrinking/growing)
 axis snap helpers have disappeared
 box select can't selement more than one solid at once(?)
 make refcounter use Redisposable object, the use of closures is not self-documenting

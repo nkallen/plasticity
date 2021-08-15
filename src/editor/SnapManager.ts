@@ -213,7 +213,7 @@ export interface Restriction {
 export abstract class Snap implements Restriction {
     abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
     readonly nearby?: THREE.Object3D; // a slightly larger object for raycasting when showing nearby snap points
-    readonly helper?: THREE.Object3D; // another indicator
+    readonly helper?: THREE.Object3D; // another indicator, like a long line for axis snaps
     protected readonly priority?: number;
     protected abstract layer: Layers;
 
@@ -232,7 +232,7 @@ export abstract class Snap implements Restriction {
     abstract project(intersection: THREE.Intersection): THREE.Vector3;
     abstract isValid(pt: THREE.Vector3): boolean;
 
-    addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {}
+    addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
 }
 
 export class PointSnap extends Snap {
@@ -343,38 +343,43 @@ export class OrRestriction<R extends Restriction> implements Restriction {
     }
 }
 
+const axisGeometry = new THREE.BufferGeometry();
+const points = [];
+points.push(new THREE.Vector3(0, -100_000, 0));
+points.push(new THREE.Vector3(0, 100_000, 0));
+axisGeometry.setFromPoints(points);
+const Y = new THREE.Vector3(0, 1, 0);
+
 export class AxisSnap extends Snap {
-    readonly snapper: THREE.Line;
+    readonly snapper = new THREE.Line(axisGeometry, new THREE.LineBasicMaterial());
+    readonly helper = this.snapper;
 
     static X = new AxisSnap(new THREE.Vector3(1, 0, 0));
     static Y = new AxisSnap(new THREE.Vector3(0, 1, 0));
     static Z = new AxisSnap(new THREE.Vector3(0, 0, 1));
 
-    readonly n: THREE.Vector3;
-    readonly o: THREE.Vector3;
+    readonly n = new THREE.Vector3();
+    readonly o = new THREE.Vector3();
 
     protected readonly layer = Layers.AxisSnap;
 
-    // FIXME we're leaking the geometry memory
     constructor(n: THREE.Vector3, o = new THREE.Vector3()) {
         super();
-        n = n.clone().normalize().multiplyScalar(1000);
-        const points = [
-            o.x - n.x, o.y - n.y, o.z - n.z,
-            o.x + n.x, o.y + n.y, o.z + n.z];
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-        this.snapper = new THREE.Line(geometry, new THREE.LineBasicMaterial());
+        this.snapper.position.copy(o);
+        this.snapper.quaternion.setFromUnitVectors(Y, n);
 
-        this.n = n.normalize();
-        this.o = o.clone();
+        this.n.copy(n).normalize();
+        this.o.copy(o);
 
         this.init();
     }
 
+    private readonly projection = new THREE.Vector3();
+    private readonly intersectionPoint = new THREE.Vector3();
     project(intersection: THREE.Intersection): THREE.Vector3 {
         const { n, o } = this;
-        return n.clone().multiplyScalar(n.dot(intersection.point.clone().sub(o))).add(o);
+        const { projection, intersectionPoint } = this;
+        return projection.copy(n).multiplyScalar(n.dot(intersectionPoint.copy(intersection.point).sub(o))).add(o);
     }
 
     protected readonly valid = new THREE.Vector3();
