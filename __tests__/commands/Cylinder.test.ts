@@ -58,3 +58,15 @@ test('sideways that starts off vertical but ends sideways Y cylinder', async () 
     expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 10, 1));
 });
 
+test('sideways but not based in origin and going diagonal', async () => {
+    makeCylinder.base = new THREE.Vector3(1, 1, 1); // start off not at origin
+    makeCylinder.radius = new THREE.Vector3(); // radius set as if we were going in Z
+    makeCylinder.height = new THREE.Vector3(9, 0, 0); // but actualyl we turn towards X
+    const item = await makeCylinder.commit() as visual.SpaceItem;
+    const bbox = new THREE.Box3().setFromObject(item);
+    const center = new THREE.Vector3();
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(5, 0.5, 0.5));
+    expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0.69, -1.72, -1.72));
+    expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(9.3, 2.72, 2.72));
+});

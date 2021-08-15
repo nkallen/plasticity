@@ -2,8 +2,15 @@ bug: cyclinder is broken again (offcenter shrinking/growing)
 axis snap helpers have disappeared
 box select can't selement more than one solid at once(?)
 make refcounter use Redisposable object, the use of closures is not self-documenting
-stick to surface max / draw on surface
+
+stick to surface max / draw on surface for all closed 2d shapes plus 3d primmies
+extrude region should do boolean automatically
+draw box/cyl should do boolean automatically
+draw on surface mode
+inset extrude
 creat curve on spine
+
+
 curve movement not working well
 redo Dialogs and show errors
 duplicate

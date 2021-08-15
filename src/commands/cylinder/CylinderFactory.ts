@@ -23,10 +23,10 @@ export default class CylinderFactory extends GeometryFactory {
         Z.copy(this.height).sub(this.base);
         const radius = _radius.copy(this.radius).sub(this.base).length();
 
-        _radius.copy(Z).cross(X).normalize().multiplyScalar(radius);
-        if (_radius.lengthSq() < 10e-5) {
-            _radius.copy(Z).cross(Y).normalize().multiplyScalar(radius);
-        }
+        _radius.copy(Z).cross(X);
+        if (_radius.lengthSq() < 10e-5) _radius.copy(Z).cross(Y);
+
+        _radius.normalize().multiplyScalar(radius).add(base);
 
         const points = [vec2cart(base), vec2cart(height), vec2cart(_radius)]
 
