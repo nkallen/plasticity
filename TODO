@@ -1,6 +1,4 @@
-axis snap helpers have disappeared
 box select can't selement more than one solid at once(?)
-make refcounter use Redisposable object, the use of closures is not self-documenting
 
 stick to surface max / draw on surface for all closed 2d shapes plus 3d primmies
 extrude region should do boolean automatically
@@ -9,6 +7,7 @@ draw on surface mode
 inset extrude
 creat curve on spine
 
+consolidate Helper & Overlay scene?
 
 curve movement not working well
 redo Dialogs and show errors
@@ -26,7 +25,7 @@ interleaving with updating/commit on factory. use q?
 refactor factory to take editorlike?
   -         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
 
-
+select edge and face add rotate face gizmo
 
 moving needs to have snapping
 redo fillet gizmos

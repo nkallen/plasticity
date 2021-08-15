@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../build/Release/c3d.node';
 import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
-import { RefCounter } from "../util/Util";
+import { Redisposable, RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { SnapMemento } from "./History";
@@ -118,9 +118,9 @@ export class SnapManager {
             fns.push(d);
         }
 
-        this.garbageDisposal.incr(item.simpleName, () => {
+        this.garbageDisposal.incr(item.simpleName, new Redisposable(() => {
             for (const fn of fns) fn()
-        });
+        }));
         this.update();
     }
 

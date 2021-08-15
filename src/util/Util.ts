@@ -1,5 +1,6 @@
 // https://www.typescriptlang.org/docs/handbook/mixins.html
 
+import { DisposableLike } from "event-kit";
 import { ValidationError } from "../commands/GeometryFactory";
 
 export type Constructor = new (...args: any[]) => {};
@@ -24,13 +25,13 @@ export function assertUnreachable(_x: never): never {
 }
 
 export class RefCounter<T> {
-    private readonly counts: Map<T, [number, Set<() => void>]>;
+    private readonly counts: Map<T, [number, Set<Redisposable>]>;
 
     constructor(from?: RefCounter<T>) {
         if (from) {
             this.counts = new Map(from.counts);
         } else {
-            this.counts = new Map<T, [number, Set<() => void>]>();
+            this.counts = new Map<T, [number, Set<Redisposable>]>();
         }
     }
 
@@ -40,7 +41,7 @@ export class RefCounter<T> {
         return this.counts.has(item);
     }
 
-    incr(item: T, disposable: () => void): void {
+    incr(item: T, disposable: Redisposable): void {
         if (this.counts.has(item)) {
             const value = this.counts.get(item);
             if (!value) throw new Error("invalid key");
@@ -71,12 +72,17 @@ export class RefCounter<T> {
         this.counts.delete(item);
 
         const [, disposables] = value;
-        for (const disposable of disposables) disposable();
+        for (const disposable of disposables) disposable.dispose();
     }
 
     clear(): void {
         this.counts.clear();
     }
+}
+
+export class Redisposable implements DisposableLike {
+    constructor(private readonly d: () => void) {}
+    dispose() { this.d() }
 }
 
 export function CircleGeometry(radius: number, segmentCount: number, arc = 1.0): Float32Array {

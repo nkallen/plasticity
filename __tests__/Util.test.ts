@@ -6,7 +6,7 @@ import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import * as visual from '../src/editor/VisualModel';
 import { curve3d2curve2d, normalizePlacement } from "../src/util/Conversion";
-import { RefCounter, WeakValueMap } from "../src/util/Util";
+import { Redisposable, RefCounter, WeakValueMap } from "../src/util/Util";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -21,8 +21,8 @@ describe('RefCounter', () => {
         const x = {};
         expect(refCounter.has(x)).toBeFalsy();
         let d1: jest.Mock<unknown>, d2: jest.Mock<unknown>;
-        refCounter.incr(x, d1 = jest.fn());
-        refCounter.incr(x, d2 = jest.fn());
+        refCounter.incr(x, new Redisposable(d1 = jest.fn()));
+        refCounter.incr(x, new Redisposable(d2 = jest.fn()));
         expect(d1).not.toHaveBeenCalled();
         expect(d2).not.toHaveBeenCalled();
         refCounter.decr(x);
@@ -36,7 +36,7 @@ describe('RefCounter', () => {
     test('when refcounter is copied, the cleanup callbacks are called TWICE -- i.e., do not use Disposable', () => {
         const x = {};
         let d1: jest.Mock<unknown>;
-        refCounter.incr(x, d1 = jest.fn());
+        refCounter.incr(x, new Redisposable(d1 = jest.fn()));
         expect(d1).not.toHaveBeenCalled();
 
         const copy = new RefCounter(refCounter);

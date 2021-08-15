@@ -5,7 +5,7 @@ import { GeometryDatabase } from '../editor/GeometryDatabase';
 import { SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
-import { assertUnreachable, RefCounter } from '../util/Util';
+import { assertUnreachable, Redisposable, RefCounter } from '../util/Util';
 import { HighlightManager } from './HighlightManager';
 import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './Selection';
 import { SelectionMode } from './SelectionInteraction';
@@ -117,7 +117,7 @@ export class Selection implements HasSelection, ModifiesSelection {
     addFace(object: visual.Face, parentItem: visual.Solid) {
         this.faceIds.add(object.simpleName);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
-            () => this.faceIds.delete(object.simpleName));
+            new Redisposable(() => this.faceIds.delete(object.simpleName)));
         this.signals.objectAdded.dispatch(object);
     }
 
@@ -140,7 +140,7 @@ export class Selection implements HasSelection, ModifiesSelection {
     addEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
         this.edgeIds.add(object.simpleName);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
-            () => this.edgeIds.delete(object.simpleName)
+            new Redisposable(() => this.edgeIds.delete(object.simpleName))
         );
         this.signals.objectAdded.dispatch(object);
     }
@@ -168,7 +168,7 @@ export class Selection implements HasSelection, ModifiesSelection {
     addControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
         this.controlPointIds.add(point.simpleName);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
-            () => this.controlPointIds.delete(point.simpleName));
+            new Redisposable(() => this.controlPointIds.delete(point.simpleName)));
         this.signals.objectAdded.dispatch(point);
     }
 
