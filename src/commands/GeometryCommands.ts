@@ -493,10 +493,10 @@ export class CornerRectangleCommand extends Command {
 
 export class CenterRectangleCommand extends Command {
     async execute(): Promise<void> {
+        const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
         const pointPicker = new PointPicker(this.editor);
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
-
-        const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
 
         pointPicker.restrictToPlaneThroughPoint(p1);
@@ -589,27 +589,30 @@ export class CornerBoxCommand extends Command {
 
 export class CenterBoxCommand extends Command {
     async execute(): Promise<void> {
+        const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const box = new CenterBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
         let pointPicker = new PointPicker(this.editor);
-        const { point: p1 } = await pointPicker.execute().resource(this);
+        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         pointPicker.restrictToPlaneThroughPoint(p1);
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
         pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
+        snap.addAdditionalRestrictionsTo(pointPicker, p1)
 
-        const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        const { point: p2 } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+        const { point: p2, info: { constructionPlane } } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             rect.p2 = p2;
             rect.constructionPlane = constructionPlane;
             rect.update();
         }).resource(this);
         rect.cancel();
 
-        const box = new CenterBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         box.p1 = p1;
         box.p2 = p2;
+        box.constructionPlane = constructionPlane;
 
         pointPicker = new PointPicker(this.editor);
         pointPicker.restrictToLine(p2, box.heightNormal);
