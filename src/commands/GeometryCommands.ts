@@ -22,7 +22,7 @@ import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
-import ExtrudeFactory, { BooleanRegionExtrudeFactory, RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
+import ExtrudeFactory, { PossiblyBooleanRegionExtrudeFactory, RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import ChamferFactory from "./fillet/ChamferFactory";
 import { ChamferGizmo } from "./fillet/ChamferGizmo";
@@ -1037,9 +1037,9 @@ export class ExtrudeRegionCommand extends Command {
 
     async execute(): Promise<void> {
         const regions = [...this.editor.selection.selected.regions];
-        let extrude: RegionExtrudeFactory | BooleanRegionExtrudeFactory;
+        let extrude: RegionExtrudeFactory | PossiblyBooleanRegionExtrudeFactory;
         if (this.editor.selection.selected.solids.size > 0) {
-            const factory = new BooleanRegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            const factory = new PossiblyBooleanRegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
             factory.solid = this.editor.selection.selected.solids.first;
             extrude = factory;
         } else {

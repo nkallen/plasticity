@@ -48,11 +48,8 @@ export abstract class GeometryFactory extends ResourceRegistration {
         const promises = [];
 
         // 1. Asynchronously compute the geometry and the phantom, if it exists
-        let phantom, result;
+        let result;
         try {
-            phantom = this.computePhantom().then(async ph => {
-                if (ph !== undefined) return this.db.addTemporaryItem(ph, phantomMaterial);
-            });
             result = await this.computeGeometry();
         } catch (e) {
             // If it fails, we should clean up temporary items from previous successful run and abort
@@ -66,17 +63,19 @@ export abstract class GeometryFactory extends ResourceRegistration {
         for (const geometry of geometries) {
             promises.push(this.db.addTemporaryItem(geometry));
         }
+        if (this.phantom !== undefined) {
+            promises.push(this.db.addTemporaryItem(this.phantom, phantomMaterial));
+        }
 
         // 3. When all async work is complete, we can safely show/hide items to the user;
         // The specific order of operations is design to avoid any flicker: compute
         // everything async, then sync show/hide objects.
         await Promise.all(promises);
-        const phant = await phantom;
 
         // 3.a. remove any previous temporary items.
         for (const temp of this.temps) temp.cancel();
 
-        // 3.b. The "original item" is the item the user is manipulating, in most cases we hide it
+        // 3.b. The "original item" is the item the user is manipulating, in most cases we just hide it
         for (const i of this.originalItems) {
             if (this.shouldHideOriginalItem) this.db.hide(i);
             else this.db.unhide(i);
@@ -88,10 +87,6 @@ export abstract class GeometryFactory extends ResourceRegistration {
             const temp = await p;
             temp.show();
             temps.push(temp);
-        }
-        if (phant !== undefined) {
-            phant.show();
-            temps.push(phant);
         }
         this.temps = temps;
     }
@@ -130,7 +125,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     }
 
     protected computeGeometry(): Promise<c3d.Item> | Promise<c3d.Item[]> { throw new Error("Implement this for simple factories"); }
-    protected computePhantom(): Promise<c3d.Item | void> { return Promise.resolve() }
+    protected get phantom(): c3d.Item | undefined { return undefined }
     protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
     private get originalItems() {
         return toArray(this.originalItem);

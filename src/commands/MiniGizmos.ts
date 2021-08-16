@@ -24,7 +24,7 @@ const radius = 1;
 class AbstractValueStateMachine<T> {
     private currentMagnitude: T;
 
-    constructor(private originalMagnitude: T) {
+    constructor(private originalMagnitude: T, private readonly interruptShouldRevert = true) {
         this.currentMagnitude = originalMagnitude;
     }
 
@@ -39,6 +39,7 @@ class AbstractValueStateMachine<T> {
     start() { }
     push() { this.original = this.currentMagnitude }
     revert() { this.current = this.original }
+    interrupt() { if (this.interruptShouldRevert) this.revert() }
 }
 
 export class MagnitudeStateMachine extends AbstractValueStateMachine<number> {
@@ -71,7 +72,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     }
 
     onInterrupt(cb: (value: T) => void) {
-        this.state.revert();
+        this.state.interrupt();
         cb(this.state.current);
     }
 
@@ -148,7 +149,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     }
 
     onInterrupt(cb: (radius: number) => void) {
-        this.state.revert();
+        this.state.interrupt();
         cb(this.state.current);
     }
 
@@ -277,7 +278,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
     }
 
     onInterrupt(cb: (value: T) => void) {
-        this.state.revert();
+        this.state.interrupt();
         cb(this.state.current);
     }
 
@@ -357,7 +358,7 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
     }
 
     onInterrupt(cb: (radius: number) => void) {
-        this.state.revert();
+        this.state.interrupt();
         cb(this.state.current);
     }
 
@@ -388,7 +389,7 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
 
     protected accumulate(original: number, dist: number, denom: number): number {
         if (original === 0) return original + dist - denom;
-        else return original + ((dist-denom) * original) / denom;
+        else return original + ((dist - denom) * original) / denom;
     }
 }
 

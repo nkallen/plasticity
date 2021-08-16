@@ -130,11 +130,11 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     }
 }
 
-export class BooleanRegionExtrudeFactory1 extends RegionExtrudeFactory {
+export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
     operationType = c3d.OperationType.Difference;
 
     private _solid!: visual.Solid;
-    private model!: c3d.Solid;
+    model!: c3d.Solid;
     get solid() { return this._solid };
     set solid(s: visual.Solid) {
         this._solid = s;
@@ -148,9 +148,9 @@ export class BooleanRegionExtrudeFactory1 extends RegionExtrudeFactory {
     }
 }
 
-export class BooleanRegionExtrudeFactory extends GeometryFactory implements ExtrudeParams {
-    private bool = new BooleanRegionExtrudeFactory1(this.db, this.materials, this.signals);
-    private phantom = new RegionExtrudeFactory(this.db, this.materials, this.signals);
+export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory implements ExtrudeParams {
+    private bool = new BooleanRegionExtrudeFactory(this.db, this.materials, this.signals);
+    private fantom = new RegionExtrudeFactory(this.db, this.materials, this.signals);
 
     get distance1() { return this.bool.distance1 }
     get distance2() { return this.bool.distance2 }
@@ -162,30 +162,35 @@ export class BooleanRegionExtrudeFactory extends GeometryFactory implements Extr
     get direction() { return this.bool.direction }
     get solid() { return this.bool.solid }
 
-    set distance1(distance1: number) { this.bool.distance1 = distance1; this.phantom.distance1 = distance1 }
-    set distance2(distance2: number) { this.bool.distance2 = distance2; this.phantom.distance2 = distance2 }
-    set race1(race1: number) { this.bool.race1 = race1; this.phantom.race1 = race1 }
-    set race2(race2: number) { this.bool.race2 = race2; this.phantom.race2 = race2 }
-    set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.phantom.thickness1 = thickness1 }
-    set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.phantom.thickness2 = thickness2 }
-    set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.phantom.region = region }
+    set distance1(distance1: number) { this.bool.distance1 = distance1; this.fantom.distance1 = distance1 }
+    set distance2(distance2: number) { this.bool.distance2 = distance2; this.fantom.distance2 = distance2 }
+    set race1(race1: number) { this.bool.race1 = race1; this.fantom.race1 = race1 }
+    set race2(race2: number) { this.bool.race2 = race2; this.fantom.race2 = race2 }
+    set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.fantom.thickness1 = thickness1 }
+    set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.fantom.thickness2 = thickness2 }
+    set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.fantom.region = region }
     set solid(solid: visual.Solid) { this.bool.solid = solid }
 
     private isOverlapping = true;
+    private _phantom!: c3d.Solid;
+
+    private async precomputeGeometry() {
+        const phantom = await this.fantom.computeGeometry();
+        this.isOverlapping = c3d.Action.IsSolidsIntersection(this.bool.model, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
+        this._phantom = phantom;
+    }
+
     async computeGeometry() {
-        try {
-            const result = await this.bool.computeGeometry();
-            this.isOverlapping = true;
-            return result;
-        } catch (e) {
-            this.isOverlapping = false
-            return this.phantom.computeGeometry();
+        await this.precomputeGeometry();
+        if (this.isOverlapping) {
+            return await this.bool.computeGeometry();
+        } else {
+            return this._phantom;
         }
     }
 
-    async computePhantom() {
-        if (!this.isOverlapping) return;
-        return this.phantom.computeGeometry();
+    protected get phantom() {
+        if (this.isOverlapping) return this._phantom;
     }
 
     get originalItem() {

@@ -66,7 +66,7 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
 }
 
 export class ExtrudeLikeGizmo extends AbstractAxisGizmo {
-    readonly state = new MagnitudeStateMachine(0);
+    readonly state = new MagnitudeStateMachine(0, false);
     protected material = this.editor.gizmos.default;
     readonly helper = new AxisHelper(this.material.line);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.editor.gizmos.default.mesh);

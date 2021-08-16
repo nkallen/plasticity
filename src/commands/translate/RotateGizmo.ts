@@ -51,7 +51,7 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
 
         for (const i of [x, y, z, screen]) {
             i.addEventListener('end', () => state.push());
-            i.addEventListener('interrupt', () => state.revert());
+            i.addEventListener('interrupt', () => state.interrupt());
         }
         const temp = new THREE.Quaternion();
         const rotate = (axis: THREE.Vector3) => {

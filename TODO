@@ -4,7 +4,7 @@ inset extrude
 creat curve on spine
 
 box select can't selement more than one solid at once(?)
-
+show/hide objects
 draw on surface mode
 
 consolidate Helper & Overlay scene?

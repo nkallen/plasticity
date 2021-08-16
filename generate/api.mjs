@@ -1157,6 +1157,13 @@ export default {
                 "void EnableMathModules(const char * name, const char * key)"
             ]
         },
+        Action: {
+            rawHeader: "action.h",
+            dependencies: ["Solid.h"],
+            functions:[
+                "bool IsSolidsIntersection(const MbSolid & solid1, const MbSolid & solid2, const MbSNameMaker & snMaker)",
+            ],
+        },
         ActionSurface: {
             rawHeader: "action_surface.h",
             dependencies: ["CartPoint3D.h", "Surface.h"],
