@@ -1,5 +1,7 @@
-extrude region should do boolean automatically
-extrude should switch between union, difference, etc.
+fix db add phantom
+rationalize overlay/helpers/etc
+remove commit from temporary item
+cleanup keyboard garbage in Extrude
 
 draw box/cyl should do boolean automatically
 inset extrude

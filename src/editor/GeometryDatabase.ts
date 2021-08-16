@@ -8,6 +8,7 @@ import MaterialDatabase from './MaterialDatabase';
 import * as visual from './VisualModel';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { PointsMaterial } from 'three';
+import { Editor } from './Editor';
 
 const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5]];
 
@@ -35,6 +36,7 @@ type Agent = 'user' | 'automatic';
 
 export class GeometryDatabase {
     readonly temporaryObjects = new THREE.Scene();
+    readonly overlay = new THREE.Scene();
     private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
@@ -93,6 +95,27 @@ export class GeometryDatabase {
             },
             commit() {
                 that.temporaryObjects.remove(mesh);
+                return that.addItem(object);
+            }
+        }
+    }
+
+    async addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
+        const mesh = await this.meshes(object, -1, [[0.003, 1]], materials);
+        mesh.visible = false;
+        this.overlay.add(mesh);
+        const that = this;
+        return {
+            underlying: mesh,
+            show() {
+                mesh.visible = true;
+            },
+            cancel() {
+                mesh.dispose();
+                that.overlay.remove(mesh);
+            },
+            commit() {
+                that.overlay.remove(mesh);
                 return that.addItem(object);
             }
         }

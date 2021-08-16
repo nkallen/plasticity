@@ -74,11 +74,14 @@ export class Viewport {
 
         this.renderPass = new RenderPass(editor.db.scene, this.camera);
         const overlayPass = new RenderPass(this.overlay, this.camera);
+        const overlayPass2 = new RenderPass(editor.db.overlay, this.camera);
         const helpersPass = new RenderPass(editor.helpers.scene, this.camera);
         const copyPass = new ShaderPass(CopyShader);
 
         overlayPass.clear = false;
         overlayPass.clearDepth = true;
+        overlayPass2.clear = false;
+        overlayPass2.clearDepth = true;
         helpersPass.clear = false;
         helpersPass.clearDepth = true;
 
@@ -100,6 +103,7 @@ export class Viewport {
         this.composer.addPass(this.outlinePassHover);
         this.composer.addPass(this.outlinePassSelection);
         this.composer.addPass(overlayPass);
+        this.composer.addPass(overlayPass2);
         this.composer.addPass(helpersPass);
         this.composer.addPass(copyPass);
 

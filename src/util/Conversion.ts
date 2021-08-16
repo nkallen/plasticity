@@ -37,6 +37,7 @@ export function mat2mat(mat: c3d.Matrix3D, into = new THREE.Matrix4): THREE.Matr
 }
 
 export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D }
+// FIXME there is also a GetFlatProjection function
 export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): ContourAndPlacement | undefined {
     if (curve3d.IsStraight(true)) {
         if (!(curve3d instanceof c3d.PolyCurve3D)) throw new Error("invalid precondition");

@@ -64,12 +64,12 @@ export abstract class GeometryFactory extends ResourceRegistration {
             promises.push(this.db.addTemporaryItem(geometry));
         }
         if (this.phantom !== undefined) {
-            promises.push(this.db.addTemporaryItem(this.phantom, this.phantomMaterial));
+            promises.push(this.db.addPhantom(this.phantom, this.phantomMaterial));
         }
 
         // 3. When all async work is complete, we can safely show/hide items to the user;
-        // The specific order of operations is design to avoid any flicker: compute
-        // everything async, then sync show/hide objects.
+        // The specific order of operations is designed to avoid any flicker: compute
+        // everything async, then sync show/hide objects when all data is ready.
         await Promise.all(promises);
 
         // 3.a. remove any previous temporary items.

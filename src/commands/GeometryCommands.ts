@@ -1037,7 +1037,6 @@ export class ExtrudeRegionCommand extends Command {
 
     async execute(): Promise<void> {
         const extrude = new PossiblyBooleanRegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        
         const selection = this.editor.selection.selected;
         const region = selection.regions.first;
         if (selection.solids.size > 0)
