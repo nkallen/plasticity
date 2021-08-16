@@ -47,34 +47,51 @@ export abstract class GeometryFactory extends ResourceRegistration {
     protected async doUpdate(): Promise<void> {
         const promises = [];
 
-        const phantom = this.computePhantom().then(async ph => {
-            if (ph !== undefined) return this.db.addTemporaryItem(ph, phantomMaterial);
-        });
-        let result = await this.computeGeometry();
+        // 1. Asynchronously compute the geometry and the phantom, if it exists
+        let phantom, result;
+        try {
+            phantom = this.computePhantom().then(async ph => {
+                if (ph !== undefined) return this.db.addTemporaryItem(ph, phantomMaterial);
+            });
+            result = await this.computeGeometry();
+        } catch (e) {
+            // If it fails, we should clean up temporary items from previous successful run and abort
+            for (const temp of this.temps) temp.cancel();
+            for (const i of this.originalItems) this.db.unhide(i);
+            throw e;
+        }
 
+        // 2. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);
         for (const geometry of geometries) {
             promises.push(this.db.addTemporaryItem(geometry));
         }
 
+        // 3. When all async work is complete, we can safely show/hide items to the user;
+        // The specific order of operations is design to avoid any flicker: compute
+        // everything async, then sync show/hide objects.
         await Promise.all(promises);
-        const ph = await phantom;
+        const phant = await phantom;
 
+        // 3.a. remove any previous temporary items.
+        for (const temp of this.temps) temp.cancel();
+
+        // 3.b. The "original item" is the item the user is manipulating, in most cases we hide it
         for (const i of this.originalItems) {
             if (this.shouldHideOriginalItem) this.db.hide(i);
             else this.db.unhide(i);
         }
-        for (const temp of this.temps) temp.cancel();
 
+        // 3.c. show the newly created temporary items.
         const temps = [];
         for (const p of promises) {
             const temp = await p;
             temp.show();
             temps.push(temp);
         }
-        if (ph !== undefined) {
-            ph.show();
-            temps.push(ph);
+        if (phant !== undefined) {
+            phant.show();
+            temps.push(phant);
         }
         this.temps = temps;
     }

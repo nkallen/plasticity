@@ -29,7 +29,8 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     protected abstract surface: c3d.Surface;
 
     async computeGeometry() {
-        const { contours, surface, direction, distance1, distance2, race1, race2, thickness1, thickness2 } = this;
+        const { contours, surface, direction, distance1, thickness1, thickness2 } = this;
+        let { race1, race2, distance2, } = this;
 
         if (distance1 === 0 && distance2 === 0) throw new ValidationError("invalid data");
 
@@ -159,7 +160,7 @@ export class BooleanRegionExtrudeFactory extends GeometryFactory implements Extr
     get thickness2() { return this.bool.thickness2 }
     get region() { return this.bool.region }
     get direction() { return this.bool.direction }
-    get solid() { return this.bool.solid}
+    get solid() { return this.bool.solid }
 
     set distance1(distance1: number) { this.bool.distance1 = distance1; this.phantom.distance1 = distance1 }
     set distance2(distance2: number) { this.bool.distance2 = distance2; this.phantom.distance2 = distance2 }
@@ -168,7 +169,7 @@ export class BooleanRegionExtrudeFactory extends GeometryFactory implements Extr
     set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.phantom.thickness1 = thickness1 }
     set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.phantom.thickness2 = thickness2 }
     set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.phantom.region = region }
-    set solid(solid: visual.Solid) { this.bool.solid = solid}
+    set solid(solid: visual.Solid) { this.bool.solid = solid }
 
     private isOverlapping = true;
     async computeGeometry() {

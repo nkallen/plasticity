@@ -1057,8 +1057,6 @@ export class ExtrudeRegionCommand extends Command {
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), extrude.direction);
 
         await gizmo.execute(params => {
-            extrude.distance1 = params.distance1;
-            extrude.race1 = params.race1;
             extrude.update();
         }).resource(this);
 
