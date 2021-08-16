@@ -64,7 +64,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
             promises.push(this.db.addTemporaryItem(geometry));
         }
         if (this.phantom !== undefined) {
-            promises.push(this.db.addTemporaryItem(this.phantom, phantomMaterial));
+            promises.push(this.db.addTemporaryItem(this.phantom, this.phantomMaterial));
         }
 
         // 3. When all async work is complete, we can safely show/hide items to the user;
@@ -126,6 +126,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
     protected computeGeometry(): Promise<c3d.Item> | Promise<c3d.Item[]> { throw new Error("Implement this for simple factories"); }
     protected get phantom(): c3d.Item | undefined { return undefined }
+    protected get phantomMaterial(): MaterialOverride | undefined { return undefined }
     protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
     private get originalItems() {
         return toArray(this.originalItem);
@@ -280,16 +281,3 @@ function dearray<S, T>(array: S[], antecedent: T | T[]): S | S[] {
 }
 
 export class ValidationError extends Error { }
-
-const mesh_red = new THREE.MeshMatcapMaterial();
-mesh_red.color.setHex(0xff0000);
-mesh_red.opacity = 0.1;
-mesh_red.transparent = true;
-mesh_red.fog = false;
-mesh_red.polygonOffset = true;
-mesh_red.polygonOffsetFactor = 0.1;
-mesh_red.polygonOffsetUnits = 1;
-
-const phantomMaterial: MaterialOverride = {
-    mesh: mesh_red
-}

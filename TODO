@@ -1,13 +1,12 @@
 extrude region should do boolean automatically
+extrude should switch between union, difference, etc.
+
 draw box/cyl should do boolean automatically
 inset extrude
 creat curve on spine
 
 box select can't selement more than one solid at once(?)
 show/hide objects
-draw on surface mode
-
-consolidate Helper & Overlay scene?
 
 curve movement not working well
 redo Dialogs and show errors

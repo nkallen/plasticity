@@ -20,6 +20,10 @@ export default {
         "d": "gizmo:extrude:distance1",
         "f": "gizmo:extrude:distance2",
         "t": "gizmo:extrude:thickness",
+
+        "q": "gizmo:extrude:union",
+        "w": "gizmo:extrude:difference",
+        "e": "gizmo:extrude:intersect",
     },
 
     "ispace-viewport[gizmo='offset-face']": {

@@ -3,6 +3,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import { MaterialOverride } from "../../editor/GeometryDatabase";
 
 export interface ExtrudeParams {
     distance1: number;
@@ -160,6 +161,7 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     get thickness2() { return this.bool.thickness2 }
     get region() { return this.bool.region }
     get direction() { return this.bool.direction }
+    get operationType() { return this.bool.operationType }
     get solid() { return this.bool.solid }
 
     set distance1(distance1: number) { this.bool.distance1 = distance1; this.fantom.distance1 = distance1 }
@@ -170,14 +172,19 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.fantom.thickness2 = thickness2 }
     set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.fantom.region = region }
     set solid(solid: visual.Solid) { this.bool.solid = solid }
+    set operationType(operationType: c3d.OperationType) { this.bool.operationType = operationType }
 
-    private isOverlapping = true;
+    isOverlapping = false;
     private _phantom!: c3d.Solid;
 
     private async precomputeGeometry() {
         const phantom = await this.fantom.computeGeometry();
-        this.isOverlapping = c3d.Action.IsSolidsIntersection(this.bool.model, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
         this._phantom = phantom;
+        if (this.bool.model === undefined) {
+            this.isOverlapping = false;
+        } else {
+            this.isOverlapping = c3d.Action.IsSolidsIntersection(this.bool.model, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
+        }
     }
 
     async computeGeometry() {
@@ -200,4 +207,37 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     get shouldHideOriginalItem() {
         return this.isOverlapping;
     }
+
+    get phantomMaterial() {
+        if (this.operationType === c3d.OperationType.Difference)
+            return phantom_red
+        else if (this.operationType === c3d.OperationType.Intersect)
+            return phantom_green;
+    }
+}
+
+const mesh_red = new THREE.MeshBasicMaterial();
+mesh_red.color.setHex(0xff0000);
+mesh_red.opacity = 0.1;
+mesh_red.transparent = true;
+mesh_red.fog = false;
+mesh_red.polygonOffset = true;
+mesh_red.polygonOffsetFactor = 0.1;
+mesh_red.polygonOffsetUnits = 1;
+
+const phantom_red: MaterialOverride = {
+    mesh: mesh_red
+}
+
+const mesh_green = new THREE.MeshBasicMaterial();
+mesh_green.color.setHex(0x00ff00);
+mesh_green.opacity = 0.1;
+mesh_green.transparent = true;
+mesh_green.fog = false;
+mesh_green.polygonOffset = true;
+mesh_green.polygonOffsetFactor = 0.1;
+mesh_green.polygonOffsetUnits = 1;
+
+const phantom_green: MaterialOverride  = {
+    mesh: mesh_green
 }

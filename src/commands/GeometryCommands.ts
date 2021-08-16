@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { AxisSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
-import { Finish } from "../util/Cancellable";
+import { CancellablePromise, Finish } from "../util/Cancellable";
 import { cart2vec, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
@@ -13,6 +13,7 @@ import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
 import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
+import { CommandKeyboardInput } from "./CommandKeyboardInput";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import { CurveWithPreviewFactory } from "./curve/CurveFactory";
@@ -80,7 +81,6 @@ export class CenterCircleCommand extends Command {
                 case 'mode':
                     circle.toggleMode();
                     circle.update();
-                    break;
             }
         }).resource(this);
 
@@ -1036,16 +1036,16 @@ export class ExtrudeRegionCommand extends Command {
     point?: THREE.Vector3
 
     async execute(): Promise<void> {
-        const regions = [...this.editor.selection.selected.regions];
-        let extrude: RegionExtrudeFactory | PossiblyBooleanRegionExtrudeFactory;
-        if (this.editor.selection.selected.solids.size > 0) {
-            const factory = new PossiblyBooleanRegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-            factory.solid = this.editor.selection.selected.solids.first;
-            extrude = factory;
-        } else {
-            extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        }
-        extrude.region = regions[0];
+        const extrude = new PossiblyBooleanRegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        
+        const selection = this.editor.selection.selected;
+        const region = selection.regions.first;
+        if (selection.solids.size > 0)
+            extrude.solid = selection.solids.first;
+        extrude.region = region;
+
+        const keyboard = new CommandKeyboardInput('extrude', this.editor, ['gizmo:extrude:union', 'gizmo:extrude:difference', 'gizmo:extrude:intersect']);
+        let foo: CancellablePromise<void> | undefined;
 
         const bbox = new THREE.Box3();
         bbox.expandByObject(extrude.region);
@@ -1058,10 +1058,32 @@ export class ExtrudeRegionCommand extends Command {
 
         await gizmo.execute(params => {
             extrude.update();
+
+            if (extrude.isOverlapping) {
+                if (foo === undefined) {
+                    foo = keyboard.execute(e => {
+                        switch (e) {
+                            case 'union': extrude.operationType = c3d.OperationType.Union;
+                                extrude.update();
+                                break;
+                            case 'difference': extrude.operationType = c3d.OperationType.Difference;
+                                extrude.update();
+                                break;
+                            case 'intersect': extrude.operationType = c3d.OperationType.Intersect;
+                                extrude.update();
+                                break;
+                        }
+                    }).resource(this);
+                }
+            } else {
+                foo?.finish();
+                foo = undefined;
+            }
+
         }).resource(this);
 
         await extrude.commit();
-        this.editor.selection.selected.removeRegion(regions[0]);
+        this.editor.selection.selected.removeRegion(region);
     }
 }
 
