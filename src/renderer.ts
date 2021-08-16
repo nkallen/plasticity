@@ -31,6 +31,11 @@ Object.defineProperty(window, 'editor', {
     writable: false
 }); // Make available to debug console
 
+Object.defineProperty(window, 'THREE', {
+    value: THREE,
+    writable: false,
+})
+
 const stats = new Stats();
 stats.showPanel(1);
 document.body.appendChild(stats.dom);
