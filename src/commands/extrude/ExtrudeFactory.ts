@@ -23,13 +23,13 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
 
     abstract direction: THREE.Vector3;
 
-    private names = new c3d.SNameMaker(c3d.CreatorType.CurveExtrusionSolid, c3d.ESides.SideNone, 0);
+    protected names = new c3d.SNameMaker(c3d.CreatorType.CurveExtrusionSolid, c3d.ESides.SideNone, 0);
 
     protected abstract contours: c3d.Contour[];
     protected abstract surface: c3d.Surface;
 
     async computeGeometry() {
-        const { contours, surface, direction, names, distance1, distance2, race1, race2, thickness1, thickness2 } = this;
+        const { contours, surface, direction, distance1, distance2, race1, race2, thickness1, thickness2 } = this;
 
         if (distance1 === 0 && distance2 === 0) throw new ValidationError("invalid data");
 
@@ -48,9 +48,13 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
         params.thickness1 = thickness1;
         params.thickness2 = thickness2;
 
-        const solid = c3d.ActionSolid.ExtrusionSolid(sweptData, new c3d.Vector3D(direction.x, direction.y, direction.z), null, null, false, params, names, ns);
-
+        const solid = this.performAction(sweptData, new c3d.Vector3D(direction.x, direction.y, direction.z), params, ns);
         return solid;
+    }
+
+    protected performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): c3d.Solid {
+        const { names } = this;
+        return c3d.ActionSolid.ExtrusionSolid(sweptData, direction, null, null, false, params, names, ns);
     }
 }
 
@@ -123,4 +127,24 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
         const z = placement.GetAxisZ();
         return vec2vec(z);
     }
+}
+
+export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
+    operationType = c3d.OperationType.Difference;
+
+    private _solid!: visual.Solid;
+    private model!: c3d.Solid;
+    get solid() { return this._solid};
+    set solid(s: visual.Solid) {
+        this._solid = s;
+        this.model = this.db.lookup(s);
+    }
+
+    protected performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): c3d.Solid {
+        const { names, model, operationType } = this;
+
+        return c3d.ActionSolid.ExtrusionResult(model, c3d.CopyMode.Copy, sweptData, direction, params, operationType, names, ns)
+    }
+
+    get originalItem() { return this.solid }
 }

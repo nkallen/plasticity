@@ -22,7 +22,7 @@ import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import CylinderFactory from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
-import ExtrudeFactory, { RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
+import ExtrudeFactory, { BooleanRegionExtrudeFactory, RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import ChamferFactory from "./fillet/ChamferFactory";
 import { ChamferGizmo } from "./fillet/ChamferGizmo";
@@ -1037,7 +1037,14 @@ export class ExtrudeRegionCommand extends Command {
 
     async execute(): Promise<void> {
         const regions = [...this.editor.selection.selected.regions];
-        const extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        let extrude: RegionExtrudeFactory | BooleanRegionExtrudeFactory;
+        if (this.editor.selection.selected.solids.size > 0) {
+            const factory = new BooleanRegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            factory.solid = this.editor.selection.selected.solids.first;
+            extrude = factory;
+        } else {
+            extrude = new RegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        }
         extrude.region = regions[0];
 
         const bbox = new THREE.Box3();

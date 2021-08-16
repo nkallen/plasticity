@@ -1,4 +1,3 @@
-stick to surface max / draw on surface for all closed 2d shapes plus 3d primmies
 extrude region should do boolean automatically
 draw box/cyl should do boolean automatically
 inset extrude
