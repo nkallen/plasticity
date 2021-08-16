@@ -1,11 +1,12 @@
-box select can't selement more than one solid at once(?)
-
 stick to surface max / draw on surface for all closed 2d shapes plus 3d primmies
 extrude region should do boolean automatically
 draw box/cyl should do boolean automatically
-draw on surface mode
 inset extrude
 creat curve on spine
+
+box select can't selement more than one solid at once(?)
+
+draw on surface mode
 
 consolidate Helper & Overlay scene?
 

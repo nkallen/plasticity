@@ -233,6 +233,7 @@ export abstract class Snap implements Restriction {
     abstract isValid(pt: THREE.Vector3): boolean;
 
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
+    addAdditionalSnapsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
 }
 
 export class PointSnap extends Snap {
@@ -256,7 +257,7 @@ export class PointSnap extends Snap {
         return this.projection;
     }
 
-    axes(axisSnaps: Set<AxisSnap>) {
+    axes(axisSnaps: Iterable<AxisSnap>) {
         const o = this.projection.clone();
         const result = [];
         for (const snap of axisSnaps) {
@@ -324,7 +325,15 @@ export class FaceSnap extends Snap {
     }
 
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {
-        pointPicker.restrictToFace(this.view, point);
+        const { normal } = this.model.NearPointProjection(vec2cart(point));
+        const plane = new PlaneSnap(vec2vec(normal), point);
+        pointPicker.restrictToPlane(plane);
+    }
+
+    addAdditionalSnapsTo(pointPicker: PointPicker, point: THREE.Vector3) {
+        const { model } = this;
+        const { normal } = model.NearPointProjection(vec2cart(point));
+        pointPicker.addAxesAt(point, new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(normal)));
     }
 }
 
@@ -349,6 +358,7 @@ points.push(new THREE.Vector3(0, -100_000, 0));
 points.push(new THREE.Vector3(0, 100_000, 0));
 axisGeometry.setFromPoints(points);
 const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 1, 0);
 
 export class AxisSnap extends Snap {
     readonly snapper = new THREE.Line(axisGeometry, new THREE.LineBasicMaterial());
@@ -391,6 +401,11 @@ export class AxisSnap extends Snap {
     move(o: THREE.Vector3) {
         const { n } = this;
         return new AxisSnap(this.n, o.clone().add(this.o));
+    }
+
+    rotate(quat: THREE.Quaternion) {
+        const { n, o } = this;
+        return new AxisSnap(this.n.clone().applyQuaternion(quat), o);
     }
 }
 

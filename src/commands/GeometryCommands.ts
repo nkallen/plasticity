@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { AxisSnap, FaceSnap } from "../editor/SnapManager";
+import { AxisSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
 import { cart2vec, vec2vec } from "../util/Conversion";
@@ -156,14 +156,15 @@ export class CenterPointArcCommand extends Command {
         const arc = new CenterPointArcFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const { point } = await pointPicker.execute().resource(this);
-        arc.center = point;
+        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
+        arc.center = p1;
 
-        pointPicker.restrictToPlaneThroughPoint(point);
+        pointPicker.restrictToPlaneThroughPoint(p1);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
+        snap.addAdditionalRestrictionsTo(pointPicker, p1);
 
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        line.p1 = point;
+        line.p1 = p1;
         const { point: p2 } = await pointPicker.execute(({ point }) => {
             line.p2 = point;
             line.update();
@@ -280,11 +281,13 @@ export class PolygonCommand extends Command {
         }).resource(this);
 
         const pointPicker = new PointPicker(this.editor);
-        const { point } = await pointPicker.execute().resource(this);
+        const { point, info: { snap } } = await pointPicker.execute().resource(this);
         polygon.center = point;
 
         pointPicker.restrictToPlaneThroughPoint(point);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
+        snap.addAdditionalRestrictionsTo(pointPicker, point);
+
         await pointPicker.execute(({ point, info: { constructionPlane } }) => {
             polygon.constructionPlane = constructionPlane;
             polygon.p2 = point;
@@ -345,11 +348,13 @@ export class CylinderCommand extends Command {
         let pointPicker = new PointPicker(this.editor);
 
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const { point: p1 } = await pointPicker.execute().resource(this);
+        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         circle.center = p1;
 
         pointPicker.restrictToPlaneThroughPoint(p1);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
+        snap.addAdditionalRestrictionsTo(pointPicker, p1);
+
         const { point: p2 } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             circle.point = p2;
             circle.constructionPlane = constructionPlane;
@@ -362,7 +367,7 @@ export class CylinderCommand extends Command {
         cylinder.radius = p2;
 
         pointPicker = new PointPicker(this.editor);
-        pointPicker.addAxesAt(p1);
+        snap.addAdditionalSnapsTo(pointPicker, p1);
         await pointPicker.execute(({ point: p3 }) => {
             cylinder.height = p3;
             cylinder.update();
@@ -489,16 +494,19 @@ export class CornerRectangleCommand extends Command {
 export class CenterRectangleCommand extends Command {
     async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
-        const { point: p1 } = await pointPicker.execute().resource(this);
+        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
+
+        const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        rect.p1 = p1;
+
         pointPicker.restrictToPlaneThroughPoint(p1);
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
         pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
+        snap.addAdditionalRestrictionsTo(pointPicker, p1);
 
-        const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        rect.p1 = p1;
         await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             rect.p2 = p2;
             rect.constructionPlane = constructionPlane;

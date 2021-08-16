@@ -137,32 +137,28 @@ describe('restrictToEdges', () => {
     })
 });
 
-describe('restrictToFace', () => {
+describe('restrictToPlane', () => {
     let box: visual.Solid;
     let planeSnap: PlaneSnap;
 
     beforeEach(async () => {
-        const makeBox = new ThreePointBoxFactory(db, materials, signals);
-        makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        box = await makeBox.commit() as visual.Solid;
+        planeSnap = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 1));
     });
 
     beforeEach(() => {
         expect(pointPicker.restrictionsFor(new PlaneSnap()).length).toBe(0);
-        planeSnap = pointPicker.restrictToFace(box.faces.get(0), new THREE.Vector3(0.5, 0.5, 0)); // bottom face
+        pointPicker.restrictToPlane(planeSnap);
     })
 
     test("restrictionsFor", () => {
         const restrictions = pointPicker.restrictionsFor(new PlaneSnap());
         expect(restrictions.length).toBe(1);
         expect(restrictions[0]).toBe(planeSnap);
-        expect(planeSnap.isValid(new THREE.Vector3(0, 0.5, 0))).toBe(true);
-        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0, 0))).toBe(true);
-        expect(planeSnap.isValid(new THREE.Vector3(1, 1, 0))).toBe(true);
-        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0.5, 1))).toBe(false);
+        expect(planeSnap.isValid(new THREE.Vector3(0, 0.5, 1))).toBe(true);
+        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0, 1))).toBe(true);
+        expect(planeSnap.isValid(new THREE.Vector3(1, 1, 1))).toBe(true);
+        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0.5, 0))).toBe(false);
+        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0.5, 2))).toBe(false);
     })
 
     test("snapsFor", () => {
@@ -202,5 +198,45 @@ describe('restrictToLine', () => {
         expect(planeSnap.n).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
         expect(planeSnap.p).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
 
+    })
+});
+
+const Y = new THREE.Vector3(0, 1, 0);
+
+describe('addAxesAt', () => {
+    beforeEach(() => {
+        expect(pointPicker.restrictionsFor(new PlaneSnap()).length).toBe(0);
+        pointPicker.addAxesAt(new THREE.Vector3(0, 0, 0), new THREE.Quaternion().setFromUnitVectors(Y, new THREE.Vector3(1, 1, 1)));
+    })
+
+    test("restrictionsFor", () => {
+        const restrictions = pointPicker.restrictionsFor(new PlaneSnap());
+        expect(restrictions.length).toBe(0);
+    })
+
+    test("snapsFor", () => {
+        const constructionPlane = new PlaneSnap();
+        const snaps = pointPicker.snapsFor(constructionPlane);
+        expect(snaps.length).toBe(4);
+        expect(snaps[0]).toBeInstanceOf(PlaneSnap);
+        expect(snaps[1]).toBeInstanceOf(AxisSnap);
+        expect(snaps[2]).toBeInstanceOf(AxisSnap);
+        expect(snaps[3]).toBeInstanceOf(AxisSnap);
+
+        let axisSnap;
+        axisSnap = snaps[0] as PlaneSnap;
+        expect(axisSnap).toBe(constructionPlane);
+
+        axisSnap = snaps[1] as AxisSnap;
+        expect(axisSnap.n).toApproximatelyEqual(new THREE.Vector3(0.667, -0.667, -0.333));
+        expect(axisSnap.o).toApproximatelyEqual(new THREE.Vector3());
+
+        axisSnap = snaps[2] as AxisSnap;
+        expect(axisSnap.n).toApproximatelyEqual(new THREE.Vector3(0.667, 0.333, 0.667));
+        expect(axisSnap.o).toApproximatelyEqual(new THREE.Vector3());
+
+        axisSnap = snaps[3] as AxisSnap;
+        expect(axisSnap.n).toApproximatelyEqual(new THREE.Vector3(-0.333, -0.667, 0.667));
+        expect(axisSnap.o).toApproximatelyEqual(new THREE.Vector3());
     })
 });

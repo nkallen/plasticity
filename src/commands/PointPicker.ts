@@ -82,8 +82,10 @@ export class Model {
         this.otherAddedSnaps.push(new PointSnap(point));
     }
 
-    addAxesAt(point: THREE.Vector3) {
-        const axes = new PointSnap(point).axes(this.straightSnaps);
+    addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion()) {
+        const rotated = [];
+        for (const snap of this.straightSnaps) rotated.push(snap.rotate(orientation));
+        const axes = new PointSnap(point).axes(rotated);
         for (const axis of axes) this.otherAddedSnaps.push(axis);
     }
 
@@ -93,6 +95,10 @@ export class Model {
 
     restrictToPlaneThroughPoint(point: THREE.Vector3) {
         this.restrictionPoint = point;
+    }
+
+    restrictToPlane(plane: PlaneSnap) {
+        this.restrictionPlane = plane;
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
@@ -108,14 +114,6 @@ export class Model {
 
         const plane = new PlaneSnap(p, origin);
         this.otherAddedSnaps.push(plane);
-    }
-
-    restrictToFace(face: visual.Face, point: THREE.Vector3): PlaneSnap {
-        const model = this.db.lookupTopologyItem(face);
-        const { normal } = model.NearPointProjection(vec2cart(point));
-        const plane = new PlaneSnap(vec2vec(normal), point);
-        this.restrictionPlane = plane;
-        return plane;
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {
@@ -242,11 +240,11 @@ export class PointPicker {
 
     get straightSnaps() { return this.model.straightSnaps }
     restrictToPlaneThroughPoint(pt: THREE.Vector3) { this.model.restrictToPlaneThroughPoint(pt) }
+    restrictToPlane(plane: PlaneSnap) { return this.model.restrictToPlane(plane) }
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) { this.model.restrictToLine(origin, direction) }
-    addAxesAt(pt: THREE.Vector3) { this.model.addAxesAt(pt) }
+    addAxesAt(pt: THREE.Vector3, orientation = new THREE.Quaternion()) { this.model.addAxesAt(pt, orientation) }
     undo() { this.model.undo() }
     addPointSnap(pt: THREE.Vector3) { this.model.addPointSnap(pt) }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
-    restrictToFace(face: visual.Face, point: THREE.Vector3) { return this.model.restrictToFace(face, point) }
     set restrictToConstructionPlane(v: boolean) { this.model.restrictToConstructionPlane = v }
 }

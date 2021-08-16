@@ -195,7 +195,7 @@ export class Viewport {
                 scene.background = new THREE.Color(0x424242);
                 scene.add(this.editor.helpers.axes);
                 if (this.grid) scene.add(this.grid);
-                scene.fog = fog;
+                // scene.fog = fog;
                 this.editor.selection.highlight();
             }
 
@@ -356,7 +356,7 @@ export default (editor: EditorLike) => {
             switch (view) {
                 case "3d":
                     camera = orthographicCamera;
-                    camera.position.set(-5, 45, 5);
+                    camera.position.set(-5, 100, 5);
                     n = new THREE.Vector3(0, 0, 1);
                     enableNavControls = true;
                     break;
