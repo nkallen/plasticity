@@ -1,9 +1,10 @@
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
-import { GeometryDatabase, TemporaryObject } from '../editor/GeometryDatabase';
+import { GeometryDatabase, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ResourceRegistration } from '../util/Cancellable';
 import * as visual from '../editor/VisualModel';
+import * as THREE from 'three';
 
 type State = { tag: 'none', last: undefined }
     | { tag: 'updated', last?: Map<string, any> }
@@ -45,20 +46,35 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
     protected async doUpdate(): Promise<void> {
         const promises = [];
+
+        const phantom = this.computePhantom().then(async ph => {
+            if (ph !== undefined) return this.db.addTemporaryItem(ph, phantomMaterial);
+        });
         let result = await this.computeGeometry();
+
         const geometries = toArray(result);
         for (const geometry of geometries) {
             promises.push(this.db.addTemporaryItem(geometry));
         }
 
         await Promise.all(promises);
+        const ph = await phantom;
 
-        for (const i of this.originalItems) this.db.hide(i);
+        for (const i of this.originalItems) {
+            if (this.shouldHideOriginalItem) this.db.hide(i);
+            else this.db.unhide(i);
+        }
         for (const temp of this.temps) temp.cancel();
 
         const temps = [];
         for (const p of promises) {
-            temps.push(await p);
+            const temp = await p;
+            temp.show();
+            temps.push(temp);
+        }
+        if (ph !== undefined) {
+            ph.show();
+            temps.push(ph);
         }
         this.temps = temps;
     }
@@ -87,9 +103,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
             return dearray(result, unarray);
         } finally {
             await Promise.resolve(); // This removes flickering when rendering.
-            for (const temp of this.temps) {
-                temp.cancel();
-            }
+            for (const temp of this.temps) temp.cancel();
         }
     }
 
@@ -99,9 +113,13 @@ export abstract class GeometryFactory extends ResourceRegistration {
     }
 
     protected computeGeometry(): Promise<c3d.Item> | Promise<c3d.Item[]> { throw new Error("Implement this for simple factories"); }
+    protected computePhantom(): Promise<c3d.Item | void> { return Promise.resolve() }
     protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
     private get originalItems() {
         return toArray(this.originalItem);
+    }
+    protected get shouldHideOriginalItem() {
+        return true;
     }
 
     // MARK: Below is the complicated StateMachine behavior
@@ -250,3 +268,16 @@ function dearray<S, T>(array: S[], antecedent: T | T[]): S | S[] {
 }
 
 export class ValidationError extends Error { }
+
+const mesh_red = new THREE.MeshMatcapMaterial();
+mesh_red.color.setHex(0xff0000);
+mesh_red.opacity = 0.1;
+mesh_red.transparent = true;
+mesh_red.fog = false;
+mesh_red.polygonOffset = true;
+mesh_red.polygonOffsetFactor = 0.1;
+mesh_red.polygonOffsetUnits = 1;
+
+const phantomMaterial: MaterialOverride = {
+    mesh: mesh_red
+}

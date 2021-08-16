@@ -129,12 +129,12 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     }
 }
 
-export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
+export class BooleanRegionExtrudeFactory1 extends RegionExtrudeFactory {
     operationType = c3d.OperationType.Difference;
 
     private _solid!: visual.Solid;
     private model!: c3d.Solid;
-    get solid() { return this._solid};
+    get solid() { return this._solid };
     set solid(s: visual.Solid) {
         this._solid = s;
         this.model = this.db.lookup(s);
@@ -145,6 +145,53 @@ export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
 
         return c3d.ActionSolid.ExtrusionResult(model, c3d.CopyMode.Copy, sweptData, direction, params, operationType, names, ns)
     }
+}
 
-    get originalItem() { return this.solid }
+export class BooleanRegionExtrudeFactory extends GeometryFactory implements ExtrudeParams {
+    private bool = new BooleanRegionExtrudeFactory1(this.db, this.materials, this.signals);
+    private phantom = new RegionExtrudeFactory(this.db, this.materials, this.signals);
+
+    get distance1() { return this.bool.distance1 }
+    get distance2() { return this.bool.distance2 }
+    get race1() { return this.bool.race1 }
+    get race2() { return this.bool.race2 }
+    get thickness1() { return this.bool.thickness1 }
+    get thickness2() { return this.bool.thickness2 }
+    get region() { return this.bool.region }
+    get direction() { return this.bool.direction }
+    get solid() { return this.bool.solid}
+
+    set distance1(distance1: number) { this.bool.distance1 = distance1; this.phantom.distance1 = distance1 }
+    set distance2(distance2: number) { this.bool.distance2 = distance2; this.phantom.distance2 = distance2 }
+    set race1(race1: number) { this.bool.race1 = race1; this.phantom.race1 = race1 }
+    set race2(race2: number) { this.bool.race2 = race2; this.phantom.race2 = race2 }
+    set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.phantom.thickness1 = thickness1 }
+    set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.phantom.thickness2 = thickness2 }
+    set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.phantom.region = region }
+    set solid(solid: visual.Solid) { this.bool.solid = solid}
+
+    private isOverlapping = true;
+    async computeGeometry() {
+        try {
+            const result = await this.bool.computeGeometry();
+            this.isOverlapping = true;
+            return result;
+        } catch (e) {
+            this.isOverlapping = false
+            return this.phantom.computeGeometry();
+        }
+    }
+
+    async computePhantom() {
+        if (!this.isOverlapping) return;
+        return this.phantom.computeGeometry();
+    }
+
+    get originalItem() {
+        return this.bool.solid;
+    }
+
+    get shouldHideOriginalItem() {
+        return this.isOverlapping;
+    }
 }

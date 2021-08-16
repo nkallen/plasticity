@@ -6,6 +6,8 @@ import { EditorSignals } from './EditorSignals';
 import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import * as visual from './VisualModel';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
+import { PointsMaterial } from 'three';
 
 const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5]];
 
@@ -13,10 +15,21 @@ export interface TemporaryObject {
     get underlying(): visual.Item;
     cancel(): void;
     commit(): Promise<visual.SpaceItem>;
+    show(): void;
 }
 
 export type TopologyData = { model: c3d.TopologyItem, views: Set<visual.Face | visual.Edge> };
 export type ControlPointData = { index: number, views: Set<visual.ControlPoint> };
+
+type Builder = visual.SpaceInstanceBuilder<visual.Curve3D> | visual.PlaneInstanceBuilder<visual.Region> | visual.SolidBuilder;
+
+export interface MaterialOverride {
+    region?: THREE.Material;
+    line?: LineMaterial;
+    lineDashed?: LineMaterial;
+    controlPoint?: PointsMaterial;
+    mesh?: THREE.Material;
+}
 
 type Agent = 'user' | 'automatic';
 
@@ -64,12 +77,16 @@ export class GeometryDatabase {
         });
     }
 
-    async addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
-        const mesh = await this.meshes(object, -1, [[0.003, 1]]);
+    async addTemporaryItem(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
+        const mesh = await this.meshes(object, -1, [[0.003, 1]], materials);
+        mesh.visible = false;
         this.temporaryObjects.add(mesh);
         const that = this;
         return {
             underlying: mesh,
+            show() {
+                mesh.visible = true;
+            },
             cancel() {
                 mesh.dispose();
                 that.temporaryObjects.remove(mesh);
@@ -174,7 +191,7 @@ export class GeometryDatabase {
         return this._scene;
     }
 
-    private async meshes(obj: c3d.Item, id: c3d.SimpleName, precision_distance: [number, number][]): Promise<visual.Item> {
+    private async meshes(obj: c3d.Item, id: c3d.SimpleName, precision_distance: [number, number][], materials?: MaterialOverride): Promise<visual.Item> {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
@@ -192,7 +209,7 @@ export class GeometryDatabase {
 
         const promises = [];
         for (const [precision, distance] of precision_distance) {
-            promises.push(this.object2mesh(builder, obj, id, precision, distance));
+            promises.push(this.object2mesh(builder, obj, id, precision, distance, materials));
         }
         await Promise.all(promises);
 
@@ -201,7 +218,7 @@ export class GeometryDatabase {
         return result;
     }
 
-    private async object2mesh(builder: visual.SpaceInstanceBuilder<visual.Curve3D> | visual.PlaneInstanceBuilder<visual.Region> | visual.SolidBuilder, obj: c3d.Item, id: c3d.SimpleName, sag: number, distance?: number): Promise<void> {
+    private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         const note = new c3d.FormNote(true, true, true, false, false);
         const item = await obj.CreateMesh_async(stepData, note);
@@ -218,14 +235,14 @@ export class GeometryDatabase {
                 const edges = mesh.GetEdges();
                 if (edges.length === 0) throw new Error(`invalid precondition: no edges`);
 
-                const lineMaterial = this.materials.line(instance);
-                const pointMaterial = this.materials.controlPoint();
+                const lineMaterial = materials?.line ?? this.materials.line(instance);
+                const pointMaterial = materials?.controlPoint ?? this.materials.controlPoint();
 
                 const pointGroup = visual.ControlPointGroup.build(underlying, id, pointMaterial);
 
                 let line;
                 if (edges.length > 1) line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, this.materials.lineDashed());
-                else line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, this.materials.lineDashed());
+                else line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
 
                 curveBuilder.addLOD(line, distance);
                 break;
@@ -235,7 +252,7 @@ export class GeometryDatabase {
                 const grids = mesh.GetBuffers();
                 if (grids.length != 1) throw new Error("Invalid precondition");
                 const grid = grids[0];
-                const material = this.materials.region();
+                const material = materials?.region ?? this.materials.region();
                 const region = visual.Region.build(grid, material);
                 instance.addLOD(region, distance);
                 break;
@@ -250,7 +267,7 @@ export class GeometryDatabase {
             case c3d.SpaceType.Solid: {
                 const solid = builder as visual.SolidBuilder;
                 const edges = new visual.CurveEdgeGroupBuilder();
-                const lineMaterial = this.materials.line();
+                const lineMaterial = materials?.line ?? this.materials.line();
                 const polygons = mesh.GetEdges(true);
                 for (const edge of polygons) {
                     const line = visual.CurveEdge.build(edge, id, lineMaterial, this.materials.lineDashed());
@@ -260,7 +277,7 @@ export class GeometryDatabase {
                 const faces = new visual.FaceGroupBuilder();
                 const grids = mesh.GetBuffers();
                 for (const grid of grids) {
-                    const material = this.materials.mesh(grid, mesh.IsClosed());
+                    const material = materials?.mesh ?? this.materials.mesh(grid, mesh.IsClosed());
                     const face = visual.Face.build(grid, id, material);
                     faces.addFace(face);
                 }
