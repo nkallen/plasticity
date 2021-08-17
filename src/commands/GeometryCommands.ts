@@ -7,6 +7,7 @@ import { cart2vec, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
+import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
@@ -24,7 +25,6 @@ import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
 import ExtrudeFactory, { PossiblyBooleanRegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
-import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import ChamferFactory from "./fillet/ChamferFactory";
 import { ChamferGizmo } from "./fillet/ChamferGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
@@ -46,7 +46,7 @@ import { PolygonFactory } from "./polygon/PolygonFactory";
 import { PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
 import { RegionFactory } from "./region/RegionFactory";
-import SphereFactory from './sphere/SphereFactory';
+import { PossiblyBooleanSphereFactory } from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
 import { MoveGizmo } from './translate/MoveGizmo';
@@ -56,16 +56,22 @@ import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateF
 
 export class SphereCommand extends Command {
     async execute(): Promise<void> {
-        const sphere = new SphereFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const pointPicker = new PointPicker(this.editor);
+        const sphere = new PossiblyBooleanSphereFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const selection = this.editor.selection.selected;
+        if (selection.solids.size > 0) sphere.solid = selection.solids.first;
 
+        const pointPicker = new PointPicker(this.editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
         sphere.center = p1;
+
+        const keyboard = new BooleanKeyboardGizmo("sphere", this.editor);
+        keyboard.prepare(sphere).resource(this);
 
         await pointPicker.execute(({ point: p2 }) => {
             const radius = p1.distanceTo(p2);
             sphere.radius = radius;
             sphere.update();
+            keyboard.toggle(sphere.isOverlapping);
         }).resource(this);
         await sphere.commit();
     }

@@ -1,8 +1,15 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
+import * as visual from '../../editor/VisualModel';
+import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory } from '../GeometryFactory';
 
-export default class SphereFactory extends GeometryFactory {
+interface SphereParams {
+    center: THREE.Vector3;
+    radius: number;
+}
+
+export default class SphereFactory extends GeometryFactory implements SphereParams {
     center!: THREE.Vector3;
     radius!: number;
 
@@ -15,5 +22,27 @@ export default class SphereFactory extends GeometryFactory {
         const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Sphere, names);
         return sphere;
+    }
+}
+
+export class PossiblyBooleanSphereFactory extends PossiblyBooleanFactory<SphereFactory> implements SphereParams {
+    protected bool = new BooleanFactory(this.db, this.materials, this.signals);
+    protected fantom = new SphereFactory(this.db, this.materials, this.signals);
+
+    get solid() { return this._solid }
+    set solid(solid: visual.Solid | undefined) {
+        super.solid = solid;
+        if (solid !== undefined) this.bool.item1 = solid;
+    }
+
+    get center() { return this.fantom.center }
+    get radius() { return this.fantom.radius }
+
+    set center(center: THREE.Vector3) { this.fantom.center = center }
+    set radius(radius: number) { this.fantom.radius = radius }
+
+    protected async precomputeGeometry() {
+        await super.precomputeGeometry();
+        if (this._phantom !== undefined) this.bool.model2 = this._phantom;
     }
 }
