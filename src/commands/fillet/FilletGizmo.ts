@@ -3,10 +3,9 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CurveEdgeSnap } from "../../editor/SnapManager";
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
-import { AbstractGizmo, EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
+import { EditorLike, mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { GizmoMaterial } from "../GizmoMaterials";
-import { AbstractAxialScaleGizmo, AbstractAxisGizmo, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
+import { AbstractAxialScaleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
 import { FilletParams } from './FilletFactory';
 
 export class FilletGizmo extends CompositeGizmo<FilletParams> {

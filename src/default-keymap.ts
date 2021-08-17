@@ -14,6 +14,27 @@ export default {
         "r": "gizmo:spiral:radius",
     },
 
+    "ispace-viewport[gizmo='box']": {
+        "q": "gizmo:box:union",
+        "w": "gizmo:box:difference",
+        "e": "gizmo:box:intersect",
+        "r": "gizmo:box:new-body",
+    },
+
+    "ispace-viewport[gizmo='cylinder']": {
+        "q": "gizmo:cylinder:union",
+        "w": "gizmo:cylinder:difference",
+        "e": "gizmo:cylinder:intersect",
+        "r": "gizmo:cylinder:new-body",
+    },
+
+    "ispace-viewport[gizmo='sphere']": {
+        "q": "gizmo:sphere:union",
+        "w": "gizmo:sphere:difference",
+        "e": "gizmo:sphere:intersect",
+        "r": "gizmo:sphere:new-body",
+    },
+
     "ispace-viewport[gizmo='extrude']": {
         "a": "gizmo:extrude:race1",
         "s": "gizmo:extrude:race2",

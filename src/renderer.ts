@@ -60,11 +60,11 @@ NumberScrubber(editor);
 Dialog(editor);
 ViewportHeader(editor);
 
-const box = new CenterBoxFactory(editor.db, editor.materials, editor.signals);
-box.p1 = new THREE.Vector3(0, 0, 0);
-box.p2 = new THREE.Vector3(1, 1, 0);
-box.p3 = new THREE.Vector3(0, 0, 3);
-box.commit();
+// const box = new CenterBoxFactory(editor.db, editor.materials, editor.signals);
+// box.p1 = new THREE.Vector3(0, 0, 0);
+// box.p2 = new THREE.Vector3(1, 1, 0);
+// box.p3 = new THREE.Vector3(0, 0, 3);
+// box.commit();
 
 const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
 makeSphere.center = new THREE.Vector3();

@@ -187,6 +187,14 @@ keybindings.set("gizmo:extrude:union", "Union");
 keybindings.set("gizmo:extrude:difference", "Difference");
 keybindings.set("gizmo:extrude:intersect", "Intersect");
 keybindings.set("gizmo:extrude:new-body", "New body");
+keybindings.set("gizmo:box:union", "Union");
+keybindings.set("gizmo:box:difference", "Difference");
+keybindings.set("gizmo:box:intersect", "Intersect");
+keybindings.set("gizmo:box:new-body", "New body");
+keybindings.set("gizmo:cylinder:union", "Union");
+keybindings.set("gizmo:cylinder:difference", "Difference");
+keybindings.set("gizmo:cylinder:intersect", "Intersect");
+keybindings.set("gizmo:cylinder:new-body", "New body");
 keybindings.set("gizmo:offset-face:distance", "Distance");
 
 export default (editor: Editor): void => {

@@ -24,7 +24,7 @@ import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
 import ExtrudeFactory, { PossiblyBooleanRegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
-import { ExtrudeKeyboardGizmo } from "./extrude/ExtrudeKeyboardGizmo";
+import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import ChamferFactory from "./fillet/ChamferFactory";
 import { ChamferGizmo } from "./fillet/ChamferGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
@@ -368,12 +368,16 @@ export class CylinderCommand extends Command {
         cylinder.base = p1;
         cylinder.radius = p2;
 
+        const keyboard = new BooleanKeyboardGizmo("cylinder", this.editor);
+        keyboard.prepare(cylinder).resource(this);
+
         pointPicker = new PointPicker(this.editor);
         snap.addAdditionalSnapsTo(pointPicker, p1);
         pointPicker.addAxesAt(p1);
         await pointPicker.execute(({ point: p3 }) => {
             cylinder.height = p3;
             cylinder.update();
+            keyboard.toggle(cylinder.isOverlapping);
         }).resource(this);
 
         await cylinder.commit();
@@ -545,12 +549,16 @@ export class ThreePointBoxCommand extends Command {
         }).resource(this);
         rect.cancel();
 
+        const keyboard = new BooleanKeyboardGizmo("box", this.editor);
+        keyboard.prepare(box).resource(this);
+
         box.p1 = p1;
         box.p2 = p2;
         box.p3 = p3;
         await pointPicker.execute(({ point: p4 }) => {
             box.p4 = p4;
             box.update();
+            keyboard.toggle(box.isOverlapping);
         }).resource(this);
         await box.commit();
     }
@@ -584,12 +592,15 @@ export class CornerBoxCommand extends Command {
         box.p1 = p1;
         box.p2 = p2;
 
+        const keyboard = new BooleanKeyboardGizmo("box", this.editor);
+        keyboard.prepare(box).resource(this);
+
         pointPicker = new PointPicker(this.editor);
         pointPicker.restrictToLine(p2, box.heightNormal);
-
         await pointPicker.execute(({ point: p3 }) => {
             box.p3 = p3;
             box.update();
+            keyboard.toggle(box.isOverlapping);
         }).resource(this);
         await box.commit();
     }
@@ -624,12 +635,15 @@ export class CenterBoxCommand extends Command {
         box.p2 = p2;
         box.constructionPlane = constructionPlane;
 
+        const keyboard = new BooleanKeyboardGizmo("box", this.editor);
+        keyboard.prepare(box).resource(this);
+
         pointPicker = new PointPicker(this.editor);
         pointPicker.restrictToLine(p2, box.heightNormal);
-
         await pointPicker.execute(({ point: p3 }) => {
             box.p3 = p3;
             box.update();
+            keyboard.toggle(box.isOverlapping);
         }).resource(this);
         await box.commit();
     }
@@ -1052,20 +1066,8 @@ export class ExtrudeRegionCommand extends Command {
         if (selection.solids.size > 0) extrude.solid = selection.solids.first;
         extrude.region = region;
 
-        const keyboard = new ExtrudeKeyboardGizmo(this.editor);
-        keyboard.execute(e => {
-            switch (e.tag) {
-                case 'boolean':
-                    extrude.newBody = false;
-                    extrude.operationType = e.type;
-                    extrude.update();
-                    break;
-                case 'new-body':
-                    extrude.newBody = true;
-                    extrude.update();
-                    break;
-            }
-        }).resource(this);
+        const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
+        keyboard.prepare(extrude).resource(this);
         
         const bbox = new THREE.Box3();
         bbox.expandByObject(extrude.region);
@@ -1078,7 +1080,6 @@ export class ExtrudeRegionCommand extends Command {
 
         await gizmo.execute(params => {
             extrude.update();
-
             keyboard.toggle(extrude.isOverlapping);
         }).resource(this);
 
