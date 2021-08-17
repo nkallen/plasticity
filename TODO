@@ -1,5 +1,4 @@
-fix db add phantom
-rationalize overlay/helpers/etc
+no need to rebuild scene in db?
 remove commit from temporary item
 cleanup keyboard garbage in Extrude
 

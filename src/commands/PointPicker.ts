@@ -164,7 +164,9 @@ export class PointPicker {
             temporaryObjects.add(mesh);
             disposables.add(new Disposable(() => temporaryObjects.remove(mesh)));
 
-            let removeHelpers = new Disposable();
+            const helpers = new THREE.Scene();
+            this.editor.helpers.add(helpers);
+            disposables.add(new Disposable(() => this.editor.helpers.remove(helpers)));
 
             for (const viewport of this.editor.viewports) {
                 viewport.disableControlsExcept();
@@ -176,12 +178,9 @@ export class PointPicker {
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
 
+                    helpers.clear();
                     const sprites = model.nearby(raycaster, constructionPlane);
-                    removeHelpers.dispose();
-                    for (const sprite of sprites) editor.helpers.add(sprite);
-                    removeHelpers = new Disposable(() => {
-                        for (const sprite of sprites) editor.helpers.remove(sprite);
-                    })
+                    for (const sprite of sprites) helpers.add(sprite);
 
                     // if within snap range, change point to snap position
                     const snappers = model.snap(raycaster, constructionPlane);
@@ -191,7 +190,7 @@ export class PointPicker {
                         mesh.position.copy(point);
                         mesh.userData = info;
                         const helper = snap.helper;
-                        if (helper !== undefined) viewport.overlay.add(helper);
+                        if (helper !== undefined) helpers.add(helper);
                         break;
                     }
                     editor.signals.pointPickerChanged.dispatch();
@@ -223,7 +222,6 @@ export class PointPicker {
                 domElement.addEventListener('pointerdown', onPointerDown);
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
-                disposables.add(new Disposable(() => viewport.overlay.clear()));
             }
             const cancel = () => {
                 disposables.dispose();
