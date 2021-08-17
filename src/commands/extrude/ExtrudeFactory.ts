@@ -142,10 +142,11 @@ export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
         this.model = this.db.lookup(s);
     }
 
-    protected performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): c3d.Solid {
+    protected async performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): c3d.Solid {
         const { names, model, operationType } = this;
 
-        return c3d.ActionSolid.ExtrusionResult(model, c3d.CopyMode.Copy, sweptData, direction, params, operationType, names, ns)
+        const result = await c3d.ActionSolid.ExtrusionResult_async(model, c3d.CopyMode.Copy, sweptData, direction, params, operationType, names, ns)
+        return result;
     }
 }
 
@@ -199,7 +200,8 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     async computeGeometry() {
         await this.precomputeGeometry();
         if (this._isOverlapping && !this.newBody) {
-            return await this.bool.computeGeometry();
+            const reuslt = await this.bool.computeGeometry();
+            return reuslt;
         } else {
             return this._phantom;
         }

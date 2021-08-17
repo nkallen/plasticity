@@ -7,32 +7,39 @@ import { GeometryFactory, ValidationError } from '../GeometryFactory';
 abstract class BooleanFactory extends GeometryFactory {
     protected abstract operationType: c3d.OperationType;
 
-    item1!: visual.Solid;
-    item2!: visual.Solid;
+    private _item1!: visual.Solid;
+    private model1!: c3d.Solid;
+    get item1() { return this._item1 }
+    set item1(item1: visual.Solid) {
+        this._item1 = item1;
+        this.model1 = this.db.lookup(item1)
+    }
 
-    async doCommit() {
-        const model1 = this.db.lookup(this.item1);
-        const model2 = this.db.lookup(this.item2);
+    private _item2!: visual.Solid;
+    private model2!: c3d.Solid;
+    get item2() { return this._item2 }
+    set item2(item2: visual.Solid) {
+        this._item2 = item2;
+        this.model2 = this.db.lookup(item2)
+    }
 
-        const names = new c3d.SNameMaker(c3d.CreatorType.BooleanSolid, c3d.ESides.SideNone, 0);
+    private readonly names = new c3d.SNameMaker(c3d.CreatorType.BooleanSolid, c3d.ESides.SideNone, 0);
+
+    async computeGeometry() {
+        const { model1, model2, names } = this;
 
         const flags = new c3d.BooleanFlags();
         flags.InitBoolean(true);
         flags.SetMergingFaces(true);
         flags.SetMergingEdges(true);
 
-        const boolean = c3d.ActionSolid.BooleanResult(model1, c3d.CopyMode.Copy, model2, c3d.CopyMode.Copy, this.operationType, flags, names);
-
-        const result = await this.db.addItem(boolean);
-        this.db.removeItem(this.item1);
-        this.db.removeItem(this.item2);
+        const result = await c3d.ActionSolid.BooleanResult_async(model1, c3d.CopyMode.Copy, model2, c3d.CopyMode.Copy, this.operationType, flags, names);
         return result;
     }
 
-    doCancel() {
+    get originalItem() {
+        return [this.item1, this.item2];
     }
-
-    async doUpdate() { }
 }
 
 export class UnionFactory extends BooleanFactory {

@@ -1,8 +1,7 @@
-import { cart2vec, ContourAndPlacement, curve3d2curve2d, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { cart2vec, curve3d2curve2d, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
-import CurveFactory from '../curve/CurveFactory';
 
 export default class LoftFactory extends GeometryFactory {
     private _curves!: visual.SpaceInstance<visual.Curve3D>[];
