@@ -46,11 +46,10 @@ export class ExtrudeKeyboardGizmo extends AbstractCommandKeyboardInput<(e: Extru
         });
     }
 
-    // test calling multiple times doesn't trigger keybindingsRegistered
-    // test cancelling kills children
     toggle(bool: boolean) {
         if (!bool) {
             this.active?.finish();
+            this.active = undefined;
         } else {
             if (this.active === undefined)
                 this.active = super.execute(this.cb!);
