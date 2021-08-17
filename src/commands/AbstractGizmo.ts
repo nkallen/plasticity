@@ -81,13 +81,15 @@ export abstract class AbstractGizmo<CB> extends Helper {
             // Aggregate the commands, like 'x' for :move:x
             const registry = this.editor.registry;
             const commands: [string, () => void][] = [];
+            const commandNames: string[] = [];
             for (const picker of this.picker.children) {
                 if (picker.userData.command == null) continue;
                 const [name, fn] = picker.userData.command as [string, () => void];
                 commands.push([name, fn]);
+                commandNames.push(name);
             }
-            this.editor.signals.keybindingsRegistered.dispatch(commands.map(([name,]) => name));
-            disposables.add(new Disposable(() => this.editor.signals.keybindingsCleared.dispatch([])));
+            this.editor.signals.keybindingsRegistered.dispatch(commandNames);
+            disposables.add(new Disposable(() => this.editor.signals.keybindingsCleared.dispatch(commandNames)));
 
             for (const viewport of this.editor.viewports) {
                 const { renderer: { domElement } } = viewport;
