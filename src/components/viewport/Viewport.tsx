@@ -82,7 +82,7 @@ export class Viewport {
         overlayPass.clearDepth = true;
 
         const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
-        outlinePassSelection.edgeStrength = 5;
+        outlinePassSelection.edgeStrength = 3;
         outlinePassSelection.edgeGlow = 0;
         outlinePassSelection.edgeThickness = 1.0;
         outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);

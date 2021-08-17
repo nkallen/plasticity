@@ -1,6 +1,7 @@
 no need to rebuild scene in db?
 remove commit from temporary item
 cleanup keyboard garbage in Extrude
+cylinder vertical snap gone
 
 draw box/cyl should do boolean automatically
 inset extrude
