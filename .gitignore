@@ -125,3 +125,4 @@ license-key.json
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+backtrace-access-token.txt
