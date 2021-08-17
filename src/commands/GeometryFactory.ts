@@ -48,15 +48,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
         const promises = [];
 
         // 1. Asynchronously compute the geometry and the phantom, if it exists
-        let result;
-        try {
-            result = await this.computeGeometry();
-        } catch (e) {
-            // If it fails, we should clean up temporary items from previous successful run and abort
-            for (const temp of this.temps) temp.cancel();
-            for (const i of this.originalItems) this.db.unhide(i);
-            throw e;
-        }
+        let result = await this.computeGeometry();
 
         // 2. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);

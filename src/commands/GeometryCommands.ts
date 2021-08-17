@@ -369,6 +369,7 @@ export class CylinderCommand extends Command {
 
         pointPicker = new PointPicker(this.editor);
         snap.addAdditionalSnapsTo(pointPicker, p1);
+        pointPicker.addAxesAt(p1);
         await pointPicker.execute(({ point: p3 }) => {
             cylinder.height = p3;
             cylinder.update();
