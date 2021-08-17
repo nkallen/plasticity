@@ -1,5 +1,3 @@
-
-draw box/cyl should do boolean automatically
 inset extrude
 creat curve on spine
 box select can't selement more than one solid at once(?)

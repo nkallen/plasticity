@@ -103,7 +103,7 @@ export class SnapManager {
     }
 
     private add(item: visual.Item): void {
-        const fns: (() => void)[] = [];
+        const fns: Redisposable[] = [];
         if (item instanceof visual.Solid) {
             for (const edge of item.edges) {
                 const d = this.addEdge(edge);
@@ -119,23 +119,23 @@ export class SnapManager {
         }
 
         this.garbageDisposal.incr(item.simpleName, new Redisposable(() => {
-            for (const fn of fns) fn()
+            for (const fn of fns) fn.dispose()
         }));
         this.update();
     }
 
-    private addFace(face: visual.Face) {
+    private addFace(face: visual.Face): Redisposable {
         const model = this.db.lookupTopologyItem(face);
 
         const faceSnap = new FaceSnap(face, model);
         this.faces.add(faceSnap);
 
-        return () => {
+        return new Redisposable(() => {
             this.faces.delete(faceSnap);
-        };
+        });
     }
 
-    private addEdge(edge: visual.CurveEdge) {
+    private addEdge(edge: visual.CurveEdge): Redisposable {
         const model = this.db.lookupTopologyItem(edge);
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
@@ -144,13 +144,13 @@ export class SnapManager {
 
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
-        return () => {
+        return new Redisposable(() => {
             this.begPoints.delete(begSnap);
             this.midPoints.delete(midSnap);
-        };
+        });
     }
 
-    private addCurve(item: visual.SpaceInstance<visual.Curve3D>) {
+    private addCurve(item: visual.SpaceInstance<visual.Curve3D>): Redisposable {
         const inst = this.db.lookup(item);
         const item_ = inst.GetSpaceItem();
         if (item_ === null) throw new Error("invalid precondition");
@@ -164,11 +164,11 @@ export class SnapManager {
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
         this.endPoints.add(endSnap);
-        return () => {
+        return new Redisposable(() => {
             this.begPoints.delete(begSnap);
             this.midPoints.delete(midSnap);
             this.endPoints.delete(endSnap);
-        };
+        });
     }
 
     private delete(item: visual.Item): void {
