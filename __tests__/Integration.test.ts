@@ -92,7 +92,6 @@ test.skip('create a box and fillet an edge', async () => {
     domElement.dispatchEvent(pointerdown);
     pointerup = new MouseEvent('pointerup', { button: 0, clientX: 50, clientY: 50 });
     domElement.dispatchEvent(pointerup);
-    console.log("last input");
 
     await step();
 

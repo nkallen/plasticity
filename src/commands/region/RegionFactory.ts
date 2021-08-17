@@ -1,4 +1,4 @@
-import { normalizePlacement } from '../../util/Conversion';
+import { cart2vec, normalizePlacement } from '../../util/Conversion';
 import { curve3d2curve2d } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
@@ -9,13 +9,14 @@ export class RegionFactory extends GeometryFactory {
 
     protected async computeGeometry() {
         const curves = [];
-        const hint = new c3d.Placement3D();
+        let hint = new c3d.Placement3D();
         for (const contour of this.contours) {
             const inst = this.db.lookup(contour);
-            const item = inst.GetSpaceItem();
-            if (item === null) throw new Error("invalid precondition");
+            const item = inst.GetSpaceItem()!;
+
             const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
             const { curve: curve2d, placement } = curve3d2curve2d(curve, hint)!;
+            hint = placement;
             normalizePlacement(curve2d, placement, new Set([hint]));
             curves.push(curve2d);
         }

@@ -1,9 +1,9 @@
-import { cart2vec, vec2vec } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../editor/VisualModel';
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import { MaterialOverride } from "../../editor/GeometryDatabase";
+import * as visual from '../../editor/VisualModel';
+import { vec2vec } from "../../util/Conversion";
+import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export interface ExtrudeParams {
     distance1: number;

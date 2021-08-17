@@ -1046,7 +1046,6 @@ export class ExtrudeRegionCommand extends Command {
 
         const keyboard = new ExtrudeKeyboardGizmo(this.editor);
         keyboard.execute(e => {
-            console.log(e);
             switch (e.tag) {
                 case 'boolean':
                     extrude.newBody = false;
