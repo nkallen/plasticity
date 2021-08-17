@@ -19,7 +19,7 @@ export class CenterCircleFactory extends GeometryFactory {
         this.mode = this.mode === Mode.Vertical ? Mode.Horizontal : Mode.Vertical;
     }
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { mode, center, radius, point, constructionPlane: { n } } = this;
 
         const Y = point.clone().sub(center).normalize();
@@ -61,7 +61,7 @@ export class ThreePointCircleFactory extends GeometryFactory {
     p2!: THREE.Vector3;
     p3!: THREE.Vector3;
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { p1, p2, p3 } = this;
 
         const circle = new c3d.Arc3D(vec2cart(p1), vec2cart(p2), vec2cart(p3), 1, true);

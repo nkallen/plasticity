@@ -16,7 +16,7 @@ export default class TrimFactory extends GeometryFactory {
         this.curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
     }
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { curve, info: {start, stop} } = this;
 
         const result = [];

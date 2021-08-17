@@ -43,7 +43,7 @@ export abstract class ModifyFaceFactory extends GeometryFactory {
         this.facesModel = facesModel;
     }
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { solidModel, facesModel, direction } = this;
 
         const params = new c3d.ModifyValues();

@@ -9,7 +9,7 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
     operationType = c3d.ModifyingType.Offset;
     set distance(d: number) { this.direction = new THREE.Vector3(d, 0, 0); }
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { solidModel, facesModel, direction, angle } = this;
 
         let solid = solidModel;

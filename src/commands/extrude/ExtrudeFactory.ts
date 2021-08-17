@@ -3,6 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride } from "../../editor/GeometryDatabase";
 import * as visual from '../../editor/VisualModel';
 import { vec2vec } from "../../util/Conversion";
+import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export interface ExtrudeParams {
@@ -150,13 +151,9 @@ export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
     }
 }
 
-export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory implements ExtrudeParams {
-    private bool = new BooleanRegionExtrudeFactory(this.db, this.materials, this.signals);
-    private fantom = new RegionExtrudeFactory(this.db, this.materials, this.signals);
-
-    private _solid?: visual.Solid;
-
-    newBody = false;
+export class PossiblyBooleanRegionExtrudeFactory extends PossiblyBooleanFactory<RegionExtrudeFactory> implements ExtrudeParams {
+    protected bool = new BooleanRegionExtrudeFactory(this.db, this.materials, this.signals);
+    protected fantom = new RegionExtrudeFactory(this.db, this.materials, this.signals);
 
     get distance1() { return this.bool.distance1 }
     get distance2() { return this.bool.distance2 }
@@ -166,8 +163,6 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     get thickness2() { return this.bool.thickness2 }
     get region() { return this.bool.region }
     get direction() { return this.bool.direction }
-    get operationType() { return this.bool.operationType }
-    get solid() { return this._solid }
 
     set distance1(distance1: number) { this.bool.distance1 = distance1; this.fantom.distance1 = distance1 }
     set distance2(distance2: number) { this.bool.distance2 = distance2; this.fantom.distance2 = distance2 }
@@ -176,82 +171,4 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.fantom.thickness1 = thickness1 }
     set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.fantom.thickness2 = thickness2 }
     set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.fantom.region = region }
-    set operationType(operationType: c3d.OperationType) { this.bool.operationType = operationType }
-    set solid(solid: visual.Solid | undefined) {
-        this._solid = solid;
-        if (solid !== undefined) this.bool.solid = solid;
-    }
-
-    private _isOverlapping = false;
-    get isOverlapping() { return this._isOverlapping }
-
-    private _phantom!: c3d.Solid;
-
-    private async precomputeGeometry() {
-        const phantom = await this.fantom.computeGeometry();
-        this._phantom = phantom;
-        if (this.solid === undefined) {
-            this._isOverlapping = false;
-        } else {
-            this._isOverlapping = c3d.Action.IsSolidsIntersection(this.bool.model, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
-        }
-    }
-
-    async computeGeometry() {
-        await this.precomputeGeometry();
-        if (this._isOverlapping && !this.newBody) {
-            const reuslt = await this.bool.computeGeometry();
-            return reuslt;
-        } else {
-            return this._phantom;
-        }
-    }
-
-    protected get phantom(): c3d.Solid | undefined {
-        if (this.solid === undefined) return;
-        if (this.newBody) return;
-        if (this.operationType === c3d.OperationType.Union) return;
-        if (!this._isOverlapping) return;
-
-        return this._phantom;
-    }
-
-    get originalItem() { return this.bool.solid }
-
-    get shouldRemoveOriginalItem() {
-        return this._isOverlapping && this.solid !== undefined && !this.newBody;
-    }
-
-    get phantomMaterial() {
-        if (this.operationType === c3d.OperationType.Difference)
-            return phantom_red
-        else if (this.operationType === c3d.OperationType.Intersect)
-            return phantom_green;
-    }
-}
-
-const mesh_red = new THREE.MeshBasicMaterial();
-mesh_red.color.setHex(0xff0000);
-mesh_red.opacity = 0.1;
-mesh_red.transparent = true;
-mesh_red.fog = false;
-mesh_red.polygonOffset = true;
-mesh_red.polygonOffsetFactor = 0.1;
-mesh_red.polygonOffsetUnits = 1;
-
-const phantom_red: MaterialOverride = {
-    mesh: mesh_red
-}
-
-const mesh_green = new THREE.MeshBasicMaterial();
-mesh_green.color.setHex(0x00ff00);
-mesh_green.opacity = 0.1;
-mesh_green.transparent = true;
-mesh_green.fog = false;
-mesh_green.polygonOffset = true;
-mesh_green.polygonOffsetFactor = 0.1;
-mesh_green.polygonOffsetUnits = 1;
-
-const phantom_green: MaterialOverride = {
-    mesh: mesh_green
 }

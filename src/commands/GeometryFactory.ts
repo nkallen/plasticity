@@ -116,7 +116,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
         for (const temp of this.temps) temp.cancel();
     }
 
-    protected computeGeometry(): Promise<c3d.Item> | Promise<c3d.Item[]> { throw new Error("Implement this for simple factories"); }
+    computeGeometry(): Promise<c3d.Item> | Promise<c3d.Item[]> { throw new Error("Implement this for simple factories"); }
     protected get phantom(): c3d.Item | undefined { return undefined }
     protected get phantomMaterial(): MaterialOverride | undefined { return undefined }
     protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }

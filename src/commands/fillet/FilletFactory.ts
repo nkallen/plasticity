@@ -105,7 +105,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, name++);
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.edgeFunctions, [], this.params, this.names);
         return result;
     }

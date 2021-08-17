@@ -1,11 +1,13 @@
+import { MaterialOverride } from "../../editor/GeometryDatabase";
+import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from '../../editor/SnapManager';
 import * as visual from '../../editor/VisualModel';
 import { curve3d2curve2d } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
-abstract class BooleanFactory extends GeometryFactory {
-    protected abstract operationType: c3d.OperationType;
+export class BooleanFactory extends GeometryFactory {
+    protected operationType: c3d.OperationType = c3d.OperationType.Difference;
 
     private _item1!: visual.Solid;
     private model1!: c3d.Solid;
@@ -71,7 +73,7 @@ export class CutFactory extends GeometryFactory {
         const planar = curve3d2curve2d(curve3d, this.constructionPlane?.placement ?? new c3d.Placement3D());
         if (planar === undefined) throw new ValidationError("Curve cannot be converted to planar");
         const { curve: curve2d, placement } = planar;
-        
+
         this.contour = new c3d.Contour([curve2d], true);
         this.placement = placement;
     }
@@ -90,4 +92,102 @@ export class CutFactory extends GeometryFactory {
     }
 
     get originalItem() { return this.solid }
+}
+
+
+interface BooleanLikeFactory extends GeometryFactory {
+    solid: visual.Solid;
+    model: c3d.Solid;
+    operationType: c3d.OperationType;
+}
+
+export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends GeometryFactory {
+    protected abstract bool: BooleanLikeFactory;
+    protected abstract fantom: GF;
+
+    private _solid?: visual.Solid;
+    private _phantom!: c3d.Solid;
+
+    newBody = false;
+
+    get solid() { return this._solid }
+    get operationType() { return this.bool.operationType }
+
+    set solid(solid: visual.Solid | undefined) {
+        this._solid = solid;
+        if (solid !== undefined) this.bool.solid = solid;
+    }
+    set operationType(operationType: c3d.OperationType) { this.bool.operationType = operationType }
+
+    private _isOverlapping = false;
+    get isOverlapping() { return this._isOverlapping }
+
+    private async precomputeGeometry() {
+        const phantom = await this.fantom.computeGeometry() as c3d.Solid;
+        this._phantom = phantom;
+        if (this.solid === undefined) {
+            this._isOverlapping = false;
+        } else {
+            this._isOverlapping = c3d.Action.IsSolidsIntersection(this.bool.model, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
+        }
+    }
+
+    async computeGeometry() {
+        await this.precomputeGeometry();
+        if (this._isOverlapping && !this.newBody) {
+            const result = await this.bool.computeGeometry() as c3d.Solid;
+            return result;
+        } else {
+            return this._phantom;
+        }
+    }
+
+    protected get phantom(): c3d.Solid | undefined {
+        if (this.solid === undefined) return;
+        if (this.newBody) return;
+        if (this.operationType === c3d.OperationType.Union) return;
+        if (!this._isOverlapping) return;
+
+        return this._phantom;
+    }
+
+    get originalItem() { return this.bool.solid }
+
+    get shouldRemoveOriginalItem() {
+        return this._isOverlapping && this.solid !== undefined && !this.newBody;
+    }
+
+    get phantomMaterial() {
+        if (this.operationType === c3d.OperationType.Difference)
+            return phantom_red
+        else if (this.operationType === c3d.OperationType.Intersect)
+            return phantom_green;
+    }
+}
+
+
+const mesh_red = new THREE.MeshBasicMaterial();
+mesh_red.color.setHex(0xff0000);
+mesh_red.opacity = 0.1;
+mesh_red.transparent = true;
+mesh_red.fog = false;
+mesh_red.polygonOffset = true;
+mesh_red.polygonOffsetFactor = 0.1;
+mesh_red.polygonOffsetUnits = 1;
+
+const phantom_red: MaterialOverride = {
+    mesh: mesh_red
+}
+
+const mesh_green = new THREE.MeshBasicMaterial();
+mesh_green.color.setHex(0x00ff00);
+mesh_green.opacity = 0.1;
+mesh_green.transparent = true;
+mesh_green.fog = false;
+mesh_green.polygonOffset = true;
+mesh_green.polygonOffsetFactor = 0.1;
+mesh_green.polygonOffsetUnits = 1;
+
+const phantom_green: MaterialOverride = {
+    mesh: mesh_green
 }

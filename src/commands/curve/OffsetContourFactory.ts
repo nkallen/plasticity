@@ -7,7 +7,7 @@ export default class OffsetContourFactory extends GeometryFactory {
     surface!: c3d.Surface;
     distance = 0;
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { model, distance, surface } = this;
 
         const offset = c3d.ActionCurve.OffsetContour(model, distance, surface.GetUEpsilon(), surface.GetVEpsilon(), false);

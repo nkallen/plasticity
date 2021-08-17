@@ -15,7 +15,7 @@ export class PolygonFactory extends GeometryFactory {
         this._vertexCount = Math.max(0, count);
     }
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { center, p2, vertexCount, constructionPlane: { n } } = this;
         const polygon = c3d.ActionCurve3D.RegularPolygon(vec2cart(center), vec2cart(p2), new c3d.Vector3D(n.x, n.y, n.z), vertexCount, false);
 

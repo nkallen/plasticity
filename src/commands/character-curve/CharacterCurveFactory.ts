@@ -18,7 +18,7 @@ export default class CharacterCurveFactory extends GeometryFactory {
     yFunction = "t";
     zFunction = "2";
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { tMin, tMax, argument, xFunction, yFunction, zFunction } = this;
 
         const ff = new c3d.FunctionFactory();

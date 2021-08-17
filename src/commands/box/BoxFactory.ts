@@ -7,6 +7,12 @@ import { CenterRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFa
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 }
 
+interface BoxParams {
+    p1: THREE.Vector3;
+    p2: THREE.Vector3;
+    p3: THREE.Vector3;
+}
+
 abstract class BoxFactory extends GeometryFactory {
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;

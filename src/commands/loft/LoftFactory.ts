@@ -36,7 +36,7 @@ export default class LoftFactory extends GeometryFactory {
         return points;
     }
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { thickness, models, names } = this;
 
         const ns = [];

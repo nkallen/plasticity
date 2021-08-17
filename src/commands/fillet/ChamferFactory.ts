@@ -70,7 +70,7 @@ export default class ChamferFactory extends GeometryFactory implements ChamferPa
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         return c3d.ActionSolid.ChamferSolid_async(this.solid, c3d.CopyMode.Copy, this.models, this.params, this.names);
     }
     get originalItem() { return this.item }

@@ -19,7 +19,7 @@ export class SpiralFactory extends GeometryFactory implements SpiralParams {
     step = 4;
     angle = 0;
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { p1, p2, p3, radius, step, angle } = this;
         const pitch = p2.distanceTo(p1) / step;
 

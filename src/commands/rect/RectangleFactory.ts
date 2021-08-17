@@ -10,7 +10,7 @@ abstract class RectangleFactory extends GeometryFactory {
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { p1, p2, p3, p4 } = this.orthogonal();
 
         const points = [vec2cart(p1), vec2cart(p2), vec2cart(p3), vec2cart(p4),]

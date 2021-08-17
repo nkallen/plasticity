@@ -17,7 +17,7 @@ export class CenterPointArcFactory extends GeometryFactory {
     private lastQuadrant = 0;
     private sense = false;
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { center, p2, p3, constructionPlane, Cp2, Cp3, cross } = this;
         const n = constructionPlane.n;
 
@@ -57,7 +57,7 @@ export class ThreePointArcFactory extends GeometryFactory {
     p2!: THREE.Vector3;
     p3!: THREE.Vector3;
 
-    protected async computeGeometry() {
+    async computeGeometry() {
         const { p1, p2, p3 } = this;
         const circle = new c3d.Arc3D(vec2cart(p1), vec2cart(p2), vec2cart(p3), 1, false);
 
