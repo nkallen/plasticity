@@ -1,16 +1,16 @@
-import { SequentialExecutor } from '../util/SequentialExecutor';
 import * as THREE from 'three';
+import { PointsMaterial } from 'three';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
+import { SequentialExecutor } from '../util/SequentialExecutor';
 import { assertUnreachable, GConstructor } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
 import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import * as visual from './VisualModel';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
-import { PointsMaterial } from 'three';
-import { Editor } from './Editor';
 
-const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5]];
+const mesh_precision_distance: [number, number][] = [[0.1, 300], [0.001, 5]];
+const other_precision_distance: [number, number][] = [[0.0005, 1]];
 
 export interface TemporaryObject {
     get underlying(): visual.Item;
@@ -56,7 +56,7 @@ export class GeometryDatabase {
     async addItem(model: c3d.Item, agent: Agent = 'user'): Promise<visual.Item> {
         const current = this.counter++;
         return this.queue.enqueue(async () => {
-            const view = await this.meshes(model, current, precision_distance); // FIXME it would be nice to move this out of the queue but tests fail
+            const view = await this.meshes(model, current, this.precisionAndDistanceFor(model)); // FIXME it would be nice to move this out of the queue but tests fail
 
             this.geometryModel.set(current, { view, model });
             view.traverse(t => {
@@ -77,6 +77,14 @@ export class GeometryDatabase {
             }
             return view;
         });
+    }
+
+    private precisionAndDistanceFor(item: c3d.Item): [number, number][] {
+        if (item.IsA() === c3d.SpaceType.Solid) {
+            return mesh_precision_distance;
+        } else {
+            return other_precision_distance;
+        }
     }
 
     async addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {

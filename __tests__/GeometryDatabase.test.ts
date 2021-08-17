@@ -138,10 +138,10 @@ test("lookupControlPointById", async () => {
     instance.traverse(o => {
         if (o instanceof visual.ControlPointGroup) controlPoints.push(o);
     })
-    expect(controlPoints.length).toBe(2);
+    expect(controlPoints.length).toBe(1);
 
     const { index, views } = db.lookupControlPointById(controlPoints[0].findByIndex(0).simpleName);
-    expect(views.size).toBe(2);
+    expect(views.size).toBe(1);
     expect(index).toBe(0);
 
     db.removeItem(instance);
