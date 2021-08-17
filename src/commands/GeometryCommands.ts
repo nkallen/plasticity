@@ -20,7 +20,7 @@ import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./cur
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
-import CylinderFactory from './cylinder/CylinderFactory';
+import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
 import ExtrudeFactory, { PossiblyBooleanRegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
@@ -345,9 +345,12 @@ export class RegionCommand extends Command {
 
 export class CylinderCommand extends Command {
     async execute(): Promise<void> {
-        let pointPicker = new PointPicker(this.editor);
+        const cylinder = new PossiblyBooleanCylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const selection = this.editor.selection.selected;
+        if (selection.solids.size > 0) cylinder.solid = selection.solids.first;
 
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        let pointPicker = new PointPicker(this.editor);
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         circle.center = p1;
 
@@ -362,7 +365,6 @@ export class CylinderCommand extends Command {
         }).resource(this);
         circle.cancel();
 
-        const cylinder = new CylinderFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cylinder.base = p1;
         cylinder.radius = p2;
 
@@ -523,7 +525,7 @@ export class ThreePointBoxCommand extends Command {
         const box = new PossiblyBooleanThreePointBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         if (selection.solids.size > 0) box.solid = selection.solids.first;
-        
+
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const pointPicker = new PointPicker(this.editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
