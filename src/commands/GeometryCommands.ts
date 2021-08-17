@@ -7,7 +7,7 @@ import { cart2vec, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
-import { CenterBoxFactory, CornerBoxFactory, ThreePointBoxFactory } from './box/BoxFactory';
+import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
 import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
@@ -520,9 +520,12 @@ export class CenterRectangleCommand extends Command {
 
 export class ThreePointBoxCommand extends Command {
     async execute(): Promise<void> {
-        const pointPicker = new PointPicker(this.editor);
-
+        const box = new PossiblyBooleanThreePointBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const selection = this.editor.selection.selected;
+        if (selection.solids.size > 0) box.solid = selection.solids.first;
+        
         const line = new LineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const pointPicker = new PointPicker(this.editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
         line.p1 = p1;
         const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
@@ -540,7 +543,6 @@ export class ThreePointBoxCommand extends Command {
         }).resource(this);
         rect.cancel();
 
-        const box = new ThreePointBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         box.p1 = p1;
         box.p2 = p2;
         box.p3 = p3;
@@ -554,6 +556,10 @@ export class ThreePointBoxCommand extends Command {
 
 export class CornerBoxCommand extends Command {
     async execute(): Promise<void> {
+        const box = new PossiblyBooleanCornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const selection = this.editor.selection.selected;
+        if (selection.solids.size > 0) box.solid = selection.solids.first;
+        
         let pointPicker = new PointPicker(this.editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
 
@@ -573,7 +579,6 @@ export class CornerBoxCommand extends Command {
         }).resource(this);
         rect.cancel();
 
-        const box = new CornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         box.p1 = p1;
         box.p2 = p2;
 
@@ -590,8 +595,9 @@ export class CornerBoxCommand extends Command {
 
 export class CenterBoxCommand extends Command {
     async execute(): Promise<void> {
-        const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const box = new CenterBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const box = new PossiblyBooleanCenterBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const selection = this.editor.selection.selected;
+        if (selection.solids.size > 0) box.solid = selection.solids.first;
 
         let pointPicker = new PointPicker(this.editor);
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
@@ -603,6 +609,7 @@ export class CenterBoxCommand extends Command {
         pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
         snap.addAdditionalRestrictionsTo(pointPicker, p1)
 
+        const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
         const { point: p2, info: { constructionPlane } } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             rect.p2 = p2;
@@ -1040,8 +1047,7 @@ export class ExtrudeRegionCommand extends Command {
         const extrude = new PossiblyBooleanRegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         const region = selection.regions.first;
-        if (selection.solids.size > 0)
-            extrude.solid = selection.solids.first;
+        if (selection.solids.size > 0) extrude.solid = selection.solids.first;
         extrude.region = region;
 
         const keyboard = new ExtrudeKeyboardGizmo(this.editor);

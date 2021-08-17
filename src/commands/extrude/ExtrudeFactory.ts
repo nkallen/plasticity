@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { MaterialOverride } from "../../editor/GeometryDatabase";
 import * as visual from '../../editor/VisualModel';
 import { vec2vec } from "../../util/Conversion";
 import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
@@ -154,6 +153,12 @@ export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
 export class PossiblyBooleanRegionExtrudeFactory extends PossiblyBooleanFactory<RegionExtrudeFactory> implements ExtrudeParams {
     protected bool = new BooleanRegionExtrudeFactory(this.db, this.materials, this.signals);
     protected fantom = new RegionExtrudeFactory(this.db, this.materials, this.signals);
+
+    get solid() { return this._solid }
+    set solid(solid: visual.Solid | undefined) {
+        super.solid = solid;
+        if (solid !== undefined) this.bool.solid = solid;
+    }
 
     get distance1() { return this.bool.distance1 }
     get distance2() { return this.bool.distance2 }

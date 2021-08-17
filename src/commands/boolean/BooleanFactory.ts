@@ -6,11 +6,16 @@ import * as visual from '../../editor/VisualModel';
 import { curve3d2curve2d } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
-export class BooleanFactory extends GeometryFactory {
-    protected operationType: c3d.OperationType = c3d.OperationType.Difference;
+
+interface BooleanLikeFactory extends GeometryFactory {
+    operationType: c3d.OperationType;
+}
+
+export class BooleanFactory extends GeometryFactory implements BooleanLikeFactory {
+    operationType: c3d.OperationType = c3d.OperationType.Difference;
 
     private _item1!: visual.Solid;
-    private model1!: c3d.Solid;
+    model1!: c3d.Solid;
     get item1() { return this._item1 }
     set item1(item1: visual.Solid) {
         this._item1 = item1;
@@ -18,7 +23,7 @@ export class BooleanFactory extends GeometryFactory {
     }
 
     private _item2!: visual.Solid;
-    private model2!: c3d.Solid;
+    model2!: c3d.Solid;
     get item2() { return this._item2 }
     set item2(item2: visual.Solid) {
         this._item2 = item2;
@@ -94,41 +99,35 @@ export class CutFactory extends GeometryFactory {
     get originalItem() { return this.solid }
 }
 
-
-interface BooleanLikeFactory extends GeometryFactory {
-    solid: visual.Solid;
-    model: c3d.Solid;
-    operationType: c3d.OperationType;
-}
-
 export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends GeometryFactory {
     protected abstract bool: BooleanLikeFactory;
     protected abstract fantom: GF;
 
-    private _solid?: visual.Solid;
-    private _phantom!: c3d.Solid;
-
+    protected _phantom!: c3d.Solid;
+    
     newBody = false;
-
-    get solid() { return this._solid }
+    
     get operationType() { return this.bool.operationType }
-
-    set solid(solid: visual.Solid | undefined) {
-        this._solid = solid;
-        if (solid !== undefined) this.bool.solid = solid;
-    }
     set operationType(operationType: c3d.OperationType) { this.bool.operationType = operationType }
 
-    private _isOverlapping = false;
+    protected _solid?: visual.Solid;
+    protected model?: c3d.Solid;
+    get solid() { return this._solid }
+    set solid(solid: visual.Solid | undefined) {
+        this._solid = solid;
+        if (solid !== undefined) this.model = this.db.lookup(solid);
+    }
+
+    protected _isOverlapping = false;
     get isOverlapping() { return this._isOverlapping }
 
-    private async precomputeGeometry() {
+    protected async precomputeGeometry() {
         const phantom = await this.fantom.computeGeometry() as c3d.Solid;
         this._phantom = phantom;
         if (this.solid === undefined) {
             this._isOverlapping = false;
         } else {
-            this._isOverlapping = c3d.Action.IsSolidsIntersection(this.bool.model, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
+            this._isOverlapping = c3d.Action.IsSolidsIntersection(this.model!, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
         }
     }
 
@@ -151,7 +150,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         return this._phantom;
     }
 
-    get originalItem() { return this.bool.solid }
+    get originalItem() { return this.solid }
 
     get shouldRemoveOriginalItem() {
         return this._isOverlapping && this.solid !== undefined && !this.newBody;

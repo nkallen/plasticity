@@ -1,5 +1,7 @@
 import * as THREE from "three";
-import { CenterBoxFactory, CornerBoxFactory, ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
+import c3d from '../../build/Release/c3d.node';
+import { CenterBoxFactory, CornerBoxFactory, PossiblyBooleanCenterBoxFactory, ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
+import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -80,4 +82,54 @@ describe(CenterBoxFactory, () => {
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
 });
+
+describe(PossiblyBooleanCenterBoxFactory, () => {
+    let makeBox: PossiblyBooleanCenterBoxFactory;
+    let sphere: visual.Solid;
+
+    beforeEach(() => {
+        makeBox = new PossiblyBooleanCenterBoxFactory(db, materials, signals);
+    })
+
+    beforeEach(async () => {
+        const makeSphere = new SphereFactory(db, materials, signals);
+        makeSphere.center = new THREE.Vector3();
+        makeSphere.radius = 1;
+        sphere = await makeSphere.commit() as visual.Solid;
+    })
+
+    describe('commit', () => {
+        test('basic union', async () => {
+            makeBox.solid = sphere;
+            makeBox.p1 = new THREE.Vector3(0, 0, 0);
+            makeBox.p2 = new THREE.Vector3(1, 1, 0);
+            makeBox.p3 = new THREE.Vector3(0, 0, 3);
+            makeBox.operationType = c3d.OperationType.Union;
+
+            const result = await makeBox.commit() as visual.SpaceItem;
+
+            const bbox = new THREE.Box3().setFromObject(result);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 3));
+        })
+
+        test('solid=undefined', async () => {
+            makeBox.p1 = new THREE.Vector3(0, 0, 0);
+            makeBox.p2 = new THREE.Vector3(1, 1, 0);
+            makeBox.p3 = new THREE.Vector3(0, 0, 1);
+
+            const item = await makeBox.commit() as visual.SpaceItem;
+            const bbox = new THREE.Box3().setFromObject(item);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0.5));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+        })
+    });
+})
+
 

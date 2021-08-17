@@ -2,8 +2,10 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from "../../editor/SnapManager";
 import { vec2cart } from "../../util/Conversion";
+import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import { CenterRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../rect/RectangleFactory";
+import * as visual from '../../editor/VisualModel';
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 }
 
@@ -13,7 +15,7 @@ interface BoxParams {
     p3: THREE.Vector3;
 }
 
-abstract class BoxFactory extends GeometryFactory {
+abstract class BoxFactory extends GeometryFactory implements BoxParams {
     p1!: THREE.Vector3;
     p2!: THREE.Vector3;
     p3!: THREE.Vector3;
@@ -65,7 +67,12 @@ export class ThreePointBoxFactory extends BoxFactory {
     }
 }
 
-abstract class DiagonalBoxFactory extends BoxFactory {
+interface DiagonalBoxParams extends BoxParams {
+    constructionPlane: PlaneSnap;
+    get heightNormal(): THREE.Vector3;
+}
+
+abstract class DiagonalBoxFactory extends BoxFactory implements DiagonalBoxParams {
     constructionPlane = new PlaneSnap();
 
     protected orthogonal() {
@@ -93,4 +100,50 @@ export class CenterBoxFactory extends DiagonalBoxFactory {
     get corner1() {
         return CenterRectangleFactory.corner1(this.p1, this.p2);
     }
+}
+
+abstract class PossiblyBooleanBoxFactory<B extends BoxFactory> extends PossiblyBooleanFactory<B> implements BoxParams {
+    protected bool = new BooleanFactory(this.db, this.materials, this.signals);
+    protected abstract fantom: B;
+
+    get solid() { return this._solid }
+    set solid(solid: visual.Solid | undefined) {
+        super.solid = solid;
+        if (solid !== undefined) this.bool.item1 = solid;
+    }
+
+    get p1() { return this.fantom.p1 }
+    get p2() { return this.fantom.p2 }
+    get p3() { return this.fantom.p3 }
+
+    set p1(p1: THREE.Vector3) { this.fantom.p1 = p1 }
+    set p2(p2: THREE.Vector3) { this.fantom.p2 = p2 }
+    set p3(p3: THREE.Vector3) { this.fantom.p3 = p3 }
+
+    protected async precomputeGeometry() {
+        await super.precomputeGeometry();
+        if (this._phantom !== undefined) this.bool.model2 = this._phantom;
+    }
+}
+
+export class PossiblyBooleanThreePointBoxFactory extends PossiblyBooleanBoxFactory<ThreePointBoxFactory> {
+    protected fantom = new ThreePointBoxFactory(this.db, this.materials, this.signals);
+
+    get p4() { return this.fantom.p4 }
+    set p4(p4: THREE.Vector3) { this.fantom.p4 = p4 }
+}
+
+abstract class PossiblyBooleanDiagonalBoxFactory extends PossiblyBooleanBoxFactory<DiagonalBoxFactory> implements DiagonalBoxParams {
+    get constructionPlane() { return this.fantom.constructionPlane }
+    get heightNormal() { return this.fantom.heightNormal }
+
+    set constructionPlane(constructionPlane: PlaneSnap) { this.fantom.constructionPlane = constructionPlane }
+}
+
+export class PossiblyBooleanCenterBoxFactory extends PossiblyBooleanDiagonalBoxFactory implements DiagonalBoxParams {
+    protected fantom = new CenterBoxFactory(this.db, this.materials, this.signals);
+}
+
+export class PossiblyBooleanCornerBoxFactory extends PossiblyBooleanDiagonalBoxFactory implements DiagonalBoxParams {
+    protected fantom = new CornerBoxFactory(this.db, this.materials, this.signals);
 }

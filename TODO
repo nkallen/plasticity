@@ -2,7 +2,6 @@
 draw box/cyl should do boolean automatically
 inset extrude
 creat curve on spine
-
 box select can't selement more than one solid at once(?)
 show/hide objects
 
@@ -27,6 +26,8 @@ select edge and face add rotate face gizmo
 moving needs to have snapping
 redo fillet gizmos
 drag and drop points    
+
+move selected/hovered up to editor;
 
 fillet face
 extrude face
