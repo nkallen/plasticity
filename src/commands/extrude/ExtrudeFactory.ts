@@ -153,6 +153,10 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     private bool = new BooleanRegionExtrudeFactory(this.db, this.materials, this.signals);
     private fantom = new RegionExtrudeFactory(this.db, this.materials, this.signals);
 
+    private _solid?: visual.Solid;
+
+    newBody = false;
+
     get distance1() { return this.bool.distance1 }
     get distance2() { return this.bool.distance2 }
     get race1() { return this.bool.race1 }
@@ -162,7 +166,7 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     get region() { return this.bool.region }
     get direction() { return this.bool.direction }
     get operationType() { return this.bool.operationType }
-    get solid() { return this.bool.solid }
+    get solid() { return this._solid }
 
     set distance1(distance1: number) { this.bool.distance1 = distance1; this.fantom.distance1 = distance1 }
     set distance2(distance2: number) { this.bool.distance2 = distance2; this.fantom.distance2 = distance2 }
@@ -171,41 +175,50 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.fantom.thickness1 = thickness1 }
     set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.fantom.thickness2 = thickness2 }
     set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.fantom.region = region }
-    set solid(solid: visual.Solid) { this.bool.solid = solid }
     set operationType(operationType: c3d.OperationType) { this.bool.operationType = operationType }
+    set solid(solid: visual.Solid | undefined) {
+        this._solid = solid;
+        if (solid !== undefined) this.bool.solid = solid;
+    }
 
-    isOverlapping = false;
+    private _isOverlapping = false;
+    get isOverlapping() { return this._isOverlapping }
+
     private _phantom!: c3d.Solid;
 
     private async precomputeGeometry() {
         const phantom = await this.fantom.computeGeometry();
         this._phantom = phantom;
-        if (this.bool.model === undefined) {
-            this.isOverlapping = false;
+        if (this.solid === undefined) {
+            this._isOverlapping = false;
         } else {
-            this.isOverlapping = c3d.Action.IsSolidsIntersection(this.bool.model, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
+            this._isOverlapping = c3d.Action.IsSolidsIntersection(this.bool.model, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
         }
     }
 
     async computeGeometry() {
+        console.log("compute geometry");
         await this.precomputeGeometry();
-        if (this.isOverlapping) {
+        if (this._isOverlapping && !this.newBody) {
             return await this.bool.computeGeometry();
         } else {
             return this._phantom;
         }
     }
 
-    protected get phantom() {
-        if (this.isOverlapping) return this._phantom;
+    protected get phantom(): c3d.Solid | undefined {
+        if (this.solid === undefined) return;
+        if (this.newBody) return;
+        if (this.operationType === c3d.OperationType.Union) return;
+        if (!this._isOverlapping) return;
+
+        return this._phantom;
     }
 
-    get originalItem() {
-        return this.bool.solid;
-    }
+    get originalItem() { return this.bool.solid }
 
-    get shouldHideOriginalItem() {
-        return this.isOverlapping;
+    get shouldRemoveOriginalItem() {
+        return this._isOverlapping && this.solid !== undefined && !this.newBody;
     }
 
     get phantomMaterial() {

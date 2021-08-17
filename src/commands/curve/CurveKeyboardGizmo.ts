@@ -2,7 +2,6 @@ import { AbstractCommandKeyboardInput, CommandKeyboardInput, EditorLike } from "
 import c3d from '../../../build/Release/c3d.node';
 
 const commands = new Array<string>();
-
 const map: Record<string, number> = {
     // 'gizmo:curve:line-segment': c3d.SpaceType.LineSegment3D,
     // 'gizmo:curve:polyline': c3d.SpaceType.Polyline3D,
@@ -13,7 +12,6 @@ const map: Record<string, number> = {
     // 'gizmo:curve:arc': c3d.SpaceType.Arc3D,
 }
 for (const key in map) commands.push(key);
-
 commands.push('gizmo:curve:undo');
 
 export type CurveKeyboardEvent = { tag: 'type', type: number } | { tag: 'undo' }

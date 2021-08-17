@@ -25,6 +25,7 @@ import CylinderFactory from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
 import ExtrudeFactory, { PossiblyBooleanRegionExtrudeFactory, RegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
+import { ExtrudeKeyboardGizmo } from "./extrude/ExtrudeKeyboardGizmo";
 import ChamferFactory from "./fillet/ChamferFactory";
 import { ChamferGizmo } from "./fillet/ChamferGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
@@ -1043,9 +1044,22 @@ export class ExtrudeRegionCommand extends Command {
             extrude.solid = selection.solids.first;
         extrude.region = region;
 
-        const keyboard = new CommandKeyboardInput('extrude', this.editor, ['gizmo:extrude:union', 'gizmo:extrude:difference', 'gizmo:extrude:intersect']);
-        let foo: CancellablePromise<void> | undefined;
-
+        const keyboard = new ExtrudeKeyboardGizmo(this.editor);
+        keyboard.execute(e => {
+            console.log(e);
+            switch (e.tag) {
+                case 'boolean':
+                    extrude.newBody = false;
+                    extrude.operationType = e.type;
+                    extrude.update();
+                    break;
+                case 'new-body':
+                    extrude.newBody = true;
+                    extrude.update();
+                    break;
+            }
+        }).resource(this);
+        
         const bbox = new THREE.Box3();
         bbox.expandByObject(extrude.region);
         const centroid = new THREE.Vector3();
@@ -1058,27 +1072,7 @@ export class ExtrudeRegionCommand extends Command {
         await gizmo.execute(params => {
             extrude.update();
 
-            if (extrude.isOverlapping) {
-                if (foo === undefined) {
-                    foo = keyboard.execute(e => {
-                        switch (e) {
-                            case 'union': extrude.operationType = c3d.OperationType.Union;
-                                extrude.update();
-                                break;
-                            case 'difference': extrude.operationType = c3d.OperationType.Difference;
-                                extrude.update();
-                                break;
-                            case 'intersect': extrude.operationType = c3d.OperationType.Intersect;
-                                extrude.update();
-                                break;
-                        }
-                    }).resource(this);
-                }
-            } else {
-                foo?.finish();
-                foo = undefined;
-            }
-
+            keyboard.toggle(extrude.isOverlapping);
         }).resource(this);
 
         await extrude.commit();

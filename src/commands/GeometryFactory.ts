@@ -77,7 +77,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
         // 3.b. The "original item" is the item the user is manipulating, in most cases we just hide it
         for (const i of this.originalItems) {
-            if (this.shouldHideOriginalItem) this.db.hide(i);
+            if (this.shouldRemoveOriginalItem) this.db.hide(i);
             else this.db.unhide(i);
         }
 
@@ -111,7 +111,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 promises.push(this.db.addItem(geometry));
             }
             const result = await Promise.all(promises);
-            for (const i of this.originalItems) this.db.removeItem(i);
+            if (this.shouldRemoveOriginalItem) for (const i of this.originalItems) this.db.removeItem(i);
             return dearray(result, unarray);
         } finally {
             await Promise.resolve(); // This removes flickering when rendering.
@@ -131,7 +131,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     private get originalItems() {
         return toArray(this.originalItem);
     }
-    protected get shouldHideOriginalItem() {
+    protected get shouldRemoveOriginalItem() {
         return true;
     }
 

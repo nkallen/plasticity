@@ -24,6 +24,7 @@ export default {
         "q": "gizmo:extrude:union",
         "w": "gizmo:extrude:difference",
         "e": "gizmo:extrude:intersect",
+        "r": "gizmo:extrude:new-body",
     },
 
     "ispace-viewport[gizmo='offset-face']": {

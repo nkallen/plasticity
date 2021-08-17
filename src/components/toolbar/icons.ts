@@ -186,6 +186,7 @@ keybindings.set("gizmo:extrude:thickness", "Thickness");
 keybindings.set("gizmo:extrude:union", "Union");
 keybindings.set("gizmo:extrude:difference", "Difference");
 keybindings.set("gizmo:extrude:intersect", "Intersect");
+keybindings.set("gizmo:extrude:new-body", "New body");
 keybindings.set("gizmo:offset-face:distance", "Distance");
 
 export default (editor: Editor): void => {

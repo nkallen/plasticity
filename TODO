@@ -1,6 +1,5 @@
-keyboard not removed
-remove commit from temporary item
-cleanup keyboard garbage in Extrude
+tests for PossiblyBooleanRegionExtrudeFactory
+tests for extrudekeybaordgizmo
 cylinder vertical snap gone
 
 draw box/cyl should do boolean automatically
@@ -48,6 +47,10 @@ BUG/CRASH:
 1. Add cylinder
 2. Fillet top
 3. Squeeze side to smallest possible
+# 3
+1. Add sphere, offset to left x
+2. Create circular region above, extrude bool diff so it just grazes
+3. select cut edges as if to fillet; (it crashes when finding fillet max)
 
 # transaction history
 - delete creator
