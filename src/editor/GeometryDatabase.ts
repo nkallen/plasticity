@@ -15,7 +15,6 @@ const precision_distance: [number, number][] = [[0.1, 50], [0.001, 5]];
 export interface TemporaryObject {
     get underlying(): visual.Item;
     cancel(): void;
-    commit(): Promise<visual.SpaceItem>;
     show(): void;
 }
 
@@ -36,7 +35,8 @@ type Agent = 'user' | 'automatic';
 
 export class GeometryDatabase {
     readonly temporaryObjects = new THREE.Scene();
-    readonly overlay = new THREE.Scene();
+    readonly phantomObjects = new THREE.Scene();
+
     private readonly geometryModel = new Map<c3d.SimpleName, { view: visual.Item, model: c3d.Item }>();
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
@@ -79,46 +79,27 @@ export class GeometryDatabase {
         });
     }
 
-    async addTemporaryItem(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
+    async addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
+        return this.addTemporaryItem(object, materials, this.phantomObjects);
+    }
+
+    async addTemporaryItem(object: c3d.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
         const mesh = await this.meshes(object, -1, [[0.003, 1]], materials);
         mesh.visible = false;
-        this.temporaryObjects.add(mesh);
-        const that = this;
+        into.add(mesh);
         return {
             underlying: mesh,
-            show() {
-                mesh.visible = true;
-            },
+            show() { mesh.visible = true },
             cancel() {
                 mesh.dispose();
-                that.temporaryObjects.remove(mesh);
-            },
-            commit() {
-                that.temporaryObjects.remove(mesh);
-                return that.addItem(object);
+                into.remove(mesh);
             }
         }
     }
 
-    async addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
-        const mesh = await this.meshes(object, -1, [[0.003, 1]], materials);
-        mesh.visible = false;
-        this.overlay.add(mesh);
-        const that = this;
-        return {
-            underlying: mesh,
-            show() {
-                mesh.visible = true;
-            },
-            cancel() {
-                mesh.dispose();
-                that.overlay.remove(mesh);
-            },
-            commit() {
-                that.overlay.remove(mesh);
-                return that.addItem(object);
-            }
-        }
+    clearTemporaryObjects() {
+        this.temporaryObjects.clear();
+        this.phantomObjects.clear();
     }
 
     removeItem(view: visual.Item, agent: Agent = 'user') {

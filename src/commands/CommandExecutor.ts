@@ -81,7 +81,7 @@ export class CommandExecutor {
         } finally {
             document.body.removeAttribute("command");
             disposable.dispose();
-            this.db.temporaryObjects.clear();
+            this.db.clearTemporaryObjects();
         }
     }
 

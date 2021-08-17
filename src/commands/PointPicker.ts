@@ -1,12 +1,12 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
-import { cart2vec, vec2cart, vec2vec } from '../util/Conversion';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { GeometryDatabase } from '../editor/GeometryDatabase';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
 import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
+import { Helpers } from '../util/Helpers';
 
 const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
@@ -14,7 +14,8 @@ interface EditorLike {
     db: GeometryDatabase,
     viewports: Viewport[],
     snaps: SnapManager,
-    signals: EditorSignals
+    signals: EditorSignals,
+    helpers: Helpers
 }
 
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap }
@@ -163,6 +164,8 @@ export class PointPicker {
             temporaryObjects.add(mesh);
             disposables.add(new Disposable(() => temporaryObjects.remove(mesh)));
 
+            let removeHelpers = new Disposable();
+
             for (const viewport of this.editor.viewports) {
                 viewport.disableControlsExcept();
                 disposables.add(new Disposable(() => viewport.enableControls()))
@@ -173,11 +176,12 @@ export class PointPicker {
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
 
-                    viewport.overlay.clear();
                     const sprites = model.nearby(raycaster, constructionPlane);
-                    for (const sprite of sprites) {
-                        viewport.overlay.add(sprite);
-                    }
+                    removeHelpers.dispose();
+                    for (const sprite of sprites) editor.helpers.add(sprite);
+                    removeHelpers = new Disposable(() => {
+                        for (const sprite of sprites) editor.helpers.remove(sprite);
+                    })
 
                     // if within snap range, change point to snap position
                     const snappers = model.snap(raycaster, constructionPlane);

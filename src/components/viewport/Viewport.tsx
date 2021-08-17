@@ -35,7 +35,6 @@ export interface EditorLike extends selector.EditorLike {
 type Control = { enabled: boolean, dispose(): void };
 
 export class Viewport {
-    readonly overlay = new THREE.Scene();
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
@@ -44,6 +43,9 @@ export class Viewport {
     lastPointerEvent?: PointerEvent;
     private readonly renderPass: RenderPass;
     private readonly disposable = new CompositeDisposable();
+
+    private readonly scene = new THREE.Scene();
+    private readonly overlay = new THREE.Scene();
 
     constructor(
         private readonly editor: EditorLike,
@@ -72,18 +74,12 @@ export class Viewport {
         this.composer = new EffectComposer(this.renderer, renderTarget);
         this.composer.setPixelRatio(window.devicePixelRatio);
 
-        this.renderPass = new RenderPass(editor.db.scene, this.camera);
+        this.renderPass = new RenderPass(this.scene, this.camera);
         const overlayPass = new RenderPass(this.overlay, this.camera);
-        const overlayPass2 = new RenderPass(editor.db.overlay, this.camera);
-        const helpersPass = new RenderPass(editor.helpers.scene, this.camera);
         const copyPass = new ShaderPass(CopyShader);
 
         overlayPass.clear = false;
         overlayPass.clearDepth = true;
-        overlayPass2.clear = false;
-        overlayPass2.clearDepth = true;
-        helpersPass.clear = false;
-        helpersPass.clearDepth = true;
 
         const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
         outlinePassSelection.edgeStrength = 5;
@@ -103,8 +99,6 @@ export class Viewport {
         this.composer.addPass(this.outlinePassHover);
         this.composer.addPass(this.outlinePassSelection);
         this.composer.addPass(overlayPass);
-        this.composer.addPass(overlayPass2);
-        this.composer.addPass(helpersPass);
         this.composer.addPass(copyPass);
 
         this.render = this.render.bind(this);
@@ -125,6 +119,8 @@ export class Viewport {
             this.selector.dispose();
             this.navigationControls.dispose();
         }));
+
+        this.scene.background = new THREE.Color(0x424242);
     }
 
     private started = false;
@@ -190,28 +186,29 @@ export class Viewport {
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 
-        try {
-            const scene = this.editor.db.scene;
+        const { editor: { db, helpers, selection, signals }, scene, overlay } = this
 
+        try {
             // prepare the scene, once per frame:
             if (frameNumber > this.lastFrameNumber) {
-                this.editor.db.rebuildScene();
-                scene.background = new THREE.Color(0x424242);
-                scene.add(this.editor.helpers.axes);
+                db.rebuildScene();
+                scene.add(helpers.axes);
+                scene.add(db.scene);
                 if (this.grid) scene.add(this.grid);
-                // scene.fog = fog;
-                this.editor.selection.highlight();
+                selection.highlight();
+                overlay.add(helpers.scene);
+                overlay.add(db.phantomObjects);
             }
 
             const resolution = new THREE.Vector2(this.offsetWidth, this.offsetHeight);
-            this.editor.signals.renderPrepared.dispatch({ camera: this.camera, resolution });
+            signals.renderPrepared.dispatch({ camera: this.camera, resolution });
 
             this.composer.render();
 
             if (frameNumber > this.lastFrameNumber) {
-                this.editor.selection.unhighlight();
-                if (this.grid) scene.remove(this.grid);
-                scene.remove(this.editor.helpers.axes);
+                selection.unhighlight();
+                scene.clear();
+                overlay.clear();
             }
         } finally {
             this.needsRender = false;

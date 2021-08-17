@@ -52,6 +52,7 @@ export abstract class Helper extends THREE.Object3D {
 export class Helpers {
     readonly scene = new THREE.Scene();
     readonly axes: THREE.AxesHelper;
+    private readonly updatable = new Set<Helper>();
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(({ camera }) => this.update(camera));
@@ -64,16 +65,22 @@ export class Helpers {
         this.axes = axes;
     }
 
-    add(...object: Helper[]) {
-        this.scene.add(...object);
+    add(...objects: THREE.Object3D[]) {
+        this.scene.add(...objects);
+        for (const object of objects) {
+            if (object instanceof Helper) this.updatable.add(object);
+        }
     }
 
-    remove(...object: Helper[]) {
-        this.scene.remove(...object);
+    remove(...objects: THREE.Object3D[]) {
+        this.scene.remove(...objects);
+        for (const object of objects) {
+            if (object instanceof Helper) this.updatable.delete(object);
+        }
     }
 
     update(camera: THREE.Camera) {
-        for (const child of this.scene.children) {
+        for (const child of this.updatable) {
             const helper = child as Helper;
             helper.update(camera);
         }

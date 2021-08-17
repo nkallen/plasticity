@@ -107,20 +107,6 @@ describe("addTemporaryItem", () => {
         expect(db.temporaryObjects.children.length).toBe(0);
         expect(db.visibleObjects.length).toBe(0);
     });
-
-    test("commit", async () => {
-        expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(0);
-
-        const temp = await db.addTemporaryItem(box);
-        expect(db.temporaryObjects.children.length).toBe(1);
-        expect(db.visibleObjects.length).toBe(0);
-
-        await temp.commit();
-
-        expect(db.temporaryObjects.children.length).toBe(0);
-        expect(db.visibleObjects.length).toBe(1);
-    })
 });
 
 test("lookupTopologyItemById", async () => {
