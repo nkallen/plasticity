@@ -50,11 +50,11 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
         params.thickness1 = thickness1;
         params.thickness2 = thickness2;
 
-        const solid = this.performAction(sweptData, new c3d.Vector3D(direction.x, direction.y, direction.z), params, ns);
+        const solid = await this.performAction(sweptData, new c3d.Vector3D(direction.x, direction.y, direction.z), params, ns);
         return solid;
     }
 
-    protected performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): c3d.Solid {
+    protected async performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): Promise<c3d.Solid> {
         const { names } = this;
         return c3d.ActionSolid.ExtrusionSolid(sweptData, direction, null, null, false, params, names, ns);
     }
@@ -142,7 +142,7 @@ export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
         this.model = this.db.lookup(s);
     }
 
-    protected async performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): c3d.Solid {
+    protected async performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): Promise<c3d.Solid> {
         const { names, model, operationType } = this;
 
         const result = await c3d.ActionSolid.ExtrusionResult_async(model, c3d.CopyMode.Copy, sweptData, direction, params, operationType, names, ns)
@@ -252,6 +252,6 @@ mesh_green.polygonOffset = true;
 mesh_green.polygonOffsetFactor = 0.1;
 mesh_green.polygonOffsetUnits = 1;
 
-const phantom_green: MaterialOverride  = {
+const phantom_green: MaterialOverride = {
     mesh: mesh_green
 }
