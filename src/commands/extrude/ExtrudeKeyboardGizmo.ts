@@ -1,6 +1,6 @@
-import { AbstractCommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
 import c3d from '../../../build/Release/c3d.node';
-import { Cancel, CancellablePromise, CancellableRegistor, ResourceRegistration } from "../../util/Cancellable";
+import { CancellablePromise } from "../../util/Cancellable";
+import { AbstractCommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
 
 const commands = new Array<string>();
 const map: Record<string, number> = {
@@ -46,6 +46,8 @@ export class ExtrudeKeyboardGizmo extends AbstractCommandKeyboardInput<(e: Extru
         });
     }
 
+    // test calling multiple times doesn't trigger keybindingsRegistered
+    // test cancelling kills children
     toggle(bool: boolean) {
         if (!bool) {
             this.active?.finish();

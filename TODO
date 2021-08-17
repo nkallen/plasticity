@@ -1,6 +1,7 @@
 tests for PossiblyBooleanRegionExtrudeFactory
 tests for extrudekeybaordgizmo
 cylinder vertical snap gone
+when things fail (e.g., push pull on sphere union'd with cyl, flickering of original item)
 
 draw box/cyl should do boolean automatically
 inset extrude

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import ExtrudeFactory, { RegionExtrudeFactory } from "../../src/commands/extrude/ExtrudeFactory";
+import { ExtrudeKeyboardGizmo } from "../../src/commands/extrude/ExtrudeKeyboardGizmo";
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -10,11 +11,9 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 let db: GeometryDatabase;
-let extrude: ExtrudeFactory;
-let extrudeRegion: RegionExtrudeFactory;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
-let makeCircle: CircleFactory;
+let makeCircle: CenterCircleFactory;
 let makeRegion: RegionFactory;
 
 beforeEach(() => {
@@ -23,11 +22,14 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
     makeCircle = new CenterCircleFactory(db, materials, signals);
     makeRegion = new RegionFactory(db, materials, signals);
-    extrude = new ExtrudeFactory(db, materials, signals);
-    extrudeRegion = new RegionExtrudeFactory(db, materials, signals);
 })
 
-describe('Extrude Curve', () => {
+describe(ExtrudeFactory, () => {
+    let extrude: ExtrudeFactory;
+    beforeEach(() => {
+        extrude = new ExtrudeFactory(db, materials, signals);
+    });
+
     describe('commit', () => {
         test('invokes the appropriate c3d commands', async () => {
             const makeCircle = new CenterCircleFactory(db, materials, signals);
@@ -51,7 +53,12 @@ describe('Extrude Curve', () => {
     })
 })
 
-describe('Extrude Region', () => {
+describe(RegionExtrudeFactory, () => {
+    let extrude: RegionExtrudeFactory;
+    beforeEach(() => {
+        extrude = new RegionExtrudeFactory(db, materials, signals);
+    });
+
     describe('commit', () => {
         test('invokes the appropriate c3d commands', async () => {
             const makeCircle = new CenterCircleFactory(db, materials, signals);
@@ -64,10 +71,10 @@ describe('Extrude Region', () => {
             const items = await makeRegion.commit() as visual.PlaneInstance<visual.Region>;
             const region = items[0];
 
-            extrudeRegion.region = region;
-            extrudeRegion.distance1 = 1;
-            extrudeRegion.distance2 = 1;
-            const result = await extrudeRegion.commit() as visual.SpaceItem;
+            extrude.region = region;
+            extrude.distance1 = 1;
+            extrude.distance2 = 1;
+            const result = await extrude.commit() as visual.SpaceItem;
 
             const bbox = new THREE.Box3().setFromObject(result);
             const center = new THREE.Vector3();
@@ -78,3 +85,7 @@ describe('Extrude Region', () => {
         })
     })
 })
+
+describe(ExtrudeKeyboardGizmo, () => {
+
+});

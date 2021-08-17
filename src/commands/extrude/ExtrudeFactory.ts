@@ -197,7 +197,6 @@ export class PossiblyBooleanRegionExtrudeFactory extends GeometryFactory impleme
     }
 
     async computeGeometry() {
-        console.log("compute geometry");
         await this.precomputeGeometry();
         if (this._isOverlapping && !this.newBody) {
             return await this.bool.computeGeometry();
