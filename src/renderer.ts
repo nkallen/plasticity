@@ -77,8 +77,8 @@ box.commit();
 // makeCircle1.commit();
 
 const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
-makeCurve1.points.push(new THREE.Vector3());
-makeCurve1.points.push(new THREE.Vector3(-2, 4, 0));
+makeCurve1.points.push(new THREE.Vector3(-3, -3, 0));
+makeCurve1.points.push(new THREE.Vector3(3, 3, 0));
 makeCurve1.commit();
 
 // const makeCurve2 = new CurveFactory(editor.db, editor.materials, editor.signals);

@@ -3,8 +3,9 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from '../../editor/SnapManager';
 import * as visual from '../../editor/VisualModel';
-import { curve3d2curve2d } from '../../util/Conversion';
+import { curve3d2curve2d, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import ExtrudeFactory from "../extrude/ExtrudeFactory";
 
 
 interface BooleanLikeFactory extends GeometryFactory {
@@ -74,7 +75,6 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     get shouldRemoveOriginalItem() {
         return this._isOverlapping;
     }
-
 }
 
 export class UnionFactory extends BooleanFactory {
@@ -89,15 +89,22 @@ export class DifferenceFactory extends BooleanFactory {
     operationType = c3d.OperationType.Difference;
 }
 
+export interface CutParams {
+    mergingFaces: boolean;
+    mergingEdges: boolean;
+}
+
 export class CutFactory extends GeometryFactory {
     solid!: visual.Solid;
-
-    names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
-
     contour!: c3d.Contour;
     placement!: c3d.Placement3D;
-
     constructionPlane?: PlaneSnap;
+    mergingFaces = true;
+    mergingEdges = true;
+    prolongContour = true;
+    
+    private fantom = new ExtrudeSurfaceFactory(this.db, this.materials, this.signals);
+    private names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
 
     set curve(inst: visual.SpaceInstance<visual.Curve3D>) {
         const instance = this.db.lookup(inst);
@@ -111,20 +118,32 @@ export class CutFactory extends GeometryFactory {
         this.placement = placement;
     }
 
+
     async computeGeometry() {
-        const { db, contour, placement, names } = this;
+        const { db, contour, placement, names, fantom } = this;
 
         const solid = db.lookup(this.solid);
-
         const flags = new c3d.MergingFlags(true, true);
         const direction = new c3d.Vector3D(0, 0, 0);
-        const result0 = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, placement, contour, direction, -1, names, true, flags);
-        const result1 = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, placement, contour, direction, 1, names, true, flags);
 
-        return [result0, result1];
+        fantom.model = new c3d.PlaneCurve(placement, contour, true);
+        fantom.direction = placement.GetAxisZ();
+        this._phantom = await fantom.computeGeometry();
+
+        const params = new c3d.ShellCuttingParams(placement, contour, false, direction, flags, true, names);
+        const results = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, params);
+
+        return [...results];
     }
 
     get originalItem() { return this.solid }
+
+    get phantomMaterial() {
+        return phantom_red;
+    }
+
+    protected _phantom!: c3d.SpaceInstance;
+    get phantom() { return this._phantom }
 }
 
 export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends GeometryFactory {
@@ -217,4 +236,25 @@ mesh_green.polygonOffsetUnits = 1;
 
 const phantom_green: MaterialOverride = {
     mesh: mesh_green
+}
+
+class ExtrudeSurfaceFactory extends GeometryFactory {
+    direction!: c3d.Vector3D;
+
+    private _curve!: visual.SpaceInstance<visual.Curve3D>;
+    model!: c3d.Curve3D;
+
+    get curve() { return this._curve }
+    set curve(curve: visual.SpaceInstance<visual.Curve3D>) {
+        this._curve = curve;
+        const inst = this.db.lookup(curve);
+        const item = inst.GetSpaceItem()!;
+        this.model = item.Cast<c3d.Curve3D>(item.IsA());
+    }
+
+    async computeGeometry() {
+        const { model, direction } = this;
+        const result = c3d.ActionSurface.ExtrusionSurface(model, new c3d.Vector3D(direction.x, direction.y, direction.z), true);
+        return new c3d.SpaceInstance(result);
+    }
 }

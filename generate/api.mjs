@@ -790,6 +790,16 @@ export default {
                 "bool equable",
             ]
         },
+        ShellCuttingParams: {
+            rawHeader: "op_shell_parameter.h",
+            dependencies: ["Placement3D.h", "Contour.h", "Vector3D.h", "MergingFlags.h", "SNameMaker.h"],
+            initializers: [
+                "const MbPlacement3D & place, const MbContour & contour, bool sameContour, const MbVector3D & dir, const MbMergingFlags & mergingFlags, bool cutAsClosed, const MbSNameMaker & snMaker",
+            ],
+            functions: [
+                "void AddSurfaceProlongType(MbeSurfaceProlongType pt)"
+            ]
+        },
         EdgeFunction: {
             rawHeader: "topology_faceset.h",
             dependencies: ["CurveEdge.h", "Function.h"],
@@ -1174,9 +1184,10 @@ export default {
         },
         ActionSurface: {
             rawHeader: "action_surface.h",
-            dependencies: ["CartPoint3D.h", "Surface.h"],
+            dependencies: ["CartPoint3D.h", "Surface.h", "Curve3D.h", "Vector3D.h"],
             functions: [
-                "MbResultType ElementarySurface(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbeSpaceType surfaceType, MbSurface *& result)"
+                "MbResultType ElementarySurface(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbeSpaceType surfaceType, MbSurface *& result)",
+                "MbResultType ExtrusionSurface(const MbCurve3D & curve, const MbVector3D & direction, bool simplify, MbSurface *& result)",
             ]
         },
         ActionSurfaceCurve: {
@@ -1188,7 +1199,7 @@ export default {
         },
         ActionSolid: {
             rawHeader: "action_solid.h",
-            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h"],
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h", "ShellCuttingParams.h"],
             functions: [
                 "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
                 // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
@@ -1196,7 +1207,7 @@ export default {
                 "MbResultType ChamferSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbCurveEdge> & edges, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType BooleanResult(MbSolid & solid1, MbeCopyMode sameShell1, MbSolid & solid2, MbeCopyMode sameShell2, OperationType oType, const MbBooleanFlags & flags, const MbSNameMaker & operNames, MbSolid *& result)",
                 "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
-                "MbResultType SolidCutting(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & place, const MbContour & contour, const MbVector3D & direction, int retainedPart, const MbSNameMaker & names, bool closed, const MbMergingFlags & flags, MbSolid *& result)",
+                { signature: "MbResultType SolidCutting(MbSolid & solid, MbeCopyMode sameShell, const MbShellCuttingParams & cuttingParams, RPArray<MbSolid> & results)", results: isReturn },
                 { signature: "size_t DetachParts(MbSolid & solid, RPArray<MbSolid> & parts, bool sort, const MbSNameMaker & names)", parts: isReturn, return: { name: "count" } },
                 {
                     signature: "MbResultType LoftedSolid(SArray<MbPlacement3D> & pl, RPArray<MbContour> & c, const MbCurve3D * spine, const LoftedValues & params, SArray<MbCartPoint3D> * ps, const MbSNameMaker & names, RPArray<MbSNameMaker> & ns, MbSolid *& result)",
@@ -1347,5 +1358,6 @@ export default {
         "MbeIntersectionType",
         "MbeProcessState",
         "MbeTopologyType",
+        "MbeSurfaceProlongType",
     ]
 }

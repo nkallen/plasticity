@@ -6,7 +6,7 @@ import { Finish } from "../util/Cancellable";
 import { cart2vec, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
-import { BooleanDialog } from "./boolean/BooleanDialog";
+import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
 import { BooleanFactory, CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
@@ -776,6 +776,13 @@ export class CutCommand extends Command {
         cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
         cut.solid = this.editor.selection.selected.solids.first;
         cut.curve = this.editor.selection.selected.curves.first;
+        await cut.update();
+
+        const dialog = new CutDialog(cut, this.editor.signals);
+        await dialog.execute(async params => {
+            await cut.update();
+        }).resource(this);
+
         await cut.commit();
     }
 }
