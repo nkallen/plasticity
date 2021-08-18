@@ -318,6 +318,7 @@ export class CurveEdgeSnap extends Snap {
     }
 }
 
+const zero = new THREE.Vector3();
 export class CurveSnap extends Snap {
     t!: number;
     readonly snapper = new Line2(this.view.underlying.line.geometry, this.view.underlying.line.material);
@@ -346,14 +347,25 @@ export class CurveSnap extends Snap {
     addAdditionalSnapsTo(pointPicker: PointPicker, point: THREE.Vector3) {
         const { model } = this;
         const { t } = this.model.NearPointProjection(vec2cart(point), false);
-        const normal = model.Normal(t);
-        const tangent = model.Tangent(t);
-        const binormal = model.BNormal(t);
+        let normal = vec2vec(model.Normal(t));
+        let binormal = vec2vec(model.BNormal(t));
+        const tangent = vec2vec(model.Tangent(t));
 
-        const normalSnap = new AxisSnap(vec2vec(normal), point);
-        const tangentSnap = new AxisSnap(vec2vec(tangent), point);
-        const binormalSnap = new AxisSnap(vec2vec(binormal), point);
-        pointPicker.addSnap(normalSnap, tangentSnap, binormalSnap);
+        // in the case of straight lines, there is a tangent but no normal/binormal
+        if (normal.manhattanDistanceTo(zero) < 10e-6) {
+            normal.copy(tangent).cross(Z);
+            if (normal.manhattanDistanceTo(zero) < 10e-6) normal.copy(tangent).cross(Y);
+            normal.normalize();
+        }
+        if (binormal.manhattanDistanceTo(zero) < 10e-6) {
+            binormal.copy(normal).cross(tangent);
+            binormal.normalize();
+        }
+
+        const normalSnap = new AxisSnap(normal, point);
+        const binormalSnap = new AxisSnap(binormal, point);
+        const tangentSnap = new AxisSnap(tangent, point);
+        pointPicker.addSnap(normalSnap, binormalSnap, tangentSnap);
     }
 }
 
@@ -416,8 +428,9 @@ const points = [];
 points.push(new THREE.Vector3(0, -100_000, 0));
 points.push(new THREE.Vector3(0, 100_000, 0));
 axisGeometry.setFromPoints(points);
+const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
 
 export class AxisSnap extends Snap {
     readonly snapper = new THREE.Line(axisGeometry, new THREE.LineBasicMaterial());

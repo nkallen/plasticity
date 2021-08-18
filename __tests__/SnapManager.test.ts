@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
+import CurveFactory from "../src/commands/curve/CurveFactory";
 import LineFactory from "../src/commands/line/LineFactory";
+import { PointPicker } from "../src/commands/PointPicker";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
@@ -341,6 +343,121 @@ describe(CurveSnap, () => {
 
         expect((match as CurveSnap).view.simpleName).toBe(snap.view.simpleName);
         expect(point).toApproximatelyEqual(new THREE.Vector3())
+    })
+
+    describe("addAdditionalSnapsTo", () => {
+        test("when curvy", async () => {
+            const makeCurve = new CurveFactory(db, materials, signals);
+            makeCurve.points.push(new THREE.Vector3());
+            makeCurve.points.push(new THREE.Vector3(0, 1, 0));
+            makeCurve.points.push(new THREE.Vector3(1, 2, 0));
+            const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const inst = db.lookup(curve) as c3d.SpaceInstance;
+            const item = inst.GetSpaceItem();
+            const snap = new CurveSnap(curve, item.Cast(item.IsA()));
+
+            const addSnap = jest.fn();
+            const pp = { addSnap } as unknown as PointPicker;
+            snap.addAdditionalSnapsTo(pp, new THREE.Vector3(0, 1, 0));
+
+            expect(addSnap).toBeCalled();
+            expect(addSnap.mock.calls[0][0]).toBeInstanceOf(AxisSnap);
+            expect(addSnap.mock.calls[0][1]).toBeInstanceOf(AxisSnap);
+            expect(addSnap.mock.calls[0][2]).toBeInstanceOf(AxisSnap);
+
+            expect(addSnap.mock.calls[0][0].n).toApproximatelyEqual(new THREE.Vector3(0.945, -0.316, 0));
+            expect(addSnap.mock.calls[0][0].o).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+
+            expect(addSnap.mock.calls[0][1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
+            expect(addSnap.mock.calls[0][1].o).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+
+            expect(addSnap.mock.calls[0][2].n).toApproximatelyEqual(new THREE.Vector3(0.316, 0.948, 0));
+            expect(addSnap.mock.calls[0][2].o).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        })
+
+        test("when straight along X", async () => {
+            const makeLine = new LineFactory(db, materials, signals);
+            makeLine.p1 = new THREE.Vector3();
+            makeLine.p2 = new THREE.Vector3(1, 0, 0);
+            const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const inst = db.lookup(line) as c3d.SpaceInstance;
+            const item = inst.GetSpaceItem();
+            const snap = new CurveSnap(line, item.Cast(item.IsA()));
+
+            const addSnap = jest.fn();
+            const pp = { addSnap } as unknown as PointPicker;
+            snap.addAdditionalSnapsTo(pp, makeLine.p2);
+
+            expect(addSnap).toBeCalled();
+            expect(addSnap.mock.calls[0][0]).toBeInstanceOf(AxisSnap);
+            expect(addSnap.mock.calls[0][1]).toBeInstanceOf(AxisSnap);
+            expect(addSnap.mock.calls[0][2]).toBeInstanceOf(AxisSnap);
+
+            expect(addSnap.mock.calls[0][0].n).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
+            expect(addSnap.mock.calls[0][0].o).toApproximatelyEqual(makeLine.p2);
+
+            expect(addSnap.mock.calls[0][1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(addSnap.mock.calls[0][1].o).toApproximatelyEqual(makeLine.p2);
+
+            expect(addSnap.mock.calls[0][2].n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(addSnap.mock.calls[0][2].o).toApproximatelyEqual(makeLine.p2);
+        })
+
+        test("when straight along Y", async () => {
+            const makeLine = new LineFactory(db, materials, signals);
+            makeLine.p1 = new THREE.Vector3();
+            makeLine.p2 = new THREE.Vector3(0, 1, 0);
+            const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const inst = db.lookup(line) as c3d.SpaceInstance;
+            const item = inst.GetSpaceItem();
+            const snap = new CurveSnap(line, item.Cast(item.IsA()));
+
+            const addSnap = jest.fn();
+            const pp = { addSnap } as unknown as PointPicker;
+            snap.addAdditionalSnapsTo(pp, makeLine.p2);
+
+            expect(addSnap).toBeCalled();
+            expect(addSnap.mock.calls[0][0]).toBeInstanceOf(AxisSnap);
+            expect(addSnap.mock.calls[0][1]).toBeInstanceOf(AxisSnap);
+            expect(addSnap.mock.calls[0][2]).toBeInstanceOf(AxisSnap);
+
+            expect(addSnap.mock.calls[0][0].n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(addSnap.mock.calls[0][0].o).toApproximatelyEqual(makeLine.p2);
+
+            expect(addSnap.mock.calls[0][1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(addSnap.mock.calls[0][1].o).toApproximatelyEqual(makeLine.p2);
+
+            expect(addSnap.mock.calls[0][2].n).toApproximatelyEqual(makeLine.p2);
+            expect(addSnap.mock.calls[0][2].o).toApproximatelyEqual(makeLine.p2);
+        })
+
+        test("when straight along Z", async () => {
+            const makeLine = new LineFactory(db, materials, signals);
+            makeLine.p1 = new THREE.Vector3();
+            makeLine.p2 = new THREE.Vector3(0, 0, 1);
+            const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const inst = db.lookup(line) as c3d.SpaceInstance;
+            const item = inst.GetSpaceItem();
+            const snap = new CurveSnap(line, item.Cast(item.IsA()));
+
+            const addSnap = jest.fn();
+            const pp = { addSnap } as unknown as PointPicker;
+            snap.addAdditionalSnapsTo(pp, makeLine.p2);
+
+            expect(addSnap).toBeCalled();
+            expect(addSnap.mock.calls[0][0]).toBeInstanceOf(AxisSnap);
+            expect(addSnap.mock.calls[0][1]).toBeInstanceOf(AxisSnap);
+            expect(addSnap.mock.calls[0][2]).toBeInstanceOf(AxisSnap);
+
+            expect(addSnap.mock.calls[0][0].n).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
+            expect(addSnap.mock.calls[0][0].o).toApproximatelyEqual(makeLine.p2);
+
+            expect(addSnap.mock.calls[0][1].n).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            expect(addSnap.mock.calls[0][1].o).toApproximatelyEqual(makeLine.p2);
+
+            expect(addSnap.mock.calls[0][2].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(addSnap.mock.calls[0][2].o).toApproximatelyEqual(makeLine.p2);
+        })
     })
 })
 
