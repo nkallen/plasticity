@@ -21,7 +21,7 @@ export interface TemporaryObject {
 export type TopologyData = { model: c3d.TopologyItem, views: Set<visual.Face | visual.Edge> };
 export type ControlPointData = { index: number, views: Set<visual.ControlPoint> };
 
-type Builder = visual.SpaceInstanceBuilder<visual.Curve3D> | visual.PlaneInstanceBuilder<visual.Region> | visual.SolidBuilder;
+type Builder = visual.SpaceInstanceBuilder<visual.Curve3D | visual.Surface> | visual.PlaneInstanceBuilder<visual.Region> | visual.SolidBuilder;
 
 export interface MaterialOverride {
     region?: THREE.Material;
@@ -29,6 +29,7 @@ export interface MaterialOverride {
     lineDashed?: LineMaterial;
     controlPoint?: PointsMaterial;
     mesh?: THREE.Material;
+    surface?: THREE.Material;
 }
 
 export type Agent = 'user' | 'automatic';
@@ -199,7 +200,7 @@ export class GeometryDatabase {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
-                builder = new visual.SpaceInstanceBuilder<visual.Curve3D>();
+                builder = new visual.SpaceInstanceBuilder<visual.Curve3D | visual.Surface>();
                 break;
             case c3d.SpaceType.PlaneInstance:
                 builder = new visual.PlaneInstanceBuilder<visual.Region>();
@@ -230,25 +231,37 @@ export class GeometryDatabase {
 
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance: {
-                const curveBuilder = builder as visual.SpaceInstanceBuilder<visual.Curve3D>;
                 const instance = obj as c3d.SpaceInstance;
                 const underlying = instance.GetSpaceItem();
                 if (underlying === null) throw new Error("invalid precondition");
-                if (underlying.Family() !== c3d.SpaceType.Curve3D) throw new Error("invalid precondition");
+                switch (underlying.Family()) {
+                    case c3d.SpaceType.Curve3D:
+                        const curveBuilder = builder as visual.SpaceInstanceBuilder<visual.Curve3D>;
+                        const edges = mesh.GetEdges();
+                        if (edges.length === 0) throw new Error(`invalid precondition: no edges`);
 
-                const edges = mesh.GetEdges();
-                if (edges.length === 0) throw new Error(`invalid precondition: no edges`);
+                        const lineMaterial = materials?.line ?? this.materials.line(instance);
+                        const pointMaterial = materials?.controlPoint ?? this.materials.controlPoint();
 
-                const lineMaterial = materials?.line ?? this.materials.line(instance);
-                const pointMaterial = materials?.controlPoint ?? this.materials.controlPoint();
+                        const pointGroup = visual.ControlPointGroup.build(underlying, id, pointMaterial);
 
-                const pointGroup = visual.ControlPointGroup.build(underlying, id, pointMaterial);
+                        let line;
+                        if (edges.length > 1) line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, this.materials.lineDashed());
+                        else line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
 
-                let line;
-                if (edges.length > 1) line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, this.materials.lineDashed());
-                else line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
-
-                curveBuilder.addLOD(line, distance);
+                        curveBuilder.addLOD(line, distance);
+                        break;
+                    case c3d.SpaceType.Surface:
+                        const surfaceBuilder = builder as visual.SpaceInstanceBuilder<visual.Surface>;
+                        const grids = mesh.GetBuffers();
+                        if (grids.length != 1) throw new Error("Invalid precondition");
+                        const grid = grids[0];
+                        const material = materials?.surface ?? this.materials.surface(instance);
+                        const surface = visual.Surface.build(grid, material);
+                        surfaceBuilder.addLOD(surface, distance);
+                        break;
+                    default: throw new Error("invalid precondition")
+                }
                 break;
             }
             case c3d.SpaceType.PlaneInstance: {

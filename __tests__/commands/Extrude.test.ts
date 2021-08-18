@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
+import CurveFactory from "../../src/commands/curve/CurveFactory";
 import ExtrudeFactory, { BooleanRegionExtrudeFactory, PossiblyBooleanRegionExtrudeFactory, RegionExtrudeFactory } from "../../src/commands/extrude/ExtrudeFactory";
+import { ExtrudeSurfaceFactory } from "../../src/commands/extrude/ExtrudeSurfaceFactory";
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -242,4 +244,31 @@ describe(PossiblyBooleanRegionExtrudeFactory, () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.1, 0.1, 2));
         })
     });
+})
+
+describe(ExtrudeSurfaceFactory, () => {
+    let extrude: ExtrudeSurfaceFactory;
+    beforeEach(() => {
+        extrude = new ExtrudeSurfaceFactory(db, materials, signals);
+    });
+
+    test("it works", async () => {
+        const makeCurve = new CurveFactory(db, materials, signals);
+        makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+        makeCurve.points.push(new THREE.Vector3(0, 2, 0.5));
+        makeCurve.points.push(new THREE.Vector3(2, 2, 0));
+        const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        extrude.curve = curve;
+        extrude.direction = new c3d.Vector3D(0, 1, 0);
+
+        const result = await extrude.commit() as visual.SpaceItem;
+
+        const bbox = new THREE.Box3().setFromObject(result);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 2.5, 0.25));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 3, 0.5));
+    })
 })

@@ -1,11 +1,11 @@
-import { MaterialOverride } from "../../editor/GeometryDatabase";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
+import { MaterialOverride } from "../../editor/GeometryDatabase";
 import { PlaneSnap } from '../../editor/SnapManager';
 import * as visual from '../../editor/VisualModel';
-import { curve3d2curve2d, vec2vec } from '../../util/Conversion';
+import { cart2vec, curve3d2curve2d, vec2cart, vec2vec } from '../../util/Conversion';
+import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
-import ExtrudeFactory from "../extrude/ExtrudeFactory";
 
 
 interface BooleanLikeFactory extends GeometryFactory {
@@ -102,7 +102,7 @@ export class CutFactory extends GeometryFactory {
     mergingFaces = true;
     mergingEdges = true;
     prolongContour = true;
-    
+
     private fantom = new ExtrudeSurfaceFactory(this.db, this.materials, this.signals);
     private names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
 
@@ -118,6 +118,23 @@ export class CutFactory extends GeometryFactory {
         this.placement = placement;
     }
 
+    private async computePhantom() {
+        const { contour, placement, fantom } = this;
+
+        const bbox = new THREE.Box3().setFromObject(this.solid);
+        let inout = vec2cart(bbox.max);
+        placement.GetPointInto(inout);
+        const Z = vec2vec(placement.GetAxisZ());
+        if (Math.abs(inout.z) < 10e-6) {
+            inout = vec2cart(bbox.min);
+            placement.GetPointInto(inout);
+        }
+        Z.multiplyScalar(inout.z);
+
+        fantom.model = new c3d.PlaneCurve(placement, contour, true);
+        fantom.direction = Z;
+        this._phantom = await fantom.computeGeometry();
+    }
 
     async computeGeometry() {
         const { db, contour, placement, names, fantom } = this;
@@ -126,9 +143,7 @@ export class CutFactory extends GeometryFactory {
         const flags = new c3d.MergingFlags(true, true);
         const direction = new c3d.Vector3D(0, 0, 0);
 
-        fantom.model = new c3d.PlaneCurve(placement, contour, true);
-        fantom.direction = placement.GetAxisZ();
-        this._phantom = await fantom.computeGeometry();
+        this.computePhantom();
 
         const params = new c3d.ShellCuttingParams(placement, contour, false, direction, flags, true, names);
         const results = c3d.ActionSolid.SolidCutting(solid, c3d.CopyMode.Copy, params);
@@ -139,7 +154,9 @@ export class CutFactory extends GeometryFactory {
     get originalItem() { return this.solid }
 
     get phantomMaterial() {
-        return phantom_red;
+        return {
+            surface: surface_red
+        };
     }
 
     protected _phantom!: c3d.SpaceInstance;
@@ -151,9 +168,9 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     protected abstract fantom: GF;
 
     protected _phantom!: c3d.Solid;
-    
+
     newBody = false;
-    
+
     get operationType() { return this.bool.operationType }
     set operationType(operationType: c3d.OperationType) { this.bool.operationType = operationType }
 
@@ -211,7 +228,6 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     }
 }
 
-
 const mesh_red = new THREE.MeshBasicMaterial();
 mesh_red.color.setHex(0xff0000);
 mesh_red.opacity = 0.1;
@@ -220,6 +236,9 @@ mesh_red.fog = false;
 mesh_red.polygonOffset = true;
 mesh_red.polygonOffsetFactor = 0.1;
 mesh_red.polygonOffsetUnits = 1;
+
+const surface_red = mesh_red.clone();
+surface_red.side = THREE.DoubleSide;
 
 const phantom_red: MaterialOverride = {
     mesh: mesh_red
@@ -236,25 +255,4 @@ mesh_green.polygonOffsetUnits = 1;
 
 const phantom_green: MaterialOverride = {
     mesh: mesh_green
-}
-
-class ExtrudeSurfaceFactory extends GeometryFactory {
-    direction!: c3d.Vector3D;
-
-    private _curve!: visual.SpaceInstance<visual.Curve3D>;
-    model!: c3d.Curve3D;
-
-    get curve() { return this._curve }
-    set curve(curve: visual.SpaceInstance<visual.Curve3D>) {
-        this._curve = curve;
-        const inst = this.db.lookup(curve);
-        const item = inst.GetSpaceItem()!;
-        this.model = item.Cast<c3d.Curve3D>(item.IsA());
-    }
-
-    async computeGeometry() {
-        const { model, direction } = this;
-        const result = c3d.ActionSurface.ExtrusionSurface(model, new c3d.Vector3D(direction.x, direction.y, direction.z), true);
-        return new c3d.SpaceInstance(result);
-    }
 }

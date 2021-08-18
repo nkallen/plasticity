@@ -8,6 +8,7 @@ const line = new LineMaterial();
 const highlight = new LineMaterial();
 const hover = new LineMaterial();
 const mesh = new THREE.Material();
+const surface = new THREE.Material();
 const region = new THREE.Material();
 const controlPoint = new THREE.PointsMaterial();
 controlPoint.userData.resolution = new THREE.Vector2(1, 1);
@@ -17,6 +18,7 @@ export class FakeMaterials implements MaterialDatabase {
     lineDashed() { return new LineMaterial() }
     point(_o?: any) { return new THREE.Material() }
     mesh(_o?: any) { return mesh }
+    surface(_o?: any) { return surface }
     controlPoint() { return controlPoint }
     region() { return region }
 

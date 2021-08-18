@@ -10,6 +10,7 @@ export default interface MaterialDatabase {
     lineDashed(): LineMaterial;
     setResolution(size: THREE.Vector2): void;
     point(o?: c3d.Item): THREE.Material;
+    surface(o?: c3d.Item): THREE.Material;
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material;
     region(): THREE.Material;
     controlPoint(): THREE.PointsMaterial;
@@ -55,9 +56,18 @@ line_hovered.depthFunc = THREE.AlwaysDepth;
 
 const point = new THREE.PointsMaterial({ color: 0x888888 });
 
+const matcapTexture = new THREE.TextureLoader().load(porcelain);
+
+const surface = new THREE.MeshMatcapMaterial();
+surface.fog = false;
+surface.matcap = matcapTexture;
+surface.polygonOffset = true;
+surface.polygonOffsetFactor = 0.1;
+surface.polygonOffsetUnits = 1;
+surface.side = THREE.DoubleSide;
+
 const mesh = new THREE.MeshMatcapMaterial();
 mesh.fog = false;
-const matcapTexture = new THREE.TextureLoader().load(porcelain);
 mesh.matcap = matcapTexture;
 mesh.polygonOffset = true;
 mesh.polygonOffsetFactor = 0.1;
@@ -142,6 +152,10 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     point(o?: c3d.Item): THREE.Material {
         if (!o) return point;
         return this.get(o) ?? point;
+    }
+
+    surface(o?: c3d.Item) {
+        return surface;
     }
 
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material {

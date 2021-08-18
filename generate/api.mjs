@@ -537,8 +537,9 @@ export default {
                 { signature: "void PointProjection(const MbCartPoint3D &p, double &x, double &y)", x: isReturn, y: isReturn },
                 "MbeItemLocation PointRelative(const MbCartPoint3D &pnt, double eps = Math::angleRegion)",
                 { signature: "bool GetMatrixToPlace(const MbPlacement3D & p, MbMatrix & matrix, double eps = Math::angleRegion)", matrix: isReturn, return: ignore },
-                { signature: "void GetVectorFrom(double x1, double y1, double z1, MbVector3D & v, MbeLocalSystemType3D type=ls_CartesianSystem)", v: isReturn },
-                { signature: "void GetPointFrom(double x1, double y1, double z1, MbCartPoint3D & p, MbeLocalSystemType3D type=ls_CartesianSystem)", p: isReturn },
+                { signature: "void GetVectorFrom(double x1, double y1, double z1, MbVector3D & v, MbeLocalSystemType3D type = ls_CartesianSystem)", v: isReturn },
+                { signature: "void GetPointFrom(double x1, double y1, double z1, MbCartPoint3D & p, MbeLocalSystemType3D type = ls_CartesianSystem)", p: isReturn },
+                { signature: "void GetPointInto(MbCartPoint3D & p, MbeLocalSystemType3D type = ls_CartesianSystem)" }
             ]
         },
         FormNote: {

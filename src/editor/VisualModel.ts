@@ -166,8 +166,37 @@ export class Curve3D extends SpaceItem {
 }
 
 export class Surface extends SpaceItem {
-    // FIXME
-    dispose() { }
+    static build(grid: c3d.MeshBuffer, material: THREE.Material): Surface {
+        const geometry = new THREE.BufferGeometry();
+        geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
+        geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
+        geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
+
+        const mesh = new THREE.Mesh(geometry, material);
+        const built = new Surface(mesh);
+
+        built.layers.set(Layers.Surface);
+        mesh.layers.set(Layers.Surface);
+        return built;
+    }
+
+    private constructor(private readonly mesh: THREE.Mesh) {
+        super()
+        this.renderOrder = RenderOrder.Face;
+        this.add(mesh);
+    }
+
+    get parentItem(): SpaceInstance<Surface> {
+        const result = this.parent!.parent as SpaceInstance<Surface>;
+        if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
+        return result;
+    }
+
+    get simpleName() { return this.parentItem.simpleName }
+
+    dispose() {
+        this.mesh.geometry.dispose();
+    }
 }
 
 export class Region extends PlaneItem {
@@ -429,12 +458,6 @@ export class ControlPointGroup extends THREE.Group {
  * Finally, we have some builder functions to enforce type-safety when building the object graph.
  */
 
-export class SurfaceBuilder {
-    private readonly surface = new Surface();
-
-    build() { return this.surface }
-}
-
 export class SolidBuilder {
     private readonly solid = new Solid();
 
@@ -520,6 +543,7 @@ export enum Layers {
     Solid,
     Curve,
     Region,
+    Surface,
 
     ControlPoint,
     Face,

@@ -67,7 +67,7 @@ describe("cutting", () => {
         expect(result.length).toBe(2);
     });
 
-    test('works with lines', async () => {
+    test.only('works with lines', async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3(0, 0, 0);
         makeSphere.radius = 1;
