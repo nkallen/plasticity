@@ -13,6 +13,8 @@ type State = { tag: 'none', last: undefined }
     | { tag: 'cancelled' }
     | { tag: 'committed' }
 
+export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride }
+
 /**
  * Subclasses of GeometryFactory implement template update() and commit() methods. This abstract class
  * implements a state machine that does a lot of error handling. Update previews the computation to but
@@ -47,7 +49,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     protected async doUpdate(): Promise<void> {
         const promises = [];
 
-        // 1. Asynchronously compute the geometry and the phantom, if it exists
+        // 1. Asynchronously compute the geometry (and the phantom if there is one)
         let result = await this.computeGeometry();
 
         // 2. Asynchronously compute the mesh for temporary items.
@@ -55,8 +57,8 @@ export abstract class GeometryFactory extends ResourceRegistration {
         for (const geometry of geometries) {
             promises.push(this.db.addTemporaryItem(geometry));
         }
-        if (this.phantom !== undefined) {
-            promises.push(this.db.addPhantom(this.phantom, this.phantomMaterial));
+        for (const { phantom, material } of this.phantoms) {
+            promises.push(this.db.addPhantom(phantom, material));
         }
 
         // 3. When all async work is complete, we can safely show/hide items to the user;
@@ -117,8 +119,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     }
 
     computeGeometry(): Promise<c3d.Item> | Promise<c3d.Item[]> { throw new Error("Implement this for simple factories"); }
-    protected get phantom(): c3d.Item | undefined { return undefined }
-    protected get phantomMaterial(): MaterialOverride | undefined { return undefined }
+    protected get phantoms(): PhantomInfo[] { return [] }
     protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
     private get originalItems() {
         return toArray(this.originalItem);

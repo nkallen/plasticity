@@ -1,7 +1,4 @@
-mass boolean
-box select can't selement more than one solid at once(?)
 show/hide objects
-phantom for intersect is wrong -- need two phantoms?
 
 inset extrude
 

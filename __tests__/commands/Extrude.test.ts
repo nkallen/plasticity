@@ -233,7 +233,8 @@ describe(PossiblyBooleanRegionExtrudeFactory, () => {
             extrude.operationType = c3d.OperationType.Difference;
             await extrude.computeGeometry();
             // @ts-expect-error('testing protected field')
-            const phantom = extrude.phantom;
+            const phantoms = extrude.phantoms;
+            const { phantom, material } = phantoms[0];
             const result = await db.addItem(phantom);
 
             const bbox = new THREE.Box3().setFromObject(result);

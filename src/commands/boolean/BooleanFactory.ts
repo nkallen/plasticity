@@ -5,8 +5,7 @@ import { PlaneSnap } from '../../editor/SnapManager';
 import * as visual from '../../editor/VisualModel';
 import { curve3d2curve2d, vec2cart, vec2vec } from '../../util/Conversion';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
-
+import { GeometryFactory, PhantomInfo, ValidationError } from '../GeometryFactory';
 
 interface BooleanLikeFactory extends GeometryFactory {
     operationType: c3d.OperationType;
@@ -45,11 +44,6 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     async computeGeometry() {
         const { solidModel, toolModels, names, mergingFaces, mergingEdges } = this;
 
-        // const flags = new c3d.BooleanFlags();
-        // flags.InitBoolean(true);
-        // flags.SetMergingFaces(mergingFaces);
-        // flags.SetMergingEdges(mergingEdges);
-
         const flags = new c3d.MergingFlags();
         flags.SetMergingFaces(mergingFaces);
         flags.SetMergingEdges(mergingEdges);
@@ -59,17 +53,23 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         return result;
     }
 
-    protected get phantom(): c3d.Solid | undefined {
-        if (this.operationType === c3d.OperationType.Union) return;
+    protected get phantoms(): PhantomInfo[] {
+        if (this.operationType === c3d.OperationType.Union) return [];
 
-        return this.toolModels[0];
-    }
-
-    get phantomMaterial() {
+        let material: MaterialOverride;
         if (this.operationType === c3d.OperationType.Difference)
-            return phantom_red
+            material = phantom_red
         else if (this.operationType === c3d.OperationType.Intersect)
-            return phantom_green;
+            material = phantom_green;
+        else material = phantom_blue;
+
+        const result = [];
+        for (const phantom of this.toolModels) {
+            result.push({ phantom, material })
+        }
+        if (this.operationType === c3d.OperationType.Intersect)
+            result.push({ phantom: this.solidModel, material: phantom_blue });
+        return result;
     }
 
     get originalItem() {
@@ -155,14 +155,12 @@ export class CutFactory extends GeometryFactory {
 
     get originalItem() { return this.solid }
 
-    get phantomMaterial() {
-        return {
-            surface: surface_red
-        };
-    }
-
     protected _phantom!: c3d.SpaceInstance;
-    get phantom() { return this._phantom }
+    get phantoms() {
+        const phantom = this._phantom;
+        const material = { surface: surface_red };
+        return [{ phantom, material }]
+    }
 }
 
 export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends GeometryFactory {
@@ -207,26 +205,29 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         }
     }
 
-    protected get phantom(): c3d.Solid | undefined {
-        if (this.solid === undefined) return;
-        if (this.newBody) return;
-        if (this.operationType === c3d.OperationType.Union) return;
-        if (!this._isOverlapping) return;
+    protected get phantoms(): PhantomInfo[] {
+        if (this.solid === undefined) return [];
+        if (this.newBody) return [];
+        if (this.operationType === c3d.OperationType.Union) return [];
+        if (!this._isOverlapping) return [];
 
-        return this._phantom;
+        let material: MaterialOverride
+        if (this.operationType === c3d.OperationType.Difference)
+            material = phantom_red;
+        else if (this.operationType === c3d.OperationType.Intersect)
+            material = phantom_green;
+        else
+            material = phantom_blue;
+
+        const phantom = this._phantom;
+
+        return [{ phantom, material }];
     }
 
     get originalItem() { return this.solid }
 
     get shouldRemoveOriginalItem() {
         return this._isOverlapping && this.solid !== undefined && !this.newBody;
-    }
-
-    get phantomMaterial() {
-        if (this.operationType === c3d.OperationType.Difference)
-            return phantom_red
-        else if (this.operationType === c3d.OperationType.Intersect)
-            return phantom_green;
     }
 }
 
@@ -257,4 +258,18 @@ mesh_green.polygonOffsetUnits = 1;
 
 const phantom_green: MaterialOverride = {
     mesh: mesh_green
+}
+
+
+const mesh_blue = new THREE.MeshBasicMaterial();
+mesh_blue.color.setHex(0x0000ff);
+mesh_blue.opacity = 0.1;
+mesh_blue.transparent = true;
+mesh_blue.fog = false;
+mesh_blue.polygonOffset = true;
+mesh_blue.polygonOffsetFactor = 0.1;
+mesh_blue.polygonOffsetUnits = 1;
+
+const phantom_blue: MaterialOverride = {
+    mesh: mesh_blue
 }
