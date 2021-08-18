@@ -25,8 +25,12 @@ export default class ContourManager {
         private readonly regions: RegionManager,
         signals: EditorSignals,
     ) {
-        signals.userAddedCurve.add(c => this.add(c));
-        signals.userRemovedCurve.add(c => this.remove(c));
+        signals.objectAdded.add(([c, agent]) => {
+            if (agent === 'user' && c instanceof visual.SpaceInstance) this.add(c)
+        });
+        signals.objectRemoved.add(([c, agent]) => {
+            if (agent === 'user' && c instanceof visual.SpaceInstance) this.remove(c)
+        });
     }
 
     async remove(curve: visual.SpaceInstance<visual.Curve3D>) {

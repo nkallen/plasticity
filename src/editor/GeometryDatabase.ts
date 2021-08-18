@@ -31,7 +31,7 @@ export interface MaterialOverride {
     mesh?: THREE.Material;
 }
 
-type Agent = 'user' | 'automatic';
+export type Agent = 'user' | 'automatic';
 
 export class GeometryDatabase {
     readonly temporaryObjects = new THREE.Scene();
@@ -69,12 +69,8 @@ export class GeometryDatabase {
                 }
             });
 
-            this.signals.objectAdded.dispatch(view);
             this.signals.sceneGraphChanged.dispatch();
-            if (agent === 'user') {
-                if (view instanceof visual.SpaceInstance)
-                    this.signals.userAddedCurve.dispatch(view);
-            }
+            this.signals.objectAdded.dispatch([view, agent]);
             return view;
         });
     }
@@ -118,12 +114,8 @@ export class GeometryDatabase {
             this.removeControlPoints(view);
             this.hidden.delete(simpleName);
 
-            this.signals.objectRemoved.dispatch(view);
+            this.signals.objectRemoved.dispatch([view, agent]);
             this.signals.sceneGraphChanged.dispatch();
-            if (agent === 'user') {
-                if (view instanceof visual.SpaceInstance)
-                    this.signals.userRemovedCurve.dispatch(view);
-            }
         });
     }
 

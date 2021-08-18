@@ -51,10 +51,10 @@ describe('restrictToPlaneThroughPoint', () => {
     })
 });
 
-describe('addPointSnap', () => {
+describe('addSnap', () => {
     beforeEach(() => {
         expect(pointPicker.restrictionsFor(new PlaneSnap()).length).toBe(0);
-        pointPicker.addPointSnap(new THREE.Vector3(1, 1, 1));
+        pointPicker.addSnap(new PointSnap(new THREE.Vector3(1, 1, 1)));
     })
 
     test("restrictionsFor", () => {

@@ -4,7 +4,7 @@ import LineFactory from "../src/commands/line/LineFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, FaceSnap, Layers, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/SnapManager';
 import { SpriteDatabase } from "../src/editor/SpriteDatabase";
 import * as visual from '../src/editor/VisualModel';
 import { cart2vec, vec2vec } from "../src/util/Conversion";
@@ -51,7 +51,7 @@ test("adding solid", async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
 
-    expect(snaps.snappers.length).toBe(34);
+    expect(snaps.snappers.length).toBe(46);
     expect(snaps.nearbys.length).toBe(25);
 
     db.removeItem(box);
@@ -66,7 +66,7 @@ test("adding & removing curve", async () => {
     makeLine.p2 = new THREE.Vector3(1, 0, 0);
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps.snappers.length).toBe(7);
+    expect(snaps.snappers.length).toBe(8);
     expect(snaps.nearbys.length).toBe(4);
 
     db.removeItem(line);
@@ -154,7 +154,7 @@ test("saveToMemento & restoreFromMemento", async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
 
-    expect(snaps.snappers.length).toBe(34);
+    expect(snaps.snappers.length).toBe(46);
     expect(snaps.nearbys.length).toBe(25);
 
     const memento = snaps.saveToMemento(new Map());
@@ -166,7 +166,7 @@ test("saveToMemento & restoreFromMemento", async () => {
 
     snaps.restoreFromMemento(memento);
 
-    expect(snaps.snappers.length).toBe(34);
+    expect(snaps.snappers.length).toBe(46);
     expect(snaps.nearbys.length).toBe(25);
 });
 
@@ -281,7 +281,7 @@ describe(CurveEdgeSnap, () => {
         expect(snap.isValid(new THREE.Vector3(0, 0, 1))).toBe(false);
     })
 
-    test("integration", () => {
+    test("integration (snap with restriction to edge)", () => {
         const raycaster = new THREE.Raycaster();
         bbox.setFromObject(snap.snapper);
         const center = new THREE.Vector3();
@@ -291,8 +291,55 @@ describe(CurveEdgeSnap, () => {
 
         snaps.layers.set(Layers.CurveEdgeSnap);
 
-        const [[match, point]] = snaps.snap(raycaster, [snap], [snap]);
-        expect(match).toBe(snap);
+        const [[match, point]] = snaps.snap(raycaster, [], [snap]);
+
+        expect((match as CurveEdgeSnap).view.simpleName).toBe(snap.view.simpleName);
+        expect(point).toApproximatelyEqual(new THREE.Vector3())
+    })
+})
+
+describe(CurveSnap, () => {
+    let line: visual.SpaceInstance<visual.Curve3D>;
+    let snap: CurveSnap;
+
+    beforeEach(async () => {
+        const makeLine = new LineFactory(db, materials, signals);
+        makeLine.p1 = new THREE.Vector3();
+        makeLine.p2 = new THREE.Vector3(0, 1, 0);
+        line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const inst = db.lookup(line) as c3d.SpaceInstance;
+        const item = inst.GetSpaceItem();
+        snap = new CurveSnap(line, item.Cast(item.IsA()));
+    })
+
+    test("project", () => {
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(1, 0.5, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(snap.project({ point: new THREE.Vector3(2, 1, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0.5, 1) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+    })
+
+    test("isValid", () => {
+        expect(snap.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(0, 0.5, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(0, 1, 0))).toBe(true);
+        expect(snap.isValid(new THREE.Vector3(1, 0, 0))).toBe(false);
+        expect(snap.isValid(new THREE.Vector3(0, 0, 1))).toBe(false);
+    })
+
+    test("integration (snap with restriction to edge)", () => {
+        const raycaster = new THREE.Raycaster();
+        bbox.setFromObject(snap.snapper);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        camera.lookAt(center);
+        raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+
+        snaps.layers.set(Layers.CurveSnap);
+
+        const [[match, point]] = snaps.snap(raycaster, [], [snap]);
+
+        expect((match as CurveSnap).view.simpleName).toBe(snap.view.simpleName);
         expect(point).toApproximatelyEqual(new THREE.Vector3())
     })
 })

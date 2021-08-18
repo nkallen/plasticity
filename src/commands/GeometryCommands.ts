@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { AxisSnap } from "../editor/SnapManager";
+import { AxisSnap, PointSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
 import { cart2vec, vec2vec } from "../util/Conversion";
@@ -96,6 +96,7 @@ export class CenterCircleCommand extends Command {
 
         pointPicker.restrictToPlaneThroughPoint(point);
         snap.addAdditionalRestrictionsTo(pointPicker, point);
+        snap.addAdditionalSnapsTo(pointPicker, point);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             circle.point = p2;
@@ -418,7 +419,7 @@ export class CurveCommand extends Command {
         }).resource(this);
 
         while (true) {
-            if (makeCurve.canBeClosed) pointPicker.addPointSnap(makeCurve.startPoint);
+            if (makeCurve.canBeClosed) pointPicker.addSnap(new PointSnap(makeCurve.startPoint));
             try {
                 const { point } = await pointPicker.execute(async ({ point }) => {
                     makeCurve.preview.last = point;

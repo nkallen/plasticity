@@ -1,7 +1,10 @@
-inset extrude
 creat curve on spine
+rethink user thing in db
 box select can't selement more than one solid at once(?)
+phantom for booleans
 show/hide objects
+
+inset extrude
 
 curve movement not working well
 redo Dialogs and show errors

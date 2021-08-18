@@ -13,6 +13,7 @@ import * as visual from './VisualModel';
 export enum Layers {
     PointSnap,
     CurveEdgeSnap,
+    CurveSnap,
     AxisSnap,
     PlaneSnap,
     ConstructionPlaneSnap,
@@ -26,6 +27,8 @@ export class SnapManager {
     private readonly midPoints = new Set<PointSnap>();
     private readonly endPoints = new Set<PointSnap>();
     private readonly faces = new Set<FaceSnap>();
+    private readonly edges = new Set<CurveEdgeSnap>();
+    private readonly curves = new Set<CurveSnap>();
     private readonly garbageDisposal = new RefCounter<c3d.SimpleName>();
 
     private nearbys: THREE.Object3D[] = []; // visual objects indicating nearby snap points
@@ -44,8 +47,12 @@ export class SnapManager {
         this.basicSnaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)));
         Object.freeze(this.basicSnaps);
 
-        signals.objectAdded.add(item => this.add(item));
-        signals.objectRemoved.add(item => this.delete(item));
+        signals.objectAdded.add(([item, agent]) => {
+            if (agent === 'user') this.add(item);
+        });
+        signals.objectRemoved.add(([item, agent]) => {
+            if (agent === 'user') this.delete(item);
+        });
 
         this.layers.enableAll();
 
@@ -93,7 +100,7 @@ export class SnapManager {
     }
 
     private update() {
-        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.endPoints, ...this.faces];
+        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.endPoints, ...this.faces, ...this.edges, ...this.curves];
         for (const a of all) {
             a.snapper.userData.snapper = a;
             if (a.nearby !== undefined) a.nearby.userData.snapper = a;
@@ -142,11 +149,15 @@ export class SnapManager {
         const begSnap = new PointSnap(cart2vec(begPt));
         const midSnap = new PointSnap(cart2vec(midPt));
 
+        const edgeSnap = new CurveEdgeSnap(edge, model);
+        this.edges.add(edgeSnap);
+
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
         return new Redisposable(() => {
             this.begPoints.delete(begSnap);
             this.midPoints.delete(midSnap);
+            this.edges.delete(edgeSnap);
         });
     }
 
@@ -164,10 +175,15 @@ export class SnapManager {
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
         this.endPoints.add(endSnap);
+
+        const curveSnap = new CurveSnap(item, curve);
+        this.curves.add(curveSnap);
+
         return new Redisposable(() => {
             this.begPoints.delete(begSnap);
             this.midPoints.delete(midSnap);
             this.endPoints.delete(endSnap);
+            this.curves.delete(curveSnap);
         });
     }
 
@@ -192,6 +208,8 @@ export class SnapManager {
         return new SnapMemento(
             new RefCounter(this.garbageDisposal),
             new Set(this.faces),
+            new Set(this.edges),
+            new Set(this.curves),
             new Set(this.begPoints),
             new Set(this.midPoints),
             new Set(this.endPoints));
@@ -199,6 +217,8 @@ export class SnapManager {
 
     restoreFromMemento(m: SnapMemento) {
         (this.faces as SnapManager['faces']) = m.faces;
+        (this.edges as SnapManager['edges']) = m.edges;
+        (this.curves as SnapManager['curves']) = m.curves;
         (this.begPoints as SnapManager['begPoints']) = m.begPoints;
         (this.midPoints as SnapManager['midPoints']) = m.midPoints;
         (this.endPoints as SnapManager['endPoints']) = m.endPoints;
@@ -274,7 +294,7 @@ export class PointSnap extends Snap {
 
 export class CurveEdgeSnap extends Snap {
     t!: number;
-    readonly snapper = new Line2(this.view.child.geometry);
+    readonly snapper = new Line2(this.view.child.geometry, this.view.child.material);
     protected readonly layer = Layers.CurveEdgeSnap;
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
@@ -284,17 +304,56 @@ export class CurveEdgeSnap extends Snap {
 
     project(intersection: THREE.Intersection): THREE.Vector3 {
         const pt = intersection.point;
-        const t = this.model.PointProjection(new c3d.CartPoint3D(pt.x, pt.y, pt.z));
+        const t = this.model.PointProjection(vec2cart(pt));
         const on = this.model.Point(t);
         this.t = t;
         return new THREE.Vector3(on.x, on.y, on.z);
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        const t = this.model.PointProjection(new c3d.CartPoint3D(pt.x, pt.y, pt.z));
+        const t = this.model.PointProjection(vec2cart(pt));
         const on = this.model.Point(t);
         const result = pt.distanceToSquared(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
         return result;
+    }
+}
+
+export class CurveSnap extends Snap {
+    t!: number;
+    readonly snapper = new Line2(this.view.underlying.line.geometry, this.view.underlying.line.material);
+    protected readonly layer = Layers.CurveSnap;
+
+    constructor(readonly view: visual.SpaceInstance<visual.Curve3D>, readonly model: c3d.Curve3D) {
+        super();
+        this.init();
+    }
+
+    project(intersection: THREE.Intersection): THREE.Vector3 {
+        const pt = intersection.point;
+        const { t } = this.model.NearPointProjection(vec2cart(pt), false);
+        const on = this.model.PointOn(t);
+        this.t = t;
+        return new THREE.Vector3(on.x, on.y, on.z);
+    }
+
+    isValid(pt: THREE.Vector3): boolean {
+        const { t } = this.model.NearPointProjection(vec2cart(pt), false);
+        const on = this.model.PointOn(t);
+        const result = pt.distanceToSquared(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
+        return result;
+    }
+
+    addAdditionalSnapsTo(pointPicker: PointPicker, point: THREE.Vector3) {
+        const { model } = this;
+        const { t } = this.model.NearPointProjection(vec2cart(point), false);
+        const normal = model.Normal(t);
+        const tangent = model.Tangent(t);
+        const binormal = model.BNormal(t);
+
+        const normalSnap = new AxisSnap(vec2vec(normal), point);
+        const tangentSnap = new AxisSnap(vec2vec(tangent), point);
+        const binormalSnap = new AxisSnap(vec2vec(binormal), point);
+        pointPicker.addSnap(normalSnap, tangentSnap, binormalSnap);
     }
 }
 
@@ -530,6 +589,7 @@ export const originSnap = new PointSnap();
 const map = new Map<any, number>();
 map.set(PointSnap, 1);
 map.set(CurveEdgeSnap, 2);
+map.set(CurveSnap, 2);
 map.set(FaceSnap, 3);
 map.set(AxisSnap, 4);
 map.set(PlaneSnap, 5);

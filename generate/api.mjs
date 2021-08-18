@@ -262,10 +262,13 @@ export default {
             jsClassName: "PlanarCheckParams",
             initializers: ["double accuracy"]
         },
+        Rect1D: {
+            rawHeader: "mb_rect1d.h",
+        },
         Curve3D: {
             rawHeader: "curve3d.h",
             extends: "SpaceItem",
-            dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h", "_PlanarCheckParams.h"],
+            dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h", "_PlanarCheckParams.h", "Rect1D.h"],
             functions: [
                 {
                     signature: "bool GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & placement, bool saveParams, PlanarCheckParams params = PlanarCheckParams())",
@@ -281,9 +284,13 @@ export default {
                 "double IsPeriodic()",
                 "bool IsStraight(bool ignoreParams = false)",
                 "MbCurve3D * Trimmed(double t1, double t2, int sense)",
+                { signature: "void Normal(double & t, MbVector3D & n)", n: isReturn },
+                { signature: "void Tangent(double & t, MbVector3D & tan)", tan: isReturn },
+                { signature: "void BNormal(double & t, MbVector3D & b)", b: isReturn },
                 { signature: "void GetCentre(MbCartPoint3D & c)", c: isReturn },
                 { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint3D & point)", point: isReturn },
-                { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn }
+                { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn },
+                { signature: "bool NearPointProjection(const MbCartPoint3D & pnt, double & t, bool ext, MbRect1D * tRange = NULL)", tRange: isNullable, t: isReturn, return: { name: "success" } }
             ]
         },
         TrimmedCurve3D: {
@@ -1160,7 +1167,7 @@ export default {
         Action: {
             rawHeader: "action.h",
             dependencies: ["Solid.h"],
-            functions:[
+            functions: [
                 "bool IsSolidsIntersection(const MbSolid & solid1, const MbSolid & solid2, const MbSNameMaker & snMaker)",
             ],
         },

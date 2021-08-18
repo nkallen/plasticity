@@ -5,10 +5,11 @@ import Command from '../commands/Command';
 import { AbstractDialog } from '../commands/fillet/FilletDialog';
 import c3d from '../build/Release/c3d.node';
 import { Viewport } from '../components/viewport/Viewport';
+import { Agent } from './GeometryDatabase';
 
 export class EditorSignals {
-    objectAdded: signals.Signal<visual.Item> = new signals.Signal();
-    objectRemoved: signals.Signal<visual.Item> = new signals.Signal();
+    objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
+    objectRemoved: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
     objectSelected: signals.Signal<visual.Selectable> = new signals.Signal();
     objectDeselected: signals.Signal<visual.Selectable> = new signals.Signal();
     objectHovered: signals.Signal<visual.Selectable> = new signals.Signal();
@@ -32,7 +33,5 @@ export class EditorSignals {
     creatorChanged: signals.Signal<{ creator: c3d.Creator, item: visual.Item }> = new signals.Signal();
     dialogAdded: signals.Signal<AbstractDialog<any>> = new signals.Signal();
     dialogRemoved: signals.Signal = new signals.Signal();
-    userAddedCurve: signals.Signal<visual.SpaceInstance<visual.Curve3D>> = new signals.Signal();
-    userRemovedCurve: signals.Signal<visual.SpaceInstance<visual.Curve3D>> = new signals.Signal();
     viewportActivated: signals.Signal<Viewport> = new signals.Signal();
 }

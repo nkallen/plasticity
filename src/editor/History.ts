@@ -1,9 +1,9 @@
-import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import c3d from '../../build/Release/c3d.node';
 import { RefCounter } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
 import { GeometryDatabase } from './GeometryDatabase';
-import { FaceSnap, PointSnap, Snap } from './SnapManager';
+import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
+import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap } from './SnapManager';
 
 export class Memento {
     constructor(
@@ -40,6 +40,8 @@ export class SnapMemento {
     constructor(
         readonly garbageDisposal: RefCounter<c3d.SimpleName>,
         readonly faces: Set<FaceSnap>,
+        readonly edges: Set<CurveEdgeSnap>,
+        readonly curves: Set<CurveSnap>,
         readonly begPoints: Set<PointSnap>,
         readonly midPoints: Set<PointSnap>,
         readonly endPoints: Set<PointSnap>

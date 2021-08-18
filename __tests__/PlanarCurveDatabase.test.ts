@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
-import { GeometryDatabase } from '../src/editor/GeometryDatabase';
+import { Agent, GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { PlanarCurveDatabase } from "../src/editor/PlanarCurveDatabase";
 import * as visual from '../src/editor/VisualModel';
@@ -127,9 +127,11 @@ test('open curve through circle, added then deleted', async () => {
 });
 
 test('userAddedCurve event is dispatched only when the user interacts with the db, not when fragments are automatically created; other events behave the same in both cases', async () => {
-    const userAddedCurve = jest.fn();
-    signals.userAddedCurve.add(userAddedCurve);
-    const objectAdded = jest.fn();
+    let userAddedObject = 0, robotAddedObject = 0;
+    const objectAdded = ([item, agent]: [visual.Item, Agent]) => {
+        if (agent === 'user') userAddedObject++;
+        else robotAddedObject++;
+    }
     signals.objectAdded.add(objectAdded);
 
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
@@ -138,14 +140,14 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
 
     expect(db.visibleObjects.length).toBe(1);
-    expect(userAddedCurve.mock.calls.length).toBe(1);
-    expect(objectAdded.mock.calls.length).toBe(1);
+    expect(userAddedObject).toBe(1);
+    expect(robotAddedObject).toBe(0);
 
     await curves.add(circle1);
 
     expect(db.visibleObjects.length).toBe(2);
-    expect(userAddedCurve.mock.calls.length).toBe(1);
-    expect(objectAdded.mock.calls.length).toBe(2);
+    expect(userAddedObject).toBe(1);
+    expect(robotAddedObject).toBe(1);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
     makeCircle2.radius = 1;
@@ -153,14 +155,14 @@ test('userAddedCurve event is dispatched only when the user interacts with the d
     const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
 
     expect(db.visibleObjects.length).toBe(3);
-    expect(userAddedCurve.mock.calls.length).toBe(2);
-    expect(objectAdded.mock.calls.length).toBe(3);
+    expect(userAddedObject).toBe(2);
+    expect(robotAddedObject).toBe(1);
 
     await curves.add(circle2);
 
     expect(db.visibleObjects.length).toBe(2 + 4);
-    expect(userAddedCurve.mock.calls.length).toBe(2);
-    expect(objectAdded.mock.calls.length).toBe(3 + 4);
+    expect(userAddedObject).toBe(2);
+    expect(robotAddedObject).toBe(5);
 });
 
 test("removing circles in reverse order works", async () => {

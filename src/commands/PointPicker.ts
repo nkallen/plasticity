@@ -79,8 +79,8 @@ export class Model {
         return result;
     }
 
-    addPointSnap(point: THREE.Vector3) {
-        this.otherAddedSnaps.push(new PointSnap(point));
+    addSnap(...snap: Snap[]) {
+        this.otherAddedSnaps.push(...snap);
     }
 
     addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion()) {
@@ -245,8 +245,8 @@ export class PointPicker {
     restrictToPlane(plane: PlaneSnap) { return this.model.restrictToPlane(plane) }
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) { this.model.restrictToLine(origin, direction) }
     addAxesAt(pt: THREE.Vector3, orientation = new THREE.Quaternion()) { this.model.addAxesAt(pt, orientation) }
+    addSnap(...snaps: Snap[]) { this.model.addSnap(...snaps) }
     undo() { this.model.undo() }
-    addPointSnap(pt: THREE.Vector3) { this.model.addPointSnap(pt) }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
     set restrictToConstructionPlane(v: boolean) { this.model.restrictToConstructionPlane = v }
 }

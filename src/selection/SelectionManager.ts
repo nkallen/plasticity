@@ -1,7 +1,7 @@
 import signals from 'signals';
 import c3d from '../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
-import { GeometryDatabase } from '../editor/GeometryDatabase';
+import { Agent, GeometryDatabase } from '../editor/GeometryDatabase';
 import { SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
@@ -52,7 +52,7 @@ export interface ModifiesSelection extends HasSelection {
 }
 
 interface SignalLike {
-    objectRemovedFromDatabase: signals.Signal<visual.Item>;
+    objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
     objectAdded: signals.Signal<visual.Selectable>;
     objectRemoved: signals.Signal<visual.Selectable>;
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
@@ -77,7 +77,7 @@ export class Selection implements HasSelection, ModifiesSelection {
         readonly signals: SignalLike,
         readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])
     ) {
-        signals.objectRemovedFromDatabase.add(item => this.delete(item));
+        signals.objectRemovedFromDatabase.add(([item,]) => this.delete(item));
     }
 
     get solids() { return new ItemSelection<visual.Solid>(this.db, this.solidIds) }
@@ -154,7 +154,7 @@ export class Selection implements HasSelection, ModifiesSelection {
         this.solidIds.add(solid.simpleName);
         this.signals.objectAdded.dispatch(solid);
     }
-    
+
     removeCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
         this.curveIds.delete(curve.simpleName);
         this.signals.objectRemoved.dispatch(curve);
@@ -177,7 +177,7 @@ export class Selection implements HasSelection, ModifiesSelection {
         this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectRemoved.dispatch(point);
     }
-    
+
     removeAll(): void {
         for (const collection of [this.edgeIds, this.faceIds]) {
             for (const id of collection) {
