@@ -746,7 +746,7 @@ abstract class BooleanCommand extends Command {
 
         const items = [...this.editor.selection.selected.solids];
         factory.solid = items[0];
-        factory.tool = items[1];
+        factory.tools = items.slice(1);
         await factory.update();
 
         const dialog = new BooleanDialog(factory, this.editor.signals);

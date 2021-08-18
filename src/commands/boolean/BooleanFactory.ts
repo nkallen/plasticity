@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride } from "../../editor/GeometryDatabase";
 import { PlaneSnap } from '../../editor/SnapManager';
 import * as visual from '../../editor/VisualModel';
-import { cart2vec, curve3d2curve2d, vec2cart, vec2vec } from '../../util/Conversion';
+import { curve3d2curve2d, vec2cart, vec2vec } from '../../util/Conversion';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
@@ -31,26 +31,30 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         this.solidModel = this.db.lookup(solid)
     }
 
-    private _tool!: visual.Solid;
-    toolModel!: c3d.Solid;
-    get tool() { return this._tool }
-    set tool(tool: visual.Solid) {
-        this._tool = tool;
-        this.toolModel = this.db.lookup(tool)
+    private _tools!: visual.Solid[];
+    toolModels!: c3d.Solid[];
+    get tools() { return this._tools }
+    set tools(tools: visual.Solid[]) {
+        this._tools = tools;
+        this.toolModels = tools.map(t => this.db.lookup(t));
     }
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.BooleanSolid, c3d.ESides.SideNone, 0);
     protected _isOverlapping = false;
 
     async computeGeometry() {
-        const { solidModel, toolModel, names, mergingFaces, mergingEdges } = this;
+        const { solidModel, toolModels, names, mergingFaces, mergingEdges } = this;
 
-        const flags = new c3d.BooleanFlags();
-        flags.InitBoolean(true);
+        // const flags = new c3d.BooleanFlags();
+        // flags.InitBoolean(true);
+        // flags.SetMergingFaces(mergingFaces);
+        // flags.SetMergingEdges(mergingEdges);
+
+        const flags = new c3d.MergingFlags();
         flags.SetMergingFaces(mergingFaces);
         flags.SetMergingEdges(mergingEdges);
 
-        const result = await c3d.ActionSolid.BooleanResult_async(solidModel, c3d.CopyMode.Copy, toolModel, c3d.CopyMode.Copy, this.operationType, flags, names);
+        const { result, notGluedSolids } = await c3d.ActionSolid.UnionResult_async(solidModel, c3d.CopyMode.Copy, toolModels, c3d.CopyMode.Copy, this.operationType, true, flags, names, false);
         this._isOverlapping = true;
         return result;
     }
@@ -58,7 +62,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     protected get phantom(): c3d.Solid | undefined {
         if (this.operationType === c3d.OperationType.Union) return;
 
-        return this.toolModel;
+        return this.toolModels[0];
     }
 
     get phantomMaterial() {
@@ -69,7 +73,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     }
 
     get originalItem() {
-        return [this.solid, this.tool];
+        return [this.solid, ...this.tools];
     }
 
     get shouldRemoveOriginalItem() {

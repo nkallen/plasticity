@@ -921,6 +921,10 @@ export default {
             initializers: [
                 "",
                 "bool mergeFaces, bool mergeEdges"
+            ],
+            functions: [
+                "void SetMergingFaces(bool s)",
+                "void SetMergingEdges(bool s)",
             ]
         },
         SweptValues: {
@@ -1208,6 +1212,7 @@ export default {
                 "MbResultType FilletSolid(MbSolid & solid, MbeCopyMode sameShell, SArray<MbEdgeFunction> & initCurves, RPArray<MbFace> & initBounds, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType ChamferSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbCurveEdge> & edges, const SmoothValues & params, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType BooleanResult(MbSolid & solid1, MbeCopyMode sameShell1, MbSolid & solid2, MbeCopyMode sameShell2, OperationType oType, const MbBooleanFlags & flags, const MbSNameMaker & operNames, MbSolid *& result)",
+                { signature: "MbResultType UnionResult(MbSolid * solid, MbeCopyMode sameShell, RPArray<MbSolid> & solids, MbeCopyMode sameShells, OperationType oType, bool checkIntersect, const MbMergingFlags & mergeFlags, const MbSNameMaker & names, bool isArray, MbSolid *& result, RPArray<MbSolid> * notGluedSolids = NULL)", notGluedSolids: isReturn },
                 "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
                 { signature: "MbResultType SolidCutting(MbSolid & solid, MbeCopyMode sameShell, const MbShellCuttingParams & cuttingParams, RPArray<MbSolid> & results)", results: isReturn },
                 { signature: "size_t DetachParts(MbSolid & solid, RPArray<MbSolid> & parts, bool sort, const MbSNameMaker & names)", parts: isReturn, return: { name: "count" } },

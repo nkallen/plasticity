@@ -64,6 +64,6 @@ export class PossiblyBooleanCylinderFactory extends PossiblyBooleanFactory<Cylin
 
     protected async precomputeGeometry() {
         await super.precomputeGeometry();
-        if (this._phantom !== undefined) this.bool.toolModel = this._phantom;
+        if (this._phantom !== undefined) this.bool.toolModels = [this._phantom];
     }
 }
