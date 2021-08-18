@@ -17,7 +17,7 @@ export function quat2axisAngle(quat: THREE.Quaternion): { axis: THREE.Vector3, a
     const angle = 2 * Math.acos(quat.w);
     const d = Math.sqrt(1 - quat.w * quat.w);
     const axis = new THREE.Vector3(quat.x / d, quat.y / d, quat.z / d);
-    return {axis,angle};
+    return { axis, angle };
 }
 
 
@@ -41,9 +41,21 @@ export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D
 export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): ContourAndPlacement | undefined {
     if (curve3d.IsStraight(true)) {
         if (!(curve3d instanceof c3d.PolyCurve3D)) throw new Error("invalid precondition");
+        hint = new c3d.Placement3D(hint);
+        const points3d = curve3d.GetPoints();
         const points2d = [];
-        for (const point of curve3d.GetPoints()) {
-            if (hint.PointRelative(point) !== c3d.ItemLocation.OnItem) return;
+
+        const inout = cart2vec(points3d[0]);
+        const origin = cart2vec(hint.GetOrigin());
+        inout.sub(origin);
+        const Z = vec2vec(hint.GetAxisZ());
+        Z.multiplyScalar(Z.dot(inout));
+
+        hint.Move(new c3d.Vector3D(Z.x, Z.y, Z.z));
+
+        for (const point of points3d) {
+            const location = hint.PointRelative(point);
+            if (location !== c3d.ItemLocation.OnItem) return;
             const { x, y } = hint.PointProjection(point);
             points2d.push(new c3d.CartPoint(x, y));
         }

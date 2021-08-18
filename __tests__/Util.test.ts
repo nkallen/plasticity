@@ -91,7 +91,7 @@ describe("curve3d2curve2d", () => {
         expect(curve2d).not.toBeUndefined();
     });
 
-    test("when given a line and compatible hint", async () => {
+    test("when given a line and exact hint", async () => {
         const makeLine = new CurveFactory(db, materials, signals);
         makeLine.points.push(new THREE.Vector3(-2, 2, 0));
         makeLine.points.push(new THREE.Vector3(2, 2));
@@ -103,6 +103,20 @@ describe("curve3d2curve2d", () => {
         const curve2d = curve3d2curve2d(curve, new c3d.Placement3D());
         expect(curve2d).not.toBeUndefined();
     });
+
+    test("when given a line and compatible hint", async () => {
+        const makeLine = new CurveFactory(db, materials, signals);
+        makeLine.points.push(new THREE.Vector3(-2, 2, 1));
+        makeLine.points.push(new THREE.Vector3(2, 2, 1));
+        const view = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const item = db.lookup(view).GetSpaceItem();
+        const curve = item.Cast<c3d.Curve3D>(item.IsA());
+
+        const curve2d = curve3d2curve2d(curve, new c3d.Placement3D());
+        expect(curve2d).not.toBeUndefined();
+    });
+
 
     test("when given a line and an incompatible hint", async () => {
         const makeLine = new CurveFactory(db, materials, signals);

@@ -121,15 +121,13 @@ export class CutFactory extends GeometryFactory {
     private async computePhantom() {
         const { contour, placement, fantom } = this;
 
-        const bbox = new THREE.Box3().setFromObject(this.solid);
-        let inout = vec2cart(bbox.max);
-        placement.GetPointInto(inout);
         const Z = vec2vec(placement.GetAxisZ());
-        if (Math.abs(inout.z) < 10e-6) {
-            inout = vec2cart(bbox.min);
-            placement.GetPointInto(inout);
-        }
-        Z.multiplyScalar(inout.z);
+        const bbox = new THREE.Box3().setFromObject(this.solid);
+        let inout_max = vec2cart(bbox.max);
+        let inout_min = vec2cart(bbox.min);
+        placement.GetPointInto(inout_max);
+        placement.GetPointInto(inout_min);
+        Z.multiplyScalar(Math.abs(inout_max.z) > Math.abs(inout_min.z) ? inout_max.z : inout_min.z);
 
         fantom.model = new c3d.PlaneCurve(placement, contour, true);
         fantom.direction = Z;

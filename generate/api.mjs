@@ -515,7 +515,8 @@ export default {
             initializers: [
                 "",
                 "const MbCartPoint3D & org, const MbVector3D & axisZ, const MbVector3D & axisX, bool l = false",
-                "const MbCartPoint3D & org, const MbVector3D & axisZ, bool l = false"
+                "const MbCartPoint3D & org, const MbVector3D & axisZ, bool l = false",
+                "const MbPlacement3D & place",
             ],
             functions: [
                 "MbPlacement3D & Move(const MbVector3D & to)",
