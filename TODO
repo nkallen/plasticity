@@ -1,7 +1,7 @@
-creat curve on spine
-rethink user thing in db
+escape not working with boolean command
+phantom for intersect is wrong -- need two phantoms?
+mass boolean
 box select can't selement more than one solid at once(?)
-phantom for booleans
 show/hide objects
 
 inset extrude

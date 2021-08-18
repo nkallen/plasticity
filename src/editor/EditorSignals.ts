@@ -2,7 +2,7 @@ import * as visual from './VisualModel';
 import signals from "signals";
 import { HasSelection } from '../selection/SelectionManager';
 import Command from '../commands/Command';
-import { AbstractDialog } from '../commands/fillet/FilletDialog';
+import { AbstractDialog } from "../commands/AbstractDialog";
 import c3d from '../build/Release/c3d.node';
 import { Viewport } from '../components/viewport/Viewport';
 import { Agent } from './GeometryDatabase';

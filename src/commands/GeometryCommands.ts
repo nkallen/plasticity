@@ -6,7 +6,8 @@ import { Finish } from "../util/Cancellable";
 import { cart2vec, vec2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
-import { CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
+import { BooleanDialog } from "./boolean/BooleanDialog";
+import { BooleanFactory, CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
@@ -736,44 +737,39 @@ export class RotateCommand extends Command {
     }
 }
 
-export class UnionCommand extends Command {
+abstract class BooleanCommand extends Command {
+    protected abstract factory: BooleanFactory;
+
     async execute(): Promise<void> {
+        const { factory } = this;
+        factory.resource(this);
+
         const items = [...this.editor.selection.selected.solids];
         const object1 = items[0]!;
         const object2 = items[1]!;
+        factory.solid = object1;
+        factory.tool = object2;
+        await factory.update();
 
-        const union = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        union.item1 = object1;
-        union.item2 = object2;
-        const selection = await union.commit();
-        this.editor.selection.selected.add(selection);
+        const dialog = new BooleanDialog(factory, this.editor.signals);
+        await dialog.execute(async params => {
+            await factory.update();
+        }).resource(this);
+
+        await factory.commit();
     }
 }
 
-export class IntersectionCommand extends Command {
-    async execute(): Promise<void> {
-        const items = [...this.editor.selection.selected.solids];
-        const object1 = items[0]!;
-        const object2 = items[1]!;
-
-        const intersection = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        intersection.item1 = object1;
-        intersection.item2 = object2;
-        await intersection.commit();
-    }
+export class UnionCommand extends BooleanCommand {
+    protected factory = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals);
 }
 
-export class DifferenceCommand extends Command {
-    async execute(): Promise<void> {
-        const items = [...this.editor.selection.selected.solids];
-        const object1 = items[0]!;
-        const object2 = items[1]!;
+export class IntersectionCommand extends BooleanCommand {
+    protected factory = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals);
+}
 
-        const difference = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        difference.item1 = object1;
-        difference.item2 = object2;
-        await difference.commit();
-    }
+export class DifferenceCommand extends BooleanCommand {
+    protected factory = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
 }
 
 export class CutCommand extends Command {

@@ -38,8 +38,8 @@ describe('intersection', () => {
             makeSphere.radius = 1;
             const sphere2 = await makeSphere.commit() as visual.Solid;
 
-            intersect.item1 = sphere1;
-            intersect.item2 = sphere2;
+            intersect.solid = sphere1;
+            intersect.tool = sphere2;
             const intersection = await intersect.commit();
             expect(intersection).toHaveCentroidNear(new THREE.Vector3(0, 0, 0));
         })

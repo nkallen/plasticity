@@ -11,42 +11,71 @@ interface BooleanLikeFactory extends GeometryFactory {
     operationType: c3d.OperationType;
 }
 
-export class BooleanFactory extends GeometryFactory implements BooleanLikeFactory {
-    operationType: c3d.OperationType = c3d.OperationType.Difference;
+export interface BooleanParams {
+    operationType: c3d.OperationType;
+    mergingFaces: boolean;
+    mergingEdges: boolean;
+}
 
-    private _item1!: visual.Solid;
-    model1!: c3d.Solid;
-    get item1() { return this._item1 }
-    set item1(item1: visual.Solid) {
-        this._item1 = item1;
-        this.model1 = this.db.lookup(item1)
+export class BooleanFactory extends GeometryFactory implements BooleanLikeFactory, BooleanParams {
+    operationType: c3d.OperationType = c3d.OperationType.Difference;
+    mergingFaces = true;
+    mergingEdges = true;
+
+    private _solid!: visual.Solid;
+    solidModel!: c3d.Solid;
+    get solid() { return this._solid }
+    set solid(solid: visual.Solid) {
+        this._solid = solid;
+        this.solidModel = this.db.lookup(solid)
     }
 
-    private _item2!: visual.Solid;
-    model2!: c3d.Solid;
-    get item2() { return this._item2 }
-    set item2(item2: visual.Solid) {
-        this._item2 = item2;
-        this.model2 = this.db.lookup(item2)
+    private _tool!: visual.Solid;
+    toolModel!: c3d.Solid;
+    get tool() { return this._tool }
+    set tool(tool: visual.Solid) {
+        this._tool = tool;
+        this.toolModel = this.db.lookup(tool)
     }
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.BooleanSolid, c3d.ESides.SideNone, 0);
+    protected _isOverlapping = false;
 
     async computeGeometry() {
-        const { model1, model2, names } = this;
+        const { solidModel, toolModel, names, mergingFaces, mergingEdges } = this;
 
         const flags = new c3d.BooleanFlags();
         flags.InitBoolean(true);
-        flags.SetMergingFaces(true);
-        flags.SetMergingEdges(true);
+        flags.SetMergingFaces(mergingFaces);
+        flags.SetMergingEdges(mergingEdges);
 
-        const result = await c3d.ActionSolid.BooleanResult_async(model1, c3d.CopyMode.KeepSurface, model2, c3d.CopyMode.KeepSurface, this.operationType, flags, names);
+        const result = await c3d.ActionSolid.BooleanResult_async(solidModel, c3d.CopyMode.Copy, toolModel, c3d.CopyMode.Copy, this.operationType, flags, names);
+        this._isOverlapping = true;
         return result;
     }
 
-    get originalItem() {
-        return [this.item1, this.item2];
+    protected get phantom(): c3d.Solid | undefined {
+        if (this.operationType === c3d.OperationType.Union) return;
+
+        return this.toolModel;
     }
+
+    get phantomMaterial() {
+        if (this.operationType === c3d.OperationType.Difference)
+            return phantom_red
+        else if (this.operationType === c3d.OperationType.Intersect)
+            return phantom_green;
+    }
+
+    get originalItem() {
+        return [this.solid, this.tool];
+    }
+
+    get shouldRemoveOriginalItem() {
+        console.log(this._isOverlapping);
+        return this._isOverlapping;
+    }
+
 }
 
 export class UnionFactory extends BooleanFactory {

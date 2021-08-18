@@ -160,6 +160,7 @@ export default {
             initializers: [""],
             functions: [
                 "void InitBoolean(bool _closed, bool _allowNonIntersecting = false)",
+                "void InitCutting(bool _closed, bool _allowNonIntersecting = false)",
                 "void SetMergingFaces(bool s)",
                 "void SetMergingEdges(bool s)",
             ]

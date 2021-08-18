@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { AbstractDialog } from "../fillet/FilletDialog";
+import { AbstractDialog } from "../AbstractDialog";
 import { CharacterCurveParams } from './CharacterCurveFactory';
 
 export class CharacterCurveDialog extends AbstractDialog<CharacterCurveParams> {
