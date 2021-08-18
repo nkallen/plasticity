@@ -43,7 +43,7 @@ export default class CurveFactory extends GeometryFactory {
     }
 
     wouldBeClosed(p: THREE.Vector3) {
-        return this.points.length >= 2 && p.distanceToSquared(this.startPoint) < 10e-6;
+        return this.points.length >= 2 && p.manhattanDistanceTo(this.startPoint) < 10e-6;
     }
 
     set last(point: THREE.Vector3) {

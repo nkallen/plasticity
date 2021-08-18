@@ -288,7 +288,7 @@ export class PointSnap extends Snap {
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        return this.snapper.position.distanceToSquared(pt) < 10e-6
+        return this.snapper.position.manhattanDistanceTo(pt) < 10e-6
     }
 }
 
@@ -313,7 +313,7 @@ export class CurveEdgeSnap extends Snap {
     isValid(pt: THREE.Vector3): boolean {
         const t = this.model.PointProjection(vec2cart(pt));
         const on = this.model.Point(t);
-        const result = pt.distanceToSquared(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
+        const result = pt.manhattanDistanceTo(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
         return result;
     }
 }
@@ -340,7 +340,7 @@ export class CurveSnap extends Snap {
     isValid(pt: THREE.Vector3): boolean {
         const { t } = this.model.NearPointProjection(vec2cart(pt), false);
         const on = this.model.PointOn(t);
-        const result = pt.distanceToSquared(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
+        const result = pt.manhattanDistanceTo(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
         return result;
     }
 
@@ -391,7 +391,7 @@ export class FaceSnap extends Snap {
         const { u, v, normal } = model.NearPointProjection(vec2cart(point));
         const { faceU, faceV } = model.GetFaceParam(u, v);
         const projected = cart2vec(model.Point(faceU, faceV));
-        const result = point.distanceToSquared(new THREE.Vector3(projected.x, projected.y, projected.z)) < 10e-4;
+        const result = point.manhattanDistanceTo(new THREE.Vector3(projected.x, projected.y, projected.z)) < 10e-4;
         return result;
     }
 
