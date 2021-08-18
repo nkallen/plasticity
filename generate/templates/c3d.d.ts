@@ -444,4 +444,10 @@ declare module "*c3d.node" {
         Extrusion           = 0x18,  // 11000  ///< \ru Поверхности выдавливания. \en Extrusion surfaces.
       };
 
+      declare enum SenseValue {
+        BOTH = 0,  ///< \ru Оба направления (неориентированный). \en Both directions (nonoriented). 
+        FORWARD,   ///< \ru Прямое направление. \en Forward direction. 
+        BACK,      ///< \ru Обратное направление. \en Backward direction. 
+    };
+
 }

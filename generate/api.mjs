@@ -1215,17 +1215,10 @@ export default {
                 { signature: "MbResultType UnionResult(MbSolid * solid, MbeCopyMode sameShell, RPArray<MbSolid> & solids, MbeCopyMode sameShells, OperationType oType, bool checkIntersect, const MbMergingFlags & mergeFlags, const MbSNameMaker & names, bool isArray, MbSolid *& result, RPArray<MbSolid> * notGluedSolids = NULL)", notGluedSolids: isReturn },
                 "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
                 { signature: "MbResultType SolidCutting(MbSolid & solid, MbeCopyMode sameShell, const MbShellCuttingParams & cuttingParams, RPArray<MbSolid> & results)", results: isReturn },
+                { signature: "MbResultType SplitSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & spPlace, MbeSenseValue spType, const RPArray<MbContour> & spContours, bool spSame, RPArray<MbFace> & selFaces, const MbMergingFlags & flags, const MbSNameMaker & names, MbSolid *& result)" },
                 { signature: "size_t DetachParts(MbSolid & solid, RPArray<MbSolid> & parts, bool sort, const MbSNameMaker & names)", parts: isReturn, return: { name: "count" } },
-                {
-                    signature: "MbResultType LoftedSolid(SArray<MbPlacement3D> & pl, RPArray<MbContour> & c, const MbCurve3D * spine, const LoftedValues & params, SArray<MbCartPoint3D> * ps, const MbSNameMaker & names, RPArray<MbSNameMaker> & ns, MbSolid *& result)",
-                    spine: isNullable,
-                    ps: isNullable
-                },
-                {
-                    signature: "MbResultType ExtrusionSolid(const MbSweptData & sweptData, const MbVector3D & direction, const MbSolid * solid1, const MbSolid * solid2, bool checkIntersection, const ExtrusionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)",
-                    solid1: isNullable,
-                    solid2: isNullable
-                },
+                { signature: "MbResultType LoftedSolid(SArray<MbPlacement3D> & pl, RPArray<MbContour> & c, const MbCurve3D * spine, const LoftedValues & params, SArray<MbCartPoint3D> * ps, const MbSNameMaker & names, RPArray<MbSNameMaker> & ns, MbSolid *& result)", spine: isNullable, ps: isNullable },
+                { signature: "MbResultType ExtrusionSolid(const MbSweptData & sweptData, const MbVector3D & direction, const MbSolid * solid1, const MbSolid * solid2, bool checkIntersection, const ExtrusionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)", solid1: isNullable, solid2: isNullable },
                 "MbResultType ExtrusionResult(MbSolid & solid, MbeCopyMode sameShell, const MbSweptData & sweptData, const MbVector3D & direction, const ExtrusionValues & params, OperationType oType, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)",
             ]
 
@@ -1366,5 +1359,6 @@ export default {
         "MbeProcessState",
         "MbeTopologyType",
         "MbeSurfaceProlongType",
+        "MbeSenseValue",
     ]
 }

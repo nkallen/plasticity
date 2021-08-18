@@ -25,7 +25,7 @@ beforeEach(() => {
     intersect = new IntersectionFactory(db, materials, signals);
 })
 
-describe('intersection', () => {
+describe(IntersectionFactory, () => {
     describe('commit', () => {
         test('invokes the appropriate c3d commands', async () => {
             let makeSphere = new SphereFactory(db, materials, signals);
@@ -46,7 +46,7 @@ describe('intersection', () => {
     })
 })
 
-describe("cutting", () => {
+describe(CutFactory, () => {
     test('takes a cutting curve and a solid and produces a divided solid', async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3(0, 0, 0);
@@ -67,7 +67,7 @@ describe("cutting", () => {
         expect(result.length).toBe(2);
     });
 
-    test.only('works with lines', async () => {
+    test('works with lines', async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3(0, 0, 0);
         makeSphere.radius = 1;
@@ -87,7 +87,6 @@ describe("cutting", () => {
         expect(result.length).toBe(2);
     });
 })
-
 
 describe(BooleanKeyboardGizmo, () => {
     let keyboard: BooleanKeyboardGizmo;

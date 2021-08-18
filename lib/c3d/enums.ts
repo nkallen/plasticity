@@ -633,15 +633,21 @@ enum TopologyType {
 };
 
 enum SurfaceProlongType {
-    None                = 0x00,  // 00000  ///< \ru Не продлевать. \en Don't prolong. 
-    Planar              = 0x01,  // 00001  ///< \ru Плоские поверхности. \en Planar surfaces. 
-    RevolutionAxis      = 0x02,  // 00010  ///< \ru Поверхности вращения (вдоль оси). \en Revolution surfaces (along axis). 
-    RevolutionAngle     = 0x04,  // 00100  ///< \ru Поверхности вращения (по углу). \en Revolution surfaces (by angle). 
-    Revolution          = 0x06,  // 00110  ///< \ru Поверхности вращения. \en Revolution surfaces. 
+    None = 0x00,  // 00000  ///< \ru Не продлевать. \en Don't prolong. 
+    Planar = 0x01,  // 00001  ///< \ru Плоские поверхности. \en Planar surfaces. 
+    RevolutionAxis = 0x02,  // 00010  ///< \ru Поверхности вращения (вдоль оси). \en Revolution surfaces (along axis). 
+    RevolutionAngle = 0x04,  // 00100  ///< \ru Поверхности вращения (по углу). \en Revolution surfaces (by angle). 
+    Revolution = 0x06,  // 00110  ///< \ru Поверхности вращения. \en Revolution surfaces. 
     ExtrusionGeneratrix = 0x08,  // 01000  ///< \ru Поверхности выдавливания (по образующей). \en Extrusion surfaces (by generatrix).
-    ExtrusionDistance   = 0x10,  // 10000  ///< \ru Поверхности выдавливания (по расстоянию). \en Extrusion surfaces (by distance).
-    Extrusion           = 0x18,  // 11000  ///< \ru Поверхности выдавливания. \en Extrusion surfaces.
-  };
+    ExtrusionDistance = 0x10,  // 10000  ///< \ru Поверхности выдавливания (по расстоянию). \en Extrusion surfaces (by distance).
+    Extrusion = 0x18,  // 11000  ///< \ru Поверхности выдавливания. \en Extrusion surfaces.
+};
+
+enum SenseValue {
+    BOTH = 0,  ///< \ru Оба направления (неориентированный). \en Both directions (nonoriented). 
+    FORWARD,   ///< \ru Прямое направление. \en Forward direction. 
+    BACK,      ///< \ru Обратное направление. \en Backward direction. 
+};
 
 Object.assign(c3d, {
     ESides,
@@ -665,4 +671,5 @@ Object.assign(c3d, {
     Location,
     ProcessState,
     TopologyType,
+    SenseValue,
 });
