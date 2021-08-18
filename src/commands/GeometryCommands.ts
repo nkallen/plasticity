@@ -582,7 +582,7 @@ export class CornerBoxCommand extends Command {
         const box = new PossiblyBooleanCornerBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         if (selection.solids.size > 0) box.solid = selection.solids.first;
-        
+
         let pointPicker = new PointPicker(this.editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
 
@@ -745,10 +745,8 @@ abstract class BooleanCommand extends Command {
         factory.resource(this);
 
         const items = [...this.editor.selection.selected.solids];
-        const object1 = items[0]!;
-        const object2 = items[1]!;
-        factory.solid = object1;
-        factory.tool = object2;
+        factory.solid = items[0];
+        factory.tool = items[1];
         await factory.update();
 
         const dialog = new BooleanDialog(factory, this.editor.signals);
@@ -1076,7 +1074,7 @@ export class ExtrudeRegionCommand extends Command {
 
         const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
         keyboard.prepare(extrude).resource(this);
-        
+
         const bbox = new THREE.Box3();
         bbox.expandByObject(extrude.region);
         const centroid = new THREE.Vector3();

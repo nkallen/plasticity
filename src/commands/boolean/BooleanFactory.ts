@@ -72,7 +72,6 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     }
 
     get shouldRemoveOriginalItem() {
-        console.log(this._isOverlapping);
         return this._isOverlapping;
     }
 

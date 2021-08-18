@@ -133,6 +133,7 @@ export class Viewport {
         this.editor.signals.selectionChanged.add(this.setNeedsRender);
         this.editor.signals.sceneGraphChanged.add(this.setNeedsRender);
         this.editor.signals.factoryUpdated.add(this.setNeedsRender);
+        this.editor.signals.factoryCancelled.add(this.setNeedsRender);
         this.editor.signals.pointPickerChanged.add(this.setNeedsRender);
         this.editor.signals.gizmoChanged.add(this.setNeedsRender);
         this.editor.signals.objectHovered.add(this.setNeedsRender);
@@ -158,6 +159,7 @@ export class Viewport {
             this.editor.signals.selectionChanged.remove(this.setNeedsRender);
             this.editor.signals.sceneGraphChanged.remove(this.setNeedsRender);
             this.editor.signals.factoryUpdated.remove(this.setNeedsRender);
+            this.editor.signals.factoryCancelled.remove(this.setNeedsRender);
             this.editor.signals.pointPickerChanged.remove(this.setNeedsRender);
             this.editor.signals.gizmoChanged.remove(this.setNeedsRender);
             this.editor.signals.objectHovered.remove(this.setNeedsRender);

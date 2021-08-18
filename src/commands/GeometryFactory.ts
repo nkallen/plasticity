@@ -229,6 +229,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
             case 'updating':
                 this.doCancel();
                 this.state = { tag: 'cancelled' };
+                this.signals.factoryCancelled.dispatch();
                 return;
             default:
                 throw new Error('invalid state: ' + this.state.tag);

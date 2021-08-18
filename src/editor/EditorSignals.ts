@@ -18,6 +18,7 @@ export class EditorSignals {
     sceneGraphChanged: signals.Signal = new signals.Signal();
     factoryUpdated: signals.Signal = new signals.Signal();
     factoryCommitted: signals.Signal = new signals.Signal();
+    factoryCancelled: signals.Signal = new signals.Signal();
     pointPickerChanged: signals.Signal = new signals.Signal();
     gizmoChanged: signals.Signal = new signals.Signal();
     windowResized: signals.Signal = new signals.Signal();
