@@ -3,6 +3,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory } from '../GeometryFactory';
 import { vec2cart } from "../../util/Conversion";
+import { CenterCircleFactory, Mode } from "../circle/CircleFactory";
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 };
 
@@ -62,10 +63,10 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     private static readonly c1 = new THREE.Vector3();
     private static readonly c2 = new THREE.Vector3();
 
-    static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, constructionPlane: PlaneSnap): FourCorners {
+    static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, constructionPlane: THREE.Vector3): FourCorners {
         const { quat, inv, c1, c2 } = this;
 
-        quat.setFromUnitVectors(constructionPlane.n, new THREE.Vector3(0, 0, 1));
+        quat.setFromUnitVectors(constructionPlane, new THREE.Vector3(0, 0, 1));
         inv.copy(quat).invert();
 
         c1.copy(corner1).applyQuaternion(quat);
@@ -81,7 +82,7 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
 
     protected orthogonal(): FourCorners {
         const { corner1, p2, constructionPlane } = this;
-        return DiagonalRectangleFactory.orthogonal(corner1, p2, constructionPlane);
+        return DiagonalRectangleFactory.orthogonal(corner1, p2, constructionPlane.n);
     }
 
     abstract get corner1(): THREE.Vector3;

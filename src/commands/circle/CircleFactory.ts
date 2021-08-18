@@ -24,23 +24,32 @@ export class CenterCircleFactory extends GeometryFactory {
 
         const Y = point.clone().sub(center).normalize();
 
+        const [x, y, z] = CenterCircleFactory.orientHorizontalOrVertical(point, center, n, mode);
         const placement = new c3d.Placement3D();
-        const k = n.clone().cross(Y);
-        if (mode === Mode.Vertical) {
-            placement.SetAxisX(new c3d.Vector3D(n.x, n.y, n.z));
-            placement.SetAxisY(new c3d.Vector3D(Y.x, Y.y, Y.z));
-            placement.SetAxisZ(new c3d.Vector3D(k.x, k.y, k.z));
-        } else {
-            placement.SetAxisX(new c3d.Vector3D(Y.x, Y.y, Y.z));
-            placement.SetAxisY(new c3d.Vector3D(k.x, k.y, k.z));
-            placement.SetAxisZ(new c3d.Vector3D(n.x, n.y, n.z));
-        }
+        placement.SetAxisX(new c3d.Vector3D(x.x, x.y, x.z));
+        placement.SetAxisY(new c3d.Vector3D(y.x, y.y, y.z));
+        placement.SetAxisZ(new c3d.Vector3D(z.x, z.y, z.z));
         placement.Reset();
         placement.SetOrigin(new c3d.CartPoint3D(center.x, center.y, center.z));
 
         const circle = new c3d.Arc3D(placement, radius, radius, 0);
 
         return new c3d.SpaceInstance(circle);
+    }
+
+    private static localY = new THREE.Vector3();
+    private static localZ = new THREE.Vector3();
+    static orientHorizontalOrVertical(p1: THREE.Vector3, p2: THREE.Vector3, n: THREE.Vector3, mode: Mode) {
+        const { localY, localZ } = this;
+
+        localY.copy(p1).sub(p2).normalize();
+        localZ.copy(n).cross(localY);
+
+        if (mode === Mode.Vertical) {
+            return [n, localY, localZ];
+        } else {
+            return [localY, localZ, n];
+        }
     }
 }
 

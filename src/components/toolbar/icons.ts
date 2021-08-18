@@ -175,6 +175,7 @@ keybindings.set("gizmo:chamfer:distance", "Distance");
 keybindings.set("gizmo:circle:mode", "Toggle vertical/horizontal");
 keybindings.set("gizmo:polygon:add-vertex", "Add a vertex");
 keybindings.set("gizmo:polygon:subtract-vertex", "Subtract a vertex");
+keybindings.set("gizmo:polygon:mode", "Toggle vertical/horizontal");
 keybindings.set("gizmo:spiral:angle", "Angle");
 keybindings.set("gizmo:spiral:radius", "Radius");
 keybindings.set("gizmo:spiral:length", "Length");

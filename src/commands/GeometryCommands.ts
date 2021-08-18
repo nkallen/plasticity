@@ -81,6 +81,10 @@ export class CenterCircleCommand extends Command {
     async execute(): Promise<void> {
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
+        const pointPicker = new PointPicker(this.editor);
+        const { point, info: { snap } } = await pointPicker.execute().resource(this);
+        circle.center = point;
+
         const keyboard = new CircleKeyboardGizmo(this.editor);
         keyboard.execute(e => {
             switch (e) {
@@ -89,10 +93,6 @@ export class CenterCircleCommand extends Command {
                     circle.update();
             }
         }).resource(this);
-
-        const pointPicker = new PointPicker(this.editor);
-        const { point, info: { snap } } = await pointPicker.execute().resource(this);
-        circle.center = point;
 
         pointPicker.restrictToPlaneThroughPoint(point);
         snap.addAdditionalRestrictionsTo(pointPicker, point);
@@ -283,6 +283,9 @@ export class PolygonCommand extends Command {
                 case 'subtract-vertex':
                     polygon.vertexCount--;
                     break;
+                case 'mode':
+                    polygon.toggleMode();
+                    break;
             }
             polygon.update();
         }).resource(this);
@@ -294,6 +297,7 @@ export class PolygonCommand extends Command {
         pointPicker.restrictToPlaneThroughPoint(point);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         snap.addAdditionalRestrictionsTo(pointPicker, point);
+        snap.addAdditionalSnapsTo(pointPicker, point);
 
         await pointPicker.execute(({ point, info: { constructionPlane } }) => {
             polygon.constructionPlane = constructionPlane;
@@ -520,6 +524,7 @@ export class CenterRectangleCommand extends Command {
         pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
         pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
         snap.addAdditionalRestrictionsTo(pointPicker, p1);
+        snap.addAdditionalSnapsTo(pointPicker, p1);
 
         await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             rect.p2 = p2;

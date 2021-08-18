@@ -6,6 +6,7 @@ export default {
     "ispace-viewport[gizmo='polygon']": {
         "wheel+up": "gizmo:polygon:add-vertex",
         "wheel+down": "gizmo:polygon:subtract-vertex",
+        "v": "gizmo:polygon:mode",
     },
 
     "ispace-viewport[gizmo='spiral']": {

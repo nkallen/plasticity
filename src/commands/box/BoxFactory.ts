@@ -77,7 +77,7 @@ abstract class DiagonalBoxFactory extends BoxFactory implements DiagonalBoxParam
 
     protected orthogonal() {
         const { corner1, p2: corner2, p3: upper, constructionPlane } = this;
-        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, constructionPlane);
+        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, constructionPlane.n);
 
         return ThreePointBoxFactory.reorientHeight(p1, p2, p3, upper);
     }
@@ -86,7 +86,7 @@ abstract class DiagonalBoxFactory extends BoxFactory implements DiagonalBoxParam
 
     get heightNormal() {
         const { corner1, p2: corner2, constructionPlane } = this;
-        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, constructionPlane);
+        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, constructionPlane.n);
 
         return BoxFactory.heightNormal(p1, p2, p3);
     }

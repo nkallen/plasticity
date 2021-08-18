@@ -7,6 +7,7 @@ export class PolygonKeyboardGizmo extends CommandKeyboardInput {
         super('polygon', editor, [
             'gizmo:polygon:add-vertex',
             'gizmo:polygon:subtract-vertex',
+            'gizmo:polygon:mode'
         ]);
     }
 }
