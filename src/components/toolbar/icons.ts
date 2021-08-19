@@ -1,7 +1,7 @@
 import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
 import Command from '../../commands/Command';
-import { HideSelectedCommand, HideUnselectedCommand, UnhideAllCommand } from '../../commands/CommandLike';
+import { HideSelectedCommand, HideUnselectedCommand, UnhideAllCommand, DuplicateCommand } from '../../commands/CommandLike';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import centerCircle from './img/center-circle.svg';
@@ -224,5 +224,6 @@ export default (editor: Editor): void => {
         'command:unhide-all': () => editor.enqueue(new UnhideAllCommand(editor)),
         'command:hide-selected': () => editor.enqueue(new HideSelectedCommand(editor)),
         'command:hide-unselected': () => editor.enqueue(new HideUnselectedCommand(editor)),
+        'command:duplicate': () => editor.enqueue(new DuplicateCommand(editor)),
     })
 }

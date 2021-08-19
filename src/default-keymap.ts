@@ -126,7 +126,9 @@ export default {
 
         "h": "command:hide-selected",
         "shift-h": "command:hide-unselected",
-        "alt-h": "command:unhide-all"
+        "alt-h": "command:unhide-all",
+
+        "shift-d": "command:duplicate",
     },
 
     "ispace-workspace": {

@@ -100,7 +100,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
 
         switch (this.state.tag) {
             case 'none':
-                const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
+                const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
                 this.processHover(visual.filter(intersects));
                 break;
             case 'down':

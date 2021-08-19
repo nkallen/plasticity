@@ -180,7 +180,16 @@ export class GeometryDatabase {
         return result as { view: T, model: c3d.Item }[];
     }
 
-    get visibleObjects(): Array<visual.Item> {
+    async duplicate(model: visual.Solid): Promise<visual.Solid>;
+    async duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;
+    async duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
+    async duplicate(item: visual.Item): Promise<visual.Item> {
+        const model = this.lookup(item);
+        const dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
+        return this.addItem(dup); // FIXME we shouldn't duplicate the geometry
+    }
+
+    get visibleObjects(): visual.Item[] {
         const { geometryModel, hidden } = this;
         const difference = [];
         for (const { view } of geometryModel.values()) {

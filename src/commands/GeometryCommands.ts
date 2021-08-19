@@ -683,7 +683,6 @@ export class MoveCommand extends Command {
 
         const selection = await move.commit();
         this.editor.selection.selected.add(selection);
-
     }
 }
 

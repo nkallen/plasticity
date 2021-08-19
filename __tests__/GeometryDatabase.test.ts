@@ -147,3 +147,20 @@ test("lookupControlPointById", async () => {
     db.removeItem(instance);
     expect(() => db.lookupControlPointById(controlPoints[0].simpleName)).toThrow();
 });
+
+test("find", async () => {
+    expect(db.find(visual.Solid).length).toBe(0);
+
+    const v = await db.addItem(box) as visual.Solid;
+
+    let [{ view, model }] = db.find(visual.Solid);
+    expect(view).toBe(v);
+
+    expect(db.find(visual.SpaceInstance).length).toBe(0);
+    expect(db.find(visual.PlaneInstance).length).toBe(0);
+});
+
+test("duplicate", async () => {
+    const view = await db.addItem(box) as visual.Solid;
+    const dup = db.duplicate(view);
+})

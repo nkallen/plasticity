@@ -1,8 +1,11 @@
-import Command, * as cmd from "./Command";
-import * as visual from "../editor/VisualModel";
-import { RebuildFactory } from "./rebuild/RebuildFactory";
-import { GizmoLike } from "./AbstractGizmo";
+import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
+import * as visual from "../editor/VisualModel";
+import { GizmoLike } from "./AbstractGizmo";
+import Command, * as cmd from "./Command";
+import { RebuildFactory } from "./rebuild/RebuildFactory";
+import { MoveGizmo } from './translate/MoveGizmo';
+import { MoveFactory } from './translate/TranslateFactory';
 
 /**
  * These aren't typical commands, with a set of steps and gizmos to perform a geometrical operation.
@@ -88,5 +91,36 @@ export class HideUnselectedCommand extends Command {
 export class UnhideAllCommand extends Command {
     async execute(): Promise<void> {
         this.editor.db.unhideAll();
+    }
+}
+
+export class DuplicateCommand extends Command {
+    async execute(): Promise<void> {
+        const { solids, curves, regions, faces, edges } = this.editor.selection.selected;
+        const db = this.editor.db;
+
+        const promises: Promise<visual.Item>[] = [];
+        for (const solid of solids) promises.push(db.duplicate(solid));
+        for (const curve of curves) promises.push(db.duplicate(curve));
+
+        const objects = await Promise.all(promises);
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        move.pivot = centroid;
+        move.items = objects;
+
+        const gizmo = new MoveGizmo(move, this.editor);
+        gizmo.position.copy(centroid);
+        await gizmo.execute(s => {
+            move.update();
+        }).resource(this);
+
+        const selection = await move.commit();
+        this.editor.selection.selected.add(selection);
     }
 }
