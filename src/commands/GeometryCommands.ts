@@ -1272,15 +1272,22 @@ export class OffsetLoopCommand extends Command {
         const center = contour.GetWeightCentre();
         const { normal } = faceModel.NearPointProjection(center);
 
+        // const tau = contour.GetLimitTangent(1);
+        const tau = new c3d.Vector3D(0, 1, 0);
+
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         offsetContour.face = faceModel;
         offsetContour.curve = contour;
 
-        offsetContour.direction = new c3d.Axis3D(contour.GetLimitPoint(0), new c3d.Vector3D(0, 0, -1));
+        const cp = contour.GetLimitPoint(0);
+        const { normal: n } = faceModel.NearPointProjection(cp);
+        const vec = vec2vec(n).cross(vec2vec(tau));
+
+        offsetContour.direction = new c3d.Axis3D(contour.GetLimitPoint(0), new c3d.Vector3D(vec.x, vec.y, vec.z));
 
         const gizmo = new DistanceGizmo("offset-loop:distance", this.editor);
-        gizmo.position.copy(cart2vec(center));
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal));
+        gizmo.position.copy(cart2vec(cp));
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(n));
 
         await gizmo.execute(async distance => {
             offsetContour.distance = distance;
