@@ -335,6 +335,7 @@ export default {
             rawHeader: "cur_contour3d.h",
             extends: "Curve3D",
             dependencies: ["Curve3D.h", "CartPoint3D.h", "Vector3D.h"],
+            initializers: [""],
             functions: [
                 { signature: "bool AddCurveWithRuledCheck(MbCurve3D & curve, double absEps = Math::metricPrecision, bool toEndOnly = false, bool checkSame = true, VERSION version = Math::DefaultMathVersion())", return: isErrorBool },
                 "size_t GetSegmentsCount()",
@@ -659,7 +660,7 @@ export default {
                 { signature: "void Point(double t, MbCartPoint3D &p)", p: isReturn },
                 { signature: "void GetBegPoint(MbCartPoint3D & p)", p: isReturn },
                 { signature: "void GetEndPoint(MbCartPoint3D & p)", p: isReturn },
-                "double PointProjection(const MbCartPoint3D & p)"
+                "double PointProjection(const MbCartPoint3D & p)",
             ]
         },
         SurfaceIntersectionCurve: {
@@ -683,7 +684,7 @@ export default {
                     p: isReturn,
                     return: isErrorBool
                 },
-                // "const MbSurfaceIntersectionCurve & GetIntersectionCurve()",
+                "const MbSurfaceIntersectionCurve & GetIntersectionCurve()",
                 "MbFace * GetFacePlus()",
                 "MbFace * GetFaceMinus()",
             ]
@@ -711,12 +712,21 @@ export default {
                 "const MbPlane & plane",
             ]
         },
+        OrientedEdge: {
+            rawHeader: "topology.h",
+            dependencies: ["CurveEdge.h"],
+            functions: [
+                "MbCurveEdge & GetCurveEdge()",
+            ]
+        },
         Loop: {
             rawHeader: "topology.h",
             extends: "TopItem",
-            dependencies: ["TopItem.h", "Surface.h", "ContourOnSurface.h"],
+            dependencies: ["TopItem.h", "Surface.h", "ContourOnSurface.h", "OrientedEdge.h"],
             functions: [
-                "MbContourOnSurface & MakeContourOnSurface(const MbSurface & surf, bool faceSense, bool doExact=false)"
+                "MbContourOnSurface & MakeContourOnSurface(const MbSurface & surf, bool faceSense, bool doExact=false)",
+                "ptrdiff_t GetEdgesCount()",
+                "MbOrientedEdge * GetOrientedEdge(size_t index)",
             ]
         },
         Face: {
@@ -736,6 +746,7 @@ export default {
                 { signature: "void GetOuterEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
                 // { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
                 { signature: "void GetNeighborFaces(RPArray<MbFace> & faces)", faces: isReturn },
+                { signature: "void GetBoundaryEdges(RPArray<MbEdge> & edges)" },
                 "bool HasNeighborFace()",
                 "size_t GetLoopsCount()",
                 "const MbSurface & GetSurface()",

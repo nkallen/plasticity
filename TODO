@@ -1,4 +1,3 @@
-
 inset extrude
 extrude face: cf GetSurfaceCurvesData
 

@@ -1262,9 +1262,20 @@ export class OffsetLoopCommand extends Command {
         faceModel = faceModel.DataDuplicate()!;
         let contour: c3d.ContourOnSurface | undefined;
         const surface = faceModel.GetSurface().GetSurface();
+        const contour2 = new c3d.Contour3D();
         for (let i = 0, l = faceModel.GetLoopsCount(); i < l; i++) {
             const loop = faceModel.GetLoop(i)!;
             contour = loop.MakeContourOnSurface(surface, faceModel.IsSameSense(), true);
+            for (let j = 0, ll = loop.GetEdgesCount(); j < ll; j++) {
+                const edge = loop.GetOrientedEdge(j)!.GetCurveEdge();
+                const intersectionCurve = edge.GetIntersectionCurve();
+                console.log("adding curve");
+                try {
+                contour2.AddCurveWithRuledCheck(intersectionCurve);
+                } catch (e) {
+                    console.warn(e);
+                }
+            }
             break;
         }
         if (contour === undefined) return;
@@ -1272,18 +1283,19 @@ export class OffsetLoopCommand extends Command {
         const center = contour.GetWeightCentre();
         const { normal } = faceModel.NearPointProjection(center);
 
-        // const tau = contour.GetLimitTangent(1);
-        const tau = new c3d.Vector3D(0, 1, 0);
+        const tau = contour.GetLimitTangent(1);
+        console.log(tau);
+        // const tau = new c3d.Vector3D(0, 1, 0);
 
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         offsetContour.face = faceModel;
-        offsetContour.curve = contour;
+        offsetContour.curve = contour2;
 
-        const cp = contour.GetLimitPoint(0);
+        const cp = contour2.GetLimitPoint(0);
         const { normal: n } = faceModel.NearPointProjection(cp);
         const vec = vec2vec(n).cross(vec2vec(tau));
 
-        offsetContour.direction = new c3d.Axis3D(contour.GetLimitPoint(0), new c3d.Vector3D(vec.x, vec.y, vec.z));
+        offsetContour.direction = new c3d.Axis3D(cp, new c3d.Vector3D(vec.x, vec.y, vec.z));
 
         const gizmo = new DistanceGizmo("offset-loop:distance", this.editor);
         gizmo.position.copy(cart2vec(cp));
