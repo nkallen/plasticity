@@ -71,9 +71,8 @@ export class HideSelectedCommand extends Command {
     async execute(): Promise<void> {
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = [...solids, ...curves, ...regions];
-        for (const item of selectedItems) {
-            this.editor.db.hide(item);
-        }
+        for (const item of selectedItems) this.editor.db.hide(item);
+        this.editor.selection.selected.removeAll();
     }
 }
 
