@@ -20,6 +20,7 @@
 #include "../include/CurveSpiral.h"
 #include "../include/ContourOnSurface.h"
 #include "../include/ContourOnPlane.h"
+#include "../include/PlaneCurve.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -95,6 +96,8 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return ContourOnSurface::NewInstance(env, (MbContourOnSurface *)(_underlying));
     case st_ContourOnPlane:
         return ContourOnPlane::NewInstance(env, (MbContourOnPlane *)(_underlying));
+    case st_PlaneCurve:
+        return PlaneCurve::NewInstance(env, (MbPlaneCurve *)(_underlying));
 
         // case st_WireFrame:
         //     return Item::NewInstance(env, dynamic_cast<MbWireFrame *>(_underlying));

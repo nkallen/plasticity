@@ -1,11 +1,19 @@
 
+inset extrude
+extrude face: cf GetSurfaceCurvesData
+
 save/load
 
-inset extrude
+curves:
+    curve movement not working well
+    bridge curve
+    bezier handles
+    drag drop points?
+    duplicate edges to curves
+    draw curve around solid
+    multiline (stroke)
 
-curve movement not working well
 redo Dialogs and show errors
-duplicate edges to curves
 
 
 # move keybindings outside of loop keybindings

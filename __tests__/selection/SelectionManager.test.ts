@@ -647,12 +647,12 @@ describe(SelectionManager, () => {
         expect(selectionManager.hovered.curves.size).toBe(1);
 
         selectionManager.highlight();
-        expect(circle.underlying.line.material).toBe(materials.hover(circle));
+        expect(circle.underlying.segments.get(0).line.material).toBe(materials.hover(circle));
         selectionManager.unhighlight();
 
         interactionManager.onHover([]);
         expect(selectionManager.hovered.curves.size).toBe(0);
-        expect(circle.underlying.line.material).toBe(materials.line(circle));
+        expect(circle.underlying.segments.get(0).line.material).toBe(materials.line(circle));
     });
 
     test('if no intersections match, it clears hover', () => {
@@ -669,7 +669,7 @@ describe(SelectionManager, () => {
         expect(selectionManager.hovered.curves.size).toBe(1);
 
         selectionManager.highlight();
-        expect(circle.underlying.line.material).toBe(materials.hover(circle));
+        expect(circle.underlying.segments.get(0).line.material).toBe(materials.hover(circle));
         selectionManager.unhighlight();
 
         const intersectionsControlPoint = [{
@@ -680,7 +680,7 @@ describe(SelectionManager, () => {
 
         interactionManager.onHover(intersectionsControlPoint);
         expect(selectionManager.hovered.curves.size).toBe(0);
-        expect(circle.underlying.line.material).toBe(materials.line(circle));
+        expect(circle.underlying.segments.get(0).line.material).toBe(materials.line(circle));
     });
 
     test("selecting and hovering an item, then highlight/unhighlight, doesn't error", () => {

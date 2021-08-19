@@ -257,13 +257,16 @@ export class GeometryDatabase {
                         const lineMaterial = materials?.line ?? this.materials.line(instance);
                         const pointMaterial = materials?.controlPoint ?? this.materials.controlPoint();
 
+                        const segments = new visual.CurveSegmentGroupBuilder();
+                        for (const edge of edges) {
+                            const segment = visual.CurveSegment.build(edge, id, materials?.line ?? lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
+                            segments.addSegment(segment);
+                        }
+                        const curve = new visual.Curve3DBuilder();
                         const pointGroup = visual.ControlPointGroup.build(underlying, id, pointMaterial);
-
-                        let line;
-                        if (edges.length > 1) line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, this.materials.lineDashed());
-                        else line = visual.Curve3D.build(edges[0], id, pointGroup, lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
-
-                        curveBuilder.addLOD(line, distance);
+                        curve.addControlPoints(pointGroup);
+                        curve.addSegments(segments.build());
+                        curveBuilder.addLOD(curve.build(), distance);
                         break;
                     case c3d.SpaceType.Surface:
                         const surfaceBuilder = builder as visual.SpaceInstanceBuilder<visual.Surface>;

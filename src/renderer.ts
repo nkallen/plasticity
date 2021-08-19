@@ -60,11 +60,11 @@ NumberScrubber(editor);
 Dialog(editor);
 ViewportHeader(editor);
 
-const box = new CenterBoxFactory(editor.db, editor.materials, editor.signals);
-box.p1 = new THREE.Vector3(0, 0, 0);
-box.p2 = new THREE.Vector3(1, 1, 0);
-box.p3 = new THREE.Vector3(0, 0, 1);
-box.commit();
+// const box = new CenterBoxFactory(editor.db, editor.materials, editor.signals);
+// box.p1 = new THREE.Vector3(0, 0, 0);
+// box.p2 = new THREE.Vector3(1, 1, 0);
+// box.p3 = new THREE.Vector3(0, 0, 1);
+// box.commit();
 
 // const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
 // makeSphere.center = new THREE.Vector3();
@@ -76,10 +76,10 @@ box.commit();
 // makeCircle1.radius = 1;
 // makeCircle1.commit();
 
-const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
-makeCurve1.points.push(new THREE.Vector3(-3, -3, 0));
-makeCurve1.points.push(new THREE.Vector3(3, 3, 0));
-makeCurve1.commit();
+// const makeCurve1 = new CurveFactory(editor.db, editor.materials, editor.signals);
+// makeCurve1.points.push(new THREE.Vector3(-3, -3, 0));
+// makeCurve1.points.push(new THREE.Vector3(3, 3, 0));
+// makeCurve1.commit();
 
 // const makeCurve2 = new CurveFactory(editor.db, editor.materials, editor.signals);
 // makeCurve2.points.push(new THREE.Vector3(-2, 4, 0));

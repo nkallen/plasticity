@@ -165,14 +165,20 @@ export default {
                 "void SetMergingEdges(bool s)",
             ]
         },
+        SurfaceOffsetCurveParams: {
+            rawHeader: "op_curve_parameter.h",
+            dependencies: ["Face.h", "Axis3D.h", "SNameMaker.h"],
+            initializers: ["const MbFace & f, const MbAxis3D & a, double d, const MbSNameMaker & nm)"],
+        },
         Surface: {
             rawHeader: "surface.h",
             extends: "SpaceItem",
-            dependencies: ["SpaceItem.h"],
+            dependencies: ["SpaceItem.h", "Placement3D.h"],
             functions: [
                 "const MbSurface & GetSurface()",
                 "double GetUEpsilon()",
                 "double GetVEpsilon()",
+                { signature: "bool GetPlacement(MbPlacement3D * place, bool exact = false)", place: isReturn, return: isErrorBool, isUninheritable: true },
             ]
         },
         Solid: {
@@ -285,13 +291,16 @@ export default {
                 "double IsPeriodic()",
                 "bool IsStraight(bool ignoreParams = false)",
                 "MbCurve3D * Trimmed(double t1, double t2, int sense)",
+                "MbVector3D GetLimitTangent(ptrdiff_t number)",
                 { signature: "void Normal(double & t, MbVector3D & n)", n: isReturn },
                 { signature: "void Tangent(double & t, MbVector3D & tan)", tan: isReturn },
                 { signature: "void BNormal(double & t, MbVector3D & b)", b: isReturn },
                 { signature: "void GetCentre(MbCartPoint3D & c)", c: isReturn },
                 { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint3D & point)", point: isReturn },
                 { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn },
-                { signature: "bool NearPointProjection(const MbCartPoint3D & pnt, double & t, bool ext, MbRect1D * tRange = NULL)", tRange: isNullable, t: isReturn, return: { name: "success" } }
+                { signature: "bool NearPointProjection(const MbCartPoint3D & pnt, double & t, bool ext, MbRect1D * tRange = NULL)", tRange: isNullable, t: isReturn, return: { name: "success" } },
+                { signature: "bool GetSurfaceCurve(MbCurve *& curve2d, MbSurface *& surface, VERSION version = Math::DefaultMathVersion())", return: isErrorBool },
+                { signature: "void GetWeightCentre(MbCartPoint3D & point)", point: isReturn },
             ]
         },
         TrimmedCurve3D: {
@@ -731,7 +740,8 @@ export default {
                 "size_t GetLoopsCount()",
                 "const MbSurface & GetSurface()",
                 "MbLoop * GetLoop(size_t index)",
-                "bool IsSameSense()"
+                "bool IsSameSense()",
+                "MbFace * DataDuplicate(MbRegDuplicate * dup = c3d_null)",
             ]
         },
         Vertex: {
@@ -1172,7 +1182,14 @@ export default {
                 "double t",
                 "const MbCurve * curve",
             ],
-        }
+        },
+        WireFrame: {
+            rawHeader: "wire_frame.h",
+            dependencies: ["Curve3D.h"],
+            functions: [
+                { signature: "void GetCurves(RPArray<MbCurve3D> curves)", curves: isReturn }
+            ]
+        },
     },
     modules: {
         Enabler: {
@@ -1198,9 +1215,10 @@ export default {
         },
         ActionSurfaceCurve: {
             rawHeader: "action_surface_curve.h",
-            dependencies: ["Contour3D.h", "Curve3D.h"],
+            dependencies: ["Contour3D.h", "Curve3D.h", "SurfaceOffsetCurveParams.h", "WireFrame.h"],
             functions: [
                 "MbResultType CreateContourFillets(const MbContour3D & contour, SArray<double> & radiuses, MbCurve3D *& result, const MbeConnectingType type)",
+                "MbResultType OffsetCurve(const MbCurve3D & curve, const MbFace & face, const MbAxis3D & dirAxis, double dist, const MbSNameMaker & snMaker, MbWireFrame *& result)",
             ]
         },
         ActionSolid: {

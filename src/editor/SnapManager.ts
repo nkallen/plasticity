@@ -59,7 +59,6 @@ export class SnapManager {
         this.update();
     }
 
-    // FIXME move into the model of PointPicker?
     nearby(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
         const additionalNearbys = [];
         for (const a of additional) if (a.nearby !== undefined) additionalNearbys.push(a.nearby);
@@ -80,7 +79,7 @@ export class SnapManager {
         const snappers = [...this.snappers, ...additional.map(a => a.snapper)];
 
         raycaster.layers = this.layers;
-        const snapperIntersections = raycaster.intersectObjects(snappers);
+        const snapperIntersections = raycaster.intersectObjects(snappers, true);
         snapperIntersections.sort(sortIntersections);
         const result: [Snap, THREE.Vector3][] = [];
 
@@ -239,14 +238,23 @@ export abstract class Snap implements Restriction {
 
     protected init() {
         const { snapper, nearby, helper } = this;
-        snapper.userData.snap = this;
-        if (nearby != null) nearby.userData.snap = this;
         snapper.updateMatrixWorld();
         nearby?.updateMatrixWorld();
         helper?.updateMatrixWorld();
-
+        
+        snapper.userData.snap = this;
         snapper.layers.set(this.layer);
+        snapper.traverse(c => {
+            c.layers.set(this.layer)
+            c.userData.snap = this;
+        });
+
+        if (nearby != null) nearby.userData.snap = this;
         nearby?.layers.set(this.layer);
+        nearby?.traverse(c => {
+            c.userData.snap = this;
+            c.layers.set(this.layer)
+        });
     }
 
     abstract project(intersection: THREE.Intersection): THREE.Vector3;
@@ -321,11 +329,16 @@ export class CurveEdgeSnap extends Snap {
 const zero = new THREE.Vector3();
 export class CurveSnap extends Snap {
     t!: number;
-    readonly snapper = new Line2(this.view.underlying.line.geometry, this.view.underlying.line.material);
+    readonly snapper = new THREE.Group();
     protected readonly layer = Layers.CurveSnap;
 
     constructor(readonly view: visual.SpaceInstance<visual.Curve3D>, readonly model: c3d.Curve3D) {
         super();
+        const curve = view.underlying;
+        for (const child of curve.segments.children) {
+            const segment = child as visual.CurveSegment;
+            this.snapper.add(new Line2(segment.line.geometry, segment.line.material));
+        }
         this.init();
     }
 

@@ -82,7 +82,7 @@ export function normalizePlacement(curve2d: c3d.Curve, placement: c3d.Placement3
         bestExistingPlacement = placement;
     }
 
-    // To objects can be coplanar but have different placements (e.g., different origins, same Z axis);
+    // To objects can be coplanar but have different placements (e.g., different origins on XY, same Z axis);
     // Thus it's safest to normalize or else future operations like booleans may not work.
     const matrix = placement.GetMatrixToPlace(bestExistingPlacement);
     curve2d.Transform(matrix);

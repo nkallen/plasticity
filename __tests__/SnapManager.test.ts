@@ -329,7 +329,7 @@ describe(CurveSnap, () => {
         expect(snap.isValid(new THREE.Vector3(0, 0, 1))).toBe(false);
     })
 
-    test("integration (snap with restriction to edge)", () => {
+    test("integration (snap with restriction to curve)", () => {
         const raycaster = new THREE.Raycaster();
         bbox.setFromObject(snap.snapper);
         const center = new THREE.Vector3();

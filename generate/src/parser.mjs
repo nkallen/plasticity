@@ -104,15 +104,15 @@ class ClassDeclaration {
             this.extends.push(superclass);
             if (!superclass) throw "no superclass found: " + e + " -- note that the ordering of the api file is important.";
             const superclassFunctions = superclass.desc.functions;
-            const superclassFunctionsWithoutManuals = superclassFunctions.filter(f => !f.isManual);
-            this.desc.functions = this.desc.functions.concat(superclassFunctionsWithoutManuals);
+            const inheritableFunctions = superclassFunctions.filter(f => !f.isManual).filter(f => !f.isUninheritable);
+            this.desc.functions = this.desc.functions.concat(inheritableFunctions);
             const superclassFields = superclass.desc.fields || [];
             this.desc.fields = (this.desc.fields || []).concat(superclassFields);
             if (superclass.freeFunctionName) {
                 this.freeFunctionName = superclass.freeFunctionName;
             }
             if (i > 0) {
-                this.desc.implements = this.desc.implements.concat(superclassFunctionsWithoutManuals)
+                this.desc.implements = this.desc.implements.concat(inheritableFunctions); // multiple inheritance
             }
         }
         if (desc.freeFunctionName) {

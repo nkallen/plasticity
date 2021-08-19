@@ -106,8 +106,8 @@ export class ControlPoint extends THREE.Object3D {
 
 export type FragmentInfo = { start: number, stop: number, untrimmedAncestor: SpaceInstance<Curve3D> };
 
-export class Curve3D extends SpaceItem {
-    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, points: ControlPointGroup, material: LineMaterial, occludedMaterial: LineMaterial): Curve3D {
+export class CurveSegment extends THREE.Object3D {
+    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName,material: LineMaterial, occludedMaterial: LineMaterial): CurveSegment {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
@@ -115,7 +115,7 @@ export class Curve3D extends SpaceItem {
         const occludedLine = new Line2(geometry, occludedMaterial);
         occludedLine.computeLineDistances();
 
-        const built = new Curve3D(line, occludedLine, points, edge.name, edge.simpleName);
+        const built = new CurveSegment(line, occludedLine, edge.name, edge.simpleName);
 
         built.layers.set(Layers.Curve);
         line.layers.set(Layers.Curve);
@@ -124,14 +124,32 @@ export class Curve3D extends SpaceItem {
         return built;
     }
 
-    private constructor(readonly line: Line2, readonly occludedLine: Line2, readonly points: ControlPointGroup, name: c3d.Name, simpleName: number) {
+    private constructor(readonly line: Line2, readonly occludedLine: Line2, name: c3d.Name, simpleName: number) {
         super();
-        this.add(line, occludedLine, points);
+        this.add(line, occludedLine);
         occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
 
         this.userData.name = name;
         this.userData.simpleName = simpleName;
         this.renderOrder = RenderOrder.CurveSegment;
+    }
+
+    // get parentItem(): SpaceInstance<Curve3D> {
+    //     const result = this.parent?.parent?.parent;
+    //     if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
+    //     return result;
+    // }
+
+    dispose() {
+        this.line.geometry.dispose();
+        this.occludedLine.geometry.dispose();
+    }
+}
+
+export class Curve3D extends SpaceItem {
+    constructor(readonly segments: CurveSegmentGroup, readonly points: ControlPointGroup) {
+        super();
+        this.add(segments, points);
     }
 
     get parentItem(): SpaceInstance<Curve3D> {
@@ -159,8 +177,7 @@ export class Curve3D extends SpaceItem {
     }
 
     dispose() {
-        this.line.geometry.dispose();
-        this.occludedLine.geometry.dispose();
+        this.segments.dispose();
         this.points.dispose();
     }
 }
@@ -344,6 +361,25 @@ export class CurveEdgeGroup extends THREE.Group {
     }
 }
 
+export class CurveSegmentGroup extends THREE.Group {
+    private _useNominal: undefined;
+
+    *[Symbol.iterator]() {
+        for (const child of this.children) {
+            yield child as CurveSegment;
+        }
+    }
+
+    get(i: number): CurveSegment {
+        return this.children[i] as CurveSegment;
+    }
+
+    dispose() {
+        for (const segment of this) segment.dispose();
+    }
+}
+
+
 export class FaceGroup extends THREE.Group {
     private _useNominal: undefined;
 
@@ -524,6 +560,37 @@ export class CurveEdgeGroupBuilder {
     }
 }
 
+export class CurveSegmentGroupBuilder {
+    private curveSegmentGroup = new CurveSegmentGroup();
+
+    addSegment(segment: CurveSegment) {
+        this.curveSegmentGroup.add(segment);
+    }
+
+    build() {
+        return this.curveSegmentGroup;
+    }
+}
+
+export class Curve3DBuilder {
+    private segments!: CurveSegmentGroup;
+    private points!: ControlPointGroup;
+
+    addSegments(segments: CurveSegmentGroup) {
+        this.segments = segments;
+    }
+
+    addControlPoints(points: ControlPointGroup) {
+        this.points = points;
+    }
+
+    build(): Curve3D {
+        const built = new Curve3D(this.segments, this.points!);
+        built.layers.set(Layers.Curve);
+        return built;
+    }
+}
+
 const RenderOrder = {
     CurveEdge: 10,
     Face: 1,
@@ -619,8 +686,11 @@ function findSelectable(object: THREE.Object3D, index?: number): Selectable {
         return controlPointGroup.findByIndex(object.index)!;
     } else {
         const parent = object.parent!;
-        if (!(parent instanceof Item || parent instanceof TopologyItem || parent instanceof Region || parent instanceof Curve3D))
-            throw new Error("invalid precondition: " + parent.constructor.name);
-        return object.parent as Selectable;
+        if (parent instanceof Item || parent instanceof TopologyItem || parent instanceof Region)
+            return parent as Selectable;
+        if (parent instanceof CurveSegment)
+            return parent.parent!.parent! as Item;
+
+        throw new Error("invalid precondition: " + parent.constructor.name);
     }
 }

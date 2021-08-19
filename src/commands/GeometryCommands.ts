@@ -1258,32 +1258,34 @@ export class OffsetLoopCommand extends Command {
         const faces = [...this.editor.selection.selected.faces];
         const face = faces[0];
         const parent = faces[0].parentItem as visual.Solid
-        const model = this.editor.db.lookupTopologyItem(face);
+        let faceModel = this.editor.db.lookupTopologyItem(face);
+        faceModel = faceModel.DataDuplicate()!;
         let contour: c3d.ContourOnSurface | undefined;
-        const surface = model.GetSurface().GetSurface();
-        for (let i = 0, l = model.GetLoopsCount(); i < l; i++) {
-            const loop = model.GetLoop(i)!;
-            contour = loop.MakeContourOnSurface(surface, model.IsSameSense(), true);
+        const surface = faceModel.GetSurface().GetSurface();
+        for (let i = 0, l = faceModel.GetLoopsCount(); i < l; i++) {
+            const loop = faceModel.GetLoop(i)!;
+            contour = loop.MakeContourOnSurface(surface, faceModel.IsSameSense(), true);
             break;
         }
         if (contour === undefined) return;
-        const center = contour.GetContour().GetWeightCentre();
+
+        const center = contour.GetWeightCentre();
+        const { normal } = faceModel.NearPointProjection(center);
 
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        offsetContour.surface = contour.GetSurface();
-        offsetContour.model = contour.GetContour();
+        offsetContour.face = faceModel;
+        offsetContour.curve = contour;
+
+        offsetContour.direction = new c3d.Axis3D(contour.GetLimitPoint(0), new c3d.Vector3D(0, 0, -1));
 
         const gizmo = new DistanceGizmo("offset-loop:distance", this.editor);
-        const point = model.Point(center.x, center.y);
-        const normal = model.Normal(center.x, center.y);
-        gizmo.position.copy(cart2vec(point));
+        gizmo.position.copy(cart2vec(center));
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal));
 
         await gizmo.execute(async distance => {
             offsetContour.distance = distance;
             offsetContour.update();
         }, mode.Persistent).resource(this);
-
 
         this.editor.selection.selected.removeFace(face, parent);
 
