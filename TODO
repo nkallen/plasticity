@@ -1,4 +1,7 @@
-inset extrude
+email about inset extrude
+rationalize extrude factories into one?
+direction for extrude factories?
+extrude to target
 extrude face: cf GetSurfaceCurvesData
 
 save/load

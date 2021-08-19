@@ -41,6 +41,7 @@ export class Model {
             result.push(cmd.OffsetFaceCommand);
             result.push(cmd.DraftSolidCommand);
             result.push(cmd.OffsetLoopCommand);
+            result.push(cmd.ExtrudeCommand);
             const face = selection.faces.first;
             const parent = face.parentItem as visual.Solid;
             const solid = db.lookup(parent);

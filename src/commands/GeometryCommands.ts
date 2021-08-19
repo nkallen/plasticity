@@ -24,7 +24,7 @@ import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
-import ExtrudeFactory, { PossiblyBooleanRegionExtrudeFactory } from "./extrude/ExtrudeFactory";
+import { FaceExtrudeFactory, PossiblyBooleanFaceExtrudeFactory, PossiblyBooleanRegionExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import ChamferFactory from "./fillet/ChamferFactory";
 import { ChamferGizmo } from "./fillet/ChamferGizmo";
@@ -1052,16 +1052,20 @@ export class LoftCommand extends Command {
 export class ExtrudeCommand extends Command {
     async execute(): Promise<void> {
         const curves = [...this.editor.selection.selected.curves];
-        const extrude = new ExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        extrude.curves = curves;
+        const extrude = new PossiblyBooleanFaceExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        // extrude.curves = curves;
+        extrude.face = this.editor.selection.selected.faces.first;
 
-        const pointPicker = new PointPicker(this.editor);
-        const { point: p1 } = await pointPicker.execute().resource(this);
+        const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
+        keyboard.prepare(extrude).resource(this);
 
-        await pointPicker.execute(({ point: p2 }) => {
-            extrude.direction = p2.clone().sub(p1);
-            extrude.distance1 = extrude.direction.length();
+        const gizmo = new ExtrudeGizmo(extrude, this.editor);
+        gizmo.position.copy(extrude.center);
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), extrude.normal);
+
+        await gizmo.execute(params => {
             extrude.update();
+            keyboard.toggle(extrude.isOverlapping);
         }).resource(this);
 
         await extrude.commit();
@@ -1269,9 +1273,8 @@ export class OffsetLoopCommand extends Command {
             for (let j = 0, ll = loop.GetEdgesCount(); j < ll; j++) {
                 const edge = loop.GetOrientedEdge(j)!.GetCurveEdge();
                 const intersectionCurve = edge.GetIntersectionCurve();
-                console.log("adding curve");
                 try {
-                contour2.AddCurveWithRuledCheck(intersectionCurve);
+                    contour2.AddCurveWithRuledCheck(intersectionCurve);
                 } catch (e) {
                     console.warn(e);
                 }
@@ -1284,7 +1287,6 @@ export class OffsetLoopCommand extends Command {
         const { normal } = faceModel.NearPointProjection(center);
 
         const tau = contour.GetLimitTangent(1);
-        console.log(tau);
         // const tau = new c3d.Vector3D(0, 1, 0);
 
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);

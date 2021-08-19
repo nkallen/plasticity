@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { vec2vec } from "../../util/Conversion";
+import { cart2vec, vec2vec } from "../../util/Conversion";
 import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
@@ -60,7 +60,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     }
 }
 
-export default class ExtrudeFactory extends AbstractExtrudeFactory {
+export class ExtrudeFactory extends AbstractExtrudeFactory {
     curves!: visual.SpaceInstance<visual.Curve3D>[];
     direction!: THREE.Vector3;
 
@@ -95,6 +95,36 @@ export default class ExtrudeFactory extends AbstractExtrudeFactory {
             return new c3d.Plane(placement, 0);
         }
     }
+}
+
+export class FaceExtrudeFactory extends AbstractExtrudeFactory {
+    private _face!: visual.Face;
+    private _contours!: c3d.Contour[];
+    private _surface!: c3d.Surface;
+    private _normal!: THREE.Vector3;
+    private _center!: THREE.Vector3;
+    set face(face: visual.Face) {
+        this._face = face;
+        const model = this.db.lookupTopologyItem(face);
+
+        const { surface, contours } = model.GetSurfaceCurvesData();
+        const fsurface = model.GetSurface();
+        this._contours = contours;
+        this._surface = surface;
+
+        const p = surface.PointOn(new c3d.CartPoint(fsurface.GetUMid(), fsurface.GetVMid()));
+        this._center = cart2vec(p);
+        const n = surface.Normal(fsurface.GetUMid(), fsurface.GetVMid());
+        this._normal = vec2vec(n);
+    }
+
+    protected get contours() { return this._contours }
+    protected get surface() { return this._surface }
+
+    get normal() { return this._normal }
+    get center() { return this._center }
+
+    get direction() { return this._normal }
 }
 
 export class RegionExtrudeFactory extends AbstractExtrudeFactory {
@@ -150,6 +180,27 @@ export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
     }
 }
 
+export class BooleanFaceExtrudeFactory extends FaceExtrudeFactory {
+    get operationType() {
+        return this.distance1 > 0 ? c3d.OperationType.Union : c3d.OperationType.Difference;
+    }
+
+    private _solid!: visual.Solid;
+    model!: c3d.Solid;
+    get solid() { return this._solid };
+    set solid(s: visual.Solid) {
+        this._solid = s;
+        this.model = this.db.lookup(s);
+    }
+
+    protected async performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): Promise<c3d.Solid> {
+        const { names, model, operationType } = this;
+
+        const result = await c3d.ActionSolid.ExtrusionResult_async(model, c3d.CopyMode.Copy, sweptData, direction, params, operationType, names, ns)
+        return result;
+    }
+}
+
 export class PossiblyBooleanRegionExtrudeFactory extends PossiblyBooleanFactory<RegionExtrudeFactory> implements ExtrudeParams {
     protected bool = new BooleanRegionExtrudeFactory(this.db, this.materials, this.signals);
     protected fantom = new RegionExtrudeFactory(this.db, this.materials, this.signals);
@@ -176,4 +227,36 @@ export class PossiblyBooleanRegionExtrudeFactory extends PossiblyBooleanFactory<
     set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.fantom.thickness1 = thickness1 }
     set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.fantom.thickness2 = thickness2 }
     set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.fantom.region = region }
+}
+
+export class PossiblyBooleanFaceExtrudeFactory extends PossiblyBooleanFactory<FaceExtrudeFactory> {
+    protected bool = new BooleanFaceExtrudeFactory(this.db, this.materials, this.signals);
+    protected fantom = new FaceExtrudeFactory(this.db, this.materials, this.signals);
+
+    get solid() { return this._solid }
+
+    get face() { return this.bool.face }
+    set face(face: visual.Face) {
+        this.bool.face = face;
+        this.fantom.face = face;
+        this.bool.solid = face.parentItem;
+        super.solid = this.bool.solid;
+    }
+
+    get distance1() { return this.bool.distance1 }
+    get distance2() { return this.bool.distance2 }
+    get race1() { return this.bool.race1 }
+    get race2() { return this.bool.race2 }
+    get thickness1() { return this.bool.thickness1 }
+    get thickness2() { return this.bool.thickness2 }
+    get direction() { return this.bool.direction }
+    get center() { return this.fantom.center }
+    get normal() { return this.fantom.normal }
+
+    set distance1(distance1: number) { this.bool.distance1 = distance1; this.fantom.distance1 = distance1 }
+    set distance2(distance2: number) { this.bool.distance2 = distance2; this.fantom.distance2 = distance2 }
+    set race1(race1: number) { this.bool.race1 = race1; this.fantom.race1 = race1 }
+    set race2(race2: number) { this.bool.race2 = race2; this.fantom.race2 = race2 }
+    set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.fantom.thickness1 = thickness1 }
+    set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.fantom.thickness2 = thickness2 }
 }

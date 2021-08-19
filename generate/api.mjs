@@ -173,11 +173,15 @@ export default {
         Surface: {
             rawHeader: "surface.h",
             extends: "SpaceItem",
-            dependencies: ["SpaceItem.h", "Placement3D.h"],
+            dependencies: ["SpaceItem.h", "Placement3D.h", "CartPoint.h"],
             functions: [
                 "const MbSurface & GetSurface()",
                 "double GetUEpsilon()",
                 "double GetVEpsilon()",
+                "double GetUMid()",
+                "double GetVMid()",
+                { signature: "void PointOn(MbCartPoint & uv, MbCartPoint3D & p)", p: isReturn, isUninheritable: true },
+                { signature: "void Normal(double &u, double &v, MbVector3D & result)", result: isReturn },
                 { signature: "bool GetPlacement(MbPlacement3D * place, bool exact = false)", place: isReturn, return: isErrorBool, isUninheritable: true },
             ]
         },
@@ -732,7 +736,7 @@ export default {
         Face: {
             rawHeader: "topology.h",
             extends: "TopologyItem",
-            dependencies: ["TopologyItem.h", "Vector3D.h", "Placement3D.h", "Surface.h", "CurveEdge.h", "Loop.h"],
+            dependencies: ["TopologyItem.h", "Vector3D.h", "Placement3D.h", "Surface.h", "CurveEdge.h", "Loop.h", "Contour.h"],
             functions: [
                 { signature: "bool GetAnyPointOn(MbCartPoint3D & point, MbVector3D & normal)", point: isReturn, normal: isReturn, },
                 { signature: "void Normal(double u, double v, MbVector3D & result)", result: isReturn },
@@ -747,6 +751,7 @@ export default {
                 // { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
                 { signature: "void GetNeighborFaces(RPArray<MbFace> & faces)", faces: isReturn },
                 { signature: "void GetBoundaryEdges(RPArray<MbEdge> & edges)" },
+                { signature: "MbSurface * GetSurfaceCurvesData(RPArray<MbContour> & contours)", contours: isReturn, return: { name: "surface" } },
                 "bool HasNeighborFace()",
                 "size_t GetLoopsCount()",
                 "const MbSurface & GetSurface()",
@@ -1007,7 +1012,11 @@ export default {
         SweptData: {
             dependencies: ["Placement3D.h", "Contour.h"],
             rawHeader: "op_swept_parameter.h",
-            initializers: ["", "const MbPlacement3D & place, MbContour & contour", "MbSurface &_surface, RPArray<MbContour> & _contours"]
+            initializers: [
+                "",
+                "const MbPlacement3D & place, MbContour & contour",
+                "MbSurface & surface, RPArray<MbContour> & contours"
+            ]
         },
         RegionBooleanParams: {
             rawHeader: "region.h",
