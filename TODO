@@ -1,4 +1,5 @@
-show/hide objects
+
+save/load
 
 inset extrude
 
@@ -7,7 +8,13 @@ redo Dialogs and show errors
 duplicate
 duplicate edges to curves
 
-variable fillet gizmo still broken, not updating
+
+# move keybindings outside of loop keybindings
+- onPointerDown and on command (registry.addOne), store the viewport the pointer is over
+- keep lastPointerEvent as a global on editor
+- dispatch keyboard events to the target of lastPointerEvent
+- ensure that regardless of what has focus (E.g,. after hitting the toolbar, keybindings are still processed)
+
 
 in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
   - shift should turn current axis snap into constraint?
@@ -17,8 +24,10 @@ delete Transactions.ts;
 masking? like in zbrush; imagine a box atop a cylinder. I want to max the box so I can clip curve just that.
 
 interleaving with updating/commit on factory. use q?
+  - also what happens if a command is cancelled but a long running job returns?
 refactor factory to take editorlike?
   -         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
+refactor selection.selected/hovered to be up in editor, avoid so much chaining
 
 select edge and face add rotate face gizmo
 
@@ -34,6 +43,8 @@ https://github.com/bzztbomb
 right click repeat
 
 change selection mode 123 keys
+
+non-linear history
 
 BUG/CRASH:
 # 1
@@ -56,11 +67,6 @@ BUG/CRASH:
 - mute creator, etc.
 - handle rebuild errors
 - there is a bug where fillet seems to highlight everything
-
-# move keybindings outside of loop keybindings
-- onPointerDown and on command (registry.addOne), store the viewport the pointer is over
-- keep lastPointerEvent as a global on editor
-- dispatch keyboard events to the target of lastPointerEvent
 
 # c++ changes:
 rename Id() .id

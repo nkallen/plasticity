@@ -59,6 +59,7 @@ export class CommandExecutor {
     }
 
     private async execute(command: Command) {
+        this.signals.commandStarted.dispatch(command);
         const disposable = this.registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
@@ -82,6 +83,7 @@ export class CommandExecutor {
             document.body.removeAttribute("command");
             disposable.dispose();
             this.db.clearTemporaryObjects();
+            this.signals.commandEnded.dispatch(command);
         }
     }
 

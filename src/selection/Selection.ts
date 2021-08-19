@@ -7,7 +7,7 @@ abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem | v
 
     constructor(
         protected readonly db: GeometryDatabase,
-        private readonly ids: ReadonlySet<S>
+        readonly ids: ReadonlySet<S>
     ) {
         this.size = ids.size;
     }

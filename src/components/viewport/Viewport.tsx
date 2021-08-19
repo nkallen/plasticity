@@ -140,6 +140,7 @@ export class Viewport {
         this.editor.signals.objectUnhovered.add(this.setNeedsRender);
         this.editor.signals.objectAdded.add(this.setNeedsRender);
         this.editor.signals.historyChanged.add(this.setNeedsRender);
+        this.editor.signals.commandEnded.add(this.setNeedsRender);
 
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);

@@ -1,15 +1,15 @@
 import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
-import { Editor } from '../../editor/Editor';
 import Command from '../../commands/Command';
+import { HideSelectedCommand, HideUnselectedCommand, UnhideAllCommand } from '../../commands/CommandLike';
 import * as cmd from '../../commands/GeometryCommands';
+import { Editor } from '../../editor/Editor';
 import centerCircle from './img/center-circle.svg';
-import twoPointCircle from './img/two-point-circle.svg';
-import threePointCircle from './img/three-point-circle.svg';
-import centerPointArc from './img/center-point-arc.svg';
-import threePointArc from './img/three-point-arc.svg';
 import centerEllipse from './img/center-ellipse.svg';
-import threePointEllipse from './img/three-point-ellipse.svg';
+import centerPointArc from './img/center-point-arc.svg';
+import centerRectangle from './img/center-rectangle.svg';
+import characterCurve from './img/character-curve.svg';
+import cornerRectangle from './img/corner-rectangle.svg';
 import curve from './img/curve.svg';
 import cut from './img/cut.svg';
 import cylinder from './img/cylinder.svg';
@@ -17,24 +17,24 @@ import difference from './img/difference.svg';
 import extrude from './img/extrude.svg';
 import fillet from './img/fillet.svg';
 import intersection from './img/intersection.svg';
+import join from './img/join.svg';
 import line from './img/line.svg';
 import loft from './img/loft.svg';
 import mirror from './img/mirror.svg';
 import move from './img/move.svg';
 import offsetFace from './img/offset-face.svg';
-import centerRectangle from './img/center-rectangle.svg';
-import cornerRectangle from './img/corner-rectangle.svg';
-import threePointRectangle from './img/three-point-rectangle.svg';
 import regularPolygon from './img/regular-polygon.svg';
-import characterCurve from './img/character-curve.svg';
-import spiral from './img/spiral.svg';
 import { default as draftSolid, default as rotate } from './img/rotate.svg';
 import scale from './img/scale.svg';
 import sphere from './img/sphere.svg';
-import union from './img/union.svg';
-import changePoint from './img/union.svg';
+import spiral from './img/spiral.svg';
+import threePointArc from './img/three-point-arc.svg';
+import threePointCircle from './img/three-point-circle.svg';
+import threePointEllipse from './img/three-point-ellipse.svg';
+import threePointRectangle from './img/three-point-rectangle.svg';
 import trim from './img/trim.svg';
-import join from './img/join.svg';
+import twoPointCircle from './img/two-point-circle.svg';
+import { default as changePoint, default as union } from './img/union.svg';
 
 export const icons = new Map<typeof Command, string>();
 icons.set(cmd.MoveCommand, move);
@@ -221,5 +221,8 @@ export default (editor: Editor): void => {
         'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),
         'command:extrude': () => editor.enqueue(new cmd.ExtrudeCommand(editor)),
         'command:trim': () => editor.enqueue(new cmd.TrimCommand(editor)),
+        'command:unhide-all': () => editor.enqueue(new UnhideAllCommand(editor)),
+        'command:hide-selected': () => editor.enqueue(new HideSelectedCommand(editor)),
+        'command:hide-unselected': () => editor.enqueue(new HideUnselectedCommand(editor)),
     })
 }

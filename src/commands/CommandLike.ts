@@ -63,3 +63,30 @@ export class RebuildCommand extends Command {
         this.editor.selection.selected.addSolid(selection);
     }
 }
+
+export class HideSelectedCommand extends Command {
+    async execute(): Promise<void> {
+        const { solids, curves, regions } = this.editor.selection.selected;
+        const selectedItems = [...solids, ...curves, ...regions];
+        for (const item of selectedItems) {
+            this.editor.db.hide(item);
+        }
+    }
+}
+
+export class HideUnselectedCommand extends Command {
+    async execute(): Promise<void> {
+        const db = this.editor.db;
+        const { solids, curves, regions } = this.editor.selection.selected;
+        const selectedItems = new Set([...solids.ids, ...curves.ids, ...regions.ids]);
+        for (const { view, model } of db.find()) {
+            if (!selectedItems.has(view.simpleName)) this.editor.db.hide(view);
+        }
+    }
+}
+
+export class UnhideAllCommand extends Command {
+    async execute(): Promise<void> {
+        this.editor.db.unhideAll();
+    }
+}

@@ -105,7 +105,10 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 promises.push(this.db.addItem(geometry));
             }
             const result = await Promise.all(promises);
-            if (this.shouldRemoveOriginalItem) for (const i of this.originalItems) this.db.removeItem(i);
+            if (this.shouldRemoveOriginalItem) for (const i of this.originalItems) {
+                this.db.unhide(i);
+                this.db.removeItem(i);
+            }
             return dearray(result, unarray);
         } finally {
             await Promise.resolve(); // This removes flickering when rendering.

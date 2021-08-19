@@ -122,7 +122,11 @@ export default {
 
         "escape": "command:abort",
         "enter": "command:finish",
-        "mouse2": "command:finish"
+        "mouse2": "command:finish",
+
+        "h": "command:hide-selected",
+        "shift-h": "command:hide-unselected",
+        "alt-h": "command:unhide-all"
     },
 
     "ispace-workspace": {

@@ -165,11 +165,16 @@ export class GeometryDatabase {
     find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];
     find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T, model: c3d.SpaceInstance }[];
     find<T extends visual.Solid>(klass: GConstructor<T>): { view: T, model: c3d.Solid }[];
-    find<T extends visual.Item>(klass: GConstructor<T>): { view: T, model: c3d.Item }[] {
+    find(): { view: visual.Item, model: c3d.Solid }[];
+    find<T extends visual.Item>(klass?: GConstructor<T>): { view: T, model: c3d.Item }[] {
         const result: { view: visual.Item, model: c3d.Item }[] = [];
-        for (const { view, model } of this.geometryModel.values()) {
-            if (view instanceof klass) {
+        if (klass === undefined) {
+            for (const { view, model } of this.geometryModel.values()) {
                 result.push({ view, model });
+            }
+        } else {
+            for (const { view, model } of this.geometryModel.values()) {
+                if (view instanceof klass) result.push({ view, model });
             }
         }
         return result as { view: T, model: c3d.Item }[];
@@ -369,6 +374,10 @@ export class GeometryDatabase {
 
     unhide(item: visual.Item) {
         this.hidden.delete(item.simpleName);
+    }
+
+    unhideAll() {
+        this.hidden.clear();
     }
 
     saveToMemento(registry: Map<any, any>): GeometryMemento {

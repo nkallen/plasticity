@@ -72,7 +72,7 @@ export class Editor {
 
         const d = this.registry.add("ispace-workspace", {
             'undo': () => this.undo(),
-            'redo': () => this.redo()
+            'redo': () => this.redo(),
         });
         this.disposable.add(d);
     }
