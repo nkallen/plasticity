@@ -45,7 +45,8 @@ export class Viewport {
     private readonly disposable = new CompositeDisposable();
 
     private readonly scene = new THREE.Scene();
-    private readonly overlay = new THREE.Scene();
+    private readonly phantomsScene = new THREE.Scene();
+    private readonly helpersScene = new THREE.Scene();
 
     constructor(
         private readonly editor: EditorLike,
@@ -75,11 +76,14 @@ export class Viewport {
         this.composer.setPixelRatio(window.devicePixelRatio);
 
         this.renderPass = new RenderPass(this.scene, this.camera);
-        const overlayPass = new RenderPass(this.overlay, this.camera);
+        const phantomsPass = new RenderPass(this.phantomsScene, this.camera);
+        const helpersPass = new RenderPass(this.helpersScene, this.camera);
         const copyPass = new ShaderPass(CopyShader);
 
-        overlayPass.clear = false;
-        overlayPass.clearDepth = true;
+        phantomsPass.clear = false;
+        phantomsPass.clearDepth = true;
+        helpersPass.clear = false;
+        helpersPass.clearDepth = true;
 
         const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
         outlinePassSelection.edgeStrength = 3;
@@ -98,7 +102,8 @@ export class Viewport {
         this.composer.addPass(this.renderPass);
         this.composer.addPass(this.outlinePassHover);
         this.composer.addPass(this.outlinePassSelection);
-        this.composer.addPass(overlayPass);
+        this.composer.addPass(phantomsPass);
+        this.composer.addPass(helpersPass);
         this.composer.addPass(copyPass);
 
         this.render = this.render.bind(this);
@@ -189,7 +194,7 @@ export class Viewport {
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 
-        const { editor: { db, helpers, selection, signals }, scene, overlay } = this
+        const { editor: { db, helpers, selection, signals }, scene, phantomsScene, helpersScene } = this
 
         try {
             // prepare the scene, once per frame:
@@ -199,8 +204,8 @@ export class Viewport {
                 scene.add(db.scene);
                 if (this.grid) scene.add(this.grid);
                 selection.highlight();
-                overlay.add(helpers.scene);
-                overlay.add(db.phantomObjects);
+                helpersScene.add(helpers.scene);
+                phantomsScene.add(db.phantomObjects);
             }
 
             const resolution = new THREE.Vector2(this.offsetWidth, this.offsetHeight);
@@ -211,7 +216,8 @@ export class Viewport {
             if (frameNumber > this.lastFrameNumber) {
                 selection.unhighlight();
                 scene.clear();
-                overlay.clear();
+                helpersScene.clear();
+                phantomsScene.clear();
             }
         } finally {
             this.needsRender = false;
