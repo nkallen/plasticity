@@ -25,6 +25,7 @@ export class EditorSignals {
     windowLoaded: signals.Signal = new signals.Signal();
     renderPrepared: signals.Signal<{ camera: THREE.Camera, resolution: THREE.Vector2 }> = new signals.Signal();
     commandStarted: signals.Signal<Command> = new signals.Signal();
+    commandFinishedSuccessfully: signals.Signal<Command> = new signals.Signal();
     commandEnded: signals.Signal<Command> = new signals.Signal();
     keybindingsRegistered: signals.Signal<string[]> = new signals.Signal();
     keybindingsCleared: signals.Signal<string[]> = new signals.Signal();

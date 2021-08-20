@@ -12,6 +12,7 @@ import { Viewport } from "../components/viewport/Viewport";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { SelectionManager } from "../selection/SelectionManager";
 import { Helpers } from "../util/Helpers";
+import { Backup } from "./Backup";
 import ContourManager from "./ContourManager";
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
@@ -51,6 +52,7 @@ export class Editor {
     readonly transactoins = new Transactions(this.db, this.signals);
     readonly executor = new CommandExecutor(this.db, this.selectionGizmo, this.registry, this.signals, this.originator, this.history, this.selection.selected, this.contours);
     readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);
+    readonly backup = new Backup(this.db, this.signals);
 
     disposable = new CompositeDisposable();
 

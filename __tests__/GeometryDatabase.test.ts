@@ -174,6 +174,6 @@ test("serialize & deserialize", async () => {
 
     db = new GeometryDatabase(materials, signals);
     expect(db.visibleObjects.length).toBe(0);
-    await db.deserialize(model);
+    await db.deserialize(data);
     expect(db.visibleObjects.length).toBe(1);
 });

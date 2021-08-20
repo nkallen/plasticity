@@ -76,6 +76,7 @@ export class CommandExecutor {
             })
             if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
             this.history.add("Command", state);
+            this.signals.commandFinishedSuccessfully.dispatch(command);
         } catch (e) {
             command.cancel();
             throw e;

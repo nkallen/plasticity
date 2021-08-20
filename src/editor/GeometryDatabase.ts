@@ -416,7 +416,8 @@ export class GeometryDatabase {
         return everything.writeItems();
     }
 
-    async deserialize(model: c3d.Model): Promise<void> {
+    async deserialize(data: ArrayBuffer): Promise<void> {
+        const model = c3d.Model.readItems(data);
         const items = model.GetItems();
         const promises = [];
         for (const item of items) {
