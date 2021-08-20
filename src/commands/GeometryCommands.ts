@@ -1259,6 +1259,7 @@ export class OffsetLoopCommand extends Command {
         const faces = [...this.editor.selection.selected.faces];
         const face = faces[0];
         const parent = faces[0].parentItem as visual.Solid
+
         let faceModel = this.editor.db.lookupTopologyItem(face);
         faceModel = faceModel.DataDuplicate()!;
         let contour: c3d.ContourOnSurface | undefined;
@@ -1280,10 +1281,10 @@ export class OffsetLoopCommand extends Command {
         }
         if (contour === undefined) return;
 
-        const center = contour.GetWeightCentre();
+        const center = contour2.GetWeightCentre();
         const { normal } = faceModel.NearPointProjection(center);
 
-        const tau = contour.GetLimitTangent(1);
+        const tau = contour2.Tangent(contour2.GetTMin());
         // const tau = new c3d.Vector3D(0, 1, 0);
 
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -1298,7 +1299,7 @@ export class OffsetLoopCommand extends Command {
 
         const gizmo = new DistanceGizmo("offset-loop:distance", this.editor);
         gizmo.position.copy(cart2vec(cp));
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(n));
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
 
         await gizmo.execute(async distance => {
             offsetContour.distance = distance;

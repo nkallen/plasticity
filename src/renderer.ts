@@ -23,6 +23,7 @@ import CurveFactory from './commands/curve/CurveFactory';
 import LineFactory from './commands/line/LineFactory';
 import ViewportHeader from './components/viewport/ViewportHeader';
 import { FaceExtrudeFactory } from './commands/extrude/ExtrudeFactory';
+import CylinderFactory from './commands/cylinder/CylinderFactory';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -63,17 +64,24 @@ ViewportHeader(editor);
 
 const { db, materials, signals } = editor;
 
-const makeBox = new ThreePointBoxFactory(db, materials, signals);
-makeBox.p1 = new THREE.Vector3();
-makeBox.p2 = new THREE.Vector3(1, 0, 0);
-makeBox.p3 = new THREE.Vector3(1, 1, 0);
-makeBox.p4 = new THREE.Vector3(1, 1, 1);
-makeBox.commit()
+// const makeBox = new ThreePointBoxFactory(db, materials, signals);
+// makeBox.p1 = new THREE.Vector3();
+// makeBox.p2 = new THREE.Vector3(1, 0, 0);
+// makeBox.p3 = new THREE.Vector3(1, 1, 0);
+// makeBox.p4 = new THREE.Vector3(1, 1, 1);
+// makeBox.commit()
 
-// const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
-// makeSphere.center = new THREE.Vector3();
-// makeSphere.radius = 1;
-// makeSphere.commit();
+const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
+makeSphere.center = new THREE.Vector3();
+makeSphere.radius = 1;
+makeSphere.commit();
+
+const makeCylinder = new CylinderFactory(db, materials, signals);
+makeCylinder.base = new THREE.Vector3();
+makeCylinder.radius = new THREE.Vector3(0, 0.5, 0);
+makeCylinder.height = new THREE.Vector3(0, 0, 2);
+makeCylinder.commit();
+
 
 // const makeCircle1 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
 // makeCircle1.center = new THREE.Vector3(0, 0, 0);
