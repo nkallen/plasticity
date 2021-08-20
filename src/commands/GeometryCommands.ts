@@ -1281,19 +1281,16 @@ export class OffsetLoopCommand extends Command {
         }
         if (contour === undefined) return;
 
-        const center = contour2.GetWeightCentre();
-        const { normal } = faceModel.NearPointProjection(center);
-
-        const tau = contour2.Tangent(contour2.GetTMin());
+        const tau = contour.Tangent(contour.GetTMin());
         // const tau = new c3d.Vector3D(0, 1, 0);
 
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         offsetContour.face = faceModel;
-        offsetContour.curve = contour2;
+        offsetContour.curve = contour;
 
-        const cp = contour2.GetLimitPoint(0);
-        const { normal: n } = faceModel.NearPointProjection(cp);
-        const vec = vec2vec(n).cross(vec2vec(tau));
+        const cp = contour.GetLimitPoint(1);
+        const { normal } = faceModel.NearPointProjection(cp);
+        const vec = vec2vec(normal).cross(vec2vec(tau));
 
         offsetContour.direction = new c3d.Axis3D(cp, new c3d.Vector3D(vec.x, vec.y, vec.z));
 
