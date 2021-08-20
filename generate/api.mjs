@@ -29,7 +29,7 @@ export default {
         },
         Model: {
             rawHeader: "model.h",
-            dependencies: ["Item.h", "Path.h", "Matrix3D.h"],
+            dependencies: ["Item.h", "Path.h", "Matrix3D.h", "ModelAddon.h"],
             initializers: [""],
             functions: [
                 "MbItem * AddItem(MbItem & item, SimpleName n = c3d::UNDEFINED_SNAME)",
@@ -44,15 +44,6 @@ export default {
                     path: isReturn, from: isReturn,
                     return: { name: "item" }
                 },
-                {
-                    signature: "ArrayBuffer writeItems()",
-                    isManual: true,
-                },
-                {
-                    signature: "MbModel readItems(ArrayBuffer buf)",
-                    isManual: true,
-                    isStaticMethod: true,
-                }
             ],
         },
         AttributeContainer: {
@@ -1383,6 +1374,14 @@ export default {
             functions: [
                 "double AreaSign(const MbCurve & curve, double sag, bool close)",
             ]
+        },
+        Writer: {
+            rawHeader: "model.h",
+            dependencies: ["ModelAddon.h", "Model.h"],
+            functions: [
+                { signature: "size_t WriteItems(const MbModel & model, const char *& memory)", return: { name: "size" } },
+                { signature: "void ReadItems(const void * memory, MbModel *& model)", }
+            ],
         },
     },
     enums: [

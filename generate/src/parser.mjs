@@ -269,6 +269,7 @@ class TypeDeclaration {
         const type = typeRegistry.resolveType(rawType);
 
         Object.assign(this, type);
+
         if (/Array\</.exec(this.rawType) || /List/.exec(this.rawType) || /LIterator/.test(this.rawType)) {
             this.jsType = "Array";
         } else {
@@ -297,8 +298,12 @@ class TypeDeclaration {
     }
 
     get isArray() {
-        if (/ArrayBuffer/.test(this.rawType)) return false;
         return /Array/.test(this.rawType) || /List/.test(this.rawType) || /LIterator/.test(this.rawType);
+    }
+
+    get isArrayBuffer() {
+        return this.rawType === "char" && this.const && this.ref === "*&" ||
+            this.rawType === "void" && this.const && this.ref === "*";
     }
 
     get isNumberPair() {
@@ -341,6 +346,7 @@ class ParamDeclaration extends TypeDeclaration {
             this.elementType.klass = typeRegistry.resolveClass(this.elementType.jsType);
         }
         Object.assign(this, options[this.name]);
+        if (this.isArrayBuffer) this.jsType = "ArrayBuffer";
     }
 
     get isOptional() {

@@ -32,7 +32,7 @@
             <% if (_return.shouldAlloc) { _%>
             <%- _return.rawType %> *<%- _return.name %> = new <%- _return.rawType %>;
             <% } else { _%>
-            <%- _return.rawType %> <%- _return.isPointer ? '*' : '' %> <%- _return.name %> = NULL;
+            <%- _return.const %> <%- _return.rawType %> <%- _return.isPointer ? '*' : '' %> <%- _return.name %> = NULL;
             <%_ } _%>
         <%_ } _%>
 

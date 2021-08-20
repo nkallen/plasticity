@@ -4,7 +4,7 @@
     <%_ } else if (_return.isPrimitive) { _%>
     <%- _return.rawType %> <%- _return.name %>;
     <%_ } else { _%>
-    <%- _return.rawType %> <%- _return.isPointer ? '*' : '' %> <%- _return.name %> = NULL;
+    <%- _return.const %> <%- _return.rawType %> <%- _return.isPointer ? '*' : '' %> <%- _return.name %> = NULL;
     <%_ } _%>
 <%_ } _%>
 
@@ -16,7 +16,7 @@
 
 <%- func.before %>
 <% if (func.returnType.isReturn || func.returnType.isErrorCode || func.returnType.isErrorBool) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> <%- func.returnType.name %> = <% } _%>
-<%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- func.rawName %>(
+<%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- func.name %>(
 <%_ for (const arg of func.params) { _%>
     <% if (arg.isCppString2CString) { _%>
     <%- arg.name %>.c_str(), <%- arg.name %>.length()
