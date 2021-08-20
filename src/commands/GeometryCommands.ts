@@ -24,7 +24,7 @@ import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
-import { FaceExtrudeFactory, PossiblyBooleanFaceExtrudeFactory, PossiblyBooleanRegionExtrudeFactory } from "./extrude/ExtrudeFactory";
+import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import ChamferFactory from "./fillet/ChamferFactory";
 import { ChamferGizmo } from "./fillet/ChamferGizmo";
@@ -1051,17 +1051,18 @@ export class LoftCommand extends Command {
 
 export class ExtrudeCommand extends Command {
     async execute(): Promise<void> {
-        const curves = [...this.editor.selection.selected.curves];
-        const extrude = new PossiblyBooleanFaceExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        // extrude.curves = curves;
-        extrude.face = this.editor.selection.selected.faces.first;
+        const selected = this.editor.selection.selected;
+        const extrude = new PossiblyBooleanExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        extrude.curves = [...selected.curves];
+        extrude.face = selected.faces.first;
+        extrude.region = selected.regions.first;
 
         const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
         keyboard.prepare(extrude).resource(this);
 
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
         gizmo.position.copy(extrude.center);
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), extrude.normal);
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), extrude.direction);
 
         await gizmo.execute(params => {
             extrude.update();
@@ -1076,7 +1077,8 @@ export class ExtrudeRegionCommand extends Command {
     point?: THREE.Vector3
 
     async execute(): Promise<void> {
-        const extrude = new PossiblyBooleanRegionExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+
+        const extrude = new PossiblyBooleanExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         const region = selection.regions.first;
         if (selection.solids.size > 0) extrude.solid = selection.solids.first;
@@ -1085,13 +1087,8 @@ export class ExtrudeRegionCommand extends Command {
         const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
         keyboard.prepare(extrude).resource(this);
 
-        const bbox = new THREE.Box3();
-        bbox.expandByObject(extrude.region);
-        const centroid = new THREE.Vector3();
-        bbox.getCenter(centroid);
-
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
-        gizmo.position.copy(centroid);
+        gizmo.position.copy(extrude.center);
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), extrude.direction);
 
         await gizmo.execute(params => {

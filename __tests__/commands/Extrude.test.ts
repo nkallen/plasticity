@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
-import { BooleanRegionExtrudeFactory, CurveExtrudeFactory, ExtrudeFactory, FaceExtrudeFactory, PossiblyBooleanRegionExtrudeFactory, RegionExtrudeFactory } from "../../src/commands/extrude/ExtrudeFactory";
+import { CurveExtrudeFactory, ExtrudeFactory, FaceExtrudeFactory, PossiblyBooleanExtrudeFactory, RegionExtrudeFactory } from "../../src/commands/extrude/ExtrudeFactory";
 import { ExtrudeSurfaceFactory } from "../../src/commands/extrude/ExtrudeSurfaceFactory";
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import SphereFactory from "../../src/commands/sphere/SphereFactory";
@@ -102,9 +102,9 @@ describe(FaceExtrudeFactory, () => {
         const bbox = new THREE.Box3().setFromObject(result);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.1));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0.2));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, -0.1));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, -0.2));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
     })
 })
 
@@ -129,9 +129,9 @@ describe(ExtrudeFactory, () => {
         const bbox = new THREE.Box3().setFromObject(result);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.1));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0.2));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, -0.1));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, -0.2));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
     })
 
     test('it supports regions', async () => {
@@ -176,37 +176,30 @@ describe(ExtrudeFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
-})
 
-describe(BooleanRegionExtrudeFactory, () => {
-    let extrude: BooleanRegionExtrudeFactory;
-    let region: visual.PlaneInstance<visual.Region>;
-    let sphere: visual.Solid;
+    describe("boolean region", () => {
+        let sphere: visual.Solid;
+        let region: visual.PlaneInstance<visual.Region>;
 
-    beforeEach(() => {
-        extrude = new BooleanRegionExtrudeFactory(db, materials, signals);
-    });
+        beforeEach(async () => {
+            const makeCircle = new CenterCircleFactory(db, materials, signals);
+            const makeRegion = new RegionFactory(db, materials, signals);
+            const makeSphere = new SphereFactory(db, materials, signals);
 
-    beforeEach(async () => {
-        const makeCircle = new CenterCircleFactory(db, materials, signals);
-        const makeRegion = new RegionFactory(db, materials, signals);
-        const makeSphere = new SphereFactory(db, materials, signals);
+            makeCircle.center = new THREE.Vector3(0, 0, 2);
+            makeCircle.radius = 0.1;
+            const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        makeCircle.center = new THREE.Vector3(0, 0, 2);
-        makeCircle.radius = 0.1;
-        const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+            makeRegion.contours = [circle];
+            const items = await makeRegion.commit() as visual.PlaneInstance<visual.Region>;
+            region = items[0];
 
-        makeRegion.contours = [circle];
-        const items = await makeRegion.commit() as visual.PlaneInstance<visual.Region>;
-        region = items[0];
+            makeSphere.center = new THREE.Vector3();
+            makeSphere.radius = 1;
+            sphere = await makeSphere.commit() as visual.Solid;
+        });
 
-        makeSphere.center = new THREE.Vector3();
-        makeSphere.radius = 1;
-        sphere = await makeSphere.commit() as visual.Solid;
-    });
-
-    describe('commit', () => {
-        test('invokes the appropriate c3d commands', async () => {
+        test('region', async () => {
             extrude.region = region;
             extrude.solid = sphere;
             extrude.distance1 = 0;
@@ -220,17 +213,47 @@ describe(BooleanRegionExtrudeFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0.5));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, -1));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 2));
-        })
+        });
+    });
+
+    describe("boolean face", () => {
+        let box: visual.Solid;
+
+        beforeEach(async () => {
+            const makeBox = new ThreePointBoxFactory(db, materials, signals);
+            makeBox.p1 = new THREE.Vector3();
+            makeBox.p2 = new THREE.Vector3(1, 0, 0);
+            makeBox.p3 = new THREE.Vector3(1, 1, 0);
+            makeBox.p4 = new THREE.Vector3(1, 1, 1);
+            box = await makeBox.commit() as visual.Solid;
+        });
+
+        test('faces automatically set the operation type based on direction', async () => {
+            extrude.face = box.faces.get(1);
+            extrude.solid = box;
+            extrude.distance1 = 0.2;
+            expect(extrude.operationType).toBe(c3d.OperationType.Union);
+            extrude.distance1 = -0.2;
+            expect(extrude.operationType).toBe(c3d.OperationType.Difference);
+            const result = await extrude.commit() as visual.SpaceItem;
+
+            const bbox = new THREE.Box3().setFromObject(result);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.4));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0.8));
+        });
     })
 })
 
-describe(PossiblyBooleanRegionExtrudeFactory, () => {
-    let extrude: PossiblyBooleanRegionExtrudeFactory;
+describe(PossiblyBooleanExtrudeFactory, () => {
+    let extrude: PossiblyBooleanExtrudeFactory;
     let region: visual.PlaneInstance<visual.Region>;
     let sphere: visual.Solid;
 
     beforeEach(() => {
-        extrude = new PossiblyBooleanRegionExtrudeFactory(db, materials, signals);
+        extrude = new PossiblyBooleanExtrudeFactory(db, materials, signals);
     });
 
     beforeEach(async () => {
@@ -325,7 +348,7 @@ describe(PossiblyBooleanRegionExtrudeFactory, () => {
             extrude.distance2 = 1.5;
             extrude.operationType = c3d.OperationType.Difference;
             await extrude.computeGeometry();
-            // @ts-expect-error('testing protected field')
+            // @ts-expect-error
             const phantoms = extrude.phantoms;
             const { phantom, material } = phantoms[0];
             const result = await db.addItem(phantom);
@@ -338,6 +361,37 @@ describe(PossiblyBooleanRegionExtrudeFactory, () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.1, 0.1, 2));
         })
     });
+
+
+    describe("face direction operation type delegates all the way", () => {
+        let box: visual.Solid;
+
+        beforeEach(async () => {
+            const makeBox = new ThreePointBoxFactory(db, materials, signals);
+            makeBox.p1 = new THREE.Vector3();
+            makeBox.p2 = new THREE.Vector3(1, 0, 0);
+            makeBox.p3 = new THREE.Vector3(1, 1, 0);
+            makeBox.p4 = new THREE.Vector3(1, 1, 1);
+            box = await makeBox.commit() as visual.Solid;
+        });
+
+        test('face', async () => {
+            extrude.face = box.faces.get(1);
+            extrude.solid = box;
+            extrude.distance1 = 0.2;
+            expect(extrude.operationType).toBe(c3d.OperationType.Union);
+            extrude.distance1 = -0.2;
+            expect(extrude.operationType).toBe(c3d.OperationType.Difference);
+            const result = await extrude.commit() as visual.SpaceItem;
+
+            const bbox = new THREE.Box3().setFromObject(result);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.4));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0.8));
+        });
+    })
 })
 
 describe(ExtrudeSurfaceFactory, () => {

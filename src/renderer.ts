@@ -69,6 +69,7 @@ makeBox.p2 = new THREE.Vector3(1, 0, 0);
 makeBox.p3 = new THREE.Vector3(1, 1, 0);
 makeBox.p4 = new THREE.Vector3(1, 1, 1);
 makeBox.commit()
+
 // const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
 // makeSphere.center = new THREE.Vector3();
 // makeSphere.radius = 1;

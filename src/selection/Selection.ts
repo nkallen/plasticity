@@ -18,7 +18,7 @@ abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem | v
         }
     }
 
-    get first() { return this[Symbol.iterator]().next().value as T || undefined }
+    get first() { return this[Symbol.iterator]().next().value as T }
 
     has(s: T) { return this.ids.has(s.simpleName as unknown as any) }
 

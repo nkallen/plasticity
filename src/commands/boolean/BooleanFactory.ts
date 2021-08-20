@@ -8,6 +8,7 @@ import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, PhantomInfo, ValidationError } from '../GeometryFactory';
 
 interface BooleanLikeFactory extends GeometryFactory {
+    solid: visual.Solid;
     operationType: c3d.OperationType;
 }
 
@@ -179,7 +180,10 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     get solid() { return this._solid }
     set solid(solid: visual.Solid | undefined) {
         this._solid = solid;
-        if (solid !== undefined) this.model = this.db.lookup(solid);
+        if (solid !== undefined) {
+            this.bool.solid = solid;
+            this.model = this.db.lookup(solid);
+        }
     }
 
     protected _isOverlapping = false;
@@ -212,12 +216,9 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         if (!this._isOverlapping) return [];
 
         let material: MaterialOverride
-        if (this.operationType === c3d.OperationType.Difference)
-            material = phantom_red;
-        else if (this.operationType === c3d.OperationType.Intersect)
-            material = phantom_green;
-        else
-            material = phantom_blue;
+        if (this.operationType === c3d.OperationType.Difference) material = phantom_red;
+        else if (this.operationType === c3d.OperationType.Intersect) material = phantom_green;
+        else material = phantom_blue;
 
         const phantom = this._phantom;
 
