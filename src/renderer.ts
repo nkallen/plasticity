@@ -22,6 +22,7 @@ import registerDefaultCommands from './components/toolbar/icons';
 import CurveFactory from './commands/curve/CurveFactory';
 import LineFactory from './commands/line/LineFactory';
 import ViewportHeader from './components/viewport/ViewportHeader';
+import { FaceExtrudeFactory } from './commands/extrude/ExtrudeFactory';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -60,12 +61,14 @@ NumberScrubber(editor);
 Dialog(editor);
 ViewportHeader(editor);
 
-const box = new CenterBoxFactory(editor.db, editor.materials, editor.signals);
-box.p1 = new THREE.Vector3(0, 0, 0);
-box.p2 = new THREE.Vector3(1, 1, 0);
-box.p3 = new THREE.Vector3(0, 0, 1);
-box.commit();
+const { db, materials, signals } = editor;
 
+const makeBox = new ThreePointBoxFactory(db, materials, signals);
+makeBox.p1 = new THREE.Vector3();
+makeBox.p2 = new THREE.Vector3(1, 0, 0);
+makeBox.p3 = new THREE.Vector3(1, 1, 0);
+makeBox.p4 = new THREE.Vector3(1, 1, 1);
+makeBox.commit()
 // const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
 // makeSphere.center = new THREE.Vector3();
 // makeSphere.radius = 1;

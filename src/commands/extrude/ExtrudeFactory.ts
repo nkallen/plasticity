@@ -60,47 +60,47 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     }
 }
 
-export class ExtrudeFactory extends AbstractExtrudeFactory {
-    curves!: visual.SpaceInstance<visual.Curve3D>[];
+export class CurveExtrudeFactory extends AbstractExtrudeFactory {
     direction!: THREE.Vector3;
 
-    protected get contours() {
-        const result: c3d.Contour[] = [];
-        for (const curve of this.curves) {
+    private _curves!: visual.SpaceInstance<visual.Curve3D>[];
+    protected contours!: c3d.Contour[];
+    protected surface!: c3d.Surface;
+    set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
+        const contours: c3d.Contour[] = [];
+        for (const curve of curves) {
             const inst = this.db.lookup(curve);
             const item = inst.GetSpaceItem()!;
 
             if (item.IsA() === c3d.SpaceType.ContourOnSurface || item.IsA() === c3d.SpaceType.ContourOnPlane) {
                 const model = item.Cast<c3d.ContourOnSurface>(item.IsA());
-                result.push(model.GetContour());
+                contours.push(model.GetContour());
             } else {
                 const model = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
                 const { curve2d } = model.GetPlaneCurve(false);
-                result.push(new c3d.Contour([curve2d], true));
+                contours.push(new c3d.Contour([curve2d], true));
             }
         }
-        return result;
-    }
+        this.contours = contours;
 
-    protected get surface() {
-        const inst = this.db.lookup(this.curves[0]);
+        const inst = this.db.lookup(curves[0]);
         const item = inst.GetSpaceItem()!;
 
         if (item.IsA() === c3d.SpaceType.ContourOnSurface || item.IsA() === c3d.SpaceType.ContourOnPlane) {
             const model = item.Cast<c3d.ContourOnSurface>(item.IsA());
-            return model.GetSurface();
+            this.surface = model.GetSurface();
         } else {
             const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
             const { placement } = curve.GetPlaneCurve(false);
-            return new c3d.Plane(placement, 0);
+            this.surface = new c3d.Plane(placement, 0);
         }
     }
 }
 
 export class FaceExtrudeFactory extends AbstractExtrudeFactory {
     private _face!: visual.Face;
-    private _contours!: c3d.Contour[];
-    private _surface!: c3d.Surface;
+    protected contours!: c3d.Contour[];
+    protected surface!: c3d.Surface;
     private _normal!: THREE.Vector3;
     private _center!: THREE.Vector3;
     set face(face: visual.Face) {
@@ -109,17 +109,14 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
 
         const { surface, contours } = model.GetSurfaceCurvesData();
         const fsurface = model.GetSurface();
-        this._contours = contours;
-        this._surface = surface;
+        this.contours = contours;
+        this.surface = surface;
 
         const p = surface.PointOn(new c3d.CartPoint(fsurface.GetUMid(), fsurface.GetVMid()));
         this._center = cart2vec(p);
         const n = surface.Normal(fsurface.GetUMid(), fsurface.GetVMid());
         this._normal = vec2vec(n);
     }
-
-    protected get contours() { return this._contours }
-    protected get surface() { return this._surface }
 
     get normal() { return this._normal }
     get center() { return this._center }
@@ -128,34 +125,29 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
 }
 
 export class RegionExtrudeFactory extends AbstractExtrudeFactory {
-    region!: visual.PlaneInstance<visual.Region>;
-
-    protected get contours() {
-        const inst = this.db.lookup(this.region);
+    private _region!: visual.PlaneInstance<visual.Region>;
+    protected contours!: c3d.Contour[];
+    protected surface!: c3d.Surface;
+    private _placement!: c3d.Placement3D;
+    set region(region: visual.PlaneInstance<visual.Region>) {
+        const inst = this.db.lookup(region);
         const item = inst.GetPlaneItem();
         if (item === null) throw new Error("invalid precondition");
-        const region = item.Cast<c3d.Region>(c3d.PlaneType.Region);
-        const result = [];
-        for (let i = 0, l = region.GetContoursCount(); i < l; i++) {
-            const contour = region.GetContour(i);
+        const model = item.Cast<c3d.Region>(c3d.PlaneType.Region);
+        const contours = [];
+        for (let i = 0, l = model.GetContoursCount(); i < l; i++) {
+            const contour = model.GetContour(i);
             if (contour === null) throw new Error("invalid precondition");
-            result.push(contour);
+            contours.push(contour);
         }
-        return result;
-    }
+        this.contours = contours;
 
-    private get placement() {
-        const inst = this.db.lookup(this.region);
-        const placement = inst.GetPlacement();
-        return placement;
-    }
-
-    protected get surface() {
-        return new c3d.Plane(this.placement, 0);
+        this._placement = inst.GetPlacement();
+        this.surface = new c3d.Plane(this._placement, 0);
     }
 
     get direction() {
-        const placement = this.placement;
+        const placement = this._placement;
         const z = placement.GetAxisZ();
         return vec2vec(z);
     }
