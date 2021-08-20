@@ -406,4 +406,22 @@ export class GeometryDatabase {
         (this.controlPointModel as GeometryDatabase['controlPointModel']) = m.controlPointModel;
         (this.hidden as GeometryDatabase['hidden']) = m.hidden;
     }
+
+    async serialize(): Promise<ArrayBuffer> {
+        const { geometryModel } = this;
+        const everything = new c3d.Model();
+        for (const [id, { model }] of geometryModel.entries()) {
+            everything.AddItem(model, id);
+        }
+        return everything.writeItems();
+    }
+
+    async deserialize(model: c3d.Model): Promise<void> {
+        const items = model.GetItems();
+        const promises = [];
+        for (const item of items) {
+            promises.push(this.addItem(item.Cast<c3d.Item>(item.IsA())));
+        }
+        await Promise.all(promises);
+    }
 }

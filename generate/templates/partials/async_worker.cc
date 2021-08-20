@@ -38,7 +38,7 @@
 
         <%- func.before %>
         <% if (func.returnType.isReturn || func.returnType.isErrorCode || func.returnType.isErrorBool) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> <%- func.returnType.name %> = <% } _%>
-        <%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- func.name %>(
+        <%_ if (!func.isStatic) { _%>_underlying-><% } else { _%>::<%_ } _%><%- func.rawName %>(
         <%_ for (const arg of func.params) { _%>
             <% if (arg.isCppString2CString) { _%>
             <%- arg.name %>, <%- arg.name %>_length

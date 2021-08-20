@@ -33,6 +33,8 @@ export default {
             initializers: [""],
             functions: [
                 "MbItem * AddItem(MbItem & item, SimpleName n = c3d::UNDEFINED_SNAME)",
+                "size_t ItemsCount()",
+                { signature: "void GetItems(RPArray<MbItem> & items)", items: isReturn },
                 {
                     signature: "bool DetachItem(MbItem * item)",
                     before: "item->AddRef();"
@@ -41,6 +43,15 @@ export default {
                     signature: "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)",
                     path: isReturn, from: isReturn,
                     return: { name: "item" }
+                },
+                {
+                    signature: "ArrayBuffer writeItems()",
+                    isManual: true,
+                },
+                {
+                    signature: "MbModel readItems(ArrayBuffer buf)",
+                    isManual: true,
+                    isStaticMethod: true,
                 }
             ],
         },
@@ -1372,7 +1383,7 @@ export default {
             functions: [
                 "double AreaSign(const MbCurve & curve, double sag, bool close)",
             ]
-        }
+        },
     },
     enums: [
         "SimpleName",

@@ -68,6 +68,7 @@ class TypeRegistry {
 
     register(classDeclaration) {
         this.classes[classDeclaration.name] = classDeclaration;
+        this.classes[classDeclaration.rawClassName] = classDeclaration;
     }
 
     resolveClass(className) {
@@ -206,7 +207,7 @@ class ModuleDeclaration extends ClassDeclaration {
 }
 
 class FunctionDeclaration {
-    static declaration = /(?<return>[\w\s*&]+)\s+(?<name>\w+)\(\s*(?<params>[\w\s<>,&*:=()]*)\s*\)/
+    static declaration = /(?<return>[\w\s*&:]+)\s+(?<name>[\w:]+)\(\s*(?<params>[\w\s<>,&*:=()]*)\s*\)/
 
     constructor(desc, typeRegistry) {
         let options = {};
@@ -221,7 +222,8 @@ class FunctionDeclaration {
         const matchMethod = FunctionDeclaration.declaration.exec(desc);
         if (!matchMethod) throw new Error("Parsing error: " + desc);
 
-        this.name = matchMethod.groups.name;
+        this.rawName = matchMethod.groups.name;
+        this.name = this.rawName.split(/::/)[1] ?? matchMethod.groups.name;
         this.returnType = new ReturnDeclaration(matchMethod.groups.return, this.typeRegistry, options.return);
         const paramDescs = matchMethod.groups.params.split(/,\s*/);
 
@@ -267,7 +269,7 @@ class TypeDeclaration {
         const type = typeRegistry.resolveType(rawType);
 
         Object.assign(this, type);
-        if (/Array/.exec(this.rawType) || /List/.exec(this.rawType) || /LIterator/.test(this.rawType)) {
+        if (/Array\</.exec(this.rawType) || /List/.exec(this.rawType) || /LIterator/.test(this.rawType)) {
             this.jsType = "Array";
         } else {
             this.jsType = type.jsType;
@@ -279,7 +281,7 @@ class TypeDeclaration {
     }
 
     get isNumber() {
-        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t" || this.rawType == "size_t" || this.rawType == "VERSION" || this.rawType == "uint" || this.rawType == "SimpleName" || this.rawType == "ptrdiff_t"
+        return this.rawType == "double" || this.rawType == "int" || this.rawType == "float" || this.rawType == "long" || this.rawType == "refcount_t" || this.rawType == "size_t" || this.rawType == "VERSION" || this.rawType == "uint" || this.rawType == "SimpleName" || this.rawType == "ptrdiff_t" || this.rawType === "uint8"
     }
 
     get isCppString2CString() {
@@ -295,6 +297,7 @@ class TypeDeclaration {
     }
 
     get isArray() {
+        if (/ArrayBuffer/.test(this.rawType)) return false;
         return /Array/.test(this.rawType) || /List/.test(this.rawType) || /LIterator/.test(this.rawType);
     }
 
@@ -356,7 +359,7 @@ class ParamDeclaration extends TypeDeclaration {
 }
 
 class ReturnDeclaration extends TypeDeclaration {
-    static declaration = /((?<const>const)\s+)?(?<type>\w+)(\s+(?<ref>[*&]\s*))?/;
+    static declaration = /((?<const>const)\s+)?(?<type>[\w:]+)(\s+(?<ref>[*&]\s*))?/;
 
     constructor(desc, typeRegistry, options) {
         const matchType = ReturnDeclaration.declaration.exec(desc);

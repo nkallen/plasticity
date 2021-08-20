@@ -13,6 +13,7 @@
                 "./lib/c3d/src/PlaneItemAddon.cc",
                 "./lib/c3d/src/Error.cc",
                 "./lib/c3d/src/MeshAddon.cc",
+                "./lib/c3d/src/ModelAddon.cc",
                 "./lib/c3d/src/ProgressIndicator.cc",
                 "./lib/c3d/src/ActionCurveAddon.cc",
                 <%_ for (c of classes) if (!c.ignore) { _%>

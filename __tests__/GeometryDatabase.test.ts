@@ -164,3 +164,16 @@ test("duplicate", async () => {
     const view = await db.addItem(box) as visual.Solid;
     const dup = db.duplicate(view);
 })
+
+test("serialize & deserialize", async () => {
+    const v = await db.addItem(box) as visual.Solid;
+    const data = await db.serialize();
+    const model = c3d.Model.readItems(data);
+    const items = model.GetItems();
+    expect(items.length).toBe(1);
+
+    db = new GeometryDatabase(materials, signals);
+    expect(db.visibleObjects.length).toBe(0);
+    await db.deserialize(model);
+    expect(db.visibleObjects.length).toBe(1);
+});
