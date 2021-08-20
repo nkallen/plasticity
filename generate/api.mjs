@@ -714,6 +714,9 @@ export default {
                 "const MbPlane & plane, const MbContour & contour, bool same",
                 "const MbPlane & plane, int sense",
                 "const MbPlane & plane",
+            ],
+            functions: [
+                "const MbPlacement3D & GetPlacement()"
             ]
         },
         OrientedEdge: {

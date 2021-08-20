@@ -61,12 +61,13 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
 }
 
 export class CurveExtrudeFactory extends AbstractExtrudeFactory {
-    direction!: THREE.Vector3;
-
     private _curves!: visual.SpaceInstance<visual.Curve3D>[];
     protected contours!: c3d.Contour[];
     protected surface!: c3d.Surface;
+    private _normal!: THREE.Vector3;
+    get curves() { return this._curves }
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
+        this._curves = curves;
         const contours: c3d.Contour[] = [];
         for (const curve of curves) {
             const inst = this.db.lookup(curve);
@@ -86,15 +87,20 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
         const inst = this.db.lookup(curves[0]);
         const item = inst.GetSpaceItem()!;
 
-        if (item.IsA() === c3d.SpaceType.ContourOnSurface || item.IsA() === c3d.SpaceType.ContourOnPlane) {
-            const model = item.Cast<c3d.ContourOnSurface>(item.IsA());
+        if (item.IsA() === c3d.SpaceType.ContourOnPlane) {
+            const model = item.Cast<c3d.ContourOnPlane>(item.IsA());
             this.surface = model.GetSurface();
+            const placement = model.GetPlacement();
+            this._normal = vec2vec(placement.GetAxisZ())
         } else {
             const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
             const { placement } = curve.GetPlaneCurve(false);
             this.surface = new c3d.Plane(placement, 0);
+            this._normal = vec2vec(placement.GetAxisZ())
         }
     }
+
+    get direction() { return this._normal }
 }
 
 export class FaceExtrudeFactory extends AbstractExtrudeFactory {
@@ -103,6 +109,7 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
     protected surface!: c3d.Surface;
     private _normal!: THREE.Vector3;
     private _center!: THREE.Vector3;
+    get face() { return this._face }
     set face(face: visual.Face) {
         this._face = face;
         const model = this.db.lookupTopologyItem(face);
@@ -129,7 +136,9 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     protected contours!: c3d.Contour[];
     protected surface!: c3d.Surface;
     private _placement!: c3d.Placement3D;
+    get region() { return this._region }
     set region(region: visual.PlaneInstance<visual.Region>) {
+        this._region = region;
         const inst = this.db.lookup(region);
         const item = inst.GetPlaneItem();
         if (item === null) throw new Error("invalid precondition");
@@ -151,6 +160,39 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
         const z = placement.GetAxisZ();
         return vec2vec(z);
     }
+}
+
+export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
+    private readonly regionExtrude = new RegionExtrudeFactory(this.db, this.materials, this.signals);
+    private readonly faceExtrude = new FaceExtrudeFactory(this.db, this.materials, this.signals);
+    private readonly curveExtrude = new CurveExtrudeFactory(this.db, this.materials, this.signals);
+    private readonly factories = [this.regionExtrude, this.faceExtrude, this.curveExtrude];
+
+    set region(region: visual.PlaneInstance<visual.Region>) {
+        this.regionExtrude.region = region;
+    }
+
+    set face(face: visual.Face) {
+        this.faceExtrude.face = face;
+    }
+
+    set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
+        this.curveExtrude.curves = curves;
+    }
+
+    computeGeometry() {
+        if (this.regionExtrude.region !== undefined) return this.regionExtrude.computeGeometry();
+        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.computeGeometry();
+        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.computeGeometry();
+        else throw new ValidationError("need region, face, or curves");
+    }
+
+    set distance1(distance1: number) { for (const f of this.factories) f.distance1 = distance1 }
+    set distance2(distance2: number) { for (const f of this.factories) f.distance2 = distance2 }
+    set race1(race1: number) { for (const f of this.factories) f.race1 = race1 }
+    set race2(race2: number) { for (const f of this.factories) f.race2 = race2 }
+    set thickness1(thickness1: number) { for (const f of this.factories) f.thickness1 = thickness1 }
+    set thickness2(thickness2: number) { for (const f of this.factories) f.thickness2 = thickness2 }
 }
 
 export class BooleanRegionExtrudeFactory extends RegionExtrudeFactory {
