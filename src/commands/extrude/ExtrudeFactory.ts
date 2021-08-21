@@ -178,6 +178,10 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
 
         this._placement = inst.GetPlacement();
         this.surface = new c3d.Plane(this._placement, 0);
+
+        const bbox = new THREE.Box3();
+        bbox.setFromObject(region);
+        bbox.getCenter(this._center);
     }
 
     get direction(): THREE.Vector3 {
@@ -186,8 +190,9 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
         return vec2vec(z);
     }
 
+    private _center = new THREE.Vector3();
     get center(): THREE.Vector3 {
-        return cart2vec(this._placement.GetOrigin());
+        return this._center;
     }
 }
 

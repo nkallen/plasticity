@@ -19,7 +19,7 @@ export class Model {
         const result = [];
         const { db, selection } = this;
         if (selection.regions.size > 0) {
-            result.push(cmd.ExtrudeRegionCommand);
+            result.push(cmd.ExtrudeCommand);
         }
         if (selection.solids.size > 0) {
             result.push(cmd.MoveCommand);
