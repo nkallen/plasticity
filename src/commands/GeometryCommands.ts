@@ -1059,6 +1059,7 @@ export class ExtrudeCommand extends Command {
         extrude.curves = [...selected.curves];
         if (selected.faces.size > 0) extrude.face = selected.faces.first;
         extrude.region = selected.regions.first;
+        extrude.solid = selected.solids.first;
 
         const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
         keyboard.prepare(extrude).resource(this);
