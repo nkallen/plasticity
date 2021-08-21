@@ -15,10 +15,19 @@ export class Backup {
     private dir = path.join(os.tmpdir(), 'plasticity');
 
     async save() {
+        console.time("Save backup");
         const data = await this.db.serialize();
         const tempFilePath = await this.tempFilePath();
-
         await fs.promises.writeFile(tempFilePath, Buffer.from(data));
+        console.timeEnd("Save backup");
+    }
+
+    async load() {
+        console.time("load backup");
+        const tempFilePath = await this.tempFilePath();
+        const data = await fs.promises.readFile(tempFilePath);
+        await this.db.deserialize(data);
+        console.timeEnd("load backup");
     }
 
     async makeTempDir() {

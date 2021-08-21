@@ -301,7 +301,7 @@ class TypeDeclaration {
         return /Array/.test(this.rawType) || /List/.test(this.rawType) || /LIterator/.test(this.rawType);
     }
 
-    get isArrayBuffer() {
+    get isBuffer() {
         return this.rawType === "char" && this.const && this.ref === "*&" ||
             this.rawType === "void" && this.const && this.ref === "*";
     }
@@ -346,7 +346,7 @@ class ParamDeclaration extends TypeDeclaration {
             this.elementType.klass = typeRegistry.resolveClass(this.elementType.jsType);
         }
         Object.assign(this, options[this.name]);
-        if (this.isArrayBuffer) this.jsType = "ArrayBuffer";
+        if (this.isBuffer) this.jsType = "Buffer";
     }
 
     get isOptional() {

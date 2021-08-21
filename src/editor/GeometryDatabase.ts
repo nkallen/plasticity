@@ -407,7 +407,7 @@ export class GeometryDatabase {
         (this.hidden as GeometryDatabase['hidden']) = m.hidden;
     }
 
-    async serialize(): Promise<ArrayBuffer> {
+    async serialize(): Promise<Buffer> {
         const { geometryModel } = this;
         const everything = new c3d.Model();
         for (const [id, { model }] of geometryModel.entries()) {
@@ -417,9 +417,9 @@ export class GeometryDatabase {
         return memory;
     }
 
-    async deserialize(data: ArrayBuffer): Promise<void> {
-        const model = await c3d.Writer.ReadItems_async(data);
-        const items = model.GetItems();
+    async deserialize(data: Buffer): Promise<void> {
+        const everything = await c3d.Writer.ReadItems_async(data);
+        const items = everything.GetItems();
         const promises = [];
         for (const item of items) {
             promises.push(this.addItem(item.Cast<c3d.Item>(item.IsA())));

@@ -61,8 +61,8 @@
             LIterator<<%- arg.elementType.rawType %>> <%- arg.name %> = <%- arg.name %>_list;
         <%_ } _%>
     <%_ } _%>
-<%_ } else if (arg.isArrayBuffer) { _%>
-    const char * <%- arg.name %> = (const char *)Napi::ArrayBuffer(env, info[<%- arg.jsIndex %>]).Data();
+<%_ } else if (arg.isBuffer) { _%>
+    const char * <%- arg.name %> = Napi::Buffer<const char>(env, info[<%- arg.jsIndex %>]).Data();
 <%_ } else if (arg.isCppString2CString) { _%>
     const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString().Utf8Value();
 <%_ } else if (arg.isC3dString) { _%>

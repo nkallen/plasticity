@@ -366,7 +366,7 @@ export default (editor: EditorLike) => {
             switch (view) {
                 case "3d":
                     camera = orthographicCamera;
-                    camera.position.set(-5, 100, 5);
+                    camera.position.set(-5, 100, 20);
                     n = new THREE.Vector3(0, 0, 1);
                     enableNavControls = true;
                     break;

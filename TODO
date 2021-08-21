@@ -1,7 +1,7 @@
 save/load
-clicking adds items to history even when no selection is changed
-bring back split
-
+  - auto load last save on startup
+bug: clicking adds items to history even when no selection is changed
+bring back face split
 extrude to target
 
 

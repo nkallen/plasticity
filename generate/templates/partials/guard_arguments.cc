@@ -4,8 +4,8 @@
             if ((info.Length() == <%- arg.jsIndex %>
             <%_ if (arg.isNumber || arg.isEnum) { _%>
                 || !info[<%- arg.jsIndex %>].IsNumber())) {
-            <%_ } else if (arg.isArrayBuffer) { _%>
-                || !info[<%- arg.jsIndex %>].IsArrayBuffer())) {
+            <%_ } else if (arg.isBuffer) { _%>
+                || !info[<%- arg.jsIndex %>].IsBuffer())) {
             <%_ } else if (arg.isCppString2CString) { _%>
                 || !info[<%- arg.jsIndex %>].IsString())) {
             <%_ } else if (arg.isC3dString) { _%>

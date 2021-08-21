@@ -12,11 +12,11 @@
         arr_<%- arg.name %>[i] = <%- arg.elementType.cppType %>::NewInstance(env, <%- (arg.isStructArray && !arg.elementType.klass?.isPOD) ? "&" : '' %>(*<%- arg.name %>)[i]);
     }
     _to = arr_<%- arg.name %>;
-<%_ } else if (arg.isArrayBuffer) { _%>
-    _to = Napi::ArrayBuffer::New(env, (void *) memory, size,
-        [](Napi::Env /*env*/, void *finalizeData)
+<%_ } else if (arg.isBuffer) { _%>
+    _to = Napi::Buffer<char>::New(env, (char *)<%- arg.name %>, size,
+        [](Napi::Env, char *finalizeData)
         {
-            delete[] static_cast<const char *>(finalizeData);
+            delete[] finalizeData;
         });
 <%_ } else if (arg.klass?.isPOD) { _%>
     _to = <%- arg.cppType %>::NewInstance(env, <%- arg.name %>);
