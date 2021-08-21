@@ -21,6 +21,7 @@
 #include "../include/ContourOnSurface.h"
 #include "../include/ContourOnPlane.h"
 #include "../include/PlaneCurve.h"
+#include "../include/PlaneInstance.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -106,6 +107,9 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         //     return env.Undefined();
     case st_Item:
         return Item::NewInstance(env, (MbItem *)(_underlying));
+
+    case st_PlaneInstance:
+        return PlaneInstance::NewInstance(env, (MbPlaneInstance *)(_underlying));
     default:
         std::ostringstream msg;
         msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << "\n";

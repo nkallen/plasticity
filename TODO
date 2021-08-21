@@ -1,7 +1,16 @@
-save/load
-  - auto load last save on startup
-bug: clicking adds items to history even when no selection is changed
 bring back face split
+extrude gizmo in wrong position
+make fillet do chamfer if negative?
+when you hide things, the snaps need to turn off
+
+reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
+redo Dialogs and show errors
+ - dialog in lower right/left
+ - red when erroring
+ - shows state(?)
+
+bug: clicking adds items to history even when no selection is changed
+
 extrude to target
 
 
@@ -14,7 +23,6 @@ curves:
     draw curve around solid
     multiline (stroke)
 
-redo Dialogs and show errors
 
 
 # move keybindings outside of loop keybindings

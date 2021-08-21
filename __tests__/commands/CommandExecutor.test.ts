@@ -98,7 +98,7 @@ describe(CommandExecutor, () => {
         const p2 = executor.enqueue(command2);
         const p3 = executor.enqueue(command3);
 
-        expect(command1['state']).toBe('Cancelled');
+        expect(command1['state']).toBe('Finished');
         expect(command2['state']).toBe('None');
         expect(command3['state']).toBe('None');
 
@@ -110,7 +110,7 @@ describe(CommandExecutor, () => {
         await p2;
         await p3;
 
-        expect(command1['state']).toBe('Cancelled');
+        expect(command1['state']).toBe('Finished');
         expect(command2['state']).toBe('None');
         expect(command3['state']).toBe('Finished');
     });

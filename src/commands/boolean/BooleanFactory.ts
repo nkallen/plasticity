@@ -97,19 +97,22 @@ export class DifferenceFactory extends BooleanFactory {
 export interface CutParams {
     mergingFaces: boolean;
     mergingEdges: boolean;
+    prolongContour: boolean;
+    constructionPlane?: PlaneSnap;
+    solid?: visual.Solid;
 }
 
-export class CutFactory extends GeometryFactory {
+abstract class AbstractCutFactory extends GeometryFactory implements CutParams {
     solid!: visual.Solid;
-    contour!: c3d.Contour;
-    placement!: c3d.Placement3D;
+    protected contour!: c3d.Contour;
+    protected placement!: c3d.Placement3D;
     constructionPlane?: PlaneSnap;
     mergingFaces = true;
     mergingEdges = true;
     prolongContour = true;
 
     private fantom = new ExtrudeSurfaceFactory(this.db, this.materials, this.signals);
-    private names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
+    protected abstract names: c3d.SNameMaker;
 
     set curve(inst: visual.SpaceInstance<visual.Curve3D>) {
         const instance = this.db.lookup(inst);
@@ -123,7 +126,7 @@ export class CutFactory extends GeometryFactory {
         this.placement = placement;
     }
 
-    private async computePhantom() {
+    protected async computePhantom() {
         const { contour, placement, fantom } = this;
 
         const Z = vec2vec(placement.GetAxisZ());
@@ -139,8 +142,21 @@ export class CutFactory extends GeometryFactory {
         this._phantom = await fantom.computeGeometry();
     }
 
+    get originalItem() { return this.solid }
+
+    protected _phantom!: c3d.SpaceInstance;
+    get phantoms() {
+        const phantom = this._phantom;
+        const material = { surface: surface_red };
+        return [{ phantom, material }]
+    }
+}
+
+export class CutFactory extends AbstractCutFactory {
+    protected names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
+
     async computeGeometry() {
-        const { db, contour, placement, names, fantom } = this;
+        const { db, contour, placement, names } = this;
 
         const solid = db.lookup(this.solid);
         const flags = new c3d.MergingFlags(true, true);
@@ -153,14 +169,68 @@ export class CutFactory extends GeometryFactory {
 
         return [...results];
     }
+}
 
-    get originalItem() { return this.solid }
+export class SplitFactory extends AbstractCutFactory {
+    private _faces!: visual.Face[];
+    private models!: c3d.Face[];
+    get faces() { return this._faces }
+    set faces(faces: visual.Face[]) {
+        this._faces = faces;
+        const models = [];
+        for (const face of faces) {
+            models.push(this.db.lookupTopologyItem(face));
+        }
+        this.models = models;
+        this.solid = faces[0].parentItem;
+    }
 
-    protected _phantom!: c3d.SpaceInstance;
+    protected names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
+
+    async computeGeometry() {
+        const { db, contour, placement, names, models } = this;
+
+        const solid = db.lookup(this.solid);
+        const flags = new c3d.MergingFlags(true, true);
+
+        this.computePhantom();
+
+        const result = c3d.ActionSolid.SplitSolid(solid, c3d.CopyMode.Copy, placement, c3d.SenseValue.BOTH, [contour], false, models, flags, names);
+
+        return result;
+    }
+}
+
+export class CutAndSplitFactory extends GeometryFactory implements CutParams {
+    private cut = new CutFactory(this.db, this.materials, this.signals);
+    private split = new SplitFactory(this.db, this.materials, this.signals);
+
+    get faces() { return this.split.faces ?? [] }
+    set faces(faces: visual.Face[]) { if (faces.length > 0) this.split.faces = faces }
+    set solid(solid: visual.Solid) { this.cut.solid = solid }
+
+    set curve(curve: visual.SpaceInstance<visual.Curve3D>) { this.cut.curve = curve; this.split.curve = curve }
+    set mergingFaces(mergingFaces: boolean) { this.cut.mergingFaces = mergingFaces; this.split.mergingFaces = mergingFaces }
+    set mergingEdges(mergingEdges: boolean) { this.cut.mergingEdges = mergingEdges; this.split.mergingEdges = mergingEdges }
+    set prolongContour(prolongContour: boolean) { this.cut.prolongContour = prolongContour; this.split.prolongContour = prolongContour }
+    set constructionPlane(constructionPlane: PlaneSnap | undefined) { this.cut.constructionPlane = constructionPlane; this.split.constructionPlane = constructionPlane }
+
+    async computeGeometry() {
+        const { faces, cut, split } = this;
+        if (faces.length === 0) return cut.computeGeometry();
+        else return split.computeGeometry();
+    }
+
     get phantoms() {
-        const phantom = this._phantom;
-        const material = { surface: surface_red };
-        return [{ phantom, material }]
+        const { faces, cut, split } = this;
+        if (faces.length === 0) return cut.phantoms;
+        else return split.phantoms;
+    }
+
+    get originalItem() {
+        const { faces, cut, split } = this;
+        if (faces.length === 0) return cut.originalItem;
+        else return split.originalItem;
     }
 }
 

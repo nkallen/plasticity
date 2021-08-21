@@ -63,7 +63,7 @@ export class Model {
             result.push(cmd.ActionFaceCommand);
             result.push(cmd.CreateFaceCommand);
         }
-        if (selection.solids.size > 0 && selection.curves.size > 0) {
+        if ((selection.faces.size > 0 || selection.solids.size > 0) && selection.curves.size > 0) {
             result.push(cmd.CutCommand);
         }
         if (selection.curves.size > 0) {
