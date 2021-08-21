@@ -24,7 +24,7 @@ export default class CylinderFactory extends GeometryFactory implements Cylinder
     private readonly Z = new THREE.Vector3();
     private readonly _radius = new THREE.Vector3();
 
-    async computeGeometry() {
+    async calculate() {
         const { base, height } = this;
 
         const { Z, _radius } = this;

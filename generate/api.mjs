@@ -177,11 +177,17 @@ export default {
             extends: "SpaceItem",
             dependencies: ["SpaceItem.h", "Placement3D.h", "CartPoint.h"],
             functions: [
+                { signature: "MbSurface * Cast()", isManual: true },
                 "const MbSurface & GetSurface()",
                 "double GetUEpsilon()",
                 "double GetVEpsilon()",
                 "double GetUMid()",
                 "double GetVMid()",
+                "double GetUMin()",
+                "double GetUMax()",
+                "double GetVMin()",
+                "double GetVMax()",
+                "double GetRadius()",
                 { signature: "void PointOn(MbCartPoint & uv, MbCartPoint3D & p)", p: isReturn, isUninheritable: true },
                 { signature: "void Normal(double &u, double &v, MbVector3D & result)", result: isReturn },
                 { signature: "bool GetPlacement(MbPlacement3D * place, bool exact = false)", place: isReturn, return: isErrorBool, isUninheritable: true },
@@ -198,6 +204,7 @@ export default {
                 { signature: "void GetEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
                 { signature: "void GetFaces(RPArray<MbFace> & faces)", faces: isReturn },
                 "const MbFace * FindFaceByName(const MbName & name)",
+                "const MbFace * FindFaceByHash(const SimpleName h)",
                 "const MbFace * GetFace(size_t index)",
                 "MbCurveEdge * GetEdge(size_t index)",
                 "MbCurveEdge * FindEdgeByName(const MbName & name)",
@@ -294,7 +301,7 @@ export default {
                 "double GetTMax()",
                 "double GetTMin()",
                 "double GetPeriod()",
-                "double IsPeriodic()",
+                "bool IsPeriodic()",
                 "bool IsStraight(bool ignoreParams = false)",
                 "MbCurve3D * Trimmed(double t1, double t2, int sense)",
                 "MbVector3D GetLimitTangent(ptrdiff_t number)",
@@ -387,6 +394,15 @@ export default {
             rawHeader: "surf_elementary_surface.h",
             extends: "Surface",
             dependencies: ["Surface.h"]
+        },
+        TorusSurface: {
+            rawHeader: "surf_torus_surface.h",
+            dependencies: ["ElementarySurface.h"],
+            extends: "ElementarySurface",
+            functions: [
+                "double GetMajorRadius()",
+                "double GetMinorRadius()",
+            ]
         },
         FaceShell: {
             rawHeader: "topology_faceset.h",
@@ -693,6 +709,9 @@ export default {
                 "const MbSurfaceIntersectionCurve & GetIntersectionCurve()",
                 "MbFace * GetFacePlus()",
                 "MbFace * GetFaceMinus()",
+                "bool IsSplit(bool strict = false)",
+                "const MbCurve3D * GetSpaceCurve()",
+                "MbCurve3D * MakeCurve()",
             ]
         },
         ContourOnSurface: {
@@ -752,10 +771,10 @@ export default {
                 { signature: "MbeItemLocation NearPointProjection(const MbCartPoint3D & point, double & u, double & v, MbVector3D & normal, c3d::IndicesPair & edgeLoc, ptrdiff_t & corner)", u: isReturn, v: isReturn, normal: isReturn, edgeLoc: isReturn, corner: isReturn, return: { name: "location" } },
                 { signature: "void GetFaceParam(const double surfaceU, const double surfaceV, double & faceU, double & faceV)", faceU: isReturn, faceV: isReturn },
                 { signature: "void GetSurfaceParam(const double faceU, const double faceV, double & surfaceU, double & surfaceV)", surfaceU: isReturn, surfaceV: isReturn },
-                { signature: "void GetOuterEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
+                { signature: "void GetOuterEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold = 50)", edges: isReturn },
                 // { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
                 { signature: "void GetNeighborFaces(RPArray<MbFace> & faces)", faces: isReturn },
-                { signature: "void GetBoundaryEdges(RPArray<MbEdge> & edges)" },
+                { signature: "void GetBoundaryEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
                 { signature: "MbSurface * GetSurfaceCurvesData(RPArray<MbContour> & contours)", contours: isReturn, return: { name: "surface" } },
                 "bool HasNeighborFace()",
                 "size_t GetLoopsCount()",

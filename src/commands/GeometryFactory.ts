@@ -50,7 +50,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
         const promises = [];
 
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
-        let result = await this.computeGeometry();
+        let result = await this.calculate();
 
         // 2. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);
@@ -88,7 +88,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     protected async doCommit(): Promise<visual.Item | visual.Item[]> {
         try {
             const promises = [];
-            const unarray = await this.computeGeometry();
+            const unarray = await this.calculate();
             const geometries = toArray(unarray);
             let detached: c3d.Item[] = [];
             const names = new c3d.SNameMaker(c3d.CreatorType.DetachSolid, c3d.ESides.SideNone, 0);
@@ -121,7 +121,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
         for (const temp of this.temps) temp.cancel();
     }
 
-    computeGeometry(): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }
+    calculate(): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }
     protected get phantoms(): PhantomInfo[] { return [] }
     protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
     private get originalItems() {

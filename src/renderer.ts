@@ -24,6 +24,7 @@ import LineFactory from './commands/line/LineFactory';
 import ViewportHeader from './components/viewport/ViewportHeader';
 import { FaceExtrudeFactory } from './commands/extrude/ExtrudeFactory';
 import CylinderFactory from './commands/cylinder/CylinderFactory';
+import FilletFactory from './commands/fillet/FilletFactory';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -77,12 +78,11 @@ const { db, materials, signals } = editor;
 // makeSphere.radius = 1;
 // makeSphere.commit();
 
-// const makeCylinder = new CylinderFactory(db, materials, signals);
-// makeCylinder.base = new THREE.Vector3();
-// makeCylinder.radius = new THREE.Vector3(0, 0.5, 0);
-// makeCylinder.height = new THREE.Vector3(0, 0, 2);
-// makeCylinder.commit();
-
+const makeCylinder = new CylinderFactory(db, materials, signals);
+makeCylinder.base = new THREE.Vector3();
+makeCylinder.radius = new THREE.Vector3(1, 0, 0);
+makeCylinder.height = new THREE.Vector3(0, 0, 1);
+makeCylinder.commit();
 
 // const makeCircle1 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
 // makeCircle1.center = new THREE.Vector3(0, 0, 0);

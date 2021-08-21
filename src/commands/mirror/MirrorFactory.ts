@@ -7,7 +7,7 @@ export default class MirrorFactory extends GeometryFactory {
     origin!: THREE.Vector3;
     normal!: THREE.Vector3;
 
-    async computeGeometry() {
+    async calculate() {
         const { origin, normal } = this;
         const model = this.db.lookup(this.curve);
         const transformed = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);

@@ -6,7 +6,7 @@ export class RebuildFactory extends GeometryFactory {
     dup!: c3d.Item;
     item!: visual.Item;
 
-    async computeGeometry() {
+    async calculate() {
         const { dup } = this;
 
         dup.RebuildItem(c3d.CopyMode.Copy, null);

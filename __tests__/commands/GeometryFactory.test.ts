@@ -14,7 +14,7 @@ class FakeFactory extends GeometryFactory {
 
     revertOnError = 0;
 
-    async computeGeometry() {
+    async calculate() {
         return this.promises[this.updateCount++];
     }
 }

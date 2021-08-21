@@ -135,3 +135,9 @@ Napi::Value Item::Cast(const Napi::CallbackInfo &info)
 //     MbSpaceItem * dup =  static_cast<MbSpaceItem *>( &item->Duplicate() );
 //     return SpaceItem::NewInstance(env, dup);
 // }
+
+
+Napi::Value Surface::Cast(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}

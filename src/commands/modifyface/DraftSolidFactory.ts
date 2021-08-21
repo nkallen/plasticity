@@ -15,7 +15,7 @@ export class DraftSolidFactory extends GeometryFactory implements RotateParams {
     protected solidModel!: c3d.Solid;
     private names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
 
-    async computeGeometry() {
+    async calculate() {
         const { solid, faces, pivot, axis, angle, names } = this;
         const model = this.db.lookup(solid);
         const faces_ = faces.map(f => this.db.lookupTopologyItem(f));

@@ -1,11 +1,11 @@
 import signals from 'signals';
-import c3d from '../build/Release/c3d.node';
+import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
 import { Agent, GeometryDatabase } from '../editor/GeometryDatabase';
 import { SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
-import { assertUnreachable, Redisposable, RefCounter } from '../util/Util';
+import { Redisposable, RefCounter } from '../util/Util';
 import { HighlightManager } from './HighlightManager';
 import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './Selection';
 import { SelectionMode } from './SelectionInteraction';

@@ -16,7 +16,7 @@ export default class JoinCurvesFactory extends GeometryFactory {
         }
     }
 
-    async computeGeometry() {
+    async calculate() {
         const { models } = this;
         if (models.length < 2) throw new Error("not enough curves");
 

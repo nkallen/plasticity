@@ -30,7 +30,7 @@ export default class ElementarySolidFactory extends GeometryFactory {
         this.creator = recent;
     }
 
-    async computeGeometry() {
+    async calculate() {
         const { creator, control, duplicate, points } = this;
 
         for (const [index, point] of points.entries()) {

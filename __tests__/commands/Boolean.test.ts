@@ -13,6 +13,7 @@ import * as visual from '../../src/editor/VisualModel';
 import { Cancel } from "../../src/util/Cancellable";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import c3d from '../../build/Release/c3d.node';
 
 let db: GeometryDatabase;
 let intersect: IntersectionFactory;
@@ -172,7 +173,7 @@ describe(BooleanKeyboardGizmo, () => {
         editor = {
             viewports: [],
             signals: signals,
-        } as EditorLike;
+        } as unknown as EditorLike;
         keyboard = new BooleanKeyboardGizmo("whatever", editor);
 
         execute = jest.fn();

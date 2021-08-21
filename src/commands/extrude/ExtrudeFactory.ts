@@ -41,7 +41,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
         if (solid !== undefined) this.model = this.db.lookup(solid);
     }
 
-    async computeGeometry() {
+    async calculate() {
         const { contours, surface, direction, distance1, thickness1, thickness2 } = this;
         let { race1, race2, distance2, } = this;
 
@@ -217,10 +217,10 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
         this.curveExtrude.curves = curves;
     }
 
-    computeGeometry() {
-        if (this.regionExtrude.region !== undefined) return this.regionExtrude.computeGeometry();
-        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.computeGeometry();
-        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.computeGeometry();
+    calculate() {
+        if (this.regionExtrude.region !== undefined) return this.regionExtrude.calculate();
+        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.calculate();
+        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.calculate();
         else throw new ValidationError("need region, face, or curves");
     }
 

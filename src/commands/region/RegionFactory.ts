@@ -7,7 +7,7 @@ import { GeometryFactory } from '../GeometryFactory';
 export class RegionFactory extends GeometryFactory {
     contours = new Array<visual.SpaceInstance<visual.Curve3D>>();
 
-    async computeGeometry() {
+    async calculate() {
         const curves = [];
         let hint = new c3d.Placement3D();
         for (const contour of this.contours) {

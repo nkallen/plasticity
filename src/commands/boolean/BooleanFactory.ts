@@ -42,7 +42,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.BooleanSolid, c3d.ESides.SideNone, 0);
     protected _isOverlapping = false;
 
-    async computeGeometry() {
+    async calculate() {
         const { solidModel, toolModels, names, mergingFaces, mergingEdges } = this;
 
         const flags = new c3d.MergingFlags();
@@ -139,7 +139,7 @@ abstract class AbstractCutFactory extends GeometryFactory implements CutParams {
 
         fantom.model = new c3d.PlaneCurve(placement, contour, true);
         fantom.direction = Z;
-        this._phantom = await fantom.computeGeometry();
+        this._phantom = await fantom.calculate();
     }
 
     get originalItem() { return this.solid }
@@ -155,7 +155,7 @@ abstract class AbstractCutFactory extends GeometryFactory implements CutParams {
 export class CutFactory extends AbstractCutFactory {
     protected names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
 
-    async computeGeometry() {
+    async calculate() {
         const { db, contour, placement, names } = this;
 
         const solid = db.lookup(this.solid);
@@ -187,7 +187,7 @@ export class SplitFactory extends AbstractCutFactory {
 
     protected names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
 
-    async computeGeometry() {
+    async calculate() {
         const { db, contour, placement, names, models } = this;
 
         const solid = db.lookup(this.solid);
@@ -215,10 +215,10 @@ export class CutAndSplitFactory extends GeometryFactory implements CutParams {
     set prolongContour(prolongContour: boolean) { this.cut.prolongContour = prolongContour; this.split.prolongContour = prolongContour }
     set constructionPlane(constructionPlane: PlaneSnap | undefined) { this.cut.constructionPlane = constructionPlane; this.split.constructionPlane = constructionPlane }
 
-    async computeGeometry() {
+    async calculate() {
         const { faces, cut, split } = this;
-        if (faces.length === 0) return cut.computeGeometry();
-        else return split.computeGeometry();
+        if (faces.length === 0) return cut.calculate();
+        else return split.calculate();
     }
 
     get phantoms() {
@@ -260,7 +260,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     get isOverlapping() { return this._isOverlapping }
 
     protected async precomputeGeometry() {
-        const phantom = await this.fantom.computeGeometry() as c3d.Solid;
+        const phantom = await this.fantom.calculate() as c3d.Solid;
         this._phantom = phantom;
         if (this.solid === undefined) {
             this._isOverlapping = false;
@@ -269,10 +269,10 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         }
     }
 
-    async computeGeometry() {
+    async calculate() {
         await this.precomputeGeometry();
         if (this._isOverlapping && !this.newBody) {
-            const result = await this.bool.computeGeometry() as c3d.Solid;
+            const result = await this.bool.calculate() as c3d.Solid;
             return result;
         } else {
             return this._phantom;

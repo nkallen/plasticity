@@ -5,7 +5,7 @@ import { GeometryFactory } from '../GeometryFactory';
 export default class ContourFactory extends GeometryFactory {
     readonly curves = new Array<visual.SpaceInstance<visual.Curve3D>>();
 
-    async computeGeometry() {
+    async calculate() {
         const { curves } = this;
 
         if (this.curves.length === 0) throw new Error("not enough curves");

@@ -79,7 +79,7 @@ export class ContourFilletFactory extends GeometryFactory implements CurveFillet
 
     get cornerAngle() { return averageCornerAngles(this.cornerAngles) }
 
-    async computeGeometry() {
+    async calculate() {
         const { model, radiuses, db } = this;
 
         const result = c3d.ActionSurfaceCurve.CreateContourFillets(model, radiuses, c3d.ConnectingType.Fillet);
@@ -101,7 +101,7 @@ export class JointFilletFactory extends GeometryFactory {
         const contourFactory = new JoinCurvesFactory(this.db, this.materials, this.signals);
         contourFactory.push(joint.on1.curve);
         contourFactory.push(joint.on2.curve);
-        const contours = await contourFactory.computeGeometry();
+        const contours = await contourFactory.calculate();
         const inst = contours[0];
         const item = inst.GetSpaceItem()!;
         const contour = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
@@ -111,7 +111,7 @@ export class JointFilletFactory extends GeometryFactory {
     }
 
     get cornerAngle() { return this.factory.cornerAngle }
-    async computeGeometry() { return this.factory.computeGeometry() }
+    async calculate() { return this.factory.calculate() }
     set radius(r: number) { this.factory.radius = r }
     get originalItem() { return [this.joint.on1.curve, this.joint.on2.curve] }
 
@@ -130,7 +130,7 @@ export class PolylineFilletFactory extends GeometryFactory implements CurveFille
     async setPolyline(polyline: visual.SpaceInstance<visual.Curve3D>) {
         const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
         polyline2contour.polyline = polyline;
-        const inst = await polyline2contour.computeGeometry() as c3d.SpaceInstance;
+        const inst = await polyline2contour.calculate() as c3d.SpaceInstance;
         const contour = inst.GetSpaceItem()!.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
         this.factory.model = contour;
         this.polyline = polyline;
@@ -143,12 +143,12 @@ export class PolylineFilletFactory extends GeometryFactory implements CurveFille
     get cornerAngles() { return this.factory.cornerAngles }
     get cornerAngle() { return this.factory.cornerAngle }
 
-    async computeGeometry() {
+    async calculate() {
         const { controlPoints } = this;
         if (controlPoints.length < 1) throw new Error("invalid precondition");
         if (controlPoints.length > this.factory.model.GetSegmentsCount() - 1) throw new Error("invalid precondition");
 
-        return this.factory.computeGeometry();
+        return this.factory.calculate();
     }
 
     // This is not strictly necessary but conceptually we should do this.
@@ -191,7 +191,7 @@ export class PolylineOrContourFilletFactory extends GeometryFactory implements C
 
     get cornerAngle() { return this.factory.cornerAngle }
     set radius(radius: number) { this.factory.radius = radius }
-    async computeGeometry() { return this.factory.computeGeometry() }
+    async calculate() { return this.factory.calculate() }
 
     get originalItem() { return this.curve }
 }
@@ -240,9 +240,9 @@ export class JointOrPolylineOrContourFilletFactory extends GeometryFactory {
         return result.flat();
     }
 
-    async computeGeometry() {
+    async calculate() {
         const result = [];
-        for (const f of this.factory) result.push(f.computeGeometry());
+        for (const f of this.factory) result.push(f.calculate());
         return Promise.all(result);
     }
 }
@@ -250,7 +250,7 @@ export class JointOrPolylineOrContourFilletFactory extends GeometryFactory {
 export class Polyline2ContourFactory extends GeometryFactory {
     polyline!: visual.SpaceInstance<visual.Curve3D>;
 
-    async computeGeometry() {
+    async calculate() {
         const { db, polyline } = this;
         const inst = db.lookup(polyline);
         const item = inst.GetSpaceItem()!;
@@ -264,7 +264,7 @@ export class Polyline2ContourFactory extends GeometryFactory {
             const factory = new LineFactory(this.db, this.materials, this.signals);
             factory.p1 = cart2vec(prev);
             factory.p2 = cart2vec(curr);
-            const segment = factory.computeGeometry();
+            const segment = factory.calculate();
             segments.push(segment);
             prev = curr;
         }
@@ -272,13 +272,13 @@ export class Polyline2ContourFactory extends GeometryFactory {
             const factory = new LineFactory(this.db, this.materials, this.signals);
             factory.p1 = cart2vec(prev);
             factory.p2 = cart2vec(start);
-            const segment = factory.computeGeometry();
+            const segment = factory.calculate();
             segments.push(segment);
         }
         const finished = await Promise.all(segments);
         const makeContour = new JoinCurvesFactory(this.db, this.materials, this.signals);
         for (const segment of finished) makeContour.push(segment);
-        const result = await makeContour.computeGeometry();
+        const result = await makeContour.calculate();
         return result[0];
     }
 

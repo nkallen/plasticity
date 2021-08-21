@@ -3,13 +3,12 @@ import c3d from '../../../build/Release/c3d.node';
 import { ValidationError } from '../GeometryFactory';
 import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
 
-
 export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFaceParams {
     angle = 0;
     operationType = c3d.ModifyingType.Offset;
     set distance(d: number) { this.direction = new THREE.Vector3(d, 0, 0); }
 
-    async computeGeometry() {
+    async calculate() {
         const { solidModel, facesModel, direction, angle } = this;
 
         let solid = solidModel;
@@ -36,7 +35,7 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
             const v = control.GetVectorFrom(rect.GetLeft(), 0, 0, c3d.LocalSystemType3D.CartesianSystem);
             placement.Move(v);
             
-            const names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
+                const names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
             solid = await c3d.ActionSolid.DraftSolid_async(solid, c3d.CopyMode.Copy, placement, angle, faces, c3d.FacePropagation.All, false, names);
             transformed = true;
         }

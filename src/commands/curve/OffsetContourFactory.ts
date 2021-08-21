@@ -10,7 +10,7 @@ export default class OffsetContourFactory extends GeometryFactory {
 
     private names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0)
 
-    async computeGeometry() {
+    async calculate() {
         const { curve, face, direction, distance, names } = this;
 
         const wireframe = c3d.ActionSurfaceCurve.OffsetCurve(curve, face, direction, distance, names);

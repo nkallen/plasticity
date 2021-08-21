@@ -16,7 +16,7 @@ export class ExtrudeSurfaceFactory extends GeometryFactory {
         this.model = item.Cast<c3d.Curve3D>(item.IsA());
     }
 
-    async computeGeometry() {
+    async calculate() {
         const { model, direction } = this;
         const result = c3d.ActionSurface.ExtrusionSurface(model, new c3d.Vector3D(direction.x, direction.y, direction.z), true);
         return new c3d.SpaceInstance(result);

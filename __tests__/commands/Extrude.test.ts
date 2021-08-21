@@ -347,7 +347,7 @@ describe(PossiblyBooleanExtrudeFactory, () => {
             extrude.distance1 = 0;
             extrude.distance2 = 1.5;
             extrude.operationType = c3d.OperationType.Difference;
-            await extrude.computeGeometry();
+            await extrude.calculate();
             // @ts-expect-error
             const phantoms = extrude.phantoms;
             const { phantom, material } = phantoms[0];

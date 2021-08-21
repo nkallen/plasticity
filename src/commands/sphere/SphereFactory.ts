@@ -13,7 +13,7 @@ export default class SphereFactory extends GeometryFactory implements SpherePara
     center!: THREE.Vector3;
     radius!: number;
 
-    async computeGeometry() {
+    async calculate() {
         const points = [
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z),
             new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z + 1),

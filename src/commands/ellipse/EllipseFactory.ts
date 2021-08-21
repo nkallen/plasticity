@@ -8,7 +8,7 @@ export class CenterEllipseFactory extends GeometryFactory {
     p2!: THREE.Vector3;
     p3!: THREE.Vector3;
 
-    async computeGeometry() {
+    async calculate() {
         const { center, p2, p3 } = this;
         const circle = new c3d.Arc3D(vec2cart(center), vec2cart(p2), vec2cart(p3), 0);
 
@@ -31,7 +31,7 @@ export class ThreePointEllipseFactory extends GeometryFactory {
         this.center = new THREE.Vector3().copy(p1).add(radial);
     }
 
-    async computeGeometry() {
+    async calculate() {
         const { center, p2, p3 } = this;
         const circle = new c3d.Arc3D(vec2cart(center), vec2cart(p2), vec2cart(p3), 0);
 

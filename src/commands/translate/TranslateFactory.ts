@@ -37,7 +37,7 @@ abstract class TranslateFactory extends GeometryFactory {
         }
     }
 
-    async computeGeometry() {
+    async calculate() {
         const { models, transform, names } = this;
 
         const mat = transform.GetMatrix();

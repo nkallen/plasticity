@@ -44,7 +44,7 @@ export class ChangePointFactory extends ControlPointFactory implements MoveParam
     move!: THREE.Vector3;
     private newPosition = new THREE.Vector3();
 
-    async computeGeometry() {
+    async calculate() {
         const { originalPosition, controlPoint: { index }, move, curve, newPosition } = this;
         newPosition.copy(originalPosition).add(move);
 
@@ -65,7 +65,7 @@ export class ChangePointFactory extends ControlPointFactory implements MoveParam
 }
 
 export class RemovePointFactory extends ControlPointFactory {
-    async computeGeometry() {
+    async calculate() {
         const { controlPoint: { index }, curve } = this;
         if (curve instanceof c3d.PolyCurve3D) {
             curve.RemovePoint(index);

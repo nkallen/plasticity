@@ -22,7 +22,7 @@ abstract class BoxFactory extends GeometryFactory implements BoxParams {
 
     names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
 
-    async computeGeometry() {
+    async calculate() {
         const { p1, p2, p3, p4 } = this.orthogonal();
 
         const points = [vec2cart(p1), vec2cart(p2), vec2cart(p3), vec2cart(p4),]

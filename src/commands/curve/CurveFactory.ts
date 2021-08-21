@@ -20,7 +20,7 @@ export default class CurveFactory extends GeometryFactory {
 
     get startPoint() { return this.points[0] }
 
-    async computeGeometry() {
+    async calculate() {
         const { points, type, style } = this;
 
         if (!this.hasEnoughPoints) throw new ValidationError(`${points.length} points is too few points for ${c3d.SpaceType[type]}`);
