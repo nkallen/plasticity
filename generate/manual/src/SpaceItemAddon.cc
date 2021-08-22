@@ -23,6 +23,7 @@
 #include "../include/PlaneCurve.h"
 #include "../include/PlaneInstance.h"
 #include "../include/TorusSurface.h"
+#include "../include/Plane.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -47,7 +48,6 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return env.Undefined();
     }
 
-    _underlying->AddRef();
     switch (isa)
     {
     // case st_Assembly:
@@ -113,6 +113,8 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return PlaneInstance::NewInstance(env, (MbPlaneInstance *)(_underlying));
     case st_TorusSurface:
         return TorusSurface::NewInstance(env, (MbTorusSurface *)(_underlying));
+    case st_Plane:
+        return Plane::NewInstance(env, (MbPlane *)(_underlying));
     default:
         std::ostringstream msg;
         msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << "\n";

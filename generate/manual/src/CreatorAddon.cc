@@ -54,7 +54,6 @@ Napi::Value cast(MbCreator * _underlying, const Napi::CallbackInfo &info)
         return env.Undefined();
     }
 
-    _underlying->AddRef();
     switch (isa)
     {
     case ct_SimpleCreator:

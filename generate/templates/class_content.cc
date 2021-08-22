@@ -68,7 +68,7 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
                     return;
                 }
             <%_ } _%>
-            <%_ if (klass.freeFunctionName == 'DeleteItem') { _%>underlying->AddRef();<%_ } _%>
+            <%_ if (klass.freeFunctionName == '::DeleteItem') { _%>underlying->AddRef();<%_ } _%>
             this->_underlying = underlying;
         <%_ } _%>
         } else {
@@ -88,6 +88,7 @@ Napi::Object <%- klass.cppClassName %>::NewInstance(Napi::Env env, <%- klass.raw
     *constructor = Napi::Weak(f);
     Napi::Object inst = constructor->New({Napi::String::New(env, "__skip_js_init__")});
     <%- klass.cppClassName %> *unwrapped = <%- klass.cppClassName %>::Unwrap(inst);
+    <%_ if (klass.freeFunctionName == '::DeleteItem') { _%>underlying->AddRef();<%_ } _%>
     unwrapped->_underlying = underlying;
 
     return inst;

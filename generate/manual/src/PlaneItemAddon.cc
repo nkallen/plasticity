@@ -27,7 +27,6 @@ Napi::Value cast(MbPlaneItem * _underlying, const Napi::CallbackInfo &info)
         return env.Undefined();
     }
 
-    _underlying->AddRef();
     switch (isa)
     {
     case pt_Region:

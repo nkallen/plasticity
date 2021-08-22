@@ -8,7 +8,7 @@ export default {
     classes: {
         RefItem: {
             rawHeader: "reference_item.h",
-            freeFunctionName: "DeleteItem",
+            freeFunctionName: "::DeleteItem",
             protectedDestructor: true,
             functions: [
                 "refcount_t GetUseCount()",
@@ -26,25 +26,6 @@ export default {
             functions: [
                 "bool InsertValue(double t, double newValue)"
             ]
-        },
-        Model: {
-            rawHeader: "model.h",
-            dependencies: ["Item.h", "Path.h", "Matrix3D.h", "ModelAddon.h"],
-            initializers: [""],
-            functions: [
-                "MbItem * AddItem(MbItem & item, SimpleName n = c3d::UNDEFINED_SNAME)",
-                "size_t ItemsCount()",
-                { signature: "void GetItems(RPArray<MbItem> & items)", items: isReturn },
-                {
-                    signature: "bool DetachItem(MbItem * item)",
-                    before: "item->AddRef();"
-                },
-                {
-                    signature: "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)",
-                    path: isReturn, from: isReturn,
-                    return: { name: "item" }
-                },
-            ],
         },
         AttributeContainer: {
             rawHeader: "attribute_container.h",
@@ -116,6 +97,23 @@ export default {
                 "bool DeleteCreator(size_t ind)",
                 "size_t GetActiveCreatorsCount()",
             ]
+        },
+        Model: {
+            rawHeader: "model.h",
+            dependencies: ["Item.h", "Path.h", "Matrix3D.h", "ModelAddon.h", "Transactions.h"],
+            initializers: [""],
+            extends: ["RefItem", "AttributeContainer", "Transactions"],
+            functions: [
+                "MbItem * AddItem(MbItem & item, SimpleName n = c3d::UNDEFINED_SNAME)",
+                "size_t ItemsCount()",
+                { signature: "void GetItems(RPArray<MbItem> & items)", items: isReturn },
+                "bool DetachItem(MbItem * item, bool resetName = true)",
+                "void DeleteItem(MbItem * item, bool resetName = true)",
+                {
+                    signature: "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)",
+                    path: isReturn, from: isReturn, return: { name: "item" }
+                },
+            ],
         },
         Item: {
             rawHeader: "model_item.h",
@@ -664,8 +662,8 @@ export default {
         },
         TopologyItem: {
             rawHeader: "topology_item.h",
-            dependencies: ["AttributeContainer.h", "Name.h", "Cube.h"],
-            extends: "AttributeContainer",
+            dependencies: ["TopItem.h", "AttributeContainer.h", "Name.h", "Cube.h"],
+            extends: ["TopItem", "AttributeContainer"],
             functions: [
                 "MbeTopologyType IsA()",
                 "const MbName & GetName()",
