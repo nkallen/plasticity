@@ -26,7 +26,8 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
 
     protected names = new c3d.SNameMaker(c3d.CreatorType.CurveExtrusionSolid, c3d.ESides.SideNone, 0);
 
-    protected abstract contours: c3d.Contour[];
+    protected abstract contours2d: c3d.Contour[];
+    protected abstract curves3d: c3d.Curve3D[];
     protected abstract surface: c3d.Surface;
 
     private _operationType = c3d.OperationType.Difference
@@ -42,12 +43,12 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     }
 
     async calculate() {
-        const { contours, surface, direction, distance1, thickness1, thickness2 } = this;
+        const { contours2d, curves3d, surface, direction, distance1, thickness1, thickness2 } = this;
         let { race1, race2, distance2, } = this;
 
         if (distance1 === 0 && distance2 === 0) throw new ValidationError("invalid data");
 
-        const sweptData = new c3d.SweptData(surface, contours);
+        const sweptData = contours2d.length > 0 ? new c3d.SweptData(surface, contours2d) : new c3d.SweptData(curves3d[0]);
         const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
         const params = new c3d.ExtrusionValues(distance1, distance2);
 
@@ -79,28 +80,38 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
 
 export class CurveExtrudeFactory extends AbstractExtrudeFactory {
     private _curves!: visual.SpaceInstance<visual.Curve3D>[];
-    protected contours!: c3d.Contour[];
+    protected contours2d!: c3d.Contour[];
+    protected curves3d!: c3d.Curve3D[];
     protected surface!: c3d.Surface;
     private _normal!: THREE.Vector3;
     private _center!: THREE.Vector3;
     get curves() { return this._curves }
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
         this._curves = curves;
-        const contours: c3d.Contour[] = [];
+        const contours2d: c3d.Contour[] = [];
+        const curves3d: c3d.Curve3D[] = [];
         for (const curve of curves) {
             const inst = this.db.lookup(curve);
             const item = inst.GetSpaceItem()!;
 
             if (item.IsA() === c3d.SpaceType.ContourOnSurface || item.IsA() === c3d.SpaceType.ContourOnPlane) {
                 const model = item.Cast<c3d.ContourOnSurface>(item.IsA());
-                contours.push(model.GetContour());
+                contours2d.push(model.GetContour());
+            } else if (item.IsA() === c3d.SpaceType.Contour3D) {
+                const model = item.Cast<c3d.Contour3D>(item.IsA());
+                curves3d.push(model);
             } else {
                 const model = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-                const { curve2d } = model.GetPlaneCurve(false);
-                contours.push(new c3d.Contour([curve2d], true));
+                if (model.IsPlanar()) {
+                    const { curve2d } = model.GetPlaneCurve(false);
+                    contours2d.push(new c3d.Contour([curve2d], true));
+                } else {
+                    curves3d.push(model);
+                }
             }
         }
-        this.contours = contours;
+        this.contours2d = contours2d;
+        this.curves3d = curves3d;
 
         const inst = this.db.lookup(curves[0]);
         const item = inst.GetSpaceItem()!;
@@ -110,10 +121,18 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
             const model = item.Cast<c3d.ContourOnPlane>(item.IsA());
             this.surface = model.GetSurface();
             placement = model.GetPlacement();
+        } else if (item.IsA() === c3d.SpaceType.ContourOnSurface) {
+            const model = item.Cast<c3d.ContourOnSurface>(item.IsA());
+            this.surface = model.GetSurface();
+            placement = new c3d.Placement3D();
         } else {
             const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            placement = curve.GetPlaneCurve(false).placement;
-            this.surface = new c3d.Plane(placement, 0);
+            if (curve.IsPlanar()) {
+                placement = curve.GetPlaneCurve(false).placement;
+                this.surface = new c3d.Plane(placement, 0);
+            } else {
+                placement = new c3d.Placement3D();
+            }
         }
         this._normal = vec2vec(placement.GetAxisZ())
         this._center = cart2vec(placement.GetOrigin());
@@ -125,7 +144,8 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
 
 export class FaceExtrudeFactory extends AbstractExtrudeFactory {
     private _face!: visual.Face;
-    protected contours!: c3d.Contour[];
+    protected contours2d!: c3d.Contour[];
+    protected curves3d: c3d.Contour3D[] = [];
     protected surface!: c3d.Surface;
     private _normal!: THREE.Vector3;
     private _center!: THREE.Vector3;
@@ -136,7 +156,7 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
 
         const { surface, contours } = model.GetSurfaceCurvesData();
         const fsurface = model.GetSurface();
-        this.contours = contours;
+        this.contours2d = contours;
         this.surface = surface;
 
         const u = fsurface.GetUMid(), v = fsurface.GetVMid();
@@ -149,7 +169,7 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
     get operationType() {
         return this.distance1 > 0 ? c3d.OperationType.Union : c3d.OperationType.Difference;
     }
-    set operationType(ot: c3d.OperationType) {}
+    set operationType(ot: c3d.OperationType) { }
 
     get normal(): THREE.Vector3 { return this._normal }
     get center(): THREE.Vector3 { return this._center }
@@ -158,7 +178,8 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
 
 export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     private _region!: visual.PlaneInstance<visual.Region>;
-    protected contours!: c3d.Contour[];
+    protected contours2d!: c3d.Contour[];
+    protected curves3d: c3d.Contour3D[] = [];
     protected surface!: c3d.Surface;
     private _placement!: c3d.Placement3D;
     get region() { return this._region }
@@ -174,7 +195,7 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
             if (contour === null) throw new Error("invalid precondition");
             contours.push(contour);
         }
-        this.contours = contours;
+        this.contours2d = contours;
 
         this._placement = inst.GetPlacement();
         this.surface = new c3d.Plane(this._placement, 0);

@@ -52,6 +52,8 @@ export default class OffsetContourFactory extends GeometryFactory {
         const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, model, direction, distance, names);
         const curves = wireframe.GetCurves();
 
+        console.log(c3d.SpaceType[curves[0].IsA()])
+
         return new c3d.SpaceInstance(curves[0]);
     }
 }

@@ -1037,12 +1037,14 @@ export default {
             initializers: ["double scalarValue1, double scalarValue2"]
         },
         SweptData: {
-            dependencies: ["Placement3D.h", "Contour.h"],
+            dependencies: ["Placement3D.h", "Contour.h", "Curve3D.h", "Contour3D.h"],
             rawHeader: "op_swept_parameter.h",
             initializers: [
                 "",
                 "const MbPlacement3D & place, MbContour & contour",
-                "MbSurface & surface, RPArray<MbContour> & contours"
+                "MbSurface & surface, RPArray<MbContour> & contours",
+                "MbCurve3D & curve3d",
+                "RPArray<MbContour3D> & contours3d",
             ]
         },
         RegionBooleanParams: {
