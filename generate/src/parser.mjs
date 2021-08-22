@@ -338,7 +338,14 @@ class ParamDeclaration extends TypeDeclaration {
         this.desc = desc;
         this.ref = matchType.groups.ref;
         this.name = matchType.groups.name;
-        this.isReturn = this.ref == "*&";
+
+        if (this.ref === "*&") {
+            if (options[this.name]?.isInput) {
+                this.ref = "*";
+            } else {
+                this.isReturn = true;
+            }
+        }
         this.default = matchType.groups.default;
         if (matchType.groups.elementType) {
             this.elementType = typeRegistry.resolveType(matchType.groups.elementType);

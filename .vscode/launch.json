@@ -25,15 +25,22 @@
             "port": 9223,
             "webRoot": "${workspaceFolder}",
             "timeout": 30000
-        }
-    ],
-    "compounds": [
+        },
         {
-            "name": "Electron: All",
-            "configurations": [
-                "Electron: Main",
-                "Electron: Renderer"
+            "type": "lldb",
+            "request": "launch",
+            "name": "Lldb debug",
+            "program": "/usr/local/bin/node",
+            "args": [
+                "${workspaceFolder}/src/test.js"
             ]
         }
-    ]
+    ],
+    "compounds": [{
+        "name": "Electron: All",
+        "configurations": [
+            "Electron: Main",
+            "Electron: Renderer"
+        ]
+    }]
 }

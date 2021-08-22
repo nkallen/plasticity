@@ -87,7 +87,7 @@ export default {
         Creator: {
             rawHeader: "creator.h",
             extends: "RefItem",
-            dependencies: ["RefItem.h", "ControlData3D.h", "SpaceItem.h", "SNameMaker.h"],
+            dependencies: ["RefItem.h", "ControlData3D.h", "SpaceItem.h", "SNameMaker.h", "FaceShell.h"],
             enum: 'CreatorType',
             functions: [
                 "MbeCreatorType IsA()",
@@ -100,6 +100,7 @@ export default {
                 "const MbSNameMaker & GetYourNameMaker()",
                 "MbeProcessState GetStatus()",
                 "void SetStatus(MbeProcessState l)",
+                { signature: "bool CreateShell(MbFaceShell *& shell, MbeCopyMode sameShell, RPArray<MbSpaceItem> * items = c3d_null)", items: isReturn, shell: { isInput: true }, return: { name: "success" } },
             ]
         },
         Transactions: {
@@ -111,7 +112,7 @@ export default {
                 "MbCreator * SetCreator(size_t ind)",
                 "MbCreator * DetachCreator(size_t ind)",
                 "bool AddCreator(const MbCreator * creator, bool addSame = false)",
-                { signature: "bool GetCreators(RPArray<MbCreator> & creators)", creators: isReturn },
+                { signature: "bool GetCreators(RPArray<MbCreator> & creators)", creators: isReturn, return: isErrorBool },
                 "bool DeleteCreator(size_t ind)",
                 "size_t GetActiveCreatorsCount()",
             ]
@@ -407,7 +408,8 @@ export default {
         FaceShell: {
             rawHeader: "topology_faceset.h",
             extends: "TopItem",
-            dependencies: ["TopItem.h"]
+            dependencies: ["TopItem.h"],
+            initializers: [""],
         },
         ElementarySolid: {
             rawHeader: "cr_elementary_solid.h",
@@ -415,9 +417,9 @@ export default {
             dependencies: ["SNameMaker.h", "CartPoint3D.h", "FaceShell.h", "Creator.h"],
             initializers: [
             ],
-            functions: [
-                "bool CreateShell(MbFaceShell *& result, MbeCopyMode sameShell)"
-            ]
+            // functions: [
+            //     "bool CreateShell(MbFaceShell *& result, MbeCopyMode sameShell)"
+            // ]
         },
         SphereSurface: {
             rawHeader: "surf_sphere_surface.h",
@@ -712,6 +714,9 @@ export default {
                 "bool IsSplit(bool strict = false)",
                 "const MbCurve3D * GetSpaceCurve()",
                 "MbCurve3D * MakeCurve()",
+                "bool IsSmooth()",
+                "bool IsSeam()",
+                "bool IsPole()",
             ]
         },
         ContourOnSurface: {
