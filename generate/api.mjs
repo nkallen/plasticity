@@ -289,6 +289,7 @@ export default {
             extends: "SpaceItem",
             dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h", "_PlanarCheckParams.h", "Rect1D.h"],
             functions: [
+                { signature: "MbCurve3D * Cast()", isManual: true },
                 {
                     signature: "bool GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & placement, bool saveParams, PlanarCheckParams params = PlanarCheckParams())",
                     placement: isReturn,
@@ -351,6 +352,7 @@ export default {
             functions: [
                 { signature: "bool AddCurveWithRuledCheck(MbCurve3D & curve, double absEps = Math::metricPrecision, bool toEndOnly = false, bool checkSame = true, VERSION version = Math::DefaultMathVersion())", return: isErrorBool },
                 "size_t GetSegmentsCount()",
+                { signature: "void GetSegments(RPArray<MbCurve3D> & segments)", segments: isReturn },
                 { signature: "void FindCorner(size_t index, MbCartPoint3D &t)", t: isReturn },
                 { signature: "bool GetCornerAngle(size_t index, MbCartPoint3D & origin, MbVector3D & axis, MbVector3D & tau, double & angle, double angleEps = (double)Math::AngleEps)", origin: isReturn, axis: isReturn, tau: isReturn, angle: isReturn, return: isErrorBool },
             ]
@@ -687,13 +689,19 @@ export default {
         },
         SurfaceIntersectionCurve: {
             rawHeader: "cur_surface_intersection.h",
-            dependencies: ["Surface.h", "Curve3D.h"],
+            dependencies: ["Surface.h", "Curve3D.h", "Curve.h"],
             extends: "Curve3D",
             functions: [
                 "const MbSurface * GetSurfaceOne()",
                 "const MbSurface * GetSurfaceTwo()",
                 // "const MbSurface & GetCurveOneSurface()",
                 // "const MbSurface & GetCurveTwoSurface()",
+                // "const MbSurfaceCurve * GetSCurveOne()",
+                // "const MbSurfaceCurve * GetSCurveTwo()",
+                "const MbCurve * GetPCurveOne()",
+                "const MbCurve * GetPCurveTwo()",
+                "const MbSurface & GetCurveOneSurface()",
+                "const MbSurface & GetCurveTwoSurface()"
             ]
         },
         CurveEdge: {
