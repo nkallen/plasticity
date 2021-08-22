@@ -116,6 +116,7 @@ export default {
         "e": "command:extrude",
         "x": "command:delete",
         "t": "command:trim",
+        "i": "command:offset",
         "tab": "command:mode",
         "delete": "command:delete",
         "backspace": "command:delete",

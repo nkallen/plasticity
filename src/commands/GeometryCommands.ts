@@ -1236,43 +1236,13 @@ export class OffsetLoopCommand extends Command {
         const face = faces[0];
         const parent = faces[0].parentItem as visual.Solid
 
-        let faceModel = this.editor.db.lookupTopologyItem(face);
-        faceModel = faceModel.DataDuplicate()!;
-        let contour: c3d.ContourOnSurface | undefined;
-        const surface = faceModel.GetSurface().GetSurface();
-        const contour2 = new c3d.Contour3D();
-        for (let i = 0, l = faceModel.GetLoopsCount(); i < l; i++) {
-            const loop = faceModel.GetLoop(i)!;
-            contour = loop.MakeContourOnSurface(surface, faceModel.IsSameSense(), true);
-            for (let j = 0, ll = loop.GetEdgesCount(); j < ll; j++) {
-                const edge = loop.GetOrientedEdge(j)!.GetCurveEdge();
-                const intersectionCurve = edge.GetIntersectionCurve();
-                try {
-                    contour2.AddCurveWithRuledCheck(intersectionCurve);
-                } catch (e) {
-                    console.warn(e);
-                }
-            }
-            break;
-        }
-        if (contour === undefined) return;
-
-        const tau = contour.Tangent(contour.GetTMin());
-        // const tau = new c3d.Vector3D(0, 1, 0);
 
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        offsetContour.face = faceModel;
-        offsetContour.curve = contour;
-
-        const cp = contour.GetLimitPoint(1);
-        const { normal } = faceModel.NearPointProjection(cp);
-        const vec = vec2vec(normal).cross(vec2vec(tau));
-
-        offsetContour.direction = new c3d.Axis3D(cp, new c3d.Vector3D(vec.x, vec.y, vec.z));
+        offsetContour.face = face;
 
         const gizmo = new DistanceGizmo("offset-loop:distance", this.editor);
-        gizmo.position.copy(cart2vec(cp));
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
+        gizmo.position.copy(offsetContour.center);
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), offsetContour.normal);
 
         await gizmo.execute(async distance => {
             offsetContour.distance = distance;

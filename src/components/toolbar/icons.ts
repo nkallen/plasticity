@@ -210,6 +210,7 @@ export default (editor: Editor): void => {
         'command:union': () => editor.enqueue(new cmd.UnionCommand(editor)),
         'command:intersection': () => editor.enqueue(new cmd.IntersectionCommand(editor)),
         'command:difference': () => editor.enqueue(new cmd.DifferenceCommand(editor)),
+        'command:offset': () => editor.enqueue(new cmd.OffsetLoopCommand(editor)),
         'command:cut': () => editor.enqueue(new cmd.CutCommand(editor)),
         'command:fillet': () => editor.enqueue(new cmd.FilletCommand(editor)),
         'command:chamfer': () => editor.enqueue(new cmd.ChamferCommand(editor)),
