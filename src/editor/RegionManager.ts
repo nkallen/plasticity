@@ -4,7 +4,6 @@ import * as visual from "./VisualModel";
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
 import { isSamePlacement } from '../util/Conversion';
 
-
 export class RegionManager {
     constructor(
         private readonly db: GeometryDatabase,
