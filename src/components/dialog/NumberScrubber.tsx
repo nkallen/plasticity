@@ -28,9 +28,29 @@ export default (editor: Editor) => {
             this.onPointerMove = this.onPointerMove.bind(this);
             this.onPointerUp = this.onPointerUp.bind(this);
             this.change = this.change.bind(this);
+            this.toggle = this.toggle.bind(this);
         }
 
         connectedCallback() {
+            this.render();
+        }
+
+        toggle(e: Event) {
+            e.stopPropagation();
+            let newValue;
+            if (this.isDisabled) {
+                const value = this.getAttribute('previous') ?? this.getAttribute('default')!;
+                this.setAttribute('value', value);
+                this.setAttribute('value', value);
+                newValue = value;
+            } else {
+                const disabled = this.getAttribute('disabled')!;
+                this.setAttribute('previous', this.getAttribute('value')!);
+                this.setAttribute('value', disabled);
+                newValue = disabled;
+            }
+            const event = new ChangeEvent('change', Number(newValue));
+            this.dispatchEvent(event);
             this.render();
         }
 
@@ -165,31 +185,52 @@ export default (editor: Editor) => {
             const rawPrecisionDigits = decimalIndex >= 0 ? stringValue.length - decimalIndex - 1 : 0;
             const full = `${displayValue}${precisionDigits < rawPrecisionDigits ? '...' : ''}`;
 
+            const stringMin = this.getAttribute('min');
+            const min = stringMin !== null ? +stringMin : undefined;
+            const stringMax = this.getAttribute('max');
+            const max = stringMax !== null ? +stringMax : undefined;
+            const stringDefault = this.getAttribute('default');
+            const default_ = stringDefault !== null ? +stringDefault : undefined;
+            const stringDisabled = this.getAttribute('disabled');
+            const disabled = stringDisabled !== null ? +stringDisabled : undefined;
+
             const that = this;
             const onBlur = () => { that.state = { tag: 'none' }; that.render() };
-            let result;
+            let input;
             switch (this.state.tag) {
                 case 'none':
                 case 'dragging':
-                    result = <span class="number-scrubber" onPointerDown={this.onPointerDown}>
+                    input = <span class={`number-scrubber ${this.isDisabled ? 'disabled' : ''}`} onPointerDown={this.onPointerDown} disabled={this.isDisabled}>
                         <span class="prefix"></span>
                         <span class="value">{full}</span>
                         <span class="suffix"></span>
                     </span>
                     break;
                 case 'cancel':
-                    result = <input type="text" value={displayValue} ref={i => i?.focus()} onBlur={onBlur} onChange={this.change} />
+                    input = <input type="text" value={displayValue} ref={i => i?.focus()} onBlur={onBlur} onChange={this.change} disabled={this.isDisabled} />
                     break;
                 default: throw new Error('invalid state: ' + this.state.tag);
             }
 
-            render(result, this);
+            let checkbox = <></>;
+            if (disabled !== undefined) checkbox = <input type="checkbox" checked={!this.isDisabled} onChange={this.toggle}></input>;
+
+            render(<>
+                {checkbox}
+                {input}
+            </>, this);
         }
 
         attributeChangedCallback(name: string, oldValue: any, newValue: any) {
             switch (this.state.tag) {
                 case 'none': this.render();
             }
+        }
+
+        get isDisabled() {
+            const stringDisabled = this.getAttribute('disabled');
+            const stringValue = this.getAttribute('value')!;
+            return stringValue === stringDisabled;
         }
     }
     customElements.define('ispace-number-scrubber', Scrubber);

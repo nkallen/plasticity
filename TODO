@@ -1,5 +1,6 @@
 redo Dialogs and show errors
  - dialog in lower right/left
+ - toggle hide/expand dialog
  - red when erroring
  - shows state(?)
 pretty snaps with labels

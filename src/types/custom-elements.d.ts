@@ -6,7 +6,7 @@ export declare global {
     export namespace preact.createElement.JSX {
         export interface IntrinsicElements {
             'ispace-tooltip': { 'command': string; 'placement'?: 'top' | 'bottom' | 'left' | 'right', 'children': JSX.Element | JSX.Element[] | string };
-            'ispace-number-scrubber': { 'name': string, 'value': number, 'onscrub': (e: ChangeEvent) => void, 'onchange': (e: ChangeEvent) => void, 'onfinish': (e: Event) => void }
+            'ispace-number-scrubber': { 'name': string, 'value': number, 'onscrub': (e: ChangeEvent) => void, 'onchange': (e: ChangeEvent) => void, 'onfinish': (e: Event) => void, min?: number, max?: number, disabled?: number, default?: number }
             [tag: string]: any
         }
     }
