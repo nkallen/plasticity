@@ -88,7 +88,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     get form() { return this.params.form }
     set form(d: number) { this.params.form = d }
     get conic() { return this.params.conic }
-    set conic(d: number) { this.params.conic = d; console.log(d) }
+    set conic(d: number) { this.params.conic = d }
     get prolong() { return this.params.prolong }
     set prolong(d: boolean) { this.params.prolong = d }
     get smoothCorner() { return this.params.smoothCorner }
