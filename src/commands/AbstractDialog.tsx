@@ -17,13 +17,16 @@ export abstract class AbstractDialog<T> extends HTMLElement {
     abstract render(): void;
 
     onChange(e: Event) {
+        e.stopPropagation();
         switch (this.state.tag) {
             case 'executing':
                 let value: any = undefined;
                 if (e.target instanceof HTMLInputElement) {
-                    if (e.target.type == 'checkbox')
+                    if (e.target.type === 'checkbox')
                         value = e.target.checked;
-                    if (e.target.type == 'text')
+                    else if (e.target.type === 'text')
+                        value = e.target.value;
+                    else if (e.target.type === 'radio')
                         value = e.target.value;
                 } else if (e.target instanceof HTMLSelectElement) {
                     value = e.target.value;

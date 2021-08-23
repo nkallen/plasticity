@@ -115,7 +115,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         const params = new c3d.SmoothValues();
         params.distance1 = d;
         params.distance2 = d;
-        params.form = 0;
+        params.form = c3d.SmoothForm.Fillet;
         params.conic = 0;
         params.prolong = false;
         params.smoothCorner = 2;

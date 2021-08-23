@@ -173,7 +173,7 @@ export default (editor: Editor) => {
                     if (desc === undefined) {
                         console.warn("Description missing from (icons.ts)", command);
                     }
-                    return <li><span class="keystroke">{keystroke}</span>{desc}</li>
+                    return <li><label class="keystroke">{keystroke}</label>{desc}</li>
                 })}
             </ul>;
             render(result, this);

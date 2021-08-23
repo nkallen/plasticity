@@ -2,6 +2,7 @@ import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../AbstractDialog";
 import { FilletParams } from "./FilletFactory";
+import c3d from '../../../build/Release/c3d.node';
 
 export class FilletDialog extends AbstractDialog<FilletParams> {
     constructor(protected readonly params: FilletParams, signals: EditorSignals) {
@@ -36,10 +37,11 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                     </li>
                     <li>
                         <label for="form">Form</label>
-                        <select name="form" value={form} onChange={this.onChange}>
-                            <option value="-1">Span</option>
-                            <option value="0">Fillet</option>
-                        </select>
+
+                        <input type="radio" name="form" id="fillet" value={c3d.SmoothForm.Fillet} checked={form === c3d.SmoothForm.Fillet} onClick={this.onChange}></input>
+                        <label class="btn" for="fillet">Fillet</label>
+                        <input type="radio" name="form" id="span" value={c3d.SmoothForm.Span} checked={form === c3d.SmoothForm.Span} onClick={this.onChange}></input>
+                        <label class="btn" for="span">Span</label>
                     </li>
                     <li>
                         <label for="smoothCorner">Smooth corner</label>

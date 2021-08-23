@@ -7,7 +7,7 @@ ispace-dialog {
     form {
         background: rgba(24, 27, 27, 0.95);
         padding: 12px;
-        width: 200px;
+        width: 240px;
         margin: 11px;
 
         h4 {
@@ -38,6 +38,40 @@ ispace-dialog {
                     display: inline-flex;
                 }
 
+                input[type="radio"] {
+                    position: absolute;
+                    clip: rect(0, 0, 0, 0);
+                    pointer-events: none;
+                }
+
+                label.btn {
+                    width: 45px;
+                    margin: 0 2px;
+                    color: #fff;
+                    background-color: #6c757d;
+                    border-color: #6c757d;
+                    display: inline-block;
+                    text-align: center;
+                    vertical-align: middle;
+                    cursor: pointer;
+                    user-select: none;
+                    border: 1px solid transparent;
+                    padding: .375rem .75rem;
+                    font-size: 1rem;
+                    border-radius: .25rem;
+                    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+                }
+
+                label.btn:hover {
+                    color: #212529;
+                }
+
+                input[type="radio"]:checked+label.btn {
+                    color: #fff;
+                    background-color: #0d6efd;
+                    border-color: #0d6efd;
+                }
+
                 ispace-number-scrubber {
                     flex-grow: 1;
                     display: inline-flex;
@@ -66,7 +100,7 @@ ispace-dialog {
                         border: none;
                         line-height: 18px;
                         cursor: pointer;
-                        width: 50px;
+                        min-width: 50px;
                         text-align: center;
                     }
 

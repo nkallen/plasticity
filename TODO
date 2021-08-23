@@ -1,13 +1,12 @@
 redo Dialogs and show errors
+ - better select and radio buttons
  - toggle hide/expand dialog
  - red when erroring
  - shows state(?)
- - invisible with no content
- - better select and radio buttons
  - tooltips
  - failed updates (e.g., enable conic with no distance) shows red error, which shouldn't happen
  - lock mouse position
- 
+
 pretty snaps with labels
 Isolate two crashes and report
 
