@@ -40,8 +40,8 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         params.conic = 0;
         params.prolong = false;
         params.smoothCorner = 2;
-        params.begLength = -1;
-        params.endLength = -1;
+        params.begLength = -1e300;
+        params.endLength = -1e300;
         params.keepCant = -1;
         params.strict = true;
 

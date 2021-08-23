@@ -37,17 +37,17 @@ export default (editor: Editor) => {
 
         toggle(e: Event) {
             e.stopPropagation();
+            e.preventDefault();
             let newValue;
             if (this.isDisabled) {
                 const value = this.getAttribute('previous') ?? this.getAttribute('default')!;
-                this.setAttribute('value', value);
                 this.setAttribute('value', value);
                 newValue = value;
             } else {
                 const disabled = this.getAttribute('disabled')!;
                 this.setAttribute('previous', this.getAttribute('value')!);
-                this.setAttribute('value', disabled);
                 newValue = disabled;
+                this.setAttribute('value', newValue);
             }
             const event = new ChangeEvent('change', Number(newValue));
             this.dispatchEvent(event);
@@ -183,14 +183,12 @@ export default (editor: Editor) => {
             const displayValue = startValue.toFixed(precisionDigits);
             const decimalIndex = stringValue.lastIndexOf(".");
             const rawPrecisionDigits = decimalIndex >= 0 ? stringValue.length - decimalIndex - 1 : 0;
-            const full = `${displayValue}${precisionDigits < rawPrecisionDigits ? '...' : ''}`;
+            const full = this.isDisabled ? '' : `${displayValue}${precisionDigits < rawPrecisionDigits ? '...' : ''}`;
 
             const stringMin = this.getAttribute('min');
             const min = stringMin !== null ? +stringMin : undefined;
             const stringMax = this.getAttribute('max');
             const max = stringMax !== null ? +stringMax : undefined;
-            const stringDefault = this.getAttribute('default');
-            const default_ = stringDefault !== null ? +stringDefault : undefined;
             const stringDisabled = this.getAttribute('disabled');
             const disabled = stringDisabled !== null ? +stringDisabled : undefined;
 
@@ -213,7 +211,7 @@ export default (editor: Editor) => {
             }
 
             let checkbox = <></>;
-            if (disabled !== undefined) checkbox = <input type="checkbox" checked={!this.isDisabled} onChange={this.toggle}></input>;
+            if (disabled !== undefined) checkbox = <input type="checkbox" checked={!this.isDisabled} onChange={this.toggle} onMouseDown={e => e.preventDefault()}></input>;
 
             render(<>
                 {checkbox}

@@ -28,11 +28,11 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                     </li>
                     <li>
                         <label for="begLength">Beginning length</label>
-                        <ispace-number-scrubber disabled={-1} min={0} default={0} name="begLength" value={begLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <ispace-number-scrubber disabled={-1e300} min={0} default={0} name="begLength" value={begLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
                         <label for="endLength">End length</label>
-                        <ispace-number-scrubber disabled={-1} min={0} default={0} name="endLength" value={endLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <ispace-number-scrubber disabled={-1e300} min={0} default={0} name="endLength" value={endLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
                         <label for="form">Form</label>
