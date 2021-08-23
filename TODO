@@ -1,12 +1,6 @@
- - tooltips
-
- - toggle hide/expand dialog
- - shows state(?)
- - failed updates (e.g., enable conic with no distance) shows red error, which shouldn't happen
  - lock mouse position
 
 pretty snaps with labels
-Isolate two crashes and report
 
 turn off snaps with alt
 toggle snaps with keybindings?

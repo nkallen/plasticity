@@ -14,7 +14,7 @@ export class ChangeEvent extends Event {
 }
 
 export default (editor: Editor) => {
-    type ScrubberState = { tag: 'none' } | { tag: 'cancel' } | { tag: 'down', downEvent: PointerEvent, startValue: number, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, startValue: number, currentValue: number, disposable: Disposable }
+    type ScrubberState = { tag: 'none' } | { tag: 'cancel' } | { tag: 'down', downEvent: PointerEvent, startValue: number, disposable: CompositeDisposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, startValue: number, currentValue: number, disposable: CompositeDisposable }
 
     class Scrubber extends HTMLElement {
         static get observedAttributes() { return ['value']; }
@@ -27,6 +27,7 @@ export default (editor: Editor) => {
             this.onPointerDown = this.onPointerDown.bind(this);
             this.onPointerMove = this.onPointerMove.bind(this);
             this.onPointerUp = this.onPointerUp.bind(this);
+            this.onPointerLockChange = this.onPointerLockChange.bind(this);
             this.change = this.change.bind(this);
             this.toggle = this.toggle.bind(this);
         }
@@ -101,6 +102,9 @@ export default (editor: Editor) => {
                     if (e.timeStamp - dragStartTime >= consummationTimeThreshold ||
                         currentPosition.distanceTo(startPosition) >= consummationDistanceThreshold
                     ) {
+                        document.addEventListener('pointerlockchange', this.onPointerLockChange)
+                        disposable.add(new Disposable(() => document.removeEventListener('pointerlockchange', this.onPointerLockChange)));
+                        this.requestPointerLock();
                         this.state = { tag: 'dragging', downEvent, disposable, startValue, startEvent: e, currentValue: startValue }
                     }
                     break;
@@ -109,7 +113,7 @@ export default (editor: Editor) => {
                     const { downEvent, startEvent } = this.state;
                     if (e.pointerId !== downEvent.pointerId) return;
 
-                    const delta = (e.clientX - startEvent.clientX) / 3;
+                    const delta = e.movementX / 3;
 
                     // Speed up (10x) when Shift is held. Slow down (0.1x) when alt is held.
                     const precisionSpeedMod = e.shiftKey ? -1 : e.altKey ? 1 : 0;
@@ -139,10 +143,10 @@ export default (editor: Editor) => {
 
                     const disposables = new CompositeDisposable();
 
-                    window.addEventListener('pointermove', this.onPointerMove);
-                    window.addEventListener('pointerup', this.onPointerUp);
-                    disposables.add(new Disposable(() => window.removeEventListener('pointermove', this.onPointerMove)));
-                    disposables.add(new Disposable(() => window.removeEventListener('pointerup', this.onPointerUp)));
+                    document.addEventListener('pointermove', this.onPointerMove);
+                    document.addEventListener('pointerup', this.onPointerUp);
+                    disposables.add(new Disposable(() => document.removeEventListener('pointermove', this.onPointerMove)));
+                    disposables.add(new Disposable(() => document.removeEventListener('pointerup', this.onPointerUp)));
 
                     this.state = { tag: 'down', downEvent: e, disposable: disposables, startValue: startValue };
                     break;
@@ -167,13 +171,29 @@ export default (editor: Editor) => {
                     try { this.finish(e) }
                     catch (e) { console.error(e) }
                     finally {
+                        document.exitPointerLock();
                         disposable.dispose();
                         this.state = { tag: 'none' };
                     }
                     break;
                 default: throw new Error('invalid state: ' + this.state.tag);
             }
+        }
 
+        onPointerLockChange() {
+            switch (this.state.tag) {
+                case 'dragging':
+                    if (document.pointerLockElement === this) {
+                        document.addEventListener('pointermove', this.onPointerMove);
+                        document.addEventListener('pointerup', this.onPointerUp);
+                        this.state.disposable.add(new Disposable(() => {
+                            document.removeEventListener('pointermove', this.onPointerMove);
+                            document.removeEventListener('pointerup', this.onPointerUp);
+                        }));
+                    }
+                    break;
+                default: throw new Error('invalid state: ' + this.state.tag);
+            }
         }
 
         render() {
