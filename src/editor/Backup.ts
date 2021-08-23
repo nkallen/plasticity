@@ -21,11 +21,11 @@ export class Backup {
     }
 
     async load() {
-        // console.time("load backup");
-        // const tempFilePath = await this.tempFilePath();
-        // const data = await fs.promises.readFile(tempFilePath);
-        // await this.db.deserialize(data);
-        // console.timeEnd("load backup");
+        const tempFilePath = await this.tempFilePath();
+        console.time("load backup: " + tempFilePath);
+        const data = await fs.promises.readFile(tempFilePath);
+        await this.db.deserialize(data);
+        console.timeEnd("load backup: " + tempFilePath);
     }
 
     async makeTempDir() {

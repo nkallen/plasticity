@@ -126,3 +126,5 @@ license-key.json
 !.yarn/versions
 .pnp.*
 backtrace-access-token.txt
+
+/references

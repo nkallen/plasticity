@@ -74,10 +74,6 @@ BUG/CRASH:
 1. Add cylinder
 2. Fillet top
 3. Squeeze side to smallest possible
-# 3
-1. Add sphere, offset to left x
-2. Create circular region above, extrude bool diff so it just grazes
-3. select cut edges as if to fillet; (it crashes when finding fillet max)
 
 # transaction history
 - delete creator
@@ -95,6 +91,8 @@ audit array conversion is reserving and freeing elements:
     and especially check if instantiated RPArray/etc. is freed altogether
     - convert MbCartPoint3D and Vector to isPOD
 Get planar curve and placement if the space curve is planar (after the using call *******DeleteItem for two-dimensional curves).
+convert everything to isPOD possible
+  - ensure invocations to pass by reference use reference... but i think it should be fine.
 
 - 3d Joints
 

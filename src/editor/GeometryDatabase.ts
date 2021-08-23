@@ -411,6 +411,7 @@ export class GeometryDatabase {
         const { geometryModel } = this;
         const everything = new c3d.Model();
         for (const [id, { model }] of geometryModel.entries()) {
+            if (model.IsA() !== c3d.SpaceType.Solid) continue;
             everything.AddItem(model, id);
         }
         const { memory } = await c3d.Writer.WriteItems_async(everything);

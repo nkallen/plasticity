@@ -73,16 +73,16 @@ const { db, materials, signals } = editor;
 // makeBox.p4 = new THREE.Vector3(1, 1, 1);
 // makeBox.commit()
 
-const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
-makeSphere.center = new THREE.Vector3();
-makeSphere.radius = 1;
-makeSphere.commit();
+// const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
+// makeSphere.center = new THREE.Vector3();
+// makeSphere.radius = 1;
+// makeSphere.commit();
 
-const makeCylinder = new CylinderFactory(db, materials, signals);
-makeCylinder.base = new THREE.Vector3();
-makeCylinder.radius = new THREE.Vector3(0.5, 0, 0);
-makeCylinder.height = new THREE.Vector3(0, 0, 3);
-makeCylinder.commit();
+// const makeCylinder = new CylinderFactory(db, materials, signals);
+// makeCylinder.base = new THREE.Vector3();
+// makeCylinder.radius = new THREE.Vector3(0.5, 0, 0);
+// makeCylinder.height = new THREE.Vector3(0, 0, 3);
+// makeCylinder.commit();
 
 // const makeCircle1 = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
 // makeCircle1.center = new THREE.Vector3(0, 0, 0);
