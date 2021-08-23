@@ -1,9 +1,9 @@
 redo Dialogs and show errors
- - better select and radio buttons
- - toggle hide/expand dialog
  - red when erroring
- - shows state(?)
  - tooltips
+
+ - toggle hide/expand dialog
+ - shows state(?)
  - failed updates (e.g., enable conic with no distance) shows red error, which shouldn't happen
  - lock mouse position
 

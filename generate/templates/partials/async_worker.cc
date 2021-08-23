@@ -109,5 +109,8 @@
         <%_ } _%>
     }
 
-
+    void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::Reject(Napi::Promise::Deferred const &deferred, Napi::Error const & error) {
+        error.Value()["isC3dError"] = true;
+        deferred.Reject(error.Value());
+    }
 <%_ } _%>

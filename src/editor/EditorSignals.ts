@@ -17,6 +17,7 @@ export class EditorSignals {
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }> = new signals.Signal();
     sceneGraphChanged: signals.Signal = new signals.Signal();
     factoryUpdated: signals.Signal = new signals.Signal();
+    factoryUpdateFailed: signals.Signal<any> = new signals.Signal();
     factoryCommitted: signals.Signal = new signals.Signal();
     factoryCancelled: signals.Signal = new signals.Signal();
     pointPickerChanged: signals.Signal = new signals.Signal();

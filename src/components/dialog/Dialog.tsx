@@ -10,16 +10,26 @@ export default (editor: Editor) => {
         constructor() {
             super();
             this.render = this.render.bind(this);
+            this.onFailure = this.onFailure.bind(this);
+            this.onSuccess = this.onSuccess.bind(this);
         }
 
         connectedCallback() {
             editor.signals.dialogAdded.add(this.render);
             editor.signals.dialogRemoved.add(this.render);
+            editor.signals.factoryUpdateFailed.add(this.onFailure);
+            editor.signals.factoryUpdated.add(this.onSuccess);
             this.dispose.add(new Disposable(() => {
                 editor.signals.dialogAdded.remove(this.render);
                 editor.signals.dialogRemoved.remove(this.render);
+                editor.signals.factoryUpdateFailed.remove(this.render);
+                editor.signals.factoryUpdated.remove(this.render);
             }));
             this.render();
+        }
+
+        disconnectedCallback() {
+            this.dispose!.dispose();
         }
 
         render(dialog?: AbstractDialog<any>) {
@@ -37,8 +47,14 @@ export default (editor: Editor) => {
             }
         }
 
-        disconnectedCallback() {
-            this.dispose!.dispose();
+        onFailure(e: any) {
+            this.classList.add('failure');
+            this.classList.remove('success');
+        }
+
+        onSuccess() {
+            this.classList.remove('failure');
+            this.classList.add('success');
         }
     }
     customElements.define('ispace-dialog', Dialog);

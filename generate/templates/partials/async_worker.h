@@ -21,6 +21,7 @@
 
           void Execute() override;
           void Resolve(Napi::Promise::Deferred const &deferred) override;
+          void Reject(Napi::Promise::Deferred const &deferred, Napi::Error const &error) override;
 
       private:
         <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying;<% } _%>

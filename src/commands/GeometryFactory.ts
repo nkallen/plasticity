@@ -188,8 +188,10 @@ export abstract class GeometryFactory extends ResourceRegistration {
                     await this.update();
                 } else {
                     const e = this.state.error;
-                    if (e instanceof ValidationError || e.isC3dError)
+                    if (e instanceof ValidationError || e.isC3dError) {
                         console.warn(`${this.constructor.name}: ${e.message}`);
+                        this.signals.factoryUpdateFailed.dispatch(e);
+                    }
                     else throw e;
                 }
                 break;

@@ -823,7 +823,7 @@ export class FilletCommand extends Command {
                     const gizmo = mainGizmo.addVariable(point, restriction.match);
                     gizmo.execute(async delta => {
                         fn.InsertValue(t, delta);
-                        fillet.update();
+                        await fillet.update();
                     }, mode.Persistent).resource(this);
                     break;
             }

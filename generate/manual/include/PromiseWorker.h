@@ -14,8 +14,10 @@ public:
     }
 
     void OnError(Napi::Error const &error) override {
-        deferred.Reject(error.Value());
+        Reject(deferred, error);
     }
+
+    virtual void Reject(Napi::Promise::Deferred const &deferred, Napi::Error const &error) = 0;
 
 private:
     static Napi::Value noop(Napi::CallbackInfo const &info) {
