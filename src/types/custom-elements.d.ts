@@ -5,7 +5,7 @@ import c3d from '../../../build/Release/c3d.node';
 export declare global {
     export namespace preact.createElement.JSX {
         export interface IntrinsicElements {
-            'ispace-tooltip': { 'command': string; 'placement'?: 'top' | 'bottom' | 'left' | 'right', 'children': JSX.Element | JSX.Element[] | string };
+            'ispace-tooltip': { 'command'?: string; 'placement'?: 'top' | 'bottom' | 'left' | 'right', 'children': JSX.Element | JSX.Element[] | string };
             'ispace-number-scrubber': { 'name': string, 'value': number, 'onscrub': (e: ChangeEvent) => void, 'onchange': (e: ChangeEvent) => void, 'onfinish': (e: Event) => void, min?: number, max?: number, disabled?: number, default?: number }
             [tag: string]: any
         }

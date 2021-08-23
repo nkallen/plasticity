@@ -3,6 +3,21 @@ import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../AbstractDialog";
 import { FilletParams } from "./FilletFactory";
 import c3d from '../../../build/Release/c3d.node';
+import distance1_2 from './img/distance1-2.jpg';
+import conic1 from './img/conic1.jpg';
+import conic2 from './img/conic2.jpg';
+import span1 from './img/span1.jpg';
+import span2 from './img/span2.jpg';
+import beginningLength from './img/begLength.png';
+import prolong_ from './img/prolong.png';
+import equable1 from './img/equable1.png';
+import equable2 from './img/equable2.png';
+import cant1 from './img/cant1.png';
+import cant2 from './img/cant2.png';
+import cant3 from './img/cant3.jpg';
+import corner1 from './img/corner1.jpg';
+import corner2 from './img/corner2.jpg';
+import corner3 from './img/corner3.jpg';
 
 export class FilletDialog extends AbstractDialog<FilletParams> {
     constructor(protected readonly params: FilletParams, signals: EditorSignals) {
@@ -16,7 +31,9 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                 <h4>Fillet</h4>
                 <ul>
                     <li>
-                        <label for="distance1">Distance 1</label>
+                        <label for="distance1">Distance 1
+                            <ispace-tooltip><img src={distance1_2} /></ispace-tooltip>
+                        </label>
                         <ispace-number-scrubber name="distance1" value={distance1} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
@@ -24,11 +41,15 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         <ispace-number-scrubber name="distance2" value={distance2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
-                        <label for="conic">Conic</label>
+                        <label for="conic">Conic
+                            <ispace-tooltip><img src={conic1} /><img src={conic2} /></ispace-tooltip>
+                        </label>
                         <ispace-number-scrubber disabled={0} min={0.05} max={0.95} default={0.5} name="conic" value={conic} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
-                        <label for="begLength">Beginning length</label>
+                        <label for="begLength">Beginning length
+                            <ispace-tooltip><img src={beginningLength} /></ispace-tooltip>
+                        </label>
                         <ispace-number-scrubber disabled={-1e300} min={0} default={0} name="begLength" value={begLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
@@ -36,7 +57,9 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         <ispace-number-scrubber disabled={-1e300} min={0} default={0} name="endLength" value={endLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
-                        <label for="form">Form</label>
+                        <label for="form">Form
+                            <ispace-tooltip><img src={span1} /><img src={span2} /></ispace-tooltip>
+                        </label>
 
                         <input type="radio" name="form" id="fillet" value={c3d.SmoothForm.Fillet} checked={form === c3d.SmoothForm.Fillet} onClick={this.onChange}></input>
                         <label class="btn" for="fillet">Fillet</label>
@@ -44,7 +67,9 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         <label class="btn" for="span">Span</label>
                     </li>
                     <li>
-                        <label for="smoothCorner">Corner</label>
+                        <label for="smoothCorner">Corner
+                            <ispace-tooltip><img src={corner1} /><img src={corner2} /><img src={corner3} /></ispace-tooltip>
+                        </label>
                         <select name="smoothCorner" value={smoothCorner} onChange={this.onChange}>
                             <option value={c3d.CornerForm.pointed}>Pointed</option>
                             <option value={c3d.CornerForm.uniform}>Uniform</option>
@@ -52,11 +77,15 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         </select>
                     </li>
                     <li>
-                        <label for="prolong">Prolong</label>
+                        <label for="prolong">Prolong
+                            <ispace-tooltip><img src={prolong_} /></ispace-tooltip>
+                        </label>
                         <input type="checkbox" name="prolong" checked={prolong} onClick={this.onChange}></input>
                     </li>
                     <li>
-                        <label for="keepCant">Overrun</label>
+                        <label for="keepCant">Overrun
+                            <ispace-tooltip><img src={cant1} /><img src={cant2} /><img src={cant3} /></ispace-tooltip>
+                        </label>
                         <select name="keepCant" value={keepCant} onChange={this.onChange}>
                             <option value="-1">Warp</option>
                             <option value="0">Flow</option>
@@ -68,7 +97,9 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         <input type="checkbox" name="strict" checked={strict} onChange={this.onChange}></input>
                     </li>
                     <li>
-                        <label for="equable">Equable</label>
+                        <label for="equable">Equable
+                        <ispace-tooltip><img src={equable1} /><img src={equable2} /></ispace-tooltip>
+                        </label>
                         <input type="checkbox" name="equable" checked={equable} onChange={this.onChange}></input>
                     </li>
 
