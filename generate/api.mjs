@@ -838,7 +838,10 @@ export default {
             jsClassName: "SmoothValues",
             rawHeader: "op_shell_parameter.h",
             dependencies: ["Vector3D.h"],
-            initializers: [""],
+            initializers: [
+                "",
+                "double d1, double d2, MbeSmoothForm f, double c, bool pro, SmoothValues::CornerForm cor, bool autoS, bool keep, bool str, bool equ"
+            ],
             fields: [
                 "double distance1",
                 "double distance2",

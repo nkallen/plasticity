@@ -27,7 +27,7 @@ ispace-dialog {
                 margin-top: 6px;
                 min-height: 26px;
 
-                label {
+                &>label {
                     user-select: none;
                     width: 100px;
                     margin-right: 4px;
@@ -38,13 +38,18 @@ ispace-dialog {
                     display: inline-flex;
                 }
 
-                input[type="radio"] {
+                &>input[type="radio"] {
                     position: absolute;
                     clip: rect(0, 0, 0, 0);
                     pointer-events: none;
                 }
 
-                label.btn {
+                &>input[type="checkbox"] {
+                    margin: 3px;
+                    height: 20px;
+                }
+
+                &>label.btn {
                     width: 45px;
                     margin: 0 2px;
                     color: #fff;
@@ -92,7 +97,7 @@ ispace-dialog {
                     &>input[type=text] {
                         background-color: rgb(16, 18, 19);
                         flex-grow: 1;
-                        margin: 3px;
+                        margin: 0 3px;
                         display: block;
                         height: 20px;
                         padding: 4px 14px;

@@ -44,12 +44,11 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         <label class="btn" for="span">Span</label>
                     </li>
                     <li>
-                        <label for="smoothCorner">Smooth corner</label>
+                        <label for="smoothCorner">Corner</label>
                         <select name="smoothCorner" value={smoothCorner} onChange={this.onChange}>
-                            <option value="0">Pointed</option>
-                            <option value="1">Either</option>
-                            <option value="2">Uniform</option>
-                            <option value="3">Sharp</option>
+                            <option value={c3d.CornerForm.pointed}>Pointed</option>
+                            <option value={c3d.CornerForm.uniform}>Uniform</option>
+                            <option value={c3d.CornerForm.sharp}>Sharp</option>
                         </select>
                     </li>
                     <li>
@@ -57,11 +56,11 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         <input type="checkbox" name="prolong" checked={prolong} onClick={this.onChange}></input>
                     </li>
                     <li>
-                        <label for="keepCant">Keep Cant</label>
+                        <label for="keepCant">Overrun</label>
                         <select name="keepCant" value={keepCant} onChange={this.onChange}>
-                            <option value="-1">Keep</option>
-                            <option value="0">Neut</option>
-                            <option value="1">Unkeep</option>
+                            <option value="-1">Warp</option>
+                            <option value="0">Flow</option>
+                            <option value="1">Trim</option>
                         </select>
                     </li>
                     <li>
