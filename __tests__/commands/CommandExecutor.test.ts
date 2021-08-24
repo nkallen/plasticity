@@ -3,10 +3,11 @@
  */
 
 import Command from "../../src/commands/Command";
-import { CommandExecutor } from "../../src/commands/CommandExecutor";
-import ContourManager from "../../src/editor/ContourManager";
+import { CommandExecutor, EditorLike } from "../../src/commands/CommandExecutor";
 import { SelectionCommandManager } from "../../src/commands/SelectionCommandManager";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
+import { Viewport } from "../../src/components/viewport/Viewport";
+import ContourManager from "../../src/editor/ContourManager";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import { EditorOriginator, History } from "../../src/editor/History";
@@ -35,6 +36,7 @@ describe(CommandExecutor, () => {
     let editor: any
     let regions: RegionManager;
     let contours: ContourManager;
+    let viewports: Viewport[];
 
     beforeEach(() => {
         materials = new FakeMaterials();
@@ -42,23 +44,22 @@ describe(CommandExecutor, () => {
         signals = new EditorSignals();
         db = new GeometryDatabase(materials, signals);
         registry = new CommandRegistry();
-        const selman = new SelectionManager(db, materials, signals);
-        selection = selman.selected;
+        const selection = new SelectionManager(db, materials, signals);
         snaps = new SnapManager(db, sprites, signals);
         curves = new PlanarCurveDatabase(db);
         regions = new RegionManager(db, curves);
         contours = new ContourManager(curves, regions, signals);
-        originator = new EditorOriginator(db, selection, snaps, curves);
+        originator = new EditorOriginator(db, selection.selected, snaps, curves);
         history = new History(originator, signals);
         editor = {
-            materials, sprites, signals, db, registry, selection, snaps, curves, originator, history
-        } as unknown as any;
+            materials, sprites, signals, db, registry, selection, snaps, curves, originator, history, contours, selectionGizmo
+        } as EditorLike;
         selectionGizmo = new SelectionCommandManager(editor);
     })
 
     let executor: CommandExecutor;
     beforeEach(() => {
-        executor = new CommandExecutor(db, selectionGizmo, registry, signals, originator, history, selection, contours);
+        executor = new CommandExecutor(editor);
     })
 
     test('basic successful execution', async () => {

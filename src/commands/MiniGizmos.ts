@@ -372,10 +372,17 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
         this.state.start();
     }
 
+    private readonly end2center = new THREE.Vector2();
+    private readonly start2center = new THREE.Vector2();
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
-        const { pointEnd2d, center2d } = info;
+        const { pointEnd2d, center2d, pointStart2d } = info;
+        const { end2center, start2center } = this;
 
-        const magnitude = this.accumulate(this.state.original, pointEnd2d.distanceTo(center2d), this.denominator)
+        end2center.copy(pointEnd2d).sub(center2d);
+        start2center.copy(pointStart2d).sub(center2d);
+        const sign = Math.sign(end2center.dot(start2center));
+
+        const magnitude = this.accumulate(this.state.original, end2center.length(), this.denominator, sign);
         this.state.current = magnitude;
         this.render(this.state.current);
         cb(this.state.current);
@@ -387,9 +394,9 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
         this.knob.position.copy(this.tip.position);
     }
 
-    protected accumulate(original: number, dist: number, denom: number): number {
-        if (original === 0) return original + dist - denom;
-        else return original + ((dist - denom) * original) / denom;
+    protected accumulate(original: number, dist: number, denom: number, sign: number = 1): number {
+        if (original === 0) return sign * Math.max(0, dist - denom);
+        else return sign * (original + ((dist - denom) * original) / denom);
     }
 }
 

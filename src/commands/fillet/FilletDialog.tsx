@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../AbstractDialog";
-import { FilletParams } from "./FilletFactory";
+import { FilletParams, Mode } from "./FilletFactory";
 import c3d from '../../../build/Release/c3d.node';
 import distance1_2 from './img/distance1-2.jpg';
 import conic1 from './img/conic1.jpg';
@@ -20,15 +20,24 @@ import corner2 from './img/corner2.jpg';
 import corner3 from './img/corner3.jpg';
 
 export class FilletDialog extends AbstractDialog<FilletParams> {
+    private mode: Mode = c3d.CreatorType.FilletSolid;
+
     constructor(protected readonly params: FilletParams, signals: EditorSignals) {
         super(signals);
     }
 
+    toggle(mode: Mode) {
+        this.mode = mode;
+        this.render();
+    }
+
     render() {
-        const { distance1, distance2, conic, begLength, endLength, form, smoothCorner, prolong, keepCant, strict, equable } = this.params;
+        const { conic, begLength, endLength, form, smoothCorner, prolong, keepCant, strict, equable } = this.params;
+        let { distance1, distance2 } = this.params;
+
         render(
             <>
-                <h4>Fillet</h4>
+                <h4>{this.mode === c3d.CreatorType.ChamferSolid ? 'Chamfer' : 'Fillet'}</h4>
                 <ul>
                     <li>
                         <label for="distance1">Distance 1
@@ -40,7 +49,7 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         <label for="distance2">Distance 2</label>
                         <ispace-number-scrubber name="distance2" value={distance2} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
-                    <li>
+                    <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="conic">Conic
                             <ispace-tooltip><img src={conic1} /><img src={conic2} /></ispace-tooltip>
                         </label>
@@ -56,7 +65,7 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         <label for="endLength">End length</label>
                         <ispace-number-scrubber disabled={-1e300} min={0} default={0} name="endLength" value={endLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
-                    <li>
+                    <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="form">Form
                             <ispace-tooltip><img src={span1} /><img src={span2} /></ispace-tooltip>
                         </label>
@@ -92,13 +101,13 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                             <option value="1">Trim</option>
                         </select>
                     </li>
-                    <li>
+                    <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="strict">Strict</label>
                         <input type="checkbox" name="strict" checked={strict} onChange={this.onChange}></input>
                     </li>
-                    <li>
+                    <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="equable">Equable
-                        <ispace-tooltip><img src={equable1} /><img src={equable2} /></ispace-tooltip>
+                            <ispace-tooltip><img src={equable1} /><img src={equable2} /></ispace-tooltip>
                         </label>
                         <input type="checkbox" name="equable" checked={equable} onChange={this.onChange}></input>
                     </li>

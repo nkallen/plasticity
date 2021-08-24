@@ -35,7 +35,6 @@ export class Model {
         }
         if (selection.edges.size > 0) {
             result.push(cmd.FilletCommand);
-            result.push(cmd.ChamferCommand);
         }
         if (selection.faces.size > 0) {
             result.push(cmd.OffsetFaceCommand);

@@ -1,27 +1,30 @@
-import { GeometryDatabase } from "../editor/GeometryDatabase";
 import CommandRegistry from "../components/atom/CommandRegistry";
+import { Viewport } from "../components/viewport/Viewport";
+import PlanarCurveDatabase from "../editor/ContourManager";
 import { EditorSignals } from "../editor/EditorSignals";
+import { GeometryDatabase } from "../editor/GeometryDatabase";
 import { EditorOriginator, History } from "../editor/History";
-import { HasSelection } from "../selection/SelectionManager";
+import { SelectionManager } from "../selection/SelectionManager";
 import { Cancel } from "../util/Cancellable";
 import Command from "./Command";
-import PlanarCurveDatabase from "../editor/ContourManager";
-import { SelectionCommandManager } from "./SelectionCommandManager";
 import { ValidationError } from "./GeometryFactory";
+import { SelectionCommandManager } from "./SelectionCommandManager";
 
 export type CancelOrFinish = 'cancel' | 'finish';
 
+export interface EditorLike {
+    db: GeometryDatabase;
+    selectionGizmo: SelectionCommandManager;
+    registry: CommandRegistry;
+    signals: EditorSignals;
+    originator: EditorOriginator;
+    history: History;
+    selection: SelectionManager;
+    contours: PlanarCurveDatabase;
+}
+
 export class CommandExecutor {
-    constructor(
-        private readonly db: GeometryDatabase,
-        private readonly selectionGizmo: SelectionCommandManager,
-        private readonly registry: CommandRegistry,
-        private readonly signals: EditorSignals,
-        private readonly originator: EditorOriginator,
-        private readonly history: History,
-        private readonly selection: HasSelection,
-        private readonly contours: PlanarCurveDatabase,
-    ) { }
+    constructor(private readonly editor: EditorLike) { }
 
     private active?: Command;
     private next?: Command;
@@ -47,7 +50,7 @@ export class CommandExecutor {
             this.next = undefined;
             try {
                 await this.execute(next);
-                const command = this.selectionGizmo.commandFor(next);
+                const command = this.editor.selectionGizmo.commandFor(next);
                 if (command !== undefined) await this.enqueue(command);
             } catch (e) {
                 if (e !== Cancel) {
@@ -59,32 +62,33 @@ export class CommandExecutor {
     }
 
     private async execute(command: Command) {
-        this.signals.commandStarted.dispatch(command);
-        const disposable = this.registry.add('ispace-viewport', {
+        const { signals, registry, originator, history, selection, contours, db } = this.editor;
+        signals.commandStarted.dispatch(command);
+        const disposable = registry.add('ispace-viewport', {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
         });
-        const state = this.originator.saveToMemento(new Map());
+        const state = originator.saveToMemento(new Map());
         document.body.setAttribute("command", command.identifier);
         try {
             let selectionChanged = false;
-            this.signals.objectSelected.addOnce(() => selectionChanged = true);
-            this.signals.objectDeselected.addOnce(() => selectionChanged = true);
-            await this.contours.transaction(async () => {
+            signals.objectSelected.addOnce(() => selectionChanged = true);
+            signals.objectDeselected.addOnce(() => selectionChanged = true);
+            await contours.transaction(async () => {
                 await command.execute();
                 command.finish();
             })
-            if (selectionChanged) this.signals.selectionChanged.dispatch({ selection: this.selection });
-            this.history.add("Command", state);
-            this.signals.commandFinishedSuccessfully.dispatch(command);
+            if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
+            history.add("Command", state);
+            signals.commandFinishedSuccessfully.dispatch(command);
         } catch (e) {
             command.cancel();
             throw e;
         } finally {
             document.body.removeAttribute("command");
             disposable.dispose();
-            this.db.clearTemporaryObjects();
-            this.signals.commandEnded.dispatch(command);
+            db.clearTemporaryObjects();
+            signals.commandEnded.dispatch(command);
         }
     }
 
@@ -99,7 +103,7 @@ export class CommandExecutor {
     }
 
     async enqueueDefaultCommand() {
-        const command = this.selectionGizmo.commandFor();
+        const command = this.editor.selectionGizmo.commandFor();
         if (command) await this.enqueue(command);
     }
 }

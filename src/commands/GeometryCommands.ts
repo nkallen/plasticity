@@ -3,11 +3,11 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, PointSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { cart2vec, vec2vec } from "../util/Conversion";
+import { cart2vec } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
-import { BooleanFactory, CutAndSplitFactory, CutFactory, DifferenceFactory, IntersectionFactory, SplitFactory, UnionFactory } from './boolean/BooleanFactory';
+import { BooleanFactory, CutAndSplitFactory, CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
@@ -26,10 +26,8 @@ import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
 import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
-import ChamferFactory from "./fillet/ChamferFactory";
-import { ChamferGizmo } from "./fillet/ChamferGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
-import FilletFactory, { Max } from './fillet/FilletFactory';
+import FilletFactory, { Max, MaxFilletFactory } from './fillet/FilletFactory';
 import { FilletGizmo, MagnitudeGizmo } from './fillet/FilletGizmo';
 import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
@@ -795,33 +793,31 @@ export class FilletCommand extends Command {
         const edge = edges[edges.length - 1];
         const item = edge.parentItem as visual.Solid;
 
-        const fillet = new FilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        fillet.item = item;
+        const fillet = new MaxFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        fillet.solid = item;
         fillet.edges = edges;
+        fillet.start();
 
-        const mainGizmo = new FilletGizmo(fillet, this.editor, this.point);
-        mainGizmo.showEdges();
+        const gizmo = new FilletGizmo(fillet, this.editor, this.point);
+        gizmo.showEdges();
 
-        const filletDialog = new FilletDialog(fillet, this.editor.signals);
-        const dialog = filletDialog.execute(async params => {
-            mainGizmo.render(params.distance1);
+        const dialog = new FilletDialog(fillet, this.editor.signals);
+        dialog.execute(async params => {
+            gizmo.render(params.distance1);
             await fillet.update();
-        }).resource(this);
-
-        const max = new Max(fillet);
-        max.start();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
 
         const keyboard = new FilletKeyboardGizmo(this.editor);
         const pp = new PointPicker(this.editor);
         const restriction = pp.restrictToEdges(edges);
         keyboard.execute(async s => {
-            switch (s) {
+            switch (s.tag) {
                 case 'add':
                     const { point } = await pp.execute().resource(this);
                     const { view, t } = restriction.match;
                     const fn = fillet.functions.get(view.simpleName)!;
-                    const gizmo = mainGizmo.addVariable(point, restriction.match);
-                    gizmo.execute(async delta => {
+                    const added = gizmo.addVariable(point, restriction.match);
+                    added.execute(async delta => {
                         fn.InsertValue(t, delta);
                         await fillet.update();
                     }, mode.Persistent).resource(this);
@@ -829,38 +825,17 @@ export class FilletCommand extends Command {
             }
         }).resource(this);
 
-        mainGizmo.execute(async params => {
-            filletDialog.render();
-            await max.exec(params.distance1);
+        gizmo.execute(async params => {
+            dialog.render();
+            keyboard.toggle(fillet.mode);
+            gizmo.toggle(fillet.mode);
+            dialog.toggle(fillet.mode);
+            await fillet.update();
         }, mode.Persistent).resource(this);
-
-        // Dialog OK/Cancel buttons trigger completion of the entire command.
-        dialog.then(() => this.finish(), () => this.cancel());
 
         await this.finished;
 
         const selection = await fillet.commit() as visual.Solid;
-        this.editor.selection.selected.addSolid(selection);
-    }
-}
-
-export class ChamferCommand extends Command {
-    async execute(): Promise<void> {
-        const edges = [...this.editor.selection.selected.edges];
-        const edge = edges[edges.length - 1];
-        const item = edge.parentItem as visual.Solid;
-
-        const chamfer = new ChamferFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        chamfer.item = item;
-        chamfer.edges = edges;
-
-        const gizmo = new ChamferGizmo(chamfer, this.editor);
-        gizmo.showEdges();
-        await gizmo.execute(async distance => {
-            chamfer.update();
-        }, mode.Persistent).resource(this);
-
-        const selection = await chamfer.commit() as visual.Solid;
         this.editor.selection.selected.addSolid(selection);
     }
 }

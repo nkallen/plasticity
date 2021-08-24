@@ -27,9 +27,6 @@ export abstract class AbstractCommandKeyboardInput<CB> {
         const disposables = new CompositeDisposable();
 
         for (const viewport of this.editor.viewports) {
-            viewport.setAttribute("gizmo", this.title);
-            disposables.add(new Disposable(() => viewport.removeAttribute("gizmo")));
-
             for (const command of this.commands) {
                 const d = this.editor.registry.addOne(
                     viewport.renderer.domElement,

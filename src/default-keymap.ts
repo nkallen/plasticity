@@ -1,42 +1,42 @@
 export default {
-    "ispace-viewport[gizmo='circle']": {
+    "[command='circle'] ispace-viewport": {
         "v": "gizmo:circle:mode",
     },
 
-    "ispace-viewport[gizmo='polygon']": {
+    "[command='polygon'] ispace-viewport": {
         "wheel+up": "gizmo:polygon:add-vertex",
         "wheel+down": "gizmo:polygon:subtract-vertex",
         "v": "gizmo:polygon:mode",
     },
 
-    "ispace-viewport[gizmo='spiral']": {
+    "[command='spiral'] ispace-viewport": {
         "a": "gizmo:spiral:angle",
         "d": "gizmo:spiral:length",
         "r": "gizmo:spiral:radius",
     },
 
-    "ispace-viewport[gizmo='box']": {
+    "[command='box'] ispace-viewport": {
         "q": "gizmo:box:union",
         "w": "gizmo:box:difference",
         "e": "gizmo:box:intersect",
         "r": "gizmo:box:new-body",
     },
 
-    "ispace-viewport[gizmo='cylinder']": {
+    "[command='cylinder'] ispace-viewport": {
         "q": "gizmo:cylinder:union",
         "w": "gizmo:cylinder:difference",
         "e": "gizmo:cylinder:intersect",
         "r": "gizmo:cylinder:new-body",
     },
 
-    "ispace-viewport[gizmo='sphere']": {
+    "[command='sphere'] ispace-viewport": {
         "q": "gizmo:sphere:union",
         "w": "gizmo:sphere:difference",
         "e": "gizmo:sphere:intersect",
         "r": "gizmo:sphere:new-body",
     },
 
-    "ispace-viewport[gizmo='extrude']": {
+    "[command='extrude'] ispace-viewport": {
         "a": "gizmo:extrude:race1",
         "s": "gizmo:extrude:race2",
         "d": "gizmo:extrude:distance1",
@@ -49,12 +49,12 @@ export default {
         "r": "gizmo:extrude:new-body",
     },
 
-    "ispace-viewport[gizmo='offset-face']": {
+    "[command='offset-fa ispace-viewportce']": {
         "d": "gizmo:offset-face:distance",
         "a": "gizmo:offset-face:angle",
     },
 
-    "ispace-viewport[gizmo='move']": {
+    "[command='move'] ispace-viewport": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",
         "z": "gizmo:move:z",
@@ -64,7 +64,7 @@ export default {
         "s": "gizmo:move:screen",
     },
 
-    "ispace-viewport[gizmo='scale']": {
+    "[command='scale'] ispace-viewport": {
         "x": "gizmo:scale:x",
         "y": "gizmo:scale:y",
         "z": "gizmo:scale:z",
@@ -75,24 +75,20 @@ export default {
     },
 
 
-    "ispace-viewport[gizmo='fillet']": {
-        "a": "gizmo:fillet:add",
+    "[command='fillet'] ispace-viewport": {
+        "v": "gizmo:fillet:add",
         "d": "gizmo:fillet:distance",
+        "a": "gizmo:fillet:angle",
     },
 
-    "ispace-viewport[gizmo='chamfer']": {
-        "d": "gizmo:chamfer:distance",
-        "a": "gizmo:chamfer:angle",
-    },
-
-    "ispace-viewport[gizmo='rotate']": {
+    "[command='rotate'] ispace-viewport": {
         "x": "gizmo:rotate:x",
         "y": "gizmo:rotate:y",
         "z": "gizmo:rotate:z",
         "s": "gizmo:rotate:screen",
     },
 
-    "ispace-viewport[gizmo='curve']": {
+    "[command='curve'] ispace-viewport": {
         "1": "gizmo:curve:hermite",
         "2": "gizmo:curve:bezier",
         "3": "gizmo:curve:nurbs",
@@ -100,7 +96,7 @@ export default {
         "cmd-z": "gizmo:curve:undo",
     },
 
-    "ispace-viewport[gizmo='line']": {
+    "[command='line'] ispace-viewport": {
         "cmd-z": "gizmo:line:undo",
     },
 
@@ -111,7 +107,6 @@ export default {
         "R": "command:center-rectangle",
         "s": "command:scale",
         "f": "command:fillet",
-        "shift-c": "command:chamfer",
         // "f": "command:fillet-curve",
         "e": "command:extrude",
         "x": "command:delete",

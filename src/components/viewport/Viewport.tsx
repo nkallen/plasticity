@@ -303,14 +303,6 @@ export class Viewport {
 
     private selectionEnd() { }
 
-    setAttribute(name: string, value: string) {
-        this.domElement.setAttribute(name, value);
-    }
-
-    removeAttribute(name: string) {
-        this.domElement.removeAttribute(name);
-    }
-
     dispose() {
         this.disposable.dispose();
     }

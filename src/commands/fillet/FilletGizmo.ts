@@ -1,39 +1,77 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
+import c3d from '../../../build/Release/c3d.node';
 import { CurveEdgeSnap } from "../../editor/SnapManager";
 import { CancellablePromise } from "../../util/Cancellable";
 import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
-import { FilletParams } from './FilletFactory';
+import { AbstractAxialScaleGizmo, AngleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
+import { FilletParams, Mode } from './FilletFactory';
 
 export class FilletGizmo extends CompositeGizmo<FilletParams> {
     private readonly main = new MagnitudeGizmo("fillet:distance", this.editor);
-    private readonly variable: MagnitudeGizmo[] = [];
+    private readonly angle = new AngleGizmo("fillet:angle", this.editor, this.editor.gizmos.white);
+    private readonly variables: MagnitudeGizmo[] = [];
+
+    private mode: Mode = c3d.CreatorType.FilletSolid;
 
     constructor(params: FilletParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
     }
 
     execute(cb: (params: FilletParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { main, params } = this;
+        const { main, params, angle } = this;
 
         const { point, normal } = this.placement(this.hint);
         main.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         main.position.copy(point);
+        angle.position.copy(point);
 
         this.add(main);
+        this.add(angle);
+
+        angle.value = Math.PI / 4;
 
         this.addGizmo(main, length => {
-            params.distance1 = length;
+            if (this.mode === c3d.CreatorType.ChamferSolid) {
+                params.distance1 = length;
+                params.distance2 = params.distance1 * Math.tan(angle.value);
+            } else {
+                params.distance = length;
+            }
         });
 
-        return super.execute(cb, finishFast);
+        this.addGizmo(angle, angle => {
+            if (this.mode !== c3d.CreatorType.ChamferSolid) throw new Error("invalid precondition");
+            params.distance2 = params.distance1 * Math.tan(angle);
+        });
+
+
+        const result = super.execute(cb, finishFast);
+        this.toggle(this.mode);
+        return result;
+    }
+
+    toggle(mode: Mode) {
+        this.mode = mode;
+        const { angle, variables } = this;
+        if (mode === c3d.CreatorType.ChamferSolid) {
+            for (const variable of variables) {
+                variable.visible = false;
+                variable.stateMachine!.isEnabled = false;
+            }
+            angle.visible = true;
+            angle.stateMachine!.isEnabled = true;
+        } else if (mode === c3d.CreatorType.FilletSolid) {
+            angle.visible = false;
+            angle.stateMachine!.isEnabled = false
+        }
     }
 
     prepare() {
         this.main.relativeScale.setScalar(0.8);
+        this.angle.relativeScale.setScalar(0.3);
     }
 
     private placement(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
@@ -61,12 +99,12 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         const { model, t } = snap;
 
         const normal = model.EdgeNormal(t);
-        const gizmo = new MagnitudeGizmo(`fillet:distance:${this.variable.length}`, this.editor);
+        const gizmo = new MagnitudeGizmo(`fillet:distance:${this.variables.length}`, this.editor);
         gizmo.relativeScale.setScalar(0.5);
         gizmo.value = 1;
         gizmo.position.copy(point);
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal));
-        this.variable.push(gizmo);
+        this.variables.push(gizmo);
 
         return gizmo;
     }

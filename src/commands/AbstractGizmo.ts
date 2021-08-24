@@ -94,9 +94,6 @@ export abstract class AbstractGizmo<CB> extends Helper {
             for (const viewport of this.editor.viewports) {
                 const { renderer: { domElement } } = viewport;
 
-                viewport.setAttribute("gizmo", this.title); // for gizmo-specific keyboard command selectors
-                disposables.add(new Disposable(() => viewport.removeAttribute("gizmo")));
-
                 const addEventHandlers = () => {
                     domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
                     domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
@@ -226,6 +223,7 @@ export interface MovementInfo {
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'dragging', clearEventHandlers: Disposable } | { tag: 'command', clearEventHandlers: Disposable }
 export class GizmoStateMachine<T> implements MovementInfo {
     isActive = true;
+    isEnabled = true;
     state: State = { tag: 'none' };
     private pointer!: Pointer;
 
@@ -292,6 +290,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     command(fn: () => void, start: () => Disposable): void {
+        if (!this.isEnabled) return;
+
         switch (this.state.tag) {
             case 'none':
             case 'hover':
@@ -307,6 +307,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     pointerDown(start: () => Disposable): void {
         if (!this.isActive) return;
+        if (!this.isEnabled) return;
 
         switch (this.state.tag) {
             case 'hover':
@@ -323,6 +324,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     pointerMove(): void {
         if (!this.isActive) return;
+        if (!this.isEnabled) return;
 
         switch (this.state.tag) {
             case 'dragging':
@@ -347,6 +349,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     pointerUp(finish: () => void): void {
         if (!this.isActive) return;
+        if (!this.isEnabled) return;
 
         switch (this.state.tag) {
             case 'dragging':
@@ -368,6 +371,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     pointerHover(): void {
         if (!this.isActive) return;
+        if (!this.isEnabled) return;
 
         switch (this.state.tag) {
             case 'none': {

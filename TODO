@@ -1,13 +1,13 @@
- - lock mouse position
+make fillet do chamfer if negative?
 
 pretty snaps with labels
-
+snap match should be not a sprite but something showing orientation
 turn off snaps with alt
-toggle snaps with keybindings?
-extrude face isn't unioning anymore
-make fillet do chamfer if negative?
-curve preview is broken
+toggle kinds of snaps with keybindings?
 when you hide things, the snaps need to turn off
+
+extrude face isn't unioning anymore
+curve preview is broken
 reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
 when you delete region you delete its curve / and vice versa
 bug: clicking adds items to history even when no selection is changed

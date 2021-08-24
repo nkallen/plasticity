@@ -41,7 +41,6 @@ icons.set(cmd.MoveCommand, move);
 icons.set(cmd.RotateCommand, rotate);
 icons.set(cmd.ScaleCommand, scale);
 icons.set(cmd.FilletCommand, fillet);
-icons.set(cmd.ChamferCommand, fillet);
 icons.set(cmd.IntersectionCommand, intersection);
 icons.set(cmd.DifferenceCommand, difference);
 icons.set(cmd.UnionCommand, union);
@@ -91,7 +90,6 @@ tooltips.set(cmd.MoveCommand, "Move");
 tooltips.set(cmd.RotateCommand, "Rotate");
 tooltips.set(cmd.ScaleCommand, "Scale");
 tooltips.set(cmd.FilletCommand, "Fillet");
-tooltips.set(cmd.ChamferCommand, "Chamfer");
 tooltips.set(cmd.IntersectionCommand, "Boolean intersection");
 tooltips.set(cmd.DifferenceCommand, "Boolean difference");
 tooltips.set(cmd.UnionCommand, "Boolean union");
@@ -168,7 +166,7 @@ keybindings.set("gizmo:curve:undo", "Undo");
 keybindings.set("gizmo:line:undo", "Undo");
 keybindings.set("gizmo:fillet:add", "Add variable fillet point");
 keybindings.set("gizmo:fillet:distance", "Distance");
-keybindings.set("gizmo:chamfer:distance", "Distance");
+keybindings.set("gizmo:fillet:angle", "Chamfer angle");
 keybindings.set("gizmo:circle:mode", "Toggle vertical/horizontal");
 keybindings.set("gizmo:polygon:add-vertex", "Add a vertex");
 keybindings.set("gizmo:polygon:subtract-vertex", "Subtract a vertex");
@@ -213,7 +211,6 @@ export default (editor: Editor): void => {
         'command:offset': () => editor.enqueue(new cmd.OffsetLoopCommand(editor)),
         'command:cut': () => editor.enqueue(new cmd.CutCommand(editor)),
         'command:fillet': () => editor.enqueue(new cmd.FilletCommand(editor)),
-        'command:chamfer': () => editor.enqueue(new cmd.ChamferCommand(editor)),
         'command:fillet-curve': () => editor.enqueue(new cmd.FilletCurveCommand(editor)),
         'command:modify-face': () => editor.enqueue(new cmd.OffsetFaceCommand(editor)),
         'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),

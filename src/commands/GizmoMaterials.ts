@@ -42,13 +42,13 @@ export class GizmoMaterialDatabase {
         const a = normalColor.getHex();
         const b = hoverColor.getHex();
         return {
-            mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.7, color: a }, depthInfo, { side })),
-            line2: new LineMaterial(Object.assign({ color: a, opacity: 0.7, linewidth: 3, }, depthInfo, { side })),
-            line: new THREE.LineBasicMaterial({ opacity: 0.7, color: a, }),
+            mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.75, color: a }, depthInfo, { side })),
+            line2: new LineMaterial(Object.assign({ color: a, opacity: 0.75, linewidth: 3, }, depthInfo, { side })),
+            line: new THREE.LineBasicMaterial({ opacity: 0.75, color: a, }),
             hover: {
-                mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.9, color: b }, depthInfo, { side })),
-                line2: new LineMaterial(Object.assign({ color: b, opacity: 0.9, linewidth: 3, }, depthInfo, { side })),
-                line: new THREE.LineBasicMaterial({ opacity: 0.9, color: b, }),
+                mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 1, color: b }, depthInfo, { side })),
+                line2: new LineMaterial(Object.assign({ color: b, opacity: 1, linewidth: 3, }, depthInfo, { side })),
+                line: new THREE.LineBasicMaterial({ opacity: 1, color: b, }),
             }
         }
     }

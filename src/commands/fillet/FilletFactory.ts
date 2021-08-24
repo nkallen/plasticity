@@ -6,8 +6,9 @@ import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../GeometryFactory';
 
 export interface FilletParams {
-    item: visual.Solid;
+    solid: visual.Solid;
     edges: visual.CurveEdge[];
+    distance: number;
     distance1: number;
     distance2: number;
     begLength: number;
@@ -22,12 +23,15 @@ export interface FilletParams {
     functions: Map<string, c3d.CubicFunction>;
 }
 
+export type Mode = c3d.CreatorType.FilletSolid | c3d.CreatorType.ChamferSolid;
+
 export default class FilletFactory extends GeometryFactory implements FilletParams {
-    private _item!: visual.Solid;
+    private _solid!: visual.Solid;
     private _edges!: visual.CurveEdge[];
 
-    private solid!: c3d.Solid;
+    private model!: c3d.Solid;
     edgeFunctions!: c3d.EdgeFunction[];
+    curveEdges!: c3d.CurveEdge[];
     functions!: Map<string, c3d.CubicFunction>;
 
     constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
@@ -39,7 +43,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         params.form = c3d.SmoothForm.Fillet;
         params.conic = 0;
         params.prolong = false;
-        params.smoothCorner = 2;
+        params.smoothCorner = c3d.CornerForm.uniform;
         params.begLength = -1e300;
         params.endLength = -1e300;
         params.keepCant = -1;
@@ -50,26 +54,29 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 
     params: c3d.SmoothValues;
 
-    get item(): visual.Solid {
-        return this._item;
+    get solid(): visual.Solid {
+        return this._solid;
     }
 
-    set item(item: visual.Solid) {
-        this._item = item;
-        this.solid = this.db.lookup(this.item);
+    set solid(solid: visual.Solid) {
+        this._solid = solid;
+        this.model = this.db.lookup(solid);
     }
 
     get edges() { return this._edges }
     set edges(edges: visual.CurveEdge[]) {
         const edgeFunctions = [];
+        const curveEdges = [];
         const name2function = new Map<string, c3d.CubicFunction>();
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge) as c3d.CurveEdge;
+            curveEdges.push(model);
             const fn = new c3d.CubicFunction(1, 1);
             name2function.set(edge.simpleName, fn);
             edgeFunctions.push(new c3d.EdgeFunction(model, fn));
         }
         this.edgeFunctions = edgeFunctions;
+        this.curveEdges = curveEdges;
         this.functions = name2function;
         this._edges = edges;
     }
@@ -86,7 +93,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     get distance2() { return this.params.distance2 }
     set distance2(d: number) { this.params.distance2 = d }
     get form() { return this.params.form }
-    set form(d: number) { this.params.form = d }
+    set form(d: c3d.SmoothForm) { this.params.form = d }
     get conic() { return this.params.conic }
     set conic(d: number) { this.params.conic = d }
     get prolong() { return this.params.prolong }
@@ -106,78 +113,129 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
 
+    get mode(): Mode {
+        return this.params.distance1 < 0 ? c3d.CreatorType.ChamferSolid : c3d.CreatorType.FilletSolid;
+    }
+
     async calculate() {
-        const result = await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.edgeFunctions, [], this.params, this.names);
-        return result;
+        if (this.distance1 === 0 || this.distance2 === 0) return this.model;
+
+        if (this.mode === c3d.CreatorType.ChamferSolid) {
+            return c3d.ActionSolid.ChamferSolid_async(this.model, c3d.CopyMode.Copy, this.curveEdges, this.params, this.names);
+        } else {
+            return c3d.ActionSolid.FilletSolid_async(this.model, c3d.CopyMode.Copy, this.edgeFunctions, [], this.params, this.names);
+        }
     }
 
-    async check(d: number) {
-        const params = new c3d.SmoothValues();
-        params.distance1 = d;
-        params.distance2 = d;
-        params.form = c3d.SmoothForm.Fillet;
-        params.conic = 0;
-        params.prolong = false;
-        params.smoothCorner = 2;
-        params.keepCant = -1;
-        params.strict = true;
+    get originalItem() { return this.solid }
+}
 
-        await c3d.ActionSolid.FilletSolid_async(this.solid, c3d.CopyMode.Copy, this.edgeFunctions, [], params, this.names);
+export class MaxFilletFactory extends GeometryFactory implements FilletParams {
+    private searcher = new FilletFactory(this.db, this.materials, this.signals);
+    private updater = new FilletFactory(this.db, this.materials, this.signals);
+    private max = new Max<c3d.Solid>(this.searcher);
+
+    calculate() {
+        return this.max.exec(this.distance1, d => {
+            this.distance1 = d;
+            return this.updater.calculate();
+        })
     }
 
-    get originalItem() { return this.item }
+    start() {
+        return this.max.start();
+    }
+
+    get solid() { return this.updater.solid }
+    get edges() { return this.updater.edges }
+
+    set solid(solid: visual.Solid) { this.searcher.solid = solid; this.updater.solid = solid }
+    set edges(edges: visual.CurveEdge[]) { this.searcher.edges = edges; this.updater.edges = edges }
+
+    set distance(distance: number) { this.searcher.distance = distance; this.updater.distance = distance }
+    set distance1(distance1: number) { this.searcher.distance1 = distance1; this.updater.distance1 = distance1 }
+    set distance2(distance2: number) { this.searcher.distance2 = distance2; this.updater.distance2 = distance2 }
+    set form(form: c3d.SmoothForm) { this.searcher.form = form; this.updater.form = form }
+    set conic(conic: number) { this.searcher.conic = conic; this.updater.conic = conic }
+    set prolong(prolong: boolean) { this.searcher.prolong = prolong; this.updater.prolong = prolong }
+    set smoothCorner(smoothCorner: c3d.CornerForm) { this.searcher.smoothCorner = smoothCorner; this.updater.smoothCorner = smoothCorner }
+    set keepCant(keepCant: c3d.ThreeStates) { this.searcher.keepCant = keepCant; this.updater.keepCant = keepCant }
+    set strict(strict: boolean) { this.searcher.strict = strict; this.updater.strict = strict }
+    set begLength(begLength: number) { this.searcher.begLength = begLength; this.updater.begLength = begLength }
+    set endLength(endLength: number) { this.searcher.endLength = endLength; this.updater.endLength = endLength }
+    set equable(equable: boolean) { this.searcher.equable = equable; this.updater.equable = equable }
+
+    get distance() { return this.updater.distance }
+    get distance1() { return this.updater.distance1 }
+    get distance2() { return this.updater.distance2 }
+    get form() { return this.updater.form }
+    get conic() { return this.updater.conic }
+    get prolong() { return this.updater.prolong }
+    get smoothCorner() { return this.updater.smoothCorner }
+    get keepCant() { return this.updater.keepCant }
+    get strict() { return this.updater.strict }
+    get begLength() { return this.updater.begLength }
+    get endLength() { return this.updater.endLength }
+    get equable() { return this.updater.equable }
+
+    get functions() { return this.updater.functions }
+    get mode() { return this.updater.mode }
+
+    get originalItem() { return this.updater.originalItem }
 }
 
 /**
  * The following class "clamps" fillets to a max
  */
-type State = { tag: 'start' } | { tag: 'finding' } | { tag: 'found', value: number } | { tag: 'computed', value: number }
+type State<T> = { tag: 'start' } | { tag: 'finding' } | { tag: 'found', value: number } | { tag: 'computed', value: number, result: T }
 
-export class Max {
-    private state: State = { tag: 'start' }
+export class Max<T> {
+    private state: State<T> = { tag: 'start' }
 
     constructor(
-        private readonly factory: FilletFactory
+        private readonly factory: FilletFactory,
     ) { }
 
     async start() {
         switch (this.state.tag) {
             case 'start':
                 this.state = { tag: 'finding' }
-                console.time("searching");
-                const result = await Max.search(0.01, 0.1, 100, (d) => this.factory.check(d));
-                console.timeEnd("searching");
+                const factory = this.factory;
+
+                console.time("searching for max fillet");
+                const result = await Max.search(0.01, 0.1, 100, d => {
+                    factory.distance = d;
+                    return factory.calculate();
+                });
+                console.timeEnd("searching for max fillet");
+
                 this.state = { tag: 'found', value: result }
-                break;
+                return result;
             default: throw new Error("invalid state");
         }
     }
 
-    async exec(delta: number) {
-        const factory = this.factory;
+    async exec(delta: number, fn: (max: number) => Promise<T>): Promise<T> {
         switch (this.state.tag) {
             case 'start':
             case 'finding':
-                factory.distance = delta;
-                await factory.update();
-                break;
+                return fn(delta);
             case 'found':
                 const max = this.state.value;
                 if (delta >= max) {
-                    factory.distance = max;
-                    await factory.update();
-                    this.state = { tag: 'computed', value: max }
+                    const result = await fn(max);
+                    this.state = { tag: 'computed', value: max, result }
+                    return result;
                 } else {
-                    factory.distance = delta;
-                    await factory.update();
+                    return fn(delta);
                 }
-                break;
             case 'computed':
                 if (delta >= this.state.value) {
                     console.warn("skipping work because delta exceeds max");
+                    return this.state.result;
                 } else {
                     this.state = { tag: 'found', value: this.state.value }
-                    await this.exec(delta);
+                    return await this.exec(delta, fn);
                 }
                 break;
         }

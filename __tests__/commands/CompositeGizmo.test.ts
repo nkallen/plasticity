@@ -113,7 +113,7 @@ describe(CompositeGizmo, () => {
     test("execute() changes values", async () => {
         let called = 0;
         const cancellable = gizmo.execute(params => called++);
-        const stateMachine = gizmo.angle.stateMachine;
+        const stateMachine = gizmo.angle.stateMachine!;
         expect(called).toBe(0);
 
         stateMachine.update(viewport, { x: 0, y: 0, button: 0 });
@@ -136,8 +136,8 @@ describe(CompositeGizmo, () => {
     test("execute() is mutually exclusive", async () => {
         let called = 0;
         const cancellable = gizmo.execute(params => called++);
-        const angleStateMachine = gizmo.angle.stateMachine;
-        const distanceStateMachine = gizmo.distance.stateMachine;
+        const angleStateMachine = gizmo.angle.stateMachine!;
+        const distanceStateMachine = gizmo.distance.stateMachine!;
 
         angleStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
         angleStateMachine.command(() => { }, () => new Disposable(jest.fn()));
@@ -177,8 +177,8 @@ describe(CompositeGizmo, () => {
     test("execute() mutex can be interrupted by a command", async () => {
         const execute = jest.fn();
         const cancellable = gizmo.execute(execute);
-        const angleStateMachine = gizmo.angle.stateMachine;
-        const distanceStateMachine = gizmo.distance.stateMachine;
+        const angleStateMachine = gizmo.angle.stateMachine!;
+        const distanceStateMachine = gizmo.distance.stateMachine!;
 
         angleStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
         const angleClearEvents = jest.fn();
