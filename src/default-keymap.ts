@@ -1,5 +1,5 @@
 export default {
-    "[command='circle'] ispace-viewport": {
+    "[command='center-circle'] ispace-viewport": {
         "v": "gizmo:circle:mode",
     },
 
