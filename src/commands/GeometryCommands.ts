@@ -803,6 +803,8 @@ export class FilletCommand extends Command {
 
         const dialog = new FilletDialog(fillet, this.editor.signals);
         dialog.execute(async params => {
+            gizmo.toggle(fillet.mode);
+            keyboard.toggle(fillet.mode);
             gizmo.render(params.distance1);
             await fillet.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
@@ -826,10 +828,10 @@ export class FilletCommand extends Command {
         }).resource(this);
 
         gizmo.execute(async params => {
-            dialog.render();
             keyboard.toggle(fillet.mode);
             gizmo.toggle(fillet.mode);
             dialog.toggle(fillet.mode);
+            dialog.render();
             await fillet.update();
         }, mode.Persistent).resource(this);
 
