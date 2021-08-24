@@ -25,6 +25,7 @@ import ViewportHeader from './components/viewport/ViewportHeader';
 import { FaceExtrudeFactory } from './commands/extrude/ExtrudeFactory';
 import CylinderFactory from './commands/cylinder/CylinderFactory';
 import FilletFactory from './commands/fillet/FilletFactory';
+import SnapOverlay from './components/viewport/SnapOverlay';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -42,7 +43,7 @@ Object.defineProperty(window, 'THREE', {
 
 const stats = new Stats();
 stats.showPanel(1);
-// document.body.appendChild(stats.dom);
+document.body.appendChild(stats.dom);
 
 editor.keymaps.add('/default', keymap);
 editor.registry.add("ispace-workspace", {
@@ -63,6 +64,7 @@ Creators(editor);
 NumberScrubber(editor);
 Dialog(editor);
 ViewportHeader(editor);
+SnapOverlay(editor);
 
 const { db, materials, signals } = editor;
 

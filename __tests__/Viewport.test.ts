@@ -45,7 +45,7 @@ beforeEach(async () => {
         materials: materials,
         selectionInteraction: interaction,
         enqueue: (command: Command, cancelOrFinish?: CancelOrFinish) => Promise.resolve(),
-    } as EditorLike;
+    } as unknown as EditorLike;
     const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;

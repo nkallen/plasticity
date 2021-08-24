@@ -21,7 +21,6 @@ import { Pane } from '../pane/Pane';
 const near = 0.01;
 const far = 1000;
 const frustumSize = 20;
-const fog = new THREE.Fog(0x424242, 1, 100);
 
 export interface EditorLike extends selector.EditorLike {
     db: GeometryDatabase,

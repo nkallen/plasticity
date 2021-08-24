@@ -53,32 +53,21 @@ export class GizmoMaterialDatabase {
         }
     }
 
-    readonly default: GizmoMaterial;
-    readonly red: GizmoMaterial;
-    readonly green: GizmoMaterial;
-    readonly blue: GizmoMaterial;
-    readonly yellow: GizmoMaterial;
-    readonly white: GizmoMaterial;
-    readonly magenta: GizmoMaterial;
-    readonly cyan: GizmoMaterial;
-    private readonly lines: LineMaterial[];
+    readonly default = GizmoMaterialDatabase.make(0xffff00);
+    readonly red = GizmoMaterialDatabase.make(0xff0000);
+    readonly black = GizmoMaterialDatabase.make(0x0);
+    readonly green = GizmoMaterialDatabase.make(0x00ff00);
+    readonly blue = GizmoMaterialDatabase.make(0x0000ff);
+    readonly yellow = GizmoMaterialDatabase.make(0xffff00, THREE.DoubleSide);
+    readonly white = GizmoMaterialDatabase.make(0xffffff);
+    readonly magenta = GizmoMaterialDatabase.make(0xff00ff, THREE.DoubleSide)
+    readonly cyan = GizmoMaterialDatabase.make(0x00ffff, THREE.DoubleSide);
+    private readonly lines = [
+        this.white.line2, this.red.line2, this.green.line2, this.blue.line2, this.yellow.line2, this.default.line2, this.black.line2,
+        this.white.hover.line2, this.red.hover.line2, this.green.hover.line2, this.blue.hover.line2, this.yellow.hover.line2, this.default.hover.line2, this.black.hover.line2
+    ];
 
     constructor(signals: EditorSignals) {
-        this.red = GizmoMaterialDatabase.make(0xff0000);
-        this.green = GizmoMaterialDatabase.make(0x00ff00);
-        this.blue = GizmoMaterialDatabase.make(0x0000ff);
-        this.white = GizmoMaterialDatabase.make(0xffffff);
-        this.default = GizmoMaterialDatabase.make(0xffff00);
-
-        this.yellow = GizmoMaterialDatabase.make(0xffff00, THREE.DoubleSide);
-        this.cyan = GizmoMaterialDatabase.make(0x00ffff, THREE.DoubleSide);
-        this.magenta = GizmoMaterialDatabase.make(0xff00ff, THREE.DoubleSide);
-
-        this.lines = [
-            this.white.line2, this.red.line2, this.green.line2, this.blue.line2, this.yellow.line2, this.default.line2,
-            this.white.hover.line2, this.red.hover.line2, this.green.hover.line2, this.blue.hover.line2, this.yellow.hover.line2, this.default.hover.line2
-        ];
-
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
     }
 

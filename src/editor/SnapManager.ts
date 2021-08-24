@@ -1,14 +1,19 @@
-import { PointPicker } from "../commands/PointPicker";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
+import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import c3d from '../../build/Release/c3d.node';
+import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
+import { PointPicker } from "../commands/PointPicker";
 import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
-import { Redisposable, RefCounter } from "../util/Util";
+import { CircleGeometry, Redisposable, RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { GeometryDatabase } from "./GeometryDatabase";
 import { SnapMemento } from "./History";
-import { SpriteDatabase } from "./SpriteDatabase";
 import * as visual from './VisualModel';
+
+const discGeometry = new THREE.CircleGeometry(0.03, 16);
+const circleGeometry = new LineGeometry();
+circleGeometry.setPositions(CircleGeometry(0.05, 16));
 
 export enum Layers {
     PointSnap,
@@ -20,12 +25,19 @@ export enum Layers {
     FaceSnap
 }
 
+export interface SnapResult {
+    snap: Snap;
+    position: THREE.Vector3;
+    indicator: THREE.Object3D;
+}
+
 export class SnapManager {
     private readonly basicSnaps = new Set<Snap>();
 
     private readonly begPoints = new Set<PointSnap>();
     private readonly midPoints = new Set<PointSnap>();
     private readonly endPoints = new Set<PointSnap>();
+    private readonly centerPoints = new Set<PointSnap>();
     private readonly faces = new Set<FaceSnap>();
     private readonly edges = new Set<CurveEdgeSnap>();
     private readonly curves = new Set<CurveSnap>();
@@ -38,13 +50,13 @@ export class SnapManager {
 
     constructor(
         private readonly db: GeometryDatabase,
-        private readonly sprites: SpriteDatabase,
+        private readonly materials: GizmoMaterialDatabase,
         signals: EditorSignals
     ) {
         this.basicSnaps.add(originSnap);
-        this.basicSnaps.add(new AxisSnap(new THREE.Vector3(1, 0, 0)));
-        this.basicSnaps.add(new AxisSnap(new THREE.Vector3(0, 1, 0)));
-        this.basicSnaps.add(new AxisSnap(new THREE.Vector3(0, 0, 1)));
+        this.basicSnaps.add(new AxisSnap("X", new THREE.Vector3(1, 0, 0)));
+        this.basicSnaps.add(new AxisSnap("Y", new THREE.Vector3(0, 1, 0)));
+        this.basicSnaps.add(new AxisSnap("Z", new THREE.Vector3(0, 0, 1)));
         Object.freeze(this.basicSnaps);
 
         signals.objectAdded.add(([item, agent]) => {
@@ -69,24 +81,25 @@ export class SnapManager {
         for (const intersection of intersections) {
             if (!this.satisfiesRestrictions(intersection.object.position, restrictions)) continue;
 
-            const sprite = this.hoverIndicatorFor(intersection);
-            result.push(sprite);
+            const indicator = this.hoverIndicatorFor(intersection);
+            result.push(indicator);
         }
         return result;
     }
 
-    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): [Snap, THREE.Vector3][] {
+    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
         const snappers = [...this.snappers, ...additional.map(a => a.snapper)];
 
         raycaster.layers = this.layers;
         const snapperIntersections = raycaster.intersectObjects(snappers, true);
         snapperIntersections.sort(sortIntersections);
-        const result: [Snap, THREE.Vector3][] = [];
+        const result: SnapResult[] = [];
 
         for (const intersection of snapperIntersections) {
-            const [snap, point] = this.helperFor(intersection);
-            if (!this.satisfiesRestrictions(point, restrictions)) continue;
-            result.push([snap, point]);
+            const [snap, { position, orientation }] = this.helperFor(intersection);
+            if (!this.satisfiesRestrictions(position, restrictions)) continue;
+            const indicator = this.snapIndicatorFor(intersection);
+            result.push({ snap, position, indicator });
         }
         return result;
     }
@@ -99,7 +112,7 @@ export class SnapManager {
     }
 
     private update() {
-        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.endPoints, ...this.faces, ...this.edges, ...this.curves];
+        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.centerPoints, ...this.endPoints, ...this.faces, ...this.edges, ...this.curves];
         for (const a of all) {
             a.snapper.userData.snapper = a;
             if (a.nearby !== undefined) a.nearby.userData.snapper = a;
@@ -136,8 +149,12 @@ export class SnapManager {
         const faceSnap = new FaceSnap(face, model);
         this.faces.add(faceSnap);
 
+        const centerSnap = new PointSnap("Center", cart2vec(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5)));
+        this.centerPoints.add(centerSnap);
+
         return new Redisposable(() => {
             this.faces.delete(faceSnap);
+            this.centerPoints.delete(centerSnap);
         });
     }
 
@@ -145,8 +162,8 @@ export class SnapManager {
         const model = this.db.lookupTopologyItem(edge);
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
-        const begSnap = new PointSnap(cart2vec(begPt));
-        const midSnap = new PointSnap(cart2vec(midPt));
+        const begSnap = new PointSnap("Beginning", cart2vec(begPt));
+        const midSnap = new PointSnap("Middle", cart2vec(midPt));
 
         const edgeSnap = new CurveEdgeSnap(edge, model);
         this.edges.add(edgeSnap);
@@ -168,9 +185,9 @@ export class SnapManager {
         const min = curve.PointOn(curve.GetTMin());
         const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
         const max = curve.PointOn(curve.GetTMax());
-        const begSnap = new PointSnap(cart2vec(min));
-        const midSnap = new PointSnap(cart2vec(mid));
-        const endSnap = new PointSnap(cart2vec(max));
+        const begSnap = new PointSnap("Beginning", cart2vec(min));
+        const midSnap = new PointSnap("Middle", cart2vec(mid));
+        const endSnap = new PointSnap("End", cart2vec(max));
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
         this.endPoints.add(endSnap);
@@ -192,14 +209,27 @@ export class SnapManager {
     }
 
     private hoverIndicatorFor(intersection: THREE.Intersection): THREE.Object3D {
-        const sprite = this.sprites.isNear();
-        const snap = intersection.object.userData.snap;
-        sprite.position.copy(snap.project(intersection));
-        return sprite;
+        const disc = new THREE.Mesh(discGeometry, this.materials.black.hover.mesh);
+
+        const snap = intersection.object.userData.snap as Snap;
+        const { position, orientation } = snap.project(intersection);
+        disc.position.copy(position);
+        disc.quaternion.copy(orientation);
+        return disc;
     }
 
-    private helperFor(intersection: THREE.Intersection): [Snap, THREE.Vector3] {
-        const snap = intersection.object.userData.snap;
+    private snapIndicatorFor(intersection: THREE.Intersection): THREE.Object3D {
+        const circle = new Line2(circleGeometry, this.materials.black.line2);
+
+        const snap = intersection.object.userData.snap as Snap;
+        const { position, orientation } = snap.project(intersection);
+        circle.position.copy(position);
+        circle.quaternion.copy(orientation);
+        return circle;
+    }
+
+    private helperFor(intersection: THREE.Intersection): [Snap, { position: THREE.Vector3, orientation: THREE.Quaternion }] {
+        const snap = intersection.object.userData.snap as Snap;
         return [snap, snap.project(intersection)];
     }
 
@@ -211,7 +241,8 @@ export class SnapManager {
             new Set(this.curves),
             new Set(this.begPoints),
             new Set(this.midPoints),
-            new Set(this.endPoints));
+            new Set(this.endPoints),
+            new Set(this.centerPoints));
     }
 
     restoreFromMemento(m: SnapMemento) {
@@ -221,6 +252,7 @@ export class SnapManager {
         (this.begPoints as SnapManager['begPoints']) = m.begPoints;
         (this.midPoints as SnapManager['midPoints']) = m.midPoints;
         (this.endPoints as SnapManager['endPoints']) = m.endPoints;
+        (this.centerPoints as SnapManager['centerPoints']) = m.centerPoints;
         this.update();
     }
 }
@@ -230,10 +262,11 @@ export interface Restriction {
 }
 
 export abstract class Snap implements Restriction {
+    readonly name?: string = undefined;
     abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
     readonly nearby?: THREE.Object3D; // a slightly larger object for raycasting when showing nearby snap points
     readonly helper?: THREE.Object3D; // another indicator, like a long line for axis snaps
-    protected readonly priority?: number;
+    priority?: number;
     protected abstract layer: Layers;
 
     protected init() {
@@ -241,7 +274,7 @@ export abstract class Snap implements Restriction {
         snapper.updateMatrixWorld();
         nearby?.updateMatrixWorld();
         helper?.updateMatrixWorld();
-        
+
         snapper.userData.snap = this;
         snapper.layers.set(this.layer);
         snapper.traverse(c => {
@@ -257,36 +290,38 @@ export abstract class Snap implements Restriction {
         });
     }
 
-    abstract project(intersection: THREE.Intersection): THREE.Vector3;
+    abstract project(intersection: THREE.Intersection): { position: THREE.Vector3, orientation: THREE.Quaternion };
     abstract isValid(pt: THREE.Vector3): boolean;
 
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
-    addAdditionalSnapsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
+    additionalSnapsFor(point: THREE.Vector3): Snap[] { return [] }
 }
 
 export class PointSnap extends Snap {
     readonly snapper = new THREE.Mesh(PointSnap.snapperGeometry);
     readonly nearby = new THREE.Mesh(PointSnap.nearbyGeometry);
-    private readonly projection: THREE.Vector3;
+    readonly position: THREE.Vector3;
     private static snapperGeometry = new THREE.SphereGeometry(0.1);
     private static nearbyGeometry = new THREE.SphereGeometry(0.2);
     protected layer = Layers.PointSnap;
 
-    constructor(position = new THREE.Vector3()) {
+    constructor(readonly name?: string, position = new THREE.Vector3(), private readonly normal = Z) {
         super();
 
         this.snapper.position.copy(position);
         this.nearby.position.copy(position);
-        this.projection = position.clone();
+        this.position = position.clone();
         super.init();
     }
 
-    project(intersection: THREE.Intersection): THREE.Vector3 {
-        return this.projection;
+    project(intersection: THREE.Intersection) {
+        const position = this.position;
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, this.normal);
+        return { position, orientation };
     }
 
     axes(axisSnaps: Iterable<AxisSnap>) {
-        const o = this.projection.clone();
+        const o = this.position.clone();
         const result = [];
         for (const snap of axisSnaps) {
             result.push(snap.move(o));
@@ -301,6 +336,7 @@ export class PointSnap extends Snap {
 }
 
 export class CurveEdgeSnap extends Snap {
+    readonly name = "Edge";
     t!: number;
     readonly snapper = new Line2(this.view.child.geometry, this.view.child.material);
     protected readonly layer = Layers.CurveEdgeSnap;
@@ -310,12 +346,15 @@ export class CurveEdgeSnap extends Snap {
         this.init();
     }
 
-    project(intersection: THREE.Intersection): THREE.Vector3 {
+    project(intersection: THREE.Intersection) {
         const pt = intersection.point;
         const t = this.model.PointProjection(vec2cart(pt));
         const on = this.model.Point(t);
+        const tan = this.model.GetSpaceCurve()!.Tangent(t);
         this.t = t;
-        return new THREE.Vector3(on.x, on.y, on.z);
+        const position = cart2vec(on);
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(tan));
+        return { position, orientation }
     }
 
     isValid(pt: THREE.Vector3): boolean {
@@ -328,6 +367,7 @@ export class CurveEdgeSnap extends Snap {
 
 const zero = new THREE.Vector3();
 export class CurveSnap extends Snap {
+    readonly name = "Curve";
     t!: number;
     readonly snapper = new THREE.Group();
     protected readonly layer = Layers.CurveSnap;
@@ -342,12 +382,15 @@ export class CurveSnap extends Snap {
         this.init();
     }
 
-    project(intersection: THREE.Intersection): THREE.Vector3 {
+    project(intersection: THREE.Intersection) {
         const pt = intersection.point;
         const { t } = this.model.NearPointProjection(vec2cart(pt), false);
         const on = this.model.PointOn(t);
+        const tan = this.model.Tangent(t);
         this.t = t;
-        return new THREE.Vector3(on.x, on.y, on.z);
+        const position = cart2vec(on);
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(tan));
+        return { position, orientation }
     }
 
     isValid(pt: THREE.Vector3): boolean {
@@ -357,7 +400,7 @@ export class CurveSnap extends Snap {
         return result;
     }
 
-    addAdditionalSnapsTo(pointPicker: PointPicker, point: THREE.Vector3) {
+    additionalSnapsFor(point: THREE.Vector3) {
         const { model } = this;
         const { t } = this.model.NearPointProjection(vec2cart(point), false);
         let normal = vec2vec(model.Normal(t));
@@ -375,14 +418,15 @@ export class CurveSnap extends Snap {
             binormal.normalize();
         }
 
-        const normalSnap = new AxisSnap(normal, point);
-        const binormalSnap = new AxisSnap(binormal, point);
-        const tangentSnap = new AxisSnap(tangent, point);
-        pointPicker.addSnap(normalSnap, binormalSnap, tangentSnap);
+        const normalSnap = new AxisSnap("Normal", normal, point);
+        const binormalSnap = new AxisSnap("Binormal", binormal, point);
+        const tangentSnap = new AxisSnap("Tangent", tangent, point);
+        return [normalSnap, binormalSnap, tangentSnap];
     }
 }
 
 export class FaceSnap extends Snap {
+    readonly name = "Face";
     readonly snapper = new THREE.Mesh(this.view.child.geometry);
     protected readonly layer = Layers.FaceSnap;
 
@@ -391,12 +435,14 @@ export class FaceSnap extends Snap {
         this.init();
     }
 
-    project(intersection: THREE.Intersection): THREE.Vector3 {
+    project(intersection: THREE.Intersection) {
         const { model } = this;
         const { u, v, normal } = model.NearPointProjection(vec2cart(intersection.point));
         const { faceU, faceV } = model.GetFaceParam(u, v);
         const projected = cart2vec(model.Point(faceU, faceV));
-        return new THREE.Vector3(projected.x, projected.y, projected.z);
+        const position = projected;
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(normal));
+        return { position, orientation }
     }
 
     isValid(point: THREE.Vector3): boolean {
@@ -414,10 +460,11 @@ export class FaceSnap extends Snap {
         pointPicker.restrictToPlane(plane);
     }
 
-    addAdditionalSnapsTo(pointPicker: PointPicker, point: THREE.Vector3) {
+    additionalSnapsFor(point: THREE.Vector3) {
         const { model } = this;
         const { normal } = model.NearPointProjection(vec2cart(point));
-        pointPicker.addAxesAt(point, new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(normal)));
+        const normalSnap = new AxisSnap("Normal", vec2vec(normal), point)
+        return [normalSnap];
     }
 }
 
@@ -449,16 +496,16 @@ export class AxisSnap extends Snap {
     readonly snapper = new THREE.Line(axisGeometry, new THREE.LineBasicMaterial());
     readonly helper = this.snapper;
 
-    static X = new AxisSnap(new THREE.Vector3(1, 0, 0));
-    static Y = new AxisSnap(new THREE.Vector3(0, 1, 0));
-    static Z = new AxisSnap(new THREE.Vector3(0, 0, 1));
+    static X = new AxisSnap("X", new THREE.Vector3(1, 0, 0));
+    static Y = new AxisSnap("Y", new THREE.Vector3(0, 1, 0));
+    static Z = new AxisSnap("Z", new THREE.Vector3(0, 0, 1));
 
     readonly n = new THREE.Vector3();
     readonly o = new THREE.Vector3();
 
     protected readonly layer = Layers.AxisSnap;
 
-    constructor(n: THREE.Vector3, o = new THREE.Vector3()) {
+    constructor(readonly name: string | undefined, n: THREE.Vector3, o = new THREE.Vector3()) {
         super();
         this.snapper.position.copy(o);
         this.snapper.quaternion.setFromUnitVectors(Y, n);
@@ -471,10 +518,12 @@ export class AxisSnap extends Snap {
 
     private readonly projection = new THREE.Vector3();
     private readonly intersectionPoint = new THREE.Vector3();
-    project(intersection: THREE.Intersection): THREE.Vector3 {
+    project(intersection: THREE.Intersection) {
         const { n, o } = this;
         const { projection, intersectionPoint } = this;
-        return projection.copy(n).multiplyScalar(n.dot(intersectionPoint.copy(intersection.point).sub(o))).add(o);
+        const position = projection.copy(n).multiplyScalar(n.dot(intersectionPoint.copy(intersection.point).sub(o))).add(o);
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, n);
+        return { position, orientation }
     }
 
     protected readonly valid = new THREE.Vector3();
@@ -485,12 +534,12 @@ export class AxisSnap extends Snap {
 
     move(o: THREE.Vector3) {
         const { n } = this;
-        return new AxisSnap(this.n, o.clone().add(this.o));
+        return new AxisSnap(this.name?.toLowerCase(), this.n, o.clone().add(this.o));
     }
 
     rotate(quat: THREE.Quaternion) {
         const { n, o } = this;
-        return new AxisSnap(this.n.clone().applyQuaternion(quat), o);
+        return new AxisSnap(this.name?.toLowerCase(), this.n.clone().applyQuaternion(quat), o);
     }
 }
 
@@ -498,9 +547,11 @@ export class AxisSnap extends Snap {
 // any where other than the line's origin. It's used mainly for extruding, where you want to limit
 // the direction of extrusion but allow the user to move the mouse wherever.
 export class LineSnap extends AxisSnap {
-    project(intersection: THREE.Intersection): THREE.Vector3 {
+    project(intersection: THREE.Intersection) {
         const { n, o } = this;
-        return n.clone().multiplyScalar(n.dot(intersection.point.clone().sub(o))).add(o);
+        const position = n.clone().multiplyScalar(n.dot(intersection.point.clone().sub(o))).add(o);
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, n);
+        return { position, orientation }
     }
 
     isValid(pt: THREE.Vector3): boolean {
@@ -537,10 +588,12 @@ export class PlaneSnap extends Snap {
         this.init();
     }
 
-    project(intersection: THREE.Intersection): THREE.Vector3 {
+    project(intersection: THREE.Intersection) {
         const { n, p } = this;
         const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, p);
-        return plane.projectPoint(intersection.point, new THREE.Vector3());
+        const position = plane.projectPoint(intersection.point, new THREE.Vector3());
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, n);
+        return { position, orientation }
     }
 
     move(pt: THREE.Vector3): PlaneSnap {
@@ -589,13 +642,15 @@ export class CameraPlaneSnap extends PlaneSnap {
         return Math.abs(plane.distanceToPoint(pt)) < 1e-4;
     }
 
-    project(intersection: THREE.Intersection): THREE.Vector3 {
+    project(intersection: THREE.Intersection) {
         const { worldDirection, projectionPoint } = this;
 
         const plane = new THREE.Plane();
         plane.setFromNormalAndCoplanarPoint(worldDirection, this.snapper.position);
 
-        return plane.projectPoint(intersection.point, projectionPoint);
+        const position = plane.projectPoint(intersection.point, projectionPoint);
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, worldDirection);
+        return { position, orientation }
     }
 
     update(camera: THREE.Camera) {
@@ -610,7 +665,7 @@ export class CameraPlaneSnap extends PlaneSnap {
     }
 }
 
-export const originSnap = new PointSnap();
+export const originSnap = new PointSnap("Origin");
 
 const map = new Map<any, number>();
 map.set(PointSnap, 1);

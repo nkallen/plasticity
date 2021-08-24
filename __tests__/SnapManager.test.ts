@@ -1,22 +1,23 @@
 import * as THREE from "three";
+import c3d from '../build/Release/c3d.node';
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import CurveFactory from "../src/commands/curve/CurveFactory";
+import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import LineFactory from "../src/commands/line/LineFactory";
 import { PointPicker } from "../src/commands/PointPicker";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/SnapManager';
-import { SpriteDatabase } from "../src/editor/SpriteDatabase";
 import * as visual from '../src/editor/VisualModel';
 import { cart2vec, vec2vec } from "../src/util/Conversion";
-import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
+import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
 let db: GeometryDatabase;
 let snaps: SnapManager;
 let materials: MaterialDatabase;
-let sprites: SpriteDatabase;
+let gizmos: GizmoMaterialDatabase;
 let signals: EditorSignals;
 let intersect: jest.Mock<any, any>;
 let raycaster: THREE.Raycaster;
@@ -25,10 +26,10 @@ let bbox: THREE.Box3;
 
 beforeEach(() => {
     materials = new FakeMaterials();
-    sprites = new FakeSprites();
     signals = new EditorSignals();
+    gizmos = new GizmoMaterialDatabase(signals);
     db = new GeometryDatabase(materials, signals);
-    snaps = new SnapManager(db, sprites, signals);
+    snaps = new SnapManager(db, gizmos, signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();
@@ -41,8 +42,8 @@ beforeEach(() => {
 
 test("initial state", () => {
     // the origin and 3 axes
-    expect(snaps.snappers.length).toBe(4);
-    expect(snaps.nearbys.length).toBe(1);
+    expect(snaps['snappers'].length).toBe(4);
+    expect(snaps['nearbys'].length).toBe(1);
 });
 
 test("adding solid", async () => {
@@ -53,13 +54,13 @@ test("adding solid", async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
 
-    expect(snaps.snappers.length).toBe(46);
-    expect(snaps.nearbys.length).toBe(25);
+    expect(snaps['snappers'].length).toBe(52);
+    expect(snaps['nearbys'].length).toBe(31);
 
     db.removeItem(box);
 
-    expect(snaps.snappers.length).toBe(4);
-    expect(snaps.nearbys.length).toBe(1);
+    expect(snaps['snappers'].length).toBe(4);
+    expect(snaps['nearbys'].length).toBe(1);
 });
 
 test("adding & removing curve", async () => {
@@ -68,13 +69,13 @@ test("adding & removing curve", async () => {
     makeLine.p2 = new THREE.Vector3(1, 0, 0);
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps.snappers.length).toBe(8);
-    expect(snaps.nearbys.length).toBe(4);
+    expect(snaps['snappers'].length).toBe(8);
+    expect(snaps['nearbys'].length).toBe(4);
 
     db.removeItem(line);
 
-    expect(snaps.snappers.length).toBe(4);
-    expect(snaps.nearbys.length).toBe(1);
+    expect(snaps['snappers'].length).toBe(4);
+    expect(snaps['nearbys'].length).toBe(1);
 });
 
 describe("snap()", () => {
@@ -91,35 +92,35 @@ describe("snap()", () => {
     })
 
     test("basic behavior", async () => {
-        const [[snap, p],] = snaps.snap(raycaster);
+        const [{ snap, position }] = snaps.snap(raycaster);
         expect(snap).toBe(originSnap);
-        expect(p).toEqual(new THREE.Vector3());
+        expect(position).toEqual(new THREE.Vector3());
     })
 
     test("priority sorting of snap targets", async () => {
         const planeSnap = new PlaneSnap();
         {
-            const [[snap, p],] = snaps.snap(raycaster, [planeSnap]);
+            const [{ snap, position },] = snaps.snap(raycaster, [planeSnap]);
             expect(snap).toBe(originSnap);
-            expect(p).toEqual(new THREE.Vector3());
+            expect(position).toEqual(new THREE.Vector3());
         } {
             planeSnap.priority = 0;
-            const [[snap, p],] = snaps.snap(raycaster, [planeSnap]);
+            const [{ snap, position },] = snaps.snap(raycaster, [planeSnap]);
             expect(snap).toBe(planeSnap);
-            expect(p).toEqual(point);
+            expect(position).toEqual(point);
         }
     })
 
     test("restrictions", async () => {
-        const pointSnap = new PointSnap(new THREE.Vector3(1, 1, 1));
+        const pointSnap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
 
         {
-            const [[snap, p],] = snaps.snap(raycaster, [pointSnap], []);
+            const [{ snap, position },] = snaps.snap(raycaster, [pointSnap], []);
             expect(snap).toBe(originSnap);
         } {
-            const [[snap, p],] = snaps.snap(raycaster, [pointSnap], [pointSnap]);
+            const [{ snap, position },] = snaps.snap(raycaster, [pointSnap], [pointSnap]);
             expect(snap).toBe(pointSnap);
-            expect(p).toEqual(new THREE.Vector3(1, 1, 1));
+            expect(position).toEqual(new THREE.Vector3(1, 1, 1));
         }
     });
 });
@@ -137,12 +138,12 @@ describe("nearby()", () => {
 
     test("basic behavior", async () => {
         const [pick,] = snaps.nearby(raycaster);
-        expect(pick).toBe(sprites.isNear());
-        expect(pick.position).toEqual(originSnap['projection']);
+        expect(pick).toBeInstanceOf(THREE.Object3D);
+        expect(pick.position).toEqual(originSnap.position);
     });
 
     test("restrictions", async () => {
-        const pointSnap = new PointSnap(new THREE.Vector3(1, 1, 1));
+        const pointSnap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
         const [pick,] = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
         expect(pick).toBe(pointSnap.helper);
     });
@@ -156,32 +157,32 @@ test("saveToMemento & restoreFromMemento", async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
 
-    expect(snaps.snappers.length).toBe(46);
-    expect(snaps.nearbys.length).toBe(25);
+    expect(snaps['snappers'].length).toBe(52);
+    expect(snaps['nearbys'].length).toBe(31);
 
     const memento = snaps.saveToMemento(new Map());
 
     db.removeItem(box);
 
-    expect(snaps.snappers.length).toBe(4);
-    expect(snaps.nearbys.length).toBe(1);
+    expect(snaps['snappers'].length).toBe(4);
+    expect(snaps['nearbys'].length).toBe(1);
 
     snaps.restoreFromMemento(memento);
 
-    expect(snaps.snappers.length).toBe(46);
-    expect(snaps.nearbys.length).toBe(25);
+    expect(snaps['snappers'].length).toBe(52);
+    expect(snaps['nearbys'].length).toBe(31);
 });
 
 describe(PlaneSnap, () => {
     test("project", () => {
         let plane: PlaneSnap, i;
         plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
-        i = { point: new THREE.Vector3(0, 0, 0) };
-        expect(plane.project(i)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        i = { point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection;
+        expect(plane.project(i).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
 
         plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 1));
-        i = { point: new THREE.Vector3(0, 0, 1) };
-        expect(plane.project(i)).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        i = { point: new THREE.Vector3(0, 0, 1) } as THREE.Intersection;
+        expect(plane.project(i).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
     });
 
     test("isValid", () => {
@@ -213,17 +214,17 @@ describe(AxisSnap, () => {
     test("project", () => {
         let i: THREE.Intersection;
         i = { point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection;
-        expect(AxisSnap.X.project(i)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(AxisSnap.X.project(i).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
 
         i = { point: new THREE.Vector3(1, 0, 0) } as THREE.Intersection;
-        expect(AxisSnap.X.project(i)).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+        expect(AxisSnap.X.project(i).position).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
 
         i = { point: new THREE.Vector3(0, 1, 0) } as THREE.Intersection;
-        expect(AxisSnap.X.project(i)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(AxisSnap.X.project(i).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
 
         const moved = AxisSnap.X.move(new THREE.Vector3(0, 0, 1));
         i = { point: new THREE.Vector3(1, 0, 1) } as THREE.Intersection;
-        expect(moved.project(i)).toApproximatelyEqual(new THREE.Vector3(1, 0, 1));
+        expect(moved.project(i).position).toApproximatelyEqual(new THREE.Vector3(1, 0, 1));
     });
 
     test("isValid", () => {
@@ -269,10 +270,10 @@ describe(CurveEdgeSnap, () => {
     })
 
     test("project", () => {
-        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(snap.project({ point: new THREE.Vector3(1, 0.5, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
-        expect(snap.project({ point: new THREE.Vector3(2, 1, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
-        expect(snap.project({ point: new THREE.Vector3(0, 0.5, 1) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(1, 0.5, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(snap.project({ point: new THREE.Vector3(2, 1, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0.5, 1) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
     })
 
     test("isValid", () => {
@@ -293,10 +294,10 @@ describe(CurveEdgeSnap, () => {
 
         snaps.layers.set(Layers.CurveEdgeSnap);
 
-        const [[match, point]] = snaps.snap(raycaster, [], [snap]);
+        const [{ snap: match, position }] = snaps.snap(raycaster, [], [snap]);
 
         expect((match as CurveEdgeSnap).view.simpleName).toBe(snap.view.simpleName);
-        expect(point).toApproximatelyEqual(new THREE.Vector3())
+        expect(position).toApproximatelyEqual(new THREE.Vector3())
     })
 })
 
@@ -310,15 +311,15 @@ describe(CurveSnap, () => {
         makeLine.p2 = new THREE.Vector3(0, 1, 0);
         line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
         const inst = db.lookup(line) as c3d.SpaceInstance;
-        const item = inst.GetSpaceItem();
+        const item = inst.GetSpaceItem()!;
         snap = new CurveSnap(line, item.Cast(item.IsA()));
     })
 
     test("project", () => {
-        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(snap.project({ point: new THREE.Vector3(1, 0.5, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
-        expect(snap.project({ point: new THREE.Vector3(2, 1, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
-        expect(snap.project({ point: new THREE.Vector3(0, 0.5, 1) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(1, 0.5, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(snap.project({ point: new THREE.Vector3(2, 1, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0.5, 1) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
     })
 
     test("isValid", () => {
@@ -339,10 +340,10 @@ describe(CurveSnap, () => {
 
         snaps.layers.set(Layers.CurveSnap);
 
-        const [[match, point]] = snaps.snap(raycaster, [], [snap]);
+        const [{ snap: match, position }] = snaps.snap(raycaster, [], [snap]);
 
         expect((match as CurveSnap).view.simpleName).toBe(snap.view.simpleName);
-        expect(point).toApproximatelyEqual(new THREE.Vector3())
+        expect(position).toApproximatelyEqual(new THREE.Vector3())
     })
 
     describe("addAdditionalSnapsTo", () => {
@@ -353,26 +354,23 @@ describe(CurveSnap, () => {
             makeCurve.points.push(new THREE.Vector3(1, 2, 0));
             const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
             const inst = db.lookup(curve) as c3d.SpaceInstance;
-            const item = inst.GetSpaceItem();
+            const item = inst.GetSpaceItem()!;
             const snap = new CurveSnap(curve, item.Cast(item.IsA()));
 
-            const addSnap = jest.fn();
-            const pp = { addSnap } as unknown as PointPicker;
-            snap.addAdditionalSnapsTo(pp, new THREE.Vector3(0, 1, 0));
+            const additional = snap.additionalSnapsFor(new THREE.Vector3(0, 1, 0));
 
-            expect(addSnap).toBeCalled();
-            expect(addSnap.mock.calls[0][0]).toBeInstanceOf(AxisSnap);
-            expect(addSnap.mock.calls[0][1]).toBeInstanceOf(AxisSnap);
-            expect(addSnap.mock.calls[0][2]).toBeInstanceOf(AxisSnap);
+            expect(additional[0]).toBeInstanceOf(AxisSnap);
+            expect(additional[1]).toBeInstanceOf(AxisSnap);
+            expect(additional[2]).toBeInstanceOf(AxisSnap);
 
-            expect(addSnap.mock.calls[0][0].n).toApproximatelyEqual(new THREE.Vector3(0.945, -0.316, 0));
-            expect(addSnap.mock.calls[0][0].o).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            expect(additional[0].n).toApproximatelyEqual(new THREE.Vector3(0.945, -0.316, 0));
+            expect(additional[0].o).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
 
-            expect(addSnap.mock.calls[0][1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
-            expect(addSnap.mock.calls[0][1].o).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            expect(additional[1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
+            expect(additional[1].o).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
 
-            expect(addSnap.mock.calls[0][2].n).toApproximatelyEqual(new THREE.Vector3(0.316, 0.948, 0));
-            expect(addSnap.mock.calls[0][2].o).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            expect(additional[2].n).toApproximatelyEqual(new THREE.Vector3(0.316, 0.948, 0));
+            expect(additional[2].o).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
         })
 
         test("when straight along X", async () => {
@@ -381,26 +379,23 @@ describe(CurveSnap, () => {
             makeLine.p2 = new THREE.Vector3(1, 0, 0);
             const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
             const inst = db.lookup(line) as c3d.SpaceInstance;
-            const item = inst.GetSpaceItem();
+            const item = inst.GetSpaceItem()!;
             const snap = new CurveSnap(line, item.Cast(item.IsA()));
 
-            const addSnap = jest.fn();
-            const pp = { addSnap } as unknown as PointPicker;
-            snap.addAdditionalSnapsTo(pp, makeLine.p2);
+            const additional = snap.additionalSnapsFor(makeLine.p2);
 
-            expect(addSnap).toBeCalled();
-            expect(addSnap.mock.calls[0][0]).toBeInstanceOf(AxisSnap);
-            expect(addSnap.mock.calls[0][1]).toBeInstanceOf(AxisSnap);
-            expect(addSnap.mock.calls[0][2]).toBeInstanceOf(AxisSnap);
+            expect(additional[0]).toBeInstanceOf(AxisSnap);
+            expect(additional[1]).toBeInstanceOf(AxisSnap);
+            expect(additional[2]).toBeInstanceOf(AxisSnap);
 
-            expect(addSnap.mock.calls[0][0].n).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
-            expect(addSnap.mock.calls[0][0].o).toApproximatelyEqual(makeLine.p2);
+            expect(additional[0].n).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
+            expect(additional[0].o).toApproximatelyEqual(makeLine.p2);
 
-            expect(addSnap.mock.calls[0][1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-            expect(addSnap.mock.calls[0][1].o).toApproximatelyEqual(makeLine.p2);
+            expect(additional[1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(additional[1].o).toApproximatelyEqual(makeLine.p2);
 
-            expect(addSnap.mock.calls[0][2].n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-            expect(addSnap.mock.calls[0][2].o).toApproximatelyEqual(makeLine.p2);
+            expect(additional[2].n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(additional[2].o).toApproximatelyEqual(makeLine.p2);
         })
 
         test("when straight along Y", async () => {
@@ -409,26 +404,23 @@ describe(CurveSnap, () => {
             makeLine.p2 = new THREE.Vector3(0, 1, 0);
             const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
             const inst = db.lookup(line) as c3d.SpaceInstance;
-            const item = inst.GetSpaceItem();
+            const item = inst.GetSpaceItem()!;
             const snap = new CurveSnap(line, item.Cast(item.IsA()));
 
-            const addSnap = jest.fn();
-            const pp = { addSnap } as unknown as PointPicker;
-            snap.addAdditionalSnapsTo(pp, makeLine.p2);
+            const additional = snap.additionalSnapsFor(makeLine.p2);
 
-            expect(addSnap).toBeCalled();
-            expect(addSnap.mock.calls[0][0]).toBeInstanceOf(AxisSnap);
-            expect(addSnap.mock.calls[0][1]).toBeInstanceOf(AxisSnap);
-            expect(addSnap.mock.calls[0][2]).toBeInstanceOf(AxisSnap);
+            expect(additional[0]).toBeInstanceOf(AxisSnap);
+            expect(additional[1]).toBeInstanceOf(AxisSnap);
+            expect(additional[2]).toBeInstanceOf(AxisSnap);
 
-            expect(addSnap.mock.calls[0][0].n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-            expect(addSnap.mock.calls[0][0].o).toApproximatelyEqual(makeLine.p2);
+            expect(additional[0].n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(additional[0].o).toApproximatelyEqual(makeLine.p2);
 
-            expect(addSnap.mock.calls[0][1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-            expect(addSnap.mock.calls[0][1].o).toApproximatelyEqual(makeLine.p2);
+            expect(additional[1].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(additional[1].o).toApproximatelyEqual(makeLine.p2);
 
-            expect(addSnap.mock.calls[0][2].n).toApproximatelyEqual(makeLine.p2);
-            expect(addSnap.mock.calls[0][2].o).toApproximatelyEqual(makeLine.p2);
+            expect(additional[2].n).toApproximatelyEqual(makeLine.p2);
+            expect(additional[2].o).toApproximatelyEqual(makeLine.p2);
         })
 
         test("when straight along Z", async () => {
@@ -437,26 +429,23 @@ describe(CurveSnap, () => {
             makeLine.p2 = new THREE.Vector3(0, 0, 1);
             const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
             const inst = db.lookup(line) as c3d.SpaceInstance;
-            const item = inst.GetSpaceItem();
+            const item = inst.GetSpaceItem()!;
             const snap = new CurveSnap(line, item.Cast(item.IsA()));
 
-            const addSnap = jest.fn();
-            const pp = { addSnap } as unknown as PointPicker;
-            snap.addAdditionalSnapsTo(pp, makeLine.p2);
+            const additional = snap.additionalSnapsFor(makeLine.p2);
 
-            expect(addSnap).toBeCalled();
-            expect(addSnap.mock.calls[0][0]).toBeInstanceOf(AxisSnap);
-            expect(addSnap.mock.calls[0][1]).toBeInstanceOf(AxisSnap);
-            expect(addSnap.mock.calls[0][2]).toBeInstanceOf(AxisSnap);
+            expect(additional[0]).toBeInstanceOf(AxisSnap);
+            expect(additional[1]).toBeInstanceOf(AxisSnap);
+            expect(additional[2]).toBeInstanceOf(AxisSnap);
 
-            expect(addSnap.mock.calls[0][0].n).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
-            expect(addSnap.mock.calls[0][0].o).toApproximatelyEqual(makeLine.p2);
+            expect(additional[0].n).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
+            expect(additional[0].o).toApproximatelyEqual(makeLine.p2);
 
-            expect(addSnap.mock.calls[0][1].n).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
-            expect(addSnap.mock.calls[0][1].o).toApproximatelyEqual(makeLine.p2);
+            expect(additional[1].n).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            expect(additional[1].o).toApproximatelyEqual(makeLine.p2);
 
-            expect(addSnap.mock.calls[0][2].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-            expect(addSnap.mock.calls[0][2].o).toApproximatelyEqual(makeLine.p2);
+            expect(additional[2].n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(additional[2].o).toApproximatelyEqual(makeLine.p2);
         })
     })
 })
@@ -478,10 +467,10 @@ describe(FaceSnap, () => {
     })
 
     test("project", () => {
-        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(snap.project({ point: new THREE.Vector3(1, 0.5, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 0));
-        expect(snap.project({ point: new THREE.Vector3(2, 1, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
-        expect(snap.project({ point: new THREE.Vector3(0, 0.5, 1) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(1, 0.5, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 0));
+        expect(snap.project({ point: new THREE.Vector3(2, 1, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0.5, 1) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
     })
 
     test("isValid", () => {
@@ -505,33 +494,33 @@ describe(FaceSnap, () => {
         snaps.layers.set(Layers.FaceSnap);
 
         // NOTE: the face is automatically to the snapman added via signals
-        const [[match, point]] = snaps.snap(raycaster, [], []);
+        const [{ snap: match, position }] = snaps.snap(raycaster, [], []);
         expect(match).toBeInstanceOf(FaceSnap);
         const expectation = match as FaceSnap;
         expect(expectation.view).toBe(face);
-        expect(point).toApproximatelyEqual(new THREE.Vector3(0, 0, 1))
+        expect(position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1))
     })
 })
 
 describe(PointSnap, () => {
     test("project", () => {
         let snap: PointSnap;
-        snap = new PointSnap(new THREE.Vector3(0, 0, 0));
-        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(snap.project({ point: new THREE.Vector3(1, 1, 1) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        snap = new PointSnap(undefined, new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(snap.project({ point: new THREE.Vector3(1, 1, 1) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
 
-        snap = new PointSnap(new THREE.Vector3(1, 1, 1));
-        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
-        expect(snap.project({ point: new THREE.Vector3(1, 1, 1) } as THREE.Intersection)).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+        snap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
+        expect(snap.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+        expect(snap.project({ point: new THREE.Vector3(1, 1, 1) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
 
     test("isValid", () => {
         let snap: PointSnap;
-        snap = new PointSnap(new THREE.Vector3(0, 0, 0));
+        snap = new PointSnap(undefined, new THREE.Vector3(0, 0, 0));
         expect(snap.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
         expect(snap.isValid(new THREE.Vector3(1, 1, 1))).toBe(false);
 
-        snap = new PointSnap(new THREE.Vector3(1, 1, 1));
+        snap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
         expect(snap.isValid(new THREE.Vector3(0, 0, 0))).toBe(false);
         expect(snap.isValid(new THREE.Vector3(1, 1, 1))).toBe(true);
     })

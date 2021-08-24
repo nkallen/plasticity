@@ -3,10 +3,10 @@
  */
 import { Disposable } from "event-kit";
 import * as THREE from "three";
-import { AbstractGizmo, EditorLike, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
+import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import CommandRegistry from "../src/components/atom/CommandRegistry";
-import { Viewport } from "../src/components/viewport/Viewport";
+import { EditorLike, Viewport } from "../src/components/viewport/Viewport";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
@@ -54,14 +54,12 @@ beforeEach(() => {
         helpers: new Helpers(signals),
         registry: new CommandRegistry(),
         signals, gizmos, db
-    } as EditorLike;
+    } as unknown as EditorLike;
     viewport = MakeViewport(editor);
-    viewport.camera.position.set(0, 0, 1);
-    viewport.camera.lookAt(0, 0, 0);
     editor.viewports.push(viewport);
 })
 
-let start, end, interrupt: number;
+let start: number, end: number, interrupt: number;
 let sm: GizmoStateMachine<() => void>;
 
 beforeEach(() => {

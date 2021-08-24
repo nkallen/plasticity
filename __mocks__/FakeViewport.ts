@@ -32,6 +32,8 @@ export function MakeViewport(editor: EditorLike) {
     // @ts-expect-error('Cannot mock DomRect')
     canvas.getBoundingClientRect = () => { return { left: 0, top: 0, width: 100, height: 100 } };
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1);
+    camera.position.set(0, 0, 1);
+    camera.lookAt(0, 0, 0);
     const domElement = document.createElement('ispace-viewport');
     const viewport = new Viewport(
         editor,

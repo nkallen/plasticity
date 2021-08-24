@@ -38,7 +38,7 @@ export class Editor {
     readonly curves = new PlanarCurveDatabase(this.db);
     readonly regions = new RegionManager(this.db, this.curves);
     readonly contours = new ContourManager(this.curves, this.regions, this.signals);
-    readonly snaps = new SnapManager(this.db, this.sprites, this.signals);
+    readonly snaps = new SnapManager(this.db, this.gizmos, this.signals);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null

@@ -95,7 +95,6 @@ export class CenterCircleCommand extends Command {
 
         pointPicker.restrictToPlaneThroughPoint(point);
         snap.addAdditionalRestrictionsTo(pointPicker, point);
-        snap.addAdditionalSnapsTo(pointPicker, point);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             circle.point = p2;
@@ -103,7 +102,7 @@ export class CenterCircleCommand extends Command {
             circle.update();
         }).resource(this);
 
-        const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
     }
 }
 
@@ -296,7 +295,6 @@ export class PolygonCommand extends Command {
         pointPicker.restrictToPlaneThroughPoint(point);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         snap.addAdditionalRestrictionsTo(pointPicker, point);
-        snap.addAdditionalSnapsTo(pointPicker, point);
 
         await pointPicker.execute(({ point, info: { constructionPlane } }) => {
             polygon.constructionPlane = constructionPlane;
@@ -382,7 +380,7 @@ export class CylinderCommand extends Command {
         keyboard.prepare(cylinder).resource(this);
 
         pointPicker = new PointPicker(this.editor);
-        snap.addAdditionalSnapsTo(pointPicker, p1);
+        pointPicker.addSnap(...snap.additionalSnapsFor(p1));
         pointPicker.addAxesAt(p1);
         await pointPicker.execute(({ point: p3 }) => {
             cylinder.height = p3;
@@ -422,7 +420,7 @@ export class CurveCommand extends Command {
         }).resource(this);
 
         while (true) {
-            if (makeCurve.canBeClosed) pointPicker.addSnap(new PointSnap(makeCurve.startPoint));
+            if (makeCurve.canBeClosed) pointPicker.addSnap(new PointSnap("closed", makeCurve.startPoint));
             try {
                 const { point } = await pointPicker.execute(async ({ point }) => {
                     makeCurve.preview.last = point;
@@ -493,8 +491,8 @@ export class CornerRectangleCommand extends Command {
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
-        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
-        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, 1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
@@ -520,10 +518,9 @@ export class CenterRectangleCommand extends Command {
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
-        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
-        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, 1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
         snap.addAdditionalRestrictionsTo(pointPicker, p1);
-        snap.addAdditionalSnapsTo(pointPicker, p1);
 
         await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             rect.p2 = p2;
@@ -588,8 +585,8 @@ export class CornerBoxCommand extends Command {
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
-        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
-        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, 1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
@@ -629,8 +626,8 @@ export class CenterBoxCommand extends Command {
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
-        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, 1, 0)));
-        pointPicker.straightSnaps.add(new AxisSnap(new THREE.Vector3(1, -1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, 1, 0)));
+        pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
         snap.addAdditionalRestrictionsTo(pointPicker, p1)
 
         const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);

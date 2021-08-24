@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
+import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { Model } from '../../src/commands/PointPicker';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -14,14 +15,14 @@ let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 let snaps: SnapManager;
-let sprites: FakeSprites;
+let gizmos: GizmoMaterialDatabase;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    snaps = new SnapManager(db, sprites, signals);
-    sprites = new FakeSprites();
+    gizmos = new GizmoMaterialDatabase(signals);
+    snaps = new SnapManager(db, gizmos, signals);
     pointPicker = new Model(db, snaps);
 });
 
@@ -54,7 +55,7 @@ describe('restrictToPlaneThroughPoint', () => {
 describe('addSnap', () => {
     beforeEach(() => {
         expect(pointPicker.restrictionsFor(new PlaneSnap()).length).toBe(0);
-        pointPicker.addSnap(new PointSnap(new THREE.Vector3(1, 1, 1)));
+        pointPicker.addSnap(new PointSnap(undefined, new THREE.Vector3(1, 1, 1)));
     })
 
     test("restrictionsFor", () => {
@@ -73,7 +74,7 @@ describe('addSnap', () => {
 describe('addPickedPoint', () => {
     beforeEach(() => {
         expect(pointPicker.restrictionsFor(new PlaneSnap()).length).toBe(0);
-        pointPicker.addPickedPoint(new THREE.Vector3(1, 1, 1));
+        pointPicker.addPickedPoint(new PlaneSnap(), new THREE.Vector3(1, 1, 1));
     })
 
     test("restrictionsFor", () => {

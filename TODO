@@ -1,11 +1,9 @@
-make fillet do chamfer if negative?
-
-pretty snaps with labels
-snap match should be not a sprite but something showing orientation
+circle vertical not working
 turn off snaps with alt
 toggle kinds of snaps with keybindings?
 when you hide things, the snaps need to turn off
 
+chamfer commit is unselectable(??)
 extrude face isn't unioning anymore
 curve preview is broken
 reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss

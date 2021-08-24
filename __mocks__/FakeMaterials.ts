@@ -12,6 +12,7 @@ const surface = new THREE.Material();
 const region = new THREE.Material();
 const controlPoint = new THREE.PointsMaterial();
 controlPoint.userData.resolution = new THREE.Vector2(1, 1);
+
 export class FakeMaterials implements MaterialDatabase {
     get(_o: any) { return new THREE.Material() }
     line(_o?: any) { return line }

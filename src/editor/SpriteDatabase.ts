@@ -58,7 +58,3 @@ export class SpriteDatabase {
         return result as THREE.Sprite;
     }
 }
-
-class MySprite extends THREE.Sprite {
-
-}

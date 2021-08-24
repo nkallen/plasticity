@@ -6,9 +6,9 @@ import { GeometryDatabase } from '../editor/GeometryDatabase';
 import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
 import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
-import { Helpers } from '../util/Helpers';
+import { Helper, Helpers } from '../util/Helpers';
 
-const geometry = new THREE.SphereGeometry(0.05, 8, 6, 0, Math.PI * 2, 0, Math.PI);
+const geometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
 interface EditorLike {
     db: GeometryDatabase,
@@ -25,6 +25,7 @@ type mode = 'RejectOnFinish' | 'ResolveOnFinish'
 
 export class Model {
     private readonly pickedPointSnaps = new Array<PointSnap>(); // Snaps inferred from points the user actually picked
+    private lastPickedPointSnap?: Snap;
     straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]); // Snaps going straight off the last picked point
     private readonly otherAddedSnaps = new Array<Snap>();
     private readonly restrictions = new Array<Restriction>();
@@ -70,11 +71,12 @@ export class Model {
     }
 
     private get axesOfLastPickedPoint(): Snap[] {
-        const { pickedPointSnaps, straightSnaps } = this;
+        const { pickedPointSnaps, straightSnaps, lastPickedPointSnap } = this;
         let result: Snap[] = [];
         if (pickedPointSnaps.length > 0) {
             const last = pickedPointSnaps[pickedPointSnaps.length - 1];
             result = result.concat(last.axes(straightSnaps));
+            result = result.concat(lastPickedPointSnap!.additionalSnapsFor(last.position));
         }
         return result;
     }
@@ -86,7 +88,7 @@ export class Model {
     addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion()) {
         const rotated = [];
         for (const snap of this.straightSnaps) rotated.push(snap.rotate(orientation));
-        const axes = new PointSnap(point).axes(rotated);
+        const axes = new PointSnap(undefined, point).axes(rotated);
         for (const axis of axes) this.otherAddedSnaps.push(axis);
     }
 
@@ -103,7 +105,7 @@ export class Model {
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
-        const line = new LineSnap(direction, origin);
+        const line = new LineSnap(undefined, direction, origin);
         this.restrictions.push(line);
 
         const p = new THREE.Vector3(1, 0, 0);
@@ -130,8 +132,9 @@ export class Model {
         return restriction;
     }
 
-    addPickedPoint(point: THREE.Vector3) {
-        this.pickedPointSnaps.push(new PointSnap(point))
+    addPickedPoint(snap: Snap, point: THREE.Vector3) {
+        this.pickedPointSnaps.push(new PointSnap("point", point));
+        this.lastPickedPointSnap = snap;
     }
 
     undo() {
@@ -139,21 +142,25 @@ export class Model {
     }
 }
 
-export class PointPicker {
-    private readonly model = new Model(this.editor.db, this.editor.snaps);
+class PointTarget extends Helper {
     private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
 
-    constructor(private readonly editor: EditorLike) {
-        this.mesh.material.depthTest = false;
-        this.mesh.renderOrder = 999;
-        this.mesh.layers.set(visual.Layers.Overlay);
+    constructor() {
+        super();
+        this.add(this.mesh);
     }
+}
+
+export class PointPicker {
+    private readonly model = new Model(this.editor.db, this.editor.snaps);
+    private readonly helper = new PointTarget();
+
+    constructor(private readonly editor: EditorLike) { }
 
     execute<T>(cb?: (pt: PointResult) => T, resolveOnFinish: mode = 'ResolveOnFinish'): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
-            const { mesh, editor, model } = this;
-            const temporaryObjects = editor.db.temporaryObjects;
+            const { helper, editor, model } = this;
 
             const raycaster = new THREE.Raycaster();
             raycaster.params.Line = { threshold: 0.1 };
@@ -161,13 +168,15 @@ export class PointPicker {
             raycaster.params.Line2 = { threshold: 20 };
             raycaster.layers = visual.VisibleLayers;
 
-            temporaryObjects.add(mesh);
-            disposables.add(new Disposable(() => temporaryObjects.remove(mesh)));
+            editor.helpers.add(helper);
+            disposables.add(new Disposable(() => editor.helpers.remove(helper)));
+            disposables.add(new Disposable(() => editor.signals.snapped.dispatch(undefined)));
 
             const helpers = new THREE.Scene();
             this.editor.helpers.add(helpers);
             disposables.add(new Disposable(() => this.editor.helpers.remove(helpers)));
 
+            let info: PointInfo | undefined = undefined;
             for (const viewport of this.editor.viewports) {
                 viewport.disableControlsExcept();
                 disposables.add(new Disposable(() => viewport.enableControls()))
@@ -179,19 +188,32 @@ export class PointPicker {
                     raycaster.setFromCamera(pointer, camera);
 
                     helpers.clear();
-                    const sprites = model.nearby(raycaster, constructionPlane);
-                    for (const sprite of sprites) helpers.add(sprite);
+                    const indicators = model.nearby(raycaster, constructionPlane);
+                    for (const i of indicators) helpers.add(i);
 
                     // if within snap range, change point to snap position
                     const snappers = model.snap(raycaster, constructionPlane);
-                    for (const [snap, point] of snappers) {
-                        const info = { snap, constructionPlane: this.model.actualConstructionPlaneGiven(constructionPlane) };
-                        if (cb !== undefined) cb({ point, info });
-                        mesh.position.copy(point);
-                        mesh.userData = info;
-                        const helper = snap.helper;
-                        if (helper !== undefined) helpers.add(helper);
-                        break;
+                    const names = [];
+                    const pos = snappers[0].position;
+                    for (const { snap, position, indicator } of snappers) {
+                        if (position.manhattanDistanceTo(pos) > 10e-6) continue;
+
+                        // we only invoke the callback, etc. for the first match; but we collect names of all matches with the same position
+                        if (names.length === 0) {
+                            helpers.add(indicator);
+                            info = { snap, constructionPlane: this.model.actualConstructionPlaneGiven(constructionPlane) };
+                            if (cb !== undefined) cb({ point: position, info });
+                            helper.position.copy(position);
+                            const snapHelper = snap.helper;
+                            if (snapHelper !== undefined) helpers.add(snapHelper);
+                        }
+                        names.push(snap.name);
+                    }
+                    const nonempty = names.filter(x => x !== undefined) as string[];
+                    if (nonempty.length > 0) {
+                        editor.signals.snapped.dispatch({ position: pos.clone().project(camera), names: nonempty });
+                    } else {
+                        editor.signals.snapped.dispatch(undefined);
                     }
                     editor.signals.pointPickerChanged.dispatch();
                 }
@@ -209,12 +231,11 @@ export class PointPicker {
 
                 const onPointerDown = (e: PointerEvent) => {
                     if (e.button != 0) return;
-                    const point = mesh.position.clone();
-                    const info = mesh.userData as PointInfo;
-                    mesh.userData = {};
-                    resolve({ point, info });
+                    const point = helper.position.clone();
+                    resolve({ point, info: info! });
                     disposables.dispose();
-                    this.model.addPickedPoint(point);
+                    this.model.addPickedPoint(info!.snap, point);
+                    info = undefined;
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
@@ -229,11 +250,10 @@ export class PointPicker {
                 reject(Cancel);
             }
             const finish = () => {
-                const point = mesh.position.clone();
+                const point = helper.position.clone();
                 editor.signals.pointPickerChanged.dispatch();
-                const info = mesh.userData as PointInfo;
                 disposables.dispose();
-                if (resolveOnFinish === 'ResolveOnFinish') resolve({ point, info });
+                if (resolveOnFinish === 'ResolveOnFinish') resolve({ point, info: info! });
                 else reject(Finish);
             }
             return { cancel, finish };
