@@ -8,7 +8,7 @@ import { PointPicker } from "../src/commands/PointPicker";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, LineSnap, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/SnapManager';
 import * as visual from '../src/editor/VisualModel';
 import { cart2vec, vec2vec } from "../src/util/Conversion";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
@@ -80,6 +80,8 @@ test("adding & removing curve", async () => {
 
 describe("snap()", () => {
     let point: THREE.Vector3;
+    const e = {} as PointerEvent;
+
     beforeEach(() => {
         point = new THREE.Vector3(1, 0, 0);
         // Basically, say you intersect with everything
@@ -111,29 +113,61 @@ describe("snap()", () => {
         }
     })
 
-    test("restrictions", async () => {
+    describe("restrictions", () => {
         const pointSnap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
 
-        {
-            const [{ snap, position },] = snaps.snap(raycaster, [pointSnap], []);
+        test("when no restrictions we match whatever", async () => {
+            const [{ snap, position },] = snaps.snap(raycaster, [pointSnap], [], []);
             expect(snap).toBe(originSnap);
-        } {
-            const [{ snap, position },] = snaps.snap(raycaster, [pointSnap], [pointSnap]);
+        });
+
+        test("when restricted, only match restricted items", async () => {
+            const [{ snap, position },] = snaps.snap(raycaster, [], [pointSnap], [pointSnap]);
             expect(snap).toBe(pointSnap);
             expect(position).toEqual(new THREE.Vector3(1, 1, 1));
-        }
+        });
+
+        test("when restricted, without a restriction snap", async () => {
+            const result = snaps.snap(raycaster, [], [], [pointSnap]);
+            expect(result).toBeUndefined;
+        });
+
+
+        test("snaps disabled (with ctrl key)", async () => {
+            const pointSnap = new PointSnap(undefined, new THREE.Vector3(0, 0, 2));
+            const planeSnap = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 2));
+            // point is on the plane
+
+            let snap;
+            [{ snap, },] = snaps.snap(raycaster, [planeSnap, pointSnap], [planeSnap], [planeSnap]);
+            expect(snap).toBe(pointSnap);
+
+            snaps.toggle();
+
+            [{ snap, }] = snaps.snap(raycaster, [planeSnap, pointSnap], [planeSnap], [planeSnap]);
+            expect(snap).toBe(planeSnap);
+
+            snaps.toggle();
+
+            [{ snap, }, ] = snaps.snap(raycaster, [planeSnap, pointSnap], [planeSnap], [planeSnap]);
+            expect(snap).toBe(pointSnap);
+        });
     });
 });
 
 describe("nearby()", () => {
     let point: THREE.Vector3;
+    const e = {} as PointerEvent;
+
     beforeEach(() => {
-        point = new THREE.Vector3();
+        point = new THREE.Vector3(1, 1, 1);
         // Basically, say you intersect with everything
-        intersect.mockImplementation(a => [{
-            object: a[0],
-            point: point
-        }]);
+        intersect.mockImplementation(as => as.map(a => {
+            return {
+                object: a,
+                point: point
+            }
+        }));
     })
 
     test("basic behavior", async () => {
@@ -143,9 +177,21 @@ describe("nearby()", () => {
     });
 
     test("restrictions", async () => {
-        const pointSnap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
+        const pointSnap = new PointSnap(undefined, point);
         const [pick,] = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
-        expect(pick).toBe(pointSnap.helper);
+        expect(pick).toBeInstanceOf(THREE.Mesh);
+        expect(pick.position).toApproximatelyEqual(point)
+    });
+
+    test("snaps disabled (with ctrl key)", async () => {
+        let nearby;
+        const pointSnap = new PointSnap(undefined, point);
+        snaps.toggle();
+        nearby = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
+        expect(nearby.length).toBe(0);
+        snaps.toggle();
+        nearby = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
+        expect(nearby.length).toBe(1);
     });
 });
 
@@ -244,6 +290,31 @@ describe(AxisSnap, () => {
     });
 })
 
+describe(LineSnap, () => {
+    test("isValid", () => {
+        let line: LineSnap;
+        line = LineSnap.make(undefined, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
+        expect(line.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
+        expect(line.isValid(new THREE.Vector3(1, 0, 0))).toBe(true);
+        expect(line.isValid(new THREE.Vector3(0, 0, 1))).toBe(true);
+        expect(line.isValid(new THREE.Vector3(0, 1, 0))).toBe(false);
+
+        line = LineSnap.make(undefined, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
+        expect(line.isValid(new THREE.Vector3(0, 1, 0))).toBe(true);
+        expect(line.isValid(new THREE.Vector3(1, 1, 0))).toBe(true);
+        expect(line.isValid(new THREE.Vector3(0, 1, 1))).toBe(true);
+        expect(line.isValid(new THREE.Vector3(0, 0, 0))).toBe(false);
+    });
+
+    test("project", () => {
+        let line: LineSnap;
+        line = LineSnap.make(undefined, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
+        expect(line.project({ point: new THREE.Vector3(0, 0, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(line.project({ point: new THREE.Vector3(1, 0, 0) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(line.project({ point: new THREE.Vector3(0, 0, 1) } as THREE.Intersection).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+    });
+})
+
 describe(OrRestriction, () => {
     test("isValid", () => {
         const or = new OrRestriction([AxisSnap.X, AxisSnap.Y]);
@@ -256,6 +327,7 @@ describe(OrRestriction, () => {
 describe(CurveEdgeSnap, () => {
     let box: visual.Solid;
     let snap: CurveEdgeSnap;
+    const e = {} as PointerEvent;
 
     beforeEach(async () => {
         const makeBox = new ThreePointBoxFactory(db, materials, signals);
@@ -304,6 +376,7 @@ describe(CurveEdgeSnap, () => {
 describe(CurveSnap, () => {
     let line: visual.SpaceInstance<visual.Curve3D>;
     let snap: CurveSnap;
+    const e = {} as PointerEvent;
 
     beforeEach(async () => {
         const makeLine = new LineFactory(db, materials, signals);
@@ -453,6 +526,7 @@ describe(CurveSnap, () => {
 describe(FaceSnap, () => {
     let box: visual.Solid;
     let snap: FaceSnap;
+    const e = {} as PointerEvent;
 
     beforeEach(async () => {
         const makeBox = new ThreePointBoxFactory(db, materials, signals);

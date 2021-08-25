@@ -1,13 +1,26 @@
-turn off snaps with alt
-toggle kinds of snaps with keybindings?
+# PRE ALPHA:
+
+## SNAPS
+turn off snaps with ctrl
+  - point picker should listen for keydown keyup
+  - restrict to line and restrict to edges add snaps to otherAddedSnaps
+    - these need to be in a special collection, so that we can keep those snaps even when ctrl is down
 when you hide things, the snaps need to turn off
 
+## COMMANDS
 chamfer commit is unselectable(??)
 extrude face isn't unioning anymore
 curve preview is broken
-reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
 when you delete region you delete its curve / and vice versa
+
+# UNDO
 bug: clicking adds items to history even when no selection is changed
+
+## GIZMOS
+reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
+
+## POST ALPHA
+toggle kinds of snaps with keybindings?
 region has equal sort priority to face, but higher when identical distance
 
 curves:

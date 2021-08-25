@@ -32,6 +32,9 @@ export interface SnapResult {
 }
 
 export class SnapManager {
+    isEnabled = true;
+    private isToggled = false;
+
     private readonly basicSnaps = new Set<Snap>();
 
     private readonly begPoints = new Set<PointSnap>();
@@ -72,11 +75,14 @@ export class SnapManager {
     }
 
     nearby(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
+        if (!this.shouldSnap) return [];
+
         const additionalNearbys = [];
         for (const a of additional) if (a.nearby !== undefined) additionalNearbys.push(a.nearby);
+        const nearbys = [...this.nearbys, ...additionalNearbys];
 
         raycaster.layers = this.layers;
-        const intersections = raycaster.intersectObjects([...this.nearbys, ...additionalNearbys]);
+        const intersections = raycaster.intersectObjects(nearbys);
         const result = [];
         for (const intersection of intersections) {
             if (!this.satisfiesRestrictions(intersection.object.position, restrictions)) continue;
@@ -87,8 +93,11 @@ export class SnapManager {
         return result;
     }
 
-    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
-        const snappers = [...this.snappers, ...additional.map(a => a.snapper)];
+    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictionSnaps: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
+        let snappers = restrictionSnaps.map(a => a.snapper);
+        if (this.shouldSnap) {
+            snappers = snappers.concat([...this.snappers, ...additional.map(a => a.snapper)]);
+        }
 
         raycaster.layers = this.layers;
         const snapperIntersections = raycaster.intersectObjects(snappers, true);
@@ -231,6 +240,15 @@ export class SnapManager {
     private helperFor(intersection: THREE.Intersection): [Snap, { position: THREE.Vector3, orientation: THREE.Quaternion }] {
         const snap = intersection.object.userData.snap as Snap;
         return [snap, snap.project(intersection)];
+    }
+
+    toggle() {
+        this.isToggled = !this.isToggled;
+    }
+
+    private get shouldSnap() {
+        const { isEnabled, isToggled } = this;
+        return (isEnabled && !isToggled) || (!isEnabled && isToggled);
     }
 
     saveToMemento(registry: Map<any, any>): SnapMemento {
@@ -546,17 +564,34 @@ export class AxisSnap extends Snap {
 // A line snap looks like an axis snap (it has a Line helper) but valid click targets are actually
 // any where other than the line's origin. It's used mainly for extruding, where you want to limit
 // the direction of extrusion but allow the user to move the mouse wherever.
-export class LineSnap extends AxisSnap {
+export class LineSnap extends Snap {
+    readonly snapper = this.plane.snapper;
+    readonly helper = this.axis.helper;
+    protected readonly layer: Layers = Layers.AxisSnap;
+
+    static make(name: string | undefined, direction: THREE.Vector3, origin: THREE.Vector3) {
+        const p = new THREE.Vector3(1, 0, 0);
+        p.cross(direction);
+        if (p.lengthSq() < 10e-5) {
+            const p = new THREE.Vector3(0, 1, 0);
+            p.cross(direction);
+        }
+
+        const axis = new AxisSnap(name, direction, origin);
+        const plane = new PlaneSnap(p, origin);
+        return new LineSnap(name, axis, plane);
+    }
+
+    private constructor(readonly name: string | undefined, private readonly axis: AxisSnap, private readonly plane: PlaneSnap) {
+        super();
+    }
+
     project(intersection: THREE.Intersection) {
-        const { n, o } = this;
-        const position = n.clone().multiplyScalar(n.dot(intersection.point.clone().sub(o))).add(o);
-        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, n);
-        return { position, orientation }
+        return this.axis.project(intersection);
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        const { n, o } = this;
-        return Math.abs(this.valid.copy(pt).sub(o).dot(n)) > 10e-6
+        return this.plane.isValid(pt);
     }
 }
 

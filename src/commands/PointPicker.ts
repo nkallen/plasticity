@@ -28,36 +28,51 @@ export class Model {
     private lastPickedPointSnap?: Snap;
     straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]); // Snaps going straight off the last picked point
     private readonly otherAddedSnaps = new Array<Snap>();
+
     private readonly restrictions = new Array<Restriction>();
+    private readonly restrictionSnaps = new Array<Snap>(); // Snap targets for the restrictions
     restrictToConstructionPlane = false;
     private restrictionPoint?: THREE.Vector3;
     restrictionPlane?: PlaneSnap;
 
     constructor(
         private readonly db: GeometryDatabase,
-        private readonly snapMan: SnapManager
+        private readonly manager: SnapManager
     ) { }
 
     nearby(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap) {
-        return this.snapMan.nearby(raycaster, this.snaps, this.restrictionsFor(constructionPlane));
+        return this.manager.nearby(raycaster, this.snaps, this.restrictionsFor(constructionPlane));
     }
 
     snap(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap) {
-        return this.snapMan.snap(raycaster, this.snapsFor(constructionPlane), this.restrictionsFor(constructionPlane));
-    }
-
-    restrictionsFor(constructionPlane: PlaneSnap): Restriction[] {
-        const restrictions = this.restrictions.slice();
-        constructionPlane = this.actualConstructionPlaneGiven(constructionPlane);
-        if (this.restrictionPlane !== undefined || this.restrictionPoint !== undefined || this.restrictToConstructionPlane) {
-            restrictions.push(constructionPlane);
-        }
-        return restrictions;
+        return this.manager.snap(raycaster, this.snapsFor(constructionPlane), this.restrictionSnapsFor(constructionPlane), this.restrictionsFor(constructionPlane));
     }
 
     snapsFor(constructionPlane: PlaneSnap): Snap[] {
-        constructionPlane = this.actualConstructionPlaneGiven(constructionPlane);
-        return [constructionPlane, ...this.snaps]
+        const result = [...this.snaps];
+        if (constructionPlane === this.actualConstructionPlaneGiven(constructionPlane)) {
+            result.push(constructionPlane);
+        }
+        return result;
+    }
+
+    restrictionsFor(constructionPlane: PlaneSnap): Restriction[] {
+        const restrictions = [...this.restrictions];
+        this.addConstructionPlaneIfPlanarRestriction(constructionPlane, restrictions);
+        return restrictions;
+    }
+
+    restrictionSnapsFor(constructionPlane: PlaneSnap): Snap[] {
+        const snaps = [...this.restrictionSnaps];
+        if (snaps.length === 0) snaps.push(this.actualConstructionPlaneGiven(constructionPlane))
+        return snaps;
+    }
+
+    private addConstructionPlaneIfPlanarRestriction(constructionPlane: PlaneSnap, collection: Snap[] | Restriction[]) {
+        if (this.restrictionPlane !== undefined || this.restrictionPoint !== undefined || this.restrictToConstructionPlane) {
+            constructionPlane = this.actualConstructionPlaneGiven(constructionPlane);
+            collection.push(constructionPlane);
+        }
     }
 
     actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap) {
@@ -105,18 +120,9 @@ export class Model {
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
-        const line = new LineSnap(undefined, direction, origin);
+        const line = LineSnap.make(undefined, direction, origin);
         this.restrictions.push(line);
-
-        const p = new THREE.Vector3(1, 0, 0);
-        p.cross(direction);
-        if (p.lengthSq() < 10e-5) {
-            const p = new THREE.Vector3(0, 1, 0);
-            p.cross(direction);
-        }
-
-        const plane = new PlaneSnap(p, origin);
-        this.otherAddedSnaps.push(plane);
+        this.restrictionSnaps.push(line);
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {
@@ -124,7 +130,7 @@ export class Model {
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge);
             const restriction = new CurveEdgeSnap(edge, model);
-            this.otherAddedSnaps.push(restriction);
+            this.restrictionSnaps.push(restriction);
             restrictions.push(restriction);
         }
         const restriction = new OrRestriction(restrictions);
@@ -139,6 +145,10 @@ export class Model {
 
     undo() {
         this.pickedPointSnaps.pop();
+    }
+
+    toggleSnaps() {
+        this.manager.toggle();
     }
 }
 
@@ -183,7 +193,9 @@ export class PointPicker {
 
                 const { camera, constructionPlane, renderer: { domElement } } = viewport;
 
+                let lastMoveEvent: PointerEvent | undefined = undefined
                 const onPointerMove = (e: PointerEvent) => {
+                    lastMoveEvent = e;
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
 
@@ -239,10 +251,27 @@ export class PointPicker {
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
+                let ctrlKey = false;
+                const onKeyDown = (e: KeyboardEvent) => {
+                    if (!e.ctrlKey) return;
+                    ctrlKey = true;
+                    this.model.toggleSnaps();
+                    if (lastMoveEvent !== undefined) onPointerMove(lastMoveEvent);
+                }
+                const onKeyUp = (e: KeyboardEvent) => {
+                    if (!ctrlKey) return;
+                    this.model.toggleSnaps();
+                    if (lastMoveEvent !== undefined) onPointerMove(lastMoveEvent);
+                }
+
                 domElement.addEventListener('pointermove', onPointerMove);
                 domElement.addEventListener('pointerdown', onPointerDown);
+                document.addEventListener('keydown', onKeyDown);
+                document.addEventListener('keyup', onKeyUp);
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerMove)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
+                disposables.add(new Disposable(() => document.removeEventListener('keydown', onKeyDown)));
+                disposables.add(new Disposable(() => document.removeEventListener('keyup', onKeyUp)));
             }
             const cancel = () => {
                 disposables.dispose();
