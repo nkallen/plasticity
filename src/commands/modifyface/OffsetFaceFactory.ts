@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
-import { cart2vec, vec2vec } from '../../util/Conversion';
-import { ValidationError } from '../GeometryFactory';
+import { NoOpError } from '../GeometryFactory';
 import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
 
 export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFaceParams {
@@ -60,7 +59,7 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
 
         }
         if (transformed) return solid;
-        else throw new ValidationError("no changes");
+        else throw new NoOpError();
     }
 }
 

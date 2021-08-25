@@ -3,7 +3,7 @@ import { EditorSignals } from '../../editor/EditorSignals';
 import { GeometryDatabase } from '../../editor/GeometryDatabase';
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import * as visual from '../../editor/VisualModel';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../GeometryFactory';
 
 export interface FilletParams {
     solid: visual.Solid;
@@ -118,7 +118,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     }
 
     async calculate() {
-        if (this.distance1 === 0 || this.distance2 === 0) return this.model;
+        if (this.distance1 === 0 || this.distance2 === 0) throw new NoOpError();
 
         if (this.mode === c3d.CreatorType.ChamferSolid) {
             return c3d.ActionSolid.ChamferSolid_async(this.model, c3d.CopyMode.Copy, this.curveEdges, this.params, this.names);

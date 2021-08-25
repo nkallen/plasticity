@@ -103,7 +103,7 @@ describe(FilletGizmo, () => {
 
         handle.onPointerEnter(intersector);
         handle.onPointerDown(intersector, { pointStart2d, center2d } as MovementInfo);
-        handle.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(-0.2, -0.2) } as MovementInfo);
+        handle.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(-0.1, -0.1) } as MovementInfo);
         expect(handle.value).toBeCloseTo(-0.14);
         handle.onPointerUp(intersector, {} as MovementInfo)
         expect(handle.value).toBeCloseTo(-0.14);

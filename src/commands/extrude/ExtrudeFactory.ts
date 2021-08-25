@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { cart2vec, vec2vec } from "../../util/Conversion";
 import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 
 export interface ExtrudeParams {
     distance1: number;
@@ -46,7 +46,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
         const { contours2d, curves3d, surface, direction, distance1, thickness1, thickness2 } = this;
         let { race1, race2, distance2, } = this;
 
-        if (distance1 === 0 && distance2 === 0) throw new ValidationError("invalid data");
+        if (distance1 === 0 && distance2 === 0) throw new NoOpError();
 
         const sweptData = contours2d.length > 0 ? new c3d.SweptData(surface, contours2d) : new c3d.SweptData(curves3d[0]);
         const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
