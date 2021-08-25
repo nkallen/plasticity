@@ -49,7 +49,7 @@ export default {
         "r": "gizmo:extrude:new-body",
     },
 
-    "[command='offset-fa ispace-viewportce']": {
+    "[command='offset-face'] ispace-viewport": {
         "d": "gizmo:offset-face:distance",
         "a": "gizmo:offset-face:angle",
     },
@@ -73,7 +73,6 @@ export default {
         "Y": "gizmo:scale:xz",
         "s": "gizmo:scale:xyz",
     },
-
 
     "[command='fillet'] ispace-viewport": {
         "v": "gizmo:fillet:add",

@@ -377,11 +377,11 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         const { pointEnd2d, center2d, pointStart2d } = info;
         const { end2center, start2center } = this;
-        
+
         end2center.copy(pointEnd2d).sub(center2d);
         start2center.copy(pointStart2d).sub(center2d);
         const sign = Math.sign(end2center.dot(start2center));
-        
+
         const magnitude = this.accumulate(this.state.original, end2center.length(), this.denominator, sign);
         this.state.current = magnitude;
         this.render(this.state.current);
@@ -411,7 +411,6 @@ export class DashedLineMagnitudeHelper implements GizmoHelper {
 
     constructor() {
         this.element = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        this.element.setAttribute('height', '100%');
         this.element.setAttribute('viewBox', '0 0 1 1');
         this.element.setAttribute('preserveAspectRatio', 'xMinYMin')
         this.element.classList.add('gizmo-helper');
