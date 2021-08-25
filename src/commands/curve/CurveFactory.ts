@@ -89,10 +89,6 @@ export class CurveWithPreviewFactory extends GeometryFactory {
 
     get startPoint() { return this.underlying.startPoint }
 
-    set last(point: THREE.Vector3) {
-        this.preview.last = point;
-    }
-
     wouldBeClosed(p: THREE.Vector3) {
         return this.underlying.wouldBeClosed(p);
     }
@@ -103,7 +99,8 @@ export class CurveWithPreviewFactory extends GeometryFactory {
 
     push(p: THREE.Vector3) {
         this.underlying.points.push(p);
-        this.preview.points.push(p);
+        this.preview.last = p;
+        this.preview.push(new THREE.Vector3());
     }
 
     doUpdate() {
