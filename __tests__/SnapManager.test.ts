@@ -46,7 +46,7 @@ test("initial state", () => {
     expect(snaps['nearbys'].length).toBe(1);
 });
 
-test("adding solid", async () => {
+test("adding & removing solid", async () => {
     const makeBox = new ThreePointBoxFactory(db, materials, signals);
     makeBox.p1 = new THREE.Vector3();
     makeBox.p2 = new THREE.Vector3(1, 0, 0);
@@ -61,6 +61,28 @@ test("adding solid", async () => {
 
     expect(snaps['snappers'].length).toBe(4);
     expect(snaps['nearbys'].length).toBe(1);
+});
+
+test("adding & hiding & unhiding solid", async () => {
+    const makeBox = new ThreePointBoxFactory(db, materials, signals);
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+    const box = await makeBox.commit() as visual.Solid;
+
+    expect(snaps['snappers'].length).toBe(52);
+    expect(snaps['nearbys'].length).toBe(31);
+
+    db.hide(box);
+
+    expect(snaps['snappers'].length).toBe(4);
+    expect(snaps['nearbys'].length).toBe(1);
+
+    db.unhide(box);
+
+    expect(snaps['snappers'].length).toBe(52);
+    expect(snaps['nearbys'].length).toBe(31);
 });
 
 test("adding & removing curve", async () => {

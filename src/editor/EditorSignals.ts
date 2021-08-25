@@ -10,6 +10,8 @@ import { Agent } from './GeometryDatabase';
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
     objectRemoved: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
+    objectHidden: signals.Signal<visual.Item> = new signals.Signal();
+    objectUnhidden: signals.Signal<visual.Item> = new signals.Signal();
     objectSelected: signals.Signal<visual.Selectable> = new signals.Signal();
     objectDeselected: signals.Signal<visual.Selectable> = new signals.Signal();
     objectHovered: signals.Signal<visual.Selectable> = new signals.Signal();

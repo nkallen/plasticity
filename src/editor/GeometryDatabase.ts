@@ -382,10 +382,12 @@ export class GeometryDatabase {
 
     hide(item: visual.Item) {
         this.hidden.add(item.simpleName);
+        this.signals.objectHidden.dispatch(item);
     }
 
     unhide(item: visual.Item) {
         this.hidden.delete(item.simpleName);
+        this.signals.objectUnhidden.dispatch(item);
     }
 
     unhideAll() {

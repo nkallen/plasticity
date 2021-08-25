@@ -62,6 +62,7 @@ export class SphereCommand extends Command {
         const pointPicker = new PointPicker(this.editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
         sphere.center = p1;
+        pointPicker.restrictToPlaneThroughPoint(p1);
 
         const keyboard = new BooleanKeyboardGizmo("sphere", this.editor);
         keyboard.prepare(sphere).resource(this);
