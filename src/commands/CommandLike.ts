@@ -95,7 +95,7 @@ export class UnhideAllCommand extends Command {
 
 export class DuplicateCommand extends Command {
     async execute(): Promise<void> {
-        const { solids, curves, regions, faces, edges } = this.editor.selection.selected;
+        const { solids, curves } = this.editor.selection.selected;
         const db = this.editor.db;
 
         const promises: Promise<visual.Item>[] = [];

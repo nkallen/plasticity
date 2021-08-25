@@ -54,7 +54,7 @@ export default {
         "a": "gizmo:offset-face:angle",
     },
 
-    "[command='move'] ispace-viewport": {
+    "[command='move'] ispace-viewport, [command='duplicate'] ispace-viewport": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",
         "z": "gizmo:move:z",

@@ -2,7 +2,7 @@ import { cart2vec, mat2mat, vec2cart } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 
 abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
@@ -75,11 +75,14 @@ export interface MoveParams {
 }
 
 export class MoveFactory extends TranslateFactory implements MoveParams {
-    move!: THREE.Vector3;
+    move = new THREE.Vector3();
     pivot!: THREE.Vector3;
 
     protected get transform(): c3d.TransformValues {
         const { move } = this;
+
+        if (move.manhattanLength() < 10e-6) throw new NoOpError();
+
         const params = new c3d.TransformValues();
         const vec = new c3d.Vector3D(move.x, move.y, move.z);
         params.Move(vec);
@@ -96,12 +99,14 @@ export interface RotateParams {
 export class RotateFactory extends TranslateFactory implements RotateParams {
     pivot!: THREE.Vector3
     axis!: THREE.Vector3;
-    angle!: number;
+    angle = 0;
 
     // I'm honestly not sure why we can't use apply matrices as in TranslateFactory above,
     // but this will work.
     async doUpdate() {
         const { items, pivot: point, axis, angle } = this;
+        if (angle === 0) return;
+
         for (const item of items) {
             item.position.set(0, 0, 0);
 
@@ -114,6 +119,8 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
 
     protected get transform(): c3d.TransformValues {
         const { axis, angle, pivot: point } = this;
+
+        if (angle === 0) throw new NoOpError();
 
         const mat = new c3d.Matrix3D();
         const p = new c3d.CartPoint3D(point.x, point.y, point.z);
@@ -130,12 +137,15 @@ export interface ScaleParams {
     pivot: THREE.Vector3;
 }
 
+const identity = new THREE.Vector3(1, 1, 1);
 export class ScaleFactory extends TranslateFactory implements ScaleParams {
     scale = new THREE.Vector3(1, 1, 1);
     pivot = new THREE.Vector3();
 
     protected get transform(): c3d.TransformValues {
         const { scale, pivot } = this;
+        if (scale.equals(identity)) throw new NoOpError();
+
         return new c3d.TransformValues(scale.x, scale.y, scale.z, vec2cart(pivot));
     }
 }

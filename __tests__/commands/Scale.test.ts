@@ -41,7 +41,6 @@ test('update', async () => {
 test('commit', async () => {
     scale.items = [box];
     scale.pivot = new THREE.Vector3();
-    scale.pivot = new THREE.Vector3();
     scale.scale = new THREE.Vector3(2, 2, 2);
     expect(box.scale).toEqual(new THREE.Vector3(1, 1, 1));
     const scaleds = await scale.commit() as visual.Solid[];
@@ -53,3 +52,16 @@ test('commit', async () => {
     expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -2, 0));
     expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 2));
 });
+
+describe("when no values given it doesn't fail", () => {
+    test('update', async () => {
+        scale.items = [box];
+        await scale.update();
+        expect(box.scale).toEqual(new THREE.Vector3(1, 1, 1));
+    });
+    
+    test('commit', async () => {
+        scale.items = [box];
+        await expect(scale.commit()).rejects.toThrowError(/no effect/);
+    });
+})

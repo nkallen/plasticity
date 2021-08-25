@@ -47,11 +47,28 @@ test('commit', async () => {
     rotate.pivot = new THREE.Vector3();
     rotate.axis = new THREE.Vector3(1, 0, 0);
     rotate.angle = Math.PI;
-    const rotated = (await rotate.commit())[0];
+    const rotated = (await rotate.commit() as visual.Item[])[0];
 
     expect(rotated).toBeInstanceOf(visual.Solid);
     expect(rotated).toHaveCentroidNear(new THREE.Vector3(0, 0, -0.5));
 
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(db.visibleObjects.length).toBe(1);
+})
+
+describe("when no values given it doesn't fail", () => {
+    test('update', async () => {
+        rotate.items = [box];
+        const start = new THREE.Quaternion(0, 0, 0, 1);
+        expect(box).toHaveQuaternion(start);
+        await rotate.update();
+        expect(box).toHaveQuaternion(start);
+    });
+    
+    test('commit', async () => {
+        expect(box).toHaveCentroidNear(new THREE.Vector3(0, 0, 0.5));
+    
+        rotate.items = [box];
+        expect(rotate.commit()).rejects.toThrow(/no effect/);
+      })
 })

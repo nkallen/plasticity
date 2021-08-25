@@ -280,3 +280,8 @@ function dearray<S, T>(array: S[], antecedent: T | T[]): S | S[] {
 }
 
 export class ValidationError extends Error { }
+export class NoOpError extends ValidationError {
+    constructor() {
+        super("Operation has no effect");
+    }
+}

@@ -49,3 +49,17 @@ test('commit', async () => {
     bbox.getCenter(center);
     expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0.5));
 })
+
+describe("when no values given it doesn't fail", () => {
+    test('update', async () => {
+        move.items = [box];
+        expect(box.position).toEqual(new THREE.Vector3(0, 0, 0));
+        await move.update();
+        expect(box.position).toEqual(new THREE.Vector3(0, 0, 0));
+    });
+
+    test('commit', async () => {
+        move.items = [box];
+        await expect(move.commit()).rejects.toThrowError(/no effect/);
+    })
+})
