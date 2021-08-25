@@ -292,7 +292,6 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
 }
 
 export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<ExtrudeFactory> implements ExtrudeParams {
-    // @ts-expect-error('ExtrudeFactory.proto.solid= also accepts undefined, so it is type safe');
     protected bool = new ExtrudeFactory(this.db, this.materials, this.signals);
     protected fantom = new ExtrudeFactory(this.db, this.materials, this.signals);
 

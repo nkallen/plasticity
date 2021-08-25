@@ -1031,13 +1031,13 @@ export class ExtrudeCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
         const extrude = new PossiblyBooleanExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        // extrude.curves = [...selected.curves];
+        extrude.solid = selected.solids.first;
+        extrude.curves = [...selected.curves];
         if (selected.faces.size > 0) extrude.face = selected.faces.first;
-        // extrude.region = selected.regions.first;
-        // extrude.solid = extrude.face.parentItem;
+        extrude.region = selected.regions.first;
 
-        // const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
-        // keyboard.prepare(extrude).resource(this);
+        const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
+        keyboard.prepare(extrude).resource(this);
 
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
         gizmo.position.copy(this.point ?? extrude.center);
@@ -1045,7 +1045,7 @@ export class ExtrudeCommand extends Command {
 
         await gizmo.execute(params => {
             extrude.update();
-            // keyboard.toggle(extrude.isOverlapping);
+            keyboard.toggle(extrude.isOverlapping);
         }).resource(this);
 
         await extrude.commit();

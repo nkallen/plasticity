@@ -4,7 +4,6 @@ keybindings to move camera
 
 ## COMMANDS
 when you delete region you delete its curve / and vice versa
-distance angle keybindgs broken for offset
 
 # UNDO
 bug: clicking adds items to history even when no selection is changed

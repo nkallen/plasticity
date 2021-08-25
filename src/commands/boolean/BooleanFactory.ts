@@ -8,7 +8,7 @@ import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, PhantomInfo, ValidationError } from '../GeometryFactory';
 
 interface BooleanLikeFactory extends GeometryFactory {
-    solid: visual.Solid;
+    solid?: visual.Solid;
     operationType: c3d.OperationType;
 }
 
