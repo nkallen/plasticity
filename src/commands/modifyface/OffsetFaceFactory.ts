@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
+import { cart2vec, vec2vec } from '../../util/Conversion';
 import { ValidationError } from '../GeometryFactory';
 import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
 
@@ -24,10 +25,9 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
         if (angle !== 0) {
             const reference = facesModel[0];
 
-            const collector = new FaceCollector(this.solidModel, reference);
+            const collector = new FaceCollector(solidModel, reference);
             const { smoothlyJoinedFaces, slopes } = collector;
             const placement = collector.placement(false);
-
 
             const creators = [];
             for (let i = 0, l = solid.GetCreatorsCount(); i < l; i++) {
@@ -49,7 +49,7 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
             {
                 const shell = solid.GetShell()!;
                 for (const creator of creators) {
-                    if (creator.IsA() === c3d.CreatorType.FilletSolid || creator.IsA() === c3d.CreatorType.FaceModifiedSolid) {
+                    if (creator.IsA() === c3d.CreatorType.FilletSolid) {
                         const { success } = creator.CreateShell(shell, c3d.CopyMode.Same);
                         if (success) {
                             solid.AddCreator(creator, true);
