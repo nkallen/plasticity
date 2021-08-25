@@ -374,14 +374,14 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
 
     private readonly end2center = new THREE.Vector2();
     private readonly start2center = new THREE.Vector2();
-    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         const { pointEnd2d, center2d, pointStart2d } = info;
         const { end2center, start2center } = this;
-
+        
         end2center.copy(pointEnd2d).sub(center2d);
         start2center.copy(pointStart2d).sub(center2d);
         const sign = Math.sign(end2center.dot(start2center));
-
+        
         const magnitude = this.accumulate(this.state.original, end2center.length(), this.denominator, sign);
         this.state.current = magnitude;
         this.render(this.state.current);

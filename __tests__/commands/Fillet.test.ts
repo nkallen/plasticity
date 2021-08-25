@@ -2,6 +2,7 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import FilletFactory, { Max, MaxFilletFactory } from "../../src/commands/fillet/FilletFactory";
+import { FilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';

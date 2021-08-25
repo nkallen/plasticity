@@ -1,7 +1,7 @@
 import { AbstractCommandKeyboardInput, CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
 import { Mode } from "./FilletFactory";
 import c3d from '../../../build/Release/c3d.node';
-import { CancellablePromise } from "../../util/Cancellable";
+import { Cancel, CancellablePromise } from "../../util/Cancellable";
 
 export type FilletKeyboardEvent = { tag: 'add' }
 
@@ -25,12 +25,22 @@ export class FilletKeyboardGizmo extends AbstractCommandKeyboardInput<(e: Fillet
         this.cb = cb;
         return new CancellablePromise<void>((resolve, reject) => {
             const cancel = () => {
-                this.active?.then(() => { }, e => reject(e));
-                this.active?.cancel();
+                const active = this.active;
+                if (active !== undefined) {
+                    active.then(() => { }, e => reject(e));
+                    active.cancel();
+                } else {
+                    reject(Cancel);
+                }
             }
             const finish = () => {
-                this.active?.then(() => resolve());
-                this.active?.finish();
+                const active = this.active;
+                if (active !== undefined) {
+                    active.then(() => resolve());
+                    active.finish();
+                } else {
+                    resolve();
+                }
             }
             return { cancel, finish };
         });

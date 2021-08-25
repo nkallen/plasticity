@@ -21,7 +21,7 @@ class FakeFactory extends GeometryFactory {
 
 let db: GeometryDatabase;
 let factory: FakeFactory;
-let materials: Required<MaterialDatabase>;
+let materials: MaterialDatabase;
 let signals: EditorSignals;
 
 beforeEach(() => {

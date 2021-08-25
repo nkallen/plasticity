@@ -343,7 +343,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
                 this.signals.gizmoChanged.dispatch();
                 break;
-            default: throw new Error('invalid state: ' + this.state);
+            default: throw new Error('invalid state: ' + this.state.tag);
         }
     }
 

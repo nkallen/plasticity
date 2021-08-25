@@ -225,4 +225,37 @@ describe(BooleanKeyboardGizmo, () => {
 
         await expect(active).rejects.toBe(Cancel);
     });
+
+
+    describe("finish", () => {
+        test("it finishes in toggle true state", async () => {
+            keyboard.toggle(true);
+            const active = keyboard.execute(execute);
+            active.finish();
+            await active;
+        });
+
+        test("it finishes in toggle false state", async () => {
+            keyboard.toggle(false);
+            const active = keyboard.execute(execute);
+            active.finish();
+            await active;
+        });
+    });
+
+    describe("cancel", () => {
+        test("it cancels in toggle true state", async () => {
+            keyboard.toggle(true);
+            const active = keyboard.execute(execute);
+            active.cancel();
+            await expect(active).rejects.toBe(Cancel);
+        });
+
+        test("it cancels in toggle false state", async () => {
+            keyboard.toggle(false);
+            const active = keyboard.execute(execute);
+            active.cancel();
+            await expect(active).rejects.toBe(Cancel);
+        });
+    });
 });
