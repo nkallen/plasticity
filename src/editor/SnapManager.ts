@@ -132,7 +132,7 @@ export class SnapManager {
         this.snappers = all.map((s) => s.snapper);
     }
 
-    private add(item: visual.Item): void {
+    private add(item: visual.Item) {
         const fns: Redisposable[] = [];
         if (item instanceof visual.Solid) {
             for (const edge of item.edges) {

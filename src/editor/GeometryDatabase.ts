@@ -391,7 +391,9 @@ export class GeometryDatabase {
     }
 
     unhideAll() {
+        const hidden = [...this.hidden].map(id => this.lookupItemById(id));
         this.hidden.clear();
+        for (const {view} of hidden) this.signals.objectUnhidden.dispatch(view);
     }
 
     saveToMemento(registry: Map<any, any>): GeometryMemento {

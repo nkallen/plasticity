@@ -83,6 +83,16 @@ test("adding & hiding & unhiding solid", async () => {
 
     expect(snaps['snappers'].length).toBe(52);
     expect(snaps['nearbys'].length).toBe(31);
+
+    db.hide(box);
+
+    expect(snaps['snappers'].length).toBe(4);
+    expect(snaps['nearbys'].length).toBe(1);
+
+    db.unhideAll();
+
+    expect(snaps['snappers'].length).toBe(52);
+    expect(snaps['nearbys'].length).toBe(31);
 });
 
 test("adding & removing curve", async () => {
