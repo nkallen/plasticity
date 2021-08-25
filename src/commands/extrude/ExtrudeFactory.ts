@@ -76,6 +76,10 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
             return c3d.ActionSolid.ExtrusionResult_async(solid, c3d.CopyMode.Copy, sweptData, direction, params, operationType, names, ns)
         }
     }
+
+    get originalItem() {
+        return this.solid;
+    }
 }
 
 export class CurveExtrudeFactory extends AbstractExtrudeFactory {
@@ -245,7 +249,13 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
         else throw new ValidationError("need region, face, or curves");
     }
 
-    set solid(solid: visual.Solid) { for (const f of this.factories) f.solid = solid }
+    set solid(solid: visual.Solid | undefined) { for (const f of this.factories) f.solid = solid }
+    get solid() {
+        if (this.regionExtrude.region !== undefined) return this.regionExtrude.solid;
+        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.solid;
+        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.solid;
+        else throw new ValidationError("need region, face, or curves");
+    }
 
     get operationType() {
         if (this.regionExtrude.region !== undefined) return this.regionExtrude.operationType;
@@ -275,16 +285,23 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
         else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.center;
         else throw new ValidationError("need region, face, or curves");
     }
+
+    get originalItem() {
+        return this.solid;
+    }
 }
 
 export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<ExtrudeFactory> implements ExtrudeParams {
+    // @ts-expect-error('ExtrudeFactory.proto.solid= also accepts undefined, so it is type safe');
     protected bool = new ExtrudeFactory(this.db, this.materials, this.signals);
     protected fantom = new ExtrudeFactory(this.db, this.materials, this.signals);
 
     set face(face: visual.Face) {
         this.bool.face = face;
-        this.fantom.face = face
-        this.solid = face.parentItem;
+        this.fantom.face = face;
+
+        const solid = face.parentItem;
+        this.solid = solid;
     }
 
     get distance1() { return this.bool.distance1 }
