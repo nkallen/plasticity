@@ -124,6 +124,8 @@ export default {
         "alt-h": "command:unhide-all",
 
         "shift-d": "command:duplicate",
+
+        "3": "viewport:top"
     },
 
     "ispace-workspace": {

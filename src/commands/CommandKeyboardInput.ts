@@ -29,7 +29,7 @@ export abstract class AbstractCommandKeyboardInput<CB> {
         for (const viewport of this.editor.viewports) {
             for (const command of this.commands) {
                 const d = this.editor.registry.addOne(
-                    viewport.renderer.domElement,
+                    viewport.domElement,
                     command,
                     () => this.resolve(cb, command));
                 disposables.add(d);

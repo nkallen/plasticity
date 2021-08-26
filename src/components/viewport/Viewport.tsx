@@ -17,6 +17,8 @@ import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
+import { ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
+import { ViewHelper } from "./ViewportHelpers";
 
 const near = 0.01;
 const far = 1000;
@@ -34,18 +36,19 @@ export interface EditorLike extends selector.EditorLike {
 type Control = { enabled: boolean, dispose(): void };
 
 export class Viewport {
-    readonly composer: EffectComposer;
+    readonly sceneComposer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
     readonly controls = new Set<Control>();
-    readonly selector: ViewportSelector;
+    readonly selector = new ViewportSelector(this.camera, this.renderer.domElement, this.editor);
     lastPointerEvent?: PointerEvent;
-    private readonly renderPass: RenderPass;
     private readonly disposable = new CompositeDisposable();
 
     private readonly scene = new THREE.Scene();
     private readonly phantomsScene = new THREE.Scene();
     private readonly helpersScene = new THREE.Scene();
+
+    private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
 
     constructor(
         private readonly editor: EditorLike,
@@ -64,46 +67,49 @@ export class Viewport {
             this.lastPointerEvent = e;
         });
 
-        this.selector = new ViewportSelector(camera, this.renderer.domElement, editor);
-
         this.renderer.setPixelRatio(window.devicePixelRatio);
         const size = this.renderer.getSize(new THREE.Vector2());
         const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { format: THREE.RGBFormat });
         renderTarget.samples = 8;
 
-        this.composer = new EffectComposer(this.renderer, renderTarget);
-        this.composer.setPixelRatio(window.devicePixelRatio);
+        {
+            this.sceneComposer = new EffectComposer(this.renderer, renderTarget);
+            this.sceneComposer.setPixelRatio(window.devicePixelRatio);
 
-        this.renderPass = new RenderPass(this.scene, this.camera);
-        const phantomsPass = new RenderPass(this.phantomsScene, this.camera);
-        const helpersPass = new RenderPass(this.helpersScene, this.camera);
-        const copyPass = new ShaderPass(CopyShader);
+            const renderPass = new RenderPass(this.scene, this.camera);
+            const phantomsPass = new RenderPass(this.phantomsScene, this.camera);
+            const helpersPass = new RenderPass(this.helpersScene, this.camera);
+            const copyPass = new ShaderPass(CopyShader);
 
-        phantomsPass.clear = false;
-        phantomsPass.clearDepth = true;
-        helpersPass.clear = false;
-        helpersPass.clearDepth = true;
+            phantomsPass.clear = false;
+            phantomsPass.clearDepth = true;
+            helpersPass.clear = false;
+            helpersPass.clearDepth = true;
 
-        const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
-        outlinePassSelection.edgeStrength = 3;
-        outlinePassSelection.edgeGlow = 0;
-        outlinePassSelection.edgeThickness = 1.0;
-        outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
-        this.outlinePassSelection = outlinePassSelection;
+            const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
+            outlinePassSelection.edgeStrength = 3;
+            outlinePassSelection.edgeGlow = 0;
+            outlinePassSelection.edgeThickness = 1.0;
+            outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
+            this.outlinePassSelection = outlinePassSelection;
 
-        const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
-        outlinePassHover.edgeStrength = 3;
-        outlinePassHover.edgeGlow = 0;
-        outlinePassHover.edgeThickness = 1.0;
-        outlinePassHover.visibleEdgeColor.setHex(0xfffffff);
-        this.outlinePassHover = outlinePassHover;
+            const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
+            outlinePassHover.edgeStrength = 3;
+            outlinePassHover.edgeGlow = 0;
+            outlinePassHover.edgeThickness = 1.0;
+            outlinePassHover.visibleEdgeColor.setHex(0xfffffff);
+            this.outlinePassHover = outlinePassHover;
 
-        this.composer.addPass(this.renderPass);
-        this.composer.addPass(this.outlinePassHover);
-        this.composer.addPass(this.outlinePassSelection);
-        this.composer.addPass(phantomsPass);
-        this.composer.addPass(helpersPass);
-        this.composer.addPass(copyPass);
+            const navigatorPass = new ViewportNavigatorPass(this.navigator, this.camera);
+
+            this.sceneComposer.addPass(renderPass);
+            this.sceneComposer.addPass(this.outlinePassHover);
+            this.sceneComposer.addPass(this.outlinePassSelection);
+            this.sceneComposer.addPass(phantomsPass);
+            this.sceneComposer.addPass(helpersPass);
+            this.sceneComposer.addPass(navigatorPass);
+            this.sceneComposer.addPass(copyPass);
+        }
 
         this.render = this.render.bind(this);
         this.setNeedsRender = this.setNeedsRender.bind(this);
@@ -118,6 +124,12 @@ export class Viewport {
 
         this.controls.add(this.selector);
         this.controls.add(this.navigationControls);
+
+        // this.disposable.add(
+        this.editor.registry.add(
+            this.domElement, {
+        })
+        // );
 
         this.disposable.add(new Disposable(() => {
             this.selector.dispose();
@@ -210,7 +222,7 @@ export class Viewport {
             const resolution = new THREE.Vector2(this.offsetWidth, this.offsetHeight);
             signals.renderPrepared.dispatch({ camera: this.camera, resolution });
 
-            this.composer.render();
+            this.sceneComposer.render();
 
             if (frameNumber > this.lastFrameNumber) {
                 selection.unhighlight();
@@ -260,7 +272,7 @@ export class Viewport {
         camera.updateProjectionMatrix();
 
         this.renderer.setSize(offsetWidth, offsetHeight);
-        this.composer.setSize(offsetWidth, offsetHeight);
+        this.sceneComposer.setSize(offsetWidth, offsetHeight);
         this.outlinePassHover.setSize(offsetWidth, offsetHeight);
         this.outlinePassSelection.setSize(offsetWidth, offsetHeight);
         this.setNeedsRender();
@@ -387,7 +399,7 @@ export default (editor: EditorLike) => {
                 LEFT: undefined,
                 MIDDLE: THREE.MOUSE.ROTATE,
                 RIGHT: THREE.MOUSE.PAN
-            }
+            };
 
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());

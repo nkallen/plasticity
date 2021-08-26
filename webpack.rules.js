@@ -34,4 +34,19 @@ module.exports = [
             }
         }
     },
+    {
+        test: /\.m?js$/,
+        exclude: /node_modules\/(?!(three)\/).*/,
+        use: {
+            loader: 'babel-loader',
+            options: {
+                presets: [
+                    ['@babel/preset-env',
+                        {
+                            "targets": { "esmodules": true }
+                        }
+                    ]]
+            }
+        }
+    }
 ];
