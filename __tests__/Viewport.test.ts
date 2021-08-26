@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import { Disposable } from "event-kit";
 import * as THREE from "three";
 import Command from "../src/commands/Command";
 import { CancelOrFinish } from "../src/commands/CommandExecutor";
@@ -44,6 +45,7 @@ beforeEach(async () => {
         originator: originator,
         materials: materials,
         selectionInteraction: interaction,
+        registry: { add: () => new Disposable() },
         enqueue: (command: Command, cancelOrFinish?: CancelOrFinish) => Promise.resolve(),
     } as unknown as EditorLike;
     const makeSphere = new SphereFactory(db, materials, signals);

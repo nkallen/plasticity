@@ -96,7 +96,7 @@ export class ViewportNavigator extends THREE.Object3D {
             const intersection = intersects[0];
             const object = intersection.object;
 
-            this.prepareAnimationData(object.userData.type, this.controls.target);
+            this.prepareAnimationData(object.userData.type);
 
             return true;
         } else {

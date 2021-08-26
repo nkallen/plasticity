@@ -9,11 +9,12 @@ class FakeWebGLRenderer implements THREE.Renderer {
     render(scene: THREE.Object3D, camera: THREE.Camera): void { }
     setSize(width: number, height: number, updateStyle?: boolean): void { }
 
-    getPixelRatio(): number {
-        throw new Error("Method not implemented.");
-    };
+    getPixelRatio() { return 1 };
 
-    setPixelRatio(value: number): void { };
+    getViewport() { return new THREE.Vector4() }
+    setViewport(v: THREE.Vector4 ) { }
+
+    setPixelRatio(value: number) { }
 
     getSize(target: THREE.Vector2): THREE.Vector2 {
         return new THREE.Vector2();
