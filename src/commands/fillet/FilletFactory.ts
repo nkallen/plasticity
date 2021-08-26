@@ -70,7 +70,6 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         const name2function = new Map<string, c3d.CubicFunction>();
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge) as c3d.CurveEdge;
-            model.AddRef();
             curveEdges.push(model);
             const fn = new c3d.CubicFunction(1, 1);
             name2function.set(edge.simpleName, fn);
@@ -124,7 +123,6 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         if (this.mode === c3d.CreatorType.ChamferSolid) {
             return c3d.ActionSolid.ChamferSolid_async(this.model, c3d.CopyMode.Copy, this.curveEdges, this.params, this.names);
         } else {
-            this.model.AddRef();
             return c3d.ActionSolid.FilletSolid_async(this.model, c3d.CopyMode.Copy, this.edgeFunctions, [], this.params, this.names);
         }
     }
