@@ -5,3 +5,6 @@ If there were no candidates from that it does the same using world x/y/z axis di
 Then if there are 2 candidates like with a vertical line that have both endpoints on a parallel plane to x and y axes, it takes a look at the bounding box of the other objects being used (like the base object in a boolean difference)  and picks a direction that will slice through the bounding box.
  
 There isn’t currently any way for a script to tweak this process on a factory but you could control it by extruding any lines out into planes in your desired direction and then send the plane into the boolean factory rather than a line.
+
+➜  ispace git:(master) ✗ # searching for max fillet: 12324.10400390625 ms
+➜  ispace git:(master) ✗ # searching for max fillet: 3573.866943359375 ms

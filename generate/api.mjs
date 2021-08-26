@@ -1298,153 +1298,155 @@ export default {
                 { signature: "MbResultType LoftedSolid(SArray<MbPlacement3D> & pl, RPArray<MbContour> & c, const MbCurve3D * spine, const LoftedValues & params, SArray<MbCartPoint3D> * ps, const MbSNameMaker & names, RPArray<MbSNameMaker> & ns, MbSolid *& result)", spine: isNullable, ps: isNullable },
                 { signature: "MbResultType ExtrusionSolid(const MbSweptData & sweptData, const MbVector3D & direction, const MbSolid * solid1, const MbSolid * solid2, bool checkIntersection, const ExtrusionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)", solid1: isNullable, solid2: isNullable },
                 "MbResultType ExtrusionResult(MbSolid & solid, MbeCopyMode sameShell, const MbSweptData & sweptData, const MbVector3D & direction, const ExtrusionValues & params, OperationType oType, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)",
+                "MbResultType SymmetrySolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & place, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType MirrorSolid(const MbSolid & solid, const MbPlacement3D & place, const MbSNameMaker & names, MbSolid *& result)",
             ]
 
-        },
-        ActionPoint: {
-            rawHeader: "action_point.h",
-            dependencies: ["Line3D.h", "CartPoint3D.h"],
-            functions: [
-                "double LineLineNearestPoints(const MbLine3D & line1, const MbLine3D & line2, MbCartPoint3D & p1, MbCartPoint3D & p2)",
-            ]
-        },
-        ActionDirect: {
-            rawHeader: "action_direct.h",
-            dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h", "_TransformValues.h"],
-            functions: [
-                {
-                    signature: "MbResultType CollectFacesForModification(MbFaceShell * shell, MbeModifyingType way, double radius, RPArray<MbFace> & faces)",
-                    faces: isReturn
-                },
-                "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
-                "MbResultType TransformedSolid(MbSolid & solid, MbeCopyMode sameShell, const TransformValues & params, const MbSNameMaker & names, MbSolid *& result)",
-            ]
-        },
-        ActionPhantom: {
-            rawHeader: "action_phantom.h",
-            dependencies: ["Solid.h", "CurveEdge.h", "_SmoothValues.h", "Surface.h", "EdgeSequence.h"],
-            functions: [
-                {
-                    signature: "MbResultType SmoothPhantom(MbSolid & solid, RPArray<MbCurveEdge> & initCurves, const SmoothValues & params, RPArray<MbSurface> & result)",
-                    result: isReturn
-                },
-                {
-                    signature: "MbResultType SmoothSequence(const MbSolid & solid, RPArray<MbCurveEdge> & edges, const SmoothValues & params, bool createSurfaces, RPArray<MbEdgeSequence> & sequences, RPArray<MbSurface> & result)",
-                    sequences: isReturn,
-                    result: isReturn,
-                }
-            ]
-        },
-        ActionCurve: {
-            rawHeader: "action_curve.h",
-            dependencies: ["CartPoint.h", "Curve.h", "Contour.h", "Curve3D.h"],
-            functions: [
-                "MbResultType Arc(const MbCartPoint & center, const SArray<MbCartPoint> & points, bool curveClosed, double angle, double & a, double & b, MbCurve *& result)",
-                "MbResultType SplineCurve(const SArray<MbCartPoint> & points, bool closed, MbePlaneType curveType, MbCurve *& result)",
-                // { signature: "MbResultType IntersectContour(MbCurve & newCurve, RPArray<MbCurve> & curves, MbContour *& result)" },
-                "MbContour * OffsetContour(const MbContour & cntr, double rad, double xEpsilon, double yEpsilon, bool modifySegments, VERSION version = Math::DefaultMathVersion())",
-                "MbResultType SurfaceBoundContour(const MbSurface & surface, const MbCurve3D & spaceCurve, VERSION version = Math::DefaultMathVersion(), MbContour *& result)"
-            ]
-        },
-        ActionCurve3D: {
-            rawHeader: "action_curve3d.h",
-            dependencies: ["CartPoint3D.h", "Curve3D.h", "Contour3D.h"],
-            functions: [
-                // FIXME: technically a & b are inout, but that's not supported yet
-                "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)",
-                "MbResultType Segment(const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbCurve3D *& result)",
-                "MbResultType SplineCurve(const SArray<MbCartPoint3D> & points, bool closed, MbeSpaceType curveType, MbCurve3D *& result)",
-                "MbResultType CreateContour(MbCurve3D & curve, MbContour3D *& result)",
-                "MbResultType AddCurveToContour(MbCurve3D & curve, MbCurve3D & contour, bool toEnd)",
-                "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result)",
-                { signature: "MbResultType SpiralCurve(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, double radius, double step, double angle, MbCurve * lawCurve, bool spiralAxis, MbCurve3D *& result)", lawCurve: isNullable },
-                { signature: "MbResultType CreateContours(RPArray<MbCurve3D> & curves, double metricEps, RPArray<MbContour3D> & result, bool onlySmoothConnected = false, VERSION version = Math::DefaultMathVersion())", result: isReturn },
-                // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
-            ]
-        },
-        ActionRegion: {
-            rawHeader: "region.h",
-            dependencies: ["Region.h", "Contour.h", "RegionBooleanParams.h"],
-            functions: [
-                { signature: "void GetCorrectRegions(const RPArray<MbContour> & contours, bool sameContours, RPArray<MbRegion> & regions)", regions: isReturn },
-                { signature: "void MakeRegions(RPArray<MbContour> & contours, bool useSelfIntCntrs, bool sameContours, RPArray<MbRegion> & regions)", regions: isReturn },
-                // { signature: "bool CreateBooleanResultRegions(RPArray<MbContour> & contours1, RPArray<MbContour> & contours2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
-                { signature: "bool CreateBooleanResultRegions(MbRegion & region1, MbRegion & region2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
-            ]
-        },
-        Mutex: {
-            rawHeader: "tool_mutex.h",
-            functions: [
-                "void EnterParallelRegion()",
-                "void ExitParallelRegion()"
-            ]
-        },
-        ContourGraph: {
-            rawHeader: "contour_graph.h",
-            dependencies: ["Curve.h", "Contour.h", "ProgressIndicator.h", "Graph.h"],
-            functions: [
-                {
-                    signature: "MpGraph * OuterContoursBuilder(const RPArray<MbCurve> & curveList, PArray<MbContour> & contours, double accuracy = METRIC_ACCURACY, bool strict = false, VERSION version = Math::DefaultMathVersion(), ProgressIndicator * progInd = NULL)",
-                    contours: isReturn,
-                    progInd: isRaw,
-                    return: { name: "graph" }
-                },
-            ]
-        },
-        CurveEnvelope: {
-            rawHeader: "alg_curve_envelope.h",
-            dependencies: ["Curve.h", "CrossPoint.h"],
-            functions: [
-                {
-                    signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)",
-                    // after: "::SortCrossPoints(selectCurve->GetTMin(), selectCurve, cross, SArray<MbCrossPoint>(), SArray<MbCrossPoint>()); ",
-                    cross: isReturn
-                },
-                { signature: "void SortCrossPoints(double tProj, const MbCurve * selectCurve, SArray<MbCrossPoint> & cross, SArray<MbCrossPoint> & crossLeft, SArray<MbCrossPoint> & crossRight)", crossLeft: isReturn, crossRight: isReturn },
-            ]
-        },
-        CurveUtil: {
-            rawHeader: "curve.h",
-            dependencies: ["Curve.h"],
-            functions: [
-                "double AreaSign(const MbCurve & curve, double sag, bool close)",
-            ]
-        },
-        Writer: {
-            rawHeader: "model.h",
-            dependencies: ["ModelAddon.h", "Model.h"],
-            functions: [
-                { signature: "size_t WriteItems(const MbModel & model, const char *& memory)", return: { name: "size" } },
-                { signature: "void ReadItems(const void * memory, MbModel *& model)", }
-            ],
-        },
     },
-    enums: [
-        "SimpleName",
-        "MbeSpaceType",
-        "MbeStepType",
-        "MbeModifyingType",
-        "MbeCopyMode",
-        "MbeSmoothForm",
-        "MbSNameMaker::ESides",
-        "SmoothValues::CornerForm",
-        "ThreeStates",
-        "ElementaryShellType",
-        "OperationType",
-        "MbeFacePropagation",
-        "RegionOperationType",
-        "MbResultType",
-        "MbeCreatorType",
-        "MbeArcCreateWay",
-        "MbeLocalSystemType3D",
-        "MbeConnectingType",
-        "MbePlaneType",
-        "MbeItemLocation",
-        "MbeLocation",
-        "MbeIntersectionType",
-        "MbeProcessState",
-        "MbeTopologyType",
-        "MbeSurfaceProlongType",
-        "MbeSenseValue",
-    ]
+    ActionPoint: {
+        rawHeader: "action_point.h",
+        dependencies: ["Line3D.h", "CartPoint3D.h"],
+        functions: [
+            "double LineLineNearestPoints(const MbLine3D & line1, const MbLine3D & line2, MbCartPoint3D & p1, MbCartPoint3D & p2)",
+        ]
+    },
+    ActionDirect: {
+        rawHeader: "action_direct.h",
+        dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h", "_TransformValues.h"],
+        functions: [
+            {
+                signature: "MbResultType CollectFacesForModification(MbFaceShell * shell, MbeModifyingType way, double radius, RPArray<MbFace> & faces)",
+                faces: isReturn
+            },
+            "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
+            "MbResultType TransformedSolid(MbSolid & solid, MbeCopyMode sameShell, const TransformValues & params, const MbSNameMaker & names, MbSolid *& result)",
+        ]
+    },
+    ActionPhantom: {
+        rawHeader: "action_phantom.h",
+        dependencies: ["Solid.h", "CurveEdge.h", "_SmoothValues.h", "Surface.h", "EdgeSequence.h"],
+        functions: [
+            {
+                signature: "MbResultType SmoothPhantom(MbSolid & solid, RPArray<MbCurveEdge> & initCurves, const SmoothValues & params, RPArray<MbSurface> & result)",
+                result: isReturn
+            },
+            {
+                signature: "MbResultType SmoothSequence(const MbSolid & solid, RPArray<MbCurveEdge> & edges, const SmoothValues & params, bool createSurfaces, RPArray<MbEdgeSequence> & sequences, RPArray<MbSurface> & result)",
+                sequences: isReturn,
+                result: isReturn,
+            }
+        ]
+    },
+    ActionCurve: {
+        rawHeader: "action_curve.h",
+        dependencies: ["CartPoint.h", "Curve.h", "Contour.h", "Curve3D.h"],
+        functions: [
+            "MbResultType Arc(const MbCartPoint & center, const SArray<MbCartPoint> & points, bool curveClosed, double angle, double & a, double & b, MbCurve *& result)",
+            "MbResultType SplineCurve(const SArray<MbCartPoint> & points, bool closed, MbePlaneType curveType, MbCurve *& result)",
+            // { signature: "MbResultType IntersectContour(MbCurve & newCurve, RPArray<MbCurve> & curves, MbContour *& result)" },
+            "MbContour * OffsetContour(const MbContour & cntr, double rad, double xEpsilon, double yEpsilon, bool modifySegments, VERSION version = Math::DefaultMathVersion())",
+            "MbResultType SurfaceBoundContour(const MbSurface & surface, const MbCurve3D & spaceCurve, VERSION version = Math::DefaultMathVersion(), MbContour *& result)"
+        ]
+    },
+    ActionCurve3D: {
+        rawHeader: "action_curve3d.h",
+        dependencies: ["CartPoint3D.h", "Curve3D.h", "Contour3D.h"],
+        functions: [
+            // FIXME: technically a & b are inout, but that's not supported yet
+            "MbResultType Arc(const MbCartPoint3D & centre, const SArray<MbCartPoint3D> & points, bool curveClosed, double angle, double & a, double & b, MbCurve3D *& result)",
+            "MbResultType Segment(const MbCartPoint3D & point1, const MbCartPoint3D & point2, MbCurve3D *& result)",
+            "MbResultType SplineCurve(const SArray<MbCartPoint3D> & points, bool closed, MbeSpaceType curveType, MbCurve3D *& result)",
+            "MbResultType CreateContour(MbCurve3D & curve, MbContour3D *& result)",
+            "MbResultType AddCurveToContour(MbCurve3D & curve, MbCurve3D & contour, bool toEnd)",
+            "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result)",
+            { signature: "MbResultType SpiralCurve(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, double radius, double step, double angle, MbCurve * lawCurve, bool spiralAxis, MbCurve3D *& result)", lawCurve: isNullable },
+            { signature: "MbResultType CreateContours(RPArray<MbCurve3D> & curves, double metricEps, RPArray<MbContour3D> & result, bool onlySmoothConnected = false, VERSION version = Math::DefaultMathVersion())", result: isReturn },
+            // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
+        ]
+    },
+    ActionRegion: {
+        rawHeader: "region.h",
+        dependencies: ["Region.h", "Contour.h", "RegionBooleanParams.h"],
+        functions: [
+            { signature: "void GetCorrectRegions(const RPArray<MbContour> & contours, bool sameContours, RPArray<MbRegion> & regions)", regions: isReturn },
+            { signature: "void MakeRegions(RPArray<MbContour> & contours, bool useSelfIntCntrs, bool sameContours, RPArray<MbRegion> & regions)", regions: isReturn },
+            // { signature: "bool CreateBooleanResultRegions(RPArray<MbContour> & contours1, RPArray<MbContour> & contours2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
+            { signature: "bool CreateBooleanResultRegions(MbRegion & region1, MbRegion & region2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
+        ]
+    },
+    Mutex: {
+        rawHeader: "tool_mutex.h",
+        functions: [
+            "void EnterParallelRegion()",
+            "void ExitParallelRegion()"
+        ]
+    },
+    ContourGraph: {
+        rawHeader: "contour_graph.h",
+        dependencies: ["Curve.h", "Contour.h", "ProgressIndicator.h", "Graph.h"],
+        functions: [
+            {
+                signature: "MpGraph * OuterContoursBuilder(const RPArray<MbCurve> & curveList, PArray<MbContour> & contours, double accuracy = METRIC_ACCURACY, bool strict = false, VERSION version = Math::DefaultMathVersion(), ProgressIndicator * progInd = NULL)",
+                contours: isReturn,
+                progInd: isRaw,
+                return: { name: "graph" }
+            },
+        ]
+    },
+    CurveEnvelope: {
+        rawHeader: "alg_curve_envelope.h",
+        dependencies: ["Curve.h", "CrossPoint.h"],
+        functions: [
+            {
+                signature: "void IntersectWithAll(const MbCurve * selectCurve, LIterator<MbCurve> & fromCurve, SArray<MbCrossPoint> & cross, bool self)",
+                // after: "::SortCrossPoints(selectCurve->GetTMin(), selectCurve, cross, SArray<MbCrossPoint>(), SArray<MbCrossPoint>()); ",
+                cross: isReturn
+            },
+            { signature: "void SortCrossPoints(double tProj, const MbCurve * selectCurve, SArray<MbCrossPoint> & cross, SArray<MbCrossPoint> & crossLeft, SArray<MbCrossPoint> & crossRight)", crossLeft: isReturn, crossRight: isReturn },
+        ]
+    },
+    CurveUtil: {
+        rawHeader: "curve.h",
+        dependencies: ["Curve.h"],
+        functions: [
+            "double AreaSign(const MbCurve & curve, double sag, bool close)",
+        ]
+    },
+    Writer: {
+        rawHeader: "model.h",
+        dependencies: ["ModelAddon.h", "Model.h"],
+        functions: [
+            { signature: "size_t WriteItems(const MbModel & model, const char *& memory)", return: { name: "size" } },
+            { signature: "void ReadItems(const void * memory, MbModel *& model)", }
+        ],
+    },
+},
+enums: [
+    "SimpleName",
+    "MbeSpaceType",
+    "MbeStepType",
+    "MbeModifyingType",
+    "MbeCopyMode",
+    "MbeSmoothForm",
+    "MbSNameMaker::ESides",
+    "SmoothValues::CornerForm",
+    "ThreeStates",
+    "ElementaryShellType",
+    "OperationType",
+    "MbeFacePropagation",
+    "RegionOperationType",
+    "MbResultType",
+    "MbeCreatorType",
+    "MbeArcCreateWay",
+    "MbeLocalSystemType3D",
+    "MbeConnectingType",
+    "MbePlaneType",
+    "MbeItemLocation",
+    "MbeLocation",
+    "MbeIntersectionType",
+    "MbeProcessState",
+    "MbeTopologyType",
+    "MbeSurfaceProlongType",
+    "MbeSenseValue",
+]
 }

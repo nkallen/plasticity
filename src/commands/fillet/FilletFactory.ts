@@ -70,6 +70,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         const name2function = new Map<string, c3d.CubicFunction>();
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge) as c3d.CurveEdge;
+            model.AddRef();
             curveEdges.push(model);
             const fn = new c3d.CubicFunction(1, 1);
             name2function.set(edge.simpleName, fn);
@@ -123,6 +124,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         if (this.mode === c3d.CreatorType.ChamferSolid) {
             return c3d.ActionSolid.ChamferSolid_async(this.model, c3d.CopyMode.Copy, this.curveEdges, this.params, this.names);
         } else {
+            this.model.AddRef();
             return c3d.ActionSolid.FilletSolid_async(this.model, c3d.CopyMode.Copy, this.edgeFunctions, [], this.params, this.names);
         }
     }
@@ -203,7 +205,7 @@ export class Max<T> {
                 const factory = this.factory;
 
                 console.time("searching for max fillet");
-                const result = await Max.search(0.01, 0.1, 100, d => {
+                const result = await Max.search(0.01, 0.1, 50, d => {
                     factory.distance = d;
                     return factory.calculate();
                 });
@@ -244,9 +246,10 @@ export class Max<T> {
     static async search<_>(lastGood: number, candidate: number, max: number, cb: (n: number) => Promise<_>): Promise<number> {
         if (max < candidate) throw new Error('invalid');
         if (candidate < lastGood) throw new Error('invalid');
-        if (Math.abs(candidate - lastGood) < 0.01) return Promise.resolve(lastGood);
+        if (Math.abs(candidate - lastGood) < candidate / 100) return Promise.resolve(lastGood);
 
         try {
+            console.log(candidate);
             await cb(candidate);
             return this.search(candidate, candidate + (max - candidate) / 2, max, cb);
         } catch (e) {

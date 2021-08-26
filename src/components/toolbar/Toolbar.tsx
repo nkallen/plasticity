@@ -27,6 +27,7 @@ export class Model {
             result.push(cmd.ScaleCommand);
             result.push(cmd.SelectFilletsCommand);
             result.push(cmd.ClipCurveCommand);
+            result.push(cmd.SymmetryCommand);
         }
         if (selection.solids.size > 1) {
             result.push(cmd.UnionCommand);

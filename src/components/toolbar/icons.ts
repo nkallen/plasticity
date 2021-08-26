@@ -84,6 +84,7 @@ icons.set(cmd.FilletCurveCommand, fillet);
 icons.set(cmd.SelectFilletsCommand, fillet);
 icons.set(cmd.ClipCurveCommand, line);
 icons.set(cmd.OffsetLoopCommand, line);
+icons.set(cmd.SymmetryCommand, mirror);
 
 export const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");
@@ -133,6 +134,7 @@ tooltips.set(cmd.FilletCurveCommand, "Fillet curve");
 tooltips.set(cmd.SelectFilletsCommand, "Select removable faces");
 tooltips.set(cmd.ClipCurveCommand, "Clip Curve");
 tooltips.set(cmd.OffsetLoopCommand, "Offset Loop");
+tooltips.set(cmd.SymmetryCommand, "Mirror solid");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");

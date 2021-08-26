@@ -34,7 +34,7 @@ import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import { DistanceGizmo, LengthGizmo } from "./MiniGizmos";
-import MirrorFactory from "./mirror/MirrorFactory";
+import { MirrorFactory, SymmetryFactory } from "./mirror/MirrorFactory";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
@@ -1070,6 +1070,32 @@ export class MirrorCommand extends Command {
         }).resource(this);
 
         await mirror.commit();
+    }
+}
+
+const Z = new THREE.Vector3(0, 0, 1);
+export class SymmetryCommand extends Command {
+    async execute(): Promise<void> {
+        const solid = this.editor.selection.selected.solids.first;
+        const symmetry = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        symmetry.solid = solid;
+
+        const pointPicker = new PointPicker(this.editor);
+        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
+        pointPicker.restrictToPlaneThroughPoint(p1);
+
+        symmetry.origin = p1;
+
+        const orientation = new THREE.Quaternion();
+        const normal = new THREE.Vector3();
+        await pointPicker.execute(({ point: p2 }) => {
+            normal.copy(p2).sub(p1).cross(constructionPlane.n).normalize();
+            orientation.setFromUnitVectors(Z, normal);
+            symmetry.orientation = orientation;
+            symmetry.update();
+        }).resource(this);
+
+        await symmetry.commit();
     }
 }
 
