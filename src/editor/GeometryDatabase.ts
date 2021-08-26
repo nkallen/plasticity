@@ -9,7 +9,7 @@ import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import * as visual from './VisualModel';
 
-const mesh_precision_distance: [number, number][] = [[0.1, 300], [0.001, 5]];
+const mesh_precision_distance: [number, number][] = [[0.1, 300], [0.003, 5]];
 const other_precision_distance: [number, number][] = [[0.0005, 1]];
 
 export interface TemporaryObject {
@@ -57,23 +57,37 @@ export class GeometryDatabase {
     async addItem(model: c3d.Item, agent: Agent = 'user'): Promise<visual.Item> {
         const current = this.counter++;
         return this.queue.enqueue(async () => {
-            const view = await this.meshes(model, current, this.precisionAndDistanceFor(model)); // FIXME it would be nice to move this out of the queue but tests fail
-
-            this.geometryModel.set(current, { view, model });
-            view.traverse(t => {
-                if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
-                    if (!(model instanceof c3d.Solid)) throw new Error("invalid precondition");
-                    this.addTopologyItem(model, t);
-                } else if (t instanceof visual.ControlPointGroup) {
-                    if (!(model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
-                    for (const child of t) this.addControlPoint(model, child);
-                }
-            });
-
-            this.signals.sceneGraphChanged.dispatch();
-            this.signals.objectAdded.dispatch([view, agent]);
-            return view;
+            return this.insertItem(current, model, agent);
         });
+    }
+
+    async replaceItem(from: visual.Item, model: c3d.Item): Promise<visual.Item> {
+        return this.queue.enqueue(async () => {
+            await this._removeItem(from, 'user');
+            const to = await this.insertItem(from.simpleName, model, 'user');
+            this.signals.objectReplaced.dispatch({ from, to });
+            return to;
+        });
+    }
+
+    private async insertItem(name: c3d.SimpleName, model: c3d.Item, agent: Agent): Promise<visual.Item> {
+        const note = new c3d.FormNote(true, true, true, false, false);
+        const view = await this.meshes(model, name, note, this.precisionAndDistanceFor(model)); // FIXME it would be nice to move this out of the queue but tests fail
+
+        this.geometryModel.set(name, { view, model });
+        view.traverse(t => {
+            if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
+                if (!(model instanceof c3d.Solid)) throw new Error("invalid precondition");
+                this.addTopologyItem(model, t);
+            } else if (t instanceof visual.ControlPointGroup) {
+                if (!(model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
+                for (const child of t) this.addControlPoint(model, child);
+            }
+        });
+
+        this.signals.sceneGraphChanged.dispatch();
+        this.signals.objectAdded.dispatch([view, agent]);
+        return view;
     }
 
     private precisionAndDistanceFor(item: c3d.Item): [number, number][] {
@@ -89,7 +103,8 @@ export class GeometryDatabase {
     }
 
     async addTemporaryItem(object: c3d.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
-        const mesh = await this.meshes(object, -1, [[0.003, 1]], materials);
+        const note = new c3d.FormNote(true, true, false, false, false);
+        const mesh = await this.meshes(object, -1, note, [[0.003, 1]], materials);
         mesh.visible = false;
         into.add(mesh);
         return {
@@ -107,17 +122,21 @@ export class GeometryDatabase {
         this.phantomObjects.clear();
     }
 
-    removeItem(view: visual.Item, agent: Agent = 'user') {
+    async removeItem(view: visual.Item, agent: Agent = 'user') {
         return this.queue.enqueue(async () => {
-            const simpleName = view.simpleName;
-            this.geometryModel.delete(simpleName);
-            this.removeTopologyItems(view);
-            this.removeControlPoints(view);
-            this.hidden.delete(simpleName);
-
-            this.signals.objectRemoved.dispatch([view, agent]);
-            this.signals.sceneGraphChanged.dispatch();
+            return this._removeItem(view, agent);
         });
+    }
+
+    private async _removeItem(view: visual.Item, agent: Agent = 'user') {
+        const simpleName = view.simpleName;
+        this.geometryModel.delete(simpleName);
+        this.removeTopologyItems(view);
+        this.removeControlPoints(view);
+        this.hidden.delete(simpleName);
+
+        this.signals.objectRemoved.dispatch([view, agent]);
+        this.signals.sceneGraphChanged.dispatch();
     }
 
     lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item } {
@@ -210,7 +229,7 @@ export class GeometryDatabase {
         return this._scene;
     }
 
-    private async meshes(obj: c3d.Item, id: c3d.SimpleName, precision_distance: [number, number][], materials?: MaterialOverride): Promise<visual.Item> {
+    private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride): Promise<visual.Item> {
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
@@ -226,21 +245,24 @@ export class GeometryDatabase {
                 throw new Error("type not yet supported");
         }
 
+        console.time("meshes");
         const promises = [];
         for (const [precision, distance] of precision_distance) {
-            promises.push(this.object2mesh(builder, obj, id, precision, distance, materials));
+            promises.push(this.object2mesh(builder, obj, id, precision, note, distance, materials));
         }
         await Promise.all(promises);
+        console.timeEnd("meshes");
 
         const result = builder.build();
         result.userData.simpleName = id;
         return result;
     }
 
-    private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, distance?: number, materials?: MaterialOverride): Promise<void> {
+    private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
-        const note = new c3d.FormNote(true, true, true, false, false);
+        console.time("CreateMesh" + sag);
         const item = await obj.CreateMesh_async(stepData, note);
+        console.timeEnd("CreateMesh" + sag);
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
 
         switch (obj.IsA()) {
@@ -299,6 +321,7 @@ export class GeometryDatabase {
             //     return points;
             // }
             case c3d.SpaceType.Solid: {
+                console.time("solid");
                 const solid = builder as visual.SolidBuilder;
                 const edges = new visual.CurveEdgeGroupBuilder();
                 const lineMaterial = materials?.line ?? this.materials.line();
@@ -316,6 +339,7 @@ export class GeometryDatabase {
                     faces.addFace(face);
                 }
                 solid.addLOD(edges.build(), faces.build(), distance);
+                console.timeEnd("solid");
                 break;
             }
             default: throw new Error("type not yet supported");
@@ -393,7 +417,7 @@ export class GeometryDatabase {
     unhideAll() {
         const hidden = [...this.hidden].map(id => this.lookupItemById(id));
         this.hidden.clear();
-        for (const {view} of hidden) this.signals.objectUnhidden.dispatch(view);
+        for (const { view } of hidden) this.signals.objectUnhidden.dispatch(view);
     }
 
     saveToMemento(registry: Map<any, any>): GeometryMemento {

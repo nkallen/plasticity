@@ -1,17 +1,5 @@
-  console.log
-    ==== box
-    2509728481
-    1153506027
-    3709466726
-    3941215386
-    2605449231
-    2988024443
-
-    ==== result
-    26743940
-    2557552348
-    3941215386
-    3709466726
-    2988024443
-    2605449231
-    1153506027
+GeometryDatabase.ts:264 CreateMesh0.1: 39.922119140625 ms
+GeometryDatabase.ts:341 solid: 1.375244140625 ms
+GeometryDatabase.ts:264 CreateMesh0.003: 156.74609375 ms
+GeometryDatabase.ts:341 solid: 3.221923828125 ms
+GeometryDatabase.ts:252 meshes: 160.296142578125 ms

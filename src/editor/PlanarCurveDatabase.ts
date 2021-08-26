@@ -179,7 +179,7 @@ export class PlanarCurveDatabase {
         return this.commit(data);
     }
 
-    private updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[]): Promise<void> {
+    private async updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[]): Promise<void> {
         const { curve2info, db } = this;
         const info = curve2info.get(instance)!;
         for (const invalid of info.fragments) {

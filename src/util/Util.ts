@@ -80,7 +80,7 @@ export class RefCounter<T> {
 }
 
 export class Redisposable implements DisposableLike {
-    constructor(private readonly d: () => void) {}
+    constructor(private readonly d: () => void) { }
     dispose() { this.d() }
 }
 
@@ -122,4 +122,8 @@ export class WeakValueMap<K, V extends object> {
             yield [key, value];
         }
     }
+}
+
+export const zip = <T, S>(a: Array<T>, b: Array<S>): [T | undefined, S | undefined][] => {
+    return Array.from(Array(Math.max(b.length, a.length)), (_, i) => [a[i], b[i]]);
 }

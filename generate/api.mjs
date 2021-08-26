@@ -596,7 +596,10 @@ export default {
             ]
         },
         RegDuplicate: {
-            rawHeader: "item_registrator.h"
+            rawHeader: "item_registrator.h",
+        },
+        AutoRegDuplicate: {
+            rawHeader: "item_registrator.h",
         },
         NameMaker: {
             rawHeader: "name_item.h",
@@ -1420,6 +1423,14 @@ export default {
             { signature: "void ReadItems(const void * memory, MbModel *& model)", }
         ],
     },
+    Registrator: {
+        rawHeader: "item_registrator.h",
+        dependencies: ["MeshAddon.h", "AutoRegDuplicate.h", "RegDuplicate.h"],
+        functions: [
+            "void AutoReg(MbAutoRegDuplicate *&autoReg, MbRegDuplicate *&iReg)",
+        ],
+
+    }
 },
 enums: [
     "SimpleName",

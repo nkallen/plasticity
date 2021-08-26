@@ -4,13 +4,15 @@ import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
 import { Editor } from '../../editor/Editor';
 import { GeometryDatabase } from '../../editor/GeometryDatabase';
+import { ModifierManager } from '../../editor/ModifierManager';
 import * as visual from '../../editor/VisualModel';
 import { HasSelection } from '../../selection/SelectionManager';
 
 export class Model {
     constructor(
         private readonly selection: HasSelection,
-        private readonly db: GeometryDatabase
+        private readonly db: GeometryDatabase,
+        private readonly modifiers: ModifierManager,
     ) { }
 
     get item() {
@@ -22,11 +24,10 @@ export class Model {
     }
 
     get creators() {
-        const { db, selection } = this;
-        if (selection.solids.size == 0) return [];
+        const { db, solid } = this;
+        if (solid === undefined) return [];
 
         const result: [number, c3d.Creator][] = [];
-        const solid = selection.solids.first!;
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
             const creator = model.GetCreator(i)!;
@@ -35,12 +36,27 @@ export class Model {
 
         return result;
     }
+
+    add() {
+        const { db, solid } = this;
+        if (solid === undefined) return;
+
+        this.modifiers.add(solid);
+    }
+
+    private get solid(): visual.Solid | undefined {
+        const { db, selection } = this;
+        if (selection.solids.size == 0) return undefined;
+
+        const solid = selection.solids.first!
+        return solid;
+    }
 }
 
 export default (editor: Editor) => {
     class Creators extends HTMLElement {
         private readonly dispose = new CompositeDisposable();
-        private readonly model = new Model(editor.selection.selected, editor.db);
+        private readonly model = new Model(editor.selection.selected, editor.db, editor.modifiers);
 
         constructor() {
             super();
@@ -54,13 +70,16 @@ export default (editor: Editor) => {
         }
 
         render() {
-            const result = <ol>
-                {this.model.creators.map(([i, c]) => {
-                    const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[c.IsA()])}`;
-                    // @ts-expect-error("not sure how to type this")
-                    return <li><Z creator={c} index={i} item={this.model.item}></Z></li>
-                })}
-            </ol>;
+            const result = <>
+                <ol>
+                    {this.model.creators.map(([i, c]) => {
+                        const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[c.IsA()])}`;
+                        // @ts-expect-error("not sure how to type this")
+                        return <li><Z creator={c} index={i} item={this.model.item}></Z></li>
+                    })}
+                </ol>
+                <button type="button" onClick={e => this.model.add()}>button</button>
+            </>;
             render(result, this);
         }
 

@@ -247,7 +247,6 @@ export class Max<T> {
         if (Math.abs(candidate - lastGood) < candidate / 100) return Promise.resolve(lastGood);
 
         try {
-            console.log(candidate);
             await cb(candidate);
             return this.search(candidate, candidate + (max - candidate) / 2, max, cb);
         } catch (e) {

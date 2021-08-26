@@ -66,6 +66,14 @@ export class Solid extends Item {
             faces.dispose();
         }
     }
+
+    bemodify(ancestor: Solid) {
+        this.layers.set(Layers.Modified);
+        this.traverse(child => child.layers.set(Layers.Modified));
+
+        ancestor.userData.modified = this;
+        this.userData.ancestor = ancestor;
+    }
 }
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
@@ -615,6 +623,8 @@ export enum Layers {
     ControlPoint,
     Face,
     CurveEdge,
+
+    Modified,
 }
 
 export const VisibleLayers = new THREE.Layers();
@@ -626,6 +636,7 @@ export const SelectableLayers = new THREE.Layers();
 SelectableLayers.enableAll();
 SelectableLayers.disable(Layers.CurveFragment);
 SelectableLayers.disable(Layers.ControlPoint);
+SelectableLayers.disable(Layers.Modified);
 
 export type Selectable = Item | TopologyItem | ControlPoint | Region;
 

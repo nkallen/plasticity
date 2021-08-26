@@ -1,15 +1,17 @@
-import * as visual from './VisualModel';
 import signals from "signals";
-import { HasSelection } from '../selection/SelectionManager';
-import Command from '../commands/Command';
-import { AbstractDialog } from "../commands/AbstractDialog";
 import c3d from '../build/Release/c3d.node';
+import { AbstractDialog } from "../commands/AbstractDialog";
+import Command from '../commands/Command';
 import { Viewport } from '../components/viewport/Viewport';
+import { HasSelection } from '../selection/SelectionManager';
 import { Agent } from './GeometryDatabase';
+import { Replacement } from './ModifierManager';
+import * as visual from './VisualModel';
 
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
     objectRemoved: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
+    objectReplaced: signals.Signal<Replacement> = new signals.Signal();
     objectHidden: signals.Signal<visual.Item> = new signals.Signal();
     objectUnhidden: signals.Signal<visual.Item> = new signals.Signal();
     objectSelected: signals.Signal<visual.Selectable> = new signals.Signal();

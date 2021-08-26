@@ -5,6 +5,7 @@ import MaterialDatabase from '../editor/MaterialDatabase';
 import { ResourceRegistration } from '../util/Cancellable';
 import * as visual from '../editor/VisualModel';
 import * as THREE from 'three';
+import { zip } from '../util/Util';
 
 type State = { tag: 'none', last: undefined }
     | { tag: 'updated', last?: Map<string, any> }
@@ -71,7 +72,13 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
         // 3.b. The "original item" is the item the user is manipulating, in most cases we just hide it
         for (const i of this.originalItems) {
-            if (this.shouldRemoveOriginalItem) this.db.hide(i);
+            if (this.shouldRemoveOriginalItem) {
+                this.db.hide(i);
+                const modified = i.userData.modified;
+                if (modified !== undefined) {
+                    this.db.hide(modified);
+                }
+            }
             else this.db.unhide(i);
         }
 
@@ -101,14 +108,24 @@ export abstract class GeometryFactory extends ResourceRegistration {
                     detached.push(item);
                 }
             }
-            for (const geometry of detached) {
-                promises.push(this.db.addItem(geometry));
+            if (this.shouldRemoveOriginalItem) {
+                const zipped = zip(this.originalItems, detached);
+                for (const [from, to] of zipped) {
+                    if (from === undefined) {
+                        promises.push(this.db.addItem(to!));
+                    } else if (to === undefined) {
+                        this.db.removeItem(from);
+                    } else {
+                        this.db.unhide(from);
+                        promises.push(this.db.replaceItem(from, to))
+                    }
+                }
+            } else {
+                for (const geometry of detached) {
+                    promises.push(this.db.addItem(geometry));
+                }
             }
             const result = await Promise.all(promises);
-            if (this.shouldRemoveOriginalItem) for (const i of this.originalItems) {
-                this.db.unhide(i);
-                this.db.removeItem(i);
-            }
             return dearray(result, unarray);
         } finally {
             await Promise.resolve(); // This removes flickering when rendering.

@@ -148,3 +148,9 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
     }
     return result;
 }
+
+void AutoReg(MbAutoRegDuplicate *&autoReg, MbRegDuplicate *&iReg)
+{
+      iReg = c3d_null;
+      autoReg = new MbAutoRegDuplicate( iReg );
+}

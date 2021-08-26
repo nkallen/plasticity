@@ -6,6 +6,7 @@ import { SpriteDatabase } from '../src/editor/SpriteDatabase';
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
 import './matchers';
+import * as THREE from 'three';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -20,13 +21,14 @@ const points = [
     new c3d.CartPoint3D(1, 1, 1),
 ]
 
+const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
+
 beforeEach(() => {
     materials = new FakeMaterials();
     sprites = new FakeSprites();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
 
-    const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
     box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
 })
 
@@ -43,6 +45,38 @@ test("addItem & lookup & removeItem", async () => {
     expect(() => db.lookup(v)).toThrow();
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(db.visibleObjects.length).toBe(0);
+});
+
+test("addItem & replaceItem", async () => {
+    expect(db.visibleObjects.length).toBe(0);
+    expect(db.temporaryObjects.children.length).toBe(0);
+
+    const view1 = await db.addItem(box) as visual.Solid;
+    const { model: model1 } = db.lookupItemById(view1.simpleName);
+    expect(model1).toBe(box);
+
+    const bbox = new THREE.Box3();
+    bbox.setFromObject(view1);
+    const center = new THREE.Vector3();
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
+
+    const points = [
+        new c3d.CartPoint3D(0, 0, 0),
+        new c3d.CartPoint3D(-1, 0, 0),
+        new c3d.CartPoint3D(-1, -1, 0),
+        new c3d.CartPoint3D(-1, -1, -1),
+    ]
+    const box2 = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
+    const view2 = await db.replaceItem(view1, box2);
+    expect(view2.simpleName).toBe(view1.simpleName);
+
+    bbox.setFromObject(view2);
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, -0.5, 0.5));
+
+    const { model: model2 } = db.lookupItemById(view1.simpleName);
+    expect(model2).toBe(box2);
 })
 
 test("saveToMemento & restoreFromMemento", async () => {
@@ -113,7 +147,7 @@ test("lookupTopologyItemById", async () => {
     const solid = await db.addItem(box) as visual.Solid;
     expect(db.visibleObjects.length).toBe(1);
 
-    const faces = [];
+    const faces: visual.Face[] = [];
     solid.traverse(o => {
         if (o instanceof visual.Face) faces.push(o);
     })
@@ -134,7 +168,7 @@ test("lookupControlPointById", async () => {
     const instance = await db.addItem(new c3d.SpaceInstance(curve)) as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(1);
 
-    const controlPoints = [];
+    const controlPoints: visual.ControlPointGroup[] = [];
     instance.traverse(o => {
         if (o instanceof visual.ControlPointGroup) controlPoints.push(o);
     })
@@ -145,7 +179,7 @@ test("lookupControlPointById", async () => {
     expect(index).toBe(0);
 
     db.removeItem(instance);
-    expect(() => db.lookupControlPointById(controlPoints[0].simpleName)).toThrow();
+    expect(() => db.lookupControlPointById(controlPoints[0].findByIndex(0).simpleName)).toThrow();
 });
 
 test("find", async () => {

@@ -64,8 +64,4 @@ describe("Memory management", () => {
         expect(surface.GetUseCount()).toBe(8);
         expect(cast.GetUseCount()).toBe(8);
     })
-
-    test.skip("structs", () => {
-
-    })
 })

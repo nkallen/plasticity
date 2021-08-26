@@ -19,6 +19,7 @@ import { GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
 import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
+import { ModifierManager } from "./ModifierManager";
 import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { RegionManager } from "./RegionManager";
 import { SnapManager } from './SnapManager';
@@ -53,6 +54,7 @@ export class Editor {
     readonly executor = new CommandExecutor(this);
     readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.db, this.signals);
+    readonly modifiers = new ModifierManager(this.db, this.materials, this.signals);
 
     disposable = new CompositeDisposable();
 
