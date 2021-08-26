@@ -96,7 +96,7 @@ export class ViewportNavigator extends THREE.Object3D {
             const intersection = intersects[0];
             const object = intersection.object;
 
-            this.prepareAnimationData(object, this.controls.target);
+            this.prepareAnimationData(object.userData.type, this.controls.target);
 
             return true;
         } else {
@@ -110,11 +110,11 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly q2 = new THREE.Quaternion();
     private readonly dummy = new THREE.Object3D();
     private radius = 0;
-    private prepareAnimationData(object: THREE.Object3D, focusPoint: THREE.Vector3) {
+    prepareAnimationData(type: string) {
         const { targetPosition, targetQuaternion, controls, q1, q2, dummy } = this;
-        const viewportCamera = controls.object;
+        const { object: viewportCamera, target } = controls;
 
-        switch (object.userData.type) {
+        switch (type) {
             case 'posX':
                 targetPosition.set(1, 0, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI * 0.5, 0));
@@ -142,10 +142,10 @@ export class ViewportNavigator extends THREE.Object3D {
             default: console.error('ViewHelper: Invalid axis.');
         }
 
-        this.radius = viewportCamera.position.distanceTo(focusPoint);
-        targetPosition.multiplyScalar(this.radius).add(focusPoint);
+        this.radius = viewportCamera.position.distanceTo(target);
+        targetPosition.multiplyScalar(this.radius).add(target);
 
-        dummy.position.copy(focusPoint);
+        dummy.position.copy(target);
         dummy.lookAt(viewportCamera.position);
         q1.copy(dummy.quaternion);
 

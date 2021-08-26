@@ -18,7 +18,6 @@ import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
 import { ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
-import { ViewHelper } from "./ViewportHelpers";
 
 const near = 0.01;
 const far = 1000;
@@ -125,11 +124,13 @@ export class Viewport {
         this.controls.add(this.selector);
         this.controls.add(this.navigationControls);
 
-        // this.disposable.add(
-        this.editor.registry.add(
-            this.domElement, {
-        })
-        // );
+        this.disposable.add(
+            this.editor.registry.add(this.domElement, {
+                'viewport:front': () => this.navigator.prepareAnimationData('posX'),
+                'viewport:right': () => this.navigator.prepareAnimationData('negY'),
+                'viewport:top': () => this.navigator.prepareAnimationData('posZ'),
+            })
+        );
 
         this.disposable.add(new Disposable(() => {
             this.selector.dispose();
