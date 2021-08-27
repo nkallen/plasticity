@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from '../../editor/EditorSignals';
-import { GeometryDatabase } from '../../editor/GeometryDatabase';
+import { DatabaseLike, GeometryDatabase } from '../../editor/GeometryDatabase';
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import * as visual from '../../editor/VisualModel';
 import { GeometryFactory, NoOpError } from '../GeometryFactory';
@@ -34,7 +34,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     curveEdges!: c3d.CurveEdge[];
     functions!: Map<string, c3d.CubicFunction>;
 
-    constructor(db: GeometryDatabase, materials: MaterialDatabase, signals: EditorSignals) {
+    constructor(db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals) {
         super(db, materials, signals);
 
         const params = new c3d.SmoothValues();

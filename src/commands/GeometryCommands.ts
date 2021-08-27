@@ -55,7 +55,7 @@ import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateF
 
 export class SphereCommand extends Command {
     async execute(): Promise<void> {
-        const sphere = new PossiblyBooleanSphereFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const sphere = new PossiblyBooleanSphereFactory(this.editor.modifiers, this.editor.materials, this.editor.signals).resource(this);
         const selection = this.editor.selection.selected;
         if (selection.solids.size > 0) sphere.solid = selection.solids.first;
 
@@ -73,7 +73,9 @@ export class SphereCommand extends Command {
             sphere.update();
             keyboard.toggle(sphere.isOverlapping);
         }).resource(this);
-        await sphere.commit();
+
+        const result = await sphere.commit() as visual.Solid;
+        selection.addSolid(result);
     }
 }
 
@@ -667,7 +669,7 @@ export class MoveCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const move = new MoveFactory(this.editor.modifiers, this.editor.materials, this.editor.signals).resource(this);
         move.pivot = centroid;
         move.items = objects;
 
@@ -866,7 +868,7 @@ export class OffsetFaceCommand extends Command {
         const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
 
-        const offsetFace = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const offsetFace = new OffsetFaceFactory(this.editor.modifiers, this.editor.materials, this.editor.signals).resource(this);
         offsetFace.solid = parent;
         offsetFace.faces = faces;
 

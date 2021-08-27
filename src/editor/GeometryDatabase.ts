@@ -34,7 +34,41 @@ export interface MaterialOverride {
 
 export type Agent = 'user' | 'automatic';
 
-export class GeometryDatabase {
+export interface DatabaseLike {
+    addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
+    addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
+    addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;
+
+    replaceItem(from: visual.Solid, model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
+    replaceItem<T extends visual.SpaceItem>(from: visual.SpaceInstance<T>, model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
+    replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
+    replaceItem(from: visual.Item, model: c3d.Item): Promise<visual.Item>;
+
+    removeItem(view: visual.Item, agent?: Agent): void;
+
+    duplicate(model: visual.Solid): Promise<visual.Solid>;
+    duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;
+    duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
+
+    addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject>;
+    addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
+    replaceTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
+
+    lookup(object: visual.Solid): c3d.Solid;
+    lookup(object: visual.SpaceInstance<visual.Curve3D>): c3d.SpaceInstance;
+    lookup(object: visual.PlaneInstance<visual.Region>): c3d.PlaneInstance;
+    lookup(object: visual.Item): c3d.Item;
+
+    lookupTopologyItem(object: visual.Face): c3d.Face;
+    lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
+
+    hide(item: visual.Item): void;
+    unhide(item: visual.Item): void;
+}
+
+export class GeometryDatabase implements DatabaseLike {
     readonly temporaryObjects = new THREE.Scene();
     readonly phantomObjects = new THREE.Scene();
 
@@ -55,22 +89,25 @@ export class GeometryDatabase {
     async addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
     async addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;
     async addItem(model: c3d.Item, agent: Agent = 'user'): Promise<visual.Item> {
-        const current = this.counter++;
         return this.queue.enqueue(async () => {
-            return this.insertItem(current, model, agent);
+            return this.insertItem(model, agent);
         });
     }
 
+    async replaceItem(from: visual.Solid, model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
+    async replaceItem<T extends visual.SpaceItem>(from: visual.SpaceInstance<T>, model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    async replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
+    async replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
     async replaceItem(from: visual.Item, model: c3d.Item): Promise<visual.Item> {
         return this.queue.enqueue(async () => {
-            await this._removeItem(from, 'user');
-            const to = await this.insertItem(from.simpleName, model, 'user');
-            this.signals.objectReplaced.dispatch({ from, to });
+            const to = await this.insertItem(model, 'user');
+            this._removeItem(from, 'user');
             return to;
         });
     }
 
-    private async insertItem(name: c3d.SimpleName, model: c3d.Item, agent: Agent): Promise<visual.Item> {
+    private async insertItem(model: c3d.Item, agent: Agent): Promise<visual.Item> {
+        const name = this.counter++;
         const note = new c3d.FormNote(true, true, true, false, false);
         const view = await this.meshes(model, name, note, this.precisionAndDistanceFor(model)); // FIXME it would be nice to move this out of the queue but tests fail
 
@@ -100,6 +137,12 @@ export class GeometryDatabase {
 
     async addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
         return this.addTemporaryItem(object, materials, this.phantomObjects);
+    }
+
+    async replaceTemporaryItem(from: visual.Item, to: c3d.Item,): Promise<TemporaryObject> {
+        const result = await this.addTemporaryItem(to);
+        this.hide(from);
+        return result;
     }
 
     async addTemporaryItem(object: c3d.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
@@ -145,7 +188,6 @@ export class GeometryDatabase {
         return result;
     }
 
-    // FIXME rethink error messages and consider using Family rather than isA for curve3d?
     lookup(object: visual.Solid): c3d.Solid;
     lookup(object: visual.SpaceInstance<visual.Curve3D>): c3d.SpaceInstance;
     lookup(object: visual.PlaneInstance<visual.Region>): c3d.PlaneInstance;
@@ -245,13 +287,11 @@ export class GeometryDatabase {
                 throw new Error("type not yet supported");
         }
 
-        console.time("meshes");
         const promises = [];
         for (const [precision, distance] of precision_distance) {
             promises.push(this.object2mesh(builder, obj, id, precision, note, distance, materials));
         }
         await Promise.all(promises);
-        console.timeEnd("meshes");
 
         const result = builder.build();
         result.userData.simpleName = id;
@@ -260,9 +300,7 @@ export class GeometryDatabase {
 
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
-        console.time("CreateMesh" + sag);
         const item = await obj.CreateMesh_async(stepData, note);
-        console.timeEnd("CreateMesh" + sag);
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
 
         switch (obj.IsA()) {
@@ -321,7 +359,6 @@ export class GeometryDatabase {
             //     return points;
             // }
             case c3d.SpaceType.Solid: {
-                console.time("solid");
                 const solid = builder as visual.SolidBuilder;
                 const edges = new visual.CurveEdgeGroupBuilder();
                 const lineMaterial = materials?.line ?? this.materials.line();
@@ -339,7 +376,6 @@ export class GeometryDatabase {
                     faces.addFace(face);
                 }
                 solid.addLOD(edges.build(), faces.build(), distance);
-                console.timeEnd("solid");
                 break;
             }
             default: throw new Error("type not yet supported");

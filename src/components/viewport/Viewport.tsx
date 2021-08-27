@@ -30,6 +30,7 @@ export interface EditorLike extends selector.EditorLike {
     signals: EditorSignals,
     selection: SelectionManager,
     originator: EditorOriginator,
+    windowLoaded: boolean,
 }
 
 type Control = { enabled: boolean, dispose(): void };
@@ -142,6 +143,8 @@ export class Viewport {
 
     private started = false;
     start() {
+        if (this.started) return;
+
         this.editor.signals.selectionChanged.add(this.outlineSelection);
         this.editor.signals.historyChanged.add(this.outlineSelection);
         this.editor.signals.objectHovered.add(this.outlineHover);
@@ -429,7 +432,7 @@ export default (editor: EditorLike) => {
             editor.signals.windowLoaded.add(this.resize);
             editor.signals.windowResized.add(this.resize);
 
-            this.model.start();
+            if (editor.windowLoaded) this.model.start();
         }
 
         disconnectedCallback() {
@@ -437,6 +440,7 @@ export default (editor: EditorLike) => {
         }
 
         resize() {
+            this.model.start();
             this.model.setSize(this.offsetWidth, this.offsetHeight);
         }
     }

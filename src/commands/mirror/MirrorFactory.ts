@@ -27,10 +27,14 @@ export class SymmetryFactory extends GeometryFactory {
 
     private model!: c3d.Solid;
     private _solid!: visual.Solid;
-    get solid() { return this._solid }
-    set solid(solid: visual.Solid) {
-        this._solid = solid;
-        this.model = this.db.lookup(solid);
+    get solid(): visual.Solid { return this._solid }
+    set solid(solid: visual.Solid | c3d.Solid) {
+        if (solid instanceof visual.Solid) {
+            this._solid = solid;
+            this.model = this.db.lookup(solid);
+        } else {
+            this.model = solid;
+        }
     }
 
     private readonly X = new THREE.Vector3(1, 0, 0);

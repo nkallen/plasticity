@@ -91,7 +91,6 @@ export class ViewportNavigator extends THREE.Object3D {
 
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(interactiveObjects);
-        console.log(intersects);
         if (intersects.length > 0) {
             const intersection = intersects[0];
             const object = intersection.object;

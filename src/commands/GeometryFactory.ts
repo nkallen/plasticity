@@ -1,6 +1,6 @@
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
-import { GeometryDatabase, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
+import { DatabaseLike, GeometryDatabase, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ResourceRegistration } from '../util/Cancellable';
 import * as visual from '../editor/VisualModel';
@@ -38,7 +38,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     state: State = { tag: 'none', last: undefined };
 
     constructor(
-        protected readonly db: GeometryDatabase,
+        protected readonly db: DatabaseLike,
         protected readonly materials: MaterialDatabase,
         protected readonly signals: EditorSignals
     ) { super() }
@@ -50,14 +50,28 @@ export abstract class GeometryFactory extends ResourceRegistration {
     protected async doUpdate(): Promise<void> {
         const promises = [];
 
+        // 0. Make sure original items are visible if we're not going to remove them
+        if (!this.shouldRemoveOriginalItem) for (const i of this.originalItems) 
+           this.db.unhide(i);
+
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
         let result = await this.calculate();
 
         // 2. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);
-        for (const geometry of geometries) {
-            promises.push(this.db.addTemporaryItem(geometry));
+        const zipped = this.zip(this.originalItems, geometries);
+        console.log(this.shouldRemoveOriginalItem);
+        console.log(zipped);
+        for (const [from, to] of zipped) {
+            if (from === undefined) {
+                promises.push(this.db.addTemporaryItem(to!));
+            } else if (to === undefined) {
+                this.db.hide(from);
+            } else {
+                promises.push(this.db.replaceTemporaryItem(from, to));
+            }
         }
+
         for (const { phantom, material } of this.phantoms) {
             promises.push(this.db.addPhantom(phantom, material));
         }
@@ -65,27 +79,15 @@ export abstract class GeometryFactory extends ResourceRegistration {
         // 3. When all async work is complete, we can safely show/hide items to the user;
         // The specific order of operations is designed to avoid any flicker: compute
         // everything async, then sync show/hide objects when all data is ready.
-        await Promise.all(promises);
+        const finished = await Promise.all(promises);
 
         // 3.a. remove any previous temporary items.
         for (const temp of this.temps) temp.cancel();
 
-        // 3.b. The "original item" is the item the user is manipulating, in most cases we just hide it
-        for (const i of this.originalItems) {
-            if (this.shouldRemoveOriginalItem) {
-                this.db.hide(i);
-                const modified = i.userData.modified;
-                if (modified !== undefined) {
-                    this.db.hide(modified);
-                }
-            }
-            else this.db.unhide(i);
-        }
-
         // 3.c. show the newly created temporary items.
         const temps = [];
-        for (const p of promises) {
-            const temp = await p;
+        for (const p of finished) {
+            const temp = p;
             temp.show();
             temps.push(temp);
         }
@@ -94,7 +96,6 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
     protected async doCommit(): Promise<visual.Item | visual.Item[]> {
         try {
-            const promises = [];
             const unarray = await this.calculate();
             const geometries = toArray(unarray);
             let detached: c3d.Item[] = [];
@@ -108,28 +109,32 @@ export abstract class GeometryFactory extends ResourceRegistration {
                     detached.push(item);
                 }
             }
-            if (this.shouldRemoveOriginalItem) {
-                const zipped = zip(this.originalItems, detached);
-                for (const [from, to] of zipped) {
-                    if (from === undefined) {
-                        promises.push(this.db.addItem(to!));
-                    } else if (to === undefined) {
-                        this.db.removeItem(from);
-                    } else {
-                        this.db.unhide(from);
-                        promises.push(this.db.replaceItem(from, to))
-                    }
-                }
-            } else {
-                for (const geometry of detached) {
-                    promises.push(this.db.addItem(geometry));
+            const promises = [];
+            const zipped = this.zip(this.originalItems, detached);
+            for (const [from, to] of zipped) {
+                if (from === undefined) {
+                    promises.push(this.db.addItem(to!));
+                } else if (to === undefined) {
+                    this.db.removeItem(from);
+                } else {
+                    this.db.unhide(from);
+                    promises.push(this.db.replaceItem(from, to))
                 }
             }
+
             const result = await Promise.all(promises);
             return dearray(result, unarray);
         } finally {
             await Promise.resolve(); // This removes flickering when rendering.
             for (const temp of this.temps) temp.cancel();
+        }
+    }
+
+    private zip(originals: visual.Item[], replacements: c3d.Item[]) {
+        if (this.shouldRemoveOriginalItem) {
+            return zip(originals, replacements);
+        } else {
+            return zip([], replacements);
         }
     }
 

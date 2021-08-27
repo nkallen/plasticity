@@ -6,6 +6,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
 import { BetterRaycastingPoint, BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { applyMixins } from '../util/Util';
+import MaterialDatabase from './MaterialDatabase';
 
 /**
  * This class hierarchy mirrors the c3d hierarchy into the THREE.js Object3D hierarchy.
@@ -57,6 +58,24 @@ export class Solid extends Item {
         return result;
     }
 
+    get allEdges() {
+        let result: CurveEdge[] = [];
+        for (const lod of this.lod.children) {
+            const edges = lod.children[0] as CurveEdgeGroup;
+            result = result.concat([...edges]);
+        }
+        return result;
+    }
+
+    get allFaces() {
+        let result: Face[] = [];
+        for (const lod of this.lod.children) {
+            const faces = lod.children[1] as FaceGroup;
+            result = result.concat([...faces]);
+        }
+        return result;
+    }
+
     dispose() {
         for (const level of this.lod.children) {
             const edges = level.children[0] as CurveEdgeGroup;
@@ -68,13 +87,33 @@ export class Solid extends Item {
     }
 
     bemodify(ancestor: Solid) {
-        this.layers.set(Layers.Modified);
-        this.traverse(child => child.layers.set(Layers.Modified));
+        this.layers.set(Layers.ModifiedSolid);
+        for (const edge of this.allEdges) edge.parent?.remove(edge);
 
-        ancestor.userData.modified = this;
-        this.userData.ancestor = ancestor;
+        for (const face of this.allFaces) {
+            face.traverse(child => child.layers.set(Layers.ModifiedFace));
+        }
+    }
+
+    premodify(successor: Solid) {
+        this.layers.set(Layers.PremodifiedSolid);
+
+        for (const face of this.allFaces) {
+            face.traverse(child => {
+                if (child instanceof THREE.Mesh) {
+                    child.material = invisible;
+                }
+            });
+        }
     }
 }
+
+const invisible = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0.0,
+    depthWrite: false,
+    depthTest: false,
+});
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
     private _useNominal3: undefined;
@@ -115,7 +154,7 @@ export class ControlPoint extends THREE.Object3D {
 export type FragmentInfo = { start: number, stop: number, untrimmedAncestor: SpaceInstance<Curve3D> };
 
 export class CurveSegment extends THREE.Object3D {
-    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName,material: LineMaterial, occludedMaterial: LineMaterial): CurveSegment {
+    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial): CurveSegment {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
@@ -624,19 +663,27 @@ export enum Layers {
     Face,
     CurveEdge,
 
-    Modified,
+    ModifiedSolid,
+    ModifiedFace,
+    ModifiedCurveEdge,
+
+    PremodifiedSolid,
+    PremodifiedFace,
+    PremodifiedCurveEdge,
 }
 
 export const VisibleLayers = new THREE.Layers();
 VisibleLayers.enableAll();
 VisibleLayers.disable(Layers.CurveFragment);
 VisibleLayers.disable(Layers.ControlPoint);
+VisibleLayers.disable(Layers.ModifiedCurveEdge);
 
 export const SelectableLayers = new THREE.Layers();
 SelectableLayers.enableAll();
 SelectableLayers.disable(Layers.CurveFragment);
 SelectableLayers.disable(Layers.ControlPoint);
-SelectableLayers.disable(Layers.Modified);
+SelectableLayers.disable(Layers.ModifiedFace);
+SelectableLayers.disable(Layers.ModifiedCurveEdge);
 
 export type Selectable = Item | TopologyItem | ControlPoint | Region;
 

@@ -58,6 +58,8 @@ export class Editor {
 
     disposable = new CompositeDisposable();
 
+    windowLoaded = false;
+
     constructor() {
         this.onWindowResize = this.onWindowResize.bind(this);
         this.onWindowLoad = this.onWindowLoad.bind(this);
@@ -102,6 +104,7 @@ export class Editor {
     }
 
     onWindowLoad() {
+        this.windowLoaded = true;
         this.signals.windowLoaded.dispatch();
     }
 
