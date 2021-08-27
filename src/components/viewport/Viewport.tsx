@@ -7,7 +7,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { EditorSignals } from '../../editor/EditorSignals';
-import { GeometryDatabase } from "../../editor/GeometryDatabase";
+import { DatabaseLike, GeometryDatabase } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
 import { CameraPlaneSnap, ConstructionPlaneSnap, PlaneSnap } from "../../editor/SnapManager";
 import * as visual from "../../editor/VisualModel";
@@ -24,7 +24,7 @@ const far = 1000;
 const frustumSize = 20;
 
 export interface EditorLike extends selector.EditorLike {
-    db: GeometryDatabase,
+    db: DatabaseLike,
     helpers: Helpers,
     viewports: Viewport[],
     signals: EditorSignals,

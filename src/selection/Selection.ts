@@ -1,4 +1,4 @@
-import { GeometryDatabase } from "../editor/GeometryDatabase";
+import { DatabaseLike, GeometryDatabase } from "../editor/GeometryDatabase";
 import c3d from '../build/Release/c3d.node';
 import * as visual from '../editor/VisualModel';
 
@@ -6,7 +6,7 @@ abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem | v
     size: number;
 
     constructor(
-        protected readonly db: GeometryDatabase,
+        protected readonly db: DatabaseLike,
         readonly ids: ReadonlySet<S>
     ) {
         this.size = ids.size;

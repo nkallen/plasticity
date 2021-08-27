@@ -1,7 +1,7 @@
 import c3d from '../../build/Release/c3d.node';
 import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../util/Conversion';
-import { GeometryDatabase } from './GeometryDatabase';
+import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
 import { CurveMemento } from './History';
 import * as visual from "./VisualModel";
 
@@ -11,7 +11,7 @@ export class PlanarCurveDatabase {
     private readonly placements = new Set<c3d.Placement3D>();
 
     constructor(
-        private readonly db: GeometryDatabase
+        private readonly db: DatabaseLike
     ) {
         const origin = new c3d.CartPoint3D(0, 0, 0);
         const X = new c3d.Vector3D(1, 0, 0);

@@ -15,7 +15,7 @@ import { Helpers } from "../util/Helpers";
 import { Backup } from "./Backup";
 import ContourManager from "./ContourManager";
 import { EditorSignals } from "./EditorSignals";
-import { GeometryDatabase } from "./GeometryDatabase";
+import { DatabaseLike, GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
 import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
@@ -24,7 +24,6 @@ import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { RegionManager } from "./RegionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
-import Transactions from './Transactions';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -35,9 +34,11 @@ export class Editor {
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly sprites = new SpriteDatabase();
-    readonly db = new GeometryDatabase(this.materials, this.signals);
+    readonly _db = new GeometryDatabase(this.materials, this.signals);
+    readonly modifiers = new ModifierManager(this._db, this.materials, this.signals);
+    readonly db = this.modifiers as DatabaseLike;
     readonly curves = new PlanarCurveDatabase(this.db);
-    readonly regions = new RegionManager(this.db, this.curves);
+    readonly regions = new RegionManager(this._db, this.curves);
     readonly contours = new ContourManager(this.curves, this.regions, this.signals);
     readonly snaps = new SnapManager(this.db, this.gizmos, this.signals);
     readonly registry = new CommandRegistry();
@@ -48,13 +49,11 @@ export class Editor {
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this.db, this.selection.selected, this.snaps, this.curves);
+    readonly originator = new EditorOriginator(this._db, this.selection.selected, this.snaps, this.curves);
     readonly history = new History(this.originator, this.signals);
-    readonly transactoins = new Transactions(this.db, this.signals);
     readonly executor = new CommandExecutor(this);
     readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);
-    readonly backup = new Backup(this.db, this.signals);
-    readonly modifiers = new ModifierManager(this.db, this.materials, this.signals);
+    readonly backup = new Backup(this._db, this.signals);
 
     disposable = new CompositeDisposable();
 

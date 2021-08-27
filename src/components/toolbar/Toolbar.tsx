@@ -3,7 +3,7 @@ import { render } from 'preact';
 import c3d from '../../../build/Release/c3d.node';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
-import { GeometryDatabase } from '../../editor/GeometryDatabase';
+import { DatabaseLike } from '../../editor/GeometryDatabase';
 import * as visual from "../../editor/VisualModel";
 import { HasSelection } from '../../selection/SelectionManager';
 import { humanizeKeystrokes } from '../atom/tooltip-manager';
@@ -12,7 +12,7 @@ import { icons, keybindings, tooltips } from './icons';
 export class Model {
     constructor(
         private readonly selection: HasSelection,
-        private readonly db: GeometryDatabase
+        private readonly db: DatabaseLike
     ) { }
 
     get commands() {

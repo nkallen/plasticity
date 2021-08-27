@@ -7,7 +7,7 @@ import { PointPicker } from "../commands/PointPicker";
 import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
 import { CircleGeometry, Redisposable, RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
-import { GeometryDatabase } from "./GeometryDatabase";
+import { DatabaseLike, GeometryDatabase } from "./GeometryDatabase";
 import { SnapMemento } from "./History";
 import * as visual from './VisualModel';
 
@@ -52,7 +52,7 @@ export class SnapManager {
     readonly layers = new THREE.Layers();
 
     constructor(
-        private readonly db: GeometryDatabase,
+        private readonly db: DatabaseLike,
         private readonly materials: GizmoMaterialDatabase,
         signals: EditorSignals
     ) {

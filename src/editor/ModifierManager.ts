@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
 import { EditorSignals } from "./EditorSignals";
-import { Agent, DatabaseLike, GeometryDatabase, MaterialOverride, TemporaryObject } from "./GeometryDatabase";
+import { Agent, ControlPointData, DatabaseLike, GeometryDatabase, MaterialOverride, TemporaryObject, TopologyData } from "./GeometryDatabase";
 import MaterialDatabase from "./MaterialDatabase";
 import * as visual from "./VisualModel";
 import c3d from '../../build/Release/c3d.node';
+import { GConstructor } from "../util/Util";
 
 export type Replacement = { from: visual.Item, to: visual.Item }
 
@@ -12,6 +13,9 @@ const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
 class ModifierList {
+    isEnabled = true;
+    showWhileEditing = true;
+
     private last?: visual.Solid;
     private temp?: TemporaryObject;
 
@@ -43,14 +47,12 @@ class ModifierList {
 
     async tempf(from: visual.Item, underlying: c3d.Solid) {
         this.db.hide(from);
-        
+
         const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
         symmetry.solid = underlying;
         symmetry.origin = new THREE.Vector3();
         symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
-        console.time("calculate");
         const symmetrized = await symmetry.calculate();
-        console.timeEnd("calculate");
 
         const result = (this.last !== undefined) ?
             await this.db.replaceTemporaryItem(this.last, symmetrized) :
@@ -59,7 +61,14 @@ class ModifierList {
 
         result.show();
         this.temp = result;
+        // FIXME when temp is cancelled, should delete reference
         return result;
+    }
+
+    dispose() {
+        if (this.last !== undefined) {
+            this.db.removeItem(this.last);
+        }
     }
 }
 
@@ -72,6 +81,7 @@ export class ModifierManager implements DatabaseLike {
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals
     ) { }
+
 
     async add(object: visual.Solid) {
         const name = this.version2name.get(object.simpleName)!;
@@ -113,11 +123,16 @@ export class ModifierManager implements DatabaseLike {
         return result;
     }
 
-    removeItem(view: visual.Item, agent?: Agent): void {
-        const { version2name } = this;
+    async removeItem(view: visual.Item, agent?: Agent): Promise<void> {
+        const { version2name, map } = this;
+        const name = version2name.get(view.simpleName)!;
 
-        this.db.removeItem(view, agent);
+        if (map.has(name)) {
+            const modifiers = map.get(name)!;
+            modifiers.dispose();
+        }
         version2name.delete(view.simpleName)!;
+        return this.db.removeItem(view, agent);
     }
 
     async duplicate(model: visual.Solid): Promise<visual.Solid>;
@@ -137,6 +152,17 @@ export class ModifierManager implements DatabaseLike {
     addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
         return this.db.addTemporaryItem(object);
     }
+
+    clearTemporaryObjects() {
+        this.db.clearTemporaryObjects();
+    }
+
+    rebuildScene() {
+        this.db.rebuildScene();
+    }
+
+    get temporaryObjects() { return this.db.temporaryObjects }
+    get phantomObjects() { return this.db.temporaryObjects }
 
     async replaceTemporaryItem(from: visual.Item, to: c3d.Item): Promise<TemporaryObject> {
         const { map, version2name } = this;
@@ -162,11 +188,36 @@ export class ModifierManager implements DatabaseLike {
         return this.db.lookup(object);
     }
 
+    lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item } {
+        return this.db.lookupItemById(id);
+    }
+
+    lookupTopologyItemById(id: string): TopologyData {
+        return this.db.lookupTopologyItemById(id);
+    }
+
     lookupTopologyItem(object: visual.Face): c3d.Face;
     lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
     lookupTopologyItem(object: visual.Edge | visual.Face): c3d.TopologyItem {
         // @ts-expect-error('typescript cant type polymorphism like this')
         return this.db.lookupTopologyItem(object);
+    }
+
+    lookupControlPointById(id: string): ControlPointData {
+        return this.db.lookupControlPointById(id);
+    }
+
+    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];
+    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T, model: c3d.SpaceInstance }[];
+    find<T extends visual.Solid>(klass: GConstructor<T>): { view: T, model: c3d.Solid }[];
+    find(): { view: visual.Item, model: c3d.Solid }[];
+    find<T extends visual.Item>(klass?: GConstructor<T>): { view: T, model: c3d.Item }[] {
+        // @ts-expect-error('typescript cant type polymorphism like this')
+        return this.db.find(klass);
+    }
+
+    get visibleObjects(): visual.Item[] {
+        return this.db.visibleObjects;
     }
 
     hide(item: visual.Item): void {
@@ -177,4 +228,11 @@ export class ModifierManager implements DatabaseLike {
         return this.db.unhide(item);
     }
 
+    unhideAll(): void {
+        this.db.unhideAll();
+    }
+
+    get scene() {
+        return this.db.scene;
+    }
 }

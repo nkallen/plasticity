@@ -1,6 +1,20 @@
 # PRE ALPHA:
 
-keybindings to move camera
+canceling needs to unhide
+when selecting modified item, should be able to select entire item
+  - when object unselected, show faces of modified, edges of unmodified
+  - faces selectable but strategy needs to ignore
+unselected item should show geometry for whole object?
+symmetry modifier plane should be position relative
+move/rotate/scale need to respect preview settings
+interface to list modifiers with toggles for enable/disable and button to apply
+file save and reload needs to respect modifiers:
+  - don't save modified items, only unmodified
+  - save items with metadata
+
+
+keybindings to move camera need to update construction plane
+reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
 
 ## COMMANDS
 when you delete region you delete its curve / and vice versa
@@ -9,7 +23,6 @@ when you delete region you delete its curve / and vice versa
 bug: clicking adds items to history even when no selection is changed
 
 ## GIZMOS
-reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
 
 ## POST ALPHA
 toggle kinds of snaps with keybindings?

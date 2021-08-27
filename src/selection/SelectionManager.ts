@@ -1,7 +1,7 @@
 import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
-import { Agent, GeometryDatabase } from '../editor/GeometryDatabase';
+import { Agent, DatabaseLike, GeometryDatabase } from '../editor/GeometryDatabase';
 import { SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
@@ -72,7 +72,7 @@ export class Selection implements HasSelection, ModifiesSelection {
     private readonly parentsWithSelectedChildren = new RefCounter<c3d.SimpleName>();
 
     constructor(
-        readonly db: GeometryDatabase,
+        readonly db: DatabaseLike,
         readonly materials: MaterialDatabase,
         readonly signals: SignalLike,
         readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])
@@ -262,7 +262,7 @@ export class SelectionManager implements HasSelectedAndHovered {
     private readonly highlighter = new HighlightManager(this.db);
 
     constructor(
-        readonly db: GeometryDatabase,
+        readonly db: DatabaseLike,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
         readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])

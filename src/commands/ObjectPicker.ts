@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
-import { GeometryDatabase } from '../editor/GeometryDatabase';
+import { DatabaseLike, GeometryDatabase } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
 import { SelectionInteractionManager, SelectionMode } from '../selection/SelectionInteraction';
@@ -11,7 +11,7 @@ import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { Cancel, CancellablePromise } from '../util/Cancellable';
 
 interface EditorLike {
-    db: GeometryDatabase;
+    db: DatabaseLike;
     viewports: Viewport[];
     signals: EditorSignals;
     materials: MaterialDatabase;

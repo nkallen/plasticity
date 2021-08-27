@@ -1,8 +1,7 @@
 import CommandRegistry from "../components/atom/CommandRegistry";
-import { Viewport } from "../components/viewport/Viewport";
 import PlanarCurveDatabase from "../editor/ContourManager";
 import { EditorSignals } from "../editor/EditorSignals";
-import { GeometryDatabase } from "../editor/GeometryDatabase";
+import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator, History } from "../editor/History";
 import { SelectionManager } from "../selection/SelectionManager";
 import { Cancel } from "../util/Cancellable";
@@ -13,7 +12,7 @@ import { SelectionCommandManager } from "./SelectionCommandManager";
 export type CancelOrFinish = 'cancel' | 'finish';
 
 export interface EditorLike {
-    db: GeometryDatabase;
+    db: DatabaseLike;
     selectionGizmo: SelectionCommandManager;
     registry: CommandRegistry;
     signals: EditorSignals;

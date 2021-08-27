@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
-import { GeometryDatabase } from '../editor/GeometryDatabase';
+import { DatabaseLike, GeometryDatabase } from '../editor/GeometryDatabase';
 import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
 import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
@@ -11,7 +11,7 @@ import { Helper, Helpers } from '../util/Helpers';
 const geometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
 interface EditorLike {
-    db: GeometryDatabase,
+    db: DatabaseLike,
     viewports: Viewport[],
     snaps: SnapManager,
     signals: EditorSignals,
@@ -36,7 +36,7 @@ export class Model {
     restrictionPlane?: PlaneSnap;
 
     constructor(
-        private readonly db: GeometryDatabase,
+        private readonly db: DatabaseLike,
         private readonly manager: SnapManager
     ) { }
 

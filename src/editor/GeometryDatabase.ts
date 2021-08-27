@@ -12,6 +12,61 @@ import * as visual from './VisualModel';
 const mesh_precision_distance: [number, number][] = [[0.1, 300], [0.003, 5]];
 const other_precision_distance: [number, number][] = [[0.0005, 1]];
 
+export type Agent = 'user' | 'automatic';
+
+export interface DatabaseLike {
+    get scene(): THREE.Scene;
+
+    addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
+    addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
+    addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;
+
+    replaceItem(from: visual.Solid, model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
+    replaceItem<T extends visual.SpaceItem>(from: visual.SpaceInstance<T>, model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
+    replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
+    replaceItem(from: visual.Item, model: c3d.Item): Promise<visual.Item>;
+
+    removeItem(view: visual.Item, agent?: Agent): Promise<void>;
+
+    duplicate(model: visual.Solid): Promise<visual.Solid>;
+    duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;
+    duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
+
+    addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject>;
+    addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
+    replaceTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
+
+    clearTemporaryObjects(): void;
+    rebuildScene(): void;
+    readonly temporaryObjects: THREE.Scene; // FIXME should this really be public?
+    readonly phantomObjects: THREE.Scene;
+
+    lookup(object: visual.Solid): c3d.Solid;
+    lookup(object: visual.SpaceInstance<visual.Curve3D>): c3d.SpaceInstance;
+    lookup(object: visual.PlaneInstance<visual.Region>): c3d.PlaneInstance;
+    lookup(object: visual.Item): c3d.Item;
+
+    lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item };
+
+    lookupTopologyItemById(id: string): TopologyData;
+    lookupTopologyItem(object: visual.Face): c3d.Face;
+    lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
+    lookupControlPointById(id: string): ControlPointData;
+
+    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];
+    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T, model: c3d.SpaceInstance }[];
+    find<T extends visual.Solid>(klass: GConstructor<T>): { view: T, model: c3d.Solid }[];
+    find(): { view: visual.Item, model: c3d.Solid }[];
+
+    get visibleObjects(): visual.Item[];
+
+    hide(item: visual.Item): void;
+    unhide(item: visual.Item): void;
+    unhideAll(): void;
+}
+
 export interface TemporaryObject {
     get underlying(): visual.Item;
     cancel(): void;
@@ -31,43 +86,6 @@ export interface MaterialOverride {
     mesh?: THREE.Material;
     surface?: THREE.Material;
 }
-
-export type Agent = 'user' | 'automatic';
-
-export interface DatabaseLike {
-    addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
-    addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
-    addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
-    addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;
-
-    replaceItem(from: visual.Solid, model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
-    replaceItem<T extends visual.SpaceItem>(from: visual.SpaceInstance<T>, model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
-    replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
-    replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
-    replaceItem(from: visual.Item, model: c3d.Item): Promise<visual.Item>;
-
-    removeItem(view: visual.Item, agent?: Agent): void;
-
-    duplicate(model: visual.Solid): Promise<visual.Solid>;
-    duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;
-    duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
-
-    addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject>;
-    addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
-    replaceTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
-
-    lookup(object: visual.Solid): c3d.Solid;
-    lookup(object: visual.SpaceInstance<visual.Curve3D>): c3d.SpaceInstance;
-    lookup(object: visual.PlaneInstance<visual.Region>): c3d.PlaneInstance;
-    lookup(object: visual.Item): c3d.Item;
-
-    lookupTopologyItem(object: visual.Face): c3d.Face;
-    lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
-
-    hide(item: visual.Item): void;
-    unhide(item: visual.Item): void;
-}
-
 export class GeometryDatabase implements DatabaseLike {
     readonly temporaryObjects = new THREE.Scene();
     readonly phantomObjects = new THREE.Scene();
@@ -136,26 +154,30 @@ export class GeometryDatabase implements DatabaseLike {
     }
 
     async addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
-        return this.addTemporaryItem(object, materials, this.phantomObjects);
+        return this.addTemporaryItem(object, undefined, materials, this.phantomObjects);
     }
 
     async replaceTemporaryItem(from: visual.Item, to: c3d.Item,): Promise<TemporaryObject> {
-        const result = await this.addTemporaryItem(to);
-        this.hide(from);
+        const result = await this.addTemporaryItem(to, from);
         return result;
     }
 
-    async addTemporaryItem(object: c3d.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
+    async addTemporaryItem(object: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
         const note = new c3d.FormNote(true, true, false, false, false);
         const mesh = await this.meshes(object, -1, note, [[0.003, 1]], materials);
         mesh.visible = false;
         into.add(mesh);
+        const db = this;
         return {
             underlying: mesh,
-            show() { mesh.visible = true },
+            show() {
+                mesh.visible = true
+                if (ancestor !== undefined) db.hide(ancestor);
+            },
             cancel() {
                 mesh.dispose();
                 into.remove(mesh);
+                if (ancestor !== undefined) db.unhide(ancestor);
             }
         }
     }
@@ -165,7 +187,7 @@ export class GeometryDatabase implements DatabaseLike {
         this.phantomObjects.clear();
     }
 
-    async removeItem(view: visual.Item, agent: Agent = 'user') {
+    async removeItem(view: visual.Item, agent: Agent = 'user'): Promise<void> {
         return this.queue.enqueue(async () => {
             return this._removeItem(view, agent);
         });
@@ -221,7 +243,6 @@ export class GeometryDatabase implements DatabaseLike {
         }
         assertUnreachable(object);
     }
-
 
     find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];
     find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T, model: c3d.SpaceInstance }[];

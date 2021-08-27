@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { GeometryDatabase } from "../../editor/GeometryDatabase";
+import { DatabaseLike, GeometryDatabase } from "../../editor/GeometryDatabase";
 import MaterialDatabase from "../../editor/MaterialDatabase";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
@@ -64,7 +64,7 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     readonly preview = new CurveFactory(this.db, this.materials, this.signals);
 
     constructor(
-        protected readonly db: GeometryDatabase,
+        protected readonly db: DatabaseLike,
         protected readonly materials: MaterialDatabase,
         protected readonly signals: EditorSignals
     ) {

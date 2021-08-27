@@ -1,5 +1,5 @@
 import c3d from '../../build/Release/c3d.node';
-import { GeometryDatabase } from './GeometryDatabase';
+import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
 import * as visual from "./VisualModel";
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
 import { isSamePlacement } from '../util/Conversion';

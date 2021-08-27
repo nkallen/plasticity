@@ -5,7 +5,7 @@ import Command, * as cmd from "../commands/Command";
 import { CancelOrFinish } from "../commands/CommandExecutor";
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
 import { EditorSignals } from "../editor/EditorSignals";
-import { GeometryDatabase } from "../editor/GeometryDatabase";
+import { DatabaseLike, GeometryDatabase } from "../editor/GeometryDatabase";
 import { EditorOriginator } from "../editor/History";
 import * as visual from "../editor/VisualModel";
 
@@ -48,7 +48,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
     constructor(
         private readonly camera: THREE.Camera,
         private readonly domElement: HTMLElement,
-        protected readonly db: GeometryDatabase,
+        protected readonly db: DatabaseLike,
         protected readonly signals: EditorSignals
     ) {
         super();

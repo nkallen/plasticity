@@ -69,14 +69,14 @@ test("addItem & replaceItem", async () => {
     ]
     const box2 = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
     const view2 = await db.replaceItem(view1, box2);
-    expect(view2.simpleName).toBe(view1.simpleName);
+    expect(view2.simpleName).not.toBe(view1.simpleName);
 
     bbox.setFromObject(view2);
     bbox.getCenter(center);
     expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, -0.5, 0.5));
 
-    const { model: model2 } = db.lookupItemById(view1.simpleName);
-    expect(model2).toBe(box2);
+    expect(() => db.lookupItemById(view1.simpleName)).toThrow();
+
 })
 
 test("saveToMemento & restoreFromMemento", async () => {

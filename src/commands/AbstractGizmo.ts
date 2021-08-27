@@ -1,5 +1,5 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { GeometryDatabase } from "../editor/GeometryDatabase";
+import { DatabaseLike, GeometryDatabase } from "../editor/GeometryDatabase";
 import * as THREE from "three";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
@@ -31,7 +31,7 @@ export interface GizmoView {
 }
 
 export interface EditorLike {
-    db: GeometryDatabase,
+    db: DatabaseLike,
     helpers: Helpers,
     viewports: Viewport[],
     signals: EditorSignals,

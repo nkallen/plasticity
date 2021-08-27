@@ -2,7 +2,7 @@ import _ from "underscore-plus";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from "../editor/EditorSignals";
-import { GeometryDatabase } from "../editor/GeometryDatabase";
+import { DatabaseLike, GeometryDatabase } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import { ModifierManager } from "../editor/ModifierManager";
@@ -38,7 +38,7 @@ import { GizmoMaterialDatabase } from "./GizmoMaterials";
  */
 
 export interface EditorLike {
-    db: GeometryDatabase,
+    db: DatabaseLike,
     curves: PlanarCurveDatabase,
     signals: EditorSignals,
     materials: MaterialDatabase,
@@ -51,7 +51,6 @@ export interface EditorLike {
     selectionInteraction: SelectionInteractionManager,
     layers: LayerManager,
     activeViewport?: Viewport,
-    modifiers: ModifierManager,
     enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>
 }
 

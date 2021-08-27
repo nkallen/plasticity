@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import c3d from '../../build/Release/c3d.node';
-import { GeometryDatabase } from "../editor/GeometryDatabase";
+import { DatabaseLike } from "../editor/GeometryDatabase";
 
 export class HighlightManager {
     constructor(
-        private readonly db: GeometryDatabase
+        private readonly db: DatabaseLike
     ) { }
 
     highlightTopologyItems(collection: Iterable<string>, mat: (c: c3d.TopologyItem) => THREE.Material) {

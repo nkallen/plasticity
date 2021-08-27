@@ -184,8 +184,8 @@ describe("commit", () => {
         const newView = newViews[0];
         expect(db.visibleObjects.length).toBe(2);
 
-        const { view: view2, model: model2 } = db.lookupItemById(sphere1.simpleName);
-        expect(view2.uuid).toBe(newView.uuid)
+        // const { view: view2, model: model2 } = db.lookupItemById(sphere1.simpleName);
+        // expect(view2.uuid).toBe(newView.uuid)
     });
 
     test("when it produces less than it consumes", async () => {
@@ -202,8 +202,8 @@ describe("commit", () => {
         const newView = newViews[0];
         expect(db.visibleObjects.length).toBe(1);
 
-        const { view: view2, model: model2 } = db.lookupItemById(sphere1.simpleName);
-        expect(view2.uuid).toBe(newView.uuid)
+        // const { view: view2, model: model2 } = db.lookupItemById(sphere1.simpleName);
+        // expect(view2.uuid).toBe(newView.uuid)
     });
 
     test("when it produces more than it consumes", async () => {
@@ -220,7 +220,7 @@ describe("commit", () => {
         const newView = newViews[0];
         expect(db.visibleObjects.length).toBe(3);
 
-        const { view: view2, model: model2 } = db.lookupItemById(sphere1.simpleName);
-        expect(view2.uuid).toBe(newView.uuid)
+        // const { view: view2, model: model2 } = db.lookupItemById(sphere1.simpleName);
+        // expect(view2.uuid).toBe(newView.uuid)
     });
 });

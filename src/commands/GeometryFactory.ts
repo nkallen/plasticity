@@ -60,8 +60,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
         // 2. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);
         const zipped = this.zip(this.originalItems, geometries);
-        console.log(this.shouldRemoveOriginalItem);
-        console.log(zipped);
+
         for (const [from, to] of zipped) {
             if (from === undefined) {
                 promises.push(this.db.addTemporaryItem(to!));
@@ -117,7 +116,6 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 } else if (to === undefined) {
                     this.db.removeItem(from);
                 } else {
-                    this.db.unhide(from);
                     promises.push(this.db.replaceItem(from, to))
                 }
             }
