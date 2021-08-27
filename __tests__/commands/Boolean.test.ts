@@ -29,7 +29,7 @@ beforeEach(() => {
 
 describe(IntersectionFactory, () => {
     describe('commit', () => {
-        test.only('invokes the appropriate c3d commands', async () => {
+        test('invokes the appropriate c3d commands', async () => {
             let makeSphere = new SphereFactory(db, materials, signals);
             makeSphere.center = new THREE.Vector3(-0.5, -0.5, -0.5);
             makeSphere.radius = 1;

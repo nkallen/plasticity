@@ -13,11 +13,11 @@ export type Replacement = { from: visual.Item, to: visual.Item }
 const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
-class ModifierList {
+export class ModifierList {
     isEnabled = true;
     showWhileEditing = true;
 
-    private temp?: TemporaryObject;
+    temp?: TemporaryObject;
     modified?: visual.Solid;
     unmodified?: visual.Solid;
 
@@ -56,7 +56,7 @@ class ModifierList {
     }
 
     async tempf(from: visual.Item, underlying: c3d.Solid) {
-        this.db.hide(from);
+        from.visible = false;
 
         const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
         symmetry.solid = underlying;
@@ -151,7 +151,7 @@ export class ModifierManager implements DatabaseLike {
         }
     }
 
-    async add(object: visual.Solid): Promise<visual.Solid> {
+    async add(object: visual.Solid): Promise<ModifierList> {
         const { version2name, selection, map, modified2name, db, materials, signals } = this;
         let name = version2name.get(object.simpleName);
         if (name === undefined) {
@@ -167,7 +167,15 @@ export class ModifierManager implements DatabaseLike {
 
         const result = await modifiers.update(db.lookup(object), Promise.resolve(object));
         modified2name.set(result.simpleName, name);
-        return result;
+        return modifiers;
+    }
+
+    get(object: visual.Solid): ModifierList | undefined {
+        const { version2name, map } = this;
+        let name = version2name.get(object.simpleName);
+        if (name === undefined) return undefined;
+
+        return map.get(name);
     }
 
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
