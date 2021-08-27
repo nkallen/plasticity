@@ -6,6 +6,7 @@ import MaterialDatabase from "./MaterialDatabase";
 import * as visual from "./VisualModel";
 import c3d from '../../build/Release/c3d.node';
 import { GConstructor } from "../util/Util";
+import { SelectionManager } from "../selection/SelectionManager";
 
 export type Replacement = { from: visual.Item, to: visual.Item }
 
@@ -16,8 +17,9 @@ class ModifierList {
     isEnabled = true;
     showWhileEditing = true;
 
-    private last?: visual.Solid;
     private temp?: TemporaryObject;
+    modified?: visual.Solid;
+    unmodified?: visual.Solid;
 
     constructor(
         private readonly db: GeometryDatabase,
@@ -25,7 +27,7 @@ class ModifierList {
         private readonly signals: EditorSignals,
     ) { }
 
-    async update(underlying: c3d.Solid, view: Promise<visual.Solid>) {
+    async update(underlying: c3d.Solid, view: Promise<visual.Solid>): Promise<visual.Solid> {
         const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
         symmetry.solid = underlying;
         symmetry.origin = new THREE.Vector3();
@@ -34,15 +36,23 @@ class ModifierList {
         const symmetrized = await symmetry.calculate();
         console.timeEnd("calculate");
 
-        const modified = (this.last !== undefined) ?
-            await this.db.replaceItem(this.last, symmetrized) :
+        const modified = (this.modified !== undefined) ?
+            await this.db.replaceItem(this.modified, symmetrized) :
             await this.db.addItem(symmetrized, 'automatic');
 
         const unmodified = await view;
-        modified.bemodify(unmodified);
-        unmodified.premodify(modified);
+        unmodified.visible = false;
+        for (const face of unmodified.allFaces) {
+            face.traverse(child => {
+                if (child instanceof THREE.Mesh) {
+                    child.material = invisible;
+                }
+            });
+        }
 
-        this.last = modified;
+        this.modified = modified;
+        this.unmodified = unmodified;
+        return modified;
     }
 
     async tempf(from: visual.Item, underlying: c3d.Solid) {
@@ -54,8 +64,8 @@ class ModifierList {
         symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
         const symmetrized = await symmetry.calculate();
 
-        const result = (this.last !== undefined) ?
-            await this.db.replaceTemporaryItem(this.last, symmetrized) :
+        const result = (this.modified !== undefined) ?
+            await this.db.replaceTemporaryItem(this.modified, symmetrized) :
             await this.db.addTemporaryItem(symmetrized);
         if (this.temp !== undefined) this.temp.cancel();
 
@@ -66,8 +76,8 @@ class ModifierList {
     }
 
     dispose() {
-        if (this.last !== undefined) {
-            this.db.removeItem(this.last);
+        if (this.modified !== undefined) {
+            this.db.removeItem(this.modified);
         }
     }
 }
@@ -75,21 +85,89 @@ class ModifierList {
 export class ModifierManager implements DatabaseLike {
     private readonly map = new Map<c3d.SimpleName, ModifierList>();
     private readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
+    private readonly modified2name = new Map<c3d.SimpleName, c3d.SimpleName>();
 
     constructor(
         private readonly db: GeometryDatabase,
+        private readonly selection: SelectionManager,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals
-    ) { }
+    ) {
+        signals.objectSelected.add(o => this.objectSelected(o));
+        signals.objectDeselected.add(o => this.objectDeselected(o));
+    }
 
+    objectSelected(s: visual.Selectable) {
+        const { map, modified2name, selection } = this;
+        if (s instanceof visual.Solid) {
+            const name = modified2name.get(s.simpleName);
+            if (name === undefined) return;
 
-    async add(object: visual.Solid) {
-        const name = this.version2name.get(object.simpleName)!;
+            if (map.has(name)) {
+                const modifiers = map.get(name)!;
 
-        const modifiers = new ModifierList(this.db, this.materials, this.signals);
-        this.map.set(name, modifiers);
+                const unmodified = modifiers.unmodified!;
+                unmodified.visible = true;
+                selection.selected.addSolid(unmodified);
 
-        return modifiers.update(this.db.lookup(object), Promise.resolve(object));
+                const modified = modifiers.modified!;
+                for (const edge of modified.allEdges) {
+                    edge.traverse(child => {
+                        edge.visible = false;
+                    });
+                }
+                modified.traverse(child => {
+                    child.userData.oldLayerMask = child.layers.mask;
+                    child.layers.set(visual.Layers.Unselectable);
+                });
+            }
+        }
+    }
+
+    objectDeselected(s: visual.Selectable) {
+        const { map, modified2name, selection } = this;
+        if (s instanceof visual.Solid) {
+            const name = modified2name.get(s.simpleName);
+            if (name === undefined) return;
+
+            if (map.has(name)) {
+                const modifiers = map.get(name)!;
+
+                const unmodified = modifiers.unmodified!;
+                unmodified.visible = false;
+                selection.selected.removeSolid(unmodified);
+
+                const modified = modifiers.modified!;
+                for (const edge of modified.allEdges) {
+                    edge.traverse(child => {
+                        edge.visible = true;
+                    });
+                }
+                modified.traverse(child => {
+                    child.layers.mask = child.userData.oldLayerMask;
+                    child.userData.oldLayerMask = undefined;
+                });
+            }
+        }
+    }
+
+    async add(object: visual.Solid): Promise<visual.Solid> {
+        const { version2name, selection, map, modified2name, db, materials, signals } = this;
+        let name = version2name.get(object.simpleName);
+        if (name === undefined) {
+            // FIXME this is TEMPORARY just for reloading files. replace when there is a better file reload strategy
+            version2name.set(object.simpleName, object.simpleName);
+            name = object.simpleName;
+        }
+
+        selection.selected.removeSolid(object);
+
+        const modifiers = new ModifierList(db, materials, signals);
+        map.set(name, modifiers);
+
+        const result = await modifiers.update(db.lookup(object), Promise.resolve(object));
+        modified2name.set(result.simpleName, name);
+        return result;
     }
 
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
@@ -106,19 +184,20 @@ export class ModifierManager implements DatabaseLike {
     async replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
     async replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
     async replaceItem(from: visual.Item, to: c3d.Item): Promise<visual.Item> {
-        const { map, version2name } = this;
+        const { map, version2name, modified2name } = this;
         const name = version2name.get(from.simpleName)!;
 
         const result = this.db.replaceItem(from, to);
         if (map.has(name)) {
             const modifiers = map.get(name)!;
-            await modifiers.update(to as c3d.Solid, result as Promise<visual.Solid>);
+            const modified = await modifiers.update(to as c3d.Solid, result as Promise<visual.Solid>);
+            modified2name.set(modified.simpleName, name);
         }
 
         const view = await result;
 
         version2name.delete(from.simpleName);
-        this.version2name.set(view.simpleName, name);
+        version2name.set(view.simpleName, name);
 
         return result;
     }
@@ -236,3 +315,11 @@ export class ModifierManager implements DatabaseLike {
         return this.db.scene;
     }
 }
+
+
+const invisible = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0.0,
+    depthWrite: false,
+    depthTest: false,
+});

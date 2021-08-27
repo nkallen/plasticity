@@ -35,7 +35,8 @@ export class Editor {
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly sprites = new SpriteDatabase();
     readonly _db = new GeometryDatabase(this.materials, this.signals);
-    readonly modifiers = new ModifierManager(this._db, this.materials, this.signals);
+    readonly selection = new SelectionManager(this._db, this.materials, this.signals);
+    readonly modifiers = new ModifierManager(this._db, this.selection, this.materials, this.signals);
     readonly db = this.modifiers as DatabaseLike;
     readonly curves = new PlanarCurveDatabase(this.db);
     readonly regions = new RegionManager(this._db, this.curves);
@@ -44,7 +45,6 @@ export class Editor {
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
-    readonly selection = new SelectionManager(this.db, this.materials, this.signals);
     readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly selectionInteraction = new SelectionInteractionManager(this.selection, this.materials, this.signals);

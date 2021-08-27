@@ -172,12 +172,12 @@ export class GeometryDatabase implements DatabaseLike {
             underlying: mesh,
             show() {
                 mesh.visible = true
-                if (ancestor !== undefined) db.hide(ancestor);
+                if (ancestor !== undefined) ancestor.visible = false;
             },
             cancel() {
                 mesh.dispose();
                 into.remove(mesh);
-                if (ancestor !== undefined) db.unhide(ancestor);
+                if (ancestor !== undefined) ancestor.visible = true;
             }
         }
     }

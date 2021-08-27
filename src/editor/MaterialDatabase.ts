@@ -61,16 +61,13 @@ const matcapTexture = new THREE.TextureLoader().load(porcelain);
 const surface = new THREE.MeshMatcapMaterial();
 surface.fog = false;
 surface.matcap = matcapTexture;
-surface.polygonOffset = true;
-surface.polygonOffsetFactor = 0.1;
-surface.polygonOffsetUnits = 1;
 surface.side = THREE.DoubleSide;
 
 const mesh = new THREE.MeshMatcapMaterial();
 mesh.fog = false;
 mesh.matcap = matcapTexture;
 mesh.polygonOffset = true;
-mesh.polygonOffsetFactor = 0.1;
+mesh.polygonOffsetFactor = 1;
 mesh.polygonOffsetUnits = 1;
 
 const mesh_highlighted = new THREE.MeshMatcapMaterial();
@@ -78,16 +75,16 @@ mesh_highlighted.color.setHex(0xffff00);
 mesh_highlighted.fog = false;
 mesh_highlighted.matcap = matcapTexture;
 mesh_highlighted.polygonOffset = true;
-mesh_highlighted.polygonOffsetFactor = 0.1;
-mesh_highlighted.polygonOffsetUnits = 1;
+mesh_highlighted.polygonOffsetFactor = -1;
+mesh_highlighted.polygonOffsetUnits = -1;
 
 const mesh_hovered = new THREE.MeshMatcapMaterial();
 mesh_hovered.color.setHex(0xffffdd);
 mesh_hovered.fog = false;
 mesh_hovered.matcap = matcapTexture;
 mesh_hovered.polygonOffset = true;
-mesh_hovered.polygonOffsetFactor = 0.1;
-mesh_hovered.polygonOffsetUnits = 1;
+mesh_hovered.polygonOffsetFactor = -1;
+mesh_hovered.polygonOffsetUnits = -1;
 
 const region = new THREE.MeshBasicMaterial();
 region.fog = false;

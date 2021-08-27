@@ -65,7 +65,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
             if (from === undefined) {
                 promises.push(this.db.addTemporaryItem(to!));
             } else if (to === undefined) {
-                this.db.hide(from);
+                from.visible = false;
             } else {
                 promises.push(this.db.replaceTemporaryItem(from, to));
             }
@@ -123,7 +123,8 @@ export abstract class GeometryFactory extends ResourceRegistration {
             const result = await Promise.all(promises);
             return dearray(result, unarray);
         } finally {
-            await Promise.resolve(); // This removes flickering when rendering.
+            await Promise.resolve(); // This removes flickering when rendering. // FIXME is that still true?
+            for (const i of this.originalItems) i.visible = true;
             for (const temp of this.temps) temp.cancel();
         }
     }
@@ -137,7 +138,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     }
 
     protected doCancel(): void {
-        for (const i of this.originalItems) this.db.unhide(i);
+        for (const i of this.originalItems) i.visible = true;
         for (const temp of this.temps) temp.cancel();
     }
 

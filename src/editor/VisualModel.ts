@@ -85,35 +85,8 @@ export class Solid extends Item {
             faces.dispose();
         }
     }
-
-    bemodify(ancestor: Solid) {
-        this.layers.set(Layers.ModifiedSolid);
-        for (const edge of this.allEdges) edge.parent?.remove(edge);
-
-        for (const face of this.allFaces) {
-            face.traverse(child => child.layers.set(Layers.ModifiedFace));
-        }
-    }
-
-    premodify(successor: Solid) {
-        this.layers.set(Layers.PremodifiedSolid);
-
-        for (const face of this.allFaces) {
-            face.traverse(child => {
-                if (child instanceof THREE.Mesh) {
-                    child.material = invisible;
-                }
-            });
-        }
-    }
 }
 
-const invisible = new THREE.MeshBasicMaterial({
-    transparent: true,
-    opacity: 0.0,
-    depthWrite: false,
-    depthTest: false,
-});
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
     private _useNominal3: undefined;
@@ -663,27 +636,22 @@ export enum Layers {
     Face,
     CurveEdge,
 
-    ModifiedSolid,
-    ModifiedFace,
-    ModifiedCurveEdge,
-
-    PremodifiedSolid,
-    PremodifiedFace,
-    PremodifiedCurveEdge,
+    Unselectable,
 }
 
 export const VisibleLayers = new THREE.Layers();
 VisibleLayers.enableAll();
 VisibleLayers.disable(Layers.CurveFragment);
 VisibleLayers.disable(Layers.ControlPoint);
-VisibleLayers.disable(Layers.ModifiedCurveEdge);
+// VisibleLayers.disable(Layers.ModifiedCurveEdge);
 
 export const SelectableLayers = new THREE.Layers();
 SelectableLayers.enableAll();
 SelectableLayers.disable(Layers.CurveFragment);
 SelectableLayers.disable(Layers.ControlPoint);
-SelectableLayers.disable(Layers.ModifiedFace);
-SelectableLayers.disable(Layers.ModifiedCurveEdge);
+SelectableLayers.disable(Layers.Unselectable);
+// SelectableLayers.disable(Layers.ModifiedFace);
+// SelectableLayers.disable(Layers.ModifiedCurveEdge);
 
 export type Selectable = Item | TopologyItem | ControlPoint | Region;
 
