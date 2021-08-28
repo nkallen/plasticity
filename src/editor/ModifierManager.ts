@@ -1,8 +1,11 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { GeometryFactory } from "../commands/GeometryFactory";
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
+import { ItemSelection } from "../selection/Selection";
 import { HasSelectedAndHovered, Highlightable, ModifiesSelection, SelectionManager } from "../selection/SelectionManager";
 import { SelectionProxy } from "../selection/SelectionProxy";
+import { zip } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
 import { Agent, DatabaseLike, GeometryDatabase, TemporaryObject } from "./GeometryDatabase";
@@ -81,7 +84,7 @@ export class ModifierStack {
         const symmetrized = await symmetry.calculate();
 
         const result = (this.modified !== undefined) ?
-            await this.db.replaceTemporaryItem(this.modified, symmetrized) :
+            await this.db.replaceWithTemporaryItem(this.modified, symmetrized) :
             await this.db.addTemporaryItem(symmetrized);
         if (this.temp !== undefined) this.temp.cancel();
 
@@ -120,7 +123,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         protected readonly signals: EditorSignals
     ) {
         super(db);
-        this.selected = new ModifierSelection(this, selection.selected);
+        this.selected = new ModifierSelection(db, this, selection.selected);
         this.hovered = selection.hovered;
     }
 
@@ -143,15 +146,16 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         return modifiers;
     }
 
-    get(object: visual.Solid): ModifierStack | undefined {
+    getByUnmodified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
         const { version2name, map } = this;
-        let name = version2name.get(object.simpleName);
+        const simpleName = object instanceof visual.Solid ? object.simpleName : object;
+        let name = version2name.get(simpleName);
         if (name === undefined) return undefined;
 
         return map.get(name);
     }
 
-    reverse(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
+    getByModified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
         const { map, modified2name } = this;
         const simpleName = object instanceof visual.Solid ? object.simpleName : object;
         const name = modified2name.get(simpleName);
@@ -214,7 +218,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         return result;
     }
 
-    async replaceTemporaryItem(from: visual.Item, to: c3d.Item): Promise<TemporaryObject> {
+    async replaceWithTemporaryItem(from: visual.Item, to: c3d.Item): Promise<TemporaryObject> {
         const { map, version2name } = this;
         const name = version2name.get(from.simpleName)!;
 
@@ -223,30 +227,33 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
             const modifiers = map.get(name)!;
             result = await modifiers.updateTemporary(from, to as c3d.Solid);
         } else {
-            result = await this.db.replaceTemporaryItem(from, to);
+            result = await this.db.replaceWithTemporaryItem(from, to);
         }
 
         return result;
     }
+
+    didModifyTemporarily(ifDisallowed: () => Promise<void>): Promise<void>{
+        return ifDisallowed();
+    }
 };
 
 class ModifierSelection extends SelectionProxy {
-    constructor(private readonly modifiers: ModifierManager, selection: ModifiesSelection & Highlightable) {
+    constructor(private readonly db: DatabaseLike, private readonly modifiers: ModifierManager, selection: ModifiesSelection & Highlightable) {
         super(selection);
     }
 
     addSolid(solid: visual.Solid) {
-        super.addSolid(solid);
-
         const { modifiers, selection } = this;
-        const stack = modifiers.reverse(solid);
-        if (stack === undefined) return;
+        const stack = modifiers.getByModified(solid);
+        if (stack === undefined) {
+            return super.addSolid(solid);
+        }
 
         const { modified, unmodified } = stack;
 
         unmodified.visible = true;
         selection.addSolid(unmodified);
-        selection.addSolid(solid);
 
         for (const edge of modified.allEdges) {
             edge.visible = false;
@@ -258,18 +265,22 @@ class ModifierSelection extends SelectionProxy {
     }
 
     removeSolid(solid: visual.Solid) {
-        super.removeSolid(solid);
+        const { modifiers } = this;
+        const stack = modifiers.getByUnmodified(solid.simpleName);
+        if (stack === undefined) {
+            return super.removeSolid(solid);
+        }
 
         this.removeById(solid.simpleName);
     }
 
     private removeById(id: c3d.SimpleName) {
         const { modifiers, selection } = this;
-        const stack = modifiers.reverse(id);
+        const stack = modifiers.getByUnmodified(id);
         if (stack === undefined) return;
-
+        
         const { modified, unmodified } = stack;
-
+        
         unmodified.visible = false;
         selection.removeSolid(unmodified);
 
@@ -283,9 +294,22 @@ class ModifierSelection extends SelectionProxy {
             child.userData.oldLayerMask = undefined;
         });
     }
-
+    
     removeAll() {
         for (const id of this.selection.solidIds) this.removeById(id);
         super.removeAll();
+    }
+
+    get outlinable() {
+        const { db, modifiers } = this;
+        const outlineIds = new Set(this.solidIds);
+        for (const id of outlineIds) {
+            const stack = modifiers.getByUnmodified(id);
+            if (stack !== undefined) {
+                outlineIds.delete(id);
+                outlineIds.add(stack.modified.simpleName);
+            }
+        }
+        return new ItemSelection<visual.Solid>(db, outlineIds)
     }
 }

@@ -54,6 +54,7 @@ export interface ModifiesSelection extends HasSelection {
 }
 
 export interface Highlightable {
+    outlinable: Iterable<visual.Solid>;
     highlight(highlighter: HighlightManager, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']): void;
     unhighlight(highlighter: HighlightManager): void;
 }
@@ -92,6 +93,7 @@ export class Selection implements HasSelection, ModifiesSelection, Highlightable
     get regions() { return new ItemSelection<visual.PlaneInstance<visual.Region>>(this.db, this.regionIds) }
     get curves() { return new ItemSelection<visual.SpaceInstance<visual.Curve3D>>(this.db, this.curveIds) }
     get controlPoints() { return new ControlPointSelection(this.db, this.controlPointIds) }
+    get outlinable() { return this.solids }
 
     hasSelectedChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>) {
         return this.parentsWithSelectedChildren.has(solid.simpleName)

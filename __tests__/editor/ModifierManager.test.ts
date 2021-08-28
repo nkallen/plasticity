@@ -71,8 +71,8 @@ describe(ModifierManager, () => {
 
         expect(db.visibleObjects.length).toBe(2);
 
-        expect(modifiers.get(box)).toBeUndefined();
-        const newModification = modifiers.get(filleted) as ModifierStack;
+        expect(modifiers.getByUnmodified(box)).toBeUndefined();
+        const newModification = modifiers.getByUnmodified(filleted) as ModifierStack;
         expect(newModification).not.toBeUndefined();
         expect(modification.modified).not.toBe(1);
         expect(newModification.modified).not.toBe(oldModified)
@@ -101,7 +101,7 @@ describe(ModifierManager, () => {
         expect(db.visibleObjects.length).toBe(2);
         expect(db.temporaryObjects.children.length).toBe(1);
 
-        expect(modifiers.get(box)).toBe(modification);
+        expect(modifiers.getByUnmodified(box)).toBe(modification);
         expect(modification.temp!.underlying).toBe(db.temporaryObjects.children[0]);
 
         await makeFillet.commit();
@@ -109,9 +109,9 @@ describe(ModifierManager, () => {
     });
 
     test('removing an item removes the modifier db', async () => {
-        expect(modifiers.get(box)).not.toBeUndefined();
+        expect(modifiers.getByUnmodified(box)).not.toBeUndefined();
         await modifiers.removeItem(box);
-        expect(modifiers.get(box)).toBeUndefined();
+        expect(modifiers.getByUnmodified(box)).toBeUndefined();
     })
 
     test('duplicating an object...', () => {
@@ -136,7 +136,7 @@ describe(ModifierManager, () => {
             expect(child.layers.mask).toBe(unselectable.mask);
         });
 
-        modifiers.selected.removeSolid(modified);
+        modifiers.selected.removeSolid(unmodified);
         expect(modified.visible).toBe(true);
         expect(unmodified.visible).toBe(false);
         for (const edge of modified.allEdges) {
@@ -175,4 +175,25 @@ describe(ModifierManager, () => {
             expect(child.layers.mask).not.toBe(unselectable.mask);
         });
     });
+
+    describe('outlinable', () => {
+        test('a regular object is outlinable when selected', async () => {
+            const makeBox = new ThreePointBoxFactory(modifiers, materials, signals); // NOTE: passing in modifier rather than raw db as in most other tests
+            makeBox.p1 = new THREE.Vector3();
+            makeBox.p2 = new THREE.Vector3(1, 0, 0);
+            makeBox.p3 = new THREE.Vector3(1, 1, 0);
+            makeBox.p4 = new THREE.Vector3(1, 1, 1);
+            const box = await makeBox.commit() as visual.Solid;
+
+            modifiers.selected.addSolid(box);
+            expect([...modifiers.selected.outlinable]).toEqual([box]);
+        })
+
+        test('a modified object is outlinable when selected, but the unmodified ancestor is not', () => {
+            const { modified, unmodified } = modification;
+            modifiers.selected.addSolid(modified);
+            expect([...modifiers.selected.outlinable]).toEqual([modified]);
+        })
+
+    })
 });

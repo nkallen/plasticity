@@ -100,7 +100,7 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     push(p: THREE.Vector3) {
         this.underlying.points.push(p);
         this.preview.last = p;
-        this.preview.push(new THREE.Vector3());
+        this.preview.push(p.clone());
     }
 
     doUpdate() {

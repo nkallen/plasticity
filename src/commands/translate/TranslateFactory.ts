@@ -29,12 +29,13 @@ abstract class TranslateFactory extends GeometryFactory {
     }
 
     async doUpdate() {
-        const { matrix } = this;
+        const { matrix, db, items } = this;
 
-        for (const item of this.items) {
+        for (const item of items) {
             matrix.decompose(item.position, item.quaternion, item.scale);
             item.updateMatrixWorld();
         }
+        await db.didModifyTemporarily(() => super.doUpdate());
     }
 
     async calculate() {
@@ -104,7 +105,7 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
     // I'm honestly not sure why we can't use apply matrices as in TranslateFactory above,
     // but this will work.
     async doUpdate() {
-        const { items, pivot: point, axis, angle } = this;
+        const { items, pivot: point, axis, angle, db } = this;
         if (angle === 0) return;
 
         for (const item of items) {
@@ -115,6 +116,7 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
             item.position.add(point);
             item.quaternion.setFromAxisAngle(axis, angle);
         }
+        await db.didModifyTemporarily(() => super.doUpdate() );
     }
 
     protected get transform(): c3d.TransformValues {

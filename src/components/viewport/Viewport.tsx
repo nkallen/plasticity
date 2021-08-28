@@ -245,7 +245,7 @@ export class Viewport {
 
     outlineSelection() {
         const selected = this.editor.selection.selected;
-        const toOutline = [...selected.solids].flatMap(item => item.outline);
+        const toOutline = [...selected.outlinable].flatMap(item => item.outline);
         this.outlinePassSelection.selectedObjects = toOutline;
     }
 

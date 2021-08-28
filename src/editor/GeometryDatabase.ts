@@ -36,7 +36,8 @@ export interface DatabaseLike {
 
     addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject>;
     addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
-    replaceTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
+    replaceWithTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
+    didModifyTemporarily(ifDisallowed: () => Promise<void>): Promise<void>;
 
     clearTemporaryObjects(): void;
     rebuildScene(): void;
@@ -157,11 +158,15 @@ export class GeometryDatabase implements DatabaseLike {
         return this.addTemporaryItem(object, undefined, materials, this.phantomObjects);
     }
 
-    async replaceTemporaryItem(from: visual.Item, to: c3d.Item,): Promise<TemporaryObject> {
+    async replaceWithTemporaryItem(from: visual.Item, to: c3d.Item,): Promise<TemporaryObject> {
         const result = await this.addTemporaryItem(to, from);
         return result;
     }
 
+    didModifyTemporarily(ifDisallowed: () => Promise<void>): Promise<void> {
+        return Promise.resolve();
+    }
+    
     async addTemporaryItem(object: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
         const note = new c3d.FormNote(true, true, false, false, false);
         const mesh = await this.meshes(object, -1, note, [[0.003, 1]], materials);

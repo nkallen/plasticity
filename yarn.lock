@@ -9707,7 +9707,7 @@ fsevents@^1.2.7:
     stats.js: ^0.17.0
     style-loader: ^1.2.1
     svg-inline-loader: ^0.8.2
-    three: ^0.132.0
+    three: ^0.132.2
     ts-jest: ^27.0.0-next.10
     ts-loader: ^8.0.2
     ts-node: ^9.1.1
@@ -15746,10 +15746,10 @@ resolve@1.1.7:
   languageName: node
   linkType: hard
 
-"three@npm:^0.132.0":
-  version: 0.132.0
-  resolution: "three@npm:0.132.0"
-  checksum: dbe808e9cb41920281d757c25f44d1e6627099049c354ebea09619d1dd6205d16082086dcd45f13ea9aabba844f5e3cdf1062676df71620d10ec49e6728f7eff
+"three@npm:^0.132.2":
+  version: 0.132.2
+  resolution: "three@npm:0.132.2"
+  checksum: ecb9ad178c9c7417147ac2971357e12c1b0a35408012085a71d61b36c54b1e18edb36502e99fe6c8684a4cd7c17a1a941123a6fb54b282f0a164bd974470fda9
   languageName: node
   linkType: hard
 

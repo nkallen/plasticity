@@ -136,7 +136,7 @@
     "preact": "^10.5.13",
     "signals": "^1.0.0",
     "stats.js": "^0.17.0",
-    "three": "^0.132.0",
+    "three": "^0.132.2",
     "underscore-plus": "^1.7.0"
   }
 }

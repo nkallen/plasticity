@@ -50,6 +50,7 @@ export class SelectionProxy implements ModifiesSelection, Highlightable {
     }
     get mode() { return this.selection.mode }
     get solids() { return this.selection.solids }
+    get outlinable() { return this.selection.outlinable }
     get edges() { return this.selection.edges }
     get faces() { return this.selection.faces }
     get regions() { return this.selection.regions }

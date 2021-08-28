@@ -67,7 +67,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
             } else if (to === undefined) {
                 from.visible = false;
             } else {
-                promises.push(this.db.replaceTemporaryItem(from, to));
+                promises.push(this.db.replaceWithTemporaryItem(from, to));
             }
         }
 
