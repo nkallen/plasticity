@@ -12,7 +12,8 @@ import { EditorOriginator } from "../../editor/History";
 import { CameraPlaneSnap, ConstructionPlaneSnap, PlaneSnap } from "../../editor/SnapManager";
 import * as visual from "../../editor/VisualModel";
 import { ControlPoint, Region, Solid, SpaceItem, TopologyItem } from "../../editor/VisualModel";
-import { SelectionManager } from "../../selection/SelectionManager";
+import { HighlightManager } from "../../selection/HighlightManager";
+import { HasSelectedAndHovered, Highlightable, Selection } from "../../selection/SelectionManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
@@ -28,7 +29,7 @@ export interface EditorLike extends selector.EditorLike {
     helpers: Helpers,
     viewports: Viewport[],
     signals: EditorSignals,
-    selection: SelectionManager,
+    selection: HasSelectedAndHovered,
     originator: EditorOriginator,
     windowLoaded: boolean,
 }
@@ -49,6 +50,8 @@ export class Viewport {
     private readonly helpersScene = new THREE.Scene();
 
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
+
+    private readonly highlighter = new HighlightManager(this.editor.db);
 
     constructor(
         private readonly editor: EditorLike,
@@ -209,7 +212,7 @@ export class Viewport {
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 
-        const { editor: { db, helpers, selection, signals }, scene, phantomsScene, helpersScene } = this
+        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene } = this
 
         try {
             // prepare the scene, once per frame:
@@ -218,7 +221,7 @@ export class Viewport {
                 scene.add(helpers.axes);
                 scene.add(db.scene);
                 if (this.grid) scene.add(this.grid);
-                selection.highlight();
+                this.highlight();
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
             }
@@ -229,7 +232,7 @@ export class Viewport {
             this.sceneComposer.render();
 
             if (frameNumber > this.lastFrameNumber) {
-                selection.unhighlight();
+                this.unhighlight();
                 scene.clear();
                 helpersScene.clear();
                 phantomsScene.clear();
@@ -254,6 +257,20 @@ export class Viewport {
 
     outlineUnhover(object?: SpaceItem | TopologyItem | ControlPoint | Region) {
         this.outlinePassHover.selectedObjects = [];
+    }
+
+    highlight() {
+        const { editor: { selection: { selected, hovered }, materials }, highlighter } = this;
+
+        selected.highlight(highlighter, materials.highlight);
+        hovered.highlight(highlighter, materials.hover);
+    }
+
+    unhighlight() {
+        const { editor: { selection: { selected, hovered } }, highlighter } = this;
+
+        selected.unhighlight(highlighter);
+        hovered.unhighlight(highlighter);
     }
 
     private offsetWidth: number = 100;

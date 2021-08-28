@@ -30,6 +30,8 @@ export interface HasSelection {
 }
 
 export interface ModifiesSelection extends HasSelection {
+    add(items: visual.Item | visual.Item[]): void;
+
     removeFace(object: visual.Face, parentItem: visual.Solid): void;
     addFace(object: visual.Face, parentItem: visual.Solid): void;
 
@@ -51,6 +53,11 @@ export interface ModifiesSelection extends HasSelection {
     removeAll(): void;
 }
 
+export interface Highlightable {
+    highlight(highlighter: HighlightManager, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']): void;
+    unhighlight(highlighter: HighlightManager): void;
+}
+
 interface SignalLike {
     objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
     objectAdded: signals.Signal<visual.Selectable>;
@@ -58,7 +65,7 @@ interface SignalLike {
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
 }
 
-export class Selection implements HasSelection, ModifiesSelection {
+export class Selection implements HasSelection, ModifiesSelection, Highlightable {
     readonly solidIds = new Set<c3d.SimpleName>();
     readonly edgeIds = new Set<string>();
     readonly faceIds = new Set<string>();
@@ -263,8 +270,8 @@ export class Selection implements HasSelection, ModifiesSelection {
 }
 
 export interface HasSelectedAndHovered {
-    readonly selected: Selection;
-    readonly hovered: Selection;
+    readonly selected: ModifiesSelection & Highlightable;
+    readonly hovered: ModifiesSelection & Highlightable;
 }
 
 export class SelectionManager implements HasSelectedAndHovered {
@@ -282,7 +289,6 @@ export class SelectionManager implements HasSelectedAndHovered {
     }
     readonly selected = new Selection(this.db, this.selectedSignals, this.mode);
     readonly hovered = new Selection(this.db, this.hoveredSignals, this.mode);
-    private readonly highlighter = new HighlightManager(this.db);
 
     constructor(
         readonly db: DatabaseLike,
@@ -290,14 +296,4 @@ export class SelectionManager implements HasSelectedAndHovered {
         readonly signals: EditorSignals,
         readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])
     ) { }
-
-    highlight() {
-        this.selected.highlight(this.highlighter, this.materials.highlight);
-        this.hovered.highlight(this.highlighter, this.materials.hover);
-    }
-
-    unhighlight() {
-        this.selected.unhighlight(this.highlighter);
-        this.hovered.unhighlight(this.highlighter);
-    }
 }

@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
-import { SelectionManager } from "../selection/SelectionManager";
+import { HasSelectedAndHovered, Highlightable, ModifiesSelection, SelectionManager } from "../selection/SelectionManager";
+import { SelectionProxy } from "../selection/SelectionProxy";
 import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
-import { Agent, GeometryDatabase, TemporaryObject } from "./GeometryDatabase";
+import { Agent, DatabaseLike, GeometryDatabase, TemporaryObject } from "./GeometryDatabase";
 import MaterialDatabase from "./MaterialDatabase";
 import * as visual from "./VisualModel";
 
@@ -22,11 +23,10 @@ export class ModifierStack {
     private _unmodified!: visual.Solid;
 
     constructor(
-        private readonly db: GeometryDatabase,
+        private readonly db: DatabaseLike,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals,
-    ) {
-    }
+    ) { }
 
     get unmodified() { return this._unmodified }
     get modified() { return this._modified }
@@ -105,71 +105,23 @@ const invisible = new THREE.MeshBasicMaterial({
     depthTest: false,
 });
 
-class ModifierManager {
+export default class ModifierManager extends DatabaseProxy implements HasSelectedAndHovered {
     protected readonly map = new Map<c3d.SimpleName, ModifierStack>();
     protected readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
     protected readonly modified2name = new Map<c3d.SimpleName, c3d.SimpleName>();
 
+    readonly selected: ModifiesSelection & Highlightable;
+    readonly hovered: ModifiesSelection & Highlightable;
+
     constructor(
-        readonly db: GeometryDatabase,
-        protected readonly selection: SelectionManager,
+        db: GeometryDatabase,
+        protected readonly selection: HasSelectedAndHovered,
         protected readonly materials: MaterialDatabase,
         protected readonly signals: EditorSignals
     ) {
-        signals.objectSelected.add(o => this.objectSelected(o));
-        signals.objectDeselected.add(o => this.objectDeselected(o));
-    }
-
-    objectSelected(s: visual.Selectable) {
-        const { map, modified2name, selection } = this;
-        if (s instanceof visual.Solid) {
-            const name = modified2name.get(s.simpleName);
-            if (name === undefined) return;
-
-            if (map.has(name)) {
-                const modifiers = map.get(name)!;
-
-                const unmodified = modifiers.unmodified!;
-                unmodified.visible = true;
-                selection.selected.addSolid(unmodified);
-
-                const modified = modifiers.modified!;
-                for (const edge of modified.allEdges) {
-                    edge.visible = false;
-                }
-                modified.traverse(child => {
-                    child.userData.oldLayerMask = child.layers.mask;
-                    child.layers.set(visual.Layers.Unselectable);
-                });
-            }
-        }
-    }
-
-    objectDeselected(s: visual.Selectable) {
-        const { map, modified2name, selection } = this;
-        if (s instanceof visual.Solid) {
-            const name = modified2name.get(s.simpleName);
-            if (name === undefined) return;
-
-            if (map.has(name)) {
-                const modifiers = map.get(name)!;
-
-                const unmodified = modifiers.unmodified!;
-                unmodified.visible = false;
-                selection.selected.removeSolid(unmodified);
-
-                const modified = modifiers.modified!;
-                for (const edge of modified.allEdges) {
-                    edge.traverse(child => {
-                        edge.visible = true;
-                    });
-                }
-                modified.traverse(child => {
-                    child.layers.mask = child.userData.oldLayerMask;
-                    child.userData.oldLayerMask = undefined;
-                });
-            }
-        }
+        super(db);
+        this.selected = new ModifierSelection(this, selection.selected);
+        this.hovered = selection.hovered;
     }
 
     async add(object: visual.Solid): Promise<ModifierStack> {
@@ -198,9 +150,16 @@ class ModifierManager {
 
         return map.get(name);
     }
-}
 
-export default class Foo extends DatabaseProxy(ModifierManager) {
+    reverse(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
+        const { map, modified2name } = this;
+        const simpleName = object instanceof visual.Solid ? object.simpleName : object;
+        const name = modified2name.get(simpleName);
+        if (name === undefined) return;
+        if (!map.has(name)) throw new Error("invalid precondition");
+        return map.get(name)!;
+    }
+
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
     async addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
     async addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
@@ -270,3 +229,63 @@ export default class Foo extends DatabaseProxy(ModifierManager) {
         return result;
     }
 };
+
+class ModifierSelection extends SelectionProxy {
+    constructor(private readonly modifiers: ModifierManager, selection: ModifiesSelection & Highlightable) {
+        super(selection);
+    }
+
+    addSolid(solid: visual.Solid) {
+        super.addSolid(solid);
+
+        const { modifiers, selection } = this;
+        const stack = modifiers.reverse(solid);
+        if (stack === undefined) return;
+
+        const { modified, unmodified } = stack;
+
+        unmodified.visible = true;
+        selection.addSolid(unmodified);
+        selection.addSolid(solid);
+
+        for (const edge of modified.allEdges) {
+            edge.visible = false;
+        }
+        modified.traverse(child => {
+            child.userData.oldLayerMask = child.layers.mask;
+            child.layers.set(visual.Layers.Unselectable);
+        });
+    }
+
+    removeSolid(solid: visual.Solid) {
+        super.removeSolid(solid);
+
+        this.removeById(solid.simpleName);
+    }
+
+    private removeById(id: c3d.SimpleName) {
+        const { modifiers, selection } = this;
+        const stack = modifiers.reverse(id);
+        if (stack === undefined) return;
+
+        const { modified, unmodified } = stack;
+
+        unmodified.visible = false;
+        selection.removeSolid(unmodified);
+
+        for (const edge of modified.allEdges) {
+            edge.traverse(child => {
+                edge.visible = true;
+            });
+        }
+        modified.traverse(child => {
+            child.layers.mask = child.userData.oldLayerMask;
+            child.userData.oldLayerMask = undefined;
+        });
+    }
+
+    removeAll() {
+        for (const id of this.selection.solidIds) this.removeById(id);
+        super.removeAll();
+    }
+}

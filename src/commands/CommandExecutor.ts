@@ -3,7 +3,7 @@ import PlanarCurveDatabase from "../editor/ContourManager";
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator, History } from "../editor/History";
-import { SelectionManager } from "../selection/SelectionManager";
+import { HasSelectedAndHovered } from "../selection/SelectionManager";
 import { Cancel } from "../util/Cancellable";
 import Command from "./Command";
 import { ValidationError } from "./GeometryFactory";
@@ -18,7 +18,7 @@ export interface EditorLike {
     signals: EditorSignals;
     originator: EditorOriginator;
     history: History;
-    selection: SelectionManager;
+    selection: HasSelectedAndHovered;
     contours: PlanarCurveDatabase;
 }
 

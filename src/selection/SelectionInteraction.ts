@@ -1,11 +1,11 @@
+import * as THREE from "three";
 import { EditorSignals } from '../editor/EditorSignals';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../editor/VisualModel';
 import { ClickStrategy } from './Click';
 import { HoverStrategy } from './Hover';
-import { SelectionManager } from './SelectionManager';
-import * as THREE from "three";
+import { HasSelectedAndHovered } from './SelectionManager';
 
 export enum SelectionMode {
     Edge, Face, Solid, Curve, ControlPoint
@@ -26,7 +26,7 @@ export class SelectionInteractionManager {
     private readonly hoverStrategy: HoverStrategy;
 
     constructor(
-        readonly selection: SelectionManager,
+        readonly selection: HasSelectedAndHovered,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals
     ) {

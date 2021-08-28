@@ -123,7 +123,7 @@ describe(ModifierManager, () => {
         expect(modified.visible).toBe(true);
         expect(unmodified.visible).toBe(false);
 
-        selection.selected.addSolid(modified);
+        modifiers.selected.addSolid(modified);
 
         expect(modified.visible).toBe(true);
         expect(unmodified.visible).toBe(true);
@@ -136,7 +136,7 @@ describe(ModifierManager, () => {
             expect(child.layers.mask).toBe(unselectable.mask);
         });
 
-        selection.selected.removeSolid(modified);
+        modifiers.selected.removeSolid(modified);
         expect(modified.visible).toBe(true);
         expect(unmodified.visible).toBe(false);
         for (const edge of modified.allEdges) {
@@ -147,8 +147,32 @@ describe(ModifierManager, () => {
         });
     });
 
+    test('when a modified item is selected & then deselect ALL', () => {
+        const { modified, unmodified } = modification;
+        expect(modified.visible).toBe(true);
+        expect(unmodified.visible).toBe(false);
 
-    test('when a modified item is deselected', () => {
+        modifiers.selected.addSolid(modified);
 
-    })
+        expect(modified.visible).toBe(true);
+        expect(unmodified.visible).toBe(true);
+        for (const edge of modified.allEdges) {
+            expect(edge.visible).toBe(false);
+        }
+        const unselectable = new THREE.Layers();
+        unselectable.set(visual.Layers.Unselectable);
+        modified.traverse(child => {
+            expect(child.layers.mask).toBe(unselectable.mask);
+        });
+
+        modifiers.selected.removeAll();
+        expect(modified.visible).toBe(true);
+        expect(unmodified.visible).toBe(false);
+        for (const edge of modified.allEdges) {
+            expect(edge.visible).toBe(true);
+        }
+        modified.traverse(child => {
+            expect(child.layers.mask).not.toBe(unselectable.mask);
+        });
+    });
 });
