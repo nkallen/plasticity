@@ -1,5 +1,5 @@
 # PRE ALPHA:
-
+new point added to curve preview should not be at origin
 when selecting modified item, should be able to select entire item
   - when object unselected, show faces of modified, edges of unmodified
   - faces selectable but strategy needs to ignore

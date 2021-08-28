@@ -73,7 +73,6 @@ export class Selection implements HasSelection, ModifiesSelection {
 
     constructor(
         readonly db: DatabaseLike,
-        readonly materials: MaterialDatabase,
         readonly signals: SignalLike,
         readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])
     ) {
@@ -214,6 +213,30 @@ export class Selection implements HasSelection, ModifiesSelection {
         this.signals.objectRemoved.dispatch(item);
     }
 
+
+    highlight(highlighter: HighlightManager, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']) {
+        const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = this;
+        for (const collection of [edgeIds, faceIds]) {
+            highlighter.highlightTopologyItems(collection, m => fn(m));
+        }
+        for (const collection of [curveIds, regionIds]) {
+            highlighter.highlightItems(collection, m => fn(m));
+        }
+
+        highlighter.highlightControlPoints(controlPointIds, m => fn(m));
+    }
+
+    unhighlight(highlighter: HighlightManager) {
+        const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = this;
+        for (const collection of [edgeIds, faceIds]) {
+            highlighter.unhighlightTopologyItems(collection);
+        }
+        for (const collection of [curveIds, regionIds]) {
+            highlighter.unhighlightItems(collection);
+        }
+        highlighter.unhighlightControlPoints(controlPointIds);
+    }
+
     saveToMemento(registry: Map<any, any>) {
         return new SelectionMemento(
             new Set(this.solidIds),
@@ -257,8 +280,8 @@ export class SelectionManager implements HasSelectedAndHovered {
         objectRemoved: this.signals.objectUnhovered,
         selectionChanged: this.signals.selectionChanged
     }
-    readonly selected = new Selection(this.db, this.materials, this.selectedSignals, this.mode);
-    readonly hovered = new Selection(this.db, this.materials, this.hoveredSignals, this.mode);
+    readonly selected = new Selection(this.db, this.selectedSignals, this.mode);
+    readonly hovered = new Selection(this.db, this.hoveredSignals, this.mode);
     private readonly highlighter = new HighlightManager(this.db);
 
     constructor(
@@ -269,35 +292,12 @@ export class SelectionManager implements HasSelectedAndHovered {
     ) { }
 
     highlight() {
-        this.highlightSelection(this.selected, this.materials.highlight);
-        this.highlightSelection(this.hovered, this.materials.hover);
+        this.selected.highlight(this.highlighter, this.materials.highlight);
+        this.hovered.highlight(this.highlighter, this.materials.hover);
     }
 
     unhighlight() {
-        this.unhighlightSelection(this.selected);
-        this.unhighlightSelection(this.hovered);
-    }
-
-    private highlightSelection(selection: HasSelection, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']) {
-        const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = selection;
-        for (const collection of [edgeIds, faceIds]) {
-            this.highlighter.highlightTopologyItems(collection, m => fn(m));
-        }
-        for (const collection of [curveIds, regionIds]) {
-            this.highlighter.highlightItems(collection, m => fn(m));
-        }
-
-        this.highlighter.highlightControlPoints(controlPointIds, m => fn(m));
-    }
-
-    private unhighlightSelection(selection: HasSelection) {
-        const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = selection;
-        for (const collection of [edgeIds, faceIds]) {
-            this.highlighter.unhighlightTopologyItems(collection);
-        }
-        for (const collection of [curveIds, regionIds]) {
-            this.highlighter.unhighlightItems(collection);
-        }
-        this.highlighter.unhighlightControlPoints(controlPointIds);
+        this.selected.unhighlight(this.highlighter);
+        this.hovered.unhighlight(this.highlighter);
     }
 }
