@@ -1,33 +1,51 @@
 import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
+import { SelectionManager } from "../selection/SelectionManager";
+import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
-import { Agent, ControlPointData, DatabaseLike, GeometryDatabase, MaterialOverride, TemporaryObject, TopologyData } from "./GeometryDatabase";
+import { Agent, GeometryDatabase, TemporaryObject } from "./GeometryDatabase";
 import MaterialDatabase from "./MaterialDatabase";
 import * as visual from "./VisualModel";
-import c3d from '../../build/Release/c3d.node';
-import { GConstructor } from "../util/Util";
-import { SelectionManager } from "../selection/SelectionManager";
 
 export type Replacement = { from: visual.Item, to: visual.Item }
 
 const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
-export class ModifierList {
+export class ModifierStack {
     isEnabled = true;
     showWhileEditing = true;
 
     temp?: TemporaryObject;
-    modified?: visual.Solid;
-    unmodified?: visual.Solid;
+    private _modified!: visual.Solid;
+    private _unmodified!: visual.Solid;
 
     constructor(
         private readonly db: GeometryDatabase,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals,
-    ) { }
+    ) {
+    }
+
+    get unmodified() { return this._unmodified }
+    get modified() { return this._modified }
+
+    async add(underlying: c3d.Solid, view: visual.Solid): Promise<visual.Solid> {
+        const { unmodified, modified } = await this.calculate(underlying, Promise.resolve(view));
+        this._modified = modified;
+        this._unmodified = unmodified;
+        return modified;
+    }
 
     async update(underlying: c3d.Solid, view: Promise<visual.Solid>): Promise<visual.Solid> {
+        const { unmodified, modified } = await this.calculate(underlying, view);
+        this._modified = modified;
+        this._unmodified = unmodified;
+        return modified;
+    }
+
+    private async calculate(underlying: c3d.Solid, view: Promise<visual.Solid>): Promise<{ unmodified: visual.Solid, modified: visual.Solid }> {
         const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
         symmetry.solid = underlying;
         symmetry.origin = new THREE.Vector3();
@@ -36,8 +54,8 @@ export class ModifierList {
         const symmetrized = await symmetry.calculate();
         console.timeEnd("calculate");
 
-        const modified = (this.modified !== undefined) ?
-            await this.db.replaceItem(this.modified, symmetrized) :
+        const modified = (this._modified !== undefined) ?
+            await this.db.replaceItem(this._modified, symmetrized) :
             await this.db.addItem(symmetrized, 'automatic');
 
         const unmodified = await view;
@@ -50,12 +68,10 @@ export class ModifierList {
             });
         }
 
-        this.modified = modified;
-        this.unmodified = unmodified;
-        return modified;
+        return { unmodified, modified };
     }
 
-    async tempf(from: visual.Item, underlying: c3d.Solid) {
+    async updateTemporary(from: visual.Item, underlying: c3d.Solid) {
         from.visible = false;
 
         const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
@@ -82,16 +98,23 @@ export class ModifierList {
     }
 }
 
-export class ModifierManager implements DatabaseLike {
-    private readonly map = new Map<c3d.SimpleName, ModifierList>();
-    private readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
-    private readonly modified2name = new Map<c3d.SimpleName, c3d.SimpleName>();
+const invisible = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0.0,
+    depthWrite: false,
+    depthTest: false,
+});
+
+class ModifierManager {
+    protected readonly map = new Map<c3d.SimpleName, ModifierStack>();
+    protected readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
+    protected readonly modified2name = new Map<c3d.SimpleName, c3d.SimpleName>();
 
     constructor(
-        private readonly db: GeometryDatabase,
-        private readonly selection: SelectionManager,
-        private readonly materials: MaterialDatabase,
-        private readonly signals: EditorSignals
+        readonly db: GeometryDatabase,
+        protected readonly selection: SelectionManager,
+        protected readonly materials: MaterialDatabase,
+        protected readonly signals: EditorSignals
     ) {
         signals.objectSelected.add(o => this.objectSelected(o));
         signals.objectDeselected.add(o => this.objectDeselected(o));
@@ -112,9 +135,7 @@ export class ModifierManager implements DatabaseLike {
 
                 const modified = modifiers.modified!;
                 for (const edge of modified.allEdges) {
-                    edge.traverse(child => {
-                        edge.visible = false;
-                    });
+                    edge.visible = false;
                 }
                 modified.traverse(child => {
                     child.userData.oldLayerMask = child.layers.mask;
@@ -151,7 +172,7 @@ export class ModifierManager implements DatabaseLike {
         }
     }
 
-    async add(object: visual.Solid): Promise<ModifierList> {
+    async add(object: visual.Solid): Promise<ModifierStack> {
         const { version2name, selection, map, modified2name, db, materials, signals } = this;
         let name = version2name.get(object.simpleName);
         if (name === undefined) {
@@ -162,22 +183,24 @@ export class ModifierManager implements DatabaseLike {
 
         selection.selected.removeSolid(object);
 
-        const modifiers = new ModifierList(db, materials, signals);
+        const modifiers = new ModifierStack(db, materials, signals);
         map.set(name, modifiers);
 
-        const result = await modifiers.update(db.lookup(object), Promise.resolve(object));
+        const result = await modifiers.add(db.lookup(object), object);
         modified2name.set(result.simpleName, name);
         return modifiers;
     }
 
-    get(object: visual.Solid): ModifierList | undefined {
+    get(object: visual.Solid): ModifierStack | undefined {
         const { version2name, map } = this;
         let name = version2name.get(object.simpleName);
         if (name === undefined) return undefined;
 
         return map.get(name);
     }
+}
 
+export default class Foo extends DatabaseProxy(ModifierManager) {
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
     async addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
     async addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
@@ -232,25 +255,6 @@ export class ModifierManager implements DatabaseLike {
         return result;
     }
 
-    addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject> {
-        return this.db.addPhantom(object, materials);
-    }
-
-    addTemporaryItem(object: c3d.Item): Promise<TemporaryObject> {
-        return this.db.addTemporaryItem(object);
-    }
-
-    clearTemporaryObjects() {
-        this.db.clearTemporaryObjects();
-    }
-
-    rebuildScene() {
-        this.db.rebuildScene();
-    }
-
-    get temporaryObjects() { return this.db.temporaryObjects }
-    get phantomObjects() { return this.db.temporaryObjects }
-
     async replaceTemporaryItem(from: visual.Item, to: c3d.Item): Promise<TemporaryObject> {
         const { map, version2name } = this;
         const name = version2name.get(from.simpleName)!;
@@ -258,76 +262,11 @@ export class ModifierManager implements DatabaseLike {
         let result: TemporaryObject;
         if (map.has(name)) {
             const modifiers = map.get(name)!;
-            result = await modifiers.tempf(from, to as c3d.Solid);
+            result = await modifiers.updateTemporary(from, to as c3d.Solid);
         } else {
             result = await this.db.replaceTemporaryItem(from, to);
         }
 
         return result;
     }
-
-
-    lookup(object: visual.Solid): c3d.Solid;
-    lookup(object: visual.SpaceInstance<visual.Curve3D>): c3d.SpaceInstance;
-    lookup(object: visual.PlaneInstance<visual.Region>): c3d.PlaneInstance;
-    lookup(object: visual.Item): c3d.Item;
-    lookup(object: visual.Item): c3d.Item {
-        return this.db.lookup(object);
-    }
-
-    lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item } {
-        return this.db.lookupItemById(id);
-    }
-
-    lookupTopologyItemById(id: string): TopologyData {
-        return this.db.lookupTopologyItemById(id);
-    }
-
-    lookupTopologyItem(object: visual.Face): c3d.Face;
-    lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
-    lookupTopologyItem(object: visual.Edge | visual.Face): c3d.TopologyItem {
-        // @ts-expect-error('typescript cant type polymorphism like this')
-        return this.db.lookupTopologyItem(object);
-    }
-
-    lookupControlPointById(id: string): ControlPointData {
-        return this.db.lookupControlPointById(id);
-    }
-
-    find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];
-    find<T extends visual.SpaceInstance<visual.Curve3D>>(klass: GConstructor<T>): { view: T, model: c3d.SpaceInstance }[];
-    find<T extends visual.Solid>(klass: GConstructor<T>): { view: T, model: c3d.Solid }[];
-    find(): { view: visual.Item, model: c3d.Solid }[];
-    find<T extends visual.Item>(klass?: GConstructor<T>): { view: T, model: c3d.Item }[] {
-        // @ts-expect-error('typescript cant type polymorphism like this')
-        return this.db.find(klass);
-    }
-
-    get visibleObjects(): visual.Item[] {
-        return this.db.visibleObjects;
-    }
-
-    hide(item: visual.Item): void {
-        return this.db.hide(item);
-    }
-
-    unhide(item: visual.Item): void {
-        return this.db.unhide(item);
-    }
-
-    unhideAll(): void {
-        this.db.unhideAll();
-    }
-
-    get scene() {
-        return this.db.scene;
-    }
-}
-
-
-const invisible = new THREE.MeshBasicMaterial({
-    transparent: true,
-    opacity: 0.0,
-    depthWrite: false,
-    depthTest: false,
-});
+};

@@ -19,7 +19,7 @@ import { DatabaseLike, GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
 import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
-import { ModifierManager } from "./ModifierManager";
+import ModifierManager from "./ModifierManager";
 import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { RegionManager } from "./RegionManager";
 import { SnapManager } from './SnapManager';
@@ -30,7 +30,7 @@ THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 export class Editor {
     readonly viewports: Viewport[] = [];
 
-    readonly signals = new EditorSignals(); 
+    readonly signals = new EditorSignals();
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly sprites = new SpriteDatabase();

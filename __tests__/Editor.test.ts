@@ -25,7 +25,7 @@ test('keeps track of active viewport', () => {
     editor.viewports.push(viewport1);
     editor.viewports.push(viewport2);
 
-    expect(editor.activeViewport).toBeUndefined;
+    expect(editor.activeViewport).toBeUndefined();
 
     viewport1.selector.dispatchEvent({ type: 'start' });
     expect(editor.activeViewport).toBe(viewport1);

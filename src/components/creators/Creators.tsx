@@ -4,7 +4,7 @@ import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
-import { ModifierManager } from '../../editor/ModifierManager';
+import ModifierManager from '../../editor/ModifierManager';
 import * as visual from '../../editor/VisualModel';
 import { HasSelection } from '../../selection/SelectionManager';
 

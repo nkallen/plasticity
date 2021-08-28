@@ -161,7 +161,7 @@ describe("snap()", () => {
 
         test("when restricted, without a restriction snap", async () => {
             const result = snaps.snap(raycaster, [], [], [pointSnap]);
-            expect(result).toBeUndefined;
+            expect(result.length).toBe(0);
         });
 
 

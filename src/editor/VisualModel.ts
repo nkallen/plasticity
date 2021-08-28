@@ -1,12 +1,9 @@
-import { DisposableLike } from 'event-kit';
 import * as THREE from "three";
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
 import { BetterRaycastingPoint, BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
-import { applyMixins } from '../util/Util';
-import MaterialDatabase from './MaterialDatabase';
 
 /**
  * This class hierarchy mirrors the c3d hierarchy into the THREE.js Object3D hierarchy.
