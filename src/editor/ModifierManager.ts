@@ -240,7 +240,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         return result;
     }
 
-    didModifyTemporarily(ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]> {
+    optimization(fast: () => Promise<TemporaryObject[]>, ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]> {
         return ifDisallowed();
     }
 };

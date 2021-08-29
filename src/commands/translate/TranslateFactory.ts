@@ -30,19 +30,20 @@ abstract class TranslateFactory extends GeometryFactory {
 
     async doUpdate() {
         const { matrix, db, items } = this;
-
-        for (const item of items) {
-            matrix.decompose(item.position, item.quaternion, item.scale);
-            item.updateMatrixWorld();
-        }
-        await db.didModifyTemporarily(() => super.doUpdate());
-        return items.map(item => {
-            return {
-                underlying: item,
-                show() { },
-                cancel() { },
+        return db.optimization(async () => {
+            for (const item of items) {
+                matrix.decompose(item.position, item.quaternion, item.scale);
+                item.updateMatrixWorld();
             }
-        });
+
+            return items.map(item => {
+                return {
+                    underlying: item,
+                    show() { },
+                    cancel() { },
+                }
+            });
+        }, () => super.doUpdate());
     }
 
     async calculate() {
@@ -113,24 +114,26 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
     // but this works instead.
     async doUpdate() {
         const { items, pivot: point, axis, angle, db } = this;
-        if (angle === 0) return [];
+        return db.optimization(async () => {
+            if (angle === 0) return [];
 
-        for (const item of items) {
-            item.position.set(0, 0, 0);
+            for (const item of items) {
+                item.position.set(0, 0, 0);
 
-            item.position.sub(point);
-            item.position.applyAxisAngle(axis, angle);
-            item.position.add(point);
-            item.quaternion.setFromAxisAngle(axis, angle);
-        }
-        await db.didModifyTemporarily(() => super.doUpdate());
-        return items.map(item => {
-            return {
-                underlying: item,
-                show() { },
-                cancel() { },
+                item.position.sub(point);
+                item.position.applyAxisAngle(axis, angle);
+                item.position.add(point);
+                item.quaternion.setFromAxisAngle(axis, angle);
             }
-        });
+
+            return items.map(item => {
+                return {
+                    underlying: item,
+                    show() { },
+                    cancel() { },
+                }
+            });
+        }, () => super.doUpdate());
     }
 
     protected get transform(): c3d.TransformValues {

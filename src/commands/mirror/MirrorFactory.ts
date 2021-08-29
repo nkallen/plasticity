@@ -70,36 +70,36 @@ export class SymmetryFactory extends GeometryFactory {
     private temp?: TemporaryObject;
 
     async doUpdate() {
-        const point1 = new c3d.CartPoint(0, -1000);
-        const point2 = new c3d.CartPoint(0, 1000);
-        const line = c3d.ActionCurve.Segment(point1, point2);
+        return this.db.optimization(async () => {
+            const point1 = new c3d.CartPoint(0, -1000);
+            const point2 = new c3d.CartPoint(0, 1000);
+            const line = c3d.ActionCurve.Segment(point1, point2);
 
-        const { solid, model, origin, orientation, names, db } = this;
-        const { X, Y, Z } = this;
+            const { solid, model, origin, orientation, names, db } = this;
+            const { X, Y, Z } = this;
 
-        const placement = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false);
-        const contour = new c3d.Contour([line], true);
-        const direction = new c3d.Vector3D(0, 0, 0);
+            const placement = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false);
+            const contour = new c3d.Contour([line], true);
+            const direction = new c3d.Vector3D(0, 0, 0);
 
-        const flags = new c3d.MergingFlags(true, true);
-        const params = new c3d.ShellCuttingParams(placement, contour, false, direction, -1, flags, true, names);
-        const results = c3d.ActionSolid.SolidCutting(model, c3d.CopyMode.Copy, params);
-        const result = results[0];
+            const flags = new c3d.MergingFlags(true, true);
+            const params = new c3d.ShellCuttingParams(placement, contour, false, direction, -1, flags, true, names);
+            const results = c3d.ActionSolid.SolidCutting(model, c3d.CopyMode.Copy, params);
+            const result = results[0];
 
-        const temp = await this.db.replaceWithTemporaryItem(solid, result);
-        const view = temp.underlying;
-        const mirrored = view.clone();
-        mirrored.scale.x = -1;
-        view.add(mirrored);
+            const temp = await this.db.replaceWithTemporaryItem(solid, result);
+            const view = temp.underlying;
+            const mirrored = view.clone();
+            mirrored.scale.x = -1;
+            view.add(mirrored);
 
-        this.temp?.cancel();
-        this.temp = temp;
-        temp.show();
-        mirrored.visible = true;
+            this.temp?.cancel();
+            this.temp = temp;
+            temp.show();
+            mirrored.visible = true;
 
-        await db.didModifyTemporarily(() => super.doUpdate());
-
-        return [temp];
+            return [temp];
+        }, () => super.doUpdate());
     }
 
     get originalItem() { return this.solid }
