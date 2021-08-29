@@ -246,9 +246,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     }
 
     // Factories can be cancelled but "finishing" is a no-op. Commit must be called explicitly.
-    async finish() {
-        console.log("finishing");
-    }
+    async finish() { }
 
     cancel() {
         switch (this.state.tag) {

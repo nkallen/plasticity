@@ -32,7 +32,7 @@ export class ModifierStack {
     private _premodified!: visual.Solid;
 
     constructor(
-        private readonly db: GeometryDatabase,
+        private readonly db: DatabaseLike,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals,
     ) { }
@@ -48,7 +48,6 @@ export class ModifierStack {
     }
 
     async update(underlying: c3d.Solid, view: Promise<visual.Solid>): Promise<visual.Solid> {
-        console.log("update");
         const { unmodified, modified } = await this.calculate(underlying, view);
         this._modified = modified;
         this._premodified = unmodified;
@@ -80,7 +79,6 @@ export class ModifierStack {
     }
 
     async updateTemporary(from: visual.Item, underlying: c3d.Solid): Promise<TemporaryObject> {
-        console.log("update temporary");
         const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
         symmetry.solid = underlying;
         symmetry.origin = new THREE.Vector3();
@@ -147,7 +145,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 
         selection.selected.removeSolid(object);
 
-        const modifiers = new ModifierStack(db as GeometryDatabase, materials, signals);
+        const modifiers = new ModifierStack(db, materials, signals);
         map.set(name, modifiers);
 
         const result = await modifiers.add(db.lookup(object), object);
@@ -187,7 +185,6 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     async replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
     async replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
     async replaceItem(from: visual.Item, to: c3d.Item): Promise<visual.Item> {
-        console.log("replaceItem");
         const { map, version2name, modified2name } = this;
         const name = version2name.get(from.simpleName)!;
 

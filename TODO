@@ -1,11 +1,16 @@
-move commit errors
-selecting faces no longer highlights in sym mode
+move any item hit excape it disappears
+gizmo for symmetry modifier
+dialog for symmetry modifier
+SymmetryFactory
+- unit tests for mirroring behavior
+- subclass concrete for one that does union and one that doesn'tab
+- need to respect X/Y/Z symmetry
+interface to list modifiers with toggles for enable/disable and button to apply
 
 # PRE ALPHA:
 
 hide grid when orthogonal to camera
 
-interface to list modifiers with toggles for enable/disable and button to apply
 file save and reload needs to respect modifiers:
   - don't save modified items, only unmodified
   - save items with metadata

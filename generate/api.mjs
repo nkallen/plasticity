@@ -1351,6 +1351,7 @@ export default {
             "MbContour * OffsetContour(const MbContour & cntr, double rad, double xEpsilon, double yEpsilon, bool modifySegments, VERSION version = Math::DefaultMathVersion())",
             "MbResultType SurfaceBoundContour(const MbSurface & surface, const MbCurve3D & spaceCurve, VERSION version = Math::DefaultMathVersion(), MbContour *& result)",
             "MbResultType Line(const MbCartPoint & point1, const MbCartPoint & point2, MbCurve *& result)",
+            "MbResultType Segment(const MbCartPoint & point1, const MbCartPoint & point2, MbCurve *& result)",
         ]
     },
     ActionCurve3D: {

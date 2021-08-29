@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from '../../editor/GeometryDatabase';
 import * as visual from '../../editor/VisualModel';
-import { vec2cart } from '../../util/Conversion';
+import { vec2cart, vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 
 export class MirrorFactory extends GeometryFactory {
@@ -62,7 +62,7 @@ export class SymmetryFactory extends GeometryFactory {
         } catch (e) {
             this._isOverlapping = false;
             const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
-            const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Same, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
+            const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
             return result;
         }
     }
@@ -70,14 +70,14 @@ export class SymmetryFactory extends GeometryFactory {
     private temp?: TemporaryObject;
 
     async doUpdate() {
-        const point1 = new c3d.CartPoint(0, -100);
-        const point2 = new c3d.CartPoint(0, 100);
-        const line = c3d.ActionCurve.Line(point1, point2);
+        const point1 = new c3d.CartPoint(0, -1000);
+        const point2 = new c3d.CartPoint(0, 1000);
+        const line = c3d.ActionCurve.Segment(point1, point2);
 
         const { solid, model, origin, orientation, names, db } = this;
         const { X, Y, Z } = this;
 
-        const placement = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(0, 0, 1), false);
+        const placement = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false);
         const contour = new c3d.Contour([line], true);
         const direction = new c3d.Vector3D(0, 0, 0);
 
