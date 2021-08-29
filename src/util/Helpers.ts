@@ -58,10 +58,7 @@ export class Helpers {
         signals.renderPrepared.add(({ camera }) => this.update(camera));
 
         const axes = new THREE.AxesHelper(10_000);
-        axes.renderOrder = 0;
         axes.layers.set(visual.Layers.Overlay);
-        const material = axes.material as THREE.Material;
-        material.depthFunc = THREE.AlwaysDepth;
         this.axes = axes;
     }
 

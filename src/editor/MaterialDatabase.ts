@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 import c3d from '../../build/Release/c3d.node';
 import controlPointIcon from '../components/viewport/img/control-point.svg';
-import porcelain from '../img/matcap-porcelain-white.jpg';
+import matcap from '../img/matcap/ceramic_dark.exr';
 import { EditorSignals } from "./EditorSignals";
 
 export default interface MaterialDatabase {
@@ -56,7 +57,8 @@ line_hovered.depthFunc = THREE.AlwaysDepth;
 
 const point = new THREE.PointsMaterial({ color: 0x888888 });
 
-const matcapTexture = new THREE.TextureLoader().load(porcelain);
+// @ts-expect-error
+const matcapTexture = new EXRLoader().load(matcap);
 
 const surface = new THREE.MeshMatcapMaterial();
 surface.fog = false;

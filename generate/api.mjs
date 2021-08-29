@@ -864,6 +864,7 @@ export default {
             dependencies: ["Placement3D.h", "Contour.h", "Vector3D.h", "MergingFlags.h", "SNameMaker.h"],
             initializers: [
                 "const MbPlacement3D & place, const MbContour & contour, bool sameContour, const MbVector3D & dir, const MbMergingFlags & mergingFlags, bool cutAsClosed, const MbSNameMaker & snMaker",
+                "const MbPlacement3D & place, const MbContour & contour, bool sameContour, const MbVector3D & dir, int part, const MbMergingFlags & mergingFlags, bool cutAsClosed, const MbSNameMaker & snMaker",
             ],
             functions: [
                 "void AddSurfaceProlongType(MbeSurfaceProlongType pt)"
@@ -1348,7 +1349,8 @@ export default {
             "MbResultType SplineCurve(const SArray<MbCartPoint> & points, bool closed, MbePlaneType curveType, MbCurve *& result)",
             // { signature: "MbResultType IntersectContour(MbCurve & newCurve, RPArray<MbCurve> & curves, MbContour *& result)" },
             "MbContour * OffsetContour(const MbContour & cntr, double rad, double xEpsilon, double yEpsilon, bool modifySegments, VERSION version = Math::DefaultMathVersion())",
-            "MbResultType SurfaceBoundContour(const MbSurface & surface, const MbCurve3D & spaceCurve, VERSION version = Math::DefaultMathVersion(), MbContour *& result)"
+            "MbResultType SurfaceBoundContour(const MbSurface & surface, const MbCurve3D & spaceCurve, VERSION version = Math::DefaultMathVersion(), MbContour *& result)",
+            "MbResultType Line(const MbCartPoint & point1, const MbCartPoint & point2, MbCurve *& result)",
         ]
     },
     ActionCurve3D: {

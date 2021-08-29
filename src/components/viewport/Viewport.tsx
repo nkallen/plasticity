@@ -7,18 +7,19 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { EditorSignals } from '../../editor/EditorSignals';
-import { DatabaseLike, GeometryDatabase } from "../../editor/GeometryDatabase";
+import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
 import { CameraPlaneSnap, ConstructionPlaneSnap, PlaneSnap } from "../../editor/SnapManager";
 import * as visual from "../../editor/VisualModel";
 import { ControlPoint, Region, Solid, SpaceItem, TopologyItem } from "../../editor/VisualModel";
 import { HighlightManager } from "../../selection/HighlightManager";
-import { HasSelectedAndHovered, Highlightable, Selection } from "../../selection/SelectionManager";
+import { HasSelectedAndHovered } from "../../selection/SelectionManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
 import { ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 
 const near = 0.01;
 const far = 1000;
@@ -37,7 +38,7 @@ export interface EditorLike extends selector.EditorLike {
 type Control = { enabled: boolean, dispose(): void };
 
 export class Viewport {
-    readonly sceneComposer: EffectComposer;
+    readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
     readonly controls = new Set<Control>();
@@ -72,12 +73,12 @@ export class Viewport {
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
         const size = this.renderer.getSize(new THREE.Vector2());
-        const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { format: THREE.RGBFormat });
+        const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType});
         renderTarget.samples = 8;
 
-        {
-            this.sceneComposer = new EffectComposer(this.renderer, renderTarget);
-            this.sceneComposer.setPixelRatio(window.devicePixelRatio);
+        EffectComposer: {
+            this.composer = new EffectComposer(this.renderer, renderTarget);
+            this.composer.setPixelRatio(window.devicePixelRatio);
 
             const renderPass = new RenderPass(this.scene, this.camera);
             const phantomsPass = new RenderPass(this.phantomsScene, this.camera);
@@ -105,13 +106,16 @@ export class Viewport {
 
             const navigatorPass = new ViewportNavigatorPass(this.navigator, this.camera);
 
-            this.sceneComposer.addPass(renderPass);
-            this.sceneComposer.addPass(this.outlinePassHover);
-            this.sceneComposer.addPass(this.outlinePassSelection);
-            this.sceneComposer.addPass(phantomsPass);
-            this.sceneComposer.addPass(helpersPass);
-            this.sceneComposer.addPass(navigatorPass);
-            this.sceneComposer.addPass(copyPass);
+            const gammaCorrection = new ShaderPass(GammaCorrectionShader);
+
+            this.composer.addPass(renderPass);
+            this.composer.addPass(this.outlinePassHover);
+            this.composer.addPass(this.outlinePassSelection);
+            this.composer.addPass(phantomsPass);
+            this.composer.addPass(helpersPass);
+            this.composer.addPass(navigatorPass);
+            this.composer.addPass(copyPass);
+            this.composer.addPass(gammaCorrection);
         }
 
         this.render = this.render.bind(this);
@@ -141,7 +145,7 @@ export class Viewport {
             this.navigationControls.dispose();
         }));
 
-        this.scene.background = new THREE.Color(0x424242);
+        this.scene.background = new THREE.Color(0x424242).convertGammaToLinear();
     }
 
     private started = false;
@@ -229,7 +233,7 @@ export class Viewport {
             const resolution = new THREE.Vector2(this.offsetWidth, this.offsetHeight);
             signals.renderPrepared.dispatch({ camera: this.camera, resolution });
 
-            this.sceneComposer.render();
+            this.composer.render();
 
             if (frameNumber > this.lastFrameNumber) {
                 this.unhighlight();
@@ -293,7 +297,7 @@ export class Viewport {
         camera.updateProjectionMatrix();
 
         this.renderer.setSize(offsetWidth, offsetHeight);
-        this.sceneComposer.setSize(offsetWidth, offsetHeight);
+        this.composer.setSize(offsetWidth, offsetHeight);
         this.outlinePassHover.setSize(offsetWidth, offsetHeight);
         this.outlinePassSelection.setSize(offsetWidth, offsetHeight);
         this.setNeedsRender();
@@ -373,7 +377,9 @@ export default (editor: EditorLike) => {
             super();
 
             const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
-            const grid = new THREE.GridHelper(300, 300, 0x666666, 0x666666);
+
+            const gridColor = new THREE.Color(0x666666).convertGammaToLinear();
+            const grid = new THREE.GridHelper(300, 300, gridColor, gridColor);
             grid.renderOrder = -1;
             grid.layers.set(visual.Layers.Overlay);
 

@@ -103,7 +103,7 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
     angle = 0;
 
     // I'm honestly not sure why we can't use apply matrices as in TranslateFactory above,
-    // but this will work.
+    // but this works instead.
     async doUpdate() {
         const { items, pivot: point, axis, angle, db } = this;
         if (angle === 0) return;

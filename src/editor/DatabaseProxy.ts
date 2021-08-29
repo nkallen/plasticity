@@ -59,9 +59,7 @@ export class DatabaseProxy implements DatabaseLike {
     }
 
     get temporaryObjects() { return this.db.temporaryObjects }
-    get phantomObjects() { return this.db.temporaryObjects }
-
-
+    get phantomObjects() { return this.db.phantomObjects }
 
     lookup(object: visual.Solid): c3d.Solid;
     lookup(object: visual.SpaceInstance<visual.Curve3D>): c3d.SpaceInstance;

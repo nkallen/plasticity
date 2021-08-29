@@ -310,7 +310,8 @@ export class CurveEdge extends Edge {
     }
 
     private constructor(private readonly line: Line2, readonly occludedLine: Line2) {
-        super()
+        super();
+        if (arguments.length === 0) return;
         this.add(line, occludedLine);
         occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
     }
@@ -350,7 +351,8 @@ export class Face extends TopologyItem {
     }
 
     private constructor(private readonly mesh: THREE.Mesh) {
-        super()
+        super();
+        if (arguments.length === 0) return;
         this.renderOrder = RenderOrder.Face;
         this.add(mesh);
     }

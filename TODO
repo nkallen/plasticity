@@ -1,31 +1,26 @@
 # PRE ALPHA:
-new point added to curve preview should not be at origin
-when selecting modified item, should be able to select entire item
-  - when object unselected, show faces of modified, edges of unmodified
-  - faces selectable but strategy needs to ignore
-unselected item should show geometry for whole object?
-symmetry modifier plane should be position relative
-move/rotate/scale need to respect preview settings
+
 interface to list modifiers with toggles for enable/disable and button to apply
 file save and reload needs to respect modifiers:
   - don't save modified items, only unmodified
   - save items with metadata
-
+  - same is true of curve segments
 
 keybindings to move camera need to update construction plane
 reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
 
-## COMMANDS
 when you delete region you delete its curve / and vice versa
 
-# UNDO
 bug: clicking adds items to history even when no selection is changed
 
-## GIZMOS
-
-## POST ALPHA
-toggle kinds of snaps with keybindings?
 region has equal sort priority to face, but higher when identical distance
+
+'# move keybindings outside of loop keybindings
+- onPointerDown and on command (registry.addOne), store the viewport the pointer is over
+- keep lastPointerEvent as a global on editor
+- dispatch keyboard events to the target of lastPointerEvent
+- ensure that regardless of what has focus (E.g,. after hitting the toolbar, keybindings are still processed)
+
 
 curves:
     curve movement not working well
@@ -35,22 +30,6 @@ curves:
     draw curve around solid
     multiline (stroke)
 
-need to convert offset curve to curve on surface
-extrude to target
-
-'# move keybindings outside of loop keybindings
-- onPointerDown and on command (registry.addOne), store the viewport the pointer is over
-- keep lastPointerEvent as a global on editor
-- dispatch keyboard events to the target of lastPointerEvent
-- ensure that regardless of what has focus (E.g,. after hitting the toolbar, keybindings are still processed)
-
-
-in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
-  - shift should turn current axis snap into constraint?
-
-delete Transactions.ts;
-
-masking? like in zbrush; imagine a box atop a cylinder. I want to mask the box so I can clip curve just that.
 
 interleaving with updating/commit on factory. use q?
   - also what happens if a command is cancelled but a long running job returns?
@@ -58,22 +37,43 @@ refactor factory to take editorlike?
   -         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
 refactor selection.selected/hovered to be up in editor, avoid so much chaining
 
+change selection mode 123 keys
+fix box select
+
+# transaction history
+- delete creator
+- select topo items
+- mute creator, etc.
+- handle rebuild errors
+- there is a bug where fillet seems to highlight everything
+
+performance audit hit testing and snaps
+
+bug: outlines broken by grid
+- audit depth pass
+
+## POST ALPHA
+
+toggle kinds of snaps with keybindings?
+
+need to convert offset curve to curve on surface
+extrude to target
+
+in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
+  - shift should turn current axis snap into constraint?
+
+
+masking? like in zbrush; imagine a box atop a cylinder. I want to mask the box so I can clip curve just that.
+
 select edge and face add rotate face gizmo
 
 moving needs to have snapping
-redo fillet gizmos
 drag and drop points    
-
-move selected/hovered up to editor;
 
 fillet face
 extrude face
 https://github.com/bzztbomb
 right click repeat
-
-change selection mode 123 keys
-
-non-linear history
 
 BUG/CRASH:
 # 1
@@ -85,13 +85,9 @@ BUG/CRASH:
 1. Add cylinder
 2. Fillet top
 3. Squeeze side to smallest possible
-
-# transaction history
-- delete creator
-- select topo items
-- mute creator, etc.
-- handle rebuild errors
-- there is a bug where fillet seems to highlight everything
+# 3
+1. crashes-at-fillet-100.c3d
+2. Fillet search 
 
 # c++ changes:
 rename Id() .id
@@ -107,12 +103,9 @@ convert everything to isPOD possible
 
 - 3d Joints
 
-
 gizmos for primitives
 
 tab to re-enter last command of object
-
-auto save last object, auto lastGood
 
 BUG:
 
@@ -121,27 +114,14 @@ BUGS for c3d
 - lots of push pull grow/shrink crashes
 - figure 8 intersection hangs
 
-
-FUTURE:
-
-dialog box for settings
-
-bug: outlines broken by grid
-
 --
 
 Viewport week:
 - keybindings to create/remove viewports
-- change view with keybinding
 
 Cleanup week:
 - add dispose methods anywhere there is signal.add or .addEventListener
 - audit geometry disposable
-
-Snap week:
-- Prettier snap display
-- More snaps
-- alt/whatever to disable snaps
 
 File save / open
 

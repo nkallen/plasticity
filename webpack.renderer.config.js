@@ -29,7 +29,7 @@ rules.push({
 });
 
 rules.push({
-    test: /\.(png|jpg|svg|jpeg|gif)$/i,
+    test: /\.(png|jpg|svg|jpeg|gif|exr)$/i,
     use: [
         {
             loader: 'file-loader',

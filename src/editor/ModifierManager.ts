@@ -81,12 +81,21 @@ export class ModifierStack {
         symmetry.solid = underlying;
         symmetry.origin = new THREE.Vector3();
         symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
-        const symmetrized = await symmetry.calculate();
+        console.time("updateTemporary");
+        const symmetrized = await symmetry.calculate2();
 
         const result = (this.modified !== undefined) ?
             await this.db.replaceWithTemporaryItem(this.modified, symmetrized) :
             await this.db.addTemporaryItem(symmetrized);
         if (this.temp !== undefined) this.temp.cancel();
+
+        const object = result.underlying;
+        const foo = object.clone();
+        foo.scale.x = -1;
+        object.add(foo);
+        foo.visible = true;
+
+        console.timeEnd("updateTemporary");
 
         result.show();
         this.temp = result;
