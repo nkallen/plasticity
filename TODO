@@ -1,4 +1,9 @@
+move commit errors
+selecting faces no longer highlights in sym mode
+
 # PRE ALPHA:
+
+hide grid when orthogonal to camera
 
 interface to list modifiers with toggles for enable/disable and button to apply
 file save and reload needs to respect modifiers:

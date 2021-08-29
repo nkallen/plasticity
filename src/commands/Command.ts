@@ -5,6 +5,7 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
+import ModifierManager from "../editor/ModifierManager";
 import { PlanarCurveDatabase } from "../editor/PlanarCurveDatabase";
 import { SnapManager } from "../editor/SnapManager";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
@@ -45,7 +46,7 @@ export interface EditorLike {
     snaps: SnapManager,
     helpers: Helpers,
     registry: CommandRegistry,
-    selection: HasSelectedAndHovered,
+    selection: HasSelectedAndHovered & ModifierManager,
     gizmos: GizmoMaterialDatabase,
     selectionInteraction: SelectionInteractionManager,
     layers: LayerManager,

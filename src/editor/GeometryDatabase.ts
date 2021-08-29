@@ -9,7 +9,7 @@ import { GeometryMemento } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import * as visual from './VisualModel';
 
-const mesh_precision_distance: [number, number][] = [[0.1, 300], [0.003, 5]];
+const mesh_precision_distance: [number, number][] = [[0.1, 300], [0.002, 5]];
 const other_precision_distance: [number, number][] = [[0.0005, 1]];
 
 export type Agent = 'user' | 'automatic';
@@ -37,7 +37,7 @@ export interface DatabaseLike {
     addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject>;
     addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
     replaceWithTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
-    didModifyTemporarily(ifDisallowed: () => Promise<void>): Promise<void>;
+    didModifyTemporarily(ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]>;
 
     clearTemporaryObjects(): void;
     rebuildScene(): void;
@@ -163,8 +163,8 @@ export class GeometryDatabase implements DatabaseLike {
         return result;
     }
 
-    didModifyTemporarily(ifDisallowed: () => Promise<void>): Promise<void> {
-        return Promise.resolve();
+    didModifyTemporarily(ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]> {
+        return Promise.resolve([]);
     }
     
     async addTemporaryItem(object: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
@@ -482,7 +482,7 @@ export class GeometryDatabase implements DatabaseLike {
         for (const { view } of hidden) this.signals.objectUnhidden.dispatch(view);
     }
 
-    saveToMemento(registry: Map<any, any>): GeometryMemento {
+    saveToMemento(registry: Map<1, any>): GeometryMemento {
         return new GeometryMemento(
             new Map(this.geometryModel),
             new Map(this.topologyModel),

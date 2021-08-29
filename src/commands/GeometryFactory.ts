@@ -1,10 +1,9 @@
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
-import { DatabaseLike, GeometryDatabase, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
+import { DatabaseLike, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { ResourceRegistration } from '../util/Cancellable';
 import * as visual from '../editor/VisualModel';
-import * as THREE from 'three';
+import { ResourceRegistration } from '../util/Cancellable';
 import { zip } from '../util/Util';
 
 type State = { tag: 'none', last: undefined }
@@ -47,12 +46,12 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
     protected temps: TemporaryObject[] = [];
 
-    protected async doUpdate(): Promise<void> {
+    protected async doUpdate(): Promise<TemporaryObject[]> {
         const promises = [];
 
         // 0. Make sure original items are visible if we're not going to remove them
-        if (!this.shouldRemoveOriginalItem) for (const i of this.originalItems) 
-           this.db.unhide(i);
+        if (!this.shouldRemoveOriginalItem) for (const i of this.originalItems)
+            this.db.unhide(i);
 
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
         let result = await this.calculate();
@@ -91,6 +90,8 @@ export abstract class GeometryFactory extends ResourceRegistration {
             temps.push(temp);
         }
         this.temps = temps;
+
+        return this.temps;
     }
 
     protected async doCommit(): Promise<visual.Item | visual.Item[]> {
@@ -245,7 +246,9 @@ export abstract class GeometryFactory extends ResourceRegistration {
     }
 
     // Factories can be cancelled but "finishing" is a no-op. Commit must be called explicitly.
-    async finish() { }
+    async finish() {
+        console.log("finishing");
+    }
 
     cancel() {
         switch (this.state.tag) {

@@ -37,8 +37,7 @@ export class Editor {
     readonly _db = new GeometryDatabase(this.materials, this.signals);
     readonly _selection = new SelectionManager(this._db, this.materials, this.signals);
     readonly modifiers = new ModifierManager(this._db, this._selection, this.materials, this.signals);
-    readonly selection = this.modifiers as HasSelectedAndHovered;
-    // readonly selection = this._selection;
+    readonly selection = this.modifiers;
     readonly db = this.modifiers as DatabaseLike;
     readonly curves = new PlanarCurveDatabase(this.db);
     readonly regions = new RegionManager(this._db, this.curves);

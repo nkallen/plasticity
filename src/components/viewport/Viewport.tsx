@@ -30,7 +30,6 @@ export interface EditorLike extends selector.EditorLike {
     helpers: Helpers,
     viewports: Viewport[],
     signals: EditorSignals,
-    selection: HasSelectedAndHovered,
     originator: EditorOriginator,
     windowLoaded: boolean,
 }

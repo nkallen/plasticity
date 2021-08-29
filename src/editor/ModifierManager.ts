@@ -1,11 +1,9 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { GeometryFactory } from "../commands/GeometryFactory";
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
 import { ItemSelection } from "../selection/Selection";
-import { HasSelectedAndHovered, Highlightable, ModifiesSelection, SelectionManager } from "../selection/SelectionManager";
+import { HasSelectedAndHovered, Highlightable, ModifiesSelection } from "../selection/SelectionManager";
 import { SelectionProxy } from "../selection/SelectionProxy";
-import { zip } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
 import { Agent, DatabaseLike, GeometryDatabase, TemporaryObject } from "./GeometryDatabase";
@@ -17,34 +15,43 @@ export type Replacement = { from: visual.Item, to: visual.Item }
 const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
+/**
+ * Modifiers are a "stack" of post-processing operations on an object, e.g., a symmetrize that will
+ * automatically run after every operation.
+ * 
+ * Important vocabulary: "unmodified" -- a normal object with no modifier stack; "premodified" --
+ * an object with a modifier stack, but before the modifiers have been run; "modified" -- an object
+ * with a modifier stack fully executed.
+ */
+
 export class ModifierStack {
     isEnabled = true;
     showWhileEditing = true;
 
-    temp?: TemporaryObject;
     private _modified!: visual.Solid;
-    private _unmodified!: visual.Solid;
+    private _premodified!: visual.Solid;
 
     constructor(
-        private readonly db: DatabaseLike,
+        private readonly db: GeometryDatabase,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals,
     ) { }
 
-    get unmodified() { return this._unmodified }
+    get premodified() { return this._premodified }
     get modified() { return this._modified }
 
     async add(underlying: c3d.Solid, view: visual.Solid): Promise<visual.Solid> {
         const { unmodified, modified } = await this.calculate(underlying, Promise.resolve(view));
         this._modified = modified;
-        this._unmodified = unmodified;
+        this._premodified = unmodified;
         return modified;
     }
 
     async update(underlying: c3d.Solid, view: Promise<visual.Solid>): Promise<visual.Solid> {
+        console.log("update");
         const { unmodified, modified } = await this.calculate(underlying, view);
         this._modified = modified;
-        this._unmodified = unmodified;
+        this._premodified = unmodified;
         return modified;
     }
 
@@ -53,9 +60,7 @@ export class ModifierStack {
         symmetry.solid = underlying;
         symmetry.origin = new THREE.Vector3();
         symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
-        console.time("calculate");
         const symmetrized = await symmetry.calculate();
-        console.timeEnd("calculate");
 
         const modified = (this._modified !== undefined) ?
             await this.db.replaceItem(this._modified, symmetrized) :
@@ -74,33 +79,28 @@ export class ModifierStack {
         return { unmodified, modified };
     }
 
-    async updateTemporary(from: visual.Item, underlying: c3d.Solid) {
-        from.visible = false;
-
+    async updateTemporary(from: visual.Item, underlying: c3d.Solid): Promise<TemporaryObject> {
+        console.log("update temporary");
         const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
         symmetry.solid = underlying;
         symmetry.origin = new THREE.Vector3();
         symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
-        console.time("updateTemporary");
-        const symmetrized = await symmetry.calculate2();
-
-        const result = (this.modified !== undefined) ?
-            await this.db.replaceWithTemporaryItem(this.modified, symmetrized) :
-            await this.db.addTemporaryItem(symmetrized);
-        if (this.temp !== undefined) this.temp.cancel();
-
-        const object = result.underlying;
-        const foo = object.clone();
-        foo.scale.x = -1;
-        object.add(foo);
-        foo.visible = true;
-
-        console.timeEnd("updateTemporary");
-
-        result.show();
-        this.temp = result;
-        // FIXME when temp is cancelled, should delete reference
-        return result;
+        const symmetrized = await symmetry.doUpdate();
+        if (symmetrized.length != 1) throw new Error("invalid postcondition");
+        const temp = symmetrized[0];
+        const { modified, premodified } = this;
+        return {
+            underlying: temp.underlying,
+            show() {
+                temp.show();
+                modified.visible = false;
+            },
+            cancel() {
+                temp.cancel();
+                modified.visible = true;
+                premodified.visible = false;
+            }
+        }
     }
 
     dispose() {
@@ -122,7 +122,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     protected readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
     protected readonly modified2name = new Map<c3d.SimpleName, c3d.SimpleName>();
 
-    readonly selected: ModifiesSelection & Highlightable;
+    readonly selected: ModifierSelection;
     readonly hovered: ModifiesSelection & Highlightable;
 
     constructor(
@@ -147,7 +147,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 
         selection.selected.removeSolid(object);
 
-        const modifiers = new ModifierStack(db, materials, signals);
+        const modifiers = new ModifierStack(db as GeometryDatabase, materials, signals);
         map.set(name, modifiers);
 
         const result = await modifiers.add(db.lookup(object), object);
@@ -155,7 +155,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         return modifiers;
     }
 
-    getByUnmodified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
+    getByPremodified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
         const { version2name, map } = this;
         const simpleName = object instanceof visual.Solid ? object.simpleName : object;
         let name = version2name.get(simpleName);
@@ -187,6 +187,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     async replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
     async replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
     async replaceItem(from: visual.Item, to: c3d.Item): Promise<visual.Item> {
+        console.log("replaceItem");
         const { map, version2name, modified2name } = this;
         const name = version2name.get(from.simpleName)!;
 
@@ -242,7 +243,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         return result;
     }
 
-    didModifyTemporarily(ifDisallowed: () => Promise<void>): Promise<void>{
+    didModifyTemporarily(ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]> {
         return ifDisallowed();
     }
 };
@@ -254,58 +255,49 @@ class ModifierSelection extends SelectionProxy {
 
     addSolid(solid: visual.Solid) {
         const { modifiers, selection } = this;
-        const stack = modifiers.getByModified(solid);
-        if (stack === undefined) {
-            return super.addSolid(solid);
+        switch (this.stateOf(solid)) {
+            case 'unmodified':
+                return super.addSolid(solid);
+            case 'modified':
+                super.addSolid(solid);
+                const stack = modifiers.getByModified(solid)!;
+                const { modified, premodified } = stack;
+                premodified.visible = true;
+                selection.addSolid(premodified);
+                for (const edge of modified.allEdges) {
+                    edge.visible = false;
+                }
+                modified.traverse(child => {
+                    child.userData.oldLayerMask = child.layers.mask;
+                    child.layers.set(visual.Layers.Unselectable);
+                });
+                return;
+            case 'premodified':
+                throw new Error("invalid precondition");
         }
-
-        const { modified, unmodified } = stack;
-
-        unmodified.visible = true;
-        selection.addSolid(unmodified);
-
-        for (const edge of modified.allEdges) {
-            edge.visible = false;
-        }
-        modified.traverse(child => {
-            child.userData.oldLayerMask = child.layers.mask;
-            child.layers.set(visual.Layers.Unselectable);
-        });
     }
 
     removeSolid(solid: visual.Solid) {
-        const { modifiers } = this;
-        const stack = modifiers.getByUnmodified(solid.simpleName);
-        if (stack === undefined) {
-            return super.removeSolid(solid);
+        switch (this.stateOf(solid)) {
+            case 'unmodified':
+            case 'premodified':
+                return super.removeSolid(solid);
+            case 'modified':
+                throw new Error("invalid precondition");
         }
-
-        this.removeById(solid.simpleName);
     }
 
-    private removeById(id: c3d.SimpleName) {
-        const { modifiers, selection } = this;
-        const stack = modifiers.getByUnmodified(id);
-        if (stack === undefined) return;
-        
-        const { modified, unmodified } = stack;
-        
-        unmodified.visible = false;
-        selection.removeSolid(unmodified);
-
-        for (const edge of modified.allEdges) {
-            edge.traverse(child => {
-                edge.visible = true;
-            });
-        }
-        modified.traverse(child => {
-            child.layers.mask = child.userData.oldLayerMask;
-            child.userData.oldLayerMask = undefined;
-        });
-    }
-    
     removeAll() {
-        for (const id of this.selection.solidIds) this.removeById(id);
+        const { modifiers } = this;
+        for (const id of this.selection.solidIds) {
+            switch (this.stateOf(id)) {
+                case 'unmodified': break;
+                case 'premodified': break;
+                case 'modified':
+                    const stack = modifiers.getByModified(id)!;
+                    this.hidePremodifiedAndShowModified(stack);
+            }
+        }
         super.removeAll();
     }
 
@@ -313,12 +305,46 @@ class ModifierSelection extends SelectionProxy {
         const { db, modifiers } = this;
         const outlineIds = new Set(this.solidIds);
         for (const id of outlineIds) {
-            const stack = modifiers.getByUnmodified(id);
-            if (stack !== undefined) {
+            const state = this.stateOf(id);
+            if (state === 'premodified') {
+                const stack = modifiers.getByPremodified(id)!;
                 outlineIds.delete(id);
                 outlineIds.add(stack.modified.simpleName);
             }
         }
         return new ItemSelection<visual.Solid>(db, outlineIds)
+    }
+
+    private stateOf(solid: visual.Solid | c3d.SimpleName): 'unmodified' | 'premodified' | 'modified' {
+        if (this.modifiers.getByPremodified(solid) !== undefined) return 'premodified';
+        else if (this.modifiers.getByModified(solid) !== undefined) return 'modified';
+        else return 'unmodified';
+    }
+
+    private hidePremodifiedAndShowModified(stack: ModifierStack) {
+        const { modified, premodified } = stack;
+
+        premodified.visible = false;
+
+        for (const edge of modified.allEdges) {
+            edge.traverse(child => edge.visible = true);
+        }
+        modified.traverse(child => {
+            child.layers.mask = child.userData.oldLayerMask;
+            child.userData.oldLayerMask = undefined;
+        });
+    }
+
+    get unmodifiedSolids() {
+        return new ItemSelection<visual.Solid>(this.db, this.unmodifiedSolidIds);
+    }
+
+    get unmodifiedSolidIds(): Set<c3d.SimpleName> {
+        const result = new Set<c3d.SimpleName>();
+        for (const id of this.solidIds) {
+            if (this.stateOf(id) === 'unmodified' || this.stateOf(id) === 'premodified')
+                result.add(id);
+        }
+        return result;
     }
 }

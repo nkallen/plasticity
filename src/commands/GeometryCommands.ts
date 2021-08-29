@@ -663,7 +663,7 @@ export class CenterBoxCommand extends Command {
 
 export class MoveCommand extends Command {
     async execute(): Promise<void> {
-        const objects = [...this.editor.selection.selected.solids, ...this.editor.selection.selected.curves];
+        const objects = [...this.editor.selection.selected.unmodifiedSolids, ...this.editor.selection.selected.curves];
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
@@ -687,7 +687,7 @@ export class MoveCommand extends Command {
 
 export class ScaleCommand extends Command {
     async execute(): Promise<void> {
-        const objects = [...this.editor.selection.selected.solids, ...this.editor.selection.selected.curves];
+        const objects = [...this.editor.selection.selected.unmodifiedSolids, ...this.editor.selection.selected.curves];
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
@@ -711,7 +711,7 @@ export class ScaleCommand extends Command {
 
 export class RotateCommand extends Command {
     async execute(): Promise<void> {
-        const objects = [...this.editor.selection.selected.solids, ...this.editor.selection.selected.curves];
+        const objects = [...this.editor.selection.selected.unmodifiedSolids, ...this.editor.selection.selected.curves];
 
         if (objects.length === 0) throw new ValidationError("Select something first");
 

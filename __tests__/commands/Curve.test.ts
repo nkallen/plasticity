@@ -59,7 +59,7 @@ describe(CurveWithPreviewFactory, () => {
 
         makeCurve.push(p2);
         expect(makeCurve.preview.hasEnoughPoints).toBe(true);
-        expect(makeCurve.preview.points).toEqual([p2, new THREE.Vector3()]);
+        expect(makeCurve.preview.points).toEqual([p2, p2]);
         await makeCurve.update();
 
         makeCurve.preview.last = p3;
@@ -67,7 +67,7 @@ describe(CurveWithPreviewFactory, () => {
         await makeCurve.preview.update();
 
         makeCurve.push(p4);
-        expect(makeCurve.preview.points).toEqual([p2, p4, new THREE.Vector3()]);
+        expect(makeCurve.preview.points).toEqual([p2, p4, p4]);
         expect(makeCurve.underlying.points).toEqual([p2, p4]);
         await makeCurve.update();
 

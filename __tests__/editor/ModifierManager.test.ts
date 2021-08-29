@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import FilletFactory from '../../src/commands/fillet/FilletFactory';
+import { MoveFactory } from '../../src/commands/translate/TranslateFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import ModifierManager, { ModifierStack } from "../../src/editor/ModifierManager";
 import * as visual from '../../src/editor/VisualModel';
+import { HighlightManager } from '../../src/selection/HighlightManager';
 import { SelectionManager } from "../../src/selection/SelectionManager";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -47,6 +49,14 @@ describe(ModifierManager, () => {
         expect(modification.modified).not.toBeUndefined();
     })
 
+    const unselectable = new THREE.Layers();
+    let highlighter: HighlightManager;
+
+    beforeEach(() => {
+        unselectable.set(visual.Layers.Unselectable);
+        highlighter = new HighlightManager(db);
+    });
+    
     test('adding a symmetry modifier', async () => {
         const bbox = new THREE.Box3();
         bbox.setFromObject(modification.modified);
@@ -71,8 +81,8 @@ describe(ModifierManager, () => {
 
         expect(db.visibleObjects.length).toBe(2);
 
-        expect(modifiers.getByUnmodified(box)).toBeUndefined();
-        const newModification = modifiers.getByUnmodified(filleted) as ModifierStack;
+        expect(modifiers.getByPremodified(box)).toBeUndefined();
+        const newModification = modifiers.getByPremodified(filleted) as ModifierStack;
         expect(newModification).not.toBeUndefined();
         expect(modification.modified).not.toBe(1);
         expect(newModification.modified).not.toBe(oldModified)
@@ -89,7 +99,9 @@ describe(ModifierManager, () => {
     test('creating a temporary object updates the modifier', async () => {
         expect(db.temporaryObjects.children.length).toBe(0);
         expect(db.visibleObjects.length).toBe(2);
-        expect(modification.temp).toBeUndefined();
+
+        expect(modification.modified.visible).toBe(true);
+        expect(modification.premodified.visible).toBe(false);
 
         const makeFillet = new FilletFactory(modifiers, materials, signals);
         makeFillet.solid = box;
@@ -98,47 +110,115 @@ describe(ModifierManager, () => {
         makeFillet.distance = 0.1;
         await makeFillet.update();
 
+        expect(modification.modified.visible).toBe(false);
+        expect(modification.premodified.visible).toBe(false);
         expect(db.visibleObjects.length).toBe(2);
         expect(db.temporaryObjects.children.length).toBe(1);
+        expect(modifiers.getByPremodified(box)).toBe(modification);
 
-        expect(modifiers.getByUnmodified(box)).toBe(modification);
-        expect(modification.temp!.underlying).toBe(db.temporaryObjects.children[0]);
+        const temp = db.temporaryObjects.children[0];
+        const bbox = new THREE.Box3();
+        bbox.setFromObject(temp);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
 
         await makeFillet.commit();
-        // expect(modification.temp!).toBeUndefined();
+        expect(modification.modified.visible).toBe(true);
+        expect(modification.premodified.visible).toBe(false);
     });
 
+    test('creating a temporary object then cancelling makes the right objects visible', async () => {
+        expect(db.temporaryObjects.children.length).toBe(0);
+        expect(db.visibleObjects.length).toBe(2);
+
+        expect(modification.modified.visible).toBe(true);
+        expect(modification.premodified.visible).toBe(false);
+
+        const makeFillet = new FilletFactory(modifiers, materials, signals);
+        makeFillet.solid = box;
+        const edge = box.edges.get(0);
+        makeFillet.edges = [edge];
+        makeFillet.distance = 0.1;
+        await makeFillet.update();
+
+        expect(modification.modified.visible).toBe(false);
+        expect(modification.premodified.visible).toBe(false);
+
+        expect(db.visibleObjects.length).toBe(2);
+        expect(db.temporaryObjects.children.length).toBe(1);
+        expect(modifiers.getByPremodified(box)).toBe(modification);
+
+        makeFillet.cancel();
+        expect(modification.modified.visible).toBe(true);
+        expect(modification.premodified.visible).toBe(false);
+    });
+
+    describe("when modifying a specially optimized factory like move/rotate/scale", () => {
+        test('creating a temporary object updates the modifier', async () => {
+            expect(db.temporaryObjects.children.length).toBe(0);
+            expect(db.visibleObjects.length).toBe(2);
+
+            expect(modification.modified.visible).toBe(true);
+            expect(modification.premodified.visible).toBe(false);
+
+            const move = new MoveFactory(modifiers, materials, signals);
+            move.items = [box];
+            move.move = new THREE.Vector3(-0.5, 0, 0);
+            await move.update();
+
+            expect(modification.modified.visible).toBe(false);
+            expect(modification.premodified.visible).toBe(false);
+            expect(db.visibleObjects.length).toBe(2);
+            expect(db.temporaryObjects.children.length).toBe(1);
+            expect(modifiers.getByPremodified(box)).toBe(modification);
+
+            const temp = db.temporaryObjects.children[0];
+            const bbox = new THREE.Box3();
+            bbox.setFromObject(temp);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0.5));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.5, 1, 1));
+
+            await move.commit();
+            expect(modification.modified.visible).toBe(true);
+            expect(modification.premodified.visible).toBe(false);
+        });
+    })
+
     test('removing an item removes the modifier db', async () => {
-        expect(modifiers.getByUnmodified(box)).not.toBeUndefined();
+        expect(modifiers.getByPremodified(box)).not.toBeUndefined();
         await modifiers.removeItem(box);
-        expect(modifiers.getByUnmodified(box)).toBeUndefined();
+        expect(modifiers.getByPremodified(box)).toBeUndefined();
     })
 
     test('duplicating an object...', () => {
 
     })
 
-    test('when a modified item is selected & deselected', () => {
-        const { modified, unmodified } = modification;
+    test('when a modified item is selected & then deselect ALL', () => {
+        const { modified, premodified } = modification;
         expect(modified.visible).toBe(true);
-        expect(unmodified.visible).toBe(false);
+        expect(premodified.visible).toBe(false);
 
         modifiers.selected.addSolid(modified);
 
         expect(modified.visible).toBe(true);
-        expect(unmodified.visible).toBe(true);
+        expect(premodified.visible).toBe(true);
         for (const edge of modified.allEdges) {
             expect(edge.visible).toBe(false);
         }
-        const unselectable = new THREE.Layers();
-        unselectable.set(visual.Layers.Unselectable);
         modified.traverse(child => {
             expect(child.layers.mask).toBe(unselectable.mask);
         });
 
-        modifiers.selected.removeSolid(unmodified);
+        modifiers.selected.removeAll();
         expect(modified.visible).toBe(true);
-        expect(unmodified.visible).toBe(false);
+        expect(premodified.visible).toBe(false);
         for (const edge of modified.allEdges) {
             expect(edge.visible).toBe(true);
         }
@@ -147,30 +227,25 @@ describe(ModifierManager, () => {
         });
     });
 
-    test('when a modified item is selected & then deselect ALL', () => {
-        const { modified, unmodified } = modification;
+    test('when a modified item is selected & then a topology item is selected & then deselect ALL', () => {
+        const { modified, premodified } = modification;
         expect(modified.visible).toBe(true);
-        expect(unmodified.visible).toBe(false);
+        expect(premodified.visible).toBe(false);
 
         modifiers.selected.addSolid(modified);
-
         expect(modified.visible).toBe(true);
-        expect(unmodified.visible).toBe(true);
-        for (const edge of modified.allEdges) {
-            expect(edge.visible).toBe(false);
-        }
-        const unselectable = new THREE.Layers();
-        unselectable.set(visual.Layers.Unselectable);
-        modified.traverse(child => {
-            expect(child.layers.mask).toBe(unselectable.mask);
-        });
-
+        expect(premodified.visible).toBe(true);
+        
+        const edge = premodified.edges.get(0)
+        modifiers.selected.addEdge(edge, premodified);
+        modifiers.selected.removeSolid(premodified);
+        expect(modified.visible).toBe(true);
+        expect(premodified.visible).toBe(true);
+        
         modifiers.selected.removeAll();
+
         expect(modified.visible).toBe(true);
-        expect(unmodified.visible).toBe(false);
-        for (const edge of modified.allEdges) {
-            expect(edge.visible).toBe(true);
-        }
+        expect(premodified.visible).toBe(false);
         modified.traverse(child => {
             expect(child.layers.mask).not.toBe(unselectable.mask);
         });
@@ -190,7 +265,7 @@ describe(ModifierManager, () => {
         })
 
         test('a modified object is outlinable when selected, but the unmodified ancestor is not', () => {
-            const { modified, unmodified } = modification;
+            const { modified } = modification;
             modifiers.selected.addSolid(modified);
             expect([...modifiers.selected.outlinable]).toEqual([modified]);
         })

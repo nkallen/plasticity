@@ -36,6 +36,13 @@ abstract class TranslateFactory extends GeometryFactory {
             item.updateMatrixWorld();
         }
         await db.didModifyTemporarily(() => super.doUpdate());
+        return items.map(item => {
+            return {
+                underlying: item,
+                show() { },
+                cancel() { },
+            }
+        });
     }
 
     async calculate() {
@@ -106,7 +113,7 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
     // but this works instead.
     async doUpdate() {
         const { items, pivot: point, axis, angle, db } = this;
-        if (angle === 0) return;
+        if (angle === 0) return [];
 
         for (const item of items) {
             item.position.set(0, 0, 0);
@@ -116,7 +123,14 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
             item.position.add(point);
             item.quaternion.setFromAxisAngle(axis, angle);
         }
-        await db.didModifyTemporarily(() => super.doUpdate() );
+        await db.didModifyTemporarily(() => super.doUpdate());
+        return items.map(item => {
+            return {
+                underlying: item,
+                show() { },
+                cancel() { },
+            }
+        });
     }
 
     protected get transform(): c3d.TransformValues {

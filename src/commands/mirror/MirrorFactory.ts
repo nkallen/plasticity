@@ -1,8 +1,9 @@
+import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
+import { TemporaryObject } from '../../editor/GeometryDatabase';
 import * as visual from '../../editor/VisualModel';
 import { vec2cart } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
-import * as THREE from "three";
 
 export class MirrorFactory extends GeometryFactory {
     curve!: visual.SpaceInstance<visual.Curve3D>;
@@ -55,10 +56,20 @@ export class SymmetryFactory extends GeometryFactory {
 
         const placement = new c3d.Placement3D(vec2cart(origin), z, x, false);
 
-        return c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names);
+        try {
+            this._isOverlapping = true;
+            return c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names);
+        } catch (e) {
+            this._isOverlapping = false;
+            const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
+            const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Same, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
+            return result;
+        }
     }
 
-    async calculate2() {
+    private temp?: TemporaryObject;
+
+    async doUpdate() {
         const point1 = new c3d.CartPoint(0, -100);
         const point2 = new c3d.CartPoint(0, 100);
         const line = c3d.ActionCurve.Line(point1, point2);
@@ -66,20 +77,35 @@ export class SymmetryFactory extends GeometryFactory {
         const { solid, model, origin, orientation, names, db } = this;
         const { X, Y, Z } = this;
 
-        const placement = new c3d.Placement3D();
-
+        const placement = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(0, 0, 1), false);
         const contour = new c3d.Contour([line], true);
         const direction = new c3d.Vector3D(0, 0, 0);
 
         const flags = new c3d.MergingFlags(true, true);
-
         const params = new c3d.ShellCuttingParams(placement, contour, false, direction, -1, flags, true, names);
         const results = c3d.ActionSolid.SolidCutting(model, c3d.CopyMode.Copy, params);
         const result = results[0];
-        return result;
-        
-        // await db.didModifyTemporarily(() => super.doUpdate());
+
+        const temp = await this.db.replaceWithTemporaryItem(solid, result);
+        const view = temp.underlying;
+        const mirrored = view.clone();
+        mirrored.scale.x = -1;
+        view.add(mirrored);
+
+        this.temp?.cancel();
+        this.temp = temp;
+        temp.show();
+        mirrored.visible = true;
+
+        await db.didModifyTemporarily(() => super.doUpdate());
+
+        return [temp];
     }
 
     get originalItem() { return this.solid }
+    protected _isOverlapping = false;
+
+    // get shouldRemoveOriginalItem() {
+    //     return this._isOverlapping;
+    // }
 }

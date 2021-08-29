@@ -46,7 +46,7 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.replaceWithTemporaryItem(from, to);
     }
 
-    didModifyTemporarily(ifDisallowed: () => Promise<void>): Promise<void> {
+    didModifyTemporarily(ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]> {
         return this.db.didModifyTemporarily(ifDisallowed);
     }
 

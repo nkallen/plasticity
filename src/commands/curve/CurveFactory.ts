@@ -106,7 +106,7 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     doUpdate() {
         if (this.preview.hasEnoughPoints) this.preview.update();
         if (this.underlying.hasEnoughPoints) this.underlying.update();
-        return Promise.resolve();
+        return Promise.resolve([]);
     }
 
     doCommit() {

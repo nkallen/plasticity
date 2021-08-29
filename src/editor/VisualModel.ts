@@ -642,15 +642,13 @@ export const VisibleLayers = new THREE.Layers();
 VisibleLayers.enableAll();
 VisibleLayers.disable(Layers.CurveFragment);
 VisibleLayers.disable(Layers.ControlPoint);
-// VisibleLayers.disable(Layers.ModifiedCurveEdge);
 
 export const SelectableLayers = new THREE.Layers();
 SelectableLayers.enableAll();
 SelectableLayers.disable(Layers.CurveFragment);
 SelectableLayers.disable(Layers.ControlPoint);
 SelectableLayers.disable(Layers.Unselectable);
-// SelectableLayers.disable(Layers.ModifiedFace);
-// SelectableLayers.disable(Layers.ModifiedCurveEdge);
+
 
 export type Selectable = Item | TopologyItem | ControlPoint | Region;
 
