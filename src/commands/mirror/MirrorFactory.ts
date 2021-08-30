@@ -27,9 +27,12 @@ export interface MirrorParams {
     orientation: THREE.Quaternion;
 }
 
+const X = new THREE.Vector3(1, 0, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
 export class SymmetryFactory extends GeometryFactory {
-    origin!: THREE.Vector3;
-    orientation!: THREE.Quaternion;
+    origin = new THREE.Vector3();
+    orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
 
     private model!: c3d.Solid;
     private _solid!: visual.Solid;
@@ -106,7 +109,7 @@ export class SymmetryFactory extends GeometryFactory {
                 this.temp = temp;
                 temp.show();
                 mirrored.visible = true;
-    
+
                 return [temp];
             } catch {
                 this.temp?.cancel();

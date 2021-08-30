@@ -51,7 +51,8 @@ export interface EditorLike {
     selectionInteraction: SelectionInteractionManager,
     layers: LayerManager,
     activeViewport?: Viewport,
-    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>
+    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>,
+    modifiers: ModifierManager,
 }
 
 export default abstract class Command extends CancellableRegistor {

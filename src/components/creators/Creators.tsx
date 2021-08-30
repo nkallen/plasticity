@@ -2,12 +2,19 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
+import { FilletCommand, SymmetryCommand } from '../../commands/GeometryCommands';
+import { GeometryFactory } from '../../commands/GeometryFactory';
+import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
 import ModifierManager from '../../editor/ModifierManager';
 import * as visual from '../../editor/VisualModel';
 import { HasSelection } from '../../selection/SelectionManager';
+import { icons, keybindings, tooltips } from '../toolbar/icons';
 
+const emptyStack = {
+    modifiers: []
+};
 export class Model {
     constructor(
         private readonly selection: HasSelection,
@@ -16,11 +23,7 @@ export class Model {
     ) { }
 
     get item() {
-        const { selection } = this;
-        if (selection.solids.size == 0) throw new Error("invalid precondition");
-
-        const solid = selection.solids.first;
-        return solid;
+        return this.selection.solids.first;
     }
 
     get creators() {
@@ -35,6 +38,13 @@ export class Model {
         }
 
         return result;
+    }
+
+    get stack() {
+        const { db, solid } = this;
+        if (solid === undefined) return emptyStack;
+
+        return this.modifiers.getByPremodified(solid) ?? emptyStack;
     }
 
     add() {
@@ -70,15 +80,30 @@ export default (editor: Editor) => {
         }
 
         render() {
+            const { creators, stack, item } = this.model;
+            if (item === undefined) {
+                render(<></>, this);
+                return;
+            }
+
             const result = <>
+                <h4>Construction History</h4>
                 <ol>
-                    {this.model.creators.map(([i, c]) => {
+                    {creators.map(([i, c]) => {
                         const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[c.IsA()])}`;
                         // @ts-expect-error("not sure how to type this")
-                        return <li><Z creator={c} index={i} item={this.model.item}></Z></li>
+                        return <li><Z creator={c} index={i} item={item}></Z></li>
                     })}
                 </ol>
-                <button type="button" onClick={e => this.model.add()}>button</button>
+                <h4>Modifiers</h4>
+                <ol>
+                    {stack.modifiers.map(factory => {
+                        const Z = `ispace-modifier-${_.dasherize(factory.constructor.name)}`;
+                        // @ts-expect-error("not sure how to type this")
+                        return <li><Z factory={factory}></Z></li>
+                    })}
+                </ol>
+                <button type="button" onClick={e => this.model.add()}>Add symmetry</button>
             </>;
             render(result, this);
         }
@@ -89,7 +114,7 @@ export default (editor: Editor) => {
     }
     customElements.define('ispace-creators', Creators);
 
-    class Creator<C extends c3d.Creator, T> extends HTMLElement {
+    class Creator<C extends c3d.Creator> extends HTMLElement {
         constructor() {
             super();
             this.render = this.render.bind(this);
@@ -151,7 +176,43 @@ export default (editor: Editor) => {
     customElements.define('ispace-creator', Creator);
 
     for (const key in c3d.CreatorType) {
-        class Foo extends Creator<any, any> { };
+        class Foo extends Creator<any> { };
         customElements.define(`ispace-creator-${_.dasherize(key)}`, Foo);
     }
+
+    class Modifier<F extends GeometryFactory> extends HTMLElement {
+        constructor() {
+            super();
+            this.render = this.render.bind(this);
+        }
+        private _factory!: F;
+        get factory() { return this._factory }
+        set factory(f: F) { this._factory = f }
+
+        connectedCallback() { this.render() }
+
+        render() {
+            const { factory } = this;
+            const tooltip = tooltips.get(FilletCommand);
+            if (!tooltip) throw "invalid tooltip for " + FilletCommand;
+
+            render(
+                <div class="header">
+                    <div class="name">
+                        {factory.constructor.name}
+                    </div>
+                    <div class="buttons">
+                        <button onClick={_ => editor.enqueue(new FilletCommand(editor))} name={FilletCommand.identifier}>
+                            <img src={icons.get(FilletCommand)}></img>
+                            <ispace-tooltip placement="top" command={`command:${FilletCommand.identifier}`}>{tooltip}</ispace-tooltip>
+                        </button>
+                    </div>
+                </div>
+                , this);
+        }
+    }
+    customElements.define('ispace-modifier', Modifier);
+
+    class Foo extends Modifier<SymmetryFactory> { };
+    customElements.define(`ispace-modifier-symmetry-factory`, Foo);
 }

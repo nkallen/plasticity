@@ -3,6 +3,8 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from "../editor/VisualModel";
 import { GizmoLike } from "./AbstractGizmo";
 import Command, * as cmd from "./Command";
+import { SymmetryFactory } from './mirror/MirrorFactory';
+import { MirrorGizmo } from './mirror/MirrorGizmo';
 import { RebuildFactory } from "./rebuild/RebuildFactory";
 import { MoveGizmo } from './translate/MoveGizmo';
 import { MoveFactory } from './translate/TranslateFactory';
@@ -121,5 +123,26 @@ export class DuplicateCommand extends Command {
 
         const selection = await move.commit();
         this.editor.selection.selected.add(selection);
+    }
+}
+
+export class AddModifierCommand extends Command {
+    async execute(): Promise<void> {
+        const { modifiers, selection } = this.editor;
+        const solid = selection.selected.solids.first;
+        const stack = await modifiers.add(solid);
+
+        const symmetry = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        symmetry.solid = solid;
+        symmetry.origin = new THREE.Vector3();
+
+        const gizmo = new MirrorGizmo(symmetry, this.editor);
+        await gizmo.execute(s => {
+            symmetry.update();
+        }).resource(this);
+
+        stack.addModifier(symmetry);
+
+        selection.selected.addSolid(solid);
     }
 }
