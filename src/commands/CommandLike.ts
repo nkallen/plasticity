@@ -130,7 +130,6 @@ export class AddModifierCommand extends Command {
     async execute(): Promise<void> {
         const { modifiers, selection } = this.editor;
         const solid = selection.selected.solids.first;
-        const stack = await modifiers.add(solid);
 
         const symmetry = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         symmetry.solid = solid;
@@ -141,8 +140,15 @@ export class AddModifierCommand extends Command {
             symmetry.update();
         }).resource(this);
 
-        stack.addModifier(symmetry);
+        symmetry.cancel();
 
-        selection.selected.addSolid(solid);
+        const stack = modifiers.add(solid);
+        const symmetry2 = stack.addModifier(SymmetryFactory);
+        symmetry2.solid = solid;
+        symmetry2.origin = new THREE.Vector3();
+        symmetry2.orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0));
+        await modifiers.rebuild(stack);
+
+        selection.selected.addSolid(stack.modified);
     }
 }

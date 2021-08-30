@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { GeometryFactory } from "../commands/GeometryFactory";
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
 import { ItemSelection } from "../selection/Selection";
 import { HasSelectedAndHovered, Highlightable, ModifiesSelection } from "../selection/SelectionManager";
 import { SelectionProxy } from "../selection/SelectionProxy";
+import { GConstructor } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
 import { Agent, DatabaseLike, GeometryDatabase, TemporaryObject } from "./GeometryDatabase";
@@ -33,6 +35,7 @@ export class ModifierStack {
 
     constructor(
         private readonly db: DatabaseLike,
+        private readonly foo: ModifierManager,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals,
     ) { }
@@ -40,34 +43,55 @@ export class ModifierStack {
     get premodified() { return this._premodified }
     get modified() { return this._modified }
 
-    async add(underlying: c3d.Solid, view: visual.Solid): Promise<visual.Solid> {
-        const { unmodified, modified } = await this.calculate(underlying, Promise.resolve(view));
-        this._modified = modified;
-        this._premodified = unmodified;
-        return modified;
+    add(view: visual.Solid): visual.Solid {
+        this._modified = view;
+        this._premodified = view;
+        return view;
     }
 
     async update(underlying: c3d.Solid, view: Promise<visual.Solid>): Promise<visual.Solid> {
-        const { unmodified, modified } = await this.calculate(underlying, view);
+        const { premodified, modified } = await this.calculate(underlying, view);
         this._modified = modified;
-        this._premodified = unmodified;
+        this._premodified = premodified;
         return modified;
     }
 
-    private async calculate(underlying: c3d.Solid, view: Promise<visual.Solid>): Promise<{ unmodified: visual.Solid, modified: visual.Solid }> {
+    readonly modifiers: GeometryFactory[] = [];
+
+    addModifier(klass: GConstructor<SymmetryFactory>) {
+        const factory = new klass(this.db, this.materials, this.signals);
+        this.modifiers.push(factory);
+        return factory;
+    }
+
+    removeModifier(index: number) {
+        if (index >= this.modifiers.length) throw new Error("invalid precondition");
+        this.modifiers.splice(index, 1);
+    }
+
+    async rebuild() {
+        const { db, premodified } = this;
+        return this.update(db.lookup(premodified), Promise.resolve(premodified));
+    }
+
+    private async calculate(model: c3d.Solid, view: Promise<visual.Solid>): Promise<{ premodified: visual.Solid, modified: visual.Solid }> {
+        const { modifiers } = this;
+        if (modifiers.length === 0) {
+            const completed = await view;
+            return { premodified: completed, modified: completed }
+        }
+
         const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
-        symmetry.solid = underlying;
-        symmetry.origin = new THREE.Vector3();
-        symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
+        symmetry.solid = model;
         const symmetrized = await symmetry.calculate();
 
-        const modified = (this._modified !== undefined) ?
-            await this.db.replaceItem(this._modified, symmetrized) :
-            await this.db.addItem(symmetrized, 'automatic');
+        const modified = (this._modified === this._premodified) ?
+            await this.db.addItem(symmetrized, 'automatic') :
+            await this.db.replaceItem(this._modified, symmetrized);
 
-        const unmodified = await view;
-        unmodified.visible = false;
-        for (const face of unmodified.allFaces) {
+        const premodified = await view;
+        premodified.visible = false;
+        for (const face of premodified.allFaces) {
             face.traverse(child => {
                 if (child instanceof THREE.Mesh) {
                     child.material = invisible;
@@ -75,16 +99,17 @@ export class ModifierStack {
             });
         }
 
-        return { unmodified, modified };
+        return { premodified, modified };
     }
 
     async updateTemporary(from: visual.Item, underlying: c3d.Solid): Promise<TemporaryObject> {
-        const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
+        const symmetry = this.modifiers[0] as SymmetryFactory;
         symmetry.solid = underlying;
         symmetry.origin = new THREE.Vector3();
         symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
         const symmetrized = await symmetry.doUpdate();
-        if (symmetrized.length != 1) throw new Error("invalid postcondition");
+
+        if (symmetrized.length != 1) throw new Error("invalid postcondition: " + symmetrized.length);
         const temp = symmetrized[0];
         const { modified, premodified } = this;
         return {
@@ -102,7 +127,9 @@ export class ModifierStack {
     }
 
     dispose() {
-        if (this.modified !== undefined) this.db.removeItem(this.modified);
+        if (this.modified !== undefined) {
+            this.db.removeItem(this.modified);
+        }
     }
 }
 
@@ -132,8 +159,8 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         this.hovered = selection.hovered;
     }
 
-    async add(object: visual.Solid): Promise<ModifierStack> {
-        const { version2name, selection, map, modified2name, db, materials, signals } = this;
+    add(object: visual.Solid): ModifierStack {
+        const { version2name, map, db, materials, signals } = this;
         let name = version2name.get(object.simpleName);
         if (name === undefined) {
             // FIXME this is TEMPORARY just for reloading files. replace when there is a better file reload strategy
@@ -141,23 +168,35 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
             name = object.simpleName;
         }
 
-        selection.selected.removeSolid(object);
-
-        const modifiers = new ModifierStack(db, materials, signals);
+        const modifiers = new ModifierStack(db, this, materials, signals);
         map.set(name, modifiers);
 
-        const result = await modifiers.add(db.lookup(object), object);
-        modified2name.set(result.simpleName, name);
+        modifiers.add(object);
         return modifiers;
     }
 
     async remove(object: visual.Solid) {
-        const { version2name, map } = this;
+        const { version2name, modified2name, map } = this;
         const stack = this.getByPremodified(object);
         if (stack === undefined) throw new Error("invalid precondition");
+        modified2name.delete(stack.modified.simpleName);
         stack.dispose();
 
         map.delete(version2name.get(object.simpleName)!);
+    }
+
+    async rebuild(stack: ModifierStack) {
+        const { modified2name, map } = this;
+        if (stack.modifiers.length === 0) {
+            const name = modified2name.get(stack.modified.simpleName);
+            if (name === undefined) throw new Error("invalid precondition");
+            map.delete(name);
+            modified2name.delete(stack.modified.simpleName);
+            stack.dispose();
+        } else {
+            const modified = await stack.rebuild();
+            modified2name.set(modified.simpleName, stack.premodified.simpleName);
+        }
     }
 
     getByPremodified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {

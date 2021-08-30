@@ -76,7 +76,7 @@ export class SymmetryFactory extends GeometryFactory {
     private temp?: TemporaryObject;
 
     async doUpdate() {
-        const { solid, model, origin, orientation, names, db } = this;
+        const { solid, model, origin, orientation, names } = this;
 
         return this.db.optimization(solid, async () => {
             const point1 = new c3d.CartPoint(0, -1000);
@@ -92,7 +92,6 @@ export class SymmetryFactory extends GeometryFactory {
 
             const contour = new c3d.Contour([line], true);
             const direction = new c3d.Vector3D(0, 0, 0);
-
             const flags = new c3d.MergingFlags(true, true);
             const params = new c3d.ShellCuttingParams(placement, contour, false, direction, 1, flags, true, names);
             try {

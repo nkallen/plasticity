@@ -2,7 +2,8 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
-import { FilletCommand, SymmetryCommand } from '../../commands/GeometryCommands';
+import { AddModifierCommand } from '../../commands/CommandLike';
+import { FilletCommand } from '../../commands/GeometryCommands';
 import { GeometryFactory } from '../../commands/GeometryFactory';
 import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
 import { Editor } from '../../editor/Editor';
@@ -10,7 +11,7 @@ import { DatabaseLike } from '../../editor/GeometryDatabase';
 import ModifierManager from '../../editor/ModifierManager';
 import * as visual from '../../editor/VisualModel';
 import { HasSelection } from '../../selection/SelectionManager';
-import { icons, keybindings, tooltips } from '../toolbar/icons';
+import { icons, tooltips } from '../toolbar/icons';
 
 const emptyStack = {
     modifiers: []
@@ -103,7 +104,7 @@ export default (editor: Editor) => {
                         return <li><Z factory={factory}></Z></li>
                     })}
                 </ol>
-                <button type="button" onClick={e => this.model.add()}>Add symmetry</button>
+                <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>Add symmetry</button>
             </>;
             render(result, this);
         }
