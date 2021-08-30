@@ -105,7 +105,6 @@ describe(ModifierManager, () => {
         expect(modifiers.selected.modifiedSolids.size).toBe(1);
     });
 
-
     test('when removing the last modifier and rebuilding', async () => {
         stack = modifiers.add(box);
         stack.addModifier(SymmetryFactory);
@@ -116,6 +115,27 @@ describe(ModifierManager, () => {
         expect(modifiers.getByPremodified(box)).toBeUndefined();
         expect(modifiers.getByModified(stack.modified)).toBeUndefined();
         expect(db.visibleObjects.length).toBe(1);
+    });
+
+    test('when applying', async () => {
+        stack = modifiers.add(box);
+        stack.addModifier(SymmetryFactory);
+        await modifiers.rebuild(stack);
+        expect(db.visibleObjects.length).toBe(2);
+
+        const applied = await modifiers.apply(stack);
+        expect(db.visibleObjects.length).toBe(1);
+        expect(modifiers.getByPremodified(box)).toBeUndefined();
+        expect(modifiers.getByModified(stack.modified)).toBeUndefined();
+
+        const bbox = new THREE.Box3();
+        bbox.setFromObject(applied);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+
     })
 
     describe('modified objects', () => {

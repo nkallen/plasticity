@@ -73,7 +73,7 @@ mesh.polygonOffsetFactor = 1;
 mesh.polygonOffsetUnits = 1;
 
 const mesh_highlighted = new THREE.MeshMatcapMaterial();
-mesh_highlighted.color.setHex(0xffff00);
+mesh_highlighted.color.setHex(0xffff00).convertGammaToLinear();
 mesh_highlighted.fog = false;
 mesh_highlighted.matcap = matcapTexture;
 mesh_highlighted.polygonOffset = true;
@@ -81,7 +81,7 @@ mesh_highlighted.polygonOffsetFactor = -1;
 mesh_highlighted.polygonOffsetUnits = -1;
 
 const mesh_hovered = new THREE.MeshMatcapMaterial();
-mesh_hovered.color.setHex(0xffffdd);
+mesh_hovered.color.setHex(0xffffcc).convertGammaToLinear();
 mesh_hovered.fog = false;
 mesh_hovered.matcap = matcapTexture;
 mesh_hovered.polygonOffset = true;
@@ -90,21 +90,21 @@ mesh_hovered.polygonOffsetUnits = -1;
 
 const region = new THREE.MeshBasicMaterial();
 region.fog = false;
-region.color.setHex(0x8dd9f2)
+region.color.setHex(0x8dd9f2).convertGammaToLinear();
 region.opacity = 0.1;
 region.transparent = true;
 region.side = THREE.DoubleSide;
 
 const region_hovered = new THREE.MeshBasicMaterial();
 region_hovered.fog = false;
-region_hovered.color.setHex(0x8dd9f2)
+region_hovered.color.setHex(0x8dd9f2).convertGammaToLinear();
 region_hovered.opacity = 0.5;
 region_hovered.transparent = true;
 region_hovered.side = THREE.DoubleSide;
 
 const region_highlighted = new THREE.MeshBasicMaterial();
 region_highlighted.fog = false;
-region_highlighted.color.setHex(0x8dd9f2)
+region_highlighted.color.setHex(0x8dd9f2).convertGammaToLinear();
 region_highlighted.opacity = 0.9;
 region_highlighted.transparent = true;
 region_highlighted.side = THREE.DoubleSide;

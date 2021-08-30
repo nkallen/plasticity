@@ -199,6 +199,14 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         }
     }
 
+    async apply(stack: ModifierStack) {
+        const { version2name, modified2name, map } = this;
+        modified2name.delete(stack.modified.simpleName);
+        map.delete(version2name.get(stack.premodified.simpleName)!);
+        this.db.removeItem(stack.premodified);
+        return stack.modified;
+    }
+
     getByPremodified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
         const { version2name, map } = this;
         const simpleName = object instanceof visual.Solid ? object.simpleName : object;
