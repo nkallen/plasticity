@@ -2,16 +2,18 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
-import { AddModifierCommand } from '../../commands/CommandLike';
+import { AddModifierCommand, ApplyModifierCommand, RemoveModifierCommand } from '../../commands/CommandLike';
 import { FilletCommand } from '../../commands/GeometryCommands';
 import { GeometryFactory } from '../../commands/GeometryFactory';
 import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
-import ModifierManager from '../../editor/ModifierManager';
+import ModifierManager, { ModifierStack } from '../../editor/ModifierManager';
 import * as visual from '../../editor/VisualModel';
 import { HasSelection } from '../../selection/SelectionManager';
 import { icons, tooltips } from '../toolbar/icons';
+import eye from 'bootstrap-icons/icons/eye.svg';
+import trash from 'bootstrap-icons/icons/trash.svg';
 
 const emptyStack = {
     modifiers: []
@@ -90,18 +92,18 @@ export default (editor: Editor) => {
             const result = <>
                 <h4>Construction History</h4>
                 <ol>
-                    {creators.map(([i, c]) => {
-                        const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[c.IsA()])}`;
+                    {creators.map(([index, creator]) => {
+                        const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[creator.IsA()])}`;
                         // @ts-expect-error("not sure how to type this")
-                        return <li><Z creator={c} index={i} item={item}></Z></li>
+                        return <li><Z creator={creator} index={index} item={item}></Z></li>
                     })}
                 </ol>
                 <h4>Modifiers</h4>
                 <ol>
-                    {stack.modifiers.map(factory => {
+                    {stack.modifiers.map((factory, index) => {
                         const Z = `ispace-modifier-${_.dasherize(factory.constructor.name)}`;
                         // @ts-expect-error("not sure how to type this")
-                        return <li><Z factory={factory}></Z></li>
+                        return <li><Z factory={factory} index={index} stack={stack}></Z></li>
                     })}
                 </ol>
                 <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>Add symmetry</button>
@@ -186,16 +188,27 @@ export default (editor: Editor) => {
             super();
             this.render = this.render.bind(this);
         }
+
         private _factory!: F;
         get factory() { return this._factory }
-        set factory(f: F) { this._factory = f }
+        set factory(factory: F) { this._factory = factory }
+
+        private _stack!: ModifierStack;
+        get stack() { return this._stack }
+        set stack(stack: ModifierStack) { this._stack = stack }
+
+        private _index!: number;
+        set index(index: number) { this._index = index }
+        get index() { return this._index }
 
         connectedCallback() { this.render() }
 
         render() {
-            const { factory } = this;
+            const { stack, factory } = this;
             const tooltip = tooltips.get(FilletCommand);
-            if (!tooltip) throw "invalid tooltip for " + FilletCommand;
+
+            const apply = new ApplyModifierCommand(editor, stack, 0);
+            const remove = new RemoveModifierCommand(editor, stack, 0);
 
             render(
                 <div class="header">
@@ -203,9 +216,13 @@ export default (editor: Editor) => {
                         {factory.constructor.name}
                     </div>
                     <div class="buttons">
-                        <button onClick={_ => editor.enqueue(new FilletCommand(editor))} name={FilletCommand.identifier}>
-                            <img src={icons.get(FilletCommand)}></img>
-                            <ispace-tooltip placement="top" command={`command:${FilletCommand.identifier}`}>{tooltip}</ispace-tooltip>
+                        <button onClick={_ => editor.enqueue(apply)} name={apply.identifier}>
+                            <img src={eye} />
+                            <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Apply Modifier</ispace-tooltip>
+                        </button>
+                        <button onClick={_ => editor.enqueue(remove)} name={remove.identifier}>
+                            <img src={trash} />
+                            <ispace-tooltip placement="top" command={`command:${remove.identifier}`}>Remove Modifier</ispace-tooltip>
                         </button>
                     </div>
                 </div>

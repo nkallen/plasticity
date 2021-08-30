@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
+import { ModifierStack } from '../editor/ModifierManager';
 import * as visual from "../editor/VisualModel";
 import { GizmoLike } from "./AbstractGizmo";
 import Command, * as cmd from "./Command";
@@ -34,9 +35,7 @@ export class BoxChangeSelectionCommand extends Command {
     constructor(
         editor: cmd.EditorLike,
         private readonly selected: Set<visual.Selectable>
-    ) {
-        super(editor);
-    }
+    ) { super(editor) }
 
     async execute(): Promise<void> {
         this.editor.selectionInteraction.onBoxSelect(this.selected);
@@ -150,5 +149,33 @@ export class AddModifierCommand extends Command {
         await modifiers.rebuild(stack);
 
         selection.selected.addSolid(stack.modified);
+    }
+}
+
+export class ApplyModifierCommand extends Command {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly stack: ModifierStack,
+        private readonly index: number,
+    ) { super(editor) }
+
+    async execute(): Promise<void> {
+        const { stack, editor: { modifiers, selection } } = this;
+        const result = await modifiers.apply(stack);
+        selection.selected.addSolid(result);
+    }
+}
+
+export class RemoveModifierCommand extends Command {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly stack: ModifierStack,
+        private readonly index: number,
+    ) { super(editor) }
+
+    async execute(): Promise<void> {
+        const { stack, editor: { modifiers, selection } } = this;
+        await modifiers.remove(stack.premodified);
+        selection.selected.addSolid(stack.premodified);
     }
 }
