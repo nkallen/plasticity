@@ -70,12 +70,13 @@ export class SymmetryFactory extends GeometryFactory {
     private temp?: TemporaryObject;
 
     async doUpdate() {
-        return this.db.optimization(async () => {
+        const { solid, model, origin, orientation, names, db } = this;
+        
+        return this.db.optimization(solid, async () => {
             const point1 = new c3d.CartPoint(0, -1000);
             const point2 = new c3d.CartPoint(0, 1000);
             const line = c3d.ActionCurve.Segment(point1, point2);
 
-            const { solid, model, origin, orientation, names, db } = this;
             const { X, Y, Z } = this;
 
             const placement = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false);

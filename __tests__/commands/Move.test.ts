@@ -29,13 +29,38 @@ beforeEach(async () => {
     box = await makeBox.commit() as visual.Solid;
 });
 
-test('update', async () => {
+test('update when optimizations are possible', async () => {
     move.items = [box];
     move.pivot = new THREE.Vector3();
     move.move = new THREE.Vector3(1, 0, 0);
     expect(box.position).toEqual(new THREE.Vector3(0, 0, 0));
     await move.update();
     expect(box.position).toEqual(new THREE.Vector3(1, 0, 0));
+    expect(db.temporaryObjects.children.length).toBe(0);
+});
+
+test('update when optimizations are NOT possible', async () => {
+    jest.spyOn(db, 'optimization').mockImplementation(
+        (from: visual.Item, fast: () => any, slow: () => any) => {
+            return slow();
+        }
+    );
+
+    move.items = [box];
+    move.pivot = new THREE.Vector3();
+    move.move = new THREE.Vector3(1, 0, 0);
+    expect(box.position).toEqual(new THREE.Vector3(0, 0, 0));
+    await move.update();
+    expect(box.position).toEqual(new THREE.Vector3(0, 0, 0));
+
+    expect(db.temporaryObjects.children.length).toBe(1);
+
+    const temp = db.temporaryObjects.children[0];
+    const bbox = new THREE.Box3();
+    bbox.setFromObject(temp);
+    const center = new THREE.Vector3();
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0.5));
 });
 
 test('commit', async () => {

@@ -46,7 +46,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
     protected temps: TemporaryObject[] = [];
 
-    protected async doUpdate(): Promise<TemporaryObject[]> {
+    protected async doUpdate(options?: any): Promise<TemporaryObject[]> {
         const promises = [];
 
         // 0. Make sure original items are visible if we're not going to remove them
@@ -54,7 +54,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
             this.db.unhide(i);
 
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
-        let result = await this.calculate();
+        let result = await this.calculate(options);
 
         // 2. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);
@@ -143,7 +143,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
         for (const temp of this.temps) temp.cancel();
     }
 
-    calculate(): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }
+    calculate(options?: any): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }
     protected get phantoms(): PhantomInfo[] { return [] }
     protected get originalItem(): visual.Item | visual.Item[] | undefined { return undefined }
     private get originalItems() {

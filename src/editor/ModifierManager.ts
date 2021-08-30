@@ -102,9 +102,7 @@ export class ModifierStack {
     }
 
     dispose() {
-        if (this.modified !== undefined) {
-            this.db.removeItem(this.modified);
-        }
+        if (this.modified !== undefined) this.db.removeItem(this.modified);
     }
 }
 
@@ -151,6 +149,15 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         const result = await modifiers.add(db.lookup(object), object);
         modified2name.set(result.simpleName, name);
         return modifiers;
+    }
+
+    async remove(object: visual.Solid) {
+        const { version2name, map } = this;
+        const stack = this.getByPremodified(object);
+        if (stack === undefined) throw new Error("invalid precondition");
+        stack.dispose();
+
+        map.delete(version2name.get(object.simpleName)!);
     }
 
     getByPremodified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
@@ -240,8 +247,19 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         return result;
     }
 
-    optimization(fast: () => Promise<TemporaryObject[]>, ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]> {
-        return ifDisallowed();
+    optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T {
+        switch (this.stateOf(from as visual.Solid)) {
+            case 'unmodified': return fast();
+            default: return ifDisallowed();
+        }
+    }
+
+    stateOf(item: visual.Item | c3d.SimpleName): 'unmodified' | 'premodified' | 'modified' {
+        if (item instanceof visual.Item) item = item.simpleName;
+
+        if (this.getByPremodified(item) !== undefined) return 'premodified';
+        else if (this.getByModified(item) !== undefined) return 'modified';
+        else return 'unmodified';
     }
 };
 
@@ -313,9 +331,7 @@ class ModifierSelection extends SelectionProxy {
     }
 
     private stateOf(solid: visual.Solid | c3d.SimpleName): 'unmodified' | 'premodified' | 'modified' {
-        if (this.modifiers.getByPremodified(solid) !== undefined) return 'premodified';
-        else if (this.modifiers.getByModified(solid) !== undefined) return 'modified';
-        else return 'unmodified';
+        return this.modifiers.stateOf(solid);
     }
 
     private hidePremodifiedAndShowModified(stack: ModifierStack) {

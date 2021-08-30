@@ -29,7 +29,7 @@ beforeEach(async () => {
     box = await makeBox.commit() as visual.Solid;
 });
 
-test('update', async () => {
+test('update when optimizations are possible', async () => {
     rotate.items = [box];
     rotate.pivot = new THREE.Vector3();
     rotate.axis = new THREE.Vector3(0, 0, 1);
@@ -38,6 +38,22 @@ test('update', async () => {
     await rotate.update();
     const result = new THREE.Quaternion().setFromAxisAngle(rotate.axis, rotate.angle);
     expect(box).toHaveQuaternion(result);
+});
+
+test('update when optimizations are NOT possible', async () => {
+    jest.spyOn(db, 'optimization').mockImplementation(
+        (from: visual.Item, fast: () => any, slow: () => any) => {
+            return slow();
+        }
+    );
+    
+    rotate.items = [box];
+    rotate.pivot = new THREE.Vector3();
+    rotate.axis = new THREE.Vector3(0, 0, 1);
+    rotate.angle = Math.PI / 2;
+    expect(box).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
+    await rotate.update();
+    expect(box).toHaveQuaternion(new THREE.Quaternion(0, 0, 0, 1));
 });
 
 test('commit', async () => {

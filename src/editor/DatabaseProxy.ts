@@ -1,5 +1,4 @@
 import c3d from '../../build/Release/c3d.node';
-import { GeometryFactory } from '../commands/GeometryFactory';
 import { GConstructor } from "../util/Util";
 import { Agent, ControlPointData, DatabaseLike, MaterialOverride, TemporaryObject, TopologyData } from "./GeometryDatabase";
 import * as visual from "./VisualModel";
@@ -46,8 +45,8 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.replaceWithTemporaryItem(from, to);
     }
 
-    optimization(fast: () => Promise<TemporaryObject[]>, ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]> {
-        return this.db.optimization(fast, ifDisallowed);
+    optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T {
+        return this.db.optimization(from, fast, ifDisallowed);
     }
 
     clearTemporaryObjects() {

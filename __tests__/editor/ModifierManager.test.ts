@@ -56,8 +56,8 @@ describe(ModifierManager, () => {
         unselectable.set(visual.Layers.Unselectable);
         highlighter = new HighlightManager(db);
     });
-    
-    test('adding a symmetry modifier', async () => {
+
+    test('adding & removing a symmetry modifier', async () => {
         const bbox = new THREE.Box3();
         bbox.setFromObject(modification.modified);
         const center = new THREE.Vector3();
@@ -65,8 +65,12 @@ describe(ModifierManager, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0.5));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
-
         expect(db.visibleObjects.length).toBe(2);
+
+        modifiers.remove(box);
+
+        expect(modifiers.getByPremodified(box)).toBeUndefined();
+        expect(db.visibleObjects.length).toBe(1);
     });
 
     test('replacing an item with a new one updates the modifier', async () => {
@@ -157,7 +161,7 @@ describe(ModifierManager, () => {
     });
 
     describe("when modifying a specially optimized factory like move/rotate/scale", () => {
-        test('creating a temporary object updates the modifier', async () => {
+        test('creating a temporary object updates the modifier because the non-optimized code is run', async () => {
             expect(db.temporaryObjects.children.length).toBe(0);
             expect(db.visibleObjects.length).toBe(2);
 
@@ -187,6 +191,21 @@ describe(ModifierManager, () => {
             await move.commit();
             expect(modification.modified.visible).toBe(true);
             expect(modification.premodified.visible).toBe(false);
+        });
+
+        test("if there's no modifier, the optimized code is run, and it cancels the correct optimized way", async () => {
+            modifiers.remove(box);
+
+            const move = new MoveFactory(modifiers, materials, signals);
+            move.items = [box];
+            move.move = new THREE.Vector3(-0.5, 0, 0);
+            await move.update();
+
+            expect(box.position).toApproximatelyEqual(new THREE.Vector3(-0.5, 0, 0));
+
+            move.cancel();
+
+            expect(box.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         });
     })
 
@@ -235,13 +254,13 @@ describe(ModifierManager, () => {
         modifiers.selected.addSolid(modified);
         expect(modified.visible).toBe(true);
         expect(premodified.visible).toBe(true);
-        
+
         const edge = premodified.edges.get(0)
         modifiers.selected.addEdge(edge, premodified);
         modifiers.selected.removeSolid(premodified);
         expect(modified.visible).toBe(true);
         expect(premodified.visible).toBe(true);
-        
+
         modifiers.selected.removeAll();
 
         expect(modified.visible).toBe(true);

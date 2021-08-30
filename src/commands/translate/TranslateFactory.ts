@@ -3,6 +3,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
+import { TemporaryObject } from "../../editor/GeometryDatabase";
 
 abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
@@ -30,24 +31,32 @@ abstract class TranslateFactory extends GeometryFactory {
 
     async doUpdate() {
         const { matrix, db, items } = this;
-        return db.optimization(async () => {
-            for (const item of items) {
+        let result: Promise<TemporaryObject>[] = [];
+        for (const item of items) {
+            const temps = db.optimization(item, async () => {
                 matrix.decompose(item.position, item.quaternion, item.scale);
                 item.updateMatrixWorld();
-            }
 
-            return items.map(item => {
-                return {
+                return [{
                     underlying: item,
                     show() { },
                     cancel() { },
-                }
-            });
-        }, () => super.doUpdate());
+                }] as TemporaryObject[];
+            }, () => this.doOriginalUpdate(item));
+            const temp = temps.then(t => t[0]);
+            result.push(temp);
+        }
+        return Promise.all(result);
     }
 
-    async calculate() {
-        const { models, transform, names } = this;
+    protected doOriginalUpdate(item?: visual.Item) {
+        return super.doUpdate(item);
+    }
+
+    async calculate(only?: visual.Item) {
+        const { transform, names } = this;
+        let { models } = this;
+        if (only !== undefined) models = [this.db.lookup(only)];
 
         const mat = transform.GetMatrix();
 
@@ -66,11 +75,13 @@ abstract class TranslateFactory extends GeometryFactory {
     }
 
     doCancel() {
-        for (const item of this.items) {
+        const { db, items } = this;
+        for (const item of items) {
             item.position.set(0, 0, 0);
             item.quaternion.set(0, 0, 0, 1);
             item.scale.set(1, 1, 1);
         }
+        super.doCancel();
     }
 
     protected abstract get transform(): c3d.TransformValues
@@ -114,26 +125,27 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
     // but this works instead.
     async doUpdate() {
         const { items, pivot: point, axis, angle, db } = this;
-        return db.optimization(async () => {
-            if (angle === 0) return [];
+        let result: Promise<TemporaryObject>[] = [];
+        for (const item of items) {
+            const temps = db.optimization(item, async () => {
+                if (angle === 0) return [];
 
-            for (const item of items) {
                 item.position.set(0, 0, 0);
-
                 item.position.sub(point);
                 item.position.applyAxisAngle(axis, angle);
                 item.position.add(point);
                 item.quaternion.setFromAxisAngle(axis, angle);
-            }
 
-            return items.map(item => {
-                return {
+                return [{
                     underlying: item,
                     show() { },
                     cancel() { },
-                }
-            });
-        }, () => super.doUpdate());
+                }] as TemporaryObject[]
+            }, () => this.doOriginalUpdate(item));
+            const temp = temps.then(t => t[0]);
+            result.push(temp);
+        }
+        return Promise.all(result);
     }
 
     protected get transform(): c3d.TransformValues {

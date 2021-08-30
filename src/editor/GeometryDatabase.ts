@@ -37,7 +37,7 @@ export interface DatabaseLike {
     addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject>;
     addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
     replaceWithTemporaryItem(from: visual.Item, object: c3d.Item): Promise<TemporaryObject>;
-    optimization(fast: () => Promise<TemporaryObject[]>, ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]>;
+    optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T;
 
     clearTemporaryObjects(): void;
     rebuildScene(): void;
@@ -163,7 +163,7 @@ export class GeometryDatabase implements DatabaseLike {
         return result;
     }
 
-    optimization(fast: () => Promise<TemporaryObject[]>, ifDisallowed: () => Promise<TemporaryObject[]>): Promise<TemporaryObject[]> {
+    optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T {
         return fast();
     }
     
@@ -172,7 +172,6 @@ export class GeometryDatabase implements DatabaseLike {
         const mesh = await this.meshes(object, -1, note, [[0.003, 1]], materials);
         mesh.visible = false;
         into.add(mesh);
-        const db = this;
         return {
             underlying: mesh,
             show() {
