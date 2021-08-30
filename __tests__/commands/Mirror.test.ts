@@ -57,7 +57,7 @@ describe(SymmetryFactory, () => {
         symmetry = new SymmetryFactory(db, materials, signals);
     })
 
-    test('solids', async () => {
+    test('commit', async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3(-0.5, 0, 0);
         makeSphere.radius = 1;
@@ -76,5 +76,30 @@ describe(SymmetryFactory, () => {
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
 
         expect(db.visibleObjects.length).toBe(1);
-    })
+    });
+
+    test('update', async () => {
+        const makeSphere = new SphereFactory(db, materials, signals);
+        makeSphere.center = new THREE.Vector3(-0.5, 0, 0);
+        makeSphere.radius = 1;
+        const sphere = await makeSphere.commit() as visual.Solid;
+
+        symmetry.solid = sphere;
+        symmetry.origin = new THREE.Vector3();
+        symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+
+        await symmetry.update();
+        expect(db.temporaryObjects.children.length).toBe(1);
+
+        const item = db.temporaryObjects.children[0];
+
+        const bbox = new THREE.Box3().setFromObject(item);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.5, -1, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
+
+        expect(db.visibleObjects.length).toBe(1);
+    });
 });

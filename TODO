@@ -1,8 +1,6 @@
-dialog for symmetry modifier
 SymmetryFactory
-- unit tests for mirroring behavior
-- subclass concrete for one that does union and one that doesn'tab
-- need to respect X/Y/Z symmetry
+
+dialog for symmetry modifier
 interface to list modifiers with toggles for enable/disable and button to apply
 
 # PRE ALPHA:
