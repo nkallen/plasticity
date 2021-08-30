@@ -130,22 +130,21 @@ export class AddModifierCommand extends Command {
         const { modifiers, selection } = this.editor;
         const solid = selection.selected.solids.first;
 
-        const symmetry = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        symmetry.solid = solid;
-        symmetry.origin = new THREE.Vector3();
+        const preview = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        preview.solid = solid;
+        preview.origin = new THREE.Vector3();
 
-        const gizmo = new MirrorGizmo(symmetry, this.editor);
+        const gizmo = new MirrorGizmo(preview, this.editor);
         await gizmo.execute(s => {
-            symmetry.update();
+            preview.update();
         }).resource(this);
-
-        symmetry.cancel();
-
+        preview.cancel();
+        
         const stack = modifiers.add(solid);
-        const symmetry2 = stack.addModifier(SymmetryFactory);
-        symmetry2.solid = solid;
-        symmetry2.origin = new THREE.Vector3();
-        symmetry2.orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0));
+        const symmetry = stack.addModifier(SymmetryFactory);
+        symmetry.solid = solid;
+        symmetry.origin = preview.origin;
+        symmetry.orientation = preview.orientation;
         await modifiers.rebuild(stack);
 
         selection.selected.addSolid(stack.modified);

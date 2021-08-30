@@ -35,7 +35,6 @@ export class ModifierStack {
 
     constructor(
         private readonly db: DatabaseLike,
-        private readonly foo: ModifierManager,
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals,
     ) { }
@@ -81,7 +80,7 @@ export class ModifierStack {
             return { premodified: completed, modified: completed }
         }
 
-        const symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
+        const symmetry = modifiers[0] as SymmetryFactory;
         symmetry.solid = model;
         const symmetrized = await symmetry.calculate();
 
@@ -105,8 +104,6 @@ export class ModifierStack {
     async updateTemporary(from: visual.Item, underlying: c3d.Solid): Promise<TemporaryObject> {
         const symmetry = this.modifiers[0] as SymmetryFactory;
         symmetry.solid = underlying;
-        symmetry.origin = new THREE.Vector3();
-        symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
         const symmetrized = await symmetry.doUpdate();
 
         if (symmetrized.length != 1) throw new Error("invalid postcondition: " + symmetrized.length);
@@ -127,8 +124,16 @@ export class ModifierStack {
     }
 
     dispose() {
-        if (this.modified !== undefined) {
-            this.db.removeItem(this.modified);
+        const { modified, premodified, materials, db } = this;
+        if (modified !== premodified) {
+            this.db.removeItem(modified);
+            for (const face of premodified.allFaces) {
+                face.traverse(child => {
+                    if (child instanceof THREE.Mesh) {
+                        child.material = materials.mesh();
+                    }
+                });
+            }
         }
     }
 }
@@ -168,7 +173,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
             name = object.simpleName;
         }
 
-        const modifiers = new ModifierStack(db, this, materials, signals);
+        const modifiers = new ModifierStack(db, materials, signals);
         map.set(name, modifiers);
 
         modifiers.add(object);
@@ -204,6 +209,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         modified2name.delete(stack.modified.simpleName);
         map.delete(version2name.get(stack.premodified.simpleName)!);
         this.db.removeItem(stack.premodified);
+        ModifierSelection.showModified(stack);
         return stack.modified;
     }
 
@@ -384,9 +390,15 @@ class ModifierSelection extends SelectionProxy {
     }
 
     private hidePremodifiedAndShowModified(stack: ModifierStack) {
-        const { modified, premodified } = stack;
+        const {  premodified } = stack;
 
         premodified.visible = false;
+
+        ModifierSelection.showModified(stack);
+    }
+
+    static showModified(stack: ModifierStack) {
+        const { modified } = stack;
 
         for (const edge of modified.allEdges) {
             edge.traverse(child => edge.visible = true);

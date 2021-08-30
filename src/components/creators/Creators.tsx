@@ -205,7 +205,6 @@ export default (editor: Editor) => {
 
         render() {
             const { stack, factory } = this;
-            const tooltip = tooltips.get(FilletCommand);
 
             const apply = new ApplyModifierCommand(editor, stack, 0);
             const remove = new RemoveModifierCommand(editor, stack, 0);
