@@ -1,6 +1,3 @@
-SymmetryFactory
-
-dialog for symmetry modifier
 interface to list modifiers with toggles for enable/disable and button to apply
 
 # PRE ALPHA:

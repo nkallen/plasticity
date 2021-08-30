@@ -197,8 +197,8 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 
         const result = this.db.replaceItem(from, to);
         if (map.has(name)) {
-            const modifiers = map.get(name)!;
-            const modified = await modifiers.update(to as c3d.Solid, result as Promise<visual.Solid>);
+            const stack = map.get(name)!;
+            const modified = await stack.update(to as c3d.Solid, result as Promise<visual.Solid>);
             modified2name.set(modified.simpleName, name);
         }
 
@@ -287,8 +287,10 @@ class ModifierSelection extends SelectionProxy {
                     child.layers.set(visual.Layers.Unselectable);
                 });
                 return;
-            case 'premodified':
-                throw new Error("invalid precondition");
+            case 'premodified': {
+                const stack = modifiers.getByPremodified(solid)!;
+                this.addSolid(stack.modified);
+            }
         }
     }
 
@@ -348,6 +350,10 @@ class ModifierSelection extends SelectionProxy {
         });
     }
 
+    get solids() {
+        return this.unmodifiedSolids;
+    }
+
     get unmodifiedSolids() {
         return new ItemSelection<visual.Solid>(this.db, this.unmodifiedSolidIds);
     }
@@ -356,6 +362,19 @@ class ModifierSelection extends SelectionProxy {
         const result = new Set<c3d.SimpleName>();
         for (const id of this.solidIds) {
             if (this.stateOf(id) === 'unmodified' || this.stateOf(id) === 'premodified')
+                result.add(id);
+        }
+        return result;
+    }
+
+    get modifiedSolids() {
+        return new ItemSelection<visual.Solid>(this.db, this.modifiedSolidIds);
+    }
+
+    get modifiedSolidIds(): Set<c3d.SimpleName> {
+        const result = new Set<c3d.SimpleName>();
+        for (const id of this.solidIds) {
+            if (this.stateOf(id) === 'unmodified' || this.stateOf(id) === 'modified')
                 result.add(id);
         }
         return result;
