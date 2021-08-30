@@ -213,6 +213,7 @@ export default {
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
                 "void SetBasisPoints(const MbControlData3D & cd)",
                 { signature: "void GetItems(RPArray<MbTopologyItem> items)", items: isReturn },
+                "bool IsClosed()",
             ]
         },
         RegTransform: {

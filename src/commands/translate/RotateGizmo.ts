@@ -99,7 +99,7 @@ export class AxisAngleGizmo extends AngleGizmo {
         this.sign = 1;
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) {
+    onPointerDown(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) {
         this.sign = Math.sign(this.eye.dot(localZ.set(0, 0, 1).applyQuaternion(this.worldQuaternion)));
     }
 

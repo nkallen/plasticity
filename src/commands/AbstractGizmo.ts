@@ -62,8 +62,8 @@ export abstract class AbstractGizmo<CB> extends Helper {
     onPointerEnter(intersector: Intersector) { }
     onPointerLeave(intersector: Intersector) { }
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
-    abstract onPointerDown(intersect: Intersector, info: MovementInfo): void;
-    abstract onPointerUp(intersect: Intersector, info: MovementInfo): void;
+    abstract onPointerDown(cb: CB, intersect: Intersector, info: MovementInfo): void;
+    abstract onPointerUp(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onInterrupt(cb: CB): void;
 
     execute(cb: CB, finishFast: mode = mode.Transitory): CancellablePromise<void> {
@@ -278,7 +278,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.center2d.set(center3d.x, center3d.y);
                 this.pointStart3d.copy(intersection.point);
                 this.pointStart2d.set(this.pointer.x, this.pointer.y);
-                this.gizmo.onPointerDown(this.intersector, this);
+                this.gizmo.onPointerDown(this.cb, this.intersector, this);
                 this.gizmo.helper?.onStart(this.viewport.domElement, this.center2d);
                 break;
             case 'command':
@@ -289,18 +289,21 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.signals.gizmoChanged.dispatch();
     }
 
-    command(fn: () => void, start: () => Disposable): void {
+    command(fn: (cb?: T) => void, start: () => Disposable): void {
         if (!this.isEnabled) return;
 
         switch (this.state.tag) {
             case 'none':
             case 'hover':
                 const clearEventHandlers = start();
-                fn();
-                this.gizmo.update(this.camera); // FIXME: need to update the gizmo after calling fn. figure out a way to test
-                this.begin();
-                this.state = { tag: 'command', clearEventHandlers };
-                this.gizmo.dispatchEvent({ type: 'start' });
+                if (fn(this.cb) === undefined) {
+                    this.gizmo.update(this.camera); // FIXME: need to update the gizmo after calling fn. figure out a way to test
+                    this.begin();
+                    this.state = { tag: 'command', clearEventHandlers };
+                    this.gizmo.dispatchEvent({ type: 'start' });
+                } else {
+                    clearEventHandlers.dispose();
+                }
             default: break;
         }
     }
@@ -360,7 +363,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.signals.gizmoChanged.dispatch();
                 this.state = { tag: 'none' };
                 this.gizmo.dispatchEvent({ type: 'end' });
-                this.gizmo.onPointerUp(this.intersector, this);
+                this.gizmo.onPointerUp(this.cb, this.intersector, this);
                 this.gizmo.helper?.onEnd();
 
                 finish();

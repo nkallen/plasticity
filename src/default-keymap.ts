@@ -99,6 +99,15 @@ export default {
         "cmd-z": "gizmo:line:undo",
     },
 
+    "[command='symmetry'] ispace-viewport": {
+        "x": "gizmo:symmetry:x",
+        "y": "gizmo:symmetry:y",
+        "z": "gizmo:symmetry:z",
+        "shift-x": "gizmo:symmetry:-x",
+        "shift-y": "gizmo:symmetry:-y",
+        "shift-z": "gizmo:symmetry:-z",
+    },
+
     "ispace-viewport": {
         "c": "command:center-circle",
         "g": "command:move",
@@ -111,6 +120,7 @@ export default {
         "x": "command:delete",
         "t": "command:trim",
         "i": "command:offset",
+        "alt-x": "command:symmetry",
         "tab": "command:mode",
         "delete": "command:delete",
         "backspace": "command:delete",

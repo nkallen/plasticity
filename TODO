@@ -1,5 +1,3 @@
-move any item hit excape it disappears
-gizmo for symmetry modifier
 dialog for symmetry modifier
 SymmetryFactory
 - unit tests for mirroring behavior

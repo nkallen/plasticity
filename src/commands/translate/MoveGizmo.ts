@@ -1,11 +1,10 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
-import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, DistanceGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo, VectorStateMachine } from "../MiniGizmos";
+import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo, VectorStateMachine } from "../MiniGizmos";
 import { MoveParams } from "./TranslateFactory";
 
 const X = new THREE.Vector3(1, 0, 0);

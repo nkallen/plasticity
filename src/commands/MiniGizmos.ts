@@ -76,7 +76,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
         cb(this.state.current);
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) {
+    onPointerDown(cb: (n: T) => void, intersect: Intersector, info: MovementInfo) {
         this.state.start();
     }
 
@@ -88,7 +88,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
         this.circle.material = this.material.line2;
     }
 
-    onPointerUp(intersect: Intersector, info: MovementInfo) {
+    onPointerUp(cb: (n: T) => void, intersect: Intersector, info: MovementInfo) {
         this.state.push();
     }
 
@@ -105,7 +105,7 @@ export class AngleGizmo extends CircularGizmo<number> {
         super(name, editor, material ?? editor.gizmos.default, new MagnitudeStateMachine(0));
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) { }
+    onPointerDown(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) { }
 
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
         const angle = info.angle + this.state.original;
@@ -163,11 +163,11 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.tip.material = this.material.mesh;
     }
 
-    onPointerUp(intersect: Intersector, info: MovementInfo) {
+    onPointerUp(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         this.state.push();
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) {
+    onPointerDown(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) throw new Error("invalid precondition");
         this.startMousePosition.copy(planeIntersect.point);
@@ -290,11 +290,11 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
         this.square.material = this.material.mesh;
     }
 
-    onPointerUp(intersect: Intersector, info: MovementInfo) {
+    onPointerUp(cb: (t: T) => void, intersect: Intersector, info: MovementInfo) {
         this.state.push();
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) {
+    onPointerDown(cb: (t: T) => void, intersect: Intersector, info: MovementInfo) {
         this.updatePlane();
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) throw new Error("invalid precondition");
@@ -362,11 +362,11 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
         cb(this.state.current);
     }
 
-    onPointerUp(intersect: Intersector, info: MovementInfo) {
+    onPointerUp(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         this.state.push();
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) {
+    onPointerDown(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         const { pointStart2d, center2d } = info;
         this.denominator = pointStart2d.distanceTo(center2d);
         this.state.start();

@@ -24,10 +24,10 @@ import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
-import { ExtrudeFactory, FaceExtrudeFactory, PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
+import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
-import FilletFactory, { Max, MaxFilletFactory } from './fillet/FilletFactory';
+import { MaxFilletFactory } from './fillet/FilletFactory';
 import { FilletGizmo, MagnitudeGizmo } from './fillet/FilletGizmo';
 import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
@@ -35,6 +35,7 @@ import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import { DistanceGizmo, LengthGizmo } from "./MiniGizmos";
 import { MirrorFactory, SymmetryFactory } from "./mirror/MirrorFactory";
+import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
@@ -1076,25 +1077,15 @@ export class MirrorCommand extends Command {
     }
 }
 
-const Z = new THREE.Vector3(0, 0, 1);
 export class SymmetryCommand extends Command {
     async execute(): Promise<void> {
         const solid = this.editor.selection.selected.solids.first;
         const symmetry = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         symmetry.solid = solid;
+        symmetry.origin = new THREE.Vector3();
 
-        const pointPicker = new PointPicker(this.editor);
-        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
-        pointPicker.restrictToPlaneThroughPoint(p1);
-
-        symmetry.origin = p1;
-
-        const orientation = new THREE.Quaternion();
-        const normal = new THREE.Vector3();
-        await pointPicker.execute(({ point: p2 }) => {
-            normal.copy(p2).sub(p1).cross(constructionPlane.n).normalize();
-            orientation.setFromUnitVectors(Z, normal);
-            symmetry.orientation = orientation;
+        const gizmo = new MirrorGizmo(symmetry, this.editor);
+        await gizmo.execute(s => {
             symmetry.update();
         }).resource(this);
 

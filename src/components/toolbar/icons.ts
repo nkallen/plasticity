@@ -194,6 +194,12 @@ keybindings.set("gizmo:cylinder:difference", "Difference");
 keybindings.set("gizmo:cylinder:intersect", "Intersect");
 keybindings.set("gizmo:cylinder:new-body", "New body");
 keybindings.set("gizmo:offset-face:distance", "Distance");
+keybindings.set("gizmo:symmetry:x", "Positive X");
+keybindings.set("gizmo:symmetry:y", "Positive Y");
+keybindings.set("gizmo:symmetry:z", "Positive Z");
+keybindings.set("gizmo:symmetry:-x", "Negative X");
+keybindings.set("gizmo:symmetry:-y", "Negative Y");
+keybindings.set("gizmo:symmetry:-z", "Negative Z");
 
 export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {
@@ -222,5 +228,6 @@ export default (editor: Editor): void => {
         'command:hide-selected': () => editor.enqueue(new HideSelectedCommand(editor)),
         'command:hide-unselected': () => editor.enqueue(new HideUnselectedCommand(editor)),
         'command:duplicate': () => editor.enqueue(new DuplicateCommand(editor)),
+        'command:symmetry': () => editor.enqueue(new cmd.SymmetryCommand(editor)),
     })
 }

@@ -77,7 +77,7 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
         this.render(this.state.current);
     }
 
-    onPointerDown(intersect: Intersector, info: MovementInfo) {
+    onPointerDown(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         const { pointStart2d, center2d } = info;
         this.denominator = pointStart2d.distanceTo(center2d);
         this.state.start();
