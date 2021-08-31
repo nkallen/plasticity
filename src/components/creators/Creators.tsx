@@ -145,11 +145,7 @@ export default (editor: Editor) => {
                     <div class="header" onPointerEnter={this.mouseEnter} onPointerLeave={this.mouseLeave}>
                         <input type="checkbox" />
                         <div class="name">{c3d.CreatorType[this.creator.IsA()]} ({c3d.ProcessState[this.creator.GetStatus()]})</div>
-                        <div># Basis Items: {this.creator.GetBasisItems().length}</div>
                     </div>
-                    {this.creator.GetBasisItems().map(item => {
-                        return <div>Item: {c3d.SpaceType[item.IsA()]}</div>
-                    })}
                 </>
                 , this);
         }
