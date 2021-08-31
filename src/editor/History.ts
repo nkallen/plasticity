@@ -212,10 +212,10 @@ export class EditorOriginator {
 
     restoreFromMemento(m: Memento) {
         this.db.restoreFromMemento(m.db);
+        this.modifiers.restoreFromMemento(m.modifiers);
         this.selection.restoreFromMemento(m.selection);
         this.snaps.restoreFromMemento(m.snaps);
         this.contours.restoreFromMemento(m.contours);
-        this.modifiers.restoreFromMemento(m.modifiers);
     }
 
     async serialize(): Promise<Buffer> {
