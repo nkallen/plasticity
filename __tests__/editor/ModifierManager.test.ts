@@ -411,8 +411,15 @@ describe(ModifierManager, () => {
             const { premodified, modified } = stack;
 
             const bbox = new THREE.Box3();
-            bbox.setFromObject(modified);
             const center = new THREE.Vector3();
+
+            bbox.setFromObject(premodified);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+
+            bbox.setFromObject(modified);
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0.5));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));

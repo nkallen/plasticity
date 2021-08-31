@@ -1,10 +1,13 @@
 import c3d from '../../build/Release/c3d.node';
+import { SymmetryFactory } from '../commands/mirror/MirrorFactory';
 import { RefCounter } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
-import { GeometryDatabase } from './GeometryDatabase';
+import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
+import MaterialDatabase from './MaterialDatabase';
 import ModifierManager, { ModifierStack } from './ModifierManager';
 import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap } from './SnapManager';
+import * as visual from "./VisualModel";
 
 export class Memento {
     constructor(
@@ -64,7 +67,61 @@ export class ModifierMemento {
         readonly name2stack: ModifierManager['name2stack'],
         readonly version2name: ModifierManager['version2name'],
         readonly modified2name: ModifierManager['modified2name'],
-    ) {}
+    ) { }
+
+    serialize(): Buffer {
+        const string = JSON.stringify({
+            version2name: this.version2name,
+            modified2name: this.modified2name,
+            name2stack: this.name2stack,
+        }, this.replacer);
+        return Buffer.from(string);
+    }
+
+    static deserialize(data: Buffer, db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals): ModifierMemento {
+        const p = JSON.parse(data.toString(), (key, value) => this.reviver(db, materials, signals)(key, value));
+        return new ModifierMemento(
+            p.name2stack,
+            p.version2name,
+            p.modifier2name,
+        );
+    }
+
+    replacer(key: string, value: any) {
+        switch (key) {
+            case 'version2name':
+            case 'modified2name':
+                return {
+                    dataType: 'Map<c3d.SimpleName, c3d.SimpleName>',
+                    value: [...value],
+                };
+            case 'name2stack':
+                const cast = value as Map<c3d.SimpleName, ModifierStack>;
+                return {
+                    dataType: 'Map<c3d.SimpleName, ModifierStack>',
+                    value: [...cast.entries()].map(([key, value]) => [key, value.toJSON()]),
+                };
+            default: return value;
+        }
+    }
+
+    static reviver(db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals) {
+        return (key: string, value: any) => {
+            switch (key) {
+                case 'version2name':
+                case 'modified2name':
+                    return new Map(value.value);
+                case 'name2stack':
+                    const cast = value.value as [c3d.SimpleName, any][];
+                    return new Map(cast.map(([name, json]) => {
+                        const stack = new ModifierStack(db, materials, signals);
+                        stack.fromJSON(json);
+                        return [name, stack]
+                    }));
+                default: return value;
+            }
+        }
+    }
 }
 
 export class ModifierStackMemento {
@@ -72,7 +129,27 @@ export class ModifierStackMemento {
         readonly premodified: ModifierStack['premodified'],
         readonly modified: ModifierStack['modified'],
         readonly modifiers: ModifierStack['modifiers'],
-    ) {}
+    ) { }
+
+    toJSON() {
+        return {
+            premodified: this.premodified.simpleName,
+            modified: this.modified.simpleName,
+            modifiers: this.modifiers.map(m => m.toJSON())
+        }
+    }
+
+    static fromJSON(json: any, db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals): ModifierStackMemento {
+        const premodified = db.lookupItemById(json.premodified).view as visual.Solid;
+        const modified = db.lookupItemById(json.modified).view as visual.Solid;
+        const modifiers = [];
+        for (const modifier of json.modifiers) {
+            const factory = new SymmetryFactory(db, materials, signals);
+            factory.fromJSON(modifier.params);
+            modifiers.push(factory);
+        }
+        return new ModifierStackMemento(premodified, modified, modifiers);
+    }
 }
 
 export type StateChange = (f: () => void) => void;
