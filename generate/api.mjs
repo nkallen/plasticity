@@ -598,6 +598,11 @@ export default {
         },
         RegDuplicate: {
             rawHeader: "item_registrator.h",
+            dependencies: ["RefItem.h"],
+            functions: [
+                "bool IsReg(const MbRefItem * srcItem, MbRefItem *& cpyItem)",
+                "void SetReg(const MbRefItem * srcItem, MbRefItem * cpyItem)",
+            ],
         },
         AutoRegDuplicate: {
             rawHeader: "item_registrator.h",

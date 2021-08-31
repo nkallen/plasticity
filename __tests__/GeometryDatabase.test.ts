@@ -200,13 +200,15 @@ test("duplicate", async () => {
 })
 
 test("serialize & deserialize", async () => {
-    const v = await db.addItem(box) as visual.Solid;
+    const view = await db.addItem(box, 'user', 10) as visual.Solid;
     const data = await db.serialize();
-    const model = c3d.Writer.ReadItems(data);
-    const items = model.GetItems();
-    expect(items.length).toBe(1);
+    expect(view.simpleName).toBe(10);
+
     db = new GeometryDatabase(materials, signals);
     expect(db.visibleObjects.length).toBe(0);
+
     await db.deserialize(data);
     expect(db.visibleObjects.length).toBe(1);
-});
+
+    expect(db.visibleObjects[0].simpleName).toBe(10);
+})

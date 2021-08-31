@@ -101,7 +101,7 @@ describe('update', () => {
         await second;
 
         expect(factory.revertOnError).toBe(1);
-        expect(factory.updateCount).toBe(3);
+        expect(factory.updateCount).toBe(2);
     });
 
     test("update swallows validation errors", async () => {

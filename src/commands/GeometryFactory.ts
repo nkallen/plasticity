@@ -55,6 +55,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
         let result = await this.calculate(options);
+        if (this.state.tag === 'cancelled') return Promise.resolve([]);
 
         // 2. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);
@@ -165,7 +166,8 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 let before = this.saveState();
                 try {
                     await this.doUpdate();
-                    this.signals.factoryUpdated.dispatch();
+                    // @ts-expect-error
+                    if (this.state.tag !== 'cancelled') this.signals.factoryUpdated.dispatch();
                 } catch (e) {
                     this.state.failed = e ?? new Error("unknown error");
                 } finally {
@@ -198,6 +200,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
                     if (hasNext) await this.update();
                 }
                 break;
+            case 'cancelled': break;
             default: throw new Error("invalid state: " + this.state.tag);
         }
     }
@@ -207,7 +210,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
             case 'failed':
                 if (this.state.last !== undefined) {
                     this.restoreSavedState(this.state.last);
-                    await this.update();
+                    // await this.update(); // FIXME rethink this
                 } else {
                     const e = this.state.error;
                     if (e instanceof ValidationError || e.isC3dError) {

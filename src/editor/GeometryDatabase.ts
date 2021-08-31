@@ -103,13 +103,13 @@ export class GeometryDatabase implements DatabaseLike {
 
     private counter = 0;
 
-    async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
-    async addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
-    async addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
-    async addItem(model: c3d.Item, agent?: Agent): Promise<visual.Item>;
-    async addItem(model: c3d.Item, agent: Agent = 'user'): Promise<visual.Item> {
+    async addItem(model: c3d.Solid, agent?: Agent, name?: c3d.SimpleName): Promise<visual.Solid>;
+    async addItem(model: c3d.SpaceInstance, agent?: Agent, name?: c3d.SimpleName): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    async addItem(model: c3d.PlaneInstance, agent?: Agent, name?: c3d.SimpleName): Promise<visual.PlaneInstance<visual.Region>>;
+    async addItem(model: c3d.Item, agent?: Agent, name?: c3d.SimpleName): Promise<visual.Item>;
+    async addItem(model: c3d.Item, agent: Agent = 'user', name?: c3d.SimpleName): Promise<visual.Item> {
         return this.queue.enqueue(async () => {
-            return this.insertItem(model, agent);
+            return this.insertItem(model, agent, name);
         });
     }
 
@@ -125,8 +125,10 @@ export class GeometryDatabase implements DatabaseLike {
         });
     }
 
-    private async insertItem(model: c3d.Item, agent: Agent): Promise<visual.Item> {
-        const name = this.counter++;
+    private async insertItem(model: c3d.Item, agent: Agent, name?: c3d.SimpleName): Promise<visual.Item> {
+        if (name === undefined) name = this.counter++;
+        else (this.counter = Math.max(this.counter, name));
+
         const note = new c3d.FormNote(true, true, true, false, false);
         const view = await this.meshes(model, name, note, this.precisionAndDistanceFor(model)); // FIXME it would be nice to move this out of the queue but tests fail
 
@@ -166,7 +168,7 @@ export class GeometryDatabase implements DatabaseLike {
     optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T {
         return fast();
     }
-    
+
     async addTemporaryItem(object: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
         const note = new c3d.FormNote(true, true, false, false, false);
         const mesh = await this.meshes(object, -1, note, [[0.003, 1]], materials);
@@ -512,7 +514,8 @@ export class GeometryDatabase implements DatabaseLike {
         const items = everything.GetItems();
         const promises = [];
         for (const item of items) {
-            promises.push(this.addItem(item.Cast<c3d.Item>(item.IsA())));
+            const cast = item.Cast<c3d.Item>(item.IsA());
+            promises.push(this.addItem(cast, 'user', item.GetItemName()));
         }
         await Promise.all(promises);
     }

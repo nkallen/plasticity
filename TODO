@@ -1,5 +1,4 @@
 interface to list modifiers with toggles for enable/disable and button to apply
-hide grid when orthogonal to camera
 modifier undo
 file save and reload needs to respect modifiers:
   - don't save modified items, only unmodified
