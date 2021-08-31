@@ -10,7 +10,7 @@ import TooltipManager from "../components/atom/tooltip-manager";
 import Mouse2KeyboardEventManager from "../components/viewport/Mouse2KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
-import { HasSelectedAndHovered, SelectionManager } from "../selection/SelectionManager";
+import { SelectionManager } from "../selection/SelectionManager";
 import { Helpers } from "../util/Helpers";
 import { Backup } from "./Backup";
 import ContourManager from "./ContourManager";

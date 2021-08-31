@@ -90,7 +90,7 @@ export class EditorOriginator {
         readonly modifiers: MementoOriginator<ModifierMemento>,
     ) { }
 
-    group(registry: Map<any, any>, fn: () => void) {
+    group(fn: () => void) {
         const memento = new Memento(
             this.version++,
             this.db.saveToMemento(),
@@ -107,7 +107,7 @@ export class EditorOriginator {
         }
     }
 
-    saveToMemento(registry: Map<any, any>): Memento {
+    saveToMemento(): Memento {
         switch (this.state.tag) {
             case 'start':
                 return new Memento(
