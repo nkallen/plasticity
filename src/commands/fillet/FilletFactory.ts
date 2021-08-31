@@ -206,7 +206,7 @@ export class Max<T> {
                 const result = await Max.search(0.01, 0.1, 50, d => {
                     factory.distance = d;
                     return factory.calculate();
-                });
+                }, 1000);
                 console.timeEnd("searching for max fillet");
 
                 this.state = { tag: 'found', value: result }
@@ -241,16 +241,22 @@ export class Max<T> {
         }
     }
 
-    static async search<_>(lastGood: number, candidate: number, max: number, cb: (n: number) => Promise<_>): Promise<number> {
+    static async search<_>(lastGood: number, candidate: number, max: number, cb: (n: number) => Promise<_>, budget: number): Promise<number> {
         if (max < candidate) throw new Error('invalid');
         if (candidate < lastGood) throw new Error('invalid');
         if (Math.abs(candidate - lastGood) < candidate / 100) return Promise.resolve(lastGood);
+        if (budget <= 0) throw new Error('taking too long');
 
+        const start = performance.now();
         try {
             await cb(candidate);
-            return this.search(candidate, candidate + (max - candidate) / 2, max, cb);
+            const end = performance.now();
+            const tdelta = end - start;
+            return this.search(candidate, candidate + (max - candidate) / 2, max, cb, budget - tdelta);
         } catch (e) {
-            return this.search(lastGood, lastGood + (candidate - lastGood) / 2, candidate, cb);
+            const end = performance.now();
+            const tdelta = end - start;
+            return this.search(lastGood, lastGood + (candidate - lastGood) / 2, candidate, cb, budget - tdelta);
         }
     }
 }
