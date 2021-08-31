@@ -2,7 +2,7 @@ import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
 import { Agent, DatabaseLike, GeometryDatabase } from '../editor/GeometryDatabase';
-import { SelectionMemento } from '../editor/History';
+import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
 import { Redisposable, RefCounter } from '../util/Util';
@@ -66,7 +66,7 @@ interface SignalLike {
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
 }
 
-export class Selection implements HasSelection, ModifiesSelection, Highlightable {
+export class Selection implements HasSelection, ModifiesSelection, Highlightable, MementoOriginator<SelectionMemento> {
     readonly solidIds = new Set<c3d.SimpleName>();
     readonly edgeIds = new Set<string>();
     readonly faceIds = new Set<string>();
@@ -268,6 +268,13 @@ export class Selection implements HasSelection, ModifiesSelection, Highlightable
         (this.controlPointIds as Selection['controlPointIds']) = m.selectedControlPointIds;
 
         this.signals.selectionChanged.dispatch({ selection: this });
+    }
+
+    serialize(): Promise<Buffer> {
+        throw new Error('Method not implemented.');
+    }
+    deserialize(data: Buffer): Promise<void> {
+        throw new Error('Method not implemented.');
     }
 }
 

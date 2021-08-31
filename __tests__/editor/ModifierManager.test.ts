@@ -307,10 +307,18 @@ describe(ModifierManager, () => {
             });
         })
 
-        test('removing an item removes the modifier db', async () => {
+        test('removing a premodified item removes the modifier db', async () => {
             expect(manager.getByPremodified(box)).not.toBeUndefined();
+            expect(manager.getByModified(stack.modified)).not.toBeUndefined();
             await manager.removeItem(box);
             expect(manager.getByPremodified(box)).toBeUndefined();
+            expect(manager.getByModified(stack.modified)).toBeUndefined();
+        })
+
+        test('removing a modified item it from the modifier db', async () => {
+            expect(manager.getByModified(stack.modified)).not.toBeUndefined();
+            await manager.removeItem(stack.modified);
+            expect(manager.getByModified(stack.modified)).toBeUndefined();
         })
 
         test('duplicating an object...', () => {
@@ -406,9 +414,18 @@ describe(ModifierManager, () => {
             manager = new ModifierManager(db, selection, materials, signals);
             await manager.deserialize(buffer);
 
-            const stack = manager.getByPremodified(box)!;
-            expect(stack).not.toBeUndefined();
-            const { premodified, modified } = stack;
+            const stack1 = manager.getByPremodified(box)!;
+            expect(stack1).not.toBeUndefined();
+
+            const stack2 = manager.getByModified(stack.modified);
+            expect(stack2).not.toBeUndefined();
+
+            expect(stack1).toBe(stack2);
+
+            const { premodified, modified } = stack1;
+
+            expect(premodified.visible).toBe(false);
+            expect(modified.visible).toBe(true);
 
             const bbox = new THREE.Box3();
             const center = new THREE.Vector3();

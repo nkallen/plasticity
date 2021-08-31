@@ -47,6 +47,24 @@ test("addItem & lookup & removeItem", async () => {
     expect(db.visibleObjects.length).toBe(0);
 });
 
+test("addItem with explicit name", async () => {
+    expect(db.visibleObjects.length).toBe(0);
+    expect(db.temporaryObjects.children.length).toBe(0);
+
+    const v = await db.addItem(box, 'user', 100) as visual.Solid;
+    expect(db.lookup(v)).toBeTruthy();
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(1);
+
+    const box2 = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
+    const n = await db.addItem(box) as visual.Solid;
+    expect(n.simpleName).toBe(101);
+    expect(db.lookup(v)).toBeTruthy();
+    expect(db.temporaryObjects.children.length).toBe(0);
+    expect(db.visibleObjects.length).toBe(2);
+});
+
+
 test("addItem & replaceItem", async () => {
     expect(db.visibleObjects.length).toBe(0);
     expect(db.temporaryObjects.children.length).toBe(0);

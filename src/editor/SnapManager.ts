@@ -8,7 +8,7 @@ import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
 import { CircleGeometry, Redisposable, RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { DatabaseLike } from "./GeometryDatabase";
-import { SnapMemento } from "./History";
+import { MementoOriginator, SnapMemento } from "./History";
 import * as visual from './VisualModel';
 
 const discGeometry = new THREE.CircleGeometry(0.03, 16);
@@ -31,7 +31,7 @@ export interface SnapResult {
     indicator: THREE.Object3D;
 }
 
-export class SnapManager {
+export class SnapManager implements MementoOriginator<SnapMemento> {
     isEnabled = true;
     private isToggled = false;
 
@@ -274,6 +274,13 @@ export class SnapManager {
         (this.endPoints as SnapManager['endPoints']) = m.endPoints;
         (this.centerPoints as SnapManager['centerPoints']) = m.centerPoints;
         this.update();
+    }
+
+    serialize(): Promise<Buffer> {
+        throw new Error("Method not implemented.");
+    }
+    deserialize(data: Buffer): Promise<void> {
+        throw new Error("Method not implemented.");
     }
 }
 

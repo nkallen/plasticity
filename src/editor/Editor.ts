@@ -54,7 +54,7 @@ export class Editor {
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
     readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);
-    readonly backup = new Backup(this._db, this.signals);
+    readonly backup = new Backup(this.originator, this.signals);
 
     disposable = new CompositeDisposable();
 

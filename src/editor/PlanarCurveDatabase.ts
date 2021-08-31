@@ -2,10 +2,10 @@ import c3d from '../../build/Release/c3d.node';
 import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../util/Conversion';
 import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
-import { CurveMemento } from './History';
+import { CurveMemento, MementoOriginator } from './History';
 import * as visual from "./VisualModel";
 
-export class PlanarCurveDatabase {
+export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     private readonly curve2info = new Map<visual.SpaceInstance<visual.Curve3D>, CurveInfo>();
     private readonly planar2instance = new Map<Curve2dId, visual.SpaceInstance<visual.Curve3D>>();
     private readonly placements = new Set<c3d.Placement3D>();
@@ -265,6 +265,13 @@ export class PlanarCurveDatabase {
         (this.curve2info as PlanarCurveDatabase['curve2info']) = m.curve2info;
         (this.planar2instance as PlanarCurveDatabase['planar2instance']) = m.planar2instance;
         (this.placements as PlanarCurveDatabase['placements']) = m.placements;
+    }
+
+    serialize(): Promise<Buffer> {
+        throw new Error('Method not implemented.');
+    }
+    deserialize(data: Buffer): Promise<void> {
+        throw new Error('Method not implemented.');
     }
 }
 

@@ -27,6 +27,17 @@ export class GeometryMemento {
         readonly controlPointModel: GeometryDatabase["controlPointModel"],
         readonly hidden: Set<c3d.SimpleName>
     ) { }
+
+    async serialize(): Promise<Buffer> {
+        const { geometryModel } = this;
+        const everything = new c3d.Model();
+        for (const [id, { model }] of geometryModel.entries()) {
+            if (model.IsA() !== c3d.SpaceType.Solid) continue;
+            everything.AddItem(model, id);
+        }
+        const { memory } = await c3d.Writer.WriteItems_async(everything);
+        return memory;
+    }
 }
 
 export class SelectionMemento {
@@ -83,7 +94,7 @@ export class ModifierMemento {
         return new ModifierMemento(
             p.name2stack,
             p.version2name,
-            p.modifier2name,
+            p.modified2name,
         );
     }
 
@@ -206,11 +217,31 @@ export class EditorOriginator {
         this.contours.restoreFromMemento(m.contours);
         this.modifiers.restoreFromMemento(m.modifiers);
     }
+
+    async serialize(): Promise<Buffer> {
+        const db = await this.db.serialize();
+        const modifiers = await this.modifiers.serialize();
+        const result = Buffer.alloc(8 + db.length + 8 + modifiers.length);
+        result.writeBigUInt64BE(BigInt(db.length));
+        db.copy(result, 8);
+        result.writeBigUInt64BE(BigInt(modifiers.length), 8 + db.length);
+        modifiers.copy(result, 8 + db.length + 8);
+        return result;
+    }
+
+    async deserialize(data: Buffer): Promise<void> {
+        const db = Number(data.readBigUInt64BE());
+        await this.db.deserialize(data.slice(8, 8 + db));
+        const modifiers = Number(data.readBigUInt64BE(db + 8));
+        await this.modifiers.deserialize(data.slice(8 + db + 8, 8 + db + 8 + modifiers))
+    }
 }
 
-interface MementoOriginator<T> {
+export interface MementoOriginator<T> {
     saveToMemento(): T;
     restoreFromMemento(m: T): void;
+    serialize(): Promise<Buffer>;
+    deserialize(data: Buffer): Promise<void>;
 }
 
 export class History {

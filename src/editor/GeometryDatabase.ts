@@ -127,7 +127,7 @@ export class GeometryDatabase implements DatabaseLike {
 
     private async insertItem(model: c3d.Item, agent: Agent, name?: c3d.SimpleName): Promise<visual.Item> {
         if (name === undefined) name = this.counter++;
-        else (this.counter = Math.max(this.counter, name));
+        else (this.counter = Math.max(this.counter, name + 1));
 
         const note = new c3d.FormNote(true, true, true, false, false);
         const view = await this.meshes(model, name, note, this.precisionAndDistanceFor(model)); // FIXME it would be nice to move this out of the queue but tests fail
@@ -499,14 +499,7 @@ export class GeometryDatabase implements DatabaseLike {
     }
 
     async serialize(): Promise<Buffer> {
-        const { geometryModel } = this;
-        const everything = new c3d.Model();
-        for (const [id, { model }] of geometryModel.entries()) {
-            if (model.IsA() !== c3d.SpaceType.Solid) continue;
-            everything.AddItem(model, id);
-        }
-        const { memory } = await c3d.Writer.WriteItems_async(everything);
-        return memory;
+        return this.saveToMemento().serialize();
     }
 
     async deserialize(data: Buffer): Promise<void> {

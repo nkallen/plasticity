@@ -8,7 +8,7 @@ import { GConstructor } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
 import { Agent, DatabaseLike, GeometryDatabase, TemporaryObject } from "./GeometryDatabase";
-import { ModifierMemento, ModifierStackMemento } from "./History";
+import { MementoOriginator, ModifierMemento, ModifierStackMemento } from "./History";
 import MaterialDatabase from "./MaterialDatabase";
 import * as visual from "./VisualModel";
 
@@ -88,6 +88,12 @@ export class ModifierStack {
             await this.db.replaceItem(this._modified, symmetrized);
 
         const premodified = await view;
+        ModifierStack.hidePremodified(premodified);
+
+        return { premodified, modified };
+    }
+
+    static hidePremodified(premodified: visual.Solid) {
         premodified.visible = false;
         for (const face of premodified.allFaces) {
             face.traverse(child => {
@@ -96,8 +102,6 @@ export class ModifierStack {
                 }
             });
         }
-
-        return { premodified, modified };
     }
 
     async updateTemporary(from: visual.Item, underlying: c3d.Solid): Promise<TemporaryObject> {
@@ -156,6 +160,7 @@ export class ModifierStack {
 
     fromJSON(json: any) {
         this.restoreFromMemento(ModifierStackMemento.fromJSON(json, this.db, this.materials, this.signals));
+        ModifierStack.hidePremodified(this.premodified)
     }
 }
 
@@ -166,7 +171,7 @@ const invisible = new THREE.MeshBasicMaterial({
     depthTest: false,
 });
 
-export default class ModifierManager extends DatabaseProxy implements HasSelectedAndHovered {
+export default class ModifierManager extends DatabaseProxy implements HasSelectedAndHovered, MementoOriginator<ModifierMemento> {
     protected readonly name2stack = new Map<c3d.SimpleName, ModifierStack>();
     protected readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
     protected readonly modified2name = new Map<c3d.SimpleName, c3d.SimpleName>();
@@ -285,14 +290,26 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     async removeItem(view: visual.Item, agent?: Agent): Promise<void> {
-        const { version2name, name2stack: map } = this;
-        const name = version2name.get(view.simpleName)!;
-
-        if (map.has(name)) {
-            const modifiers = map.get(name)!;
-            modifiers.dispose();
+        const { version2name, name2stack, modified2name } = this;
+        switch (this.stateOf(view)) {
+            case 'modified':
+                const name = modified2name.get(view.simpleName)!;
+                const modifiers = name2stack.get(name)!;
+                modified2name.delete(view.simpleName);
+                name2stack.delete(name);
+                modifiers.dispose();
+                break;
+            case 'premodified': {
+                const name = version2name.get(view.simpleName)!;
+                const modifiers = name2stack.get(name)!;
+                modified2name.delete(modifiers.modified.simpleName);
+                version2name.delete(view.simpleName)!;
+                name2stack.delete(name);
+                modifiers.dispose();
+                break;
+            }
         }
-        version2name.delete(view.simpleName)!;
+
         return this.db.removeItem(view, agent);
     }
 
