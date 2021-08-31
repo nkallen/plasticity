@@ -13,6 +13,7 @@ import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import { EditorOriginator, History } from "../../src/editor/History";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
+import ModifierManager from "../../src/editor/ModifierManager";
 import { PlanarCurveDatabase } from "../../src/editor/PlanarCurveDatabase";
 import { RegionManager } from "../../src/editor/RegionManager";
 import { SnapManager } from "../../src/editor/SnapManager";
@@ -36,6 +37,7 @@ describe(CommandExecutor, () => {
     let editor: any
     let regions: RegionManager;
     let contours: ContourManager;
+    let modifiers: ModifierManager;
     let viewports: Viewport[];
 
     beforeEach(() => {
@@ -49,7 +51,8 @@ describe(CommandExecutor, () => {
         curves = new PlanarCurveDatabase(db);
         regions = new RegionManager(db, curves);
         contours = new ContourManager(curves, regions, signals);
-        originator = new EditorOriginator(db, selection.selected, snaps, curves);
+        modifiers = new ModifierManager(db, selection, materials, signals);
+        originator = new EditorOriginator(db, selection.selected, snaps, curves, modifiers);
         history = new History(originator, signals);
         editor = {
             materials, sprites: gizmos, signals, db, registry, selection, snaps, curves, originator, history, contours, selectionGizmo

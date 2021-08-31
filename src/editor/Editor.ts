@@ -50,7 +50,7 @@ export class Editor {
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly selectionInteraction = new SelectionInteractionManager(this.modifiers, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.curves);
+    readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.curves, this.modifiers);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
     readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);

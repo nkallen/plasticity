@@ -9,6 +9,7 @@ import { GConstructor } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
 import { Agent, DatabaseLike, GeometryDatabase, TemporaryObject } from "./GeometryDatabase";
+import { ModifierMemento, ModifierStackMemento } from "./History";
 import MaterialDatabase from "./MaterialDatabase";
 import * as visual from "./VisualModel";
 
@@ -32,6 +33,7 @@ export class ModifierStack {
 
     private _modified!: visual.Solid;
     private _premodified!: visual.Solid;
+    readonly modifiers: GeometryFactory[] = [];
 
     constructor(
         private readonly db: DatabaseLike,
@@ -54,8 +56,6 @@ export class ModifierStack {
         this._premodified = premodified;
         return modified;
     }
-
-    readonly modifiers: GeometryFactory[] = [];
 
     addModifier(klass: GConstructor<SymmetryFactory>) {
         const factory = new klass(this.db, this.materials, this.signals);
@@ -136,6 +136,20 @@ export class ModifierStack {
             }
         }
     }
+
+    saveToMemento(): ModifierStackMemento {
+        return new ModifierStackMemento(
+            this.premodified,
+            this.modified,
+            [...this.modifiers],
+        )
+    }
+
+    restoreFromMemento(m: ModifierStackMemento) {
+        this._premodified = m.premodified;
+        this._modified = m.modified;
+        (this.modifiers as ModifierStack['modifiers']) = m.modifiers;
+    }
 }
 
 const invisible = new THREE.MeshBasicMaterial({
@@ -146,7 +160,7 @@ const invisible = new THREE.MeshBasicMaterial({
 });
 
 export default class ModifierManager extends DatabaseProxy implements HasSelectedAndHovered {
-    protected readonly map = new Map<c3d.SimpleName, ModifierStack>();
+    protected readonly name2stack = new Map<c3d.SimpleName, ModifierStack>();
     protected readonly version2name = new Map<c3d.SimpleName, c3d.SimpleName>();
     protected readonly modified2name = new Map<c3d.SimpleName, c3d.SimpleName>();
 
@@ -165,7 +179,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     add(object: visual.Solid): ModifierStack {
-        const { version2name, map, db, materials, signals } = this;
+        const { version2name, name2stack: map, db, materials, signals } = this;
         let name = version2name.get(object.simpleName);
         if (name === undefined) {
             // FIXME this is TEMPORARY just for reloading files. replace when there is a better file reload strategy
@@ -181,7 +195,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     async remove(object: visual.Solid) {
-        const { version2name, modified2name, map } = this;
+        const { version2name, modified2name, name2stack: map } = this;
         const stack = this.getByPremodified(object);
         if (stack === undefined) throw new Error("invalid precondition");
         modified2name.delete(stack.modified.simpleName);
@@ -191,7 +205,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     async rebuild(stack: ModifierStack) {
-        const { modified2name, map } = this;
+        const { modified2name, name2stack: map } = this;
         if (stack.modifiers.length === 0) {
             const name = modified2name.get(stack.modified.simpleName);
             if (name === undefined) throw new Error("invalid precondition");
@@ -205,7 +219,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     async apply(stack: ModifierStack) {
-        const { version2name, modified2name, map } = this;
+        const { version2name, modified2name, name2stack: map } = this;
         modified2name.delete(stack.modified.simpleName);
         map.delete(version2name.get(stack.premodified.simpleName)!);
         this.db.removeItem(stack.premodified);
@@ -214,7 +228,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     getByPremodified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
-        const { version2name, map } = this;
+        const { version2name, name2stack: map } = this;
         const simpleName = object instanceof visual.Solid ? object.simpleName : object;
         let name = version2name.get(simpleName);
         if (name === undefined) return undefined;
@@ -223,7 +237,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     getByModified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
-        const { map, modified2name } = this;
+        const { name2stack: map, modified2name } = this;
         const simpleName = object instanceof visual.Solid ? object.simpleName : object;
         const name = modified2name.get(simpleName);
         if (name === undefined) return;
@@ -245,7 +259,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     async replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
     async replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
     async replaceItem(from: visual.Item, to: c3d.Item): Promise<visual.Item> {
-        const { map, version2name, modified2name } = this;
+        const { name2stack: map, version2name, modified2name } = this;
         const name = version2name.get(from.simpleName)!;
 
         const result = this.db.replaceItem(from, to);
@@ -264,7 +278,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     async removeItem(view: visual.Item, agent?: Agent): Promise<void> {
-        const { version2name, map } = this;
+        const { version2name, name2stack: map } = this;
         const name = version2name.get(view.simpleName)!;
 
         if (map.has(name)) {
@@ -286,7 +300,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     async replaceWithTemporaryItem(from: visual.Item, to: c3d.Item): Promise<TemporaryObject> {
-        const { map, version2name } = this;
+        const { name2stack: map, version2name } = this;
         const name = version2name.get(from.simpleName)!;
 
         let result: TemporaryObject;
@@ -313,6 +327,20 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         if (this.getByPremodified(item) !== undefined) return 'premodified';
         else if (this.getByModified(item) !== undefined) return 'modified';
         else return 'unmodified';
+    }
+
+    saveToMemento(): ModifierMemento {
+        return new ModifierMemento(
+            new Map(this.name2stack),
+            new Map(this.version2name),
+            new Map(this.modified2name),
+        );
+    }
+
+    restoreFromMemento(m: ModifierMemento) {
+        (this.name2stack as ModifierMemento['name2stack']) = m.name2stack;
+        (this.version2name as ModifierMemento['version2name']) = m.version2name;
+        (this.modified2name as ModifierMemento['modified2name']) = m.modified2name;
     }
 };
 

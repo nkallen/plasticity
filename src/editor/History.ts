@@ -2,6 +2,7 @@ import c3d from '../../build/Release/c3d.node';
 import { RefCounter } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
 import { GeometryDatabase } from './GeometryDatabase';
+import ModifierManager, { ModifierStack } from './ModifierManager';
 import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap } from './SnapManager';
 
@@ -12,6 +13,7 @@ export class Memento {
         readonly selection: SelectionMemento,
         readonly snaps: SnapMemento,
         readonly contours: CurveMemento,
+        readonly modifiers: ModifierMemento,
     ) { }
 }
 
@@ -57,6 +59,22 @@ export class CurveMemento {
     ) { }
 }
 
+export class ModifierMemento {
+    constructor(
+        readonly name2stack: ModifierManager['name2stack'],
+        readonly version2name: ModifierManager['version2name'],
+        readonly modified2name: ModifierManager['modified2name'],
+    ) {}
+}
+
+export class ModifierStackMemento {
+    constructor(
+        readonly premodified: ModifierStack['premodified'],
+        readonly modified: ModifierStack['modified'],
+        readonly modifiers: ModifierStack['modifiers'],
+    ) {}
+}
+
 export type StateChange = (f: () => void) => void;
 
 type OriginatorState = { tag: 'start' } | { tag: 'group', memento: Memento }
@@ -68,16 +86,18 @@ export class EditorOriginator {
         readonly db: MementoOriginator<GeometryMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
-        readonly contours: MementoOriginator<CurveMemento>
+        readonly contours: MementoOriginator<CurveMemento>,
+        readonly modifiers: MementoOriginator<ModifierMemento>,
     ) { }
 
     group(registry: Map<any, any>, fn: () => void) {
         const memento = new Memento(
             this.version++,
-            this.db.saveToMemento(registry),
-            this.selection.saveToMemento(registry),
-            this.snaps.saveToMemento(registry),
-            this.contours.saveToMemento(registry));
+            this.db.saveToMemento(),
+            this.selection.saveToMemento(),
+            this.snaps.saveToMemento(),
+            this.contours.saveToMemento(),
+            this.modifiers.saveToMemento());
 
         this.state = { tag: 'group', memento: memento };
         try {
@@ -92,10 +112,11 @@ export class EditorOriginator {
             case 'start':
                 return new Memento(
                     this.version++,
-                    this.db.saveToMemento(registry),
-                    this.selection.saveToMemento(registry),
-                    this.snaps.saveToMemento(registry),
-                    this.contours.saveToMemento(registry));
+                    this.db.saveToMemento(),
+                    this.selection.saveToMemento(),
+                    this.snaps.saveToMemento(),
+                    this.contours.saveToMemento(),
+                    this.modifiers.saveToMemento());
             case 'group':
                 return this.state.memento;
         }
@@ -105,11 +126,13 @@ export class EditorOriginator {
         this.db.restoreFromMemento(m.db);
         this.selection.restoreFromMemento(m.selection);
         this.snaps.restoreFromMemento(m.snaps);
+        this.contours.restoreFromMemento(m.contours);
+        this.modifiers.restoreFromMemento(m.modifiers);
     }
 }
 
 interface MementoOriginator<T> {
-    saveToMemento(registry: Map<any, any>): T;
+    saveToMemento(): T;
     restoreFromMemento(m: T): void;
 }
 

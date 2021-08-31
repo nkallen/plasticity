@@ -1,13 +1,14 @@
 interface to list modifiers with toggles for enable/disable and button to apply
-
-# PRE ALPHA:
-
 hide grid when orthogonal to camera
-
+modifier undo
 file save and reload needs to respect modifiers:
   - don't save modified items, only unmodified
   - save items with metadata
   - same is true of curve segments
+
+# PRE ALPHA:
+
+
 
 keybindings to move camera need to update construction plane
 reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss

@@ -35,7 +35,7 @@ Object.defineProperty(window, 'THREE', {
 
 const stats = new Stats();
 stats.showPanel(1);
-// document.body.appendChild(stats.dom);
+document.body.appendChild(stats.dom);
 
 editor.keymaps.add('/default', keymap);
 editor.registry.add("ispace-workspace", {

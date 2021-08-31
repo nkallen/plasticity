@@ -253,7 +253,7 @@ export class SnapManager {
         return (isEnabled && !isToggled) || (!isEnabled && isToggled);
     }
 
-    saveToMemento(registry: Map<any, any>): SnapMemento {
+    saveToMemento(): SnapMemento {
         return new SnapMemento(
             new RefCounter(this.garbageDisposal),
             new Set(this.faces),

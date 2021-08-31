@@ -246,7 +246,7 @@ export class Selection implements HasSelection, ModifiesSelection, Highlightable
         highlighter.unhighlightControlPoints(controlPointIds);
     }
 
-    saveToMemento(registry: Map<any, any>) {
+    saveToMemento() {
         return new SelectionMemento(
             new Set(this.solidIds),
             new RefCounter(this.parentsWithSelectedChildren),

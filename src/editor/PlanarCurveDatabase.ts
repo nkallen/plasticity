@@ -254,7 +254,7 @@ export class PlanarCurveDatabase {
             info2.joints.stop = new Joint(on2, on1);
     }
 
-    saveToMemento(registry: Map<any, any>): CurveMemento {
+    saveToMemento(): CurveMemento {
         return new CurveMemento(
             new Map(this.curve2info),
             new Map(this.planar2instance),

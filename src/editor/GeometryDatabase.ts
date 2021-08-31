@@ -481,7 +481,7 @@ export class GeometryDatabase implements DatabaseLike {
         for (const { view } of hidden) this.signals.objectUnhidden.dispatch(view);
     }
 
-    saveToMemento(registry: Map<1, any>): GeometryMemento {
+    saveToMemento(): GeometryMemento {
         return new GeometryMemento(
             new Map(this.geometryModel),
             new Map(this.topologyModel),
