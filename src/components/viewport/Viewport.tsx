@@ -6,6 +6,7 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
@@ -13,13 +14,12 @@ import { CameraPlaneSnap, ConstructionPlaneSnap, PlaneSnap } from "../../editor/
 import * as visual from "../../editor/VisualModel";
 import { ControlPoint, Region, Solid, SpaceItem, TopologyItem } from "../../editor/VisualModel";
 import { HighlightManager } from "../../selection/HighlightManager";
-import { HasSelectedAndHovered } from "../../selection/SelectionManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
+import { GridHelper } from "./GridHelper";
 import { ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
-import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 
 const near = 0.01;
 const far = 1000;
@@ -60,7 +60,7 @@ export class Viewport {
         readonly camera: THREE.Camera,
         constructionPlane: PlaneSnap,
         readonly navigationControls: OrbitControls,
-        readonly grid: THREE.GridHelper,
+        readonly grid: GridHelper,
     ) {
         this.constructionPlane = constructionPlane;
         const rendererDomElement = this.renderer.domElement;
@@ -72,7 +72,7 @@ export class Viewport {
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
         const size = this.renderer.getSize(new THREE.Vector2());
-        const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType});
+        const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType });
         renderTarget.samples = 8;
 
         EffectComposer: {
@@ -215,26 +215,29 @@ export class Viewport {
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 
-        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene } = this
+        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, grid, composer, camera, lastFrameNumber, offsetWidth, offsetHeight } = this
 
         try {
             // prepare the scene, once per frame:
-            if (frameNumber > this.lastFrameNumber) {
+            if (frameNumber > lastFrameNumber) {
                 db.rebuildScene();
                 scene.add(helpers.axes);
                 scene.add(db.scene);
-                if (this.grid) scene.add(this.grid);
+                if (grid) {
+                    scene.add(grid);
+                    grid.update(camera);
+                }
                 this.highlight();
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
             }
 
-            const resolution = new THREE.Vector2(this.offsetWidth, this.offsetHeight);
-            signals.renderPrepared.dispatch({ camera: this.camera, resolution });
+            const resolution = new THREE.Vector2(offsetWidth, offsetHeight);
+            signals.renderPrepared.dispatch({ camera, resolution });
 
-            this.composer.render();
+            composer.render();
 
-            if (frameNumber > this.lastFrameNumber) {
+            if (frameNumber > lastFrameNumber) {
                 this.unhighlight();
                 scene.clear();
                 helpersScene.clear();
@@ -378,9 +381,7 @@ export default (editor: EditorLike) => {
             const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
 
             const gridColor = new THREE.Color(0x666666).convertGammaToLinear();
-            const grid = new THREE.GridHelper(300, 300, gridColor, gridColor);
-            grid.renderOrder = -1;
-            grid.layers.set(visual.Layers.Overlay);
+            const grid = new GridHelper(300, 300, gridColor, gridColor);
 
             this.append(renderer.domElement);
 
