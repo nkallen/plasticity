@@ -245,7 +245,7 @@ export class Max<T> {
         if (max < candidate) throw new Error('invalid');
         if (candidate < lastGood) throw new Error('invalid');
         if (Math.abs(candidate - lastGood) < candidate / 100) return Promise.resolve(lastGood);
-        if (budget <= 0) throw new Error('taking too long');
+        if (budget <= 0) return max;
 
         const start = performance.now();
         try {
