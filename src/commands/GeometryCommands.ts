@@ -841,13 +841,8 @@ export class FilletCommand extends Command {
 
         await this.finished;
 
-        console.log("commit fillet");
-        console.log("add solid", this.editor.selection.selected.solidIds);
         const selection = await fillet.commit() as visual.Solid;
-        console.log("add solid", this.editor.selection.selected.solidIds);
         this.editor.selection.selected.addSolid(selection);
-        console.log("add solid", this.editor.selection.selected.solidIds);
-        console.log("done");
     }
 }
 

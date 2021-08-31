@@ -235,6 +235,11 @@ export class EditorOriginator {
         const modifiers = Number(data.readBigUInt64BE(db + 8));
         await this.modifiers.deserialize(data.slice(8 + db + 8, 8 + db + 8 + modifiers))
     }
+
+    validate() {
+        // @ts-ignore
+        this.modifiers.validate();
+    }
 }
 
 export interface MementoOriginator<T> {

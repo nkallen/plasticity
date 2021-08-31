@@ -88,6 +88,7 @@ export class CommandExecutor {
             disposable.dispose();
             db.clearTemporaryObjects();
             signals.commandEnded.dispatch(command);
+            originator.validate();
         }
     }
 

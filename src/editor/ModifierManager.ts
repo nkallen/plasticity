@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
 import { HighlightManager } from "../selection/HighlightManager";
@@ -90,7 +91,7 @@ export class ModifierStack {
 
         const premodified = await view;
         premodified.visible = false;
-        
+
         return { premodified, modified };
     }
 
@@ -207,16 +208,16 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     async rebuild(stack: ModifierStack) {
-        const { modified2name, name2stack: map } = this;
+        const { modified2name, name2stack, version2name } = this;
         if (stack.modifiers.length === 0) {
             const name = modified2name.get(stack.modified.simpleName);
             if (name === undefined) throw new Error("invalid precondition");
-            map.delete(name);
+            name2stack.delete(name);
             modified2name.delete(stack.modified.simpleName);
             stack.dispose();
         } else {
             const modified = await stack.rebuild();
-            modified2name.set(modified.simpleName, stack.premodified.simpleName);
+            modified2name.set(modified.simpleName, version2name.get(stack.premodified.simpleName)!);
         }
     }
 
@@ -261,12 +262,13 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     async replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
     async replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
     async replaceItem(from: visual.Item, to: c3d.Item): Promise<visual.Item> {
-        const { name2stack: map, version2name, modified2name } = this;
+        const { name2stack, version2name, modified2name } = this;
         const name = version2name.get(from.simpleName)!;
 
         const result = this.db.replaceItem(from, to);
-        if (map.has(name)) {
-            const stack = map.get(name)!;
+        if (name2stack.has(name)) {
+            const stack = name2stack.get(name)!;
+            modified2name.delete(stack.modified.simpleName);
             const modified = await stack.update(to as c3d.Solid, result as Promise<visual.Solid>);
             modified2name.set(modified.simpleName, name);
         }
@@ -346,7 +348,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     highlight(highlighter: HighlightManager): void {
         for (const [key, { premodified }] of this.name2stack.entries()) {
             premodified.traverse(child => {
-                if (child instanceof THREE.Mesh) {
+                if (child instanceof THREE.Mesh && !(child instanceof Line2)) {
                     child.userData.originalMaterial = child.material;
                     child.material = invisible;
                 }
@@ -358,7 +360,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     unhighlight(highlighter: HighlightManager): void {
         for (const [key, { premodified }] of this.name2stack.entries()) {
             premodified.traverse(child => {
-                if (child instanceof THREE.Mesh) {
+                if (child instanceof THREE.Mesh && !(child instanceof Line2)) {
                     child.material = child.userData.originalMaterial;
                     delete child.userData.originalMaterial;
                 }
@@ -387,6 +389,18 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 
     async deserialize(data: Buffer): Promise<void> {
         this.restoreFromMemento(ModifierMemento.deserialize(data, this.db, this.materials, this.signals));
+    }
+
+    validate() {
+        const { name2stack, version2name, modified2name } = this;
+        console.assert([...modified2name.keys()].length === [...name2stack.keys()].length, "modified2name.keys.length == name2stack.keys.length", modified2name, name2stack);
+        for (const [mname, name] of modified2name) {
+            const stack = name2stack.get(name)!;
+            console.assert(stack, "stack should exist for modified item", name, name2stack);
+            console.assert(stack.modified.simpleName === mname, "modified2name.key == stack.modified.simpleName", stack.modified.simpleName, mname);
+            console.assert(name === version2name.get(stack.premodified.simpleName), "name === version2name.get(stack.premodified.simpleName),", name, stack.premodified.simpleName, version2name);
+            console.assert(stack.modifiers.length > 0, "stack.modifiers.length > 0");
+        }
     }
 }
 
