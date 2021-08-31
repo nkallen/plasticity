@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
+import { HighlightManager } from "../selection/HighlightManager";
 import { ItemSelection } from "../selection/Selection";
-import { HasSelectedAndHovered, Highlightable, ModifiesSelection } from "../selection/SelectionManager";
+import { HasSelectedAndHovered, Outlinable, ModifiesSelection } from "../selection/SelectionManager";
 import { SelectionProxy } from "../selection/SelectionProxy";
 import { GConstructor } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
@@ -88,20 +89,9 @@ export class ModifierStack {
             await this.db.replaceItem(this._modified, symmetrized);
 
         const premodified = await view;
-        ModifierStack.hidePremodified(premodified);
-
-        return { premodified, modified };
-    }
-
-    static hidePremodified(premodified: visual.Solid) {
         premodified.visible = false;
-        for (const face of premodified.allFaces) {
-            face.traverse(child => {
-                if (child instanceof THREE.Mesh) {
-                    child.material = invisible;
-                }
-            });
-        }
+        
+        return { premodified, modified };
     }
 
     async updateTemporary(from: visual.Item, underlying: c3d.Solid): Promise<TemporaryObject> {
@@ -160,7 +150,7 @@ export class ModifierStack {
 
     fromJSON(json: any) {
         this.restoreFromMemento(ModifierStackMemento.fromJSON(json, this.db, this.materials, this.signals));
-        ModifierStack.hidePremodified(this.premodified)
+        this.premodified.visible = false;
     }
 }
 
@@ -177,7 +167,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     protected readonly modified2name = new Map<c3d.SimpleName, c3d.SimpleName>();
 
     readonly selected: ModifierSelection;
-    readonly hovered: ModifiesSelection & Highlightable;
+    readonly hovered: ModifiesSelection & Outlinable;
 
     constructor(
         db: GeometryDatabase,
@@ -353,6 +343,30 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         else return 'unmodified';
     }
 
+    highlight(highlighter: HighlightManager): void {
+        for (const [key, { premodified }] of this.name2stack.entries()) {
+            premodified.traverse(child => {
+                if (child instanceof THREE.Mesh) {
+                    child.userData.originalMaterial = child.material;
+                    child.material = invisible;
+                }
+            })
+        }
+        this.selection.highlight(highlighter);
+    }
+
+    unhighlight(highlighter: HighlightManager): void {
+        for (const [key, { premodified }] of this.name2stack.entries()) {
+            premodified.traverse(child => {
+                if (child instanceof THREE.Mesh) {
+                    child.material = child.userData.originalMaterial;
+                    delete child.userData.originalMaterial;
+                }
+            })
+        }
+        this.selection.unhighlight(highlighter);
+    }
+
     saveToMemento(): ModifierMemento {
         return new ModifierMemento(
             new Map(this.name2stack),
@@ -377,7 +391,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 }
 
 class ModifierSelection extends SelectionProxy {
-    constructor(private readonly db: DatabaseLike, private readonly modifiers: ModifierManager, selection: ModifiesSelection & Highlightable) {
+    constructor(private readonly db: DatabaseLike, private readonly modifiers: ModifierManager, selection: ModifiesSelection & Outlinable) {
         super(selection);
     }
 

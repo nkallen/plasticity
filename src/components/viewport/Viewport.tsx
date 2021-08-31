@@ -266,17 +266,15 @@ export class Viewport {
     }
 
     highlight() {
-        const { editor: { selection: { selected, hovered }, materials }, highlighter } = this;
+        const { editor: { selection }, highlighter } = this;
 
-        selected.highlight(highlighter, materials.highlight);
-        hovered.highlight(highlighter, materials.hover);
+        selection.highlight(highlighter);
     }
 
     unhighlight() {
-        const { editor: { selection: { selected, hovered } }, highlighter } = this;
+        const { editor: { selection }, highlighter } = this;
 
-        selected.unhighlight(highlighter);
-        hovered.unhighlight(highlighter);
+        selection.unhighlight(highlighter);
     }
 
     private offsetWidth: number = 100;

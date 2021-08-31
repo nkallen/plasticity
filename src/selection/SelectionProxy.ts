@@ -1,10 +1,10 @@
 import MaterialDatabase from "../editor/MaterialDatabase";
 import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance } from "../editor/VisualModel";
 import { HighlightManager } from "./HighlightManager";
-import { Highlightable, ModifiesSelection } from "./SelectionManager";
+import { Outlinable, ModifiesSelection } from "./SelectionManager";
 
-export class SelectionProxy implements ModifiesSelection, Highlightable {
-    constructor(protected readonly selection: ModifiesSelection & Highlightable) { }
+export class SelectionProxy implements ModifiesSelection, Outlinable {
+    constructor(protected readonly selection: ModifiesSelection & Outlinable) { }
 
     add(items: Item | Item[]): void {
         this.selection.add(items);

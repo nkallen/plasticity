@@ -53,7 +53,7 @@ export interface ModifiesSelection extends HasSelection {
     removeAll(): void;
 }
 
-export interface Highlightable {
+export interface Outlinable {
     outlinable: Iterable<visual.Solid>;
     highlight(highlighter: HighlightManager, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']): void;
     unhighlight(highlighter: HighlightManager): void;
@@ -66,7 +66,7 @@ interface SignalLike {
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
 }
 
-export class Selection implements HasSelection, ModifiesSelection, Highlightable, MementoOriginator<SelectionMemento> {
+export class Selection implements HasSelection, ModifiesSelection, Outlinable, MementoOriginator<SelectionMemento> {
     readonly solidIds = new Set<c3d.SimpleName>();
     readonly edgeIds = new Set<string>();
     readonly faceIds = new Set<string>();
@@ -279,8 +279,10 @@ export class Selection implements HasSelection, ModifiesSelection, Highlightable
 }
 
 export interface HasSelectedAndHovered {
-    readonly selected: ModifiesSelection & Highlightable;
-    readonly hovered: ModifiesSelection & Highlightable;
+    readonly selected: ModifiesSelection & Outlinable;
+    readonly hovered: ModifiesSelection & Outlinable;
+    highlight(highlighter: HighlightManager): void;
+    unhighlight(highlighter: HighlightManager): void;
 }
 
 export class SelectionManager implements HasSelectedAndHovered {
@@ -305,4 +307,16 @@ export class SelectionManager implements HasSelectedAndHovered {
         readonly signals: EditorSignals,
         readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])
     ) { }
+
+    highlight(highlighter: HighlightManager) {
+        const { selected, hovered, materials } = this;
+        selected.highlight(highlighter, materials.highlight);
+        hovered.highlight(highlighter, materials.hover);
+    }
+
+    unhighlight(highlighter: HighlightManager) {
+        const { selected, hovered } = this;
+        selected.unhighlight(highlighter);
+        hovered.unhighlight(highlighter);
+    }
 }
