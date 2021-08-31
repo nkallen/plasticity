@@ -50,8 +50,7 @@ describe(EditorOriginator, () => {
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
         box = await makeBox.commit() as visual.Solid;
 
-        stack = modifiers.add(box);
-        stack.addModifier(SymmetryFactory);
+        stack = modifiers.add(box, SymmetryFactory).stack;
         await modifiers.rebuild(stack);
     });
 

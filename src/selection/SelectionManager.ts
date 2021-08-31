@@ -276,6 +276,18 @@ export class Selection implements HasSelection, ModifiesSelection, Outlinable, M
     deserialize(data: Buffer): Promise<void> {
         throw new Error('Method not implemented.');
     }
+
+    validate() {
+        for (const id of this.solidIds) {
+            console.assert(this.db.lookupItemById(id) !== undefined, "solid is in database", id);
+        }
+        for (const id of this.faceIds) {
+            console.assert(this.db.lookupTopologyItemById(id) !== undefined);
+        }
+        for (const id of this.edgeIds) {
+            console.assert(this.db.lookupTopologyItemById(id) !== undefined);
+        }
+    }
 }
 
 export interface HasSelectedAndHovered {

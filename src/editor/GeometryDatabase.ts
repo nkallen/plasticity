@@ -512,4 +512,8 @@ export class GeometryDatabase implements DatabaseLike {
         }
         await Promise.all(promises);
     }
+
+    validate() {
+        
+    }
 }

@@ -236,8 +236,12 @@ export class EditorOriginator {
     }
 
     validate() {
-        // @ts-ignore
         this.modifiers.validate();
+        this.snaps.validate();
+        this.selection.validate();
+        this.contours.validate();
+        this.db.validate();
+        
     }
 }
 
@@ -246,6 +250,7 @@ export interface MementoOriginator<T> {
     restoreFromMemento(m: T): void;
     serialize(): Promise<Buffer>;
     deserialize(data: Buffer): Promise<void>;
+    validate(): void;
 }
 
 export class History {

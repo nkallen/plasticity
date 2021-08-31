@@ -282,6 +282,10 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     deserialize(data: Buffer): Promise<void> {
         throw new Error("Method not implemented.");
     }
+
+    validate() {
+        
+    }
 }
 
 export interface Restriction {

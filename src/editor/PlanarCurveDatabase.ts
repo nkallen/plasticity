@@ -270,8 +270,13 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     serialize(): Promise<Buffer> {
         throw new Error('Method not implemented.');
     }
+
     deserialize(data: Buffer): Promise<void> {
         throw new Error('Method not implemented.');
+    }
+
+    validate() {
+        
     }
 }
 
