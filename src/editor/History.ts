@@ -125,8 +125,7 @@ export class ModifierMemento {
                 case 'name2stack':
                     const cast = value.value as [c3d.SimpleName, any][];
                     return new Map(cast.map(([name, json]) => {
-                        const stack = new ModifierStack(db, materials, signals);
-                        stack.fromJSON(json);
+                        const stack = ModifierStack.fromJSON(json, db, materials, signals);
                         return [name, stack]
                     }));
                 default: return value;

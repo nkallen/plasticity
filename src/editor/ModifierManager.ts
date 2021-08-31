@@ -32,46 +32,36 @@ export class ModifierStack {
     isEnabled = true;
     showWhileEditing = true;
 
-    private _modified!: visual.Solid;
-    private _premodified!: visual.Solid;
-    readonly modifiers: SymmetryFactory[] = [];
-
     constructor(
+        readonly premodified: visual.Solid,
+        readonly modified: visual.Solid,
+        readonly modifiers: SymmetryFactory[],
         private readonly db: DatabaseLike,
         private readonly materials: MaterialDatabase,
-        private readonly signals: EditorSignals,
-    ) { }
-
-    get premodified() { return this._premodified }
-    get modified() { return this._modified }
-
-    add(view: visual.Solid): visual.Solid {
-        this._modified = view;
-        this._premodified = view;
-        return view;
+    ) {
+        Object.freeze(this);
+        Object.freeze(modifiers);
     }
 
-    async update(underlying: c3d.Solid, view: Promise<visual.Solid>): Promise<visual.Solid> {
+    async update(underlying: c3d.Solid, view: Promise<visual.Solid>): Promise<ModifierStack> {
         const { premodified, modified } = await this.calculate(underlying, view);
-        this._modified = modified;
-        this._premodified = premodified;
-        return modified;
+        return new ModifierStack(premodified, modified, this.modifiers, this.db, this.materials);
     }
 
-    addModifier(klass: GConstructor<SymmetryFactory>) {
-        const factory = new klass(this.db, this.materials, this.signals);
-        this.modifiers.push(factory);
-        return factory;
-    }
-
-    removeModifier(index: number) {
-        if (index >= this.modifiers.length) throw new Error("invalid precondition");
-        this.modifiers.splice(index, 1);
-    }
-
-    async rebuild() {
+    async rebuild(): Promise<ModifierStack> {
         const { db, premodified } = this;
         return this.update(db.lookup(premodified), Promise.resolve(premodified));
+    }
+
+    addModifier(factory: SymmetryFactory): ModifierStack {
+        return new ModifierStack(this.premodified, this.modified, [...this.modifiers, factory], this.db, this.materials);
+    }
+
+    removeModifier(index: number): ModifierStack {
+        if (index >= this.modifiers.length) throw new Error("invalid precondition");
+        const spliced = [...this.modifiers];
+        spliced.splice(index, 1);
+        return new ModifierStack(this.premodified, this.modified, spliced, this.db, this.materials);
     }
 
     private async calculate(model: c3d.Solid, view: Promise<visual.Solid>): Promise<{ premodified: visual.Solid, modified: visual.Solid }> {
@@ -85,9 +75,9 @@ export class ModifierStack {
         symmetry.solid = model;
         const symmetrized = await symmetry.calculate();
 
-        const modified = (this._modified === this._premodified) ?
+        const modified = (this.modified === this.premodified) ?
             await this.db.addItem(symmetrized, 'automatic') :
-            await this.db.replaceItem(this._modified, symmetrized);
+            await this.db.replaceItem(this.modified, symmetrized);
 
         const premodified = await view;
         premodified.visible = false;
@@ -118,7 +108,7 @@ export class ModifierStack {
     }
 
     dispose() {
-        const { modified, premodified, materials, db } = this;
+        const { modified, premodified, materials } = this;
         if (modified !== premodified) {
             this.db.removeItem(modified);
             for (const face of premodified.allFaces) {
@@ -139,19 +129,17 @@ export class ModifierStack {
         )
     }
 
-    restoreFromMemento(m: ModifierStackMemento) {
-        this._premodified = m.premodified;
-        this._modified = m.modified;
-        (this.modifiers as ModifierStack['modifiers']) = m.modifiers;
+    static restoreFromMemento(m: ModifierStackMemento, db: DatabaseLike, materials: MaterialDatabase) {
+        return new ModifierStack(m.premodified, m.modified, m.modifiers, db, materials)
     }
 
     toJSON() {
         return this.saveToMemento().toJSON();
     }
 
-    fromJSON(json: any) {
-        this.restoreFromMemento(ModifierStackMemento.fromJSON(json, this.db, this.materials, this.signals));
-        this.premodified.visible = false;
+    static fromJSON(json: any, db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals): ModifierStack {
+        return this.restoreFromMemento(ModifierStackMemento.fromJSON(json, db, materials, signals), db, materials);
+        // this.premodified.visible = false;
     }
 }
 
@@ -181,33 +169,29 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         this.hovered = selection.hovered;
     }
 
-    add(object: visual.Solid): ModifierStack {
-        const { version2name, name2stack: map, db, materials, signals } = this;
-        let name = version2name.get(object.simpleName);
-        if (name === undefined) {
-            // FIXME this is TEMPORARY just for reloading files. replace when there is a better file reload strategy
-            version2name.set(object.simpleName, object.simpleName);
-            name = object.simpleName;
-        }
+    add(object: visual.Solid, klass: GConstructor<SymmetryFactory>): { stack: ModifierStack, factory: SymmetryFactory } {
+        const { version2name, name2stack } = this;
+        let name = version2name.get(object.simpleName)!;
 
-        const modifiers = new ModifierStack(db, materials, signals);
-        map.set(name, modifiers);
+        let stack = new ModifierStack(object, object, [], this.db, this.materials);
+        const factory = new klass(this.db, this.materials, this.signals);
+        stack = stack.addModifier(factory);
+        name2stack.set(name, stack);
 
-        modifiers.add(object);
-        return modifiers;
+        return { stack, factory };
     }
 
     async remove(object: visual.Solid) {
-        const { version2name, modified2name, name2stack: map } = this;
+        const { version2name, modified2name, name2stack } = this;
         const stack = this.getByPremodified(object);
         if (stack === undefined) throw new Error("invalid precondition");
         modified2name.delete(stack.modified.simpleName);
         stack.dispose();
 
-        map.delete(version2name.get(object.simpleName)!);
+        name2stack.delete(version2name.get(object.simpleName)!);
     }
 
-    async rebuild(stack: ModifierStack) {
+    async rebuild(stack: ModifierStack): Promise<ModifierStack> {
         const { modified2name, name2stack, version2name } = this;
         if (stack.modifiers.length === 0) {
             const name = modified2name.get(stack.modified.simpleName);
@@ -215,19 +199,26 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
             name2stack.delete(name);
             modified2name.delete(stack.modified.simpleName);
             stack.dispose();
+            return stack;
         } else {
-            const modified = await stack.rebuild();
-            modified2name.set(modified.simpleName, version2name.get(stack.premodified.simpleName)!);
+            stack = await stack.rebuild();
+            const { premodified, modified } = stack;
+            const name = version2name.get(premodified.simpleName)!;
+            name2stack.set(name, stack);
+            modified2name.set(modified.simpleName, name);
+            return stack;
         }
     }
 
     async apply(stack: ModifierStack) {
-        const { version2name, modified2name, name2stack: map } = this;
-        modified2name.delete(stack.modified.simpleName);
-        map.delete(version2name.get(stack.premodified.simpleName)!);
-        this.db.removeItem(stack.premodified);
+        const { version2name, modified2name, name2stack } = this;
+        const { premodified, modified } = stack;
+
+        modified2name.delete(modified.simpleName);
+        name2stack.delete(version2name.get(premodified.simpleName)!);
+        this.db.removeItem(premodified);
         ModifierSelection.showModified(stack);
-        return stack.modified;
+        return modified;
     }
 
     getByPremodified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
@@ -267,10 +258,12 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 
         const result = this.db.replaceItem(from, to);
         if (name2stack.has(name)) {
-            const stack = name2stack.get(name)!;
+            let stack = name2stack.get(name)!;
             modified2name.delete(stack.modified.simpleName);
-            const modified = await stack.update(to as c3d.Solid, result as Promise<visual.Solid>);
+            stack = await stack.update(to as c3d.Solid, result as Promise<visual.Solid>);
+            const modified = stack.modified;
             modified2name.set(modified.simpleName, name);
+            name2stack.set(name, stack);
         }
 
         const view = await result;
@@ -316,12 +309,12 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     async replaceWithTemporaryItem(from: visual.Item, to: c3d.Item): Promise<TemporaryObject> {
-        const { name2stack: map, version2name } = this;
+        const { name2stack, version2name } = this;
         const name = version2name.get(from.simpleName)!;
 
         let result: TemporaryObject;
-        if (map.has(name)) {
-            const modifiers = map.get(name)!;
+        if (name2stack.has(name)) {
+            const modifiers = name2stack.get(name)!;
             result = await modifiers.updateTemporary(from, to as c3d.Solid);
         } else {
             result = await this.db.replaceWithTemporaryItem(from, to);

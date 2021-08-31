@@ -50,13 +50,6 @@ export class Model {
         return this.modifiers.getByPremodified(solid) ?? emptyStack;
     }
 
-    add() {
-        const { db, solid } = this;
-        if (solid === undefined) return;
-
-        this.modifiers.add(solid);
-    }
-
     private get solid(): visual.Solid | undefined {
         const { db, selection } = this;
         if (selection.solids.size == 0) return undefined;

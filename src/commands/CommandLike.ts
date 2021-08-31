@@ -140,11 +140,10 @@ export class AddModifierCommand extends Command {
         }).resource(this);
         preview.cancel();
         
-        const stack = modifiers.add(solid);
-        const symmetry = stack.addModifier(SymmetryFactory);
-        symmetry.solid = solid;
-        symmetry.origin = preview.origin;
-        symmetry.orientation = preview.orientation;
+        const { stack, factory } = modifiers.add(solid, SymmetryFactory);
+        factory.solid = solid;
+        factory.origin = preview.origin;
+        factory.orientation = preview.orientation;
         await modifiers.rebuild(stack);
 
         selection.selected.addSolid(stack.modified);
