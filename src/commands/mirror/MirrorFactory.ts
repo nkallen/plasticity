@@ -123,4 +123,23 @@ export class SymmetryFactory extends GeometryFactory {
     // get shouldRemoveOriginalItem() {
     //     return this._isOverlapping;
     // }
+
+    toJSON() {
+        return {
+            dataType: 'SymmetryFactory',
+            params: {
+                origin: this.origin,
+                orientation: this.orientation,
+            },
+        }
+    }
+
+    fromJSON(json: any) {
+        const origin = new THREE.Vector3();
+        Object.assign(origin, json.origin);
+        const orientation = new THREE.Quaternion();
+        Object.assign(orientation, json.orientation);
+        this.origin = origin;
+        this.orientation = orientation;
+    }
 }

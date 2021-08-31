@@ -33,7 +33,7 @@ export class ModifierStack {
 
     private _modified!: visual.Solid;
     private _premodified!: visual.Solid;
-    readonly modifiers: GeometryFactory[] = [];
+    readonly modifiers: SymmetryFactory[] = [];
 
     constructor(
         private readonly db: DatabaseLike,
@@ -150,6 +150,24 @@ export class ModifierStack {
         this._modified = m.modified;
         (this.modifiers as ModifierStack['modifiers']) = m.modifiers;
     }
+
+    toJSON() {
+        return {
+            premodified: this._premodified.simpleName,
+            modified: this._modified.simpleName,
+            modifiers: this.modifiers.map(m => m.toJSON())
+        }
+    }
+
+    fromJSON(json: any) {
+        const { db } = this;
+        this._premodified = db.lookupItemById(json.premodified).view as visual.Solid;
+        this._modified = db.lookupItemById(json.modified).view as visual.Solid;       
+        for (const modifier of json.modifiers) {
+            const factory = this.addModifier(SymmetryFactory);
+            factory.fromJSON(modifier.params);
+        }
+    }
 }
 
 const invisible = new THREE.MeshBasicMaterial({
@@ -228,21 +246,21 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     getByPremodified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
-        const { version2name, name2stack: map } = this;
+        const { version2name, name2stack } = this;
         const simpleName = object instanceof visual.Solid ? object.simpleName : object;
         let name = version2name.get(simpleName);
         if (name === undefined) return undefined;
 
-        return map.get(name);
+        return name2stack.get(name);
     }
 
     getByModified(object: visual.Solid | c3d.SimpleName): ModifierStack | undefined {
-        const { name2stack: map, modified2name } = this;
+        const { name2stack, modified2name } = this;
         const simpleName = object instanceof visual.Solid ? object.simpleName : object;
         const name = modified2name.get(simpleName);
         if (name === undefined) return;
-        if (!map.has(name)) throw new Error("invalid precondition");
-        return map.get(name)!;
+        if (!name2stack.has(name)) throw new Error("invalid precondition");
+        return name2stack.get(name)!;
     }
 
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
@@ -342,7 +360,57 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         (this.version2name as ModifierMemento['version2name']) = m.version2name;
         (this.modified2name as ModifierMemento['modified2name']) = m.modified2name;
     }
-};
+
+    async serialize(): Promise<Buffer> {
+        const string = JSON.stringify({
+            version2name: this.version2name,
+            modified2name: this.modified2name,
+            name2stack: this.name2stack,
+        }, this.replacer);
+        return Buffer.from(string);
+    }
+
+    async deserialize(data: Buffer): Promise<void> {
+        const p = JSON.parse(data.toString(), (key, value) => this.reviver(key, value));
+        (this.version2name as ModifierMemento['version2name']) = p.version2name;
+        (this.modified2name as ModifierMemento['modified2name']) = p.modified2name;
+        (this.name2stack as ModifierMemento['name2stack']) = p.name2stack;
+    }
+
+    replacer(key: string, value: any) {
+        switch (key) {
+            case 'version2name':
+            case 'modified2name':
+                return {
+                    dataType: 'Map<c3d.SimpleName, c3d.SimpleName>',
+                    value: [...value],
+                };
+            case 'name2stack':
+                const cast = value as Map<c3d.SimpleName, ModifierStack>;
+                return {
+                    dataType: 'Map<c3d.SimpleName, ModifierStack>',
+                    value: [...cast.entries()].map(([key, value]) => [key, value.toJSON()]),
+                };
+            default: return value;
+        }
+    }
+
+    reviver(key: string, value: any) {
+        switch (key) {
+            case 'version2name':
+            case 'modified2name':
+                return new Map(value.value);
+            case 'name2stack':
+                const cast = value.value as [c3d.SimpleName, any][];
+                return new Map(cast.map(([name, json]) => {
+                    const stack = new ModifierStack(this.db, this.materials, this.signals);
+                    stack.fromJSON(json);
+                    return [name, stack]
+                }));
+            default: return value;
+        }
+    }
+}
 
 class ModifierSelection extends SelectionProxy {
     constructor(private readonly db: DatabaseLike, private readonly modifiers: ModifierManager, selection: ModifiesSelection & Highlightable) {
@@ -418,7 +486,7 @@ class ModifierSelection extends SelectionProxy {
     }
 
     private hidePremodifiedAndShowModified(stack: ModifierStack) {
-        const {  premodified } = stack;
+        const { premodified } = stack;
 
         premodified.visible = false;
 

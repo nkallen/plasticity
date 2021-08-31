@@ -7,7 +7,7 @@ import { PointPicker } from "../commands/PointPicker";
 import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
 import { CircleGeometry, Redisposable, RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
-import { DatabaseLike, GeometryDatabase } from "./GeometryDatabase";
+import { DatabaseLike } from "./GeometryDatabase";
 import { SnapMemento } from "./History";
 import * as visual from './VisualModel';
 

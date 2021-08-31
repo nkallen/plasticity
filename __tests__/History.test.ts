@@ -10,7 +10,7 @@ import { Selection, SelectionManager } from '../src/selection/SelectionManager';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
-describe("saveToMemento", () => {
+describe(EditorOriginator, () => {
     let db: GeometryDatabase;
     let materials: MaterialDatabase;
     let signals: EditorSignals;
@@ -34,9 +34,9 @@ describe("saveToMemento", () => {
         originator = new EditorOriginator(db, selected, snaps, curves, modifiers);
     });
 
-    test("sth", () => {
+    test("saveToMemento & restoreFromMemento", () => {
         const memento = originator.saveToMemento();
         originator.restoreFromMemento(memento);
         expect(1).toBe(1);
-    })
+    });
 })

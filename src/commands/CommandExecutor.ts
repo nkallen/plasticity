@@ -67,7 +67,7 @@ export class CommandExecutor {
             'command:finish': () => command.finish(),
             'command:abort': () => command.cancel(),
         });
-        const state = originator.saveToMemento(new Map());
+        const state = originator.saveToMemento();
         document.body.setAttribute("command", command.identifier);
         try {
             let selectionChanged = false;

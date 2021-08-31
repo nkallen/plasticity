@@ -389,4 +389,34 @@ describe(ModifierManager, () => {
 
         })
     })
+
+    describe("serialization", () => {
+        beforeEach(async () => {
+            stack = manager.add(box);
+            stack.addModifier(SymmetryFactory);
+            await manager.rebuild(stack);
+        });
+
+        test("serialize & deserialize", async () => {
+            const buffer = await manager.serialize();
+            const dbuffer = await db.serialize();
+
+            db = new GeometryDatabase(materials, signals);
+            await db.deserialize(dbuffer);
+            manager = new ModifierManager(db, selection, materials, signals);
+            await manager.deserialize(buffer);
+
+            const stack = manager.getByPremodified(box)!;
+            expect(stack).not.toBeUndefined();
+            const { premodified, modified } = stack;
+
+            const bbox = new THREE.Box3();
+            bbox.setFromObject(modified);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0.5));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+        });
+    });
 });
