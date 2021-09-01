@@ -338,30 +338,6 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         else return 'unmodified';
     }
 
-    highlight(highlighter: HighlightManager): void {
-        for (const [key, { premodified }] of this.name2stack.entries()) {
-            premodified.traverse(child => {
-                if (child instanceof THREE.Mesh && !(child instanceof Line2)) {
-                    child.userData.originalMaterial = child.material;
-                    child.material = invisible;
-                }
-            })
-        }
-        this.selection.highlight(highlighter);
-    }
-
-    unhighlight(highlighter: HighlightManager): void {
-        for (const [key, { premodified }] of this.name2stack.entries()) {
-            premodified.traverse(child => {
-                if (child instanceof THREE.Mesh && !(child instanceof Line2)) {
-                    child.material = child.userData.originalMaterial;
-                    delete child.userData.originalMaterial;
-                }
-            })
-        }
-        this.selection.unhighlight(highlighter);
-    }
-
     saveToMemento(): ModifierMemento {
         return new ModifierMemento(
             new Map(this.name2stack),

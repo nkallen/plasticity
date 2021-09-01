@@ -9,6 +9,7 @@ import CommandRegistry from "../components/atom/CommandRegistry";
 import TooltipManager from "../components/atom/tooltip-manager";
 import Mouse2KeyboardEventManager from "../components/viewport/Mouse2KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
+import { HighlightManager } from "../selection/HighlightManager";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { SelectionManager } from "../selection/SelectionManager";
 import { Helpers } from "../util/Helpers";
@@ -55,6 +56,7 @@ export class Editor {
     readonly executor = new CommandExecutor(this);
     readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
+    readonly highlighter = new HighlightManager(this.db, this.materials, this.selection, this.signals);
 
     disposable = new CompositeDisposable();
 

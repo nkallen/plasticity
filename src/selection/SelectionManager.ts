@@ -55,8 +55,6 @@ export interface ModifiesSelection extends HasSelection {
 
 export interface Outlinable {
     outlinable: Iterable<visual.Solid>;
-    highlight(highlighter: HighlightManager, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']): void;
-    unhighlight(highlighter: HighlightManager): void;
 }
 
 interface SignalLike {
@@ -222,29 +220,28 @@ export class Selection implements HasSelection, ModifiesSelection, Outlinable, M
         this.signals.objectRemoved.dispatch(item);
     }
 
+    // highlight(highlighter: HighlightManager, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']) {
+    //     const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = this;
+    //     for (const collection of [edgeIds, faceIds]) {
+    //         highlighter.highlightTopologyItems(collection, m => fn(m));
+    //     }
+    //     for (const collection of [curveIds, regionIds]) {
+    //         highlighter.highlightItems(collection, m => fn(m));
+    //     }
 
-    highlight(highlighter: HighlightManager, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']) {
-        const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = this;
-        for (const collection of [edgeIds, faceIds]) {
-            highlighter.highlightTopologyItems(collection, m => fn(m));
-        }
-        for (const collection of [curveIds, regionIds]) {
-            highlighter.highlightItems(collection, m => fn(m));
-        }
+    //     highlighter.highlightControlPoints(controlPointIds, m => fn(m));
+    // }
 
-        highlighter.highlightControlPoints(controlPointIds, m => fn(m));
-    }
-
-    unhighlight(highlighter: HighlightManager) {
-        const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = this;
-        for (const collection of [edgeIds, faceIds]) {
-            highlighter.unhighlightTopologyItems(collection);
-        }
-        for (const collection of [curveIds, regionIds]) {
-            highlighter.unhighlightItems(collection);
-        }
-        highlighter.unhighlightControlPoints(controlPointIds);
-    }
+    // unhighlight(highlighter: HighlightManager) {
+    //     const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = this;
+    //     for (const collection of [edgeIds, faceIds]) {
+    //         highlighter.unhighlightTopologyItems(collection);
+    //     }
+    //     for (const collection of [curveIds, regionIds]) {
+    //         highlighter.unhighlightItems(collection);
+    //     }
+    //     highlighter.unhighlightControlPoints(controlPointIds);
+    // }
 
     saveToMemento() {
         return new SelectionMemento(
@@ -293,8 +290,6 @@ export class Selection implements HasSelection, ModifiesSelection, Outlinable, M
 export interface HasSelectedAndHovered {
     readonly selected: ModifiesSelection & Outlinable;
     readonly hovered: ModifiesSelection & Outlinable;
-    highlight(highlighter: HighlightManager): void;
-    unhighlight(highlighter: HighlightManager): void;
 }
 
 export class SelectionManager implements HasSelectedAndHovered {
@@ -319,16 +314,4 @@ export class SelectionManager implements HasSelectedAndHovered {
         readonly signals: EditorSignals,
         readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])
     ) { }
-
-    highlight(highlighter: HighlightManager) {
-        const { selected, hovered, materials } = this;
-        selected.highlight(highlighter, materials.highlight);
-        hovered.highlight(highlighter, materials.hover);
-    }
-
-    unhighlight(highlighter: HighlightManager) {
-        const { selected, hovered } = this;
-        selected.unhighlight(highlighter);
-        hovered.unhighlight(highlighter);
-    }
 }

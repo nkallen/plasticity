@@ -68,12 +68,4 @@ export class SelectionProxy implements ModifiesSelection, Outlinable {
     get regionIds() { return this.selection.regionIds }
     get curveIds() { return this.selection.curveIds }
     get controlPointIds() { return this.selection.controlPointIds }
-
-    highlight(highlighter: HighlightManager, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']): void {
-        this.selection.highlight(highlighter, fn);
-    }
-
-    unhighlight(highlighter: HighlightManager): void {
-        this.selection.unhighlight(highlighter);
-    }
 }

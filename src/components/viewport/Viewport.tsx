@@ -32,6 +32,7 @@ export interface EditorLike extends selector.EditorLike {
     signals: EditorSignals,
     originator: EditorOriginator,
     windowLoaded: boolean,
+    highlighter: HighlightManager,
 }
 
 type Control = { enabled: boolean, dispose(): void };
@@ -50,8 +51,6 @@ export class Viewport {
     private readonly helpersScene = new THREE.Scene();
 
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
-
-    private readonly highlighter = new HighlightManager(this.editor.db);
 
     constructor(
         private readonly editor: EditorLike,
@@ -266,15 +265,13 @@ export class Viewport {
     }
 
     highlight() {
-        const { editor: { selection }, highlighter } = this;
-
-        selection.highlight(highlighter);
+        this.editor.highlighter.highlightSelected();
+        this.editor.highlighter.highlightHovered();
     }
 
     unhighlight() {
-        const { editor: { selection }, highlighter } = this;
-
-        selection.unhighlight(highlighter);
+        this.editor.highlighter.unhighlightSelected();
+        this.editor.highlighter.unhighlightHovered();
     }
 
     private offsetWidth: number = 100;
