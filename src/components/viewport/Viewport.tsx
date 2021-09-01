@@ -12,7 +12,6 @@ import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
 import { CameraPlaneSnap, ConstructionPlaneSnap, PlaneSnap } from "../../editor/SnapManager";
 import * as visual from "../../editor/VisualModel";
-import { ControlPoint, Region, Solid, SpaceItem, TopologyItem } from "../../editor/VisualModel";
 import { HighlightManager } from "../../selection/HighlightManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
@@ -224,7 +223,6 @@ export class Viewport {
                     scene.add(grid);
                     grid.update(camera);
                 }
-                this.highlight();
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
             }
@@ -235,7 +233,6 @@ export class Viewport {
             composer.render();
 
             if (frameNumber > lastFrameNumber) {
-                this.unhighlight();
                 scene.clear();
                 helpersScene.clear();
                 phantomsScene.clear();
@@ -256,16 +253,6 @@ export class Viewport {
         const hover = this.editor.highlighter.outlineHover;
         const toOutline = [...hover].flatMap(item => item.outline);
         this.outlinePassHover.selectedObjects = toOutline;
-    }
-
-    highlight() {
-        this.editor.highlighter.highlightSelected();
-        this.editor.highlighter.highlightHovered();
-    }
-
-    unhighlight() {
-        this.editor.highlighter.unhighlightSelected();
-        this.editor.highlighter.unhighlightHovered();
     }
 
     private offsetWidth: number = 100;

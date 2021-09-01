@@ -841,8 +841,8 @@ export class FilletCommand extends Command {
 
         await this.finished;
 
-        const selection = await fillet.commit() as visual.Solid;
-        this.editor.selection.selected.addSolid(selection);
+        const result = await fillet.commit() as visual.Solid;
+        this.editor.selection.selected.addSolid(result);
     }
 }
 
@@ -882,7 +882,8 @@ export class OffsetFaceCommand extends Command {
             await offsetFace.update();
         }).resource(this);
 
-        await offsetFace.commit();
+        const result = await offsetFace.commit() as visual.Solid;
+        this.editor.selection.selected.addSolid(result);
     }
 }
 

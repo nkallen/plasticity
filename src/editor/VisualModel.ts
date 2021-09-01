@@ -50,7 +50,7 @@ export class Solid extends Item {
     get outline() {
         const result = [];
         for (const child of this.lod.children) {
-            result.push(child.children[1]);
+        result.push(child.children[1]);
         }
         return result;
     }

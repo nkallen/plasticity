@@ -78,7 +78,6 @@ export class ModifierStack {
             await this.db.replaceItem(this.modified, symmetrized);
 
         const premodified = await view;
-        premodified.visible = false;
 
         return { premodified, modified };
     }
@@ -137,16 +136,8 @@ export class ModifierStack {
 
     static fromJSON(json: any, db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals): ModifierStack {
         return this.restoreFromMemento(ModifierStackMemento.fromJSON(json, db, materials, signals), db, materials);
-        // this.premodified.visible = false;
     }
 }
-
-const invisible = new THREE.MeshBasicMaterial({
-    transparent: true,
-    opacity: 0.0,
-    depthWrite: false,
-    depthTest: false,
-});
 
 export default class ModifierManager extends DatabaseProxy implements HasSelectedAndHovered, MementoOriginator<ModifierMemento> {
     protected readonly name2stack = new Map<c3d.SimpleName, ModifierStack>();
@@ -215,7 +206,6 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         modified2name.delete(modified.simpleName);
         name2stack.delete(version2name.get(premodified.simpleName)!);
         this.db.removeItem(premodified);
-        ModifierSelection.showModified(stack);
         return modified;
     }
 
@@ -235,6 +225,10 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         if (name === undefined) return;
         if (!name2stack.has(name)) throw new Error("invalid precondition");
         return name2stack.get(name)!;
+    }
+
+    get stacks(): Iterable<ModifierStack> {
+        return this.name2stack.values();
     }
 
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
@@ -356,6 +350,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 
     async deserialize(data: Buffer): Promise<void> {
         this.restoreFromMemento(ModifierMemento.deserialize(data, this.db, this.materials, this.signals));
+        this.signals.modifiersLoaded.dispatch();
     }
 
     validate() {
@@ -384,16 +379,8 @@ class ModifierSelection extends SelectionProxy {
             case 'modified':
                 super.addSolid(solid);
                 const stack = modifiers.getByModified(solid)!;
-                const { modified, premodified } = stack;
-                premodified.visible = true;
+                const { premodified } = stack;
                 selection.addSolid(premodified);
-                for (const edge of modified.allEdges) {
-                    edge.visible = false;
-                }
-                modified.traverse(child => {
-                    child.userData.oldLayerMask = child.layers.mask;
-                    child.layers.set(visual.Layers.Unselectable);
-                });
                 return;
             case 'premodified': {
                 const stack = modifiers.getByPremodified(solid)!;
@@ -420,7 +407,6 @@ class ModifierSelection extends SelectionProxy {
                 case 'premodified': break;
                 case 'modified':
                     const stack = modifiers.getByModified(id)!;
-                    this.hidePremodifiedAndShowModified(stack);
             }
         }
         super.removeAll();
@@ -428,26 +414,6 @@ class ModifierSelection extends SelectionProxy {
 
     private stateOf(solid: visual.Solid | c3d.SimpleName): 'unmodified' | 'premodified' | 'modified' {
         return this.modifiers.stateOf(solid);
-    }
-
-    private hidePremodifiedAndShowModified(stack: ModifierStack) {
-        const { premodified } = stack;
-
-        premodified.visible = false;
-
-        ModifierSelection.showModified(stack);
-    }
-
-    static showModified(stack: ModifierStack) {
-        const { modified } = stack;
-
-        for (const edge of modified.allEdges) {
-            edge.traverse(child => edge.visible = true);
-        }
-        modified.traverse(child => {
-            child.layers.mask = child.userData.oldLayerMask;
-            child.userData.oldLayerMask = undefined;
-        });
     }
 
     get solids() {

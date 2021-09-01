@@ -1,12 +1,11 @@
 import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
-import { Agent, DatabaseLike, GeometryDatabase } from '../editor/GeometryDatabase';
+import { Agent, DatabaseLike } from '../editor/GeometryDatabase';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
 import { Redisposable, RefCounter } from '../util/Util';
-import { HighlightManager } from './HighlightManager';
 import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './Selection';
 import { SelectionMode } from './SelectionInteraction';
 
@@ -184,7 +183,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             for (const id of collection) {
                 collection.delete(id);
                 const { views } = this.db.lookupTopologyItemById(id);
-                this.signals.objectRemoved.dispatch(views.entries().next().value);
+                this.signals.objectRemoved.dispatch(views.values().next().value);
             }
         }
         for (const collection of [this.solidIds, this.curveIds, this.regionIds]) {
@@ -214,30 +213,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         } else throw new Error("invalid precondition");
         this.signals.objectRemoved.dispatch(item);
     }
-
-    // highlight(highlighter: HighlightManager, fn: MaterialDatabase['highlight'] | MaterialDatabase['hover']) {
-    //     const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = this;
-    //     for (const collection of [edgeIds, faceIds]) {
-    //         highlighter.highlightTopologyItems(collection, m => fn(m));
-    //     }
-    //     for (const collection of [curveIds, regionIds]) {
-    //         highlighter.highlightItems(collection, m => fn(m));
-    //     }
-
-    //     highlighter.highlightControlPoints(controlPointIds, m => fn(m));
-    // }
-
-    // unhighlight(highlighter: HighlightManager) {
-    //     const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = this;
-    //     for (const collection of [edgeIds, faceIds]) {
-    //         highlighter.unhighlightTopologyItems(collection);
-    //     }
-    //     for (const collection of [curveIds, regionIds]) {
-    //         highlighter.unhighlightItems(collection);
-    //     }
-    //     highlighter.unhighlightControlPoints(controlPointIds);
-    // }
-
+    
     saveToMemento() {
         return new SelectionMemento(
             new Set(this.solidIds),

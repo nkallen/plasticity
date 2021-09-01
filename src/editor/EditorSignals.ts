@@ -20,6 +20,7 @@ export class EditorSignals {
     objectUnhovered: signals.Signal<visual.Selectable> = new signals.Signal();
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }> = new signals.Signal();
     sceneGraphChanged: signals.Signal = new signals.Signal();
+    modifiersLoaded: signals.Signal = new signals.Signal();
     snapped: signals.Signal<{ position: THREE.Vector3, names: string[] } | undefined> = new signals.Signal();
     factoryUpdated: signals.Signal = new signals.Signal();
     factoryUpdateFailed: signals.Signal<any> = new signals.Signal();

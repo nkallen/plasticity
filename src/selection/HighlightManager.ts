@@ -8,9 +8,7 @@ import ModifierManager from "../editor/ModifierManager";
 import * as visual from '../editor/VisualModel';
 import matcap from '../img/matcap/ceramic_dark.exr';
 import { ItemSelection } from "./Selection";
-import { HasSelectedAndHovered, HasSelection } from "./SelectionManager";
-
-type Materials = { line: LineMaterial, face: THREE.MeshMatcapMaterial, region: THREE.MeshBasicMaterial, controlPoint: THREE.Color };
+import { HasSelectedAndHovered } from "./SelectionManager";
 
 export class HighlightManager {
     constructor(
@@ -20,137 +18,145 @@ export class HighlightManager {
         protected readonly signals: EditorSignals,
     ) {
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
+        signals.commandEnded.add(() => this.highlight());
+        signals.modifiersLoaded.add(() => this.highlight());
+        signals.objectHovered.add(selectable => this.hover(selectable));
+        signals.objectUnhovered.add(selectable => this.unhover(selectable));
     }
 
-    highlightSelected() {
-        this.highlight(this.selection.selected,
-            { line: line_highlighted, face: face_highlighted, region: region_highlighted, controlPoint: controlPoint_highlighted })
+    hover(item: visual.Selectable) {
+        performance.mark('begin-hover');
+        const { hovered } = this.selection;
+        if (item instanceof visual.SpaceInstance) {
+            for (const level of item.levels) {
+                const curve = level as visual.Curve3D;
+                if (hovered.curveIds.has(item.simpleName)) {
+                    for (const segment of curve.segments) {
+                        segment.line.material = line_hovered;
+                    }
+                }
+            }
+        } else if (item instanceof visual.Face) {
+            if (hovered.faceIds.has(item.simpleName)) {
+                if (item.child.userData.oldMaterial === undefined)
+                    item.child.userData.oldMaterial = item.child.material;
+                item.child.material = face_hovered;
+            }
+        } else if (item instanceof visual.CurveEdge) {
+            if (hovered.edgeIds.has(item.simpleName)) {
+                item.child.material = line_hovered;
+            }
+        } else if (item instanceof visual.PlaneInstance) {
+            for (const level of item.levels) {
+                const region = level as visual.Region;
+                if (hovered.regionIds.has(region.simpleName)) {
+                    region.child.material = region_hovered;
+                }
+            }
+        } else if (item instanceof visual.ControlPoint) {
+        }
+        performance.measure('hover', 'begin-hover');
     }
 
-    highlightHovered() {
-        this.highlight(this.selection.hovered,
-            { line: line_hovered, face: face_hovered, region: region_hovered, controlPoint: controlPoint_hovered })
+    unhover(item: visual.Selectable) {
+        performance.mark('begin-unhover');
+        if (item instanceof visual.SpaceInstance) {
+            this.highlightCurve(item);
+        } else if (item instanceof visual.Face) {
+            const { views } = this.db.lookupTopologyItemById(item.simpleName);
+            for (const topo of views) {
+                const face = topo as visual.Face;
+                if (face.child.userData.oldMaterial !== undefined) {
+                    face.child.material = face.child.userData.oldMaterial;
+                    delete face.child.userData.oldMaterial;
+                }
+            }
+        } else if (item instanceof visual.CurveEdge) {
+            const { views } = this.db.lookupTopologyItemById(item.simpleName);
+            for (const edge of views) this.highlightEdge(edge as visual.CurveEdge);
+        } else if (item instanceof visual.PlaneInstance) {
+            this.highlightRegion(item);
+        } else if (item instanceof visual.ControlPoint) {
+        }
+        performance.measure('unhover', 'begin-unhover');
     }
 
-    unhighlightSelected() {
-        this.unhighlight(this.selection.selected);
-    }
-
-    unhighlightHovered() {
-        this.unhighlight(this.selection.hovered);
-    }
-
-    private highlight(selection: HasSelection, materials: Materials) {
-        const { db } = this;
-        const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = selection;
-
-        for (const id of edgeIds) {
-            const { views } = db.lookupTopologyItemById(id);
-            for (const view of views) {
-                const edge = view as visual.CurveEdge;
-                edge.child.userData.oldMaterial = edge.child.material;
-                edge.child.material = materials.line;
+    highlight() {
+        performance.mark('begin-highlight');
+        for (const item of this.db.visibleObjects) {
+            if (item instanceof visual.Solid) {
+                this.highlightSolid(item);
+            } else if (item instanceof visual.SpaceInstance) {
+                this.highlightCurve(item);
+            } else if (item instanceof visual.PlaneInstance) {
+                this.highlightRegion(item);
             }
         }
-        for (const id of faceIds) {
-            const { views } = db.lookupTopologyItemById(id);
-            for (const view of views) {
-                const face = view as visual.Face;
-                face.child.userData.oldMaterial = face.child.material;
-                face.child.material = materials.face;
+        performance.measure('highlight', 'begin-highlight');
+    }
+
+    private readonly lines = [line_unhighlighted, line_highlighted, line_hovered];
+
+    private highlightSolid(item: visual.Solid) {
+        for (const face of item.allFaces) {
+            this.highlightFace(face);
+        }
+        for (const edge of item.allEdges) {
+            this.highlightEdge(edge);
+        }
+    }
+
+    private highlightRegion(item: visual.PlaneInstance<visual.Region>) {
+        const { selected, hovered } = this.selection;
+        for (const level of item.levels) {
+            const region = level as visual.Region;
+            if (selected.regionIds.has(region.simpleName)) {
+                region.child.material = region_highlighted;
+            } else {
+                region.child.material = region_unhighlighted;
+            }
+            if (hovered.regionIds.has(region.simpleName)) {
+                region.child.material = region_hovered;
             }
         }
-        for (const id of curveIds) {
-            const { view } = db.lookupItemById(id);
-            const instance = view as visual.SpaceInstance<visual.Curve3D>;
-            for (const level of instance.levels) {
-                for (const segment of level.segments) {
-                    segment.line.userData.oldMaterial = segment.line.material;
-                    segment.line.material = materials.line;
+    }
+
+    private highlightCurve(item: visual.SpaceInstance<visual.Curve3D>) {
+        const { selected, hovered } = this.selection;
+        for (const level of item.levels) {
+            const curve = level as visual.Curve3D;
+
+            if (selected.curveIds.has(item.simpleName)) {
+                for (const segment of curve.segments) {
+                    segment.line.material = line_highlighted;
+                }
+            } else {
+                for (const segment of curve.segments) {
+                    segment.line.material = line_unhighlighted;
                 }
             }
         }
-        for (const id of regionIds) {
-            const { view } = db.lookupItemById(id);
-            const instance = view as visual.PlaneInstance<visual.Region>;
-            for (const region of instance.levels) {
-                region.child.userData.oldMaterial = region.child.material;
-                region.child.material = materials.region;
-            }
-        }
-        for (const id of controlPointIds) {
-            const { views } = this.db.lookupControlPointById(id);
-            for (const v of views) {
-                const newColor = controlPoint_highlighted;
-                const points = v.geometry;
-                if (points === undefined) continue;
-                const geometry = points.geometry;
-                const color = geometry.attributes.color;
-                const array = color.array as unknown as Float32Array;
-                array[v.index * 3 + 0] = newColor.r;
-                array[v.index * 3 + 1] = newColor.g;
-                array[v.index * 3 + 2] = newColor.b;
-                geometry.attributes.color.needsUpdate = true;
-            }
+    }
+
+    private highlightEdge(edge: visual.CurveEdge) {
+        const { selected, hovered } = this.selection;
+
+        if (selected.edgeIds.has(edge.simpleName)) {
+            edge.child.material = line_highlighted;
+        } else {
+            edge.child.material = line_unhighlighted;
         }
     }
 
-    private unhighlight(selection: HasSelection) {
-        const { db } = this;
-        const { edgeIds, faceIds, curveIds, regionIds, controlPointIds } = selection;
+    private highlightFace(face: visual.Face) {
+        const { selected, hovered } = this.selection;
 
-        for (const id of edgeIds) {
-            const { views } = db.lookupTopologyItemById(id);
-            for (const view of views) {
-                const edge = view as visual.CurveEdge;
-                edge.child.material = edge.child.userData.oldMaterial;
-                delete edge.child.userData.oldMaterial;
-            }
-        }
-        for (const id of faceIds) {
-            const { views } = db.lookupTopologyItemById(id);
-            for (const view of views) {
-                const face = view as visual.Face;
-                face.child.material = face.child.userData.oldMaterial;
-                delete face.child.userData.oldMaterial;
-            }
-        }
-        for (const id of curveIds) {
-            const { view } = db.lookupItemById(id);
-            const instance = view as visual.SpaceInstance<visual.Curve3D>;
-            for (const level of instance.levels) {
-                for (const segment of level.segments) {
-                    segment.line.material = segment.line.userData.oldMaterial;
-                    delete segment.line.userData.oldMaterial;
-                }
-            }
-        }
-        for (const id of regionIds) {
-            const { view } = db.lookupItemById(id);
-            const instance = view as visual.PlaneInstance<visual.Region>;
-            for (const region of instance.levels) {
-                region.child.material = region.child.userData.oldMaterial;
-                delete region.child.userData.oldMaterial;
-            }
-        }
-        for (const id of controlPointIds) {
-            const { views } = this.db.lookupControlPointById(id);
-            for (const v of views) {
-                const newColor = new THREE.Color(0xffffff);
-                const points = v.geometry;
-                if (points === undefined) continue;
-                const geometry = points.geometry;
-                const color = geometry.attributes.color;
-                const array = color.array as unknown as Float32Array;
-                array[v.index * 3 + 0] = newColor.r;
-                array[v.index * 3 + 1] = newColor.g;
-                array[v.index * 3 + 2] = newColor.b;
-                geometry.attributes.color.needsUpdate = true;
-            }
+        if (selected.faceIds.has(face.simpleName)) {
+            face.child.material = face_highlighted;
+        } else {
+            face.child.material = face_unhighlighted;
         }
     }
-
-    private readonly lines = [line_highlighted, line_hovered];
 
     setResolution(size: THREE.Vector2) {
         for (const material of this.lines) {
@@ -173,29 +179,56 @@ export class ModifierHighlightManager extends HighlightManager {
     ) {
         super(db, materials, selection, signals);
     }
-    // highlight(highlighter: HighlightManager): void {
-    //     for (const [key, { premodified }] of this.name2stack.entries()) {
-    //         premodified.traverse(child => {
-    //             if (child instanceof THREE.Mesh && !(child instanceof Line2)) {
-    //                 child.userData.originalMaterial = child.material;
-    //                 child.material = invisible;
-    //             }
-    //         })
-    //     }
-    //     this.selection.highlight(highlighter);
-    // }
 
-    // unhighlight(highlighter: HighlightManager): void {
-    //     for (const [key, { premodified }] of this.name2stack.entries()) {
-    //         premodified.traverse(child => {
-    //             if (child instanceof THREE.Mesh && !(child instanceof Line2)) {
-    //                 child.material = child.userData.originalMaterial;
-    //                 delete child.userData.originalMaterial;
-    //             }
-    //         })
-    //     }
-    //     this.selection.unhighlight(highlighter);
-    // }
+    highlight() {
+        super.highlight();
+        performance.mark('begin-modifier-highlight');
+        const { modifiers, modifiers: { selected } } = this;
+        const { premodifiedIds, modifiedIds } = selected.groupIds;
+
+        for (const { premodified, modified } of modifiers.stacks) {
+            // All premodifieds have transparent faces
+            for (const face of premodified.allFaces) {
+                face.child.material = invisible;
+            }
+
+            if (premodifiedIds.has(premodified.simpleName) || selected.hasSelectedChildren(premodified)) {
+                // All selected premodifieds have visible edges
+                for (const edge of premodified.allEdges) {
+                    edge.visible = true;
+                }
+
+                // All selected premodifieds are selectable
+                premodified.traverse(unmask);
+            } else {
+                // All unselected premodifieds have invisible edges
+                for (const edge of premodified.allEdges) {
+                    edge.visible = false;
+                }
+                // All unselected premodifieds are unselectable
+                premodified.traverse(mask);
+            }
+
+            if (modifiedIds.has(modified.simpleName)) {
+                // All selected modifieds have invisible edges
+                for (const edge of modified.allEdges) {
+                    edge.visible = false;
+                }
+
+                // All selected modifieds have unselectable topo items
+                modified.traverse(mask);
+            } else {
+                // All unselected modifieds have visible edges
+                for (const edge of modified.allEdges) {
+                    edge.visible = true;
+                }
+
+                // All unselected modifieds have selectable topo items
+                modified.traverse(unmask);
+            }
+        }
+        performance.measure('modifier-highlight', 'begin-modifier-highlight');
+    }
 
     get outlineSelection() {
         const { db, modifiers } = this;
@@ -205,6 +238,22 @@ export class ModifierHighlightManager extends HighlightManager {
     }
 }
 
+function mask(child: THREE.Object3D) {
+    if (child.userData.oldLayerMask == undefined) {
+        child.userData.oldLayerMask = child.layers.mask;
+        child.layers.set(visual.Layers.Unselectable);
+    }
+}
+
+function unmask(child: THREE.Object3D) {
+    if (child.userData.oldLayerMask !== undefined) {
+        child.layers.mask = child.userData.oldLayerMask;
+        delete child.userData.oldLayerMask;
+    }
+}
+
+const line_unhighlighted = new LineMaterial({ color: 0x000000, linewidth: 1.4 });
+
 const line_highlighted = new LineMaterial({ color: 0xffff00, linewidth: 2 });
 line_highlighted.depthFunc = THREE.AlwaysDepth;
 
@@ -213,6 +262,13 @@ line_hovered.depthFunc = THREE.AlwaysDepth;
 
 // @ts-expect-error
 const matcapTexture = new EXRLoader().load(matcap);
+
+const face_unhighlighted = new THREE.MeshMatcapMaterial();
+face_unhighlighted.fog = false;
+face_unhighlighted.matcap = matcapTexture;
+face_unhighlighted.polygonOffset = true;
+face_unhighlighted.polygonOffsetFactor = 1;
+face_unhighlighted.polygonOffsetUnits = 1;
 
 const face_highlighted = new THREE.MeshMatcapMaterial();
 face_highlighted.color.setHex(0xffff00).convertGammaToLinear();
@@ -244,5 +300,19 @@ region_highlighted.opacity = 0.9;
 region_highlighted.transparent = true;
 region_highlighted.side = THREE.DoubleSide;
 
+const region_unhighlighted = new THREE.MeshBasicMaterial();
+region_unhighlighted.fog = false;
+region_unhighlighted.color.setHex(0x8dd9f2).convertGammaToLinear();
+region_unhighlighted.opacity = 0.1;
+region_unhighlighted.transparent = true;
+region_unhighlighted.side = THREE.DoubleSide;
+
 const controlPoint_hovered = new THREE.Color(0xffff88);
 const controlPoint_highlighted = new THREE.Color(0xffff00);
+
+const invisible = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0.0,
+    depthWrite: false,
+    depthTest: false,
+});
