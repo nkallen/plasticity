@@ -17,4 +17,7 @@ import c3d from '../build/Release/c3d.node';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
-global.performance = require('perf_hooks').performance;
+global.performance = {
+    now: () => 0
+}
+

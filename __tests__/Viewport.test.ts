@@ -13,12 +13,14 @@ import { EditorOriginator } from "../src/editor/History";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
 import { PlaneSnap } from "../src/editor/SnapManager";
 import * as visual from '../src/editor/VisualModel';
+import { HighlightManager } from "../src/selection/HighlightManager";
 import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { Helpers } from "../src/util/Helpers";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import { MakeViewport } from "../__mocks__/FakeViewport";
 import './matchers';
+jest.mock('three/examples/jsm/loaders/EXRLoader.js');
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -29,6 +31,10 @@ let sphere: visual.Solid;
 let selection: SelectionManager;
 let interaction: SelectionInteractionManager;
 let originator: EditorOriginator;
+let highlighter: HighlightManager;
+
+performance.mark = jest.fn();
+performance.measure = jest.fn();
 
 beforeEach(async () => {
     materials = new FakeMaterials();
@@ -36,6 +42,7 @@ beforeEach(async () => {
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
     interaction = new SelectionInteractionManager(selection, materials, signals);
+    highlighter = new HighlightManager(db, materials, selection, signals);
     editor = {
         db: db,
         viewports: [],
@@ -47,13 +54,14 @@ beforeEach(async () => {
         selectionInteraction: interaction,
         registry: { add: () => new Disposable() },
         enqueue: (command: Command, cancelOrFinish?: CancelOrFinish) => Promise.resolve(),
+        highlighter: highlighter
     } as unknown as EditorLike;
     const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;
     sphere = await makeSphere.commit() as visual.Solid;
     viewport = MakeViewport(editor);
-    viewport.constructionPlane =  new PlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3());
+    viewport.constructionPlane = new PlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3());
     viewport.start();
 });
 

@@ -7,7 +7,6 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
-import { HighlightManager } from '../../src/selection/HighlightManager';
 import { SelectionInteractionManager } from '../../src/selection/SelectionInteraction';
 import { SelectionManager } from '../../src/selection/SelectionManager';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
@@ -180,7 +179,7 @@ describe('onClick', () => {
         interactionManager.onClick(intersections);
         expect(selectionManager.selected.curves.size).toBe(1);
 
-        const memento = selectionManager.selected.saveToMemento(new Map());
+        const memento = selectionManager.selected.saveToMemento();
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selected.curves.size).toBe(0);
@@ -610,36 +609,6 @@ describe('onPointerMove', () => {
 })
 
 describe(SelectionManager, () => {
-    let highlighter: HighlightManager;
-
-    beforeEach(() => {
-        highlighter = new HighlightManager(db);
-    });
-
-    test("hovering over an edge of a selected solid changes material", () => {
-        const intersections = [];
-        const edge = solid.edges.get(0);
-        intersections.push({
-            distance: 1,
-            point: new THREE.Vector3(),
-            object: edge
-        });
-
-        expect(edge.child.material).toBe(materials.line());
-        interactionManager.onClick(intersections);
-        expect(selectionManager.selected.solids.size).toBe(1);
-
-        interactionManager.onHover(intersections);
-        selectionManager.hovered.highlight(highlighter, materials.hover);
-        expect(edge.child.material).toBe(materials.hover(db.lookupTopologyItem(edge)));
-        selectionManager.hovered.unhighlight(highlighter);
-
-        interactionManager.onHover([]);
-        selectionManager.hovered.highlight(highlighter, materials.hover);
-        expect(edge.child.material).toBe(materials.line());
-        selectionManager.hovered.unhighlight(highlighter);
-    });
-
     test('hovering on a curve highlights the curve', () => {
         const intersections = [];
         intersections.push({
@@ -653,13 +622,8 @@ describe(SelectionManager, () => {
         interactionManager.onHover(intersections);
         expect(selectionManager.hovered.curves.size).toBe(1);
 
-        selectionManager.hovered.highlight(highlighter, materials.hover);
-        expect(circle.underlying.segments.get(0).line.material).toBe(materials.hover(db.lookup(circle)));
-        selectionManager.hovered.unhighlight(highlighter);
-
         interactionManager.onHover([]);
         expect(selectionManager.hovered.curves.size).toBe(0);
-        expect(circle.underlying.segments.get(0).line.material).toBe(materials.line());
     });
 
     test('if no intersections match, it clears hover', () => {
@@ -674,10 +638,6 @@ describe(SelectionManager, () => {
 
         interactionManager.onHover(intersectionsCircle);
         expect(selectionManager.hovered.curves.size).toBe(1);
-
-        selectionManager.hovered.highlight(highlighter, materials.hover);
-        expect(circle.underlying.segments.get(0).line.material).toBe(materials.hover(db.lookup(circle)));
-        selectionManager.hovered.unhighlight(highlighter);
 
         const intersectionsControlPoint = [{
             distance: 1,
@@ -699,40 +659,17 @@ describe(SelectionManager, () => {
         });
 
         expect(selectionManager.selected.regions.size).toBe(0);
-        selectionManager.selected.highlight(highlighter, materials.highlight);
-        selectionManager.hovered.highlight(highlighter, materials.hover);
-        expect(region.underlying.child.material).toBe(materials.region());
-        selectionManager.selected.unhighlight(highlighter);
-        selectionManager.hovered.unhighlight(highlighter);
-        expect(region.underlying.child.material).toBe(materials.region());
 
         interactionManager.onHover(intersections);
         expect(selectionManager.selected.regions.size).toBe(0);
         expect(selectionManager.hovered.regions.size).toBe(1);
-        selectionManager.selected.highlight(highlighter, materials.highlight);
-        selectionManager.hovered.highlight(highlighter, materials.hover);
-        expect(region.underlying.child.material).toBe(materials.hover(db.lookup(region)));
-        selectionManager.selected.unhighlight(highlighter);
-        selectionManager.hovered.unhighlight(highlighter);
-        expect(region.underlying.child.material).toBe(materials.region());
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selected.regions.size).toBe(1);
         expect(selectionManager.hovered.regions.size).toBe(0);
-        selectionManager.selected.highlight(highlighter, materials.highlight);
-        expect(region.underlying.child.material).toBe(materials.highlight(db.lookup(region)));
-        selectionManager.selected.unhighlight(highlighter);
-        selectionManager.hovered.unhighlight(highlighter);
-        expect(region.underlying.child.material).toBe(materials.region());
 
         interactionManager.onHover(intersections);
         expect(selectionManager.selected.regions.size).toBe(1);
         expect(selectionManager.hovered.regions.size).toBe(1);
-        selectionManager.selected.highlight(highlighter, materials.highlight);
-        selectionManager.hovered.highlight(highlighter, materials.hover);
-        expect(region.underlying.child.material).toBe(materials.hover(db.lookup(region)));
-        selectionManager.selected.unhighlight(highlighter);
-        selectionManager.hovered.unhighlight(highlighter);
-        expect(region.underlying.child.material).toBe(materials.region());
     })
 });
