@@ -90,15 +90,19 @@ export class Viewport {
             const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
             outlinePassSelection.edgeStrength = 3;
             outlinePassSelection.edgeGlow = 0;
-            outlinePassSelection.edgeThickness = 1.0;
+            outlinePassSelection.edgeThickness = 1;
             outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
+            outlinePassSelection.hiddenEdgeColor.setHex(0xfffff00);
+            outlinePassSelection.downSampleRatio = 1;
             this.outlinePassSelection = outlinePassSelection;
 
             const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
             outlinePassHover.edgeStrength = 3;
             outlinePassHover.edgeGlow = 0;
-            outlinePassHover.edgeThickness = 1.0;
+            outlinePassHover.edgeThickness = 1;
             outlinePassHover.visibleEdgeColor.setHex(0xfffffff);
+            outlinePassHover.hiddenEdgeColor.setHex(0xfffffff);
+            outlinePassHover.downSampleRatio = 1;
             this.outlinePassHover = outlinePassHover;
 
             const navigatorPass = new ViewportNavigatorPass(this.navigator, this.camera);
