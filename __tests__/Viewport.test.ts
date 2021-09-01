@@ -33,9 +33,6 @@ let interaction: SelectionInteractionManager;
 let originator: EditorOriginator;
 let highlighter: HighlightManager;
 
-performance.mark = jest.fn();
-performance.measure = jest.fn();
-
 beforeEach(async () => {
     materials = new FakeMaterials();
     signals = new EditorSignals();

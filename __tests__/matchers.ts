@@ -63,3 +63,6 @@ expect.extend({
 })
 
 export default {}
+
+performance.mark = jest.fn();
+performance.measure = jest.fn();

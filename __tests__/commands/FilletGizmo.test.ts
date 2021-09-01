@@ -17,6 +17,7 @@ import * as visual from '../../src/editor/VisualModel';
 import { Cancel, CancellablePromise } from "../../src/util/Cancellable";
 import { Helpers } from "../../src/util/Helpers";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import '../matchers';
 
 let db: GeometryDatabase;
 let fillet: MaxFilletFactory;

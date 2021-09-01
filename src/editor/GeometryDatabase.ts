@@ -327,7 +327,9 @@ export class GeometryDatabase implements DatabaseLike {
 
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
+        performance.mark('begin-db-object2mesh');
         const item = await obj.CreateMesh_async(stepData, note);
+        performance.measure('db-object2mesh', 'begin-db-object2mesh');
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
 
         switch (obj.IsA()) {

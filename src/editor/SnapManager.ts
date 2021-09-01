@@ -78,6 +78,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     nearby(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
         if (!this.shouldSnap) return [];
+        performance.mark('begin-nearby');
 
         const additionalNearbys = [];
         for (const a of additional) if (a.nearby !== undefined) additionalNearbys.push(a.nearby);
@@ -92,10 +93,12 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const indicator = this.hoverIndicatorFor(intersection);
             result.push(indicator);
         }
+        performance.measure('nearby', 'begin-nearby');
         return result;
     }
 
     snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictionSnaps: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
+        performance.mark('begin-snap');
         let snappers = restrictionSnaps.map(a => a.snapper);
         if (this.shouldSnap) {
             snappers = snappers.concat([...this.snappers, ...additional.map(a => a.snapper)]);
@@ -112,6 +115,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const indicator = this.snapIndicatorFor(intersection);
             result.push({ snap, position, indicator });
         }
+        performance.measure('snap', 'begin-snap');
         return result;
     }
 
@@ -123,6 +127,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     private update() {
+        performance.mark('begin-snap-update');
         const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.centerPoints, ...this.endPoints, ...this.faces, ...this.edges, ...this.curves];
         for (const a of all) {
             a.snapper.userData.snapper = a;
@@ -130,9 +135,11 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         }
         this.nearbys = all.map((s) => s.nearby).filter(x => !!x) as THREE.Object3D[];
         this.snappers = all.map((s) => s.snapper);
+        performance.measure('snap-update', 'begin-snap-update');
     }
 
     private add(item: visual.Item) {
+        performance.mark('begin-snap-add');
         const fns: Redisposable[] = [];
         if (item instanceof visual.Solid) {
             for (const edge of item.edges) {
@@ -151,6 +158,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.garbageDisposal.incr(item.simpleName, new Redisposable(() => {
             for (const fn of fns) fn.dispose()
         }));
+        performance.measure('snap-add', 'begin-snap-add');
         this.update();
     }
 

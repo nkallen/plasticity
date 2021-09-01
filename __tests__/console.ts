@@ -18,6 +18,8 @@ import c3d from '../build/Release/c3d.node';
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
 global.performance = {
-    now: () => 0
+    now: () => 0,
+    mark: jest.fn(),
+    measure: jest.fn(),
 }
 

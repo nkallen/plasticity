@@ -21,7 +21,6 @@ let selection: SelectionManager;
 
 let solid: visual.Solid;
 let circle: visual.SpaceInstance<visual.Curve3D>;
-let region: visual.PlaneInstance<visual.Region>;
 let highlighter: HighlightManager;
 
 beforeEach(async () => {
