@@ -451,32 +451,19 @@ class ModifierSelection extends SelectionProxy {
     }
 
     get solids() {
-        return this.unmodifiedSolids;
+        const { unmodifiedIds, premodifiedIds } = this.groupIds;
+        return new ItemSelection<visual.Solid>(this.db, new Set([...unmodifiedIds, ...premodifiedIds]));
     }
 
-    get unmodifiedSolids() {
-        return new ItemSelection<visual.Solid>(this.db, this.unmodifiedSolidIds);
-    }
-
-    get unmodifiedSolidIds(): Set<c3d.SimpleName> {
-        const result = new Set<c3d.SimpleName>();
+    get groupIds(): { unmodifiedIds: Set<c3d.SimpleName>, premodifiedIds: Set<c3d.SimpleName>, modifiedIds: Set<c3d.SimpleName> } {
+        const unmodifiedIds = new Set<c3d.SimpleName>();
+        const premodifiedIds = new Set<c3d.SimpleName>();
+        const modifiedIds = new Set<c3d.SimpleName>();
         for (const id of this.solidIds) {
-            if (this.stateOf(id) === 'unmodified' || this.stateOf(id) === 'premodified')
-                result.add(id);
+            if (this.stateOf(id) === 'unmodified') unmodifiedIds.add(id);
+            else if (this.stateOf(id) === 'premodified') premodifiedIds.add(id);
+            else if (this.stateOf(id) === 'modified') modifiedIds.add(id);
         }
-        return result;
-    }
-
-    get modifiedSolids() {
-        return new ItemSelection<visual.Solid>(this.db, this.modifiedSolidIds);
-    }
-
-    get modifiedSolidIds(): Set<c3d.SimpleName> {
-        const result = new Set<c3d.SimpleName>();
-        for (const id of this.solidIds) {
-            if (this.stateOf(id) === 'unmodified' || this.stateOf(id) === 'modified')
-                result.add(id);
-        }
-        return result;
+        return { unmodifiedIds, premodifiedIds, modifiedIds };
     }
 }

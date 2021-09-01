@@ -4,18 +4,20 @@ import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import MaterialDatabase from "../editor/MaterialDatabase";
+import ModifierManager from "../editor/ModifierManager";
 import * as visual from '../editor/VisualModel';
 import matcap from '../img/matcap/ceramic_dark.exr';
+import { ItemSelection } from "./Selection";
 import { HasSelectedAndHovered, HasSelection } from "./SelectionManager";
 
 type Materials = { line: LineMaterial, face: THREE.MeshMatcapMaterial, region: THREE.MeshBasicMaterial, controlPoint: THREE.Color };
 
 export class HighlightManager {
     constructor(
-        private readonly db: DatabaseLike,
-        private readonly materials: MaterialDatabase,
-        private readonly selection: HasSelectedAndHovered,
-        private readonly signals: EditorSignals,
+        protected readonly db: DatabaseLike,
+        protected readonly materials: MaterialDatabase,
+        protected readonly selection: HasSelectedAndHovered,
+        protected readonly signals: EditorSignals,
     ) {
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
     }
@@ -161,6 +163,16 @@ export class HighlightManager {
 
 }
 
+export class ModifierHighlightManager extends HighlightManager {
+    constructor(
+        private readonly modifiers: ModifierManager,
+        db: DatabaseLike,
+        materials: MaterialDatabase,
+        selection: HasSelectedAndHovered,
+        signals: EditorSignals,
+    ) {
+        super(db, materials, selection, signals);
+    }
     // highlight(highlighter: HighlightManager): void {
     //     for (const [key, { premodified }] of this.name2stack.entries()) {
     //         premodified.traverse(child => {
@@ -185,19 +197,13 @@ export class HighlightManager {
     //     this.selection.unhighlight(highlighter);
     // }
 
-    // get outlinable() {
-    //     const { db, modifiers } = this;
-    //     const outlineIds = new Set(this.solidIds);
-    //     for (const id of outlineIds) {
-    //         const state = this.stateOf(id);
-    //         if (state === 'premodified') {
-    //             const stack = modifiers.getByPremodified(id)!;
-    //             outlineIds.delete(id);
-    //             outlineIds.add(stack.modified.simpleName);
-    //         }
-    //     }
-    //     return new ItemSelection<visual.Solid>(db, outlineIds)
-    // }
+    get outlineSelection() {
+        const { db, modifiers } = this;
+        const { unmodifiedIds, modifiedIds } = modifiers.selected.groupIds;
+
+        return new ItemSelection<visual.Solid>(db, new Set([...unmodifiedIds, ...modifiedIds]));
+    }
+}
 
 const line_highlighted = new LineMaterial({ color: 0xffff00, linewidth: 2 });
 line_highlighted.depthFunc = THREE.AlwaysDepth;

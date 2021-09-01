@@ -16,27 +16,9 @@ export default interface MaterialDatabase {
     region(): THREE.Material;
     controlPoint(): THREE.PointsMaterial;
 
-    highlight(o: c3d.Edge): LineMaterial;
-    highlight(o: c3d.Curve3D): LineMaterial;
-    highlight(o: c3d.SpaceInstance): LineMaterial;
-    highlight(o: c3d.Face): THREE.Material;
-    highlight(o: c3d.PlaneInstance): THREE.Material;
-    highlight(o: c3d.TopologyItem): THREE.Material;
-    highlight(o: number): THREE.Color;
-    highlight(o: c3d.Item): THREE.Material;
-
     lookup(o: c3d.Edge): LineMaterial;
     lookup(o: c3d.Face): THREE.Material;
     lookup(o: c3d.Edge | c3d.Face): THREE.Material;
-
-    hover(o: c3d.Edge): LineMaterial;
-    hover(o: c3d.Curve3D): LineMaterial;
-    hover(o: c3d.SpaceInstance): LineMaterial;
-    hover(o: c3d.Face): THREE.Material;
-    hover(o: c3d.PlaneInstance): THREE.Material;
-    hover(o: c3d.TopologyItem): THREE.Material;
-    hover(o: number): THREE.Color;
-    hover(o: c3d.Item): THREE.Material;
 }
 
 const previewLine = new LineMaterial({ color: 0x000088, linewidth: 0.7 });
@@ -48,12 +30,6 @@ line_dashed.depthFunc = THREE.AlwaysDepth;
 line_dashed.defines.USE_DASH = "";
 line_dashed.dashSize = 1;
 line_dashed.gapSize = 1;
-
-const line_highlighted = new LineMaterial({ color: 0xffff00, linewidth: 2 });
-line_highlighted.depthFunc = THREE.AlwaysDepth;
-
-const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2 });
-line_hovered.depthFunc = THREE.AlwaysDepth;
 
 const point = new THREE.PointsMaterial({ color: 0x888888 });
 
@@ -72,22 +48,6 @@ mesh.polygonOffset = true;
 mesh.polygonOffsetFactor = 1;
 mesh.polygonOffsetUnits = 1;
 
-const mesh_highlighted = new THREE.MeshMatcapMaterial();
-mesh_highlighted.color.setHex(0xffff00).convertGammaToLinear();
-mesh_highlighted.fog = false;
-mesh_highlighted.matcap = matcapTexture;
-mesh_highlighted.polygonOffset = true;
-mesh_highlighted.polygonOffsetFactor = -1;
-mesh_highlighted.polygonOffsetUnits = -1;
-
-const mesh_hovered = new THREE.MeshMatcapMaterial();
-mesh_hovered.color.setHex(0xffffcc).convertGammaToLinear();
-mesh_hovered.fog = false;
-mesh_hovered.matcap = matcapTexture;
-mesh_hovered.polygonOffset = true;
-mesh_hovered.polygonOffsetFactor = -1;
-mesh_hovered.polygonOffsetUnits = -1;
-
 const region = new THREE.MeshBasicMaterial();
 region.fog = false;
 region.color.setHex(0x8dd9f2).convertGammaToLinear();
@@ -95,29 +55,12 @@ region.opacity = 0.1;
 region.transparent = true;
 region.side = THREE.DoubleSide;
 
-const region_hovered = new THREE.MeshBasicMaterial();
-region_hovered.fog = false;
-region_hovered.color.setHex(0x8dd9f2).convertGammaToLinear();
-region_hovered.opacity = 0.5;
-region_hovered.transparent = true;
-region_hovered.side = THREE.DoubleSide;
-
-const region_highlighted = new THREE.MeshBasicMaterial();
-region_highlighted.fog = false;
-region_highlighted.color.setHex(0x8dd9f2).convertGammaToLinear();
-region_highlighted.opacity = 0.9;
-region_highlighted.transparent = true;
-region_highlighted.side = THREE.DoubleSide;
-
 const controlPoint = new THREE.PointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, transparent: true, vertexColors: true });
 controlPoint.userData.resolution = new THREE.Vector2();
 
-const controlPoint_hovered = new THREE.Color(0xffff88);
-const controlPoint_highlighted = new THREE.Color(0xffff00);
-
 export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();
-    private readonly lines = [line, line_dashed, line_highlighted, line_hovered, previewLine];
+    private readonly lines = [line, line_dashed, previewLine];
 
     constructor(signals: EditorSignals) {
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
@@ -173,28 +116,6 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     region(): THREE.Material { return region }
     controlPoint(): THREE.PointsMaterial { return controlPoint }
 
-    highlight(o: c3d.Edge): LineMaterial;
-    highlight(o: c3d.Curve3D): LineMaterial;
-    highlight(o: c3d.Face): THREE.Material;
-    highlight(o: c3d.PlaneInstance): THREE.Material;
-    highlight(o: c3d.SpaceInstance): LineMaterial;
-    highlight(o: number): THREE.Color;
-    highlight(o: any): THREE.Material | THREE.Color {
-        if (o instanceof c3d.Curve3D || o instanceof c3d.Edge)
-            return line_highlighted;
-        else if (o instanceof c3d.Face)
-            return mesh_highlighted;
-        else if (o instanceof c3d.SpaceInstance)
-            return line_highlighted;
-        else if (o instanceof c3d.PlaneInstance)
-            return region_highlighted;
-        else if (typeof (o) === 'number')
-            return controlPoint_highlighted;
-        else {
-            throw new Error(`not yet implemented: ${o.constructor}`);
-        }
-    }
-
     lookup(o: c3d.Edge): LineMaterial;
     lookup(o: c3d.Curve3D): LineMaterial;
     lookup(o: c3d.Face): THREE.Material;
@@ -206,30 +127,6 @@ export class BasicMaterialDatabase implements MaterialDatabase {
             return mesh;
         else if (o instanceof c3d.SpaceInstance)
             return line;
-        else {
-            throw new Error(`not yet implemented: ${o.constructor}`);
-        }
-    }
-
-    hover(o: c3d.Edge): LineMaterial;
-    hover(o: c3d.Curve3D): LineMaterial;
-    hover(o: c3d.SpaceInstance): LineMaterial;
-    hover(o: c3d.Face): THREE.Material;
-    hover(o: c3d.PlaneInstance): THREE.Material;
-    hover(o: c3d.TopologyItem): THREE.Material;
-    hover(o: c3d.Item): THREE.Material;
-    hover(o: number): THREE.Color;
-    hover(o: any): THREE.Material | THREE.Color {
-        if (o instanceof c3d.Curve3D || o instanceof c3d.Edge)
-            return line_hovered;
-        else if (o instanceof c3d.Face)
-            return mesh_hovered;
-        else if (o instanceof c3d.SpaceInstance)
-            return line_hovered;
-        else if (o instanceof c3d.PlaneInstance)
-            return region_hovered;
-        else if (typeof (o) === 'number')
-            return controlPoint_hovered
         else {
             throw new Error(`not yet implemented: ${o.constructor}`);
         }
