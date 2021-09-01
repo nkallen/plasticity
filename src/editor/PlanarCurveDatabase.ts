@@ -1,7 +1,7 @@
 import c3d from '../../build/Release/c3d.node';
-import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../util/Conversion';
-import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
+import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
+import { DatabaseLike } from './GeometryDatabase';
 import { CurveMemento, MementoOriginator } from './History';
 import * as visual from "./VisualModel";
 
@@ -244,7 +244,6 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
 
         if (t1 === curve1.GetTMin())
             info1.joints.start = new Joint(on1, on2);
-
         else
             info1.joints.stop = new Joint(on1, on2);
 

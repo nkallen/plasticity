@@ -151,12 +151,6 @@ export class CurveSegment extends THREE.Object3D {
         this.renderOrder = RenderOrder.CurveSegment;
     }
 
-    // get parentItem(): SpaceInstance<Curve3D> {
-    //     const result = this.parent?.parent?.parent;
-    //     if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
-    //     return result;
-    // }
-
     dispose() {
         this.line.geometry.dispose();
         this.occludedLine.geometry.dispose();

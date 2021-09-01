@@ -1,9 +1,5 @@
 interface to list modifiers with toggles for enable/disable and button to apply
-modifier undo
-invisibility of premodified faces should be done w highlighter
 file save and reload needs to respect modifiers:
-  - don't save modified items, only unmodified
-  - save items with metadata
   - same is true of curve segments
 
 # PRE ALPHA:

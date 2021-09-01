@@ -182,7 +182,7 @@ export class ModifierHighlightManager extends HighlightManager {
 
     highlight() {
         super.highlight();
-        // performance.mark('begin-modifier-highlight');
+        performance.mark('begin-modifier-highlight');
         const { modifiers, modifiers: { selected } } = this;
         const { premodifiedIds, modifiedIds } = selected.groupIds;
 
