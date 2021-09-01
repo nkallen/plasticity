@@ -43,27 +43,23 @@ export class BoxChangeSelectionCommand extends Command {
 }
 
 export class RebuildCommand extends Command {
-    dup: c3d.Item;
-
     constructor(
         editor: cmd.EditorLike,
-        private readonly item: visual.Item,
-        private readonly element: GizmoLike<() => void>
-    ) {
-        super(editor);
-
-        const model = this.editor.db.lookup(item);
-        this.dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
-    }
+        private readonly item: visual.Solid,
+        private readonly index: number,
+    ) { super(editor) }
 
     async execute(): Promise<void> {
         const factory = new RebuildFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        factory.item = this.item;
-        factory.dup = this.dup;
-        await this.element.execute(async () => {
-            await factory.update();
-        }).resource(this);
+
+        const model = this.editor.db.lookup(this.item);
+        const dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
+
+        factory.dup = dup;
+        factory.index = this.index;
+
         const selection = await factory.commit() as visual.Solid;
+        this.editor.selection.selected.removeSolid(this.item);
         this.editor.selection.selected.addSolid(selection);
     }
 }

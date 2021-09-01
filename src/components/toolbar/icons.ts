@@ -35,8 +35,9 @@ import threePointRectangle from './img/three-point-rectangle.svg';
 import trim from './img/trim.svg';
 import twoPointCircle from './img/two-point-circle.svg';
 import { default as changePoint, default as union } from './img/union.svg';
+import c3d from '../../../build/Release/c3d.node';
 
-export const icons = new Map<typeof Command, string>();
+export const icons = new Map<any, string>();
 icons.set(cmd.MoveCommand, move);
 icons.set(cmd.RotateCommand, rotate);
 icons.set(cmd.ScaleCommand, scale);
@@ -85,6 +86,14 @@ icons.set(cmd.SelectFilletsCommand, fillet);
 icons.set(cmd.ClipCurveCommand, line);
 icons.set(cmd.OffsetLoopCommand, line);
 icons.set(cmd.SymmetryCommand, mirror);
+
+icons.set(c3d.ElementarySolid, box);
+icons.set(c3d.FilletSolid, fillet);
+icons.set(c3d.FaceModifiedSolid, offsetFace);
+icons.set(c3d.BooleanSolid, union);
+icons.set(c3d.CurveExtrusionSolid, extrude);
+icons.set(c3d.ChamferSolid, fillet);
+icons.set(c3d.TransformedSolid, move);
 
 export const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");

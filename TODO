@@ -1,10 +1,9 @@
 interface to list modifiers with toggles for enable/disable and button to apply
-file save and reload needs to respect modifiers:
-  - same is true of curve segments
+mouseover not working for creators
+selected face on a modifier is not highlighted
+multiple modifiers don't work
 
 # PRE ALPHA:
-
-
 
 keybindings to move camera need to update construction plane
 reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
@@ -29,6 +28,8 @@ curves:
     duplicate edges to curves
     draw curve around solid
     multiline (stroke)
+    file save and reload needs to respect curve segments:
+    control point hover/unhover broken
 
 
 interleaving with updating/commit on factory. use q?

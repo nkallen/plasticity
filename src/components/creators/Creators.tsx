@@ -2,22 +2,14 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
-import { AddModifierCommand, ApplyModifierCommand, RemoveModifierCommand } from '../../commands/CommandLike';
-import { FilletCommand } from '../../commands/GeometryCommands';
-import { GeometryFactory } from '../../commands/GeometryFactory';
-import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
+import { RebuildCommand } from '../../commands/CommandLike';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
-import ModifierManager, { ModifierStack } from '../../editor/ModifierManager';
+import ModifierManager from '../../editor/ModifierManager';
 import * as visual from '../../editor/VisualModel';
 import { HasSelection } from '../../selection/SelectionManager';
-import { icons, tooltips } from '../toolbar/icons';
-import eye from 'bootstrap-icons/icons/eye.svg';
-import trash from 'bootstrap-icons/icons/trash.svg';
+import { icons } from '../toolbar/icons';
 
-const emptyStack = {
-    modifiers: []
-};
 export class Model {
     constructor(
         private readonly selection: HasSelection,
@@ -33,21 +25,14 @@ export class Model {
         const { db, solid } = this;
         if (solid === undefined) return [];
 
-        const result: [number, c3d.Creator][] = [];
+        const result: c3d.Creator[] = [];
         const model = db.lookup(solid);
         for (let i = 0, l = model.GetCreatorsCount(); i < l; i++) {
             const creator = model.GetCreator(i)!;
-            result.push([i, creator.Cast<c3d.Creator>(creator.IsA())]);
+            result.push(creator.Cast<c3d.Creator>(creator.IsA()));
         }
 
         return result;
-    }
-
-    get stack() {
-        const { db, solid } = this;
-        if (solid === undefined) return emptyStack;
-
-        return this.modifiers.getByPremodified(solid) ?? emptyStack;
     }
 
     private get solid(): visual.Solid | undefined {
@@ -76,30 +61,20 @@ export default (editor: Editor) => {
         }
 
         render() {
-            const { creators, stack, item } = this.model;
+            const { creators, item } = this.model;
             if (item === undefined) {
                 render(<></>, this);
                 return;
             }
 
             const result = <>
-                <h4>Construction History</h4>
                 <ol>
-                    {creators.map(([index, creator]) => {
+                    {creators.map((creator, index) => {
                         const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[creator.IsA()])}`;
                         // @ts-expect-error("not sure how to type this")
                         return <li><Z creator={creator} index={index} item={item}></Z></li>
                     })}
                 </ol>
-                <h4>Modifiers</h4>
-                <ol>
-                    {stack.modifiers.map((factory, index) => {
-                        const Z = `ispace-modifier-${_.dasherize(factory.constructor.name)}`;
-                        // @ts-expect-error("not sure how to type this")
-                        return <li><Z factory={factory} index={index} stack={stack}></Z></li>
-                    })}
-                </ol>
-                <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>Add symmetry</button>
             </>;
             render(result, this);
         }
@@ -116,6 +91,7 @@ export default (editor: Editor) => {
             this.render = this.render.bind(this);
             this.mouseEnter = this.mouseEnter.bind(this);
             this.mouseLeave = this.mouseLeave.bind(this);
+            this.mouseClick = this.mouseClick.bind(this);
         }
 
         private _index!: number;
@@ -134,12 +110,10 @@ export default (editor: Editor) => {
 
         render() {
             render(
-                <>
-                    <div class="header" onPointerEnter={this.mouseEnter} onPointerLeave={this.mouseLeave}>
-                        <input type="checkbox" />
-                        <div class="name">{c3d.CreatorType[this.creator.IsA()]} ({c3d.ProcessState[this.creator.GetStatus()]})</div>
-                    </div>
-                </>
+                <button onPointerEnter={this.mouseEnter} onPointerLeave={this.mouseLeave} onClick={this.mouseClick}>
+                    <img src={icons.get(this.creator.constructor)}></img>
+                    <ispace-tooltip placement="top">{c3d.CreatorType[this.creator.IsA()]}</ispace-tooltip>
+                </button>
                 , this);
         }
 
@@ -164,6 +138,12 @@ export default (editor: Editor) => {
         mouseLeave(e: PointerEvent) {
             editor.selection.hovered.removeAll();
         }
+
+        mouseClick(e: PointerEvent) {
+            const command = new RebuildCommand(editor, this.item as visual.Solid, this.index);
+            editor.enqueue(command);
+            console.log(e);
+        }
     }
     customElements.define('ispace-creator', Creator);
 
@@ -171,54 +151,4 @@ export default (editor: Editor) => {
         class Foo extends Creator<any> { };
         customElements.define(`ispace-creator-${_.dasherize(key)}`, Foo);
     }
-
-    class Modifier<F extends GeometryFactory> extends HTMLElement {
-        constructor() {
-            super();
-            this.render = this.render.bind(this);
-        }
-
-        private _factory!: F;
-        get factory() { return this._factory }
-        set factory(factory: F) { this._factory = factory }
-
-        private _stack!: ModifierStack;
-        get stack() { return this._stack }
-        set stack(stack: ModifierStack) { this._stack = stack }
-
-        private _index!: number;
-        set index(index: number) { this._index = index }
-        get index() { return this._index }
-
-        connectedCallback() { this.render() }
-
-        render() {
-            const { stack, factory } = this;
-
-            const apply = new ApplyModifierCommand(editor, stack, 0);
-            const remove = new RemoveModifierCommand(editor, stack, 0);
-
-            render(
-                <div class="header">
-                    <div class="name">
-                        {factory.constructor.name}
-                    </div>
-                    <div class="buttons">
-                        <button onClick={_ => editor.enqueue(apply)} name={apply.identifier}>
-                            <img src={eye} />
-                            <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Apply Modifier</ispace-tooltip>
-                        </button>
-                        <button onClick={_ => editor.enqueue(remove)} name={remove.identifier}>
-                            <img src={trash} />
-                            <ispace-tooltip placement="top" command={`command:${remove.identifier}`}>Remove Modifier</ispace-tooltip>
-                        </button>
-                    </div>
-                </div>
-                , this);
-        }
-    }
-    customElements.define('ispace-modifier', Modifier);
-
-    class Foo extends Modifier<SymmetryFactory> { };
-    customElements.define(`ispace-modifier-symmetry-factory`, Foo);
 }

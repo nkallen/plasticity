@@ -1,19 +1,19 @@
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../editor/VisualModel';
 import { GeometryFactory } from '../GeometryFactory';
 
 export class RebuildFactory extends GeometryFactory {
     dup!: c3d.Item;
-    item!: visual.Item;
+    index!: number;
 
     async calculate() {
-        const { dup } = this;
+        const { dup, index } = this;
+
+        for (let l = dup.GetCreatorsCount() - 1, i = l; i > index; i--) {
+            const creator = dup.GetCreator(i)!;
+            creator.SetStatus(c3d.ProcessState.Skip);
+        }
 
         dup.RebuildItem(c3d.CopyMode.Copy, null);
         return dup;
-    }
-
-    get originalItem() {
-        return this.item;
     }
 }
