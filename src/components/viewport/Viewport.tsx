@@ -120,7 +120,6 @@ export class Viewport {
         this.setNeedsRender = this.setNeedsRender.bind(this);
         this.outlineSelection = this.outlineSelection.bind(this);
         this.outlineHover = this.outlineHover.bind(this);
-        this.outlineUnhover = this.outlineUnhover.bind(this);
         this.navigationStart = this.navigationStart.bind(this);
         this.navigationEnd = this.navigationEnd.bind(this);
         this.navigationChange = this.navigationChange.bind(this);
@@ -153,7 +152,7 @@ export class Viewport {
         this.editor.signals.selectionChanged.add(this.outlineSelection);
         this.editor.signals.historyChanged.add(this.outlineSelection);
         this.editor.signals.objectHovered.add(this.outlineHover);
-        this.editor.signals.objectUnhovered.add(this.outlineUnhover);
+        this.editor.signals.objectUnhovered.add(this.outlineHover);
 
         this.editor.signals.selectionChanged.add(this.setNeedsRender);
         this.editor.signals.sceneGraphChanged.add(this.setNeedsRender);
@@ -180,7 +179,6 @@ export class Viewport {
             this.editor.signals.selectionChanged.remove(this.outlineSelection);
             this.editor.signals.historyChanged.remove(this.outlineSelection);
             this.editor.signals.objectHovered.remove(this.outlineHover);
-            this.editor.signals.objectUnhovered.remove(this.outlineUnhover);
 
             this.editor.signals.selectionChanged.remove(this.setNeedsRender);
             this.editor.signals.sceneGraphChanged.remove(this.setNeedsRender);
@@ -249,19 +247,15 @@ export class Viewport {
     }
 
     outlineSelection() {
-        const selected = this.editor.selection.selected;
-        const toOutline = [...selected.outlinable].flatMap(item => item.outline);
+        const selection = this.editor.highlighter.outlineSelection;
+        const toOutline = [...selection].flatMap(item => item.outline);
         this.outlinePassSelection.selectedObjects = toOutline;
     }
 
-    outlineHover(object?: SpaceItem | TopologyItem | ControlPoint | Region) {
-        if (object instanceof Solid) {
-            this.outlinePassHover.selectedObjects = object.outline;
-        }
-    }
-
-    outlineUnhover(object?: SpaceItem | TopologyItem | ControlPoint | Region) {
-        this.outlinePassHover.selectedObjects = [];
+    outlineHover() {
+        const hover = this.editor.highlighter.outlineHover;
+        const toOutline = [...hover].flatMap(item => item.outline);
+        this.outlinePassHover.selectedObjects = toOutline;
     }
 
     highlight() {

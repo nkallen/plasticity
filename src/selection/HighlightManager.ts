@@ -155,6 +155,10 @@ export class HighlightManager {
             material.resolution.copy(size);
         }
     }
+
+    get outlineSelection() { return this.selection.selected.solids }
+    get outlineHover() { return this.selection.hovered.solids }
+
 }
 
     // highlight(highlighter: HighlightManager): void {
@@ -179,6 +183,20 @@ export class HighlightManager {
     //         })
     //     }
     //     this.selection.unhighlight(highlighter);
+    // }
+
+    // get outlinable() {
+    //     const { db, modifiers } = this;
+    //     const outlineIds = new Set(this.solidIds);
+    //     for (const id of outlineIds) {
+    //         const state = this.stateOf(id);
+    //         if (state === 'premodified') {
+    //             const stack = modifiers.getByPremodified(id)!;
+    //             outlineIds.delete(id);
+    //             outlineIds.add(stack.modified.simpleName);
+    //         }
+    //     }
+    //     return new ItemSelection<visual.Solid>(db, outlineIds)
     // }
 
 const line_highlighted = new LineMaterial({ color: 0xffff00, linewidth: 2 });

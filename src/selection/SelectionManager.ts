@@ -53,10 +53,6 @@ export interface ModifiesSelection extends HasSelection {
     removeAll(): void;
 }
 
-export interface Outlinable {
-    outlinable: Iterable<visual.Solid>;
-}
-
 interface SignalLike {
     objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
     objectAdded: signals.Signal<visual.Selectable>;
@@ -64,7 +60,7 @@ interface SignalLike {
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
 }
 
-export class Selection implements HasSelection, ModifiesSelection, Outlinable, MementoOriginator<SelectionMemento> {
+export class Selection implements HasSelection, ModifiesSelection, MementoOriginator<SelectionMemento> {
     readonly solidIds = new Set<c3d.SimpleName>();
     readonly edgeIds = new Set<string>();
     readonly faceIds = new Set<string>();
@@ -91,7 +87,6 @@ export class Selection implements HasSelection, ModifiesSelection, Outlinable, M
     get regions() { return new ItemSelection<visual.PlaneInstance<visual.Region>>(this.db, this.regionIds) }
     get curves() { return new ItemSelection<visual.SpaceInstance<visual.Curve3D>>(this.db, this.curveIds) }
     get controlPoints() { return new ControlPointSelection(this.db, this.controlPointIds) }
-    get outlinable() { return this.solids }
 
     hasSelectedChildren(solid: visual.Solid | visual.SpaceInstance<visual.Curve3D>) {
         return this.parentsWithSelectedChildren.has(solid.simpleName)
@@ -288,8 +283,8 @@ export class Selection implements HasSelection, ModifiesSelection, Outlinable, M
 }
 
 export interface HasSelectedAndHovered {
-    readonly selected: ModifiesSelection & Outlinable;
-    readonly hovered: ModifiesSelection & Outlinable;
+    readonly selected: ModifiesSelection;
+    readonly hovered: ModifiesSelection;
 }
 
 export class SelectionManager implements HasSelectedAndHovered {

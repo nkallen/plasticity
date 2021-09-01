@@ -1,10 +1,8 @@
-import MaterialDatabase from "../editor/MaterialDatabase";
 import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance } from "../editor/VisualModel";
-import { HighlightManager } from "./HighlightManager";
-import { Outlinable, ModifiesSelection } from "./SelectionManager";
+import { ModifiesSelection } from "./SelectionManager";
 
-export class SelectionProxy implements ModifiesSelection, Outlinable {
-    constructor(protected readonly selection: ModifiesSelection & Outlinable) { }
+export class SelectionProxy implements ModifiesSelection {
+    constructor(protected readonly selection: ModifiesSelection) { }
 
     add(items: Item | Item[]): void {
         this.selection.add(items);
@@ -50,7 +48,6 @@ export class SelectionProxy implements ModifiesSelection, Outlinable {
     }
     get mode() { return this.selection.mode }
     get solids() { return this.selection.solids }
-    get outlinable() { return this.selection.outlinable }
     get edges() { return this.selection.edges }
     get faces() { return this.selection.faces }
     get regions() { return this.selection.regions }

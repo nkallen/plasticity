@@ -1,10 +1,8 @@
 import * as THREE from "three";
-import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
-import { HighlightManager } from "../selection/HighlightManager";
 import { ItemSelection } from "../selection/Selection";
-import { HasSelectedAndHovered, Outlinable, ModifiesSelection } from "../selection/SelectionManager";
+import { HasSelectedAndHovered, ModifiesSelection } from "../selection/SelectionManager";
 import { SelectionProxy } from "../selection/SelectionProxy";
 import { GConstructor } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
@@ -156,7 +154,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     protected readonly modified2name = new Map<c3d.SimpleName, c3d.SimpleName>();
 
     readonly selected: ModifierSelection;
-    readonly hovered: ModifiesSelection & Outlinable;
+    readonly hovered: ModifiesSelection;
 
     constructor(
         db: GeometryDatabase,
@@ -374,7 +372,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 }
 
 class ModifierSelection extends SelectionProxy {
-    constructor(private readonly db: DatabaseLike, private readonly modifiers: ModifierManager, selection: ModifiesSelection & Outlinable) {
+    constructor(private readonly db: DatabaseLike, private readonly modifiers: ModifierManager, selection: ModifiesSelection) {
         super(selection);
     }
 
@@ -426,20 +424,6 @@ class ModifierSelection extends SelectionProxy {
             }
         }
         super.removeAll();
-    }
-
-    get outlinable() {
-        const { db, modifiers } = this;
-        const outlineIds = new Set(this.solidIds);
-        for (const id of outlineIds) {
-            const state = this.stateOf(id);
-            if (state === 'premodified') {
-                const stack = modifiers.getByPremodified(id)!;
-                outlineIds.delete(id);
-                outlineIds.add(stack.modified.simpleName);
-            }
-        }
-        return new ItemSelection<visual.Solid>(db, outlineIds)
     }
 
     private stateOf(solid: visual.Solid | c3d.SimpleName): 'unmodified' | 'premodified' | 'modified' {
