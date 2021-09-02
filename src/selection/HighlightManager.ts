@@ -60,8 +60,6 @@ export class HighlightManager {
         const { views } = this.db.lookupTopologyItemById(item.simpleName);
         for (const view of views) {
             const face = view as visual.Face;
-            if (face.child.userData.oldMaterial === undefined)
-                face.child.userData.oldMaterial = face.child.material;
             face.child.material = face_hovered;
         }
     }
@@ -80,28 +78,25 @@ export class HighlightManager {
         if (item instanceof visual.SpaceInstance) {
             this.highlightCurve(item);
         } else if (item instanceof visual.Face) {
-            const { views } = this.db.lookupTopologyItemById(item.simpleName);
-            for (const topo of views) {
-                const face = topo as visual.Face;
-                if (face.child.userData.oldMaterial !== undefined) {
-                    face.child.material = face.child.userData.oldMaterial;
-                    delete face.child.userData.oldMaterial;
-                }
-            }
+            this.unhoverFace(item);
         } else if (item instanceof visual.CurveEdge) {
             const { views } = this.db.lookupTopologyItemById(item.simpleName);
             for (const view of views) {
-                const edge = view as visual.CurveEdge;
-                if (edge.child.userData.oldMaterial !== undefined) {
-                    edge.child.material = edge.child.userData.oldMaterial;
-                    delete edge.child.userData.oldMaterial;
-                }
+                this.highlightCurveEdge(view as visual.CurveEdge)
             }
         } else if (item instanceof visual.PlaneInstance) {
             this.highlightRegion(item);
         } else if (item instanceof visual.ControlPoint) {
         }
         performance.measure('unhover', 'begin-unhover');
+    }
+
+    protected unhoverFace(item: visual.Face) {
+        const { views } = this.db.lookupTopologyItemById(item.simpleName);
+        for (const topo of views) {
+            const face = topo as visual.Face;
+            this.highlightFace(face);
+        }
     }
 
     highlight() {
@@ -125,7 +120,7 @@ export class HighlightManager {
             this.highlightFace(face);
         }
         for (const edge of item.allEdges) {
-            this.highlightEdge(edge);
+            this.highlightCurveEdge(edge);
         }
     }
 
@@ -161,8 +156,8 @@ export class HighlightManager {
         }
     }
 
-    private highlightEdge(edge: visual.CurveEdge) {
-        const { selected, hovered } = this.selection;
+    private highlightCurveEdge(edge: visual.CurveEdge) {
+        const { selected } = this.selection;
 
         if (selected.edgeIds.has(edge.simpleName)) {
             edge.child.material = line_highlighted;
@@ -171,7 +166,8 @@ export class HighlightManager {
         }
     }
 
-    protected highlightFace(face: visual.Face, selection = this.selection.selected, highlighted = face_highlighted, unhighlighted = face_unhighlighted) {
+    protected highlightFace(face: visual.Face, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {
+        const selection = this.selection.selected;
         if (selection.faceIds.has(face.simpleName)) {
             face.child.material = highlighted;
         } else {
@@ -267,9 +263,8 @@ export class ModifierHighlightManager extends HighlightManager {
         const { views } = this.db.lookupTopologyItemById(item.simpleName);
         for (const view of views) {
             const face = view as visual.Face;
-            if (face.child.userData.oldMaterial === undefined)
-                face.child.userData.oldMaterial = face.child.material;
             const solid = face.parentItem;
+            console.log("here");
             switch (this.modifiers.stateOf(solid)) {
                 case 'premodified':
                     face.child.material = invisible_hovered;
@@ -280,6 +275,20 @@ export class ModifierHighlightManager extends HighlightManager {
         }
     }
 
+    protected unhoverFace(item: visual.Face) {
+        const { views } = this.db.lookupTopologyItemById(item.simpleName);
+        for (const topo of views) {
+            const face = topo as visual.Face;
+            const solid = face.parentItem;
+            switch (this.modifiers.stateOf(solid)) {
+                case 'premodified':
+                    this.highlightFace(face, invisible_highlighted, invisible);
+                    break;
+                default:
+                    this.highlightFace(face, face_highlighted, face_unhighlighted);
+            }
+        }
+    }
 }
 
 function mask(child: THREE.Object3D) {

@@ -399,17 +399,39 @@ class ModifierSelection extends SelectionProxy {
         }
     }
 
-    removeAll() {
-        const { modifiers } = this;
-        for (const id of this.selection.solidIds) {
-            switch (this.stateOf(id)) {
-                case 'unmodified': break;
-                case 'premodified': break;
-                case 'modified':
-                    const stack = modifiers.getByModified(id)!;
-            }
+    removeFace(object: visual.Face, parentItem: visual.Solid) {
+        switch (this.stateOf(parentItem)) {
+            case 'unmodified':
+                this.selection.removeFace(object, parentItem);
+                break;
+            case 'premodified':
+                this.selection.removeFace(object, parentItem);
+                this.unselectModifiedIfNoMoreSelectedTopology(parentItem);
+                break;
+            case 'modified':
+                throw new Error("invalid precondition");
         }
-        super.removeAll();
+    }
+
+    removeEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
+        switch (this.stateOf(parentItem)) {
+            case 'unmodified':
+                this.selection.removeEdge(object, parentItem);
+                break;
+            case 'premodified':
+                this.selection.removeEdge(object, parentItem);
+                this.unselectModifiedIfNoMoreSelectedTopology(parentItem);
+                break;
+            case 'modified':
+                throw new Error("invalid precondition");
+        }
+    }
+
+    private unselectModifiedIfNoMoreSelectedTopology(parentItem: visual.Solid) {
+        if (!this.selection.hasSelectedChildren(parentItem)) {
+            const stack = this.modifiers.getByPremodified(parentItem)!;
+            this.selection.removeSolid(stack.modified);
+        }
     }
 
     private stateOf(solid: visual.Solid | c3d.SimpleName): 'unmodified' | 'premodified' | 'modified' {

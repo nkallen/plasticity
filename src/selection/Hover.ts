@@ -35,13 +35,13 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
-        if (this.hovered.mode.has(SelectionMode.Face) && object instanceof Face && !this.selected.faces.has(object)) {
+        if (this.hovered.mode.has(SelectionMode.Face) && object instanceof Face) {
             if (!this.hovered.faces.has(object)) {
                 this.hovered.removeAll();
                 this.hovered.addFace(object, parentItem);
             }
             return true;
-        } else if (this.hovered.mode.has(SelectionMode.Edge) && object instanceof CurveEdge && !this.selected.edges.has(object)) {
+        } else if (this.hovered.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
             if (!this.hovered.edges.has(object)) {
                 this.hovered.removeAll();
                 this.hovered.addEdge(object, parentItem);
