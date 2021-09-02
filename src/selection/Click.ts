@@ -106,7 +106,7 @@ export class ClickStrategy implements SelectionStrategy {
                 const parentItem = object.parentItem;
                 if (!selected.hasSelectedChildren(parentItem)) {
                     selected.addSolid(parentItem);
-                    return;
+                    continue;
                 }
                 if (object instanceof Face) {
                     selected.addFace(object, object.parentItem);

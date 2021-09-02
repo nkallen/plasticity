@@ -111,7 +111,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     get equable() { return this.params.equable }
     set equable(d: boolean) { this.params.equable = d }
 
-    private readonly names = new c3d.SNameMaker(c3d.CreatorType.FilletSolid, c3d.ESides.SideNone, 0);
+    private readonly names = new c3d.SNameMaker(this.db.version, c3d.ESides.SideNone, 0);
 
     get mode(): Mode {
         return this.params.distance1 < 0 ? c3d.CreatorType.ChamferSolid : c3d.CreatorType.FilletSolid;

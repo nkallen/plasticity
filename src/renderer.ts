@@ -34,9 +34,9 @@ Object.defineProperty(window, 'THREE', {
     writable: false,
 })
 
-const stats = new Stats();
-stats.showPanel(1);
-document.body.appendChild(stats.dom);
+// const stats = new Stats();
+// stats.showPanel(1);
+// document.body.appendChild(stats.dom);
 
 editor.keymaps.add('/default', keymap);
 editor.registry.add("ispace-workspace", {
@@ -45,10 +45,10 @@ editor.registry.add("ispace-workspace", {
 
 registerDefaultCommands(editor);
 
-requestAnimationFrame(function loop() {
-    stats.update();
-    requestAnimationFrame(loop)
-});
+// requestAnimationFrame(function loop() {
+    // stats.update();
+    // requestAnimationFrame(loop)
+// });
 
 Toolbar(editor);
 Palette(editor);

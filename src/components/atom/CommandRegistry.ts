@@ -97,7 +97,8 @@ export default class CommandRegistry {
         });
     }
 
-    handleCommandEvent(event: Event & { originalEvent: Event }) {
+    handleCommandEvent(e: Event) {
+        let event = e as Event & { originalEvent: Event }
         let propagationStopped = false;
         let immediatePropagationStopped = false;
         let matched = [];
@@ -122,7 +123,7 @@ export default class CommandRegistry {
         Object.defineProperty(dispatchedEvent, 'stopPropagation', {
             value() {
                 event.stopPropagation();
-                event.originalEvent.stopPropagation();
+                event.originalEvent?.stopPropagation();
                 propagationStopped = true;
             }
         });
