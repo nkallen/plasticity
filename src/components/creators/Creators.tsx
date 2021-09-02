@@ -2,27 +2,28 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
-import { RebuildCommand } from '../../commands/CommandLike';
+import { EditorLike } from '../../commands/Command';
+import { CreatorChangeSelectionCommand, RebuildCommand } from '../../commands/CommandLike';
+import { RebuildFactory } from '../../commands/rebuild/RebuildFactory';
 import { Editor } from '../../editor/Editor';
-import { DatabaseLike } from '../../editor/GeometryDatabase';
-import ModifierManager from '../../editor/ModifierManager';
+import { TemporaryObject } from '../../editor/GeometryDatabase';
 import * as visual from '../../editor/VisualModel';
-import { HasSelection } from '../../selection/SelectionManager';
 import { icons } from '../toolbar/icons';
 
+type State = { tag: 'none' } | { tag: 'updating', temp?: TemporaryObject, factory: RebuildFactory }
 export class Model {
+    private state: State = { tag: 'none' };
+
     constructor(
-        private readonly selection: HasSelection,
-        private readonly db: DatabaseLike,
-        private readonly modifiers: ModifierManager,
+        private readonly editor: EditorLike,
     ) { }
 
     get item() {
-        return this.selection.solids.first;
+        return this.editor.selection.selected.solids.first;
     }
 
     get creators() {
-        const { db, solid } = this;
+        const { editor: { db }, solid } = this;
         if (solid === undefined) return [];
 
         const result: c3d.Creator[] = [];
@@ -35,11 +36,43 @@ export class Model {
         return result;
     }
 
-    private get solid(): visual.Solid | undefined {
-        const { db, selection } = this;
-        if (selection.solids.size == 0) return undefined;
+    hoverCreator(creator: c3d.Creator) {
+        const { item, editor: { db, selection: { hovered } } } = this;
 
-        const solid = selection.solids.first!
+        const solid = item as visual.Solid;
+        const model = db.lookup(solid);
+        const name = creator.GetYourNameMaker();
+        const result = [];
+
+        for (const topo of model.GetItems()) {
+            if (name.IsChild(topo) && topo.IsA() === c3d.TopologyType.Face) {
+                const index = model.GetFaceIndex(topo.Cast<c3d.Face>(c3d.TopologyType.Face));
+                const { views } = db.lookupTopologyItemById(visual.Face.simpleName(solid.simpleName, index))
+                const view = views.values().next().value as visual.Face;
+                hovered.addFace(view, solid);
+                result.push(view);
+            }
+        }
+        return result;
+    }
+
+    async startRebuild(index: number) {
+        const command = new RebuildCommand(this.editor);
+        command.index = index;
+        this.editor.enqueue(command);
+    }
+
+    selectCreator(creator: c3d.Creator) {
+        const selected = this.hoverCreator(creator);
+        const editor = this.editor;
+        editor.enqueue(new CreatorChangeSelectionCommand(editor, selected));
+    }
+
+    private get solid(): visual.Solid | undefined {
+        const { editor: { db, selection } } = this;
+        if (selection.selected.solids.size == 0) return undefined;
+
+        const solid = selection.selected.solids.first!
         return solid;
     }
 }
@@ -47,7 +80,7 @@ export class Model {
 export default (editor: Editor) => {
     class Creators extends HTMLElement {
         private readonly dispose = new CompositeDisposable();
-        private readonly model = new Model(editor.selection.selected, editor.db, editor.modifiers);
+        private readonly model = new Model(editor);
 
         constructor() {
             super();
@@ -61,21 +94,19 @@ export default (editor: Editor) => {
         }
 
         render() {
-            const { creators, item } = this.model;
+            const { model, model: { creators, item } } = this;
             if (item === undefined) {
                 render(<></>, this);
                 return;
             }
 
-            const result = <>
-                <ol>
-                    {creators.map((creator, index) => {
-                        const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[creator.IsA()])}`;
-                        // @ts-expect-error("not sure how to type this")
-                        return <li><Z creator={creator} index={index} item={item}></Z></li>
-                    })}
-                </ol>
-            </>;
+            const result = <ol>
+                {creators.map((creator, index) => {
+                    const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[creator.IsA()])}`;
+                    // @ts-expect-error("not sure how to type this")
+                    return <li><Z creator={creator} index={index} item={item} model={model}></Z></li>
+                })}
+            </ol>;
             render(result, this);
         }
 
@@ -86,14 +117,6 @@ export default (editor: Editor) => {
     customElements.define('ispace-creators', Creators);
 
     class Creator<C extends c3d.Creator> extends HTMLElement {
-        constructor() {
-            super();
-            this.render = this.render.bind(this);
-            this.mouseEnter = this.mouseEnter.bind(this);
-            this.mouseLeave = this.mouseLeave.bind(this);
-            this.mouseClick = this.mouseClick.bind(this);
-        }
-
         private _index!: number;
         set index(index: number) { this._index = index }
         get index() { return this._index }
@@ -106,49 +129,51 @@ export default (editor: Editor) => {
         get item() { return this._item }
         set item(item: visual.Item) { this._item = item }
 
+        private _model!: Model;
+        get model() { return this._model }
+        set model(model: Model) { this._model = model }
+
+        constructor() {
+            super();
+            this.render = this.render.bind(this);
+            this.pointerEnter = this.pointerEnter.bind(this);
+            this.pointerLeave = this.pointerLeave.bind(this);
+            this.pointerDown = this.pointerDown.bind(this);
+        }
+
         connectedCallback() { this.render() }
 
         render() {
             render(
-                <button onPointerEnter={this.mouseEnter} onPointerLeave={this.mouseLeave} onClick={this.mouseClick}>
+                <button onPointerEnter={this.pointerEnter} onPointerLeave={this.pointerLeave} onPointerDown={this.pointerDown}>
                     <img src={icons.get(this.creator.constructor)}></img>
                     <ispace-tooltip placement="top">{c3d.CreatorType[this.creator.IsA()]}</ispace-tooltip>
                 </button>
                 , this);
         }
 
-        mouseEnter(e: PointerEvent) {
-            const { item, creator } = this;
-            const { db, selection } = editor;
-
-            const solid = item as visual.Solid;
-            const model = db.lookup(solid);
-            const name = creator.GetYourNameMaker();
-
-            for (const topo of model.GetItems()) {
-                if (name.IsChild(topo) && topo.IsA() === c3d.TopologyType.Face) {
-                    const index = model.GetFaceIndex(topo.Cast<c3d.Face>(c3d.TopologyType.Face));
-                    const { views } = db.lookupTopologyItemById(visual.Face.simpleName(solid.simpleName, index))
-                    const view = views.values().next().value as visual.Face;
-                    selection.hovered.addFace(view, solid);
-                }
+        pointerEnter(e: PointerEvent) {
+            if (!e.altKey) {
+                this.model.hoverCreator(this.creator);
             }
         }
 
-        mouseLeave(e: PointerEvent) {
+        pointerLeave(e: PointerEvent) {
             editor.selection.hovered.removeAll();
         }
 
-        mouseClick(e: PointerEvent) {
-            const command = new RebuildCommand(editor, this.item as visual.Solid, this.index);
-            editor.enqueue(command);
-            console.log(e);
+        pointerDown(e: PointerEvent) {
+            if (e.altKey) {
+                this.model.startRebuild(this.index);
+            } else {
+                this.model.selectCreator(this.creator)
+            }
         }
     }
     customElements.define('ispace-creator', Creator);
 
     for (const key in c3d.CreatorType) {
-        class Foo extends Creator<any> { };
-        customElements.define(`ispace-creator-${_.dasherize(key)}`, Foo);
+        class Anon extends Creator<any> { };
+        customElements.define(`ispace-creator-${_.dasherize(key)}`, Anon);
     }
 }

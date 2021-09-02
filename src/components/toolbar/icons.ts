@@ -1,7 +1,7 @@
 import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
 import Command from '../../commands/Command';
-import { HideSelectedCommand, HideUnselectedCommand, UnhideAllCommand, DuplicateCommand } from '../../commands/CommandLike';
+import { HideSelectedCommand, HideUnselectedCommand, UnhideAllCommand, DuplicateCommand, RebuildCommand } from '../../commands/CommandLike';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import centerCircle from './img/center-circle.svg';
@@ -209,6 +209,8 @@ keybindings.set("gizmo:symmetry:z", "Positive Z");
 keybindings.set("gizmo:symmetry:-x", "Negative X");
 keybindings.set("gizmo:symmetry:-y", "Negative Y");
 keybindings.set("gizmo:symmetry:-z", "Negative Z");
+keybindings.set("gizmo:rebuild:forward", "Go forward in history");
+keybindings.set("gizmo:rebuild:backward", "Go backward in history");
 
 export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {
@@ -238,5 +240,6 @@ export default (editor: Editor): void => {
         'command:hide-unselected': () => editor.enqueue(new HideUnselectedCommand(editor)),
         'command:duplicate': () => editor.enqueue(new DuplicateCommand(editor)),
         'command:symmetry': () => editor.enqueue(new cmd.SymmetryCommand(editor)),
+        'command:rebuild': () => editor.enqueue(new RebuildCommand(editor)),
     })
 }

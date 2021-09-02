@@ -26,32 +26,33 @@ export class HighlightManager {
 
     hover(item: visual.Selectable) {
         performance.mark('begin-hover');
-        const { hovered } = this.selection;
         if (item instanceof visual.SpaceInstance) {
             for (const level of item.levels) {
                 const curve = level as visual.Curve3D;
-                if (hovered.curveIds.has(item.simpleName)) {
-                    for (const segment of curve.segments) {
-                        segment.line.material = line_hovered;
-                    }
+                for (const segment of curve.segments) {
+                    segment.line.material = line_hovered;
                 }
             }
         } else if (item instanceof visual.Face) {
-            if (hovered.faceIds.has(item.simpleName)) {
-                if (item.child.userData.oldMaterial === undefined)
-                    item.child.userData.oldMaterial = item.child.material;
-                item.child.material = face_hovered;
+            const { views } = this.db.lookupTopologyItemById(item.simpleName);
+            for (const view of views) {
+                const face = view as visual.Face;
+                if (face.child.userData.oldMaterial === undefined)
+                    face.child.userData.oldMaterial = face.child.material;
+                face.child.material = face_hovered;
             }
         } else if (item instanceof visual.CurveEdge) {
-            if (hovered.edgeIds.has(item.simpleName)) {
-                item.child.material = line_hovered;
+            const { views } = this.db.lookupTopologyItemById(item.simpleName);
+            for (const view of views) {
+                const edge = view as visual.Face;
+                if (edge.child.userData.oldMaterial === undefined)
+                    edge.child.userData.oldMaterial = edge.child.material;
+                edge.child.material = line_hovered;
             }
         } else if (item instanceof visual.PlaneInstance) {
             for (const level of item.levels) {
                 const region = level as visual.Region;
-                if (hovered.regionIds.has(region.simpleName)) {
-                    region.child.material = region_hovered;
-                }
+                region.child.material = region_hovered;
             }
         } else if (item instanceof visual.ControlPoint) {
         }
@@ -73,7 +74,13 @@ export class HighlightManager {
             }
         } else if (item instanceof visual.CurveEdge) {
             const { views } = this.db.lookupTopologyItemById(item.simpleName);
-            for (const edge of views) this.highlightEdge(edge as visual.CurveEdge);
+            for (const view of views) {
+                const edge = view as visual.CurveEdge;
+                if (edge.child.userData.oldMaterial !== undefined) {
+                    edge.child.material = edge.child.userData.oldMaterial;
+                    delete edge.child.userData.oldMaterial;
+                }
+            }
         } else if (item instanceof visual.PlaneInstance) {
             this.highlightRegion(item);
         } else if (item instanceof visual.ControlPoint) {

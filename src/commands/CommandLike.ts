@@ -2,11 +2,11 @@ import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import { ModifierStack } from '../editor/ModifierManager';
 import * as visual from "../editor/VisualModel";
-import { GizmoLike } from "./AbstractGizmo";
 import Command, * as cmd from "./Command";
 import { SymmetryFactory } from './mirror/MirrorFactory';
 import { MirrorGizmo } from './mirror/MirrorGizmo';
 import { RebuildFactory } from "./rebuild/RebuildFactory";
+import { RebuildKeyboardGizmo } from './rebuild/RebuildKeyboardGizmo';
 import { MoveGizmo } from './translate/MoveGizmo';
 import { MoveFactory } from './translate/TranslateFactory';
 
@@ -42,24 +42,50 @@ export class BoxChangeSelectionCommand extends Command {
     }
 }
 
-export class RebuildCommand extends Command {
+export class CreatorChangeSelectionCommand extends Command {
     constructor(
         editor: cmd.EditorLike,
-        private readonly item: visual.Solid,
-        private readonly index: number,
+        private readonly topologyItems: visual.TopologyItem[]
+    ) {
+        super(editor);
+    }
+
+    async execute(): Promise<void> {
+        const { topologyItems } = this;
+        this.editor.selectionInteraction.onCreatorSelect(topologyItems);
+    }
+}
+
+export class RebuildCommand extends Command {
+    index?: number;
+
+    constructor(
+        editor: cmd.EditorLike,
     ) { super(editor) }
 
     async execute(): Promise<void> {
-        const factory = new RebuildFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const rebuild = new RebuildFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const item = this.editor.selection.selected.solids.first;
 
-        const model = this.editor.db.lookup(this.item);
-        const dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
+        rebuild.item = item;
+        rebuild.index = this.index;
+        if (this.index !== undefined) await rebuild.update()
 
-        factory.dup = dup;
-        factory.index = this.index;
+        const keyboard = new RebuildKeyboardGizmo(this.editor);
+        await keyboard.execute(e => {
+            switch (e) {
+                case 'forward':
+                    rebuild.index = rebuild.index + 1;
+                    break;
+                case 'backward':
+                    rebuild.index = rebuild.index - 1;
+                    break;
+            }
+            rebuild.update();
+        }).resource(this);
 
-        const selection = await factory.commit() as visual.Solid;
-        this.editor.selection.selected.removeSolid(this.item);
+        const selection = await rebuild.commit() as visual.Solid;
+        this.editor.selection.selected.removeSolid(item);
         this.editor.selection.selected.addSolid(selection);
     }
 }
@@ -135,7 +161,7 @@ export class AddModifierCommand extends Command {
             preview.update();
         }).resource(this);
         preview.cancel();
-        
+
         const { stack, factory } = modifiers.add(solid, SymmetryFactory);
         factory.solid = solid;
         factory.origin = preview.origin;

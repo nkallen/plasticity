@@ -81,6 +81,13 @@ export class SelectionInteractionManager {
     onBoxSelect(select: Set<visual.Selectable>) {
         this.clickStrategy.box(select);
     }
+
+    onCreatorSelect(topologyItems: visual.TopologyItem[]) {
+        for (const topo of topologyItems) {
+            if (!this.clickStrategy.solid(topo, topo.parentItem))
+                this.clickStrategy.topologicalItem(topo, topo.parentItem);
+        }
+    }
 }
 
 const map = new Map<any, number>();

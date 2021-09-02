@@ -30,7 +30,7 @@ export default class CommandRegistry {
         }
     }
 
-    add(target: HTMLElement | string, commands: Record<string, () => void>): Disposable {
+    add(target: HTMLElement | string, commands: Record<string, (e: CustomEvent) => void>): Disposable {
         const disposable = new CompositeDisposable();
         for (const name in commands) {
             const dispo = this.addOne(target, name, commands[name]);
@@ -39,7 +39,7 @@ export default class CommandRegistry {
         return disposable;
     }
 
-    addOne(target: string | HTMLElement, commandName: string, listener: () => void): Disposable {
+    addOne(target: string | HTMLElement, commandName: string, listener: (e: CustomEvent) => void): Disposable {
         if (listener == null) {
             throw new Error('Cannot register a command with a null listener.');
         }
@@ -52,7 +52,7 @@ export default class CommandRegistry {
         }
     }
 
-    addSelectorBasedListener(selector: string, commandName: string, listener: () => void): Disposable {
+    addSelectorBasedListener(selector: string, commandName: string, listener: (e: CustomEvent) => void): Disposable {
         if (!this.selectorBasedListenersByCommandName.has(commandName)) {
             this.selectorBasedListenersByCommandName.set(commandName, new Array<SelectorBasedListener>());
         }
@@ -70,7 +70,7 @@ export default class CommandRegistry {
         });
     }
 
-    addInlineListener(element: HTMLElement, commandName: string, listener: () => void) {
+    addInlineListener(element: HTMLElement, commandName: string, listener: (e: CustomEvent) => void) {
         if (this.inlineListenersByCommandName.get(commandName) == null) {
             this.inlineListenersByCommandName.set(commandName, new WeakMap());
         }
@@ -97,7 +97,7 @@ export default class CommandRegistry {
         });
     }
 
-    handleCommandEvent(event: Event) {
+    handleCommandEvent(event: Event & { originalEvent: Event }) {
         let propagationStopped = false;
         let immediatePropagationStopped = false;
         let matched = [];
@@ -115,12 +115,14 @@ export default class CommandRegistry {
         Object.defineProperty(dispatchedEvent, 'target', { value: currentTarget });
         Object.defineProperty(dispatchedEvent, 'preventDefault', {
             value() {
+                event.originalEvent.preventDefault();
                 return event.preventDefault();
             }
         });
         Object.defineProperty(dispatchedEvent, 'stopPropagation', {
             value() {
                 event.stopPropagation();
+                event.originalEvent.stopPropagation();
                 propagationStopped = true;
             }
         });
@@ -205,6 +207,6 @@ class SelectorBasedListener {
 class InlineListener {
     constructor(
         private readonly commandName: string,
-        readonly listener: () => void) {
+        readonly listener: (e: CustomEvent) => void) {
     }
 }

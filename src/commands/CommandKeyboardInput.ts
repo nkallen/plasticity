@@ -31,7 +31,11 @@ export abstract class AbstractCommandKeyboardInput<CB> {
                 const d = this.editor.registry.addOne(
                     viewport.domElement,
                     command,
-                    () => this.resolve(cb, command));
+                    (e: Event) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        this.resolve(cb, command)
+                    });
                 disposables.add(d);
             }
         }

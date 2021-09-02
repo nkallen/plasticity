@@ -18,9 +18,9 @@ export default class Mouse2KeyboardEventManager {
         this.onWheelEvent = this.onWheelEvent.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
 
-        document.addEventListener('keydown', this.onKeyDown);
-        document.addEventListener('pointerdown', this.onPointerDown);
-        document.addEventListener('wheel', this.onWheelEvent);
+        window.addEventListener('keydown', this.onKeyDown);
+        window.addEventListener('pointerdown', this.onPointerDown);
+        window.addEventListener('wheel', this.onWheelEvent, { capture: true, passive: false });
     }
 
     onPointerMove(e: PointerEvent) { }
@@ -32,7 +32,7 @@ export default class Mouse2KeyboardEventManager {
 
                 if (e.button != 2) return;
 
-                document.addEventListener('pointerup', this.onPointerUp);
+                window.addEventListener('pointerup', this.onPointerUp);
                 disposables.add(new Disposable(() => window.removeEventListener('pointermove', this.onPointerMove)));
                 disposables.add(new Disposable(() => window.removeEventListener('pointerup', this.onPointerUp)));
                 this.state = { tag: 'down', downEvent: e, disposable: disposables };
@@ -70,16 +70,34 @@ export default class Mouse2KeyboardEventManager {
     }
 
     onWheelEvent(event: WheelEvent) {
-        if (event.deltaY > 0) {
-            // @ts-expect-error
-            this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+up', event));
-        } else {
-            // @ts-expect-error
-            this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('wheel+down', event));
-        }
+        const e = (event.deltaY > 0) ?
+            this.wheel2keyboard('wheel+up', event) :
+            this.wheel2keyboard('wheel+down', event);
+        this.keymaps.handleKeyboardEvent(e);
     }
 
     onKeyDown(event: KeyboardEvent) {
         this.keymaps.handleKeyboardEvent(event);
+    }
+
+    private wheel2keyboard(name: string, event: WheelEvent): KeyboardEvent {
+        const e = KeymapManager.buildKeydownEvent(name, event as any) as unknown as KeyboardEvent;
+        // NOTE: because wheel events are ALSO listened for by the viewport orbit controls, it's important
+        // to allow the original event to be stopped if something takes precedence.
+        const stopPropagation = e.stopPropagation.bind(e);
+        Object.defineProperty(e, 'stopPropagation', {
+            value() {
+                event.stopPropagation();
+                stopPropagation();
+            }
+        });
+        const preventDefault = e.preventDefault.bind(e);
+        Object.defineProperty(e, 'preventDefault', {
+            value() {
+                event.preventDefault();
+                preventDefault();
+            }
+        });
+        return e;
     }
 }

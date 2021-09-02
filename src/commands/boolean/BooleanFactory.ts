@@ -77,7 +77,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         return [this.solid, ...this.tools];
     }
 
-    get shouldRemoveOriginalItem() {
+    get shouldRemoveOriginalItemOnCommit() {
         return this._isOverlapping;
     }
 }
@@ -297,7 +297,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
 
     get originalItem() { return this.solid }
 
-    get shouldRemoveOriginalItem() {
+    get shouldRemoveOriginalItemOnCommit() {
         return this._isOverlapping && this.solid !== undefined && !this.newBody;
     }
 }

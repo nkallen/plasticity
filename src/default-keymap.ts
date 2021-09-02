@@ -9,6 +9,11 @@ export default {
         "v": "gizmo:polygon:mode",
     },
 
+    "[command='rebuild'] ispace-viewport": {
+        "wheel+up": "gizmo:rebuild:forward",
+        "wheel+down": "gizmo:rebuild:backward",
+    },
+
     "[command='spiral'] ispace-viewport": {
         "a": "gizmo:spiral:angle",
         "d": "gizmo:spiral:length",
@@ -117,13 +122,14 @@ export default {
         "f": "command:fillet",
         // "f": "command:fillet-curve",
         "e": "command:extrude",
-        "x": "command:delete",
         "t": "command:trim",
         "i": "command:offset",
         "alt-x": "command:symmetry",
         "tab": "command:mode",
+        "x": "command:delete",
         "delete": "command:delete",
         "backspace": "command:delete",
+        "q": "command:rebuild",
 
         "escape": "command:abort",
         "enter": "command:finish",

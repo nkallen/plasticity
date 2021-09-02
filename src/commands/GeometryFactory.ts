@@ -50,7 +50,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
         const promises = [];
 
         // 0. Make sure original items are visible if we're not going to remove them
-        if (!this.shouldRemoveOriginalItem) for (const i of this.originalItems)
+        if (!this.shouldRemoveOriginalItemOnCommit) for (const i of this.originalItems)
             this.db.unhide(i);
 
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
@@ -59,7 +59,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
 
         // 2. Asynchronously compute the mesh for temporary items.
         const geometries = toArray(result);
-        const zipped = this.zip(this.originalItems, geometries);
+        const zipped = this.zip(this.originalItems, geometries, this.shouldHideOriginalItemDuringUpdate);
 
         for (const [from, to] of zipped) {
             if (from === undefined) {
@@ -111,7 +111,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 }
             }
             const promises = [];
-            const zipped = this.zip(this.originalItems, detached);
+            const zipped = this.zip(this.originalItems, detached, this.shouldRemoveOriginalItemOnCommit);
             for (const [from, to] of zipped) {
                 if (from === undefined) {
                     promises.push(this.db.addItem(to!));
@@ -131,8 +131,8 @@ export abstract class GeometryFactory extends ResourceRegistration {
         }
     }
 
-    private zip(originals: visual.Item[], replacements: c3d.Item[]) {
-        if (this.shouldRemoveOriginalItem) {
+    private zip(originals: visual.Item[], replacements: c3d.Item[], shouldRemoveOriginal: boolean) {
+        if (shouldRemoveOriginal) {
             return zip(originals, replacements);
         } else {
             return zip([], replacements);
@@ -150,8 +150,11 @@ export abstract class GeometryFactory extends ResourceRegistration {
     private get originalItems() {
         return toArray(this.originalItem);
     }
-    protected get shouldRemoveOriginalItem() {
+    protected get shouldRemoveOriginalItemOnCommit() {
         return true;
+    }
+    protected get shouldHideOriginalItemDuringUpdate() {
+        return this.shouldRemoveOriginalItemOnCommit;
     }
 
     // MARK: Below is the complicated StateMachine behavior
