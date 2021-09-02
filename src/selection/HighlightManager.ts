@@ -264,7 +264,6 @@ export class ModifierHighlightManager extends HighlightManager {
         for (const view of views) {
             const face = view as visual.Face;
             const solid = face.parentItem;
-            console.log("here");
             switch (this.modifiers.stateOf(solid)) {
                 case 'premodified':
                     face.child.material = invisible_hovered;
