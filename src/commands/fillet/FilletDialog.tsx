@@ -115,4 +115,4 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                 </ul></>, this);
     }
 }
-customElements.define('fillet-dialog', FilletDialog);
+customElements.define('ispace-fillet-dialog', FilletDialog);

@@ -4,6 +4,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
 import { AddModifierCommand, ApplyModifierCommand, RemoveModifierCommand } from '../../commands/CommandLike';
+import { SymmetryCommand } from '../../commands/GeometryCommands';
 import { GeometryFactory } from '../../commands/GeometryFactory';
 import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
 import { Editor } from '../../editor/Editor';
@@ -11,6 +12,7 @@ import { DatabaseLike } from '../../editor/GeometryDatabase';
 import ModifierManager, { ModifierStack } from '../../editor/ModifierManager';
 import * as visual from '../../editor/VisualModel';
 import { HasSelection } from '../../selection/SelectionManager';
+import { icons } from '../toolbar/icons';
 
 const emptyStack = {
     modifiers: []
@@ -36,10 +38,7 @@ export class Model {
 
     private get solid(): visual.Solid | undefined {
         const { db, selection } = this;
-        if (selection.solids.size == 0) return undefined;
-
-        const solid = selection.solids.first!
-        return solid;
+        return selection.solids.first;
     }
 }
 
@@ -67,7 +66,26 @@ export default (editor: Editor) => {
             }
 
             const result = <>
-                <h4>Modifiers</h4>
+                <div class="header">
+                    <span>Add:</span>
+                    <ol>
+                        <li>
+                            <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>
+                                <img src={icons.get(SymmetryCommand)}></img>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>
+                                <img src={icons.get(SymmetryCommand)}></img>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>
+                                <img src={icons.get(SymmetryCommand)}></img>
+                            </button>
+                        </li>
+                    </ol>
+                </div>
                 <ol>
                     {stack.modifiers.map((factory, index) => {
                         const Z = `ispace-modifier-${_.dasherize(factory.constructor.name)}`;
@@ -75,7 +93,6 @@ export default (editor: Editor) => {
                         return <li><Z factory={factory} index={index} stack={stack}></Z></li>
                     })}
                 </ol>
-                <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>Add symmetry</button>
             </>;
             render(result, this);
         }
@@ -114,19 +131,19 @@ export default (editor: Editor) => {
 
             render(
                 <div class="header">
-                    <div class="name">
-                        {factory.constructor.name}
-                    </div>
-                    <div class="buttons">
-                        <button onClick={_ => editor.enqueue(apply)} name={apply.identifier}>
-                            <img src={eye} />
-                            <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Apply Modifier</ispace-tooltip>
-                        </button>
-                        <button onClick={_ => editor.enqueue(remove)} name={remove.identifier}>
-                            <img src={trash} />
-                            <ispace-tooltip placement="top" command={`command:${remove.identifier}`}>Remove Modifier</ispace-tooltip>
-                        </button>
-                    </div>
+                    <button onClick={_ => editor.enqueue(apply)} name={apply.identifier} class="visibility">
+                        <img src={eye} />
+                        <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Apply Modifier</ispace-tooltip>
+                    </button>
+                    <span class="name">Symmetry</span>
+                    <button onClick={_ => editor.enqueue(apply)} name={apply.identifier}>
+                        <img src={eye} />
+                        <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Apply Modifier</ispace-tooltip>
+                    </button>
+                    <button onClick={_ => editor.enqueue(remove)} name={remove.identifier}>
+                        <img src={trash} />
+                        <ispace-tooltip placement="top" command={`command:${remove.identifier}`}>Remove Modifier</ispace-tooltip>
+                    </button>
                 </div>
                 , this);
         }

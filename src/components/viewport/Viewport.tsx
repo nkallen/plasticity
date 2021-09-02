@@ -115,7 +115,6 @@ export class Viewport {
             this.composer.addPass(phantomsPass);
             this.composer.addPass(helpersPass);
             this.composer.addPass(navigatorPass);
-            this.composer.addPass(copyPass);
             this.composer.addPass(gammaCorrection);
         }
 
@@ -214,6 +213,8 @@ export class Viewport {
         if (!this.started) return;
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
+
+        console.log("render");
 
         const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, grid, composer, camera, lastFrameNumber, offsetWidth, offsetHeight } = this
 

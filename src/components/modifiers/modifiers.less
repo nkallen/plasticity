@@ -1,0 +1,178 @@
+ispace-modifiers {
+    // overflow: auto;
+
+    margin: 0;
+    padding: 0;
+
+    &>div.header {
+        top: 0;
+        width: 100%;
+        background-color: rgba(75, 75, 75, 0.95);
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+
+        &>span {
+            margin: 10px 20px;
+            float: left;
+            vertical-align: middle;
+        }
+
+        &>ol {
+            padding: 0;
+            list-style-type: none;
+            margin: 10px;
+            float: left;
+
+            &>li {
+                display: inline-block;
+                margin: 0 10px;
+
+                button {
+                    color: #aaa;
+                    background-color: rgba(60, 60, 60, 0.95);
+                    border: 0;
+                    border: 0px;
+                    margin: 0px;
+                    cursor: pointer;
+                    outline: none;
+
+                    img {
+                        border: 1px solid;
+                        margin: 10px;
+                        color: rgba(0, 0, 0, 0.5);
+                        width: 20px;
+                    }
+                }
+            }
+        }
+    }
+
+    ispace-modifier-symmetry-factory {
+        background: rgba(24, 27, 27, 0.95);
+        padding: 12px;
+        width: 240px;
+        margin: 11px;
+        border: 1px solid rgba(24, 27, 27, 0.95);
+
+        h4 {
+            font-weight: bold;
+            margin-top: 0;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+
+            li.disabled {
+                opacity: 10%;
+                pointer-events: none;
+            }
+
+            li {
+                position: relative;
+                display: flex;
+                flex-direction: row;
+                margin-top: 6px;
+                min-height: 26px;
+
+                &>label {
+                    user-select: none;
+                    width: 100px;
+                    margin-right: 4px;
+                    padding: 4px 4px 4px 0;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    display: inline-flex;
+                }
+
+                &>input[type="radio"] {
+                    position: absolute;
+                    clip: rect(0, 0, 0, 0);
+                    pointer-events: none;
+                }
+
+                &>input[type="checkbox"] {
+                    margin: 3px;
+                    height: 20px;
+                }
+
+                &>label.btn {
+                    width: 45px;
+                    margin: 0 2px;
+                    color: #fff;
+                    background-color: #6c757d;
+                    border-color: #6c757d;
+                    display: inline-block;
+                    text-align: center;
+                    vertical-align: middle;
+                    cursor: pointer;
+                    user-select: none;
+                    border: 1px solid transparent;
+                    padding: .375rem .75rem;
+                    font-size: 1rem;
+                    border-radius: .25rem;
+                    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+                }
+
+                label.btn:hover {
+                    color: #212529;
+                }
+
+                input[type="radio"]:checked+label.btn {
+                    color: #fff;
+                    background-color: #0d6efd;
+                    border-color: #0d6efd;
+                }
+
+                ispace-number-scrubber {
+                    flex-grow: 1;
+                    display: inline-flex;
+                    align-items: center;
+
+                    &>input[type=text] {
+                        &:focus {
+                            outline: none;
+                        }
+                    }
+
+                    &>input[type=checkbox] {
+                        margin: 3px;
+                        height: 20px;
+                    }
+
+                    &>span,
+                    &>input[type=text] {
+                        background-color: rgb(16, 18, 19);
+                        flex-grow: 1;
+                        margin: 0 3px;
+                        display: block;
+                        height: 20px;
+                        padding: 4px 14px;
+                        border-radius: 5px;
+                        border: none;
+                        line-height: 18px;
+                        cursor: pointer;
+                        min-width: 50px;
+                        text-align: center;
+                    }
+
+                    &>span.disabled,
+                    &>input.disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
+                }
+            }
+        }
+    }
+}
+
+ispace-dialog.failure {
+    form {
+        border: 1px solid darkred;
+    }
+}
