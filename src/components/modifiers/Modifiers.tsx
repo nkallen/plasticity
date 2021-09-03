@@ -68,7 +68,7 @@ export default (editor: Editor) => {
 
             const result = <>
                 <div class="header">
-                    <span>Add:</span>
+                    <span>Add modifier:</span>
                     <ol>
                         <li>
                             <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>

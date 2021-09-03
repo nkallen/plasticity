@@ -272,13 +272,8 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     async removeItem(view: visual.Item, agent?: Agent): Promise<void> {
         const { version2name, name2stack, modified2name } = this;
         switch (this.stateOf(view)) {
-            case 'modified':
-                const name = modified2name.get(view.simpleName)!;
-                const modifiers = name2stack.get(name)!;
-                modified2name.delete(view.simpleName);
-                name2stack.delete(name);
-                modifiers.dispose();
-                break;
+            case 'unmodified':
+                version2name.delete(view.simpleName)!;
             case 'premodified': {
                 const name = version2name.get(view.simpleName)!;
                 const modifiers = name2stack.get(name)!;
@@ -288,6 +283,13 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
                 modifiers.dispose();
                 break;
             }
+            case 'modified':
+                const name = modified2name.get(view.simpleName)!;
+                const modifiers = name2stack.get(name)!;
+                modified2name.delete(view.simpleName);
+                name2stack.delete(name);
+                modifiers.dispose();
+                break;
         }
 
         return this.db.removeItem(view, agent);

@@ -25,7 +25,13 @@ export class Backup {
         console.time("load backup: " + tempFilePath);
         const data = await fs.promises.readFile(tempFilePath);
         await this.originator.deserialize(data);
+        this.originator.debug();
         console.timeEnd("load backup: " + tempFilePath);
+    }
+
+    async clear() {
+        const tempFilePath = await this.tempFilePath();
+        await fs.promises.rm(tempFilePath);
     }
 
     async makeTempDir() {

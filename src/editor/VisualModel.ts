@@ -134,10 +134,6 @@ export class CurveSegment extends THREE.Object3D {
 
         const built = new CurveSegment(line, occludedLine, edge.name, edge.simpleName);
 
-        built.layers.set(Layers.Curve);
-        line.layers.set(Layers.Curve);
-        occludedLine.layers.set(Layers.Curve);
-
         return built;
     }
 
@@ -239,8 +235,6 @@ export class Region extends PlaneItem {
         const mesh = new THREE.Mesh(geometry, material);
         const built = new Region(mesh);
 
-        built.layers.set(Layers.Region);
-        mesh.layers.set(Layers.Region);
         return built;
     }
 
@@ -297,9 +291,6 @@ export class CurveEdge extends Edge {
         result.userData.simpleName = `edge,${parentId},${edge.i}`;
         result.userData.index = edge.i;
 
-        result.layers.set(Layers.CurveEdge);
-        result.traverse(child => child.layers.set(Layers.CurveEdge))
-
         return result;
     }
 
@@ -337,9 +328,6 @@ export class Face extends TopologyItem {
         result.userData.name = grid.name;
         result.userData.simpleName = this.simpleName(parentId, grid.i);
         result.userData.index = grid.i;
-
-        result.layers.set(Layers.Face);
-        result.traverse(child => child.layers.set(Layers.Face))
 
         return result;
     }
@@ -518,9 +506,7 @@ export class SolidBuilder {
     }
 
     build(): Solid {
-        const built = this.solid;
-        built.layers.set(Layers.Solid);
-        return built;
+        return this.solid;
     }
 }
 
@@ -598,9 +584,7 @@ export class Curve3DBuilder {
     }
 
     build(): Curve3D {
-        const built = new Curve3D(this.segments, this.points!);
-        built.layers.set(Layers.Curve);
-        return built;
+        return new Curve3D(this.segments, this.points!);
     }
 }
 

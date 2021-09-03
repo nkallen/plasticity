@@ -58,5 +58,4 @@ export default (editor: Editor) => {
         }
     }
     customElements.define('ispace-dialog', Dialog);
-
 }

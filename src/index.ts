@@ -27,7 +27,8 @@ const createWindow = (): void => {
             // preload: path.join(path.join(__dirname, 'preload.js')),
             nodeIntegration: true,
             contextIsolation: false,
-            nodeIntegrationInWorker: true
+            nodeIntegrationInWorker: true,
+            enableRemoteModule: true,
         }
     });
 

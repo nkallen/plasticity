@@ -26,6 +26,7 @@ import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { RegionManager } from "./RegionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
+import { remote } from 'electron';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -115,6 +116,12 @@ export class Editor {
     get activeViewport() { return this._activeViewport }
     onViewportActivated(v: Viewport) {
         this._activeViewport = v;
+    }
+
+    clear() {
+        this.backup.clear();
+        console.log(remote);
+        remote.getCurrentWindow().reload();
     }
 }
 

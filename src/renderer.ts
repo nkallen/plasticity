@@ -13,6 +13,7 @@ import './components/pane/Pane';
 import registerDefaultCommands from './components/toolbar/icons';
 import Palette from './components/toolbar/Palette';
 import Toolbar from './components/toolbar/Toolbar';
+import Header from './components/header/Header';
 import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
@@ -50,6 +51,7 @@ registerDefaultCommands(editor);
 // requestAnimationFrame(loop)
 // });
 
+Header(editor);
 Toolbar(editor);
 Palette(editor);
 Viewport(editor);

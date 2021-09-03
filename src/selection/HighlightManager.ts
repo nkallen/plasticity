@@ -115,44 +115,38 @@ export class HighlightManager {
 
     private readonly lines = [line_unhighlighted, line_highlighted, line_hovered];
 
-    private highlightSolid(item: visual.Solid) {
-        for (const face of item.allFaces) {
+    private highlightSolid(solid: visual.Solid) {
+        for (const face of solid.allFaces) {
             this.highlightFace(face);
         }
-        for (const edge of item.allEdges) {
+        for (const edge of solid.allEdges) {
             this.highlightCurveEdge(edge);
         }
+        solid.layers.set(visual.Layers.Solid);
     }
 
     private highlightRegion(item: visual.PlaneInstance<visual.Region>) {
-        const { selected, hovered } = this.selection;
+        const { selected } = this.selection;
         for (const level of item.levels) {
             const region = level as visual.Region;
-            if (selected.regionIds.has(region.simpleName)) {
-                region.child.material = region_highlighted;
-            } else {
-                region.child.material = region_unhighlighted;
-            }
-            if (hovered.regionIds.has(region.simpleName)) {
-                region.child.material = region_hovered;
-            }
+            region.child.material = selected.regionIds.has(region.simpleName) ? region_highlighted : region_unhighlighted;
+            region.layers.set(visual.Layers.Region);
+            region.child.layers.set(visual.Layers.Region);
         }
     }
 
     private highlightCurve(item: visual.SpaceInstance<visual.Curve3D>) {
-        const { selected, hovered } = this.selection;
+        const { selected } = this.selection;
         for (const level of item.levels) {
             const curve = level as visual.Curve3D;
-
-            if (selected.curveIds.has(item.simpleName)) {
-                for (const segment of curve.segments) {
-                    segment.line.material = line_highlighted;
-                }
-            } else {
-                for (const segment of curve.segments) {
-                    segment.line.material = line_unhighlighted;
-                }
+            const isSelected = selected.curveIds.has(item.simpleName);
+            for (const segment of curve.segments) {
+                segment.line.material = isSelected ? line_highlighted : line_unhighlighted;
+                segment.layers.set(visual.Layers.Curve);
+                segment.line.layers.set(visual.Layers.Curve);
+                segment.occludedLine.layers.set(visual.Layers.Curve);
             }
+            curve.layers.set(visual.Layers.Curve);
         }
     }
 
@@ -160,11 +154,9 @@ export class HighlightManager {
         const { selected } = this.selection;
 
         edge.visible = true;
-        if (selected.edgeIds.has(edge.simpleName)) {
-            edge.child.material = line_highlighted;
-        } else {
-            edge.child.material = line_unhighlighted;
-        }
+        edge.child.material = selected.edgeIds.has(edge.simpleName) ? line_highlighted : line_unhighlighted;
+        edge.layers.set(visual.Layers.CurveEdge);
+        edge.child.layers.set(visual.Layers.CurveEdge);
     }
 
     protected highlightFace(face: visual.Face, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {
@@ -174,6 +166,8 @@ export class HighlightManager {
         } else {
             face.child.material = unhighlighted;
         }
+        face.layers.set(visual.Layers.Face);
+        face.child.layers.set(visual.Layers.Face);
     }
 
     setResolution(size: THREE.Vector2) {
