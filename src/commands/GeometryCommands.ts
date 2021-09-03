@@ -1252,3 +1252,5 @@ export class OffsetLoopCommand extends Command {
         const foo = await offsetContour.commit();
     }
 }
+
+module.hot?.accept();

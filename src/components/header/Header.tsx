@@ -45,7 +45,7 @@ export default (editor: Editor) => {
                         </button>
                     </li>
                     <li>
-                        <button type="button" onClick={_ => editor.clear()}>
+                        <button type="button" onClick={_ => editor.open()}>
                             <img src={open}></img>
                             <ispace-tooltip placement="bottom">Import document</ispace-tooltip>
                         </button>

@@ -31,7 +31,8 @@
     "forge": {
       "packagerConfig": {},
       "electronRebuildConfig": {
-        "mode": "parallel"
+        "mode": "parallel",
+        "forceABI": 89
       },
       "makers": [
         {
@@ -100,7 +101,7 @@
     "copy-webpack-plugin": "^8.1.1",
     "css-loader": "^4.2.1",
     "ejs": "^3.1.6",
-    "electron": "13.1.7",
+    "electron": "13.2.3",
     "electron-rebuild": "^2.3.5",
     "eslint": "^7.6.0",
     "eslint-plugin-import": "^2.20.0",
@@ -126,6 +127,7 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "@electron/remote": "^1.2.1",
     "@jest-runner/electron": "^3.0.1",
     "@types/assert": "^1.5.4",
     "atom-keymap": "^8.2.14",

@@ -244,7 +244,7 @@ export class EditorOriginator {
     }
 
     debug() {
-        console.group("Debug");
+        console.groupCollapsed("Debug")
         console.log("Version: ", this.version);
         this.modifiers.debug();
         this.snaps.debug();

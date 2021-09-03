@@ -274,6 +274,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         switch (this.stateOf(view)) {
             case 'unmodified':
                 version2name.delete(view.simpleName)!;
+                break;
             case 'premodified': {
                 const name = version2name.get(view.simpleName)!;
                 const modifiers = name2stack.get(name)!;

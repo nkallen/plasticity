@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import * as visual from "../../editor/VisualModel";
-
 export class GridHelper extends THREE.GridHelper {
     constructor(size?: number, divisions?: number, color1?: THREE.Color | string | number, color2?: THREE.Color | string | number) {
         super(size, divisions, color1, color2);

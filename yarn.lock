@@ -2156,6 +2156,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@electron/remote@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "@electron/remote@npm:1.2.1"
+  peerDependencies:
+    electron: ">= 10.0.0-beta.1"
+  checksum: 2ec4a3f7bee66ed89097ae449fe70a4dca63fb49c4c19235cc8c38b4a44caa2edae2df4de05a9fb8e234187f7bb3edfcd71dddac5fdb06e9f873f57495c69aff
+  languageName: node
+  linkType: hard
+
 "@eslint/eslintrc@npm:^0.4.2":
   version: 0.4.2
   resolution: "@eslint/eslintrc@npm:0.4.2"
@@ -6723,16 +6732,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:13.1.7":
-  version: 13.1.7
-  resolution: "electron@npm:13.1.7"
+"electron@npm:13.2.3":
+  version: 13.2.3
+  resolution: "electron@npm:13.2.3"
   dependencies:
     "@electron/get": ^1.0.1
     "@types/node": ^14.6.2
     extract-zip: ^1.0.3
   bin:
     electron: cli.js
-  checksum: 750a3133a279ce37bc6e0d62482ae80f989c51fa8a99237c0dc956eef6d305ed5f8f550098bc54d669bcd79b7d625e6ac9cc91eb368d998f39fa59a0e68472e9
+  checksum: c4c4c710b645f11a5afb83b1f61af481224b3f5dbe1e04058a1e59de5a7f1131d0d417089ba04216d3fd44113b48a935ce612e0d36e3295e28ae787e4eee9f60
   languageName: node
   linkType: hard
 
@@ -9674,6 +9683,7 @@ fsevents@^1.2.7:
     "@electron-forge/maker-zip": ^6.0.0-beta.54
     "@electron-forge/plugin-auto-unpack-natives": ^6.0.0-beta.54
     "@electron-forge/plugin-webpack": 6.0.0-beta.54
+    "@electron/remote": ^1.2.1
     "@jest-runner/electron": ^3.0.1
     "@types/assert": ^1.5.4
     "@types/atom-keymap": ^8.0.3
@@ -9694,7 +9704,7 @@ fsevents@^1.2.7:
     copy-webpack-plugin: ^8.1.1
     css-loader: ^4.2.1
     ejs: ^3.1.6
-    electron: 13.1.7
+    electron: 13.2.3
     electron-rebuild: ^2.3.5
     electron-squirrel-startup: ^1.0.0
     eslint: ^7.6.0

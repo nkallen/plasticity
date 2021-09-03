@@ -1,5 +1,7 @@
 import KeymapManager from "atom-keymap";
+import { remote } from 'electron';
 import { CompositeDisposable, Disposable } from "event-kit";
+import * as fs from 'fs';
 import * as THREE from "three";
 import Command from '../commands/Command';
 import { CancelOrFinish, CommandExecutor } from "../commands/CommandExecutor";
@@ -26,7 +28,6 @@ import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { RegionManager } from "./RegionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
-import { remote } from 'electron';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -120,8 +121,15 @@ export class Editor {
 
     clear() {
         this.backup.clear();
-        console.log(remote);
         remote.getCurrentWindow().reload();
+    }
+
+    async open() {
+        const result = await remote.dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'Files', extensions: ['c3d'] }] })
+        for (const filePath of result.filePaths) {
+            const data = await fs.promises.readFile(filePath);
+            this._db.deserialize(data);
+        }
     }
 }
 

@@ -9,8 +9,9 @@ import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import * as visual from './VisualModel';
 
-const mesh_precision_distance: [number, number][] = [[0.1, 300], [0.003, 1]];
+const mesh_precision_distance: [number, number][] = [[0.0025, 1]];
 const other_precision_distance: [number, number][] = [[0.0005, 1]];
+const temporary_precision_distance: [number, number][] = [[0.004, 1]];
 
 export type Agent = 'user' | 'automatic';
 
@@ -173,7 +174,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     async addTemporaryItem(object: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
         const note = new c3d.FormNote(true, true, false, false, false);
-        const mesh = await this.meshes(object, -1, note, [[0.003, 1]], materials);
+        const mesh = await this.meshes(object, -1, note, temporary_precision_distance, materials);
         mesh.visible = false;
         into.add(mesh);
         return {
@@ -329,7 +330,9 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
+        performance.mark('begin-create-mesh');
         const item = await obj.CreateMesh_async(stepData, note);
+        performance.measure('create-mesh', 'begin-create-mesh');
         const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
 
         switch (obj.IsA()) {
@@ -373,7 +376,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             case c3d.SpaceType.PlaneInstance: {
                 const instance = builder as visual.PlaneInstanceBuilder<visual.Region>;
                 const grids = mesh.GetBuffers();
-                if (grids.length != 1) throw new Error("Invalid precondition");
+                if (grids.length != 1) throw new Error("Invalid precondition: grid with length" + grids.length);
                 const grid = grids[0];
                 const material = materials?.region ?? this.materials.region();
                 const region = visual.Region.build(grid, material);
@@ -509,6 +512,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         const items = everything.GetItems();
         const promises = [];
         for (const item of items) {
+            console.log(item);
             const cast = item.Cast<c3d.Item>(item.IsA());
             promises.push(this.addItem(cast, 'user', item.GetItemName()));
         }

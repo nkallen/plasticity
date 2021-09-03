@@ -21,7 +21,7 @@ import { GridHelper } from "./GridHelper";
 import { ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
 
 const near = 0.01;
-const far = 1000;
+const far = 10000;
 const frustumSize = 20;
 
 export interface EditorLike extends selector.EditorLike {

@@ -36,19 +36,18 @@ Object.defineProperty(window, 'THREE', {
 })
 
 // const stats = new Stats();
-// stats.showPanel(1);
 // document.body.appendChild(stats.dom);
+// stats.dom.setAttribute('style', 'position: fixed; bottom: 0px; left: 0px; cursor: pointer; opacity: 0.9; z-index: 10000;');
 
 editor.keymaps.add('/default', keymap);
 editor.registry.add("ispace-workspace", {
-
 });
 
 registerDefaultCommands(editor);
 
 // requestAnimationFrame(function loop() {
-// stats.update();
-// requestAnimationFrame(loop)
+//     stats.update();
+//     requestAnimationFrame(loop)
 // });
 
 Header(editor);

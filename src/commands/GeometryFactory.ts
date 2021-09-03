@@ -5,6 +5,7 @@ import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
 import { ResourceRegistration } from '../util/Cancellable';
 import { zip } from '../util/Util';
+import Stats from 'stats.js';
 
 type State = { tag: 'none', last: undefined }
     | { tag: 'updated', last?: Map<string, any> }
@@ -14,6 +15,12 @@ type State = { tag: 'none', last: undefined }
     | { tag: 'committed' }
 
 export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride }
+
+const stats = new Stats();
+document.body.appendChild(stats.dom);
+stats.dom.setAttribute('style', 'position: fixed; bottom: 0px; left: 0px; cursor: pointer; opacity: 0.9; z-index: 10000;');
+// const panel = stats.addPanel(new Stats.Panel('Mesh', '#ff8', '#221'));
+// stats.showPanel(3);
 
 /**
  * Subclasses of GeometryFactory implement template update() and commit() methods. This abstract class
@@ -54,7 +61,9 @@ export abstract class GeometryFactory extends ResourceRegistration {
             this.db.unhide(i);
 
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
+        performance.mark('begin-factory-calculate');
         let result = await this.calculate(options);
+        performance.measure('factory-calculate', 'begin-factory-calculate');
         if (this.state.tag === 'cancelled') return Promise.resolve([]);
 
         // 2. Asynchronously compute the mesh for temporary items.
@@ -160,6 +169,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
     // MARK: Below is the complicated StateMachine behavior
 
     async update() {
+        stats.begin();
         switch (this.state.tag) {
             case 'none':
             case 'failed':
@@ -186,6 +196,7 @@ export abstract class GeometryFactory extends ResourceRegistration {
             default:
                 throw new Error('invalid state: ' + this.state.tag);
         }
+        stats.end();
     }
 
     // If another update() job was "enqueued" while still doing the previous one, do that too
@@ -313,3 +324,5 @@ export class NoOpError extends ValidationError {
         super("Operation has no effect");
     }
 }
+
+module.hot?.accept();
