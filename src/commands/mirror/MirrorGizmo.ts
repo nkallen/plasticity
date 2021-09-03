@@ -15,13 +15,13 @@ const _X = new THREE.Vector3(-1, 0, 0);
 const _Y = new THREE.Vector3(0, -1, 0);
 const _Z = new THREE.Vector3(0, 0, -1);
 
-const mirrorPosX = new THREE.Quaternion().setFromUnitVectors(Z, _X);
-const mirrorPosY = new THREE.Quaternion().setFromUnitVectors(Z, _Y);
-const mirrorPosZ = new THREE.Quaternion().setFromUnitVectors(Z, _Z);
+const mirrorPosX = new THREE.Quaternion().setFromUnitVectors(Z, X);
+const mirrorPosY = new THREE.Quaternion().setFromUnitVectors(Z, Y);
+const mirrorPosZ = new THREE.Quaternion().setFromUnitVectors(Z, Z);
 
-const mirrorNegX = new THREE.Quaternion().setFromUnitVectors(Z, X);
-const mirrorNegY = new THREE.Quaternion().setFromUnitVectors(Z, Y);
-const mirrorNegZ = new THREE.Quaternion().setFromUnitVectors(Z, Z);
+const mirrorNegX = new THREE.Quaternion().setFromUnitVectors(Z, _X);
+const mirrorNegY = new THREE.Quaternion().setFromUnitVectors(Z, _Y);
+const mirrorNegZ = new THREE.Quaternion().setFromUnitVectors(Z, _Z);
 
 export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
     private readonly materials = this.editor.gizmos;
@@ -36,9 +36,9 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
     private readonly _z = new MirrorAxisGizmo("symmetry:-z", this.editor, this.blue);
 
     prepare() {
-        const { x, y, z } = this;
-        for (const o of [x, y, z]) o.relativeScale.setScalar(0.8);
-        this.add(x, y, z);
+        const { x, y, z, _x, _y, _z } = this;
+        for (const o of [x, y, z, _x, _y, _z]) o.relativeScale.setScalar(0.8);
+        this.add(x, y, z, _x, _y, _z);
     }
 
     execute(cb: (params: MirrorParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {

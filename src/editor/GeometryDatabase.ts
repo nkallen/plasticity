@@ -5,11 +5,11 @@ import c3d from '../../build/Release/c3d.node';
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { assertUnreachable, GConstructor } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
-import { GeometryMemento } from './History';
+import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import * as visual from './VisualModel';
 
-const mesh_precision_distance: [number, number][] = [[0.1, 300], [0.002, 5]];
+const mesh_precision_distance: [number, number][] = [[0.1, 300], [0.003, 1]];
 const other_precision_distance: [number, number][] = [[0.0005, 1]];
 
 export type Agent = 'user' | 'automatic';
@@ -88,7 +88,7 @@ export interface MaterialOverride {
     mesh?: THREE.Material;
     surface?: THREE.Material;
 }
-export class GeometryDatabase implements DatabaseLike {
+export class GeometryDatabase implements DatabaseLike, MementoOriginator<GeometryMemento> {
     readonly temporaryObjects = new THREE.Scene();
     readonly phantomObjects = new THREE.Scene();
 
@@ -516,6 +516,21 @@ export class GeometryDatabase implements DatabaseLike {
     }
 
     validate() {
-        
+    }
+
+    debug() {
+        console.group("GeometryDatabase");
+        console.log("Version: ", this.version);
+        const { geometryModel, topologyModel, controlPointModel} = this;
+        console.group("geometryModel");
+        console.table([...geometryModel].map(([name]) => { return { name } }));
+        console.groupEnd();
+        console.group("topologyModel");
+        console.table([...topologyModel].map(([name]) => { return { name } }));
+        console.groupEnd();
+        console.group("controlPointModel");
+        console.table([...controlPointModel].map(([name, stack]) => { return { name } }));
+        console.groupEnd();
+        console.groupEnd();
     }
 }

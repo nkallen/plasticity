@@ -18,11 +18,11 @@ import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
 import './css/index.less';
 import keymap from "./default-keymap";
-import { Editor } from './editor/Editor';
+import { Editor, HotReloadingEditor } from './editor/Editor';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
-const editor = new Editor();
+const editor = new HotReloadingEditor();
 editor.backup.load();
 Object.defineProperty(window, 'editor', {
     value: editor,
@@ -34,9 +34,9 @@ Object.defineProperty(window, 'THREE', {
     writable: false,
 })
 
-const stats = new Stats();
-stats.showPanel(1);
-document.body.appendChild(stats.dom);
+// const stats = new Stats();
+// stats.showPanel(1);
+// document.body.appendChild(stats.dom);
 
 editor.keymaps.add('/default', keymap);
 editor.registry.add("ispace-workspace", {
@@ -45,10 +45,10 @@ editor.registry.add("ispace-workspace", {
 
 registerDefaultCommands(editor);
 
-requestAnimationFrame(function loop() {
-    stats.update();
-    requestAnimationFrame(loop)
-});
+// requestAnimationFrame(function loop() {
+// stats.update();
+// requestAnimationFrame(loop)
+// });
 
 Toolbar(editor);
 Palette(editor);

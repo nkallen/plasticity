@@ -159,6 +159,7 @@ export class HighlightManager {
     private highlightCurveEdge(edge: visual.CurveEdge) {
         const { selected } = this.selection;
 
+        edge.visible = true;
         if (selected.edgeIds.has(edge.simpleName)) {
             edge.child.material = line_highlighted;
         } else {

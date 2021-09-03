@@ -167,6 +167,7 @@ export class Viewport {
         this.editor.signals.objectAdded.add(this.setNeedsRender);
         this.editor.signals.historyChanged.add(this.setNeedsRender);
         this.editor.signals.commandEnded.add(this.setNeedsRender);
+        this.editor.signals.moduleReloaded.add(this.setNeedsRender);
 
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);
@@ -190,8 +191,9 @@ export class Viewport {
             this.editor.signals.gizmoChanged.remove(this.setNeedsRender);
             this.editor.signals.objectHovered.remove(this.setNeedsRender);
             this.editor.signals.objectUnhovered.remove(this.setNeedsRender);
-            this.editor.signals.objectAdded.add(this.setNeedsRender);
-            this.editor.signals.historyChanged.add(this.setNeedsRender);
+            this.editor.signals.objectAdded.remove(this.setNeedsRender);
+            this.editor.signals.historyChanged.remove(this.setNeedsRender);
+            this.editor.signals.moduleReloaded.remove(this.setNeedsRender);
 
             this.navigationControls.removeEventListener('change', this.setNeedsRender);
             this.navigationControls.removeEventListener('start', this.navigationStart);
@@ -213,8 +215,6 @@ export class Viewport {
         if (!this.started) return;
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
-
-        console.log("render");
 
         const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, grid, composer, camera, lastFrameNumber, offsetWidth, offsetHeight } = this
 
@@ -377,7 +377,7 @@ export default (editor: EditorLike) => {
             switch (view) {
                 case "3d":
                     camera = orthographicCamera;
-                    camera.position.set(-5, 100, 20);
+                    camera.position.set(100, -100, 100);
                     n = new THREE.Vector3(0, 0, 1);
                     enableNavControls = true;
                     break;

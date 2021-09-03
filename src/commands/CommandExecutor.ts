@@ -89,6 +89,9 @@ export class CommandExecutor {
             db.clearTemporaryObjects();
             signals.commandEnded.dispatch(command);
             originator.validate();
+            console.groupCollapsed(command.title);
+            originator.debug();
+            console.groupEnd();
         }
     }
 

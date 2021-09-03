@@ -204,7 +204,10 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         const { premodified, modified } = stack;
 
         modified2name.delete(modified.simpleName);
-        name2stack.delete(version2name.get(premodified.simpleName)!);
+        const name = version2name.get(premodified.simpleName)!;
+        name2stack.delete(name);
+        version2name.set(modified.simpleName, name);
+        version2name.delete(premodified.simpleName)
         this.db.removeItem(premodified);
         return modified;
     }
@@ -354,7 +357,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     validate() {
-        const { name2stack, version2name, modified2name } = this;
+        const { name2stack, version2name, modified2name, db } = this;
         console.assert([...modified2name.keys()].length === [...name2stack.keys()].length, "modified2name.keys.length == name2stack.keys.length", modified2name, name2stack);
         for (const [mname, name] of modified2name) {
             const stack = name2stack.get(name)!;
@@ -363,6 +366,24 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
             console.assert(name === version2name.get(stack.premodified.simpleName), "name === version2name.get(stack.premodified.simpleName),", name, stack.premodified.simpleName, version2name);
             console.assert(stack.modifiers.length > 0, "stack.modifiers.length > 0");
         }
+        for (const [version, name] of version2name) {
+            console.assert(db.lookupItemById(version) !== undefined, "db.lookupItemById(version) !== undefined", version);
+        }
+    }
+
+    debug() {
+        console.group("Modifiers");
+        const { name2stack, version2name, modified2name, db } = this;
+        console.group("version2name");
+        console.table([...version2name].map(([version, name]) => { return { version, name } }));
+        console.groupEnd();
+        console.group("modified2name");
+        console.table([...modified2name].map(([modified, name]) => { return { modified, name } }));
+        console.groupEnd();
+        console.group("name2stack");
+        console.table([...name2stack].map(([name, stack]) => { return { name, premodified: stack.premodified.simpleName, modified: stack.modified.simpleName, modifiers: stack.modifiers.length } }));
+        console.groupEnd();
+        console.groupEnd();
     }
 }
 
@@ -384,7 +405,10 @@ class ModifierSelection extends SelectionProxy {
                 return;
             case 'premodified': {
                 const stack = modifiers.getByPremodified(solid)!;
-                this.addSolid(stack.modified);
+                if (stack.modified === stack.premodified)
+                    selection.addSolid(solid);
+                else
+                    this.addSolid(stack.modified);
             }
         }
     }

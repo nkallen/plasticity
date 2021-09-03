@@ -13,6 +13,7 @@ import { ModifierHighlightManager } from "../selection/HighlightManager";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { SelectionManager } from "../selection/SelectionManager";
 import { Helpers } from "../util/Helpers";
+import { CreateMutable } from "../util/Util";
 import { Backup } from "./Backup";
 import ContourManager from "./ContourManager";
 import { EditorSignals } from "./EditorSignals";
@@ -114,5 +115,21 @@ export class Editor {
     get activeViewport() { return this._activeViewport }
     onViewportActivated(v: Viewport) {
         this._activeViewport = v;
+    }
+}
+
+export class HotReloadingEditor extends Editor {
+    constructor() {
+        super();
+
+        if (module.hot) {
+            const editor: CreateMutable<Editor> = this;
+
+            module.hot.accept('../selection/HighlightManager', () => {
+                editor.highlighter = new ModifierHighlightManager(this.modifiers, this.db, this.materials, this.selection, this.signals);
+                editor.highlighter.highlight();
+                this.signals.moduleReloaded.dispatch();
+            });
+        }
     }
 }

@@ -94,6 +94,8 @@ icons.set(c3d.BooleanSolid, union);
 icons.set(c3d.CurveExtrusionSolid, extrude);
 icons.set(c3d.ChamferSolid, fillet);
 icons.set(c3d.TransformedSolid, move);
+icons.set(c3d.SymmetrySolid, mirror);
+icons.set(c3d.CuttingSolid, cut);
 
 export const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");

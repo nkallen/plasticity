@@ -256,6 +256,8 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             console.assert(this.db.lookupTopologyItemById(id) !== undefined);
         }
     }
+
+    debug() {}
 }
 
 export interface HasSelectedAndHovered {

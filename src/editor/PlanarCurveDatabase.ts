@@ -275,6 +275,9 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     }
 
     validate() {
+    }
+
+    debug() {
         
     }
 }

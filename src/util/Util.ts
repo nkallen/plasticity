@@ -5,19 +5,9 @@ import { DisposableLike } from "event-kit";
 export type Constructor = new (...args: any[]) => {};
 export type GConstructor<T = {}> = new (...args: any[]) => T;
 
-export function applyMixins(derivedCtor: any, constructors: any[]): void {
-    constructors.reverse().forEach((baseCtor) => {
-        Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
-            if (name == 'constructor') return;
-            Object.defineProperty(
-                derivedCtor.prototype,
-                name,
-                Object.getOwnPropertyDescriptor(baseCtor.prototype, name) ||
-                Object.create(null)
-            );
-        });
-    });
-}
+export type CreateMutable<Type> = {
+    -readonly [Property in keyof Type]: Type[Property];
+};
 
 export function assertUnreachable(_x: never): never {
     throw new Error("Didn't expect to get here");

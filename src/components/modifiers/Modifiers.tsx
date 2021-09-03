@@ -1,10 +1,11 @@
 import eye from 'bootstrap-icons/icons/eye.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
+import checkSquare from 'bootstrap-icons/icons/check-square.svg';
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
 import { AddModifierCommand, ApplyModifierCommand, RemoveModifierCommand } from '../../commands/CommandLike';
-import { SymmetryCommand } from '../../commands/GeometryCommands';
+import { FilletCommand, SymmetryCommand, UnionCommand } from '../../commands/GeometryCommands';
 import { GeometryFactory } from '../../commands/GeometryFactory';
 import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
 import { Editor } from '../../editor/Editor';
@@ -72,16 +73,19 @@ export default (editor: Editor) => {
                         <li>
                             <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>
                                 <img src={icons.get(SymmetryCommand)}></img>
+                                <ispace-tooltip placement="bottom">Add symmetry modifier</ispace-tooltip>
                             </button>
                         </li>
                         <li>
                             <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>
-                                <img src={icons.get(SymmetryCommand)}></img>
+                                <img src={icons.get(UnionCommand)}></img>
+                                <ispace-tooltip placement="bottom">NOT IMPLEMENTED YET</ispace-tooltip>
                             </button>
                         </li>
                         <li>
                             <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>
-                                <img src={icons.get(SymmetryCommand)}></img>
+                                <img src={icons.get(FilletCommand)}></img>
+                                <ispace-tooltip placement="bottom">NOT IMPLEMENTED YET</ispace-tooltip>
                             </button>
                         </li>
                     </ol>
@@ -133,16 +137,16 @@ export default (editor: Editor) => {
                 <div class="header">
                     <button onClick={_ => editor.enqueue(apply)} name={apply.identifier} class="visibility">
                         <img src={eye} />
-                        <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Apply Modifier</ispace-tooltip>
+                        <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Disable modifier</ispace-tooltip>
                     </button>
                     <span class="name">Symmetry</span>
-                    <button onClick={_ => editor.enqueue(apply)} name={apply.identifier}>
-                        <img src={eye} />
-                        <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Apply Modifier</ispace-tooltip>
+                    <button onClick={_ => editor.enqueue(apply)} name={apply.identifier} class="apply">
+                        <img src={checkSquare} />
+                        <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Apply modifier</ispace-tooltip>
                     </button>
-                    <button onClick={_ => editor.enqueue(remove)} name={remove.identifier}>
+                    <button onClick={_ => editor.enqueue(remove)} name={remove.identifier} class="remove">
                         <img src={trash} />
-                        <ispace-tooltip placement="top" command={`command:${remove.identifier}`}>Remove Modifier</ispace-tooltip>
+                        <ispace-tooltip placement="top" command={`command:${remove.identifier}`}>Remove modifier</ispace-tooltip>
                     </button>
                 </div>
                 , this);

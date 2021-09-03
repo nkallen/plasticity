@@ -1,6 +1,4 @@
 interface to list modifiers with toggles for enable/disable and button to apply
-mouseover not working for creators
-selected face on a modifier is not highlighted
 multiple modifiers don't work
 
 # PRE ALPHA:

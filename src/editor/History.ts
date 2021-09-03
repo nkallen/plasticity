@@ -241,7 +241,17 @@ export class EditorOriginator {
         this.selection.validate();
         this.contours.validate();
         this.db.validate();
-        
+    }
+
+    debug() {
+        console.group("Debug");
+        console.log("Version: ", this.version);
+        this.modifiers.debug();
+        this.snaps.debug();
+        this.selection.debug();
+        this.contours.debug();
+        this.db.debug();
+        console.groupEnd();
     }
 }
 
@@ -251,6 +261,7 @@ export interface MementoOriginator<T> {
     serialize(): Promise<Buffer>;
     deserialize(data: Buffer): Promise<void>;
     validate(): void;
+    debug(): void;
 }
 
 export class History {

@@ -56,7 +56,7 @@ export class SymmetryFactory extends GeometryFactory {
         const { model, origin, orientation, names } = this;
 
         const { X, Y, Z } = this;
-        Z.set(0, 0, 1).applyQuaternion(orientation);
+        Z.set(0, 0, -1).applyQuaternion(orientation);
         X.set(1, 0, 0).applyQuaternion(orientation);
         const z = new c3d.Vector3D(Z.x, Z.y, Z.z);
         const x = new c3d.Vector3D(X.x, X.y, X.z);
@@ -66,6 +66,7 @@ export class SymmetryFactory extends GeometryFactory {
             this._isOverlapping = true;
             return c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names);
         } catch (e) {
+            console.warn(e);
             this._isOverlapping = false;
             const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
             const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
@@ -84,7 +85,7 @@ export class SymmetryFactory extends GeometryFactory {
             const line = c3d.ActionCurve.Segment(point1, point2);
 
             const { X, Y, Z } = this;
-            Z.set(0, 0, 1).applyQuaternion(orientation);
+            Z.set(0, 0, -1).applyQuaternion(orientation);
             X.set(1, 0, 0).applyQuaternion(orientation);
             const z = new c3d.Vector3D(Z.x, Z.y, Z.z);
             const x = new c3d.Vector3D(X.x, X.y, X.z);

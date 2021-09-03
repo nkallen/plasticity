@@ -1,8 +1,7 @@
-import { EditorSignals } from "./EditorSignals";
-import { GeometryDatabase } from "./GeometryDatabase";
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
+import * as path from 'path';
+import { EditorSignals } from "./EditorSignals";
 import { EditorOriginator } from "./History";
 
 export class Backup {

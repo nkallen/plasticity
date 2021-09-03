@@ -43,4 +43,5 @@ export class EditorSignals {
     dialogAdded: signals.Signal<AbstractDialog<any>> = new signals.Signal();
     dialogRemoved: signals.Signal = new signals.Signal();
     viewportActivated: signals.Signal<Viewport> = new signals.Signal();
+    moduleReloaded: signals.Signal = new signals.Signal();
 }
