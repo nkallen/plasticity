@@ -793,6 +793,7 @@ export default {
                 { signature: "void GetSurfaceParam(const double faceU, const double faceV, double & surfaceU, double & surfaceV)", surfaceU: isReturn, surfaceV: isReturn },
                 { signature: "void GetOuterEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold = 50)", edges: isReturn },
                 // { signature: "void GetEdges(RPArray<MbCurveEdge> & edges, size_t mapThreshold=50)", edges: isReturn },
+                "bool IsSame(const MbTopologyItem & other, double accuracy)",
                 { signature: "void GetNeighborFaces(RPArray<MbFace> & faces)", faces: isReturn },
                 { signature: "void GetBoundaryEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
                 { signature: "MbSurface * GetSurfaceCurvesData(RPArray<MbContour> & contours)", contours: isReturn, return: { name: "surface" } },

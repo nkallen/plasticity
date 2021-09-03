@@ -328,6 +328,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return result;
     }
 
+    // private reg = c3d.Registrator.AutoReg().iReg;
+
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
         performance.mark('begin-create-mesh');
@@ -391,6 +393,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             //     return points;
             // }
             case c3d.SpaceType.Solid: {
+                console.log("======");
                 const solid = builder as visual.SolidBuilder;
                 const edges = new visual.CurveEdgeGroupBuilder();
                 const lineMaterial = materials?.line ?? this.materials.line();
@@ -406,6 +409,11 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                     const material = materials?.mesh ?? this.materials.mesh(grid, mesh.IsClosed());
                     const face = visual.Face.build(grid, id, material);
                     faces.addFace(face);
+                    const oldface = this.foo.get(face.userData.nameHash);
+                    if (oldface !== undefined) {
+                        if (!oldface!.IsSame(grid.face, 10e-6)) console.log("mismatch");
+                    }
+                    this.foo.set(face.userData.nameHash, grid.face);
                 }
                 solid.addLOD(edges.build(), faces.build(), distance);
                 break;
@@ -413,6 +421,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             default: throw new Error("type not yet supported");
         }
     }
+
+    private foo = new Map<string, number>();
 
     private addTopologyItem<T extends visual.Face | visual.Edge>(parent: c3d.Solid, t: T) {
         let topologyData = this.topologyModel.get(t.simpleName);
@@ -525,7 +535,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     debug() {
         console.group("GeometryDatabase");
         console.log("Version: ", this.version);
-        const { geometryModel, topologyModel, controlPointModel} = this;
+        const { geometryModel, topologyModel, controlPointModel } = this;
         console.group("geometryModel");
         console.table([...geometryModel].map(([name]) => { return { name } }));
         console.groupEnd();
