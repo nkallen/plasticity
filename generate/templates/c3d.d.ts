@@ -450,4 +450,14 @@ declare module "*c3d.node" {
         BACK,      ///< \ru Обратное направление. \en Backward direction. 
     };
 
+    declare enum RefType {
+        RefItem = 0,  ///< \ru Некоторый объект. \en Some object. 
+        PlaneItem,    ///< \ru Двумерный геометрически объект. \en Two-dimensional geometric object. 
+        SpaceItem,    ///< \ru Трехмерный геометрический объект. \en Three-dimensional geometric object. 
+        TopItem,      ///< \ru Топологический объект. \en A topological object. 
+        Creator,      ///< \ru Строитель объекта. \en Object constructor 
+        Attribute,    ///< \ru Атрибут объекта. \en Attribute of an object.  
+        Primitive,    ///< \ru Элемент полигонального объекта. \en Element of polygonal object.
+        // \ru В конец можно добавлять новые нужные \en It is possible to add new necessary ones to the end 
+    };
 }
