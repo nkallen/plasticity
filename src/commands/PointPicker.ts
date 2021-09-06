@@ -188,7 +188,7 @@ export class PointPicker {
 
             let info: PointInfo | undefined = undefined;
             for (const viewport of this.editor.viewports) {
-                viewport.disableControlsExcept();
+                viewport.selector.enabled = false;
                 disposables.add(new Disposable(() => viewport.enableControls()))
 
                 const { camera, constructionPlane, renderer: { domElement } } = viewport;

@@ -113,7 +113,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                         const pointer = AbstractGizmo.getPointer(domElement, lastEvent);
                         stateMachine.update(viewport, pointer);
                         stateMachine.command(fn, () => {
-                            viewport.disableControlsExcept();
+                            viewport.navigationControls.enabled = false;
                             return addEventHandlers();
                         });
                     });
@@ -125,7 +125,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     stateMachine.update(viewport, pointer);
                     stateMachine.pointerDown(() => {
-                        viewport.disableControlsExcept();
+                        viewport.navigationControls.enabled = false;
                         return addEventHandlers();
                     });
                 }
@@ -144,7 +144,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                             disposables.dispose();
                             resolve();
                         }
-                        viewport.enableControls();
+                        viewport.navigationControls.enabled = true;
                     });
                 }
 

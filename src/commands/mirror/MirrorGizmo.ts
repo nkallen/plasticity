@@ -42,7 +42,11 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
     }
 
     execute(cb: (params: MirrorParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, _x, _y, _z, params } = this;
+        const { x, y, z, _x, _y, _z, params, editor: { viewports} } = this;
+
+        for (const viewport of viewports) {
+            viewport.selector.enabled = false;
+        }
 
         x.quaternion.setFromUnitVectors(Y, X);
         y.quaternion.setFromUnitVectors(Y, Y);

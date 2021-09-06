@@ -24,8 +24,14 @@ afterEach(() => {
     editor.disposable.dispose();
 });
 
+let domElement: HTMLCanvasElement;
+
+beforeEach(() => {
+    domElement = editor.viewports[0].renderer.domElement;
+    domElement.setPointerCapture = jest.fn();
+})
+
 test('basic move and click', async () => {
-    const domElement = editor.viewports[0].renderer.domElement;
     const promise = pointPicker.execute();
     const move = new MouseEvent('pointermove', { clientX: 50, clientY: 50 });
     domElement.dispatchEvent(move);

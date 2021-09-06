@@ -87,13 +87,23 @@ test("item hovered", () => {
 });
 
 test("navigation start & end", () => {
-    expect(viewport.selector.enabled).toBeTruthy();
+    expect(viewport.selector.enabled).toBe(true);
     viewport.navigationControls.dispatchEvent({ type: 'start', target: null });
-    expect(viewport.selector.enabled).toBeTruthy();
+    expect(viewport.selector.enabled).toBe(false);
     viewport.navigationControls.dispatchEvent({ type: 'change', target: null });
-    expect(viewport.selector.enabled).toBeFalsy();
+    expect(viewport.selector.enabled).toBe(false);
     viewport.navigationControls.dispatchEvent({ type: 'end', target: null });
-    expect(viewport.selector.enabled).toBeTruthy();
+    expect(viewport.selector.enabled).toBe(true);
+});
+
+test("navigation start & end restores selector state correctly", () => {
+    viewport.selector.enabled = false;
+    viewport.navigationControls.dispatchEvent({ type: 'start', target: null });
+    expect(viewport.selector.enabled).toBe(false);
+    viewport.navigationControls.dispatchEvent({ type: 'change', target: null });
+    expect(viewport.selector.enabled).toBe(false);
+    viewport.navigationControls.dispatchEvent({ type: 'end', target: null });
+    expect(viewport.selector.enabled).toBe(false);
 });
 
 test("changing construction plane changes grid orientation", () => {

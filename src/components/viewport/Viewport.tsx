@@ -34,13 +34,10 @@ export interface EditorLike extends selector.EditorLike {
     highlighter: HighlightManager,
 }
 
-type Control = { enabled: boolean, dispose(): void };
-
 export class Viewport {
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
-    readonly controls = new Set<Control>();
     readonly selector = new ViewportSelector(this.camera, this.renderer.domElement, this.editor);
     lastPointerEvent?: PointerEvent;
     private readonly disposable = new CompositeDisposable();
@@ -127,9 +124,6 @@ export class Viewport {
         this.navigationChange = this.navigationChange.bind(this);
         this.selectionStart = this.selectionStart.bind(this);
         this.selectionEnd = this.selectionEnd.bind(this);
-
-        this.controls.add(this.selector);
-        this.controls.add(this.navigationControls);
 
         this.disposable.add(
             this.editor.registry.add(this.domElement, {
@@ -286,34 +280,35 @@ export class Viewport {
         this.setNeedsRender();
     }
 
-    disableControlsExcept(except?: Control) {
-        for (const control of this.controls) {
-            if (control === except) continue;
-            control.enabled = false;
-        }
+    enableControls() {
+        this.selector.enabled = true;
+        this.navigationControls.enabled = true;
     }
 
-    enableControls() {
-        for (const control of this.controls) {
-            control.enabled = true;
-        }
-    }
+    private navigationState: NavigationState = { tag: 'none' }
 
     private navigationStart() {
         this.navigationControls.addEventListener('change', this.navigationChange);
         this.navigationControls.addEventListener('end', this.navigationEnd);
+        this.navigationState = { tag: 'navigating', selectorEnabled: this.selector.enabled };
+        this.selector.enabled = false;
         this.editor.signals.viewportActivated.dispatch(this);
     }
-
+    
     private navigationChange() {
-        this.disableControlsExcept(this.navigationControls);
         this.constructionPlane.update(this.camera);
     }
 
     private navigationEnd() {
-        this.enableControls();
-        this.navigationControls.removeEventListener('change', this.navigationChange);
-        this.navigationControls.removeEventListener('end', this.navigationEnd);
+        switch (this.navigationState.tag) {
+            case 'navigating':
+                this.navigationControls.removeEventListener('change', this.navigationChange);
+                this.navigationControls.removeEventListener('end', this.navigationEnd);
+                this.selector.enabled = this.navigationState.selectorEnabled;
+                this.navigationState = { tag: 'none' };
+                break;
+            default: throw new Error("invalid state");
+        }
     }
 
     private selectionStart() {
@@ -348,6 +343,8 @@ export class Viewport {
     }
 }
 
+type NavigationState = { tag: 'none' } | { tag: 'navigating', selectorEnabled: boolean }
+
 export interface ViewportElement {
     readonly model: Viewport;
 }
@@ -373,13 +370,13 @@ export default (editor: EditorLike) => {
 
             let camera: THREE.Camera;
             let n: THREE.Vector3;
-            let enableNavControls = false;
+            let enableRotate = false;
             switch (view) {
                 case "3d":
                     camera = orthographicCamera;
                     camera.position.set(100, -100, 100);
                     n = new THREE.Vector3(0, 0, 1);
-                    enableNavControls = true;
+                    enableRotate = true;
                     break;
                 case "top":
                     camera = orthographicCamera;
@@ -401,7 +398,7 @@ export default (editor: EditorLike) => {
             camera.layers = visual.VisibleLayers;
 
             const navigationControls = new OrbitControls(camera, renderer.domElement);
-            navigationControls.enableRotate = enableNavControls;
+            navigationControls.enableRotate = enableRotate;
             navigationControls.mouseButtons = {
                 // @ts-expect-error
                 LEFT: undefined,
