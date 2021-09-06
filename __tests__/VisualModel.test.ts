@@ -9,6 +9,9 @@ import MaterialDatabase from '../src/editor/MaterialDatabase';
 import * as visual from "../src/editor/VisualModel";
 import { BetterSelectionBox } from "../src/util/BetterRaycastingPoints";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
+import c3d from '../../build/Release/c3d.node';
+import { HighlightManager } from "../src/selection/HighlightManager";
+import { SelectionManager } from "../src/selection/SelectionManager";
 
 let materials: MaterialDatabase;
 let makeSphere: SphereFactory;
@@ -17,6 +20,8 @@ let makeCircle: CenterCircleFactory;
 let db: GeometryDatabase;
 let signals: EditorSignals;
 let makeRegion: RegionFactory;
+let highlighter: HighlightManager;
+let selection: SelectionManager;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -26,20 +31,23 @@ beforeEach(() => {
     makeLine = new LineFactory(db, materials, signals);
     makeCircle = new CenterCircleFactory(db, materials, signals);
     makeRegion = new RegionFactory(db, materials, signals);
+    selection = new SelectionManager(db, materials, signals);
+    highlighter = new HighlightManager(db, materials, selection, signals);
 });
 
 test('constructs solids', () => {
     const makeEdges = new visual.CurveEdgeGroupBuilder();
-    const edge = visual.CurveEdge.build({ position: [1, 2, 3] }, 0, materials.line(), materials.lineDashed());
+    const edge = visual.CurveEdge.build({ position: new Float32Array([1, 2, 3]) } as c3d.MeshBuffer, 0, materials.line(), materials.lineDashed());
     makeEdges.addEdge(edge);
 
     const makeFaces = new visual.FaceGroupBuilder();
-    const face = visual.Face.build({}, 0, materials.mesh());
+    const face = visual.Face.build({} as c3d.MeshBuffer, 0, materials.mesh());
     makeFaces.addFace(face);
 
     const makeSolid = new visual.SolidBuilder();
     makeSolid.addLOD(makeEdges.build(), makeFaces.build());
     const solid = makeSolid.build();
+    expect(solid).toBeInstanceOf(visual.Solid);
 });
 
 test('raycast simple solid', async () => {
@@ -72,6 +80,7 @@ test('raycast SpaceInstance<Curve3D>', async () => {
     makeLine.p2 = new THREE.Vector3(5, 5, 5);
     const item = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
     item.updateMatrixWorld();
+    highlighter.highlight();
 
     const camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
@@ -130,7 +139,7 @@ test('box select SpaceInstance<Curve3D>', async () => {
     makeLine.p1 = new THREE.Vector3();
     makeLine.p2 = new THREE.Vector3(2, 2, 0);
     const item = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
-    item.updateMatrixWorld();
+    highlighter.highlight();
 
     const camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 10);

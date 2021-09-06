@@ -33,6 +33,7 @@ export class CommandExecutor {
     // That is, do not start a new command until the previous is fully completed,
     // including any cancelation cleanup. (await this.execute(next))
     async enqueue(command: Command, cancelOrFinish: CancelOrFinish = 'finish') {
+        console.log("nq", command);
         this.next = command;
         const isActive = !!this.active;
         if (cancelOrFinish === 'cancel') this.cancelActiveCommand();

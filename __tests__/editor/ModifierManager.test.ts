@@ -18,6 +18,9 @@ let signals: EditorSignals;
 let selection: SelectionManager;
 let manager: ModifierManager;
 
+const X = new THREE.Vector3(1, 0, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
 beforeEach(async () => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
@@ -27,6 +30,7 @@ beforeEach(async () => {
 
 beforeEach(() => {
     manager = new ModifierManager(db, selection, materials, signals);
+    manager.validate();
 })
 
 describe(ModifierManager, () => {
@@ -48,7 +52,11 @@ describe(ModifierManager, () => {
     });
 
     test('adding & removing a symmetry modifier', async () => {
-        stack = manager.add(box, SymmetryFactory).stack; // 2. ADD MODIFIER STACK
+        const { factory, stack: st } = manager.add(box, SymmetryFactory);
+        manager.validate();
+
+        factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        stack = st;
 
         expect(stack).not.toBeUndefined();
         expect(stack.modified).toBe(stack.premodified);
@@ -59,6 +67,7 @@ describe(ModifierManager, () => {
         expect(manager.stateOf(stack.modified)).toBe('premodified');
 
         stack = await manager.rebuild(stack);
+        manager.validate();
 
         expect(db.visibleObjects.length).toBe(2);
         expect(manager.getByModified(stack.modified)).toBe(stack);
@@ -74,7 +83,8 @@ describe(ModifierManager, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
 
-        await manager.remove(box); // 6. REMOVE
+        await manager.remove(box);
+        manager.validate();
 
         expect(manager.getByPremodified(box)).toBeUndefined();
         expect(manager.getByModified(stack.modified)).toBeUndefined();
@@ -82,18 +92,28 @@ describe(ModifierManager, () => {
     });
 
     test('when removing the last modifier and rebuilding', async () => {
-        stack = manager.add(box, SymmetryFactory).stack;
+        const { factory, stack: st } = manager.add(box, SymmetryFactory);
+        manager.validate();
+
+        factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        stack = st;
         stack = await manager.rebuild(stack);
+        manager.validate();
+
         stack = stack.removeModifier(0);
         expect(stack.modifiers.length).toBe(0);
         stack = await manager.rebuild(stack);
+        manager.validate();
+
         expect(manager.getByPremodified(box)).toBeUndefined();
         expect(manager.getByModified(stack.modified)).toBeUndefined();
         expect(db.visibleObjects.length).toBe(1);
     });
 
     test('when applying', async () => {
-        stack = manager.add(box, SymmetryFactory).stack;
+        const { factory, stack: st } = manager.add(box, SymmetryFactory);
+        factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        stack = st;
         stack = await manager.rebuild(stack);
         expect(db.visibleObjects.length).toBe(2);
 
@@ -113,7 +133,9 @@ describe(ModifierManager, () => {
 
     describe('modified objects', () => {
         beforeEach(async () => {
-            stack = manager.add(box, SymmetryFactory).stack;
+            const { factory, stack: st } = manager.add(box, SymmetryFactory);
+            factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+            stack = st;
             stack = await manager.rebuild(stack);
         })
 
@@ -278,7 +300,7 @@ describe(ModifierManager, () => {
             expect(manager.selected.solidIds.has(modified.simpleName)).toBe(true);
             expect(manager.selected.solidIds.has(premodified.simpleName)).toBe(true);
             expect(manager.selected.edgeIds.has(edge.simpleName)).toBe(true);
-            
+
             manager.selected.removeAll();
 
         });
@@ -286,7 +308,9 @@ describe(ModifierManager, () => {
 
     describe("serialization", () => {
         beforeEach(async () => {
-            stack = manager.add(box, SymmetryFactory).stack;
+            const { factory, stack: st } = manager.add(box, SymmetryFactory);
+            factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+            stack = st;
             stack = await manager.rebuild(stack);
         });
 

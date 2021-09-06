@@ -5,7 +5,7 @@ global.console = {
     warn: jest.fn(),
     info: console.info,
     debug: console.debug,
-    assert: console.assert,
+    assert: (cond, ...args) => expect(cond).toBeTruthy(),
     trace: console.trace,
     time: jest.fn(),
     timeEnd: jest.fn(),
@@ -16,6 +16,8 @@ import license from '../license-key.json';
 import c3d from '../build/Release/c3d.node';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
+
+jest.mock('three/examples/jsm/loaders/EXRLoader.js');
 
 global.performance = {
     now: () => 0,

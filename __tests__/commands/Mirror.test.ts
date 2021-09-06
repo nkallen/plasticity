@@ -59,7 +59,7 @@ describe(SymmetryFactory, () => {
 
     test('commit', async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
-        makeSphere.center = new THREE.Vector3(-0.5, 0, 0);
+        makeSphere.center = new THREE.Vector3(0.5, 0, 0);
         makeSphere.radius = 1;
         const sphere = await makeSphere.commit() as visual.Solid;
 
@@ -80,7 +80,7 @@ describe(SymmetryFactory, () => {
 
     test('update', async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
-        makeSphere.center = new THREE.Vector3(-0.5, 0, 0);
+        makeSphere.center = new THREE.Vector3(0.5, 0, 0);
         makeSphere.radius = 1;
         const sphere = await makeSphere.commit() as visual.Solid;
 

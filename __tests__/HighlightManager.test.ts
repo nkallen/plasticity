@@ -12,7 +12,6 @@ import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 import { SelectionManager } from '../src/selection/SelectionManager';
-jest.mock('three/examples/jsm/loaders/EXRLoader.js');
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;

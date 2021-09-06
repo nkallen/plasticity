@@ -32,7 +32,7 @@ const Z = new THREE.Vector3(0, 0, 1);
 
 export class SymmetryFactory extends GeometryFactory {
     origin = new THREE.Vector3();
-    orientation = new THREE.Quaternion().setFromUnitVectors(X, Z);
+    orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
 
     private model!: c3d.Solid;
     private _solid!: visual.Solid;

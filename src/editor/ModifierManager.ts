@@ -361,10 +361,10 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 
     validate() {
         const { name2stack, version2name, modified2name, db } = this;
-        console.assert([...modified2name.keys()].length === [...name2stack.keys()].length, "modified2name.keys.length == name2stack.keys.length", modified2name, name2stack);
+        console.assert([...modified2name.keys()].length <= [...name2stack.keys()].length, "modified2name.keys.length == name2stack.keys.length", modified2name, name2stack);
         for (const [mname, name] of modified2name) {
             const stack = name2stack.get(name)!;
-            console.assert(stack, "stack should exist for modified item", name, name2stack);
+            console.assert(stack !== undefined, "stack should exist for modified item", name, name2stack);
             console.assert(stack.modified.simpleName === mname, "modified2name.key == stack.modified.simpleName", stack.modified.simpleName, mname);
             console.assert(name === version2name.get(stack.premodified.simpleName), "name === version2name.get(stack.premodified.simpleName),", name, stack.premodified.simpleName, version2name);
             console.assert(stack.modifiers.length > 0, "stack.modifiers.length > 0");
