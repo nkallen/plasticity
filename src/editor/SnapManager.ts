@@ -142,12 +142,15 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         performance.mark('begin-snap-add');
         const fns: Redisposable[] = [];
         if (item instanceof visual.Solid) {
+            const model = this.db.lookup(item);
+            const edges = model.GetEdges();
+            const faces = model.GetFaces();
             for (const edge of item.edges) {
-                const d = this.addEdge(edge);
+                const d = this.addEdge(edge, edges[edge.index]);
                 fns.push(d);
             }
-            for (const face of item.faces) {
-                const d = this.addFace(face);
+            for (const [i, face] of [...item.faces].entries()) {
+                const d = this.addFace(face, faces[i]);
                 fns.push(d);
             }
         } else if (item instanceof visual.SpaceInstance) {
@@ -162,9 +165,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.update();
     }
 
-    private addFace(face: visual.Face): Redisposable {
-        const model = this.db.lookupTopologyItem(face);
-
+    private addFace(face: visual.Face, model: c3d.Face): Redisposable {
         const faceSnap = new FaceSnap(face, model);
         this.faces.add(faceSnap);
 
@@ -177,8 +178,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         });
     }
 
-    private addEdge(edge: visual.CurveEdge): Redisposable {
-        const model = this.db.lookupTopologyItem(edge);
+    private addEdge(edge: visual.CurveEdge, model: c3d.CurveEdge): Redisposable {
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
         const begSnap = new PointSnap("Beginning", point2point(begPt));
@@ -380,7 +380,7 @@ export class PointSnap extends Snap {
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
     t!: number;
-    readonly snapper = this.view.child.clone();
+    readonly snapper = new Line2(this.view.child.geometry, this.view.child.material);
     protected readonly layer = Layers.CurveEdgeSnap;
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {

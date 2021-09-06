@@ -7,7 +7,7 @@ import { assertUnreachable, GConstructor } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
-import { BasicMeshCreator, BenchmarkMeshCreator } from './MeshCreator';
+import { BasicMeshCreator, BenchmarkMeshCreator, ParallelSolidMeshCreator } from './MeshCreator';
 import * as visual from './VisualModel';
 
 const mesh_precision_distance: [number, number][] = [[5, 500], [0.25, 1]];
@@ -329,7 +329,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return result;
     }
 
-    private readonly meshCreator = new BasicMeshCreator();
+    private readonly meshCreator = new ParallelSolidMeshCreator();
 
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
