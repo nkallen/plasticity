@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../build/Release/c3d.node';
 import { CancellablePromise } from "../../util/Cancellable";
-import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
+import { point2point, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
@@ -54,13 +54,13 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
 
     static placement(face: c3d.Face, hint?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
         if (hint !== undefined) {
-            const { u, v, normal } = face.NearPointProjection(vec2cart(hint));
+            const { u, v, normal } = face.NearPointProjection(point2point(hint));
             const { faceU, faceV } = face.GetFaceParam(u, v);
-            const projected = cart2vec(face.Point(faceU, faceV));
-            return { point: projected, normal: vec2vec(normal) };
+            const projected = point2point(face.Point(faceU, faceV));
+            return { point: projected, normal: vec2vec(normal, 1) };
         } else {
             const { normal, point } = face.GetAnyPointOn();
-            return { point: cart2vec(point), normal: vec2vec(normal) };
+            return { point: point2point(point), normal: vec2vec(normal, 1) };
         }
     }
 }

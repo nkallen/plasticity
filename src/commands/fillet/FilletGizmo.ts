@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
 import { CurveEdgeSnap } from "../../editor/SnapManager";
 import { CancellablePromise } from "../../util/Cancellable";
-import { cart2vec, vec2cart, vec2vec } from "../../util/Conversion";
+import { point2point, vec2vec } from "../../util/Conversion";
 import { EditorLike, mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AbstractAxialScaleGizmo, AngleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
@@ -80,13 +80,13 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         const curveEdge = models[models.length - 1];
 
         if (point !== undefined) {
-            const t = curveEdge.PointProjection(vec2cart(point))
-            const normal = vec2vec(curveEdge.EdgeNormal(t));
-            const projected = cart2vec(curveEdge.Point(t));
+            const t = curveEdge.PointProjection(point2point(point))
+            const normal = vec2vec(curveEdge.EdgeNormal(t), 1);
+            const projected = point2point(curveEdge.Point(t));
             return { point: projected, normal };
         } else {
-            const normal = vec2vec(curveEdge.EdgeNormal(0.5));
-            point = cart2vec(curveEdge.Point(0.5));
+            const normal = vec2vec(curveEdge.EdgeNormal(0.5), 1);
+            point = point2point(curveEdge.Point(0.5));
             return { point, normal };
         }
     }
@@ -103,7 +103,7 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         gizmo.relativeScale.setScalar(0.5);
         gizmo.value = 1;
         gizmo.position.copy(point);
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal));
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal, 1));
         this.variables.push(gizmo);
 
         return gizmo;

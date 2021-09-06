@@ -1,5 +1,5 @@
 import * as visual from '../../editor/VisualModel';
-import { cart2vec, vec2vec } from '../../util/Conversion';
+import { point2point, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory } from '../GeometryFactory';
 
@@ -28,15 +28,15 @@ export default class OffsetContourFactory extends GeometryFactory {
         const tau = contour.Tangent(contour.GetTMin());
         const cp = contour.GetLimitPoint(1);
         const { normal } = model.NearPointProjection(cp);
-        const n_cross_tau = vec2vec(normal).cross(vec2vec(tau)).normalize();
+        const n_cross_tau = vec2vec(normal, 1).cross(vec2vec(tau, 1)).normalize();
 
         const fsurface = model.GetSurface();
         const u = fsurface.GetUMid(), v = fsurface.GetVMid();
         const p = fsurface.PointOn(new c3d.CartPoint(u, v));
         const n = fsurface.Normal(u, v);
 
-        this.center = cart2vec(p);
-        this.normal = vec2vec(n);
+        this.center = point2point(p);
+        this.normal = vec2vec(n, 1);
 
         this.direction = new c3d.Axis3D(cp, new c3d.Vector3D(n_cross_tau.x, n_cross_tau.y, n_cross_tau.z));
         this._face = face;

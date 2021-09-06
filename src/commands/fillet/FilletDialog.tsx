@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../AbstractDialog";
-import { FilletParams, Mode } from "./FilletFactory";
+import FilletFactory, { FilletParams, Mode } from "./FilletFactory";
 import c3d from '../../../build/Release/c3d.node';
 import distance1_2 from './img/distance1-2.jpg';
 import conic1 from './img/conic1.jpg';
@@ -59,11 +59,11 @@ export class FilletDialog extends AbstractDialog<FilletParams> {
                         <label for="begLength">Beginning length
                             <ispace-tooltip><img src={beginningLength} /></ispace-tooltip>
                         </label>
-                        <ispace-number-scrubber disabled={-1e300} min={0} default={0} name="begLength" value={begLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <ispace-number-scrubber disabled={FilletFactory.LengthSentinel} min={0} default={0} name="begLength" value={begLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
                         <label for="endLength">End length</label>
-                        <ispace-number-scrubber disabled={-1e300} min={0} default={0} name="endLength" value={endLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <ispace-number-scrubber disabled={FilletFactory.LengthSentinel} min={0} default={0} name="endLength" value={endLength} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li class={this.mode === c3d.CreatorType.ChamferSolid ? 'disabled' : ''}>
                         <label for="form">Form

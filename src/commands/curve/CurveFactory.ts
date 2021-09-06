@@ -3,6 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike, GeometryDatabase } from "../../editor/GeometryDatabase";
 import MaterialDatabase from "../../editor/MaterialDatabase";
+import { point2point } from "../../util/Conversion";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 const curveMinimumPoints = new Map<c3d.SpaceType, number>();
@@ -25,7 +26,7 @@ export default class CurveFactory extends GeometryFactory {
 
         if (!this.hasEnoughPoints) throw new ValidationError(`${points.length} points is too few points for ${c3d.SpaceType[type]}`);
 
-        const cartPoints = points.map(p => new c3d.CartPoint3D(p.x, p.y, p.z));
+        const cartPoints = points.map(p => point2point(p));
         const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);
 
         const instance = new c3d.SpaceInstance(curve);

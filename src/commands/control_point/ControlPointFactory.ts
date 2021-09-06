@@ -1,8 +1,7 @@
-import { assertUnreachable } from "../../util/Util";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { cart2vec, vec2cart } from "../../util/Conversion";
+import { point2point } from "../../util/Conversion";
 import { GeometryFactory } from '../GeometryFactory';
 import { MoveParams } from "../translate/TranslateFactory";
 
@@ -31,7 +30,7 @@ abstract class ControlPointFactory extends GeometryFactory {
         } else if (curve instanceof c3d.Arc3D) {
             position = curve.GetLimitPoint(this.controlPoint.index + 1);
         } else throw new Error("not yet supported");
-        this.originalPosition.copy(cart2vec(position));
+        this.originalPosition.copy(point2point(position));
     }
 
     get originalItem() {
@@ -49,14 +48,14 @@ export class ChangePointFactory extends ControlPointFactory implements MoveParam
         newPosition.copy(originalPosition).add(move);
 
         if (curve instanceof c3d.PolyCurve3D) {
-            curve.ChangePoint(index, vec2cart(newPosition));
+            curve.ChangePoint(index, point2point(newPosition));
             curve.Rebuild();
         } else if (curve instanceof c3d.Arc3D) {
             if (curve.IsClosed()) {
-                const center = cart2vec(curve.GetCentre());
+                const center = point2point(curve.GetCentre());
                 curve.SetRadius(center.distanceTo(newPosition));
             } else {
-                curve.SetLimitPoint(index + 1, vec2cart(newPosition));
+                curve.SetLimitPoint(index + 1, point2point(newPosition));
             }
         }
 

@@ -1,9 +1,9 @@
-import { cart2vec, mat2mat, vec2cart } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../editor/VisualModel';
-import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 import { TemporaryObject } from "../../editor/GeometryDatabase";
+import * as visual from '../../editor/VisualModel';
+import { deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
+import { GeometryFactory, NoOpError } from '../GeometryFactory';
 
 abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
@@ -35,6 +35,7 @@ abstract class TranslateFactory extends GeometryFactory {
         for (const item of items) {
             const temps = db.optimization(item, async () => {
                 matrix.decompose(item.position, item.quaternion, item.scale);
+                item.position.multiplyScalar(deunit(1));
                 item.updateMatrixWorld();
 
                 return [{
@@ -104,8 +105,7 @@ export class MoveFactory extends TranslateFactory implements MoveParams {
         if (move.manhattanLength() < 10e-6) throw new NoOpError();
 
         const params = new c3d.TransformValues();
-        const vec = new c3d.Vector3D(move.x, move.y, move.z);
-        params.Move(vec);
+        params.Move(vec2vec(move));
         return params;
     }
 }
@@ -154,8 +154,8 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
         if (angle === 0) throw new NoOpError();
 
         const mat = new c3d.Matrix3D();
-        const p = new c3d.CartPoint3D(point.x, point.y, point.z);
-        const v = new c3d.Vector3D(axis.x, axis.y, axis.z);
+        const p = point2point(point);
+        const v = vec2vec(axis, 1);
         const axi = new c3d.Axis3D(p, v);
         const rotation = mat.Rotate(axi, angle);
 
@@ -177,6 +177,6 @@ export class ScaleFactory extends TranslateFactory implements ScaleParams {
         const { scale, pivot } = this;
         if (scale.equals(identity)) throw new NoOpError();
 
-        return new c3d.TransformValues(scale.x, scale.y, scale.z, vec2cart(pivot));
+        return new c3d.TransformValues(scale.x, scale.y, scale.z, point2point(pivot));
     }
 }

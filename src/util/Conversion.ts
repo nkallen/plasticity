@@ -1,16 +1,32 @@
 import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
 
-export function cart2vec(from: c3d.CartPoint3D): THREE.Vector3 {
-    return new THREE.Vector3(from.x, from.y, from.z);
+export function point2point(from: THREE.Vector3): c3d.CartPoint3D;
+export function point2point(from: c3d.CartPoint3D): THREE.Vector3;
+export function point2point(from: THREE.Vector3 | c3d.CartPoint3D): THREE.Vector3 | c3d.CartPoint3D {
+    if (from instanceof c3d.CartPoint3D) {
+        return new THREE.Vector3(from.x / 100, from.y / 100, from.z / 100);
+    } else {
+        return new c3d.CartPoint3D(from.x * 100, from.y * 100, from.z * 100);
+    }
 }
 
-export function vec2cart(from: THREE.Vector3): c3d.CartPoint3D {
-    return new c3d.CartPoint3D(from.x, from.y, from.z);
+export function vec2vec(from: THREE.Vector3, factor?: number): c3d.Vector3D;
+export function vec2vec(from: c3d.Vector3D, factor?: number): THREE.Vector3;
+export function vec2vec(from: THREE.Vector3 | c3d.Vector3D, factor = 100): THREE.Vector3 | c3d.Vector3D {
+    if (from instanceof c3d.Vector3D) {
+        return new THREE.Vector3(from.x / factor, from.y / factor, from.z / factor);
+    } else {
+        return new c3d.Vector3D(from.x * factor, from.y * factor, from.z * factor);
+    }
 }
 
-export function vec2vec(from: c3d.Vector3D): THREE.Vector3 {
-    return new THREE.Vector3(from.x, from.y, from.z);
+export function unit(x: number): number {
+    return x * 100;
+}
+
+export function deunit(x: number): number {
+    return x / 100;
 }
 
 export function quat2axisAngle(quat: THREE.Quaternion): { axis: THREE.Vector3, angle: number } {
@@ -45,13 +61,13 @@ export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): Co
         const points3d = curve3d.GetPoints();
         const points2d = [];
 
-        const inout = cart2vec(points3d[0]);
-        const origin = cart2vec(hint.GetOrigin());
+        const inout = point2point(points3d[0]);
+        const origin = point2point(hint.GetOrigin());
         inout.sub(origin);
-        const Z = vec2vec(hint.GetAxisZ());
+        const Z = vec2vec(hint.GetAxisZ(), 1);
         Z.multiplyScalar(Z.dot(inout));
 
-        hint.Move(new c3d.Vector3D(Z.x, Z.y, Z.z));
+        hint.Move(vec2vec(Z));
 
         for (const point of points3d) {
             const location = hint.PointRelative(point);
@@ -92,9 +108,9 @@ export function normalizePlacement(curve2d: c3d.Curve, placement: c3d.Placement3
 
 export function isSamePlacement(placement1: c3d.Placement3D, placement2: c3d.Placement3D): boolean {
     const Z = placement1.GetAxisZ();
-    const origin = cart2vec(placement2.GetOrigin());
-    const delta = cart2vec(placement1.GetOrigin()).sub(origin);
-    const ZdotOffset = Math.abs(vec2vec(Z).dot(delta));
+    const origin = point2point(placement2.GetOrigin());
+    const delta = point2point(placement1.GetOrigin()).sub(origin);
+    const ZdotOffset = Math.abs(vec2vec(Z, 1).dot(delta));
 
     return Z.Colinear(placement2.GetAxisZ()) && ZdotOffset < 10e-4;
 }

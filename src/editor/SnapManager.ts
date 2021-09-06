@@ -4,7 +4,7 @@ import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
 import { PointPicker } from "../commands/PointPicker";
-import { cart2vec, vec2cart, vec2vec } from "../util/Conversion";
+import { point2point, unit, vec2vec } from "../util/Conversion";
 import { CircleGeometry, Redisposable, RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { DatabaseLike } from "./GeometryDatabase";
@@ -168,7 +168,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const faceSnap = new FaceSnap(face, model);
         this.faces.add(faceSnap);
 
-        const centerSnap = new PointSnap("Center", cart2vec(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5)));
+        const centerSnap = new PointSnap("Center", point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1));
         this.centerPoints.add(centerSnap);
 
         return new Redisposable(() => {
@@ -181,8 +181,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const model = this.db.lookupTopologyItem(edge);
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
-        const begSnap = new PointSnap("Beginning", cart2vec(begPt));
-        const midSnap = new PointSnap("Middle", cart2vec(midPt));
+        const begSnap = new PointSnap("Beginning", point2point(begPt));
+        const midSnap = new PointSnap("Middle", point2point(midPt));
 
         const edgeSnap = new CurveEdgeSnap(edge, model);
         this.edges.add(edgeSnap);
@@ -204,9 +204,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const min = curve.PointOn(curve.GetTMin());
         const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
         const max = curve.PointOn(curve.GetTMax());
-        const begSnap = new PointSnap("Beginning", cart2vec(min));
-        const midSnap = new PointSnap("Middle", cart2vec(mid));
-        const endSnap = new PointSnap("End", cart2vec(max));
+        const begSnap = new PointSnap("Beginning", point2point(min));
+        const midSnap = new PointSnap("Middle", point2point(mid));
+        const endSnap = new PointSnap("End", point2point(max));
         this.begPoints.add(begSnap);
         this.midPoints.add(midSnap);
         this.endPoints.add(endSnap);
@@ -380,7 +380,7 @@ export class PointSnap extends Snap {
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
     t!: number;
-    readonly snapper = new Line2(this.view.child.geometry, this.view.child.material);
+    readonly snapper = this.view.child.clone();
     protected readonly layer = Layers.CurveEdgeSnap;
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
@@ -390,19 +390,19 @@ export class CurveEdgeSnap extends Snap {
 
     project(intersection: THREE.Intersection) {
         const pt = intersection.point;
-        const t = this.model.PointProjection(vec2cart(pt));
+        const t = this.model.PointProjection(point2point(pt));
         const on = this.model.Point(t);
         const tan = this.model.GetSpaceCurve()!.Tangent(t);
         this.t = t;
-        const position = cart2vec(on);
-        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(tan));
+        const position = point2point(on);
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(tan, 1));
         return { position, orientation }
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        const t = this.model.PointProjection(vec2cart(pt));
+        const t = this.model.PointProjection(point2point(pt));
         const on = this.model.Point(t);
-        const result = pt.manhattanDistanceTo(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
+        const result = pt.manhattanDistanceTo(point2point(on)) < 10e-4;
         return result;
     }
 }
@@ -419,35 +419,35 @@ export class CurveSnap extends Snap {
         const curve = view.underlying;
         for (const child of curve.segments.children) {
             const segment = child as visual.CurveSegment;
-            this.snapper.add(new Line2(segment.line.geometry, segment.line.material));
+            this.snapper.add(segment.line.clone());
         }
         this.init();
     }
 
     project(intersection: THREE.Intersection) {
         const pt = intersection.point;
-        const { t } = this.model.NearPointProjection(vec2cart(pt), false);
+        const { t } = this.model.NearPointProjection(point2point(pt), false);
         const on = this.model.PointOn(t);
         const tan = this.model.Tangent(t);
         this.t = t;
-        const position = cart2vec(on);
-        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(tan));
+        const position = point2point(on);
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(tan, 1));
         return { position, orientation }
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        const { t } = this.model.NearPointProjection(vec2cart(pt), false);
+        const { t } = this.model.NearPointProjection(point2point(pt), false);
         const on = this.model.PointOn(t);
-        const result = pt.manhattanDistanceTo(new THREE.Vector3(on.x, on.y, on.z)) < 10e-4;
+        const result = pt.manhattanDistanceTo(point2point(on)) < 10e-4;
         return result;
     }
 
     additionalSnapsFor(point: THREE.Vector3) {
         const { model } = this;
-        const { t } = this.model.NearPointProjection(vec2cart(point), false);
-        let normal = vec2vec(model.Normal(t));
-        let binormal = vec2vec(model.BNormal(t));
-        const tangent = vec2vec(model.Tangent(t));
+        const { t } = this.model.NearPointProjection(point2point(point), false);
+        let normal = vec2vec(model.Normal(t), 1);
+        let binormal = vec2vec(model.BNormal(t), 1);
+        const tangent = vec2vec(model.Tangent(t), 1);
 
         // in the case of straight lines, there is a tangent but no normal/binormal
         if (normal.manhattanDistanceTo(zero) < 10e-6) {
@@ -469,7 +469,7 @@ export class CurveSnap extends Snap {
 
 export class FaceSnap extends Snap {
     readonly name = "Face";
-    readonly snapper = new THREE.Mesh(this.view.child.geometry);
+    readonly snapper = this.view.child.clone();
     protected readonly layer = Layers.FaceSnap;
 
     constructor(readonly view: visual.Face, readonly model: c3d.Face) {
@@ -479,33 +479,33 @@ export class FaceSnap extends Snap {
 
     project(intersection: THREE.Intersection) {
         const { model } = this;
-        const { u, v, normal } = model.NearPointProjection(vec2cart(intersection.point));
+        const { u, v, normal } = model.NearPointProjection(point2point(intersection.point));
         const { faceU, faceV } = model.GetFaceParam(u, v);
-        const projected = cart2vec(model.Point(faceU, faceV));
+        const projected = point2point(model.Point(faceU, faceV));
         const position = projected;
-        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(normal));
+        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(normal, 1));
         return { position, orientation }
     }
 
     isValid(point: THREE.Vector3): boolean {
         const { model } = this;
-        const { u, v, normal } = model.NearPointProjection(vec2cart(point));
+        const { u, v, normal } = model.NearPointProjection(point2point(point));
         const { faceU, faceV } = model.GetFaceParam(u, v);
-        const projected = cart2vec(model.Point(faceU, faceV));
-        const result = point.manhattanDistanceTo(new THREE.Vector3(projected.x, projected.y, projected.z)) < 10e-4;
+        const projected = point2point(model.Point(faceU, faceV));
+        const result = point.manhattanDistanceTo(projected) < 10e-4;
         return result;
     }
 
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {
-        const { normal } = this.model.NearPointProjection(vec2cart(point));
-        const plane = new PlaneSnap(vec2vec(normal), point);
+        const { normal } = this.model.NearPointProjection(point2point(point));
+        const plane = new PlaneSnap(vec2vec(normal, 1), point);
         pointPicker.restrictToPlane(plane);
     }
 
     additionalSnapsFor(point: THREE.Vector3) {
         const { model } = this;
-        const { normal } = model.NearPointProjection(vec2cart(point));
-        const normalSnap = new AxisSnap("Normal", vec2vec(normal), point)
+        const { normal } = model.NearPointProjection(point2point(point));
+        const normalSnap = new AxisSnap("Normal", vec2vec(normal, 1), point)
         return [normalSnap];
     }
 }
@@ -668,7 +668,7 @@ export class PlaneSnap extends Snap {
     update(camera: THREE.Camera) { }
 
     get placement() {
-        return new c3d.Placement3D(vec2cart(this.p), new c3d.Vector3D(this.n.x, this.n.y, this.n.z), false);
+        return new c3d.Placement3D(point2point(this.p), vec2vec(this.n, 1), false);
     }
 }
 

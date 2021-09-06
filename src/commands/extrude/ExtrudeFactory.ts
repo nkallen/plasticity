@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { cart2vec, vec2vec } from "../../util/Conversion";
+import { point2point, unit, vec2vec } from "../../util/Conversion";
 import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 
@@ -50,7 +50,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
 
         const sweptData = contours2d.length > 0 ? new c3d.SweptData(surface, contours2d) : new c3d.SweptData(curves3d[0]);
         const ns = [new c3d.SNameMaker(0, c3d.ESides.SidePlus, 0)];
-        const params = new c3d.ExtrusionValues(distance1, distance2);
+        const params = new c3d.ExtrusionValues(unit(distance1), unit(distance2));
 
         // NOTE: structs are always copy-on-read because of memory boundary issues, so you need to do this convoluted
         // assignment for nested structs.
@@ -63,7 +63,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
         params.thickness1 = thickness1;
         params.thickness2 = thickness2;
 
-        const solid = await this.performAction(sweptData, new c3d.Vector3D(direction.x, direction.y, direction.z), params, ns);
+        const solid = await this.performAction(sweptData, vec2vec(direction, 1), params, ns);
         return solid;
     }
 
@@ -138,8 +138,8 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
                 placement = new c3d.Placement3D();
             }
         }
-        this._normal = vec2vec(placement.GetAxisZ())
-        this._center = cart2vec(placement.GetOrigin());
+        this._normal = vec2vec(placement.GetAxisZ(), 1)
+        this._center = point2point(placement.GetOrigin());
     }
 
     get direction(): THREE.Vector3 { return this._normal }
@@ -165,9 +165,9 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
 
         const u = fsurface.GetUMid(), v = fsurface.GetVMid();
         const p = fsurface.PointOn(new c3d.CartPoint(u, v));
-        this._center = cart2vec(p);
+        this._center = point2point(p);
         const n = model.Normal(u, v);
-        this._normal = vec2vec(n);
+        this._normal = vec2vec(n, 1);
     }
 
     get operationType() {
@@ -212,7 +212,7 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     get direction(): THREE.Vector3 {
         const placement = this._placement;
         const z = placement.GetAxisZ();
-        return vec2vec(z);
+        return vec2vec(z, 1);
     }
 
     private _center = new THREE.Vector3();

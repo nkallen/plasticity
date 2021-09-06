@@ -23,11 +23,11 @@ describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {
         makeCurve.tMin = 0;
         makeCurve.tMax = 2*Math.PI;
-        makeCurve.xFunction = "10*cos(t)";
-        makeCurve.yFunction = "10*sin(t)";
+        makeCurve.xFunction = "1000*cos(t)";
+        makeCurve.yFunction = "1000*sin(t)";
         makeCurve.zFunction = "0";
 
-        const item = await makeCurve.commit() as visual.SpaceItem;
+        const item = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);

@@ -50,7 +50,7 @@ export class Solid extends Item {
     get outline() {
         const result = [];
         for (const child of this.lod.children) {
-        result.push(child.children[1]);
+            result.push(child.children[1]);
         }
         return result;
     }
@@ -128,8 +128,10 @@ export class CurveSegment extends THREE.Object3D {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
+        line.scale.setScalar(0.01);
 
         const occludedLine = new Line2(geometry, occludedMaterial);
+        occludedLine.scale.setScalar(0.01);
         occludedLine.computeLineDistances();
 
         const built = new CurveSegment(line, occludedLine, edge.name, edge.simpleName);
@@ -197,6 +199,7 @@ export class Surface extends SpaceItem {
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
 
         const mesh = new THREE.Mesh(geometry, material);
+        mesh.scale.setScalar(0.01);
         const built = new Surface(mesh);
 
         built.layers.set(Layers.Surface);
@@ -230,9 +233,10 @@ export class Region extends PlaneItem {
         const geometry = new THREE.BufferGeometry();
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
-        // geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3)); // FIXME
+        geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
 
         const mesh = new THREE.Mesh(geometry, material);
+        mesh.scale.setScalar(0.01);
         const built = new Region(mesh);
 
         return built;
@@ -284,7 +288,9 @@ export class CurveEdge extends Edge {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
+        line.scale.setScalar(0.01);
         const occludedLine = new Line2(geometry, occludedMaterial);
+        occludedLine.scale.setScalar(0.01);
         occludedLine.computeLineDistances();
         const result = new CurveEdge(line, occludedLine);
         result.userData.name = edge.name;
@@ -324,6 +330,7 @@ export class Face extends TopologyItem {
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
         const mesh = new THREE.Mesh(geometry, material);
+        mesh.scale.setScalar(0.01);
         const result = new Face(mesh);
         result.userData.name = grid.name;
         result.userData.simpleName = this.simpleName(parentId, grid.i);
@@ -438,9 +445,9 @@ export class ControlPointGroup extends THREE.Group {
         positions = new Float32Array(ps.length * 3);
         colors = new Float32Array(ps.length * 3);
         for (const [i, p] of ps.entries()) {
-            positions[i * 3 + 0] = p.x;
-            positions[i * 3 + 1] = p.y;
-            positions[i * 3 + 2] = p.z;
+            positions[i * 3 + 0] = p.x / 100;
+            positions[i * 3 + 1] = p.y / 100;
+            positions[i * 3 + 2] = p.z / 100;
             colors[i * 3 + 0] = 1;
             colors[i * 3 + 1] = 1;
             colors[i * 3 + 2] = 1;

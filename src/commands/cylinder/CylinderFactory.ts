@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { vec2cart } from '../../util/Conversion';
+import { point2point } from '../../util/Conversion';
 import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory } from '../GeometryFactory';
 
@@ -37,7 +37,7 @@ export default class CylinderFactory extends GeometryFactory implements Cylinder
 
         _radius.normalize().multiplyScalar(radius).add(base);
 
-        const points = [vec2cart(base), vec2cart(height), vec2cart(_radius)]
+        const points = [point2point(base), point2point(height), point2point(_radius)]
 
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Cylinder, this.names);
         return sphere;

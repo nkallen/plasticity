@@ -194,7 +194,7 @@ describe(JointFilletFactory, () => {
 
         await curveFillet.setJoint(joint);
         curveFillet.radius = 0.1;
-        expect(curveFillet.cornerAngle.axis).toApproximatelyEqual(new THREE.Vector3(0,0,1));
+        expect(curveFillet.cornerAngle.axis).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         const filletted = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         const bbox = new THREE.Box3().setFromObject(filletted);
@@ -244,7 +244,7 @@ describe(JointFilletFactory, () => {
         const inst = db.lookup(filletted) as c3d.SpaceInstance;
         const item = inst.GetSpaceItem();
         const curve = item.Cast<c3d.Curve3D>(item.IsA());
-        expect (curve.IsClosed()).toBe(true);
+        expect(curve.IsClosed()).toBe(true);
 
         expect(db.visibleObjects.length).toBe(1);
     })

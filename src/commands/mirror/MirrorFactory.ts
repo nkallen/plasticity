@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from '../../editor/GeometryDatabase';
 import * as visual from '../../editor/VisualModel';
-import { vec2cart } from '../../util/Conversion';
+import { point2point, vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 
 export class MirrorFactory extends GeometryFactory {
@@ -15,7 +15,7 @@ export class MirrorFactory extends GeometryFactory {
         const model = this.db.lookup(this.curve);
         const transformed = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
         const mat = new c3d.Matrix3D();
-        mat.Symmetry(new c3d.CartPoint3D(origin.x, origin.y, origin.z), new c3d.Vector3D(normal.x, normal.y, normal.z));
+        mat.Symmetry(point2point(origin), vec2vec(normal, 1));
         transformed.Transform(mat);
 
         return transformed;
@@ -58,9 +58,9 @@ export class SymmetryFactory extends GeometryFactory {
         const { X, Y, Z } = this;
         Z.set(0, 0, -1).applyQuaternion(orientation);
         X.set(1, 0, 0).applyQuaternion(orientation);
-        const z = new c3d.Vector3D(Z.x, Z.y, Z.z);
-        const x = new c3d.Vector3D(X.x, X.y, X.z);
-        const placement = new c3d.Placement3D(vec2cart(origin), z, x, false);
+        const z = vec2vec(Z, 1);
+        const x = vec2vec(X, 1);
+        const placement = new c3d.Placement3D(point2point(origin), z, x, false);
 
         try {
             this._isOverlapping = true;
@@ -87,9 +87,9 @@ export class SymmetryFactory extends GeometryFactory {
             const { X, Y, Z } = this;
             Z.set(0, 0, -1).applyQuaternion(orientation);
             X.set(1, 0, 0).applyQuaternion(orientation);
-            const z = new c3d.Vector3D(Z.x, Z.y, Z.z);
-            const x = new c3d.Vector3D(X.x, X.y, X.z);
-            const placement = new c3d.Placement3D(vec2cart(origin), x, z, false);
+            const z = vec2vec(Z, 1);
+            const x = vec2vec(X, 1);
+            const placement = new c3d.Placement3D(point2point(origin), x, z, false);
 
             const contour = new c3d.Contour([line], true);
             const direction = new c3d.Vector3D(0, 0, 0);

@@ -10,7 +10,7 @@ import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, LineSnap, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/SnapManager';
 import * as visual from '../src/editor/VisualModel';
-import { cart2vec, vec2vec } from "../src/util/Conversion";
+import { point2point, vec2vec } from "../src/util/Conversion";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -278,13 +278,13 @@ describe(PlaneSnap, () => {
         let plane: PlaneSnap, placement: c3d.Placement3D;
         plane = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
         placement = plane.placement;
-        expect(cart2vec(placement.GetOrigin())).toApproximatelyEqual(new THREE.Vector3());
-        expect(vec2vec(placement.GetAxisZ())).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(point2point(placement.GetOrigin())).toApproximatelyEqual(new THREE.Vector3());
+        expect(vec2vec(placement.GetAxisZ(), 1)).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
 
         plane = new PlaneSnap(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
         placement = plane.placement;
-        expect(cart2vec(placement.GetOrigin())).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(vec2vec(placement.GetAxisZ())).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        expect(point2point(placement.GetOrigin())).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(vec2vec(placement.GetAxisZ(), 1)).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
     });
 })
 
@@ -599,7 +599,7 @@ describe(FaceSnap, () => {
 
         snaps.layers.set(Layers.FaceSnap);
 
-        // NOTE: the face is automatically to the snapman added via signals
+        // NOTE: the face is automatically added to the snapman via signals
         const [{ snap: match, position }] = snaps.snap(raycaster, [], []);
         expect(match).toBeInstanceOf(FaceSnap);
         const expectation = match as FaceSnap;

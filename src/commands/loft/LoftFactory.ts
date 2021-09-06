@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { cart2vec, curve3d2curve2d, vec2vec } from '../../util/Conversion';
+import { point2point, curve3d2curve2d, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export default class LoftFactory extends GeometryFactory {
@@ -31,7 +31,7 @@ export default class LoftFactory extends GeometryFactory {
         for (const { contour, placement } of this.models) {
             const center = contour.GetWeightCentre();
             const point = placement.GetPointFrom(center.x, center.y, 0, c3d.LocalSystemType3D.CartesianSystem);
-            points.push({ point: cart2vec(point), Z: vec2vec(placement.GetAxisZ()) });
+            points.push({ point: point2point(point), Z: vec2vec(placement.GetAxisZ(), 1) });
         }
         return points;
     }

@@ -20,7 +20,6 @@ beforeEach(() => {
     offsetFace = new OffsetFaceFactory(db, materials, signals);
 })
 
-
 let solid: visual.Solid;
 
 beforeEach(async () => {
@@ -30,18 +29,6 @@ beforeEach(async () => {
     makeBox.p3 = new THREE.Vector3(1, 1, 0);
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     solid = await makeBox.commit() as visual.Solid;
-});
-
-describe('update', () => {
-    test('push/pulls the visual face', async () => {
-        expect(db.temporaryObjects.children.length).toBe(0);
-        const face = solid.faces.get(0);
-        offsetFace.solid = solid;
-        offsetFace.faces = [face];
-        offsetFace.direction = new THREE.Vector3(0, 0, 1);
-        await offsetFace.update();
-        expect(db.temporaryObjects.children.length).toBe(1);
-    });
 });
 
 describe('commit', () => {

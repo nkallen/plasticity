@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, PointSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { cart2vec } from "../util/Conversion";
+import { point2point } from "../util/Conversion";
 import { mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
@@ -894,7 +894,7 @@ export class DraftSolidCommand extends Command {
 
         const face = faces[0];
         const faceModel = this.editor.db.lookupTopologyItem(face);
-        const point = cart2vec(faceModel.Point(0.5, 0.5));
+        const point = point2point(faceModel.Point(0.5, 0.5));
 
         const draftSolid = new DraftSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         draftSolid.solid = parent;

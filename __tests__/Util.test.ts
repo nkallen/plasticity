@@ -5,7 +5,7 @@ import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import * as visual from '../src/editor/VisualModel';
-import { curve3d2curve2d, normalizePlacement } from "../src/util/Conversion";
+import { curve3d2curve2d, normalizePlacement, unit } from "../src/util/Conversion";
 import { Redisposable, RefCounter, WeakValueMap } from "../src/util/Util";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
@@ -84,7 +84,7 @@ describe("curve3d2curve2d", () => {
         makeCurve.points.push(new THREE.Vector3(2, 2, 0));
         const view = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const item = db.lookup(view).GetSpaceItem();
+        const item = db.lookup(view).GetSpaceItem()!;
         const curve = item.Cast<c3d.Curve3D>(item.IsA());
 
         const curve2d = curve3d2curve2d(curve, new c3d.Placement3D());
@@ -97,7 +97,7 @@ describe("curve3d2curve2d", () => {
         makeLine.points.push(new THREE.Vector3(2, 2));
         const view = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const item = db.lookup(view).GetSpaceItem();
+        const item = db.lookup(view).GetSpaceItem()!;
         const curve = item.Cast<c3d.Curve3D>(item.IsA());
 
         const curve2d = curve3d2curve2d(curve, new c3d.Placement3D());
@@ -110,7 +110,7 @@ describe("curve3d2curve2d", () => {
         makeLine.points.push(new THREE.Vector3(2, 2, 1));
         const view = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const item = db.lookup(view).GetSpaceItem();
+        const item = db.lookup(view).GetSpaceItem()!;
         const curve = item.Cast<c3d.Curve3D>(item.IsA());
 
         const curve2d = curve3d2curve2d(curve, new c3d.Placement3D());
@@ -124,7 +124,7 @@ describe("curve3d2curve2d", () => {
         makeLine.points.push(new THREE.Vector3(2, 2, 0));
         const view = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const item = db.lookup(view).GetSpaceItem();
+        const item = db.lookup(view).GetSpaceItem()!;
         const curve = item.Cast<c3d.Curve3D>(item.IsA());
 
         const incompatible = new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 1, 1), new c3d.Vector3D(1, 0, 0), false);
@@ -140,7 +140,7 @@ describe("curve3d2curve2d", () => {
         makeCurve.points.push(new THREE.Vector3(3, 3, 3));
         const view = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const item = db.lookup(view).GetSpaceItem();
+        const item = db.lookup(view).GetSpaceItem()!;
         const curve = item.Cast<c3d.Curve3D>(item.IsA());
 
         const curve2d = curve3d2curve2d(curve, new c3d.Placement3D());
@@ -171,38 +171,38 @@ describe("normalizePlacement", () => {
         makeLine.points.push(new THREE.Vector3(2, 2, 0));
         const view = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const item = db.lookup(view).GetSpaceItem();
+        const item = db.lookup(view).GetSpaceItem()!;
         curve3d = item.Cast<c3d.Curve3D>(item.IsA());
     })
 
     test("when matches existing placement", async () => {
-        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D());
+        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D())!;
         const start = curve2d.GetLimitPoint(1);
-        expect(start.x).toBe(-2);
-        expect(start.y).toBe(2);
+        expect(start.x).toBe(unit(-2));
+        expect(start.y).toBe(unit(2));
 
         normalizePlacement(curve2d, placement, existingPlacements);
 
         expect(existingPlacements.size).toBe(1);
         const newStart = curve2d.GetLimitPoint(1);
-        expect(newStart.x).toBe(-2);
-        expect(newStart.y).toBe(2);
+        expect(newStart.x).toBe(unit(-2));
+        expect(newStart.y).toBe(unit(2));
 
     })
 
     test("when matches existing placement but must be transformed", async () => {
-        const offCenterPlacement = new c3d.Placement3D(new c3d.CartPoint3D(1, 1, 0), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false);
-        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, offCenterPlacement);
+        const offCenterPlacement = new c3d.Placement3D(new c3d.CartPoint3D(100, 100, 0), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false);
+        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, offCenterPlacement)!;
         const start = curve2d.GetLimitPoint(1);
-        expect(start.x).toBe(-3);
-        expect(start.y).toBe(1);
+        expect(start.x).toBe(unit(-3));
+        expect(start.y).toBe(unit(1));
 
         normalizePlacement(curve2d, placement, existingPlacements);
 
         expect(existingPlacements.size).toBe(1);
         const newStart = curve2d.GetLimitPoint(1);
-        expect(newStart.x).toBe(-2);
-        expect(newStart.y).toBe(2);
+        expect(newStart.x).toBe(unit(-2));
+        expect(newStart.y).toBe(unit(2));
     })
 
     test("does not match existing placement (same orientation, different offset along Z)", async () => {
@@ -210,16 +210,16 @@ describe("normalizePlacement", () => {
         makeCurve.points.push(new THREE.Vector3(-2, -2, 2)); // NOTE: on a diff plane
         makeCurve.points.push(new THREE.Vector3(-2, 2, 2));
         const view = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-        const item = db.lookup(view).GetSpaceItem();
+        const item = db.lookup(view).GetSpaceItem()!;
         curve3d = item.Cast<c3d.Curve3D>(item.IsA());
 
-        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 2), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false));
+        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 2), new c3d.Vector3D(0, 0, 1), new c3d.Vector3D(1, 0, 0), false))!;
         normalizePlacement(curve2d, placement, existingPlacements);
 
         expect(existingPlacements.size).toBe(2);
         const newStart = curve2d.GetLimitPoint(1);
-        expect(newStart.x).toBe(-2);
-        expect(newStart.y).toBe(-2);
+        expect(newStart.x).toBe(unit(-2));
+        expect(newStart.y).toBe(unit(-2));
     });
 
     test("does not match existing placement (different Z orientation)", async () => {
@@ -227,15 +227,15 @@ describe("normalizePlacement", () => {
         makeCurve.points.push(new THREE.Vector3(0, -1, -1)); // NOTE: on a diff plane orientation
         makeCurve.points.push(new THREE.Vector3(0, 1, 1));
         const view = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-        const item = db.lookup(view).GetSpaceItem();
+        const item = db.lookup(view).GetSpaceItem()!;
         curve3d = item.Cast<c3d.Curve3D>(item.IsA());
 
-        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 0, 0), new c3d.Vector3D(0, 1, 0), false));
+        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D(new c3d.CartPoint3D(0, 0, 0), new c3d.Vector3D(1, 0, 0), new c3d.Vector3D(0, 1, 0), false))!;
         normalizePlacement(curve2d, placement, existingPlacements);
 
         expect(existingPlacements.size).toBe(2);
         const newStart = curve2d.GetLimitPoint(1);
-        expect(newStart.x).toBe(-1);
-        expect(newStart.y).toBe(-1);
+        expect(newStart.x).toBe(unit(-1));
+        expect(newStart.y).toBe(unit(-1));
     });
 });

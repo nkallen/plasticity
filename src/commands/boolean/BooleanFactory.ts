@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride } from "../../editor/GeometryDatabase";
 import { PlaneSnap } from '../../editor/SnapManager';
 import * as visual from '../../editor/VisualModel';
-import { curve3d2curve2d, vec2cart, vec2vec } from '../../util/Conversion';
+import { curve3d2curve2d, point2point, vec2vec } from '../../util/Conversion';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, PhantomInfo, ValidationError } from '../GeometryFactory';
 
@@ -129,10 +129,10 @@ abstract class AbstractCutFactory extends GeometryFactory implements CutParams {
     protected async computePhantom() {
         const { contour, placement, fantom } = this;
 
-        const Z = vec2vec(placement.GetAxisZ());
+        const Z = vec2vec(placement.GetAxisZ(), 1);
         const bbox = new THREE.Box3().setFromObject(this.solid);
-        let inout_max = vec2cart(bbox.max);
-        let inout_min = vec2cart(bbox.min);
+        let inout_max = point2point(bbox.max);
+        let inout_min = point2point(bbox.min);
         placement.GetPointInto(inout_max);
         placement.GetPointInto(inout_min);
         Z.multiplyScalar(Math.abs(inout_max.z) > Math.abs(inout_min.z) ? inout_max.z : inout_min.z);

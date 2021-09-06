@@ -214,10 +214,10 @@ var AbstractCutFactory = /** @class */ (function (_super) {
                 switch (_c.label) {
                     case 0:
                         _a = this, contour = _a.contour, placement = _a.placement, fantom = _a.fantom;
-                        Z = Conversion_1.vec2vec(placement.GetAxisZ());
+                        Z = vec2vec(placement.GetAxisZ());
                         bbox = new THREE.Box3().setFromObject(this.solid);
-                        inout_max = Conversion_1.vec2cart(bbox.max);
-                        inout_min = Conversion_1.vec2cart(bbox.min);
+                        inout_max = point2point(bbox.max);
+                        inout_min = point2point(bbox.min);
                         placement.GetPointInto(inout_max);
                         placement.GetPointInto(inout_min);
                         Z.multiplyScalar(Math.abs(inout_max.z) > Math.abs(inout_min.z) ? inout_max.z : inout_min.z);

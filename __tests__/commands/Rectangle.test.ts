@@ -25,11 +25,11 @@ describe(ThreePointRectangleFactory, () => {
     })
 
     describe('commit', () => {
-        test('invokes the appropriate c3d commands', async () => {
+        test.only('invokes the appropriate c3d commands', async () => {
             makeRectangle.p1 = new THREE.Vector3();
             makeRectangle.p2 = new THREE.Vector3(1, 0, 0);
             makeRectangle.p3 = new THREE.Vector3(1, 1, 0);
-            const item = await makeRectangle.commit() as visual.SpaceItem;
+            const item = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
             const bbox = new THREE.Box3().setFromObject(item);
             const center = new THREE.Vector3();
             bbox.getCenter(center);

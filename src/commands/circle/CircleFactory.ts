@@ -1,4 +1,4 @@
-import { vec2cart } from "../../util/Conversion";
+import { point2point, unit, vec2vec } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from "../../editor/SnapManager";
@@ -26,13 +26,13 @@ export class CenterCircleFactory extends GeometryFactory {
 
         const [x, y, z] = CenterCircleFactory.orientHorizontalOrVertical(point, center, n, mode);
         const placement = new c3d.Placement3D();
-        placement.SetAxisX(new c3d.Vector3D(x.x, x.y, x.z));
-        placement.SetAxisY(new c3d.Vector3D(y.x, y.y, y.z));
-        placement.SetAxisZ(new c3d.Vector3D(z.x, z.y, z.z));
+        placement.SetAxisX(vec2vec(x, 1));
+        placement.SetAxisY(vec2vec(y, 1));
+        placement.SetAxisZ(vec2vec(z, 1));
         placement.Reset();
-        placement.SetOrigin(new c3d.CartPoint3D(center.x, center.y, center.z));
+        placement.SetOrigin(point2point(center));
 
-        const circle = new c3d.Arc3D(placement, radius, radius, 0);
+        const circle = new c3d.Arc3D(placement, unit(radius), unit(radius), 0);
 
         return new c3d.SpaceInstance(circle);
     }
@@ -73,7 +73,7 @@ export class ThreePointCircleFactory extends GeometryFactory {
     async calculate() {
         const { p1, p2, p3 } = this;
 
-        const circle = new c3d.Arc3D(vec2cart(p1), vec2cart(p2), vec2cart(p3), 1, true);
+        const circle = new c3d.Arc3D(point2point(p1), point2point(p2), point2point(p3), 1, true);
 
         return new c3d.SpaceInstance(circle);
     }

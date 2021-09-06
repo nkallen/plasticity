@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { vec2cart } from "../../util/Conversion";
+import { point2point } from "../../util/Conversion";
 import { GeometryFactory } from '../GeometryFactory';
 
 export class CenterEllipseFactory extends GeometryFactory {
@@ -10,7 +10,7 @@ export class CenterEllipseFactory extends GeometryFactory {
 
     async calculate() {
         const { center, p2, p3 } = this;
-        const circle = new c3d.Arc3D(vec2cart(center), vec2cart(p2), vec2cart(p3), 0);
+        const circle = new c3d.Arc3D(point2point(center), point2point(p2), point2point(p3), 0);
 
         return new c3d.SpaceInstance(circle);
     }
@@ -33,7 +33,7 @@ export class ThreePointEllipseFactory extends GeometryFactory {
 
     async calculate() {
         const { center, p2, p3 } = this;
-        const circle = new c3d.Arc3D(vec2cart(center), vec2cart(p2), vec2cart(p3), 0);
+        const circle = new c3d.Arc3D(point2point(center), point2point(p2), point2point(p3), 0);
 
         return new c3d.SpaceInstance(circle);
     }

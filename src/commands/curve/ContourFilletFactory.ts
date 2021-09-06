@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { CancellableRegistor } from '../../util/Cancellable';
-import { cart2vec, vec2vec } from '../../util/Conversion';
+import { point2point, unit, vec2vec } from '../../util/Conversion';
 import { Joint } from '../../editor/ContourManager';
 import { PlanarCurveDatabase } from "../../editor/PlanarCurveDatabase";
 import { GeometryFactory } from '../GeometryFactory';
@@ -58,7 +58,7 @@ export class ContourFilletFactory extends GeometryFactory implements CurveFillet
     set radius(radius: number) {
         for (const p of this.controlPoints) {
             const index = (p === 0 && this.model.IsClosed()) ? this.model.GetSegmentsCount() - 1 : p - 1;
-            this.radiuses[index] = radius;
+            this.radiuses[index] = unit(radius);
         }
     }
 
@@ -68,9 +68,9 @@ export class ContourFilletFactory extends GeometryFactory implements CurveFillet
             const contour = this.model;
             const info = contour.GetCornerAngle(i);
             result.push({
-                origin: cart2vec(info.origin),
-                tau: vec2vec(info.tau),
-                axis: vec2vec(info.axis),
+                origin: point2point(info.origin),
+                tau: vec2vec(info.tau, 1),
+                axis: vec2vec(info.axis, 1),
                 angle: info.angle,
             })
         }
@@ -262,16 +262,16 @@ export class Polyline2ContourFactory extends GeometryFactory {
         const segments = [];
         for (const curr of points) {
             const factory = new LineFactory(this.db, this.materials, this.signals);
-            factory.p1 = cart2vec(prev);
-            factory.p2 = cart2vec(curr);
+            factory.p1 = point2point(prev);
+            factory.p2 = point2point(curr);
             const segment = factory.calculate();
             segments.push(segment);
             prev = curr;
         }
         if (model.IsClosed()) {
             const factory = new LineFactory(this.db, this.materials, this.signals);
-            factory.p1 = cart2vec(prev);
-            factory.p2 = cart2vec(start);
+            factory.p1 = point2point(prev);
+            factory.p2 = point2point(start);
             const segment = factory.calculate();
             segments.push(segment);
         }

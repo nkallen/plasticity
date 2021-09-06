@@ -1,5 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 
 export class ExtrudeSurfaceFactory extends GeometryFactory {
@@ -18,7 +19,7 @@ export class ExtrudeSurfaceFactory extends GeometryFactory {
 
     async calculate() {
         const { model, direction } = this;
-        const result = c3d.ActionSurface.ExtrusionSurface(model, new c3d.Vector3D(direction.x, direction.y, direction.z), true);
+        const result = c3d.ActionSurface.ExtrusionSurface(model, vec2vec(direction), true);
         return new c3d.SpaceInstance(result);
     }
 }

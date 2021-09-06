@@ -1,7 +1,7 @@
 import { PlaneSnap } from "../../editor/SnapManager";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { vec2cart } from "../../util/Conversion";
+import { point2point, vec2vec } from "../../util/Conversion";
 import { GeometryFactory } from '../GeometryFactory';
 import { CenterCircleFactory, Mode } from "../circle/CircleFactory";
 
@@ -24,7 +24,7 @@ export class PolygonFactory extends GeometryFactory {
     async calculate() {
         const { center, p2, vertexCount, constructionPlane: { n } } = this;
         const [,,z] = CenterCircleFactory.orientHorizontalOrVertical(this.p2, this.center, n, this.mode);
-        const polygon = c3d.ActionCurve3D.RegularPolygon(vec2cart(center), vec2cart(p2), new c3d.Vector3D(z.x, z.y, z.z), vertexCount, false);
+        const polygon = c3d.ActionCurve3D.RegularPolygon(point2point(center), point2point(p2), vec2vec(z, 1), vertexCount, false);
 
         return new c3d.SpaceInstance(polygon);
     }

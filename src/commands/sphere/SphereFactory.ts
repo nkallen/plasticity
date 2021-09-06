@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { point2point } from "../../util/Conversion";
 import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory } from '../GeometryFactory';
 
@@ -9,15 +10,24 @@ interface SphereParams {
     radius: number;
 }
 
+
 export default class SphereFactory extends GeometryFactory implements SphereParams {
     center!: THREE.Vector3;
     radius!: number;
 
+    private readonly X = new THREE.Vector3(1, 0, 0);
+    private readonly Z = new THREE.Vector3(0, 0, 1);
+
     async calculate() {
+        const { center, radius, X, Z } = this;
+
+        Z.set(1,0,0).add(center);
+        X.set(0,0,1).multiplyScalar(radius).add(center);
+
         const points = [
-            new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z),
-            new c3d.CartPoint3D(this.center.x, this.center.y, this.center.z + 1),
-            new c3d.CartPoint3D(this.center.x + this.radius, this.center.y, this.center.z),
+            point2point(center),
+            point2point(Z),
+            point2point(X)
         ];
         const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
         const sphere = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Sphere, names);
@@ -45,4 +55,8 @@ export class PossiblyBooleanSphereFactory extends PossiblyBooleanFactory<SphereF
         await super.precomputeGeometry();
         if (this._phantom !== undefined) this.bool.toolModels = [this._phantom];
     }
+}
+
+function cart2cart(center: THREE.Vector3) {
+    throw new Error("Function not implemented.");
 }

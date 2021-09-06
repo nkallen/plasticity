@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { point2point } from "../../util/Conversion";
 import { GeometryFactory } from '../GeometryFactory';
 
 export default class ElementarySolidFactory extends GeometryFactory {
@@ -34,7 +35,7 @@ export default class ElementarySolidFactory extends GeometryFactory {
         const { creator, control, duplicate, points } = this;
 
         for (const [index, point] of points.entries()) {
-            control.SetPoint(index, new c3d.CartPoint3D(point.x, point.y, point.z));
+            control.SetPoint(index, point2point(point));
         }
         control.ResetIndex();
         creator.SetBasisPoints(control);

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 import { MoveParams } from '../translate/TranslateFactory';
 
@@ -48,7 +49,7 @@ export abstract class ModifyFaceFactory extends GeometryFactory {
 
         const params = new c3d.ModifyValues();
         params.way = this.operationType;
-        params.direction = new c3d.Vector3D(direction.x, direction.y, direction.z);
+        params.direction = vec2vec(direction);
         const result = await c3d.ActionDirect.FaceModifiedSolid_async(solidModel, c3d.CopyMode.Copy, params, facesModel, this.names);
         return result;
     }

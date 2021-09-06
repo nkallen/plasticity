@@ -1,4 +1,4 @@
-import { vec2cart } from "../../util/Conversion";
+import { point2point, vec2vec } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from "../../editor/SnapManager";
@@ -45,8 +45,8 @@ export class CenterPointArcFactory extends GeometryFactory {
 
         if (cross.manhattanLength() < 10e-6) throw new Error("invalid");
 
-        const Z = new c3d.Vector3D(n.x, n.y, n.z);
-        const circle = new c3d.Arc3D(vec2cart(center), vec2cart(p2), vec2cart(p3), Z, this.sense ? 1 : -1);
+        const Z = vec2vec(n, 1);
+        const circle = new c3d.Arc3D(point2point(center), point2point(p2), point2point(p3), Z, this.sense ? 1 : -1);
 
         return new c3d.SpaceInstance(circle);
     }
@@ -59,7 +59,7 @@ export class ThreePointArcFactory extends GeometryFactory {
 
     async calculate() {
         const { p1, p2, p3 } = this;
-        const circle = new c3d.Arc3D(vec2cart(p1), vec2cart(p2), vec2cart(p3), 1, false);
+        const circle = new c3d.Arc3D(point2point(p1), point2point(p2), point2point(p3), 1, false);
 
         return new c3d.SpaceInstance(circle);
     }

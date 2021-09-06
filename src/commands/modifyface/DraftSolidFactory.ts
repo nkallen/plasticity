@@ -1,4 +1,4 @@
-import { vec2cart } from '../../util/Conversion';
+import { point2point } from '../../util/Conversion';
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
@@ -20,7 +20,7 @@ export class DraftSolidFactory extends GeometryFactory implements RotateParams {
         const model = this.db.lookup(solid);
         const faces_ = faces.map(f => this.db.lookupTopologyItem(f));
         const placement = new c3d.Placement3D();
-        placement.SetOrigin(vec2cart(pivot));
+        placement.SetOrigin(point2point(pivot));
         if (axis.dot(new THREE.Vector3(1, 0, 0)) > 1e-6) {
             placement.SetAxisZ(new c3d.Vector3D(0, 1, 0));
         } else if (axis.dot(new THREE.Vector3(0, 1, 0)) > 1e-6) {

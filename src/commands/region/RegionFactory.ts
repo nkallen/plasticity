@@ -1,4 +1,4 @@
-import { cart2vec, normalizePlacement } from '../../util/Conversion';
+import { point2point, normalizePlacement } from '../../util/Conversion';
 import { curve3d2curve2d } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';

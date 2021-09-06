@@ -10,9 +10,9 @@ import MaterialDatabase from './MaterialDatabase';
 import { BasicMeshCreator, BenchmarkMeshCreator } from './MeshCreator';
 import * as visual from './VisualModel';
 
-const mesh_precision_distance: [number, number][] = [[0.1, 500], [0.0025, 1]];
-const other_precision_distance: [number, number][] = [[0.0005, 1]];
-const temporary_precision_distance: [number, number][] = [[0.004, 1]];
+const mesh_precision_distance: [number, number][] = [[5, 500], [0.25, 1]];
+const other_precision_distance: [number, number][] = [[0.05, 1]];
+const temporary_precision_distance: [number, number][] = [[0.4, 1]];
 
 export type Agent = 'user' | 'automatic';
 
@@ -355,6 +355,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                             const segment = visual.CurveSegment.build(edge, id, materials?.line ?? lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
                             segments.addSegment(segment);
                         }
+
                         const curve = new visual.Curve3DBuilder();
                         const pointGroup = visual.ControlPointGroup.build(underlying, id, pointMaterial);
                         curve.addControlPoints(pointGroup);

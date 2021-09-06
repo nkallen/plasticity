@@ -3,6 +3,7 @@ import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike, GeometryDatabase } from '../../editor/GeometryDatabase';
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import * as visual from '../../editor/VisualModel';
+import { deunit, unit } from '../../util/Conversion';
 import { GeometryFactory, NoOpError } from '../GeometryFactory';
 
 export interface FilletParams {
@@ -26,6 +27,8 @@ export interface FilletParams {
 export type Mode = c3d.CreatorType.FilletSolid | c3d.CreatorType.ChamferSolid;
 
 export default class FilletFactory extends GeometryFactory implements FilletParams {
+    static LengthSentinel = deunit(-1e300);
+
     private _solid!: visual.Solid;
     private _edges!: visual.CurveEdge[];
 
@@ -44,8 +47,8 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         params.conic = 0;
         params.prolong = false;
         params.smoothCorner = c3d.CornerForm.uniform;
-        params.begLength = -1e300;
-        params.endLength = -1e300;
+        params.begLength = unit(FilletFactory.LengthSentinel);
+        params.endLength = unit(FilletFactory.LengthSentinel);
         params.keepCant = -1;
         params.strict = true;
 
@@ -81,17 +84,17 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         this._edges = edges;
     }
 
-    get distance() { return this.params.distance1 }
+    get distance() { return deunit(this.params.distance1) }
     set distance(d: number) {
         const { params } = this;
-        params.distance1 = d;
-        params.distance2 = d;
+        params.distance1 = unit(d);
+        params.distance2 = unit(d);
     }
 
-    get distance1() { return this.params.distance1 }
-    set distance1(d: number) { this.params.distance1 = d }
-    get distance2() { return this.params.distance2 }
-    set distance2(d: number) { this.params.distance2 = d }
+    get distance1() { return deunit(this.params.distance1) }
+    set distance1(d: number) { this.params.distance1 = unit(d) }
+    get distance2() { return deunit(this.params.distance2) }
+    set distance2(d: number) { this.params.distance2 = unit(d) }
     get form() { return this.params.form }
     set form(d: c3d.SmoothForm) { this.params.form = d }
     get conic() { return this.params.conic }
@@ -104,10 +107,10 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     set keepCant(d: c3d.ThreeStates) { this.params.keepCant = d }
     get strict() { return this.params.strict }
     set strict(d: boolean) { this.params.strict = d }
-    get begLength() { return this.params.begLength }
-    set begLength(d: number) { this.params.begLength = d }
-    get endLength() { return this.params.endLength }
-    set endLength(d: number) { this.params.endLength = d }
+    get begLength() { return deunit(this.params.begLength) }
+    set begLength(d: number) { this.params.begLength = unit(d) }
+    get endLength() { return deunit(this.params.endLength) }
+    set endLength(d: number) { this.params.endLength = unit(d) }
     get equable() { return this.params.equable }
     set equable(d: boolean) { this.params.equable = d }
 

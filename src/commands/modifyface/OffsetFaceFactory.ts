@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
+import { vec2vec } from '../../util/Conversion';
 import { NoOpError } from '../GeometryFactory';
 import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
 
@@ -17,7 +18,7 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
         if (direction.lengthSq() > 0) {
             const params = new c3d.ModifyValues();
             params.way = c3d.ModifyingType.Offset;
-            params.direction = new c3d.Vector3D(direction.x, direction.y, direction.z);
+            params.direction = vec2vec(direction);
             solid = await c3d.ActionDirect.FaceModifiedSolid_async(solid, c3d.CopyMode.Copy, params, facesModel, this.names);
             transformed = true;
         }
@@ -80,7 +81,7 @@ export class FaceCollector {
             const plus = outer.GetFacePlus()!;
             const minus = outer.GetFaceMinus()!;
             const face = plus.Id() === reference.Id() ? minus : plus;
-             if (outer.IsSmooth()) {
+            if (outer.IsSmooth()) {
                 smoothlyJoinedFaces.set(face.Id(), face);
             } else {
                 slopes.push(face);

@@ -7,6 +7,7 @@ import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials, FakeSprites } from "../__mocks__/FakeMaterials";
 import './matchers';
 import * as THREE from 'three';
+import { point2point } from '../src/util/Conversion';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -15,10 +16,10 @@ let signals: EditorSignals;
 let box: c3d.Solid;
 
 const points = [
-    new c3d.CartPoint3D(0, 0, 0),
-    new c3d.CartPoint3D(1, 0, 0),
-    new c3d.CartPoint3D(1, 1, 0),
-    new c3d.CartPoint3D(1, 1, 1),
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(1, 0, 0),
+    new THREE.Vector3(1, 1, 0),
+    new THREE.Vector3(1, 1, 1),
 ]
 
 const names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
@@ -29,7 +30,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
 
-    box = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
+    box = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
 })
 
 test("addItem & lookup & removeItem", async () => {
@@ -56,7 +57,7 @@ test("addItem with explicit name", async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(db.visibleObjects.length).toBe(1);
 
-    const box2 = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
+    const box2 = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
     const n = await db.addItem(box) as visual.Solid;
     expect(n.simpleName).toBe(101);
     expect(db.lookup(v)).toBeTruthy();
@@ -80,12 +81,12 @@ test("addItem & replaceItem", async () => {
     expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
 
     const points = [
-        new c3d.CartPoint3D(0, 0, 0),
-        new c3d.CartPoint3D(-1, 0, 0),
-        new c3d.CartPoint3D(-1, -1, 0),
-        new c3d.CartPoint3D(-1, -1, -1),
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(-1, 0, 0),
+        new THREE.Vector3(-1, -1, 0),
+        new THREE.Vector3(-1, -1, -1),
     ]
-    const box2 = c3d.ActionSolid.ElementarySolid(points, c3d.ElementaryShellType.Block, names);
+    const box2 = c3d.ActionSolid.ElementarySolid(points.map(p => point2point(p)), c3d.ElementaryShellType.Block, names);
     const view2 = await db.replaceItem(view1, box2);
     expect(view2.simpleName).not.toBe(view1.simpleName);
 
@@ -106,7 +107,7 @@ test("saveToMemento & restoreFromMemento", async () => {
     expect(db.temporaryObjects.children.length).toBe(0);
     expect(db.visibleObjects.length).toBe(1);
 
-    const memento = db.saveToMemento(new Map());
+    const memento = db.saveToMemento();
 
     db.removeItem(v);
     expect(() => db.lookup(v)).toThrow();
@@ -182,7 +183,7 @@ test("lookupTopologyItemById", async () => {
 });
 
 test("lookupControlPointById", async () => {
-    const curve = c3d.ActionCurve3D.SplineCurve(points, false, c3d.SpaceType.Hermit3D);
+    const curve = c3d.ActionCurve3D.SplineCurve(points.map(p => point2point(p)), false, c3d.SpaceType.Hermit3D);
     const instance = await db.addItem(new c3d.SpaceInstance(curve)) as visual.SpaceInstance<visual.Curve3D>;
     expect(db.visibleObjects.length).toBe(1);
 

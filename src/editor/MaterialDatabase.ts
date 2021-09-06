@@ -25,11 +25,9 @@ const previewLine = new LineMaterial({ color: 0x000088, linewidth: 0.7 });
 
 const line = new LineMaterial({ color: 0x000000, linewidth: 1.4 });
 
-const line_dashed = new LineMaterial({ color: 0x000000, linewidth: 0.5, dashed: true, dashScale: 100 });
+const line_dashed = new LineMaterial({ color: 0x000000, linewidth: 0.5, dashed: true, dashScale: 100, dashSize: 100, gapSize: 100 });
 line_dashed.depthFunc = THREE.AlwaysDepth;
 line_dashed.defines.USE_DASH = "";
-line_dashed.dashSize = 1;
-line_dashed.gapSize = 1;
 
 const point = new THREE.PointsMaterial({ color: 0x888888 });
 

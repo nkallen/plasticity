@@ -2,7 +2,7 @@ import { PlaneSnap } from "../../editor/SnapManager";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory } from '../GeometryFactory';
-import { vec2cart } from "../../util/Conversion";
+import { point2point } from "../../util/Conversion";
 import { CenterCircleFactory, Mode } from "../circle/CircleFactory";
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 };
@@ -14,7 +14,7 @@ abstract class RectangleFactory extends GeometryFactory {
     async calculate() {
         const { p1, p2, p3, p4 } = this.orthogonal();
 
-        const points = [vec2cart(p1), vec2cart(p2), vec2cart(p3), vec2cart(p4),]
+        const points = [point2point(p1), point2point(p2), point2point(p3), point2point(p4),]
 
         const line = new c3d.Polyline3D(points, true);
         return new c3d.SpaceInstance(line);
