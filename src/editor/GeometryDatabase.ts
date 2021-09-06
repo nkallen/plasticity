@@ -7,12 +7,12 @@ import { assertUnreachable, GConstructor } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
-import { BenchmarkMeshCreator } from './MeshCreator';
+import { BasicMeshCreator, BenchmarkMeshCreator } from './MeshCreator';
 import * as visual from './VisualModel';
 
-const mesh_precision_distance: [number, number][] = [[0.25, 1]];
+const mesh_precision_distance: [number, number][] = [[0.1, 50], [0.0025, 1]];
 const other_precision_distance: [number, number][] = [[0.0005, 1]];
-const temporary_precision_distance: [number, number][] = [[0.4, 1]];
+const temporary_precision_distance: [number, number][] = [[0.004, 1]];
 
 export type Agent = 'user' | 'automatic';
 
@@ -329,7 +329,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return result;
     }
 
-    private readonly meshCreator = new BenchmarkMeshCreator();
+    private readonly meshCreator = new BasicMeshCreator();
 
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);
@@ -375,7 +375,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             }
             case c3d.SpaceType.PlaneInstance: {
                 const instance = builder as visual.PlaneInstanceBuilder<visual.Region>;
-                if (item.faces.length != 1) throw new Error("Invalid precondition: grid with length" + grids.length);
+                if (item.faces.length != 1) throw new Error("Invalid precondition: grid with length" + item.faces.length);
                 const grid = item.faces[0];
                 const material = materials?.region ?? this.materials.region();
                 const region = visual.Region.build(grid, material);

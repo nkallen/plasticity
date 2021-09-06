@@ -1,5 +1,7 @@
-interface to list modifiers with toggles for enable/disable and button to apply
+fix tests
+adjust modifier tests in light of changes made friday and use validate() to simplify tests where possible
 multiple modifiers don't work
+change scale to 100x / 0.01x
 
 # PRE ALPHA:
 
@@ -12,12 +14,15 @@ bug: clicking adds items to history even when no selection is changed
 
 region has equal sort priority to face, but higher when identical distance
 
-'# move keybindings outside of loop keybindings
+stress test undo
+
+integration tests for basic commands
+
+# move keybindings outside of loop keybindings
 - onPointerDown and on command (registry.addOne), store the viewport the pointer is over
 - keep lastPointerEvent as a global on editor
 - dispatch keyboard events to the target of lastPointerEvent
 - ensure that regardless of what has focus (E.g,. after hitting the toolbar, keybindings are still processed)
-
 
 curves:
     curve movement not working well
@@ -34,23 +39,20 @@ interleaving with updating/commit on factory. use q?
   - also what happens if a command is cancelled but a long running job returns?
 refactor factory to take editorlike?
   -         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
-refactor selection.selected/hovered to be up in editor, avoid so much chaining
 
 change selection mode 123 keys
 fix box select
 
-# transaction history
-- delete creator
-- select topo items
-- mute creator, etc.
-- handle rebuild errors
-- there is a bug where fillet seems to highlight everything
+# audit name generation in sample models to see how they obtained unique names
 
 performance audit hit testing and snaps
 
 - audit depth pass
 
 ## POST ALPHA
+
+memoize mesh generation of faces in mesh creator (for the duration of a command).
+memoize and discretize calculations like fillet
 
 toggle kinds of snaps with keybindings?
 
@@ -59,7 +61,6 @@ extrude to target
 
 in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
   - shift should turn current axis snap into constraint?
-
 
 masking? like in zbrush; imagine a box atop a cylinder. I want to mask the box so I can clip curve just that.
 
