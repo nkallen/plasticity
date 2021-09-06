@@ -162,11 +162,14 @@ export class AddModifierCommand extends Command {
         }).resource(this);
         preview.cancel();
 
-        const { stack, factory } = modifiers.add(solid, SymmetryFactory);
+
+        const stack_factory = modifiers.add(solid, SymmetryFactory);
+        let stack = stack_factory.stack;
+        const factory = stack_factory.factory;
         factory.solid = solid;
         factory.origin = preview.origin;
         factory.orientation = preview.orientation;
-        await modifiers.rebuild(stack);
+        stack = await modifiers.rebuild(stack);
 
         selection.selected.addSolid(stack.modified);
     }

@@ -66,7 +66,7 @@ export class SymmetryFactory extends GeometryFactory {
             this._isOverlapping = true;
             return c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names);
         } catch (e) {
-            console.warn(e);
+            console.warn("Substituting mirror for symmetry solid");
             this._isOverlapping = false;
             const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
             const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);

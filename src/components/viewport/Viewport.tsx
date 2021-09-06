@@ -280,9 +280,12 @@ export class Viewport {
         this.setNeedsRender();
     }
 
+    disableControls() {
+        this.selector.enabled = this.navigationControls.enabled = false;
+    }
+
     enableControls() {
-        this.selector.enabled = true;
-        this.navigationControls.enabled = true;
+        this.selector.enabled = this.navigationControls.enabled = true;
     }
 
     private navigationState: NavigationState = { tag: 'none' }
@@ -294,7 +297,7 @@ export class Viewport {
         this.selector.enabled = false;
         this.editor.signals.viewportActivated.dispatch(this);
     }
-    
+
     private navigationChange() {
         this.constructionPlane.update(this.camera);
     }

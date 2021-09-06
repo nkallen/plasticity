@@ -69,13 +69,15 @@ export class ModifierStack {
             return { premodified: completed, modified: completed }
         }
 
-        const symmetry = modifiers[0] as SymmetryFactory;
-        symmetry.solid = model;
-        const symmetrized = await symmetry.calculate();
+        for (const modifier of modifiers) {
+            const symmetry = modifier as SymmetryFactory;
+            symmetry.solid = model;
+            model = await symmetry.calculate();
+        }
 
         const modified = (this.modified === this.premodified) ?
-            await this.db.addItem(symmetrized, 'automatic') :
-            await this.db.replaceItem(this.modified, symmetrized);
+            await this.db.addItem(model, 'automatic') :
+            await this.db.replaceItem(this.modified, model);
 
         const premodified = await view;
 
@@ -83,23 +85,34 @@ export class ModifierStack {
     }
 
     async updateTemporary(from: visual.Item, underlying: c3d.Solid): Promise<TemporaryObject> {
-        const symmetry = this.modifiers[0] as SymmetryFactory;
-        symmetry.solid = underlying;
-        const symmetrized = await symmetry.doUpdate();
+        const modifiers = this.modifiers;
+        const allButLast = modifiers.slice(0, modifiers.length - 1);
+        const last = modifiers[modifiers.length - 1];
+        let symmetrized = underlying;
+        for (const modifier of allButLast) {
+            const symmetry = modifier as SymmetryFactory;
+            symmetry.solid = symmetrized;
+            symmetrized = await symmetry.calculate();
+        }
+        const symmetry = last as SymmetryFactory;
+        symmetry.solid = symmetrized;
+        const temps = await symmetry.doUpdate();
 
-        if (symmetrized.length != 1) throw new Error("invalid postcondition: " + symmetrized.length);
-        const temp = symmetrized[0];
+        if (temps.length != 1) throw new Error("invalid postcondition: " + temps.length);
+        const temp = temps[0];
         const { modified, premodified } = this;
+
         return {
             underlying: temp.underlying,
             show() {
                 temp.show();
                 modified.visible = false;
+                premodified.visible = false;
             },
             cancel() {
                 temp.cancel();
                 modified.visible = true;
-                premodified.visible = false;
+                premodified.visible = true;
             }
         }
     }
@@ -159,15 +172,27 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     }
 
     add(object: visual.Solid, klass: GConstructor<SymmetryFactory>): { stack: ModifierStack, factory: SymmetryFactory } {
-        const { version2name, name2stack } = this;
-        let name = version2name.get(object.simpleName)!;
+        const { version2name, name2stack, modified2name } = this;
 
-        let stack = new ModifierStack(object, object, [], this.db, this.materials);
         const factory = new klass(this.db, this.materials, this.signals);
-        stack = stack.addModifier(factory);
-        name2stack.set(name, stack);
+        switch (this.stateOf(object)) {
+            case 'unmodified': {
+                const name = version2name.get(object.simpleName)!;
+                let stack = new ModifierStack(object, object, [], this.db, this.materials);
+                stack = stack.addModifier(factory);
+                name2stack.set(name, stack);
+                return { stack, factory };
+            }
+            case 'premodified': {
+                const name = version2name.get(object.simpleName)!;
+                let stack = name2stack.get(name)!;
+                stack = stack.addModifier(factory);
+                return { stack, factory }
+            }
+            default: throw new Error("invalid state");
+        }
 
-        return { stack, factory };
+
     }
 
     async remove(object: visual.Solid) {
@@ -190,6 +215,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
             stack.dispose();
             return stack;
         } else {
+            modified2name.delete(stack.modified.simpleName);
             stack = await stack.rebuild();
             const { premodified, modified } = stack;
             const name = version2name.get(premodified.simpleName)!;
@@ -310,15 +336,14 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         const { name2stack, version2name } = this;
         const name = version2name.get(from.simpleName)!;
 
-        let result: TemporaryObject;
-        if (name2stack.has(name)) {
-            const modifiers = name2stack.get(name)!;
-            result = await modifiers.updateTemporary(from, to as c3d.Solid);
-        } else {
-            result = await this.db.replaceWithTemporaryItem(from, to);
+        switch (this.stateOf(from)) {
+            case 'premodified':
+                const modifiers = name2stack.get(name)!;
+                return modifiers.updateTemporary(from, to as c3d.Solid);
+            case 'unmodified':
+                return this.db.replaceWithTemporaryItem(from, to);
+            default: throw new Error("invalid state");
         }
-
-        return result;
     }
 
     optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T {

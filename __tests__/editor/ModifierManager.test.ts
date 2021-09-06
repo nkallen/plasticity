@@ -19,6 +19,7 @@ let selection: SelectionManager;
 let manager: ModifierManager;
 
 const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
 beforeEach(async () => {
@@ -129,7 +130,36 @@ describe(ModifierManager, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0.5));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
-    })
+    });
+
+    test('adding multiple modifiers', async () => {
+        {
+            let { factory, stack: st } = manager.add(box, SymmetryFactory);
+            stack = st;
+            factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        }
+        stack = await manager.rebuild(stack);
+        expect(db.visibleObjects.length).toBe(2);
+        expect(stack.modifiers.length).toBe(1);
+
+        {
+            const { factory, stack: st } = manager.add(stack.premodified, SymmetryFactory);
+            stack = st;
+            factory.orientation = new THREE.Quaternion();
+        }
+        stack = await manager.rebuild(stack);
+        expect(db.visibleObjects.length).toBe(2);
+        expect(stack.modifiers.length).toBe(2);
+
+        const bbox = new THREE.Box3();
+        bbox.setFromObject(stack.modified);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+        manager.validate();
+    });
 
     describe('modified objects', () => {
         beforeEach(async () => {
@@ -194,9 +224,13 @@ describe(ModifierManager, () => {
             await makeFillet.commit();
         });
 
-        test('creating a temporary object then cancelling makes the right objects visible', async () => {
-            expect(db.temporaryObjects.children.length).toBe(0);
+        test('creating a temporary object updates the modifier even if there are multiple modifiers', async () => {
+            const { factory, stack: st } = manager.add(stack.premodified, SymmetryFactory);
+            stack = st;
+            factory.orientation = new THREE.Quaternion();
+            stack = await manager.rebuild(stack);
             expect(db.visibleObjects.length).toBe(2);
+            expect(stack.modifiers.length).toBe(2);
 
             const makeFillet = new FilletFactory(manager, materials, signals);
             makeFillet.solid = box;
@@ -209,9 +243,39 @@ describe(ModifierManager, () => {
             expect(db.temporaryObjects.children.length).toBe(1);
             expect(manager.getByPremodified(box)).toBe(stack);
 
+            const temp = db.temporaryObjects.children[0];
+            const bbox = new THREE.Box3();
+            bbox.setFromObject(temp);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, -1));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+
+            await makeFillet.commit();
+        });
+
+        test('creating a temporary object then cancelling makes the right objects visible', async () => {
+            expect(db.temporaryObjects.children.length).toBe(0);
+            expect(db.visibleObjects.length).toBe(2);
+
+            const makeFillet = new FilletFactory(manager, materials, signals);
+            makeFillet.solid = box;
+            const edge = box.edges.get(0);
+            makeFillet.edges = [edge];
+            makeFillet.distance = 0.1;
+            await makeFillet.update();
+
+            expect(stack.modified.visible).toBe(false);
+            expect(stack.premodified.visible).toBe(false);
+
+            expect(db.visibleObjects.length).toBe(2);
+            expect(db.temporaryObjects.children.length).toBe(1);
+            expect(manager.getByPremodified(box)).toBe(stack);
+
             makeFillet.cancel();
             expect(stack.modified.visible).toBe(true);
-            expect(stack.premodified.visible).toBe(false);
+            expect(stack.premodified.visible).toBe(true);
         });
 
         describe("when modifying a specially optimized factory like move/rotate/scale", () => {

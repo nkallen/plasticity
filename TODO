@@ -1,5 +1,3 @@
-fix tests
-adjust modifier tests in light of changes made friday and use validate() to simplify tests where possible
 multiple modifiers don't work
 change scale to 100x / 0.01x
 
