@@ -2,7 +2,6 @@
 
 stress test undo
 integration tests for basic commands
-orbiting while point picking is weird
 
 # move keybindings outside of loop keybindings
 - onPointerDown and on command (registry.addOne), store the viewport the pointer is over

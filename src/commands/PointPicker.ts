@@ -31,7 +31,7 @@ export class Model {
     private readonly otherAddedSnaps = new Array<Snap>();
 
     private readonly restrictions = new Array<Restriction>();
-    private readonly restrictionSnaps = new Array<Snap>(); // Snap targets for the restrictions
+    private readonly _restrictionSnaps = new Array<Snap>(); // Snap targets for the restrictions
     restrictToConstructionPlane = false;
     private restrictionPoint?: THREE.Vector3;
     restrictionPlane?: PlaneSnap;
@@ -46,7 +46,7 @@ export class Model {
     }
 
     snap(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap) {
-        return this.manager.snap(raycaster, this.snapsFor(constructionPlane), this.restrictionSnaps, this.restrictionsFor(constructionPlane));
+        return this.manager.snap(raycaster, this.snapsFor(constructionPlane), this._restrictionSnaps, this.restrictionsFor(constructionPlane));
     }
 
     snapsFor(constructionPlane: PlaneSnap): Snap[] {
@@ -54,6 +54,8 @@ export class Model {
         result.push(this.actualConstructionPlaneGiven(constructionPlane));
         return result;
     }
+
+    get restrictionSnaps() { return this._restrictionSnaps }
 
     restrictionsFor(constructionPlane: PlaneSnap): Restriction[] {
         const restrictions = [...this.restrictions];
@@ -115,7 +117,7 @@ export class Model {
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
         const line = LineSnap.make(undefined, direction, origin);
         this.restrictions.push(line);
-        this.restrictionSnaps.push(line);
+        this._restrictionSnaps.push(line);
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {
@@ -123,7 +125,7 @@ export class Model {
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge);
             const restriction = new CurveEdgeSnap(edge, model);
-            this.restrictionSnaps.push(restriction);
+            this._restrictionSnaps.push(restriction);
             restrictions.push(restriction);
         }
         const restriction = new OrRestriction(restrictions);

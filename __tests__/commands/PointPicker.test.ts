@@ -44,19 +44,19 @@ describe('restrictToPlaneThroughPoint', () => {
         expect(planeSnap.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
 
-    test("restrictionSnapsFor", () => {
-        const snaps = pointPicker.restrictionSnapsFor(constructionPlane);
+    test("restrictionSnaps", () => {
+        const snaps = pointPicker.restrictionSnaps;
+        expect(snaps.length).toBe(0);
+    });
+
+    test("snapsFor", () => {
+        const snaps = pointPicker.snapsFor(constructionPlane);
         expect(snaps.length).toBe(1);
         expect(snaps[0]).toBeInstanceOf(PlaneSnap);
 
         const planeSnap = snaps[0] as PlaneSnap;
         expect(planeSnap.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         expect(planeSnap.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
-    })
-
-    test("snapsFor", () => {
-        const snaps = pointPicker.snapsFor(constructionPlane);
-        expect(snaps.length).toBe(0);
     })
 });
 
@@ -74,9 +74,9 @@ describe('addSnap', () => {
         expect(restrictions.length).toBe(0);
     })
 
-    test("restrictionSnapsFor", () => {
-        const snaps = pointPicker.restrictionSnapsFor(constructionPlane);
-        expect(snaps.length).toBe(1);
+    test("restrictionSnaps", () => {
+        const snaps = pointPicker.restrictionSnaps;
+        expect(snaps.length).toBe(0);
     });
 
     test("snapsFor", () => {
@@ -104,11 +104,10 @@ describe('addPickedPoint', () => {
             expect(restrictions.length).toBe(0);
         })
 
-        test("restrictionSnapsFor", () => {
+        test("restrictionSnaps", () => {
             let snaps;
-            snaps = pointPicker.restrictionSnapsFor(constructionPlane);
-            expect(snaps.length).toBe(1);
-            expect(snaps[0]).toBe(constructionPlane);
+            snaps = pointPicker.restrictionSnaps;
+            expect(snaps.length).toBe(0);
         })
 
         test("snapsFor", () => {
@@ -196,9 +195,9 @@ describe('restrictToEdges', () => {
         expect(or.isValid(new THREE.Vector3(1, 1, 0))).toBe(true);
     })
 
-    test("restrictionSnapsFor", () => {
+    test("restrictionSnaps", () => {
         let snaps;
-        snaps = pointPicker.restrictionSnapsFor(new PlaneSnap());
+        snaps = pointPicker.restrictionSnaps;
         expect(snaps.length).toBe(2);
         expect(snaps[0]).toBeInstanceOf(CurveEdgeSnap);
         expect(snaps[1]).toBeInstanceOf(CurveEdgeSnap);
@@ -228,23 +227,18 @@ describe('restrictToPlane', () => {
         const restrictions = pointPicker.restrictionsFor(new PlaneSnap());
         expect(restrictions.length).toBe(1);
         expect(restrictions[0]).toBe(planeSnap);
-        expect(planeSnap.isValid(new THREE.Vector3(0, 0.5, 1))).toBe(true);
-        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0, 1))).toBe(true);
-        expect(planeSnap.isValid(new THREE.Vector3(1, 1, 1))).toBe(true);
-        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0.5, 0))).toBe(false);
-        expect(planeSnap.isValid(new THREE.Vector3(0.5, 0.5, 2))).toBe(false);
     })
 
-    test("restrictionSnapsFor", () => {
-        const snaps = pointPicker.restrictionSnapsFor(new PlaneSnap());
-        expect(snaps.length).toBe(1);
-        expect(snaps[0]).toBe(planeSnap);
+    test("restrictionSnaps", () => {
+        const snaps = pointPicker.restrictionSnaps;
+        expect(snaps.length).toBe(0);
     })
 
     test("snapsFor", () => {
         const constructionPlane = new PlaneSnap();
         const snaps = pointPicker.snapsFor(constructionPlane);
-        expect(snaps.length).toBe(0);
+        expect(snaps.length).toBe(1);
+        expect(snaps[0]).toBe(planeSnap);
     })
 });
 
@@ -260,9 +254,9 @@ describe('restrictToLine', () => {
         expect(restrictions[0]).toBeInstanceOf(LineSnap);
     })
 
-    test("restrictionSnapsFor", () => {
+    test("restrictionSnaps", () => {
         const constructionPlane = new PlaneSnap();
-        const snaps = pointPicker.restrictionSnapsFor(constructionPlane);
+        const snaps = pointPicker.restrictionSnaps;
         expect(snaps.length).toBe(1);
         expect(snaps[0]).toBeInstanceOf(LineSnap);
     });
@@ -290,10 +284,9 @@ describe('addAxesAt', () => {
         expect(restrictions.length).toBe(0);
     })
 
-    test("restrictionSnapsFor", () => {
-        const snaps = pointPicker.restrictionSnapsFor(constructionPlane);
-        expect(snaps.length).toBe(1);
-        expect(snaps[0]).toBe(constructionPlane);
+    test("restrictionSnaps", () => {
+        const snaps = pointPicker.restrictionSnaps;
+        expect(snaps.length).toBe(0);
     })
 
     test("snapsFor", () => {
