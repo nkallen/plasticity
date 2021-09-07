@@ -39,7 +39,12 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
     }
 
     execute(cb: (params: MoveParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, xy, yz, xz, screen, params } = this;
+        const { x, y, z, xy, yz, xz, screen, params, editor: { viewports } } = this;
+
+        for (const viewport of viewports) {
+            viewport.selector.enabled = false;
+        }
+
         const originalPosition = this.position.clone();
 
         x.quaternion.setFromUnitVectors(Y, X);

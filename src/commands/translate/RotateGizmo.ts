@@ -39,7 +39,12 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
     }
 
     execute(cb: (params: RotateParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, screen, params } = this;
+        const { x, y, z, screen, params, editor: { viewports } } = this;
+
+        for (const viewport of viewports) {
+            viewport.selector.enabled = false;
+        }
+
         const state = new QuaternionStateMachine(new THREE.Quaternion());
         state.start();
 

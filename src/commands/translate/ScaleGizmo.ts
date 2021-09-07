@@ -41,7 +41,11 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     }
 
     execute(cb: (params: ScaleParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, xy, yz, xz, xyz, params } = this;
+        const { x, y, z, xy, yz, xz, xyz, params, editor: { viewports } } = this;
+
+        for (const viewport of viewports) {
+            viewport.selector.enabled = false;
+        }
 
         x.quaternion.setFromUnitVectors(Y, X);
         y.quaternion.setFromUnitVectors(Y, Y);
