@@ -390,6 +390,8 @@ describe(GeometryFactory, () => {
 
         delay2.resolve();
         await second;
+
+        expect(db.temporaryObjects.children.length).toBe(0);
     });
 
     test("in case of long update that errors and commit", async () => {
