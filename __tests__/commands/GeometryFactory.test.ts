@@ -283,7 +283,7 @@ describe(GeometryFactory, () => {
         expect(factory.updateCount).toBe(2);
     });
 
-    test("in case of error, it reverts to last successful parameter", async () => {
+    test("in case of error, it reverts to last successful parameter & updates", async () => {
         factory.revertOnError = 1;
         const first = factory.update();
         delay1.resolve();
@@ -295,8 +295,46 @@ describe(GeometryFactory, () => {
         await second;
 
         expect(factory.revertOnError).toBe(1);
+        expect(factory.updateCount).toBe(3);
+    });
+
+    test("in case of error and cancel, it will not re-update", async () => {
+        factory.revertOnError = 1;
+        const first = factory.update();
+        delay1.resolve();
+        await first;
+
+        factory.revertOnError = 2;
+        const second = factory.update();
+        factory.cancel();
+        delay2.reject("error");
+        await second;
+
+        expect(factory.revertOnError).toBe(2);
         expect(factory.updateCount).toBe(2);
     });
+
+    test("in case of error and new update, it will not revert the value", async () => {
+        factory.revertOnError = 1;
+        const first = factory.update();
+        delay1.resolve();
+        await first;
+
+        factory.revertOnError = 2;
+        const second = factory.update();
+
+        factory.revertOnError = 3;
+        const third = factory.update();
+
+        delay2.reject("error");
+        await second;
+
+        await third;
+
+        expect(factory.revertOnError).toBe(3);
+        expect(factory.updateCount).toBe(3);
+    });
+
 
     test("update swallows validation errors", async () => {
         const first = factory.update();
@@ -305,7 +343,6 @@ describe(GeometryFactory, () => {
 
         expect(factory.updateCount).toBe(1);
     });
-
 
     test("update swallows c3d errors", async () => {
         const first = factory.update();

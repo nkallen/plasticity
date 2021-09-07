@@ -213,8 +213,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 } finally {
                     c3d.Mutex.ExitParallelRegion();
 
-                    // @ts-expect-error
-                    if (this.state.tag !== 'cancelled') await this.continueUpdatingIfMoreWork(before);
+                    await this.continueUpdatingIfMoreWork(before);
                 }
                 break;
             case 'updating':
@@ -251,7 +250,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
             case 'failed':
                 if (this.state.last !== undefined) {
                     this.restoreSavedState(this.state.last);
-                    // await this.update(); // FIXME rethink this
+                    await this.update();
                 } else {
                     const e = this.state.error;
                     if (e instanceof ValidationError || e.isC3dError) {
