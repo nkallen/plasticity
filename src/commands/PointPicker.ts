@@ -191,20 +191,21 @@ export class PointPicker {
                 viewport.selector.enabled = false;
                 disposables.add(new Disposable(() => viewport.enableControls()))
 
-                const { camera, constructionPlane, renderer: { domElement } } = viewport;
+                const { camera, renderer: { domElement } } = viewport;
 
                 let lastMoveEvent: PointerEvent | undefined = undefined
                 const onPointerMove = (e: PointerEvent) => {
                     lastMoveEvent = e;
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
+                    const constructionPlane = viewport.constructionPlane;
 
                     helpers.clear();
                     const indicators = model.nearby(raycaster, constructionPlane);
                     for (const i of indicators) helpers.add(i);
 
                     // if within snap range, change point to snap position
-                    const snappers = model.snap(raycaster, constructionPlane);
+                    const snappers = model.snap(raycaster, viewport.constructionPlane);
                     const names = [];
                     const pos = snappers[0].position;
                     for (const { snap, position, indicator } of snappers) {

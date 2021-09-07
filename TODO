@@ -2,13 +2,6 @@
 
 keybindings to move camera need to update construction plane
 reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
-
-when you delete region you delete its curve / and vice versa
-
-bug: clicking adds items to history even when no selection is changed
-
-region has equal sort priority to face, but higher when identical distance
-
 stress test undo
 
 integration tests for basic commands
@@ -30,21 +23,32 @@ curves:
     control point hover/unhover broken
 
 
-interleaving with updating/commit on factory. use q?
+- interleaving with updating/commit on factory. use q?
   - also what happens if a command is cancelled but a long running job returns?
+
+- when you delete region you delete its curve / and vice versa
+
+- bug: clicking adds items to history even when no selection is changed
+
+- region has equal sort priority to face, but higher when identical distance
+
+- audit name generation in sample models to see how they obtained unique names
+
+windows build
+
+optimize outline code
+
+## POST ALPHA
+
+performance audit hit testing and snaps
 refactor factory to take editorlike?
   -         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
 
 change selection mode 123 keys
 fix box select
 
-# audit name generation in sample models to see how they obtained unique names
-
-performance audit hit testing and snaps
-
 - audit depth pass
 
-## POST ALPHA
 
 memoize mesh generation of faces in mesh creator (for the duration of a command).
 memoize and discretize calculations like fillet

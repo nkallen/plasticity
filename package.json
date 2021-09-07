@@ -1,145 +1,145 @@
 {
-  "name": "ispace",
-  "productName": "ispace",
-  "version": "1.0.0",
-  "description": "My Electron application description",
-  "main": ".webpack/main",
-  "scripts": {
-    "electron-rebuild": "electron-rebuild",
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts .",
-    "generate": "node generate/src/generate.mjs",
-    "build": "node-gyp build -j max",
-    "rebuild": "node-gyp rebuild -j max",
-    "test": "node --expose-gc ./node_modules/jest/bin/test --maxWorkers=1 --silent",
-    "watch-test": "node --expose-gc ./node_modules/jest/bin/jest --maxWorkers=50% --watchAll",
-    "watch-generate": "find generate | entr -s 'clear && yarn generate && yarn build && clear && echo \"Succesfully generated & built!\"'",
-    "watch-build": "find lib | entr -s 'clear && yarn build && clear && echo Succesfully built!'",
-    "gbs": "yarn generate && yarn build && yarn start",
-    "backtrace": "dsymutil build/Release/c3d.node -o build/release/c3d.dSYM && zip -r build/release/c3d.zip build/release/c3d.dSYM && curl --data-binary @build/release/c3d.zip -H 'Expect:' \"https://blurbs.sp.backtrace.io:6098/post?format=symbols&token=$(cat backtrace-access-token.txt)\""
-  },
-  "keywords": [],
-  "author": {
-    "name": "Nick Kallen",
-    "email": "nickkallen@me.com"
-  },
-  "license": "MIT",
-  "config": {
-    "forge": {
-      "packagerConfig": {},
-      "electronRebuildConfig": {
-        "mode": "parallel",
-        "forceABI": 89
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "ispace"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ],
-      "plugins": [
-        [
-          "@electron-forge/plugin-webpack",
-          {
-            "mainConfig": "./webpack.main.config.js",
-            "renderer": {
-              "config": "./webpack.renderer.config.js",
-              "entryPoints": [
+    "name": "ispace",
+    "productName": "ispace",
+    "version": "1.0.0",
+    "description": "My Electron application description",
+    "main": ".webpack/main",
+    "scripts": {
+        "electron-rebuild": "electron-rebuild",
+        "start": "electron-forge start",
+        "package": "electron-forge package",
+        "make": "electron-forge make",
+        "publish": "electron-forge publish",
+        "lint": "eslint --ext .ts .",
+        "generate": "node generate/src/generate.mjs",
+        "build": "node-gyp build -j max",
+        "rebuild": "node-gyp rebuild -j max",
+        "test": "node --expose-gc ./node_modules/jest/bin/jest --maxWorkers=45% --silent",
+        "watch-test": "node --expose-gc ./node_modules/jest/bin/jest --maxWorkers=45% --watchAll",
+        "watch-generate": "find generate | entr -s 'clear && yarn generate && yarn build && clear && echo \"Succesfully generated & built!\"'",
+        "watch-build": "find lib | entr -s 'clear && yarn build && clear && echo Succesfully built!'",
+        "gbs": "yarn generate && yarn build && yarn start",
+        "backtrace": "dsymutil build/Release/c3d.node -o build/release/c3d.dSYM && zip -r build/release/c3d.zip build/release/c3d.dSYM && curl --data-binary @build/release/c3d.zip -H 'Expect:' \"https://blurbs.sp.backtrace.io:6098/post?format=symbols&token=$(cat backtrace-access-token.txt)\""
+    },
+    "keywords": [],
+    "author": {
+        "name": "Nick Kallen",
+        "email": "nickkallen@me.com"
+    },
+    "license": "MIT",
+    "config": {
+        "forge": {
+            "packagerConfig": {},
+            "electronRebuildConfig": {
+                "mode": "parallel",
+                "forceABI": 89
+            },
+            "makers": [
                 {
-                  "html": "./src/index.html",
-                  "js": "./src/renderer.ts",
-                  "name": "main_window"
+                    "name": "@electron-forge/maker-squirrel",
+                    "config": {
+                        "name": "ispace"
+                    }
+                },
+                {
+                    "name": "@electron-forge/maker-zip",
+                    "platforms": [
+                        "darwin"
+                    ]
+                },
+                {
+                    "name": "@electron-forge/maker-deb",
+                    "config": {}
+                },
+                {
+                    "name": "@electron-forge/maker-rpm",
+                    "config": {}
                 }
-              ]
-            }
-          }
-        ]
-      ]
+            ],
+            "plugins": [
+                [
+                    "@electron-forge/plugin-webpack",
+                    {
+                        "mainConfig": "./webpack.main.config.js",
+                        "renderer": {
+                            "config": "./webpack.renderer.config.js",
+                            "entryPoints": [
+                                {
+                                    "html": "./src/index.html",
+                                    "js": "./src/renderer.ts",
+                                    "name": "main_window"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            ]
+        }
+    },
+    "devDependencies": {
+        "@babel/core": "^7.15.0",
+        "@babel/preset-env": "^7.15.0",
+        "@electron-forge/cli": "^6.0.0-beta.54",
+        "@electron-forge/maker-deb": "^6.0.0-beta.54",
+        "@electron-forge/maker-rpm": "^6.0.0-beta.54",
+        "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
+        "@electron-forge/maker-zip": "^6.0.0-beta.54",
+        "@electron-forge/plugin-auto-unpack-natives": "^6.0.0-beta.54",
+        "@electron-forge/plugin-webpack": "6.0.0-beta.54",
+        "@types/atom-keymap": "^8.0.3",
+        "@types/event-kit": "^2.4.0",
+        "@types/jest": "^26.0.22",
+        "@types/signals": "^1.0.1",
+        "@types/stats.js": "^0.17.0",
+        "@types/three": "^0.126.2",
+        "@types/webpack-env": "^1.16.2",
+        "@typescript-eslint/eslint-plugin": "^4.22.0",
+        "@typescript-eslint/parser": "^4.22.0",
+        "babel-loader": "^8.2.2",
+        "canvas": "^2.8.0",
+        "child_process": "^1.0.2",
+        "copy-webpack-plugin": "^8.1.1",
+        "css-loader": "^4.2.1",
+        "ejs": "^3.1.6",
+        "electron": "13.2.3",
+        "electron-rebuild": "^2.3.5",
+        "eslint": "^7.6.0",
+        "eslint-plugin-import": "^2.20.0",
+        "file-loader": "^6.2.0",
+        "fork-ts-checker-webpack-plugin": "^5.0.14",
+        "fs-extra": "^9.1.0",
+        "jest": "^27.0.0-next.7",
+        "js-beautify": "^1.13.5",
+        "less": "^4.1.1",
+        "less-loader": "7.3.0",
+        "node-addon-api": "^4.0.0",
+        "node-loader": "^1.0.1",
+        "style-loader": "^1.2.1",
+        "svg-inline-loader": "^0.8.2",
+        "ts-jest": "^27.0.0-next.10",
+        "ts-loader": "^8.0.2",
+        "ts-node": "^9.1.1",
+        "typescript": "^4.4.2",
+        "underscore": "^1.12.1",
+        "walk": "^2.3.14",
+        "webpack": "^5.51.1",
+        "webpack-cli": "^4.5.0",
+        "webpack-dev-server": "^3.11.2"
+    },
+    "dependencies": {
+        "@electron/remote": "^1.2.1",
+        "@jest-runner/electron": "^3.0.1",
+        "@types/assert": "^1.5.4",
+        "atom-keymap": "^8.2.14",
+        "bootstrap-icons": "^1.4.1",
+        "clear-cut": "^2.0.2",
+        "electron-squirrel-startup": "^1.0.0",
+        "event-kit": "^2.5.3",
+        "node-gyp": "^8.1.0",
+        "preact": "^10.5.13",
+        "signals": "^1.0.0",
+        "stats.js": "^0.17.0",
+        "three": "^0.132.2",
+        "underscore-plus": "^1.7.0"
     }
-  },
-  "devDependencies": {
-    "@babel/core": "^7.15.0",
-    "@babel/preset-env": "^7.15.0",
-    "@electron-forge/cli": "^6.0.0-beta.54",
-    "@electron-forge/maker-deb": "^6.0.0-beta.54",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.54",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
-    "@electron-forge/maker-zip": "^6.0.0-beta.54",
-    "@electron-forge/plugin-auto-unpack-natives": "^6.0.0-beta.54",
-    "@electron-forge/plugin-webpack": "6.0.0-beta.54",
-    "@types/atom-keymap": "^8.0.3",
-    "@types/event-kit": "^2.4.0",
-    "@types/jest": "^26.0.22",
-    "@types/signals": "^1.0.1",
-    "@types/stats.js": "^0.17.0",
-    "@types/three": "^0.126.2",
-    "@types/webpack-env": "^1.16.2",
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
-    "@typescript-eslint/parser": "^4.22.0",
-    "babel-loader": "^8.2.2",
-    "canvas": "^2.8.0",
-    "child_process": "^1.0.2",
-    "copy-webpack-plugin": "^8.1.1",
-    "css-loader": "^4.2.1",
-    "ejs": "^3.1.6",
-    "electron": "13.2.3",
-    "electron-rebuild": "^2.3.5",
-    "eslint": "^7.6.0",
-    "eslint-plugin-import": "^2.20.0",
-    "file-loader": "^6.2.0",
-    "fork-ts-checker-webpack-plugin": "^5.0.14",
-    "fs-extra": "^9.1.0",
-    "jest": "^27.0.0-next.7",
-    "js-beautify": "^1.13.5",
-    "less": "^4.1.1",
-    "less-loader": "7.3.0",
-    "node-addon-api": "^4.0.0",
-    "node-loader": "^1.0.1",
-    "style-loader": "^1.2.1",
-    "svg-inline-loader": "^0.8.2",
-    "ts-jest": "^27.0.0-next.10",
-    "ts-loader": "^8.0.2",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.4.2",
-    "underscore": "^1.12.1",
-    "walk": "^2.3.14",
-    "webpack": "^5.51.1",
-    "webpack-cli": "^4.5.0",
-    "webpack-dev-server": "^3.11.2"
-  },
-  "dependencies": {
-    "@electron/remote": "^1.2.1",
-    "@jest-runner/electron": "^3.0.1",
-    "@types/assert": "^1.5.4",
-    "atom-keymap": "^8.2.14",
-    "bootstrap-icons": "^1.4.1",
-    "clear-cut": "^2.0.2",
-    "electron-squirrel-startup": "^1.0.0",
-    "event-kit": "^2.5.3",
-    "node-gyp": "^8.1.0",
-    "preact": "^10.5.13",
-    "signals": "^1.0.0",
-    "stats.js": "^0.17.0",
-    "three": "^0.132.2",
-    "underscore-plus": "^1.7.0"
-  }
 }

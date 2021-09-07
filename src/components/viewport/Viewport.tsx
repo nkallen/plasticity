@@ -127,9 +127,9 @@ export class Viewport {
 
         this.disposable.add(
             this.editor.registry.add(this.domElement, {
-                'viewport:front': () => this.navigator.prepareAnimationData('posX'),
-                'viewport:right': () => this.navigator.prepareAnimationData('negY'),
-                'viewport:top': () => this.navigator.prepareAnimationData('posZ'),
+                'viewport:front': () => this.navigate('posX'),
+                'viewport:right': () => this.navigate('negY'),
+                'viewport:top': () => this.navigate('posZ'),
             })
         );
 
@@ -343,6 +343,12 @@ export class Viewport {
         } else {
             this.constructionPlane = new CameraPlaneSnap(this.camera);
         }
+    }
+
+    private navigate(to: string) {
+        const n = this.navigator.prepareAnimationData(to);
+        const constructionPlane = new PlaneSnap(n);
+        this.constructionPlane = constructionPlane;
     }
 }
 

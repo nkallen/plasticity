@@ -329,7 +329,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return result;
     }
 
-    private readonly meshCreator = new ParallelSolidMeshCreator();
+    private readonly meshCreator = new BasicMeshCreator();
 
     private async object2mesh(builder: Builder, obj: c3d.Item, id: c3d.SimpleName, sag: number, note: c3d.FormNote, distance?: number, materials?: MaterialOverride): Promise<void> {
         const stepData = new c3d.StepData(c3d.StepType.SpaceStep, sag);

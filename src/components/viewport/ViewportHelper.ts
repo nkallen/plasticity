@@ -109,7 +109,7 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly q2 = new THREE.Quaternion();
     private readonly dummy = new THREE.Object3D();
     private radius = 0;
-    prepareAnimationData(type: string) {
+    prepareAnimationData(type: string): THREE.Vector3 {
         const { targetPosition, targetQuaternion, controls, q1, q2, dummy } = this;
         const { object: viewportCamera, target } = controls;
 
@@ -141,6 +141,7 @@ export class ViewportNavigator extends THREE.Object3D {
             default: console.error('ViewHelper: Invalid axis.');
         }
 
+        const result = targetPosition.clone();
         this.radius = viewportCamera.position.distanceTo(target);
         targetPosition.multiplyScalar(this.radius).add(target);
 
@@ -152,6 +153,7 @@ export class ViewportNavigator extends THREE.Object3D {
         q2.copy(dummy.quaternion);
 
         this.update();
+        return result;
     }
 
     private update() {
