@@ -33,24 +33,24 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
     }
 
     prepare() {
-        const { x, y, z, screen } = this;
+        const { x, y, z, screen, editor: { viewports }  } = this;
         for (const o of [x, y, z]) o.relativeScale.setScalar(0.7);
         screen.relativeScale.setScalar(0.8);
-    }
-
-    execute(cb: (params: RotateParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, screen, params, editor: { viewports } } = this;
 
         for (const viewport of viewports) {
             viewport.selector.enabled = false;
         }
 
-        const state = new QuaternionStateMachine(new THREE.Quaternion());
-        state.start();
-
         x.quaternion.setFromUnitVectors(Z, X);
         y.quaternion.setFromUnitVectors(Z, Y);
         z.quaternion.setFromUnitVectors(Z, Z);
+    }
+
+    execute(cb: (params: RotateParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+        const { x, y, z, screen, params} = this;
+
+        const state = new QuaternionStateMachine(new THREE.Quaternion());
+        state.start();
 
         this.add(x, y, z, screen);
 

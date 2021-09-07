@@ -36,8 +36,13 @@ export abstract class AbstractDialog<T> extends HTMLElement {
                     throw new Error("invalid precondition");
                 }
 
-                const key = e.target.getAttribute('name') as keyof T;
-                this.params[key] = value as unknown as T[keyof T];
+                const key = e.target.getAttribute('name')!;
+                if (/\./.test(key)) {
+                    const [key1, key2] = key.split(/\./);
+                    this.params[key1 as keyof T][key2 as keyof T[keyof T]] = value;
+                } else {
+                    this.params[key as keyof T] = value as unknown as T[keyof T];
+                }
                 this.state.cb(this.params);
                 break;
             default: throw new Error('invalid state');

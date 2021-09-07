@@ -31,21 +31,13 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
     private readonly xz = new PlanarMoveGizmo("move:xz", this.editor, this.magenta);
     private readonly screen = new CircleMoveGizmo("move:screen", this.editor);
 
+    private originalPosition!: THREE.Vector3;
+
     prepare() {
-        const { x, y, z, xy, yz, xz, screen } = this;
+        const { x, y, z, xy, yz, xz, screen, editor: { viewports } } = this;
         for (const o of [x, y, z, xy, yz, xz]) o.relativeScale.setScalar(0.8);
         screen.relativeScale.setScalar(0.25);
         this.add(x, y, z, xy, yz, xz, screen);
-    }
-
-    execute(cb: (params: MoveParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, xy, yz, xz, screen, params, editor: { viewports } } = this;
-
-        for (const viewport of viewports) {
-            viewport.selector.enabled = false;
-        }
-
-        const originalPosition = this.position.clone();
 
         x.quaternion.setFromUnitVectors(Y, X);
         y.quaternion.setFromUnitVectors(Y, Y);
@@ -54,6 +46,16 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
         yz.quaternion.setFromUnitVectors(Z, _X);
         xz.quaternion.setFromUnitVectors(Z, _Y);
 
+        this.originalPosition = this.position.clone();
+
+        for (const viewport of viewports) {
+            viewport.selector.enabled = false;
+        }
+    }
+
+    execute(cb: (params: MoveParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+        const { x, y, z, xy, yz, xz, screen, params } = this;
+
         const set = () => {
             const delta = new THREE.Vector3(x.value, y.value, z.value);
             delta.add(screen.value);
@@ -61,7 +63,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
             delta.add(yz.value);
             delta.add(xz.value);
             params.move = delta;
-            this.position.copy(originalPosition).add(delta);
+            this.position.copy(this.originalPosition).add(delta);
         }
 
         this.addGizmo(x, set);
@@ -73,6 +75,10 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
         this.addGizmo(screen, set);
 
         return super.execute(cb, finishFast);
+    }
+
+    render(params: MoveParams){
+        this.position.copy(this.originalPosition).add(params.move);
     }
 }
 

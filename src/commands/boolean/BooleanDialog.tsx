@@ -2,6 +2,7 @@ import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../AbstractDialog";
 import { BooleanParams, CutParams } from "./BooleanFactory";
+import c3d from '../../../build/Release/c3d.node';
 
 export class BooleanDialog extends AbstractDialog<BooleanParams> {
     constructor(protected readonly params: BooleanParams, signals: EditorSignals) {
@@ -9,18 +10,21 @@ export class BooleanDialog extends AbstractDialog<BooleanParams> {
     }
 
     render() {
-        const { mergingFaces, mergingEdges } = this.params;
+        const { mergingFaces, mergingEdges, operationType } = this.params;
         render(
-            <ul>
-                <li>
-                    <label for="mergingFaces">mergingFaces</label>
-                    <input type="checkbox" name="mergingFaces" checked={mergingFaces} onClick={this.onChange}></input>
-                </li>
-                <li>
-                    <label for="mergingEdges">mergingEdges</label>
-                    <input type="checkbox" name="mergingEdges" checked={mergingEdges} onClick={this.onChange}></input>
-                </li>
-            </ul>, this);
+            <>
+                <h4>Boolean {c3d.OperationType[operationType]}</h4>
+                <ul>
+                    <li>
+                        <label for="mergingFaces">mergingFaces</label>
+                        <input type="checkbox" name="mergingFaces" checked={mergingFaces} onClick={this.onChange}></input>
+                    </li>
+                    <li>
+                        <label for="mergingEdges">mergingEdges</label>
+                        <input type="checkbox" name="mergingEdges" checked={mergingEdges} onClick={this.onChange}></input>
+                    </li>
+                </ul>
+            </>, this);
     }
 }
 customElements.define('boolean-dialog', BooleanDialog);
@@ -33,16 +37,19 @@ export class CutDialog extends AbstractDialog<CutParams> {
     render() {
         const { mergingFaces, mergingEdges } = this.params;
         render(
-            <ul>
-                <li>
-                    <label for="mergingFaces">mergingFaces</label>
-                    <input type="checkbox" name="mergingFaces" checked={mergingFaces} onClick={this.onChange}></input>
-                </li>
-                <li>
-                    <label for="mergingEdges">mergingEdges</label>
-                    <input type="checkbox" name="mergingEdges" checked={mergingEdges} onClick={this.onChange}></input>
-                </li>
-            </ul>, this);
+            <>
+                <h4>Cut</h4>
+                <ul>
+                    <li>
+                        <label for="mergingFaces">mergingFaces</label>
+                        <input type="checkbox" name="mergingFaces" checked={mergingFaces} onClick={this.onChange}></input>
+                    </li>
+                    <li>
+                        <label for="mergingEdges">mergingEdges</label>
+                        <input type="checkbox" name="mergingEdges" checked={mergingEdges} onClick={this.onChange}></input>
+                    </li>
+                </ul>
+            </>, this);
     }
 }
 customElements.define('cut-dialog', CutDialog);

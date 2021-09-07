@@ -32,16 +32,12 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     private readonly xyz = new CircleScaleGizmo("scale:xyz", this.editor);
 
     prepare() {
-        const { x, y, z, xyz, xy, yz, xz } = this;
+        const { x, y, z, xyz, xy, yz, xz, editor: { viewports }  } = this;
         for (const o of [x, y, z]) o.relativeScale.setScalar(0.8);
         for (const o of [xy, yz, xz]) o.relativeScale.setScalar(0.8);
         xyz.relativeScale.setScalar(0.85);
 
         this.add(x, y, z, xy, yz, xz, xyz);
-    }
-
-    execute(cb: (params: ScaleParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, xy, yz, xz, xyz, params, editor: { viewports } } = this;
 
         for (const viewport of viewports) {
             viewport.selector.enabled = false;
@@ -53,6 +49,10 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
 
         yz.quaternion.setFromUnitVectors(Z, _X);
         xz.quaternion.setFromUnitVectors(Z, _Y);
+    }
+
+    execute(cb: (params: ScaleParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+        const { x, y, z, xy, yz, xz, xyz, params} = this;
 
         const set = () => {
             params.scale.set(
@@ -70,6 +70,12 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
         this.addGizmo(xyz, set);
 
         return super.execute(cb, finishFast);
+    }
+
+    render(params: ScaleParams) {
+        this.x.render(params.scale.x);
+        this.y.render(params.scale.y);
+        this.z.render(params.scale.z);
     }
 }
 

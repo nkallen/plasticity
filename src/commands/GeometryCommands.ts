@@ -49,8 +49,11 @@ import { RegionFactory } from "./region/RegionFactory";
 import { PossiblyBooleanSphereFactory } from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
+import { MoveDialog } from "./translate/MoveDialog";
 import { MoveGizmo } from './translate/MoveGizmo';
+import { RotateDialog } from "./translate/RotateDialog";
 import { RotateGizmo } from './translate/RotateGizmo';
+import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
 
@@ -677,11 +680,21 @@ export class MoveCommand extends Command {
         move.pivot = centroid;
         move.items = objects;
 
+        const dialog = new MoveDialog(move, this.editor.signals);
         const gizmo = new MoveGizmo(move, this.editor);
+
+        dialog.execute(async params => {
+            await move.update();
+            gizmo.render(params);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
         gizmo.position.copy(centroid);
-        await gizmo.execute(s => {
+        gizmo.execute(s => {
             move.update();
+            dialog.render();
         }).resource(this);
+
+        await this.finished;
 
         const selection = await move.commit();
         this.editor.selection.selected.add(selection);
@@ -702,10 +715,20 @@ export class ScaleCommand extends Command {
         scale.pivot = centroid;
 
         const gizmo = new ScaleGizmo(scale, this.editor);
+        const dialog = new ScaleDialog(scale, this.editor.signals);
+
+        dialog.execute(async params => {
+            await scale.update();
+            gizmo.render(params);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
         gizmo.position.copy(centroid);
-        await gizmo.execute(s => {
+        gizmo.execute(s => {
             scale.update();
+            dialog.render();
         }).resource(this);
+
+        await this.finished;
 
         const selection = await scale.commit();
         this.editor.selection.selected.add(selection);
@@ -728,10 +751,19 @@ export class RotateCommand extends Command {
         rotate.pivot = centroid;
 
         const gizmo = new RotateGizmo(rotate, this.editor);
+        const dialog = new RotateDialog(rotate, this.editor.signals);
+
+        dialog.execute(async params => {
+            await rotate.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
         gizmo.position.copy(centroid);
-        await gizmo.execute(params => {
+        gizmo.execute(params => {
             rotate.update();
+            dialog.render();
         }).resource(this);
+
+        await this.finished;
 
         const selection = await rotate.commit();
         this.editor.selection.selected.add(selection);
@@ -837,7 +869,7 @@ export class FilletCommand extends Command {
             dialog.toggle(fillet.mode);
             dialog.render();
             await fillet.update();
-        }, mode.Persistent).resource(this);
+        }).resource(this);
 
         await this.finished;
 

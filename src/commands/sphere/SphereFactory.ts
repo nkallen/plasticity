@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { point2point } from "../../util/Conversion";
 import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../GeometryFactory';
 
 interface SphereParams {
     center: THREE.Vector3;
@@ -20,6 +20,8 @@ export default class SphereFactory extends GeometryFactory implements SpherePara
 
     async calculate() {
         const { center, radius, X, Z } = this;
+
+        if (radius < 10e-6) throw new NoOpError();
 
         Z.set(1,0,0).add(center);
         X.set(0,0,1).multiplyScalar(radius).add(center);

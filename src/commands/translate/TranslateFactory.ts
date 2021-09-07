@@ -118,13 +118,14 @@ export interface RotateParams {
 
 export class RotateFactory extends TranslateFactory implements RotateParams {
     pivot!: THREE.Vector3
-    axis!: THREE.Vector3;
+    axis = new THREE.Vector3(1, 0, 0);
     angle = 0;
 
     // I'm honestly not sure why we can't use apply matrices as in TranslateFactory above,
     // but this works instead.
     async doUpdate() {
         const { items, pivot: point, axis, angle, db } = this;
+        axis.normalize();
         let result: Promise<TemporaryObject>[] = [];
         for (const item of items) {
             const temps = db.optimization(item, async () => {
