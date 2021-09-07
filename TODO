@@ -1,8 +1,8 @@
 # PRE ALPHA:
 
-reinvoking commands should commit sometimes... i'm finding moving, click, then starting a new command leads to data loss
 stress test undo
 integration tests for basic commands
+orbiting while point picking is weird
 
 # move keybindings outside of loop keybindings
 - onPointerDown and on command (registry.addOne), store the viewport the pointer is over
@@ -20,6 +20,8 @@ curves:
     multiline (stroke)
     file save and reload needs to respect curve segments:
     control point hover/unhover broken
+    select after create
+    fillet every corner
 
 
 - interleaving with updating/commit on factory. use q?

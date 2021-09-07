@@ -45,14 +45,12 @@ export class Model {
     }
 
     snap(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap) {
-        return this.manager.snap(raycaster, this.snapsFor(constructionPlane), this.restrictionSnapsFor(constructionPlane), this.restrictionsFor(constructionPlane));
+        return this.manager.snap(raycaster, this.snapsFor(constructionPlane), this.restrictionSnaps, this.restrictionsFor(constructionPlane));
     }
 
     snapsFor(constructionPlane: PlaneSnap): Snap[] {
         const result = [...this.snaps];
-        if (constructionPlane === this.actualConstructionPlaneGiven(constructionPlane)) {
-            result.push(constructionPlane);
-        }
+        result.push(this.actualConstructionPlaneGiven(constructionPlane));
         return result;
     }
 
@@ -60,12 +58,6 @@ export class Model {
         const restrictions = [...this.restrictions];
         this.addConstructionPlaneIfPlanarRestriction(constructionPlane, restrictions);
         return restrictions;
-    }
-
-    restrictionSnapsFor(constructionPlane: PlaneSnap): Snap[] {
-        const snaps = [...this.restrictionSnaps];
-        if (snaps.length === 0) snaps.push(this.actualConstructionPlaneGiven(constructionPlane))
-        return snaps;
     }
 
     private addConstructionPlaneIfPlanarRestriction(constructionPlane: PlaneSnap, collection: Snap[] | Restriction[]) {

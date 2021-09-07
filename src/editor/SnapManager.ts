@@ -4,7 +4,7 @@ import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
 import { PointPicker } from "../commands/PointPicker";
-import { point2point, unit, vec2vec } from "../util/Conversion";
+import { deunit, point2point, vec2vec } from "../util/Conversion";
 import { CircleGeometry, Redisposable, RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { DatabaseLike } from "./GeometryDatabase";
@@ -295,7 +295,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     debug() {
-
     }
 }
 
@@ -385,6 +384,7 @@ export class CurveEdgeSnap extends Snap {
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
         super();
+        this.snapper.scale.setScalar(deunit(1))
         this.init();
     }
 
