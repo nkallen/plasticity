@@ -25,7 +25,7 @@ describe(ThreePointRectangleFactory, () => {
     })
 
     describe('commit', () => {
-        test.only('invokes the appropriate c3d commands', async () => {
+        test('invokes the appropriate c3d commands', async () => {
             makeRectangle.p1 = new THREE.Vector3();
             makeRectangle.p2 = new THREE.Vector3(1, 0, 0);
             makeRectangle.p3 = new THREE.Vector3(1, 1, 0);

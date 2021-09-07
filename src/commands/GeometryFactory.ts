@@ -4,6 +4,7 @@ import { DatabaseLike, MaterialOverride, TemporaryObject } from '../editor/Geome
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
 import { ResourceRegistration } from '../util/Cancellable';
+import { SequentialExecutor } from '../util/SequentialExecutor';
 import { zip } from '../util/Util';
 
 type State = { tag: 'none', last: undefined }
@@ -16,9 +17,26 @@ type State = { tag: 'none', last: undefined }
 export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride }
 
 /**
- * Subclasses of GeometryFactory implement template update() and commit() methods. This abstract class
- * implements a state machine that does a lot of error handling. Update previews the computation to but
- * the user but commit() is required to actually store the result in the geometry database.
+ * A GeometryFactory is an object responsible for making and transforming geometrical objects, like
+ * solids and curves. All of the spheres and circles and fillets and boolean operations are represented
+ * as factories. The factories take various arguments (such as a fillet radius) and have commit(), update(),
+ * and cancel() methods. Commit() computes the geometry and adds it to the database whereas update() creates
+ * a temporary object for visualization before the user decides to commit().
+ * 
+ * A typical subclass only implements the calculate() template method. So the default superclass update()
+ * and commit() (which call calculate()) are sufficient in 90% of cases; the exceptions are usually to allow
+ * update() to have optimizations. Scale, for example, can show results to the user without having to invoke
+ * c3d commands (which are often slower and always generate a lot of garbage).
+ * 
+ * Further, one should be aware that some factories create objects (like a new sphere), some create
+ * and CONSUME objects such as boolean union (where two objects become one), some replace like fillet, and so
+ * forth. Thus there is some code complexity in managing the inserting, replacing, deleting, etc. of objects
+ * in the databases. All of this is implemented in AbstractGeometryFactory -- it is the "essential" functionality.
+ * 
+ * In addition to the above, a GeometryFactory is a state machine. Because computations can succeed and fail,
+ * and because computations can take a long time (and happen asynchronously), the GeometryFactory has states
+ * like none/updating/updated/failed/cancelled/committed. For the purposes of code organization and unit testing,
+ * the state machine behavior is implemented in the abstract subclass GeometryFactory.
  * 
  * Particularly in the case of update(), where the user is interactively trying one value after another,
  * the factory can temporarily be in a failure state. Similarly, if an update takes too long, the user
@@ -26,14 +44,16 @@ export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride }
  * 'failed', 'updated', etc.
  * 
  * In general, if the user is requesting updates too fast we drop all but the most recent request; this
- * is implemented with the hasNext field on the updating state.
+ * is implemented with the hasNext field on the updating state. We also need to ensure some synchronization;
+ * if an update is taking too long and in the meantime the user cancels or commits, the system needs to
+ * end up in a coherent state.
  * 
- * In the case of failure, if the subclass implements a key() method, we store the last successful
+ * Finally, in the case of (temporary) failure, if the subclass implements a key() method, we store the last successful
  * value and try to return to that state whenever the user is done requesting updates. This works best
  * when a user exceeds some max value, (like a max fillet radius).
  */
 
-export abstract class GeometryFactory extends ResourceRegistration {
+export abstract class AbstractGeometryFactory extends ResourceRegistration  {
     state: State = { tag: 'none', last: undefined };
 
     constructor(
@@ -41,8 +61,6 @@ export abstract class GeometryFactory extends ResourceRegistration {
         protected readonly materials: MaterialDatabase,
         protected readonly signals: EditorSignals
     ) { super() }
-
-    // MARK: Default implementations of the template methods. Override for more complicated commands
 
     protected temps: TemporaryObject[] = [];
 
@@ -159,7 +177,24 @@ export abstract class GeometryFactory extends ResourceRegistration {
         return this.shouldRemoveOriginalItemOnCommit;
     }
 
-    // MARK: Below is the complicated StateMachine behavior
+    async update(): Promise<void> {
+        await this.doUpdate();
+    }
+
+    async commit(): Promise<visual.Item | visual.Item[]> {
+        return this.doCommit();
+    }
+
+    cancel() {
+        this.doCancel();
+    }
+
+    // NOTE: finish is a no-op on factories; all factories should be explicitly commit or cancel.
+    finish() { }
+}
+
+export abstract class GeometryFactory extends AbstractGeometryFactory {
+    private readonly queue = new SequentialExecutor();
 
     async update() {
         switch (this.state.tag) {
@@ -178,7 +213,8 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 } finally {
                     c3d.Mutex.ExitParallelRegion();
 
-                    await this.continueUpdatingIfMoreWork(before);
+                    // @ts-expect-error
+                    if (this.state.tag !== 'cancelled') await this.continueUpdatingIfMoreWork(before);
                 }
                 break;
             case 'updating':
@@ -252,9 +288,6 @@ export abstract class GeometryFactory extends ResourceRegistration {
                 throw new Error('invalid state: ' + this.state.tag);
         }
     }
-
-    // Factories can be cancelled but "finishing" is a no-op. Commit must be called explicitly.
-    async finish() { }
 
     cancel() {
         switch (this.state.tag) {

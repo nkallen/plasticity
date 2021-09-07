@@ -1,4 +1,4 @@
-import { GeometryFactory, ValidationError } from "../../src/commands/GeometryFactory";
+import { GeometryFactory, AbstractGeometryFactory, ValidationError } from "../../src/commands/GeometryFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -8,6 +8,220 @@ import '../matchers';
 import c3d from '../../build/Release/c3d.node';
 import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import * as THREE from "three";
+import { Delay } from "../../src/util/SequentialExecutor";
+
+let db: GeometryDatabase;
+let materials: MaterialDatabase;
+let signals: EditorSignals;
+
+beforeEach(() => {
+    materials = new FakeMaterials();
+    signals = new EditorSignals();
+    db = new GeometryDatabase(materials, signals);
+})
+
+class ReplacingFactory extends AbstractGeometryFactory {
+    from!: visual.Solid[]
+    to!: c3d.Solid[]
+
+    async calculate() {
+        return this.to;
+    }
+
+    get originalItem() { return this.from }
+    get shouldHideOriginalItemDuringUpdate() { return true }
+    get shouldRemoveOriginalItemOnCommit() { return true }
+}
+
+describe(AbstractGeometryFactory, () => {
+    let sphere1: visual.Solid;
+    let sphere2: visual.Solid;
+    let replacement1: c3d.Solid;
+    let replacement2: c3d.Solid;
+
+    describe('commit', () => {
+        beforeEach(async () => {
+            const makeSphere1 = new SphereFactory(db, materials, signals);
+            makeSphere1.center = new THREE.Vector3();
+            makeSphere1.radius = 1;
+            sphere1 = await makeSphere1.commit() as visual.Solid;
+
+            const makeSphere2 = new SphereFactory(db, materials, signals);
+            makeSphere2.center = new THREE.Vector3(1);
+            makeSphere2.radius = 1;
+            sphere2 = await makeSphere2.commit() as visual.Solid;
+
+            const makeSphere3 = new SphereFactory(db, materials, signals);
+            makeSphere3.center = new THREE.Vector3(2);
+            makeSphere3.radius = 1;
+            replacement1 = await makeSphere3.calculate() as c3d.Solid;
+
+            const makeSphere4 = new SphereFactory(db, materials, signals);
+            makeSphere4.center = new THREE.Vector3(3);
+            makeSphere4.radius = 1;
+            replacement2 = await makeSphere4.calculate() as c3d.Solid;
+        });
+
+        test("it replaces the original item", async () => {
+            expect(db.visibleObjects.length).toBe(2);
+            expect(db.visibleObjects[0]).toBe(sphere1);
+            expect(db.visibleObjects[1]).toBe(sphere2);
+
+            const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
+            expect(view1).toBe(sphere1)
+
+            const replacingFactory = new ReplacingFactory(db, materials, signals);
+            replacingFactory.from = [sphere1];
+            replacingFactory.to = [replacement1];
+
+            const newViews = await replacingFactory.commit() as visual.Solid[];
+            expect(newViews.length).toBe(1);
+            const newView = newViews[0];
+
+            expect(db.visibleObjects.length).toBe(2);
+            expect(db.visibleObjects[0]).toBe(sphere2);
+            expect(db.visibleObjects[1]).toBe(newView);
+        });
+
+        test("when it produces less than it consumes", async () => {
+            expect(db.visibleObjects.length).toBe(2);
+            expect(db.visibleObjects[0]).toBe(sphere1);
+            expect(db.visibleObjects[1]).toBe(sphere2);
+
+            const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
+            expect(view1).toBe(sphere1)
+
+            const replacingFactory = new ReplacingFactory(db, materials, signals);
+            replacingFactory.from = [sphere1, sphere2];
+            replacingFactory.to = [replacement1];
+
+            const newViews = await replacingFactory.commit() as visual.Solid[];
+            expect(newViews.length).toBe(1);
+            const newView = newViews[0];
+
+            expect(db.visibleObjects.length).toBe(1);
+            expect(db.visibleObjects[0]).toBe(newView);
+        });
+
+        test("when it produces more than it consumes", async () => {
+            expect(db.visibleObjects.length).toBe(2);
+            expect(db.visibleObjects[0]).toBe(sphere1);
+            expect(db.visibleObjects[1]).toBe(sphere2);
+
+            const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
+            expect(view1).toBe(sphere1)
+
+            const replacingFactory = new ReplacingFactory(db, materials, signals);
+            replacingFactory.from = [sphere1];
+            replacingFactory.to = [replacement1, replacement2];
+
+            const newViews = await replacingFactory.commit() as visual.Solid[];
+            expect(newViews.length).toBe(2);
+            const newView0 = newViews[0];
+            const newView1 = newViews[1];
+
+            expect(db.visibleObjects.length).toBe(3);
+            expect(db.visibleObjects[0]).toBe(sphere2);
+            expect(db.visibleObjects[1]).toBe(newView0);
+            expect(db.visibleObjects[2]).toBe(newView1);
+        });
+    });
+
+    describe('update & cancel', () => {
+        beforeEach(async () => {
+            const makeSphere1 = new SphereFactory(db, materials, signals);
+            makeSphere1.center = new THREE.Vector3();
+            makeSphere1.radius = 1;
+            sphere1 = await makeSphere1.commit() as visual.Solid;
+
+            const makeSphere2 = new SphereFactory(db, materials, signals);
+            makeSphere2.center = new THREE.Vector3(1);
+            makeSphere2.radius = 1;
+            sphere2 = await makeSphere2.commit() as visual.Solid;
+
+            const makeSphere3 = new SphereFactory(db, materials, signals);
+            makeSphere3.center = new THREE.Vector3(2);
+            makeSphere3.radius = 1;
+            replacement1 = await makeSphere3.calculate() as c3d.Solid;
+
+            const makeSphere4 = new SphereFactory(db, materials, signals);
+            makeSphere4.center = new THREE.Vector3(3);
+            makeSphere4.radius = 1;
+            replacement2 = await makeSphere4.calculate() as c3d.Solid;
+        });
+
+        test("it replaces the original item", async () => {
+            expect(db.visibleObjects.length).toBe(2);
+            expect(db.visibleObjects[0]).toBe(sphere1);
+            expect(db.visibleObjects[1]).toBe(sphere2);
+
+            const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
+            expect(view1).toBe(sphere1)
+
+            const replacingFactory = new ReplacingFactory(db, materials, signals);
+            replacingFactory.from = [sphere1];
+            replacingFactory.to = [replacement1];
+
+            await replacingFactory.update();
+
+            expect(db.temporaryObjects.children.length).toBe(1);
+            expect(sphere1.visible).toBe(false);
+
+            replacingFactory.cancel();
+
+            expect(db.temporaryObjects.children.length).toBe(0);
+            expect(sphere1.visible).toBe(true);
+        });
+
+        test("when it produces less than it consumes", async () => {
+            expect(db.visibleObjects.length).toBe(2);
+            expect(db.visibleObjects[0]).toBe(sphere1);
+            expect(db.visibleObjects[1]).toBe(sphere2);
+
+            const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
+            expect(view1).toBe(sphere1)
+
+            const replacingFactory = new ReplacingFactory(db, materials, signals);
+            replacingFactory.from = [sphere1, sphere2];
+            replacingFactory.to = [replacement1];
+
+            await replacingFactory.update();
+
+            expect(db.temporaryObjects.children.length).toBe(1);
+            expect(sphere1.visible).toBe(false);
+            expect(sphere2.visible).toBe(false);
+
+            replacingFactory.cancel();
+
+            expect(db.temporaryObjects.children.length).toBe(0);
+            expect(sphere1.visible).toBe(true);
+            expect(sphere2.visible).toBe(true);
+        });
+
+        test("when it produces more than it consumes", async () => {
+            expect(db.visibleObjects.length).toBe(2);
+            expect(db.visibleObjects[0]).toBe(sphere1);
+            expect(db.visibleObjects[1]).toBe(sphere2);
+
+            const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
+            expect(view1).toBe(sphere1)
+
+            const replacingFactory = new ReplacingFactory(db, materials, signals);
+            replacingFactory.from = [sphere1];
+            replacingFactory.to = [replacement1, replacement2];
+
+            await replacingFactory.update();
+
+            expect(db.temporaryObjects.children.length).toBe(2);
+            expect(sphere1.visible).toBe(false);
+
+            replacingFactory.cancel();
+
+            expect(db.temporaryObjects.children.length).toBe(0);
+            expect(sphere1.visible).toBe(true);
+        });
+    });
+});
 
 class FakeFactory extends GeometryFactory {
     updateCount = 0;
@@ -22,31 +236,21 @@ class FakeFactory extends GeometryFactory {
     }
 }
 
-let db: GeometryDatabase;
-let factory: FakeFactory;
-let materials: MaterialDatabase;
-let signals: EditorSignals;
+type Resolver = (value: void | PromiseLike<void>) => void;
 
-beforeEach(() => {
-    materials = new FakeMaterials();
-    signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
-    factory = new FakeFactory(db, materials, signals);
-})
+describe(GeometryFactory, () => {
+    let factory: FakeFactory;
+    let delay1: Delay<void>;
+    let delay2: Delay<void>
 
-describe('update', () => {
-    test('simple update', async () => {
-        factory.promises.push(Promise.resolve());
-        await factory.update();
-        expect(factory.updateCount).toBe(1);
+    beforeEach(() => {
+        factory = new FakeFactory(db, materials, signals);
+        delay1 = new Delay();
+        delay2 = new Delay();
+        factory.promises.push(delay1.promise, delay2.promise);
     })
 
-
     test('does not enqueue multiple updates', async () => {
-        let resolve1: (value: void | PromiseLike<void>) => void, resolve2: (value: void | PromiseLike<void>) => void;
-        factory.promises.push(new Promise<void>((resolve, _) => { resolve1 = resolve }));
-        factory.promises.push(new Promise<void>((resolve, _) => { resolve2 = resolve }));
-
         const first = factory.update();
         factory.update();
         factory.update();
@@ -54,50 +258,40 @@ describe('update', () => {
         factory.update();
         factory.update();
         factory.update();
-        resolve1!(); resolve2!();
+        delay1.resolve(); delay2.resolve();
         await first;
         expect(factory.updateCount).toBe(2);
     });
 
     test("it keeps going if there's an exception", async () => {
-        let reject1: (reason?: any) => void, resolve2: (value: void | PromiseLike<void>) => void;
-        factory.promises.push(new Promise<void>((_, reject) => { reject1 = reject }));
-        factory.promises.push(new Promise<void>((resolve, _) => { resolve2 = resolve }));
-
         const first = factory.update();
         factory.update();
-        reject1!("error"); resolve2!();
+        delay1.reject("error"); delay2.resolve();
         await first;
         expect(factory.updateCount).toBe(2);
     });
 
     test("works serially", async () => {
-        let resolve: (value: void | PromiseLike<void>) => void;
-        factory.promises.push(new Promise<void>((resolve_, _) => { resolve = resolve_ }));
         const first = factory.update();
-        resolve!();
+        delay1.resolve();
         await first;
 
-        factory.promises.push(new Promise<void>((resolve_, _) => { resolve = resolve_ }));
         const second = factory.update();
-        resolve!();
+        delay2.resolve();
         await second;
 
         expect(factory.updateCount).toBe(2);
     });
 
     test("in case of error, it reverts to last successful parameter", async () => {
-        let resolve1: (value: void | PromiseLike<void>) => void, reject2: (reason?: any) => void;
         factory.revertOnError = 1;
-        factory.promises.push(new Promise<void>((resolve_, _) => { resolve1 = resolve_ }));
         const first = factory.update();
-        resolve1!();
+        delay1.resolve();
         await first;
 
         factory.revertOnError = 2;
-        factory.promises.push(new Promise<void>((_, reject_) => { reject2 = reject_ }));
         const second = factory.update();
-        reject2!("error");
+        delay2.reject("error");
         await second;
 
         expect(factory.revertOnError).toBe(1);
@@ -105,122 +299,22 @@ describe('update', () => {
     });
 
     test("update swallows validation errors", async () => {
-        let reject: (reason?: any) => void;
-        factory.promises.push(new Promise<void>((_, reject_) => { reject = reject_ }));
-
         const first = factory.update();
-        reject!(new ValidationError());
-        await first;
+        delay1.reject(new ValidationError());
+        await expect(first).resolves.not.toThrow();
 
         expect(factory.updateCount).toBe(1);
     });
 
 
     test("update swallows c3d errors", async () => {
-        let reject: (reason?: any) => void;
-        factory.promises.push(new Promise<void>((_, reject_) => { reject = reject_ }));
-
         const first = factory.update();
         const c3dErr = new Error();
         // @ts-expect-error
         c3dErr.isC3dError = true;
-        reject!(c3dErr);
-        await first;
+        delay1.reject(c3dErr);
+        await expect(first).resolves.not.toThrow();
 
         expect(factory.updateCount).toBe(1);
     });
 })
-
-class ReplacingFactory extends GeometryFactory {
-    from!: visual.Solid[]
-    to!: c3d.Solid[]
-
-    async calculate() {
-        return this.to;
-    }
-
-    get originalItem() { return this.from }
-}
-
-describe("commit", () => {
-    let sphere1: visual.Solid;
-    let sphere2: visual.Solid;
-    let replacement1: c3d.Solid;
-    let replacement2: c3d.Solid;
-
-    beforeEach(async () => {
-        const makeSphere1 = new SphereFactory(db, materials, signals);
-        makeSphere1.center = new THREE.Vector3();
-        makeSphere1.radius = 1;
-        sphere1 = await makeSphere1.commit() as visual.Solid;
-
-        const makeSphere2 = new SphereFactory(db, materials, signals);
-        makeSphere2.center = new THREE.Vector3(1);
-        makeSphere2.radius = 1;
-        sphere2 = await makeSphere2.commit() as visual.Solid;
-
-        const makeSphere3 = new SphereFactory(db, materials, signals);
-        makeSphere3.center = new THREE.Vector3(2);
-        makeSphere3.radius = 1;
-        replacement1 = await makeSphere3.calculate() as c3d.Solid;
-
-        const makeSphere4 = new SphereFactory(db, materials, signals);
-        makeSphere4.center = new THREE.Vector3(3);
-        makeSphere4.radius = 1;
-        replacement2 = await makeSphere4.calculate() as c3d.Solid;
-    });
-
-    test("it replaces the original item", async () => {
-        expect(db.visibleObjects.length).toBe(2);
-
-        const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
-        expect(view1).toBe(sphere1)
-
-        const replacingFactory = new ReplacingFactory(db, materials, signals);
-        replacingFactory.from = [sphere1];
-        replacingFactory.to = [replacement1];
-
-        const newViews = await replacingFactory.commit() as visual.Solid[];
-        const newView = newViews[0];
-        expect(db.visibleObjects.length).toBe(2);
-
-        // const { view: view2, model: model2 } = db.lookupItemById(sphere1.simpleName);
-        // expect(view2.uuid).toBe(newView.uuid)
-    });
-
-    test("when it produces less than it consumes", async () => {
-        expect(db.visibleObjects.length).toBe(2);
-
-        const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
-        expect(view1).toBe(sphere1)
-
-        const replacingFactory = new ReplacingFactory(db, materials, signals);
-        replacingFactory.from = [sphere1, sphere2];
-        replacingFactory.to = [replacement1];
-
-        const newViews = await replacingFactory.commit() as visual.Solid[];
-        const newView = newViews[0];
-        expect(db.visibleObjects.length).toBe(1);
-
-        // const { view: view2, model: model2 } = db.lookupItemById(sphere1.simpleName);
-        // expect(view2.uuid).toBe(newView.uuid)
-    });
-
-    test("when it produces more than it consumes", async () => {
-        expect(db.visibleObjects.length).toBe(2);
-
-        const { view: view1, model: model1 } = db.lookupItemById(sphere1.simpleName);
-        expect(view1).toBe(sphere1)
-
-        const replacingFactory = new ReplacingFactory(db, materials, signals);
-        replacingFactory.from = [sphere1];
-        replacingFactory.to = [replacement1, replacement2];
-
-        const newViews = await replacingFactory.commit() as visual.Solid[];
-        const newView = newViews[0];
-        expect(db.visibleObjects.length).toBe(3);
-
-        // const { view: view2, model: model2 } = db.lookupItemById(sphere1.simpleName);
-        // expect(view2.uuid).toBe(newView.uuid)
-    });
-});
