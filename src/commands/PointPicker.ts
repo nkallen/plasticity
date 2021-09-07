@@ -1,5 +1,6 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike, GeometryDatabase } from '../editor/GeometryDatabase';
@@ -183,10 +184,17 @@ export class PointPicker {
                 viewport.selector.enabled = false;
                 disposables.add(new Disposable(() => viewport.enableControls()))
 
+                let isNavigating = false;
+                disposables.add(this.disablePickingDuringNavigation(viewport.navigationControls,
+                    () => isNavigating = true,
+                    () => isNavigating = false));
+
                 const { camera, renderer: { domElement } } = viewport;
 
                 let lastMoveEvent: PointerEvent | undefined = undefined
                 const onPointerMove = (e: PointerEvent) => {
+                    if (isNavigating) return;
+
                     lastMoveEvent = e;
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
@@ -280,6 +288,19 @@ export class PointPicker {
             }
             return { cancel, finish };
         });
+    }
+
+    private disablePickingDuringNavigation(navigationControls: OrbitControls, start: () => void, end: () => void): Disposable {
+        const onStart = (e: Event) => {
+            start();
+            navigationControls.addEventListener('end', onEnd);
+        }
+        const onEnd = (e: Event) => {
+            end();
+            navigationControls.removeEventListener('end', onEnd);
+        }
+        navigationControls.addEventListener('start', onStart);
+        return new Disposable(() => navigationControls.removeEventListener('start', onStart));
     }
 
     get straightSnaps() { return this.model.straightSnaps }
