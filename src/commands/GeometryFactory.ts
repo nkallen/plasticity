@@ -53,7 +53,7 @@ export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride }
  * when a user exceeds some max value, (like a max fillet radius).
  */
 
-export abstract class AbstractGeometryFactory extends ResourceRegistration  {
+export abstract class AbstractGeometryFactory extends ResourceRegistration {
     state: State = { tag: 'none', last: undefined };
 
     constructor(
@@ -73,7 +73,7 @@ export abstract class AbstractGeometryFactory extends ResourceRegistration  {
 
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
         performance.mark('begin-factory-calculate');
-        let result = await this.calculate(options);
+        const result = await this.calculate(options);
         performance.measure('factory-calculate', 'begin-factory-calculate');
         if (this.state.tag === 'cancelled') return Promise.resolve([]);
 
@@ -241,6 +241,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 }
                 break;
             case 'cancelled': break;
+            case 'committed': break;
             default: throw new Error("invalid state: " + this.state.tag);
         }
     }
@@ -271,6 +272,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
             case 'none':
             case 'updated':
             case 'failed':
+            case 'updating':
                 try {
                     c3d.Mutex.EnterParallelRegion();
                     const result = await this.doCommit();

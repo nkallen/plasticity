@@ -232,7 +232,12 @@ class FakeFactory extends GeometryFactory {
     revertOnError = 0;
 
     async calculate() {
-        return this.promises[this.updateCount++] as unknown as c3d.Item | c3d.Item[];
+        await this.promises[this.updateCount++];
+
+        const makeSphere = new SphereFactory(db, materials, signals);
+        makeSphere.center = new THREE.Vector3(2);
+        makeSphere.radius = 1;
+        return makeSphere.calculate();
     }
 }
 
@@ -242,12 +247,14 @@ describe(GeometryFactory, () => {
     let factory: FakeFactory;
     let delay1: Delay<void>;
     let delay2: Delay<void>
+    let delay3: Delay<void>
 
     beforeEach(() => {
         factory = new FakeFactory(db, materials, signals);
         delay1 = new Delay();
         delay2 = new Delay();
-        factory.promises.push(delay1.promise, delay2.promise);
+        delay3 = new Delay();
+        factory.promises.push(delay1.promise, delay2.promise, delay3.promise);
     })
 
     test('does not enqueue multiple updates', async () => {
@@ -292,6 +299,7 @@ describe(GeometryFactory, () => {
         factory.revertOnError = 2;
         const second = factory.update();
         delay2.reject("error");
+        delay3.resolve();
         await second;
 
         expect(factory.revertOnError).toBe(1);
@@ -308,6 +316,7 @@ describe(GeometryFactory, () => {
         const second = factory.update();
         factory.cancel();
         delay2.reject("error");
+        delay3.resolve();
         await second;
 
         expect(factory.revertOnError).toBe(2);
@@ -327,6 +336,7 @@ describe(GeometryFactory, () => {
         const third = factory.update();
 
         delay2.reject("error");
+        delay3.resolve();
         await second;
 
         await third;
@@ -334,7 +344,6 @@ describe(GeometryFactory, () => {
         expect(factory.revertOnError).toBe(3);
         expect(factory.updateCount).toBe(3);
     });
-
 
     test("update swallows validation errors", async () => {
         const first = factory.update();
@@ -353,5 +362,50 @@ describe(GeometryFactory, () => {
         await expect(first).resolves.not.toThrow();
 
         expect(factory.updateCount).toBe(1);
+    });
+
+    test("in case of long update and cancel", async () => {
+        const first = factory.update();
+        delay1.resolve();
+        await first;
+
+        const second = factory.update();
+        factory.cancel();
+        delay2.resolve();
+        await second;
+
+        expect(db.temporaryObjects.children.length).toBe(0);
+    });
+
+    test("in case of long update and commit", async () => {
+        const first = factory.update();
+        delay1.resolve();
+        await first;
+
+        const second = factory.update();
+        
+        const third = factory.commit();
+        delay3.resolve();
+        await third;
+
+        delay2.resolve();
+        await second;
+    });
+
+    test("in case of long update that errors and commit", async () => {
+        const first = factory.update();
+        delay1.resolve();
+        await first;
+
+        const second = factory.update();
+
+        const third = factory.commit();
+        delay3.resolve();
+        await third;
+
+        delay2.reject("failure");
+        await second;
+
+        expect(db.temporaryObjects.children.length).toBe(0);
     });
 })
