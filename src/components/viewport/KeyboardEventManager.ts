@@ -36,7 +36,6 @@ export default class KeyboardEventManager {
 
     onPointerMove(e: PointerEvent) {
         const target = e.target;
-        console.log("here");
         if (target instanceof HTMLElement) {
             this.lastTarget = target;
         }
@@ -97,7 +96,6 @@ export default class KeyboardEventManager {
         if (lastTarget === undefined) return;
         
         Object.defineProperty(event, 'target', { value: lastTarget });
-        console.log(lastTarget);
         this.keymaps.handleKeyboardEvent(event);
     }
 
