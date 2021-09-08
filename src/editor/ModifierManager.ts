@@ -98,7 +98,12 @@ export class ModifierStack {
         symmetry.solid = symmetrized;
         const temps = await symmetry.doUpdate();
 
-        if (temps.length != 1) throw new Error("invalid postcondition: " + temps.length);
+        if (temps.length === 0) return {
+            underlying: undefined as any,
+            show() {},
+            cancel() { },
+        };
+        if (temps.length > 1) throw new Error("invalid postcondition: " + temps.length);
         const temp = temps[0];
         const { modified, premodified } = this;
 
@@ -418,6 +423,19 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
 class ModifierSelection extends SelectionProxy {
     constructor(private readonly db: DatabaseLike, private readonly modifiers: ModifierManager, selection: ModifiesSelection) {
         super(selection);
+    }
+
+    add(items: visual.Item | visual.Item[]) {
+        if (items instanceof visual.Item) items = [items];
+        for (const item of items) {
+            if (item instanceof visual.Solid) {
+                this.addSolid(item);
+            } else if (item instanceof visual.SpaceInstance) {
+                this.addCurve(item);
+            } else if (item instanceof visual.PlaneInstance) {
+                this.addRegion(item);
+            } else throw new Error("invalid type");
+        }
     }
 
     addSolid(solid: visual.Solid) {
