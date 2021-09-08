@@ -9,7 +9,7 @@ import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
 import { SelectionCommandManager } from "../commands/SelectionCommandManager";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import TooltipManager from "../components/atom/tooltip-manager";
-import Mouse2KeyboardEventManager from "../components/viewport/Mouse2KeyboardEventManager";
+import KeyboardEventManager from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { ModifierHighlightManager } from "../selection/HighlightManager";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
@@ -57,7 +57,7 @@ export class Editor {
     readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.curves, this.modifiers);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
-    readonly mouse2keyboard = new Mouse2KeyboardEventManager(this.keymaps);
+    readonly mouse2keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new ModifierHighlightManager(this.modifiers, this.db, this.materials, this.selection, this.signals);
 

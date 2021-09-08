@@ -1,6 +1,7 @@
 import KeymapManager from "atom-keymap";
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
+import { Pane } from "../pane/Pane";
 
 // Time thresholds are in milliseconds, distance thresholds are in pixels.
 const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
@@ -8,8 +9,9 @@ const consummationDistanceThreshold = 4; // once the mouse moves at least this d
 
 type State = { tag: 'none' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable }
 
-export default class Mouse2KeyboardEventManager {
+export default class KeyboardEventManager {
     private state: State = { tag: 'none' };
+    private readonly disposable = new CompositeDisposable();
 
     constructor(private readonly keymaps: AtomKeymap.KeymapManager) {
         this.onPointerDown = this.onPointerDown.bind(this);
@@ -21,9 +23,24 @@ export default class Mouse2KeyboardEventManager {
         window.addEventListener('keydown', this.onKeyDown);
         window.addEventListener('pointerdown', this.onPointerDown);
         window.addEventListener('wheel', this.onWheelEvent, { capture: true, passive: false });
+        window.addEventListener('pointermove', this.onPointerMove);
+        this.disposable.add(new Disposable(() => {
+            window.removeEventListener('keydown', this.onKeyDown);
+            window.removeEventListener('pointerdown', this.onPointerDown);
+            window.removeEventListener('wheel', this.onWheelEvent, { capture: true });
+            window.removeEventListener('pointermove', this.onPointerMove);
+        }));
     }
 
-    onPointerMove(e: PointerEvent) { }
+    private lastTarget?: HTMLElement;
+
+    onPointerMove(e: PointerEvent) {
+        const target = e.target;
+        console.log("here");
+        if (target instanceof HTMLElement) {
+            this.lastTarget = target;
+        }
+    }
 
     onPointerDown(e: PointerEvent) {
         switch (this.state.tag) {
@@ -33,7 +50,6 @@ export default class Mouse2KeyboardEventManager {
                 if (e.button != 2) return;
 
                 window.addEventListener('pointerup', this.onPointerUp);
-                disposables.add(new Disposable(() => window.removeEventListener('pointermove', this.onPointerMove)));
                 disposables.add(new Disposable(() => window.removeEventListener('pointerup', this.onPointerUp)));
                 this.state = { tag: 'down', downEvent: e, disposable: disposables };
                 break;
@@ -77,6 +93,11 @@ export default class Mouse2KeyboardEventManager {
     }
 
     onKeyDown(event: KeyboardEvent) {
+        const lastTarget = this.lastTarget;
+        if (lastTarget === undefined) return;
+        
+        Object.defineProperty(event, 'target', { value: lastTarget });
+        console.log(lastTarget);
         this.keymaps.handleKeyboardEvent(event);
     }
 
@@ -99,5 +120,9 @@ export default class Mouse2KeyboardEventManager {
             }
         });
         return e;
+    }
+
+    dispose() {
+        this.disposable.dispose();
     }
 }

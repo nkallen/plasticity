@@ -160,7 +160,6 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerHover)));
                 disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointerup', onPointerUp)));
-                disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointermove', onPointerMove)));
                 this.editor.signals.gizmoChanged.dispatch();
             }
             const cancel = () => {
