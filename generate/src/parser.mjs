@@ -25,6 +25,7 @@ function cppType2jsType(cppType) {
         case 'VERSION':
         case 'double': return 'number';
         case 'c3d::string_t': return 'string';
+        case 'std::string': return 'string';
         default: return cppType;
     }
 }
@@ -224,6 +225,7 @@ class FunctionDeclaration {
 
         this.rawName = matchMethod.groups.name;
         this.name = this.rawName.split(/::/)[1] ?? matchMethod.groups.name;
+
         this.returnType = new ReturnDeclaration(matchMethod.groups.return, this.typeRegistry, options.return);
         const paramDescs = matchMethod.groups.params.split(/,\s*/);
 
@@ -291,6 +293,10 @@ class TypeDeclaration {
 
     get isC3dString() {
         return this.rawType == "c3d::string_t"
+    }
+
+    get isBasicString() {
+        return this.rawType == "std::string"
     }
 
     get isBoolean() {

@@ -165,7 +165,7 @@ export class PointPicker {
     execute<T>(cb?: (pt: PointResult) => T, resolveOnFinish: mode = 'ResolveOnFinish'): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
-            const { helper, editor, model } = this;
+            const { helper: pointTarget, editor, model } = this;
 
             const raycaster = new THREE.Raycaster();
             raycaster.params.Line = { threshold: 0.1 };
@@ -173,8 +173,8 @@ export class PointPicker {
             raycaster.params.Line2 = { threshold: 20 };
             raycaster.layers = visual.VisibleLayers;
 
-            editor.helpers.add(helper);
-            disposables.add(new Disposable(() => editor.helpers.remove(helper)));
+            editor.helpers.add(pointTarget);
+            disposables.add(new Disposable(() => editor.helpers.remove(pointTarget)));
             disposables.add(new Disposable(() => editor.signals.snapped.dispatch(undefined)));
 
             const helpers = new THREE.Scene();
@@ -218,7 +218,7 @@ export class PointPicker {
                             helpers.add(indicator);
                             info = { snap, constructionPlane: this.model.actualConstructionPlaneGiven(constructionPlane) };
                             if (cb !== undefined) cb({ point: position, info });
-                            helper.position.copy(position);
+                            pointTarget.position.copy(position);
                             const snapHelper = snap.helper;
                             if (snapHelper !== undefined) helpers.add(snapHelper);
                         }
@@ -246,7 +246,7 @@ export class PointPicker {
 
                 const onPointerDown = (e: PointerEvent) => {
                     if (e.button != 0) return;
-                    const point = helper.position.clone();
+                    const point = pointTarget.position.clone();
                     resolve({ point, info: info! });
                     disposables.dispose();
                     this.model.addPickedPoint(info!.snap, point);
@@ -282,7 +282,7 @@ export class PointPicker {
                 reject(Cancel);
             }
             const finish = () => {
-                const point = helper.position.clone();
+                const point = pointTarget.position.clone();
                 editor.signals.pointPickerChanged.dispatch();
                 disposables.dispose();
                 if (resolveOnFinish === 'ResolveOnFinish') resolve({ point, info: info! });

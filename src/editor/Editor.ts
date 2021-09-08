@@ -28,6 +28,7 @@ import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { RegionManager } from "./RegionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
+import c3d from '../../build/Release/c3d.node';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -125,10 +126,15 @@ export class Editor {
     }
 
     async open() {
-        const result = await remote.dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'Files', extensions: ['c3d'] }] })
+        const result = await remote.dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'Files', extensions: ['c3d', 'stp'] }] })
         for (const filePath of result.filePaths) {
-            const data = await fs.promises.readFile(filePath);
-            this._db.deserialize(data);
+            if (/\.c3d$/.test(filePath)) {
+                const data = await fs.promises.readFile(filePath);
+                this._db.deserialize(data);
+            } else {
+                const { result, model } = await c3d.Conversion.ImportFromFile_async(filePath);
+                this._db.load(model);
+            }
         }
     }
 }

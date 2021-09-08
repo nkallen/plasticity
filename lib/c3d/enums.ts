@@ -660,6 +660,21 @@ enum RefType {
     // \ru В конец можно добавлять новые нужные \en It is possible to add new necessary ones to the end 
 };
 
+enum ConvResType {
+    Success = 0,           ///< \ru Успешное завершение.                 \en Success.
+    Error,                 ///< \ru Ошибка в процессе конвертирования.   \en Error.
+    UserCanceled,          ///< \ru Процесс прерван пользователем.       \en Process interrupted by user.
+    NoBody,                ///< \ru Не найдено тел.                      \en No solids found.
+    NoObjects,             ///< \ru Не найдено объектов.                 \en No objects found.
+    FileOpenError,         ///< \ru Ошибка открытия файла.               \en File open error.
+    FileWriteError,        ///< \ru Ошибка записи файла.                 \en File write error.
+    FileDeleteError,       ///< \ru Ошибка удаления файла.               \en Could not delete file.
+    ImpossibleReadAssembly,///< \ru Не поддерживает работу со сборками.  \en Assemblies are not supported.
+    LicenseNotFound,       ///< \ru Ошибка получения лицензии.           \en License check failure.
+    NotEnoughMemory,       ///< \ru Недостаточно памяти.                 \en Not enough memory.
+    UnknownExtension       ///< \ru Неизвестное расширение файла.        \en Unknown file extenstion.
+  };
+
 Object.assign(c3d, {
     ESides,
     StepType,
@@ -684,4 +699,5 @@ Object.assign(c3d, {
     TopologyType,
     SenseValue,
     RefType,
+    ConvResType
 });

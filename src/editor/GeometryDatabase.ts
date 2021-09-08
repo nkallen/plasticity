@@ -507,7 +507,11 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     async deserialize(data: Buffer): Promise<void> {
         const everything = await c3d.Writer.ReadItems_async(data);
-        const items = everything.GetItems();
+        return this.load(everything);
+    }
+
+    async load(model: c3d.Model): Promise<void> {
+        const items = model.GetItems();
         const promises = [];
         for (const item of items) {
             const cast = item.Cast<c3d.Item>(item.IsA());

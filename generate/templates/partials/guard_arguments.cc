@@ -10,6 +10,8 @@
                 || !info[<%- arg.jsIndex %>].IsString())) {
             <%_ } else if (arg.isC3dString) { _%>
                 || !info[<%- arg.jsIndex %>].IsString())) {
+            <%_ } else if (arg.isBasicString) { _%>
+                || !info[<%- arg.jsIndex %>].IsString())) {
             <%_ } else if (arg.isBoolean) { _%>
                 || !info[<%- arg.jsIndex %>].IsBoolean())) {
             <%_ } else if (arg.isArray) { _%>

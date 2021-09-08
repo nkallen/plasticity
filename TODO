@@ -2,6 +2,8 @@
 
 stress test undo
 integration tests for basic commands
+point picker nearby targets aren't scaling like normal helpers
+optimize outline code
 
 curves:
     creating curves not on XY constr plane causes weirdness with the planecontourman
@@ -26,8 +28,6 @@ curves:
 - audit name generation in sample models to see how they obtained unique names
 
 windows build
-
-optimize outline code
 
 add dialogs for everything
 

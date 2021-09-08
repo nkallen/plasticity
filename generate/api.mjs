@@ -1290,6 +1290,35 @@ export default {
             functions: [
                 "void SetStepData(const MbStepData & stData)"
             ]
+        },
+        ConvConvertorProperty3D: {
+            rawHeader: "conv_exchange_settings.h",
+            cppClassName: "_ConvConvertorProperty3D",
+            rawClassName: "ConvConvertorProperty3D",
+            jsClassName: "ConvConvertorProperty3D",
+            fields: [
+                "bool enableAutostitch",
+                "bool joinSimilarFaces",
+                "bool addRemovedFacesAsShells",
+                "double lengthUnitsFactor",
+                "double appUnitsFactor",
+                "bool auditEnabled",
+            ]
+        },
+        C3dModelDocument: {
+            rawHeader: "conv_model_document.h",
+            cppClassName: "_C3dModelDocument",
+            rawClassName: "C3dModelDocument",
+            jsClassName: "C3dModelDocument",
+            initializers: [
+                ""
+            ]
+        },
+        C3DPmiToItem: {
+            rawHeader: "conv_model_document.h",
+            cppClassName: "_C3DPmiToItem",
+            rawClassName: "C3DPmiToItem",
+            jsClassName: "C3DPmiToItem",
         }
     },
     modules: {
@@ -1476,6 +1505,18 @@ export default {
             functions: [
                 "void CalculateGrid(const MbFace & face, const MbStepData & stepData, MbGrid & grid, bool dualSeams = true, bool quad = false, bool fair = false)"
             ]
+        },
+        Conversion: {
+            rawHeader: "conv_model_exchange.h",
+            dependencies: ["Model.h", "_ConvConvertorProperty3D.h", "ProgressIndicator.h"],
+            functions: [
+                {
+                    signature: "int c3d::ImportFromFile(MbModel & model, const std::string & filePath, ConvConvertorProperty3D * prop = c3d_null, ProgressIndicator * indicator = c3d_null)",
+                    indicator: isRaw,
+                    model: isReturn,
+                    return: { name: "result" }
+                },
+            ]
         }
     },
     enums: [
@@ -1505,6 +1546,7 @@ export default {
         "MbeTopologyType",
         "MbeSurfaceProlongType",
         "MbeSenseValue",
-        "MbeRefType"
+        "MbeRefType",
+        "MbeConvResType",
     ]
 }
