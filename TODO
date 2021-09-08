@@ -23,9 +23,6 @@ curves:
     fillet every corner
 
 
-- interleaving with updating/commit on factory. use q?
-  - also what happens if a command is cancelled but a long running job returns?
-
 - when you delete region you delete its curve / and vice versa
 
 - bug: clicking adds items to history even when no selection is changed

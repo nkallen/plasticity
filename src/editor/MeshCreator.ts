@@ -25,7 +25,7 @@ export class BasicMeshCreator implements MeshCreator {
 
 // This is an EXPERIMENTAL mesh creator with parallelism for solids. It is often significantly faster -- and surprisingly,
 // it is never slower, even with simple solids of 3 faces. But it needs to be fully tested.
-export class ParallelSolidMeshCreator implements MeshCreator {
+export class ParallelMeshCreator implements MeshCreator {
     private readonly fallback = new BasicMeshCreator();
 
     async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike> {
@@ -34,20 +34,20 @@ export class ParallelSolidMeshCreator implements MeshCreator {
         }
         const solid = obj as c3d.Solid;
 
+        c3d.Mutex.EnterParallelRegion();
+
         // Here we create mesh & grid for each face. Note that Face.CreateMesh doesn't work correctly in this context, and the below
         // is the recommended approach. Also, note that we could create instead one mesh for all of these grids, it's equivalent.
         const facePromises = [];
-        const faces = [];
+        const mesh = new c3d.Mesh(false);
         for (const face of solid.GetFaces()) {
-            const mesh = new c3d.Mesh(false);
             const grid = mesh.AddGrid()!;
             // face.AttributesConvert(grid); // FIXME -- losing attributes like style without this
             grid.SetItem(face);
             grid.SetPrimitiveName(face.GetNameHash());
             grid.SetPrimitiveType(c3d.RefType.TopItem);
             grid.SetStepData(stepData);
-            facePromises.push(c3d.TriFace.CalculateGrid_async(face, stepData, grid, true, false, true));
-            faces.push(mesh);
+            facePromises.push(c3d.TriFace.CalculateGrid_async(face, stepData, grid, false, formNote.Quad(), formNote.Fair()));
         }
 
         const edgePromises = [];
@@ -57,9 +57,8 @@ export class ParallelSolidMeshCreator implements MeshCreator {
 
         await Promise.all(facePromises);
         const grids: c3d.MeshBuffer[] = [];
-        for (const [i, face] of faces.entries()) {
-            const buffer = face.GetBuffers()[0];
-            buffer.i = i;
+        const buffers = mesh.GetBuffers();
+        for (const buffer of buffers) {
             grids.push(buffer);
         }
 
@@ -72,6 +71,8 @@ export class ParallelSolidMeshCreator implements MeshCreator {
             polygons.push(polygon);
         }
 
+        c3d.Mutex.ExitParallelRegion();
+
         return {
             faces: grids,
             edges: polygons,
@@ -81,7 +82,7 @@ export class ParallelSolidMeshCreator implements MeshCreator {
 
 export class BenchmarkMeshCreator implements MeshCreator {
     private readonly basic = new BasicMeshCreator();
-    private readonly parallel = new ParallelSolidMeshCreator();
+    private readonly parallel = new ParallelMeshCreator();
 
     async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike> {
         // console.time("Basic mesh creation");

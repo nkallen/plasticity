@@ -123,6 +123,8 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
 
                 if (edge->IsPole())
                     continue;
+                if (edge->IsSeam())
+                    continue;
 
                 jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
                 jsInfo.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(edge->GetName())));

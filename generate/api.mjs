@@ -583,7 +583,14 @@ export default {
             rawHeader: "mb_data.h",
             initializers: [
                 "bool wire, bool grid, bool seam, bool exact, bool quad"
-            ]
+            ],
+            functions: [
+                "bool Wire()",
+                "bool Grid()",
+                "bool Seam()",
+                "bool Quad()",
+                "bool Fair()",
+            ],
         },
         Mesh: {
             rawHeader: "mesh.h",
