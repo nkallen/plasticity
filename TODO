@@ -2,14 +2,6 @@
 
 stress test undo
 integration tests for basic commands
-modifier stack when the intersection goes to 0 errors weirdly
-after moving a modified item and right clicking, the object is unselected but you can select a face(?)
-
-# move keybindings outside of loop keybindings
-- onPointerDown and on command (registry.addOne), store the viewport the pointer is over
-- keep lastPointerEvent as a global on editor
-- dispatch keyboard events to the target of lastPointerEvent
-- ensure that regardless of what has focus (E.g,. after hitting the toolbar, keybindings are still processed)
 
 curves:
     creating curves not on XY constr plane causes weirdness with the planecontourman

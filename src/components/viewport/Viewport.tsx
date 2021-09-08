@@ -38,6 +38,8 @@ export class Viewport {
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
+    readonly phantomsPass: RenderPass;
+    readonly helpersPass: RenderPass;
     readonly selector = new ViewportSelector(this.camera, this.renderer.domElement, this.editor);
     lastPointerEvent?: PointerEvent;
     private readonly disposable = new CompositeDisposable();
@@ -75,14 +77,14 @@ export class Viewport {
             this.composer.setPixelRatio(window.devicePixelRatio);
 
             const renderPass = new RenderPass(this.scene, this.camera);
-            const phantomsPass = new RenderPass(this.phantomsScene, this.camera);
-            const helpersPass = new RenderPass(this.helpersScene, this.camera);
+            this.phantomsPass = new RenderPass(this.phantomsScene, this.camera);
+            this.helpersPass = new RenderPass(this.helpersScene, this.camera);
             const copyPass = new ShaderPass(CopyShader);
 
-            phantomsPass.clear = false;
-            phantomsPass.clearDepth = true;
-            helpersPass.clear = false;
-            helpersPass.clearDepth = true;
+            this.phantomsPass.clear = false;
+            this.phantomsPass.clearDepth = true;
+            this.helpersPass.clear = false;
+            this.helpersPass.clearDepth = true;
 
             const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
             outlinePassSelection.edgeStrength = 3;
@@ -109,8 +111,8 @@ export class Viewport {
             this.composer.addPass(renderPass);
             this.composer.addPass(this.outlinePassHover);
             this.composer.addPass(this.outlinePassSelection);
-            this.composer.addPass(phantomsPass);
-            this.composer.addPass(helpersPass);
+            this.composer.addPass(this.phantomsPass);
+            this.composer.addPass(this.helpersPass);
             this.composer.addPass(navigatorPass);
             this.composer.addPass(gammaCorrection);
         }
@@ -210,7 +212,7 @@ export class Viewport {
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 
-        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, grid, composer, camera, lastFrameNumber, offsetWidth, offsetHeight } = this
+        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, grid, composer, camera, lastFrameNumber, offsetWidth, offsetHeight, phantomsPass, helpersPass } = this
 
         try {
             // prepare the scene, once per frame:
@@ -224,6 +226,8 @@ export class Viewport {
                 }
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
+                phantomsPass.enabled = db.phantomObjects.children.length > 0;
+                helpersPass.enabled = helpers.scene.children.length > 0;
             }
 
             const resolution = new THREE.Vector2(offsetWidth, offsetHeight);
