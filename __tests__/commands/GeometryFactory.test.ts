@@ -1,6 +1,6 @@
 import { GeometryFactory, AbstractGeometryFactory, ValidationError } from "../../src/commands/GeometryFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
-import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import { GeometryDatabase, TemporaryObject } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
@@ -383,7 +383,7 @@ describe(GeometryFactory, () => {
         await first;
 
         const second = factory.update();
-        
+
         const third = factory.commit();
         delay3.resolve();
         await third;
@@ -392,6 +392,36 @@ describe(GeometryFactory, () => {
         await second;
 
         expect(db.temporaryObjects.children.length).toBe(0);
+    });
+
+    test("in case of long update and long temporary object rendering AND commit", async () => {
+        const first = factory.update();
+        delay1.resolve();
+        await first;
+
+        const second = factory.update();
+
+        const delay4 = new Delay<TemporaryObject>();
+        jest.spyOn(db, 'addTemporaryItem').mockImplementation(() => {
+            return delay4.promise;
+        });
+
+        delay2.resolve();
+
+        const third = factory.commit();
+        delay3.resolve();
+        await third;
+
+        const show = jest.fn();
+        const cancel = jest.fn();
+        delay4.resolve({
+            show: show,
+            cancel: cancel
+        } as unknown as TemporaryObject);
+        await second;
+
+        expect(show).toBeCalledTimes(0);
+        expect(cancel).toBeCalledTimes(1);
     });
 
     test("in case of long update that errors and commit", async () => {

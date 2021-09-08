@@ -46,7 +46,8 @@ export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride }
  * In general, if the user is requesting updates too fast we drop all but the most recent request; this
  * is implemented with the hasNext field on the updating state. We also need to ensure some synchronization;
  * if an update is taking too long and in the meantime the user cancels or commits, the system needs to
- * end up in a coherent state.
+ * end up in a coherent state. We could queue everything to do this, which would be simple but slow. Instead,
+ * after every `await` check if the state has changed and if so perform whatever cleanup is necessary.
  * 
  * Finally, in the case of (temporary) failure, if the subclass implements a key() method, we store the last successful
  * value and try to return to that state whenever the user is done requesting updates. This works best
@@ -102,6 +103,12 @@ export abstract class AbstractGeometryFactory extends ResourceRegistration {
 
         // 3.a. remove any previous temporary items.
         for (const temp of this.temps) temp.cancel();
+
+        // @ts-expect-error
+        if (this.state.tag === 'cancelled' || this.state.tag === 'committed') {
+            for (const p of finished) p.cancel();
+            return Promise.resolve([]);
+        }
 
         // 3.c. show the newly created temporary items.
         const temps = [];
