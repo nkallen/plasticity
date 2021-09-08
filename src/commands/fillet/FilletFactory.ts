@@ -206,7 +206,7 @@ export class Max<T> {
                 const factory = this.factory;
 
                 console.time("searching for max fillet");
-                const result = await Max.search(0.01, 0.1, 50, d => {
+                const result = await Max.search(0.01, 0.1, 100, d => {
                     factory.distance = d;
                     return factory.calculate();
                 }, 1000);
