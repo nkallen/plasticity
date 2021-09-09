@@ -1,18 +1,15 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
-import c3d from '../../build/Release/c3d.node';
 import { ModifierStack } from '../editor/ModifierManager';
 import * as visual from "../editor/VisualModel";
 import Command, * as cmd from "./Command";
+import { ExportDialog } from './export/ExportDialog';
+import { ExportFactory } from './export/ExportFactory';
 import { SymmetryFactory } from './mirror/MirrorFactory';
 import { MirrorGizmo } from './mirror/MirrorGizmo';
 import { RebuildFactory } from "./rebuild/RebuildFactory";
 import { RebuildKeyboardGizmo } from './rebuild/RebuildKeyboardGizmo';
 import { MoveGizmo } from './translate/MoveGizmo';
 import { MoveFactory } from './translate/TranslateFactory';
-import * as fs from 'fs';
-import { ExportFactory } from './export/ExportFactory';
 
 /**
  * These aren't typical commands, with a set of steps and gizmos to perform a geometrical operation.
@@ -215,7 +212,7 @@ export class RemoveModifierCommand extends Command {
     }
 }
 
-export class ExportOBJCommand extends Command {
+export class ExportCommand extends Command {
     filePath!: string;
 
     async execute(): Promise<void> {
@@ -223,9 +220,15 @@ export class ExportOBJCommand extends Command {
         const solid = selected.solids.first;
         const factory = new ExportFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         factory.solid = solid;
-        await factory.update();
-        await factory.commit();
+        factory.filePath = this.filePath;
 
+        const dialog = new ExportDialog(factory, this.editor.signals);
+        await factory.update();
+        await dialog.execute(params => {
+            factory.update();
+        }).resource(this);
+
+        await factory.commit();
     }
 
     shouldAddToHistory(selectionChanged: boolean) {

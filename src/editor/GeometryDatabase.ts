@@ -72,7 +72,7 @@ export interface DatabaseLike {
 }
 
 export interface TemporaryObject {
-    get underlying(): visual.Item;
+    get underlying(): THREE.Object3D;
     cancel(): void;
     show(): void;
 }

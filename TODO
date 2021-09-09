@@ -4,6 +4,10 @@ stress test undo
 integration tests for basic commands
 point picker nearby targets aren't scaling like normal helpers
 optimize outline code
+keyboard seems broken on boolean commands
+canceling move factory puts system into a bad state
+min and max in number srubber should be respected
+tab and enter in dialogs not working
 
 curves:
     creating curves not on XY constr plane causes weirdness with the planecontourman

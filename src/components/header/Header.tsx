@@ -41,7 +41,7 @@ export default (editor: Editor) => {
                     <li>
                         <button type="button" onClick={_ => editor.export()}>
                             <img src={upload}></img>
-                            <ispace-tooltip placement="bottom">Export document</ispace-tooltip>
+                            <ispace-tooltip placement="bottom">Export document (OBJ, STEP, ...)</ispace-tooltip>
                         </button>
                     </li>
                     <li>

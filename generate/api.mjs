@@ -652,6 +652,9 @@ export default {
                 "void SetAngle(double a)",
                 "void SetLength(double l)",
                 "void SetMaxCount(size_t c)",
+                "double GetSag()",
+                "double GetAngle()",
+                "double GetLength()",
                 "void SetStepType(MbeStepType t, bool add = true)",
                 "void Init(MbeStepType t, double s, double a, double l, size_t c = 0)"
             ]

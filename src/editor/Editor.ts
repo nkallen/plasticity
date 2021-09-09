@@ -29,7 +29,7 @@ import { RegionManager } from "./RegionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import c3d from '../../build/Release/c3d.node';
-import { ExportOBJCommand } from "../commands/CommandLike";
+import { ExportCommand } from "../commands/CommandLike";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -128,11 +128,10 @@ export class Editor {
     }
 
     async export() {
-        // const { canceled, filePath } = await remote.dialog.showSaveDialog({ filters: [{ name: 'Wavefront OBJ', extensions: ['obj'] }] })
-        // if (canceled) return;
+        const { canceled, filePath } = await remote.dialog.showSaveDialog({ filters: [{ name: 'Wavefront OBJ', extensions: ['obj'] }] })
+        if (canceled) return;
 
-        const filePath = "test";
-        const command = new ExportOBJCommand(this);
+        const command = new ExportCommand(this);
         command.filePath = filePath!;
         this.enqueue(command);
     }
