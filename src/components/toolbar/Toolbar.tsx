@@ -128,7 +128,7 @@ export default (editor: Editor) => {
                     {this.model.commands.map(command => {
                         const tooltip = tooltips.get(command);
                         if (!tooltip) throw "invalid tooltip for " + command;
-                        return <button onClick={_ => editor.enqueue(new command(editor))} name={command.identifier}>
+                        return <button onClick={_ => editor.enqueue(new command(editor))} name={command.identifier} tabIndex={-1}>
                             <img src={icons.get(command)}></img>
                             <ispace-tooltip placement="top" command={`command:${command.identifier}`}>{tooltip}</ispace-tooltip>
                         </button>

@@ -71,19 +71,19 @@ export default (editor: Editor) => {
                     <span>Add modifier:</span>
                     <ol>
                         <li>
-                            <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>
+                            <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))} tabIndex={-1}>
                                 <img src={icons.get(SymmetryCommand)}></img>
                                 <ispace-tooltip placement="bottom">Add symmetry modifier</ispace-tooltip>
                             </button>
                         </li>
                         <li>
-                            <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>
+                            <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))} tabIndex={-1}>
                                 <img src={icons.get(UnionCommand)}></img>
                                 <ispace-tooltip placement="bottom">NOT IMPLEMENTED YET</ispace-tooltip>
                             </button>
                         </li>
                         <li>
-                            <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))}>
+                            <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))} tabIndex={-1}>
                                 <img src={icons.get(FilletCommand)}></img>
                                 <ispace-tooltip placement="bottom">NOT IMPLEMENTED YET</ispace-tooltip>
                             </button>
@@ -135,16 +135,16 @@ export default (editor: Editor) => {
 
             render(
                 <div class="header">
-                    <button onClick={_ => editor.enqueue(apply)} name={apply.identifier} class="visibility">
+                    <button onClick={_ => editor.enqueue(apply)} name={apply.identifier} class="visibility" tabIndex={-1}>
                         <img src={eye} />
                         <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Disable modifier</ispace-tooltip>
                     </button>
                     <span class="name">Symmetry</span>
-                    <button onClick={_ => editor.enqueue(apply)} name={apply.identifier} class="apply">
+                    <button onClick={_ => editor.enqueue(apply)} name={apply.identifier} class="apply" tabIndex={-1}>
                         <img src={checkSquare} />
                         <ispace-tooltip placement="top" command={`command:${apply.identifier}`}>Apply modifier</ispace-tooltip>
                     </button>
-                    <button onClick={_ => editor.enqueue(remove)} name={remove.identifier} class="remove">
+                    <button onClick={_ => editor.enqueue(remove)} name={remove.identifier} class="remove" tabIndex={-1}>
                         <img src={trash} />
                         <ispace-tooltip placement="top" command={`command:${remove.identifier}`}>Remove modifier</ispace-tooltip>
                     </button>

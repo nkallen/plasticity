@@ -62,7 +62,6 @@ export class Viewport {
         this.constructionPlane = constructionPlane;
         const rendererDomElement = this.renderer.domElement;
 
-        rendererDomElement.setAttribute("tabindex", "1");
         rendererDomElement.addEventListener('pointermove', e => {
             this.lastPointerEvent = e;
         });

@@ -24,7 +24,7 @@ export default (editor: Editor) => {
         render() {
             const result = (
                 <>
-                    <button type="button" onClick={e => this.viewport.toggleConstructionPlane()}>
+                    <button type="button" onClick={e => this.viewport.toggleConstructionPlane()} tabIndex={-1}>
                         XY-Plane
                         <ispace-tooltip placement="bottom" command="change-construction-plane">Change construction plane</ispace-tooltip>
                     </button>

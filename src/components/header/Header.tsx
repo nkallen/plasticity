@@ -27,25 +27,25 @@ export default (editor: Editor) => {
             render(
                 <ol>
                     <li>
-                        <button type="button" onClick={_ => editor.clear()}>
+                        <button type="button" onClick={_ => editor.clear()} tabIndex={-1}>
                             <img src={file}></img>
                             <ispace-tooltip placement="bottom">New document</ispace-tooltip>
                         </button>
                     </li>
                     <li>
-                        <button type="button" onClick={_ => editor.clear()}>
+                        <button type="button" onClick={_ => editor.clear()} tabIndex={-1}>
                             <img src={save}></img>
                             <ispace-tooltip placement="bottom">Save document</ispace-tooltip>
                         </button>
                     </li>
                     <li>
-                        <button type="button" onClick={_ => editor.export()}>
+                        <button type="button" onClick={_ => editor.export()} tabIndex={-1}>
                             <img src={upload}></img>
                             <ispace-tooltip placement="bottom">Export document (OBJ, STEP, ...)</ispace-tooltip>
                         </button>
                     </li>
                     <li>
-                        <button type="button" onClick={_ => editor.open()}>
+                        <button type="button" onClick={_ => editor.open()} tabIndex={-1}>
                             <img src={open}></img>
                             <ispace-tooltip placement="bottom">Import document</ispace-tooltip>
                         </button>

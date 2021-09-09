@@ -27,6 +27,7 @@ export default (editor: Editor) => {
             this.onPointerDown = this.onPointerDown.bind(this);
             this.onPointerMove = this.onPointerMove.bind(this);
             this.onPointerUp = this.onPointerUp.bind(this);
+            this.onFocus = this.onFocus.bind(this);
             this.onPointerLockChange = this.onPointerLockChange.bind(this);
             this.change = this.change.bind(this);
             this.toggle = this.toggle.bind(this);
@@ -154,6 +155,11 @@ export default (editor: Editor) => {
             }
         }
 
+        onFocus(e: FocusEvent) {
+            this.state = { tag: 'cancel' }
+            this.render();
+        }
+
         onPointerUp(e: PointerEvent) {
             switch (this.state.tag) {
                 case 'down': {
@@ -218,14 +224,14 @@ export default (editor: Editor) => {
             switch (this.state.tag) {
                 case 'none':
                 case 'dragging':
-                    input = <span class={`number-scrubber ${this.isDisabled ? 'disabled' : ''}`} onPointerDown={this.onPointerDown} disabled={this.isDisabled}>
+                    input = <span class={`number-scrubber ${this.isDisabled ? 'disabled' : ''}`} onPointerDown={this.onPointerDown} disabled={this.isDisabled} tabindex="0" onFocus={this.onFocus}>
                         <span class="prefix"></span>
                         <span class="value">{full}</span>
                         <span class="suffix"></span>
                     </span>
                     break;
                 case 'cancel':
-                    input = <input type="text" value={displayValue} ref={i => i?.focus()} onBlur={onBlur} onChange={this.change} disabled={this.isDisabled} />
+                    input = <input type="text" value={displayValue} ref={i => i?.focus()} onBlur={onBlur} onChange={this.change} disabled={this.isDisabled} onKeyDown={e => e.stopPropagation()} />
                     break;
                 default: throw new Error('invalid state: ' + this.state.tag);
             }

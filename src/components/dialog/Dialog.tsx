@@ -37,8 +37,8 @@ export default (editor: Editor) => {
                 const ref = createRef();
                 const form = <form onSubmit={e => { e.preventDefault(); return false }}>
                     <div ref={ref}></div>
-                    <button type="button" onClick={e => dialog.cancel()}>Cancel</button>
-                    <button type="button" onClick={e => dialog.finish()}>Ok</button>
+                    <button type="button" onClick={e => dialog.cancel()} tabIndex={-1}>Cancel</button>
+                    <button type="button" onClick={e => dialog.finish()} tabIndex={-1}>Ok</button>
                 </form>
                 render(form, this);
                 ref.current.appendChild(dialog);
