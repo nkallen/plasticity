@@ -29,6 +29,7 @@ import { RegionManager } from "./RegionManager";
 import { SnapManager } from './SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import c3d from '../../build/Release/c3d.node';
+import { ExportOBJCommand } from "../commands/CommandLike";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -93,18 +94,6 @@ export class Editor {
         await this.executor.enqueue(command, cancelOrFinish);
     }
 
-    private async undo() {
-        this.executor.cancelActiveCommand();
-        this.history.undo();
-        this.executor.enqueueDefaultCommand();
-    }
-
-    private redo() {
-        this.executor.cancelActiveCommand();
-        this.history.redo();
-        this.executor.enqueueDefaultCommand();
-    }
-
     onWindowResize() {
         this.signals.windowResized.dispatch();
     }
@@ -126,7 +115,7 @@ export class Editor {
     }
 
     async open() {
-        const result = await remote.dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'Files', extensions: ['c3d', 'stp'] }] })
+        const result = await remote.dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'C3D', extensions: ['c3d'] }, { name: 'STEP', extensions: ['stp', 'step'] }] })
         for (const filePath of result.filePaths) {
             if (/\.c3d$/.test(filePath)) {
                 const data = await fs.promises.readFile(filePath);
@@ -137,6 +126,29 @@ export class Editor {
             }
         }
     }
+
+    async export() {
+        // const { canceled, filePath } = await remote.dialog.showSaveDialog({ filters: [{ name: 'Wavefront OBJ', extensions: ['obj'] }] })
+        // if (canceled) return;
+
+        const filePath = "test";
+        const command = new ExportOBJCommand(this);
+        command.filePath = filePath!;
+        this.enqueue(command);
+    }
+
+    private async undo() {
+        this.executor.cancelActiveCommand();
+        this.history.undo();
+        this.executor.enqueueDefaultCommand();
+    }
+
+    private redo() {
+        this.executor.cancelActiveCommand();
+        this.history.redo();
+        this.executor.enqueueDefaultCommand();
+    }
+
 }
 
 export class HotReloadingEditor extends Editor {

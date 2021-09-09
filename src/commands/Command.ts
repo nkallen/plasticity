@@ -66,4 +66,8 @@ export default abstract class Command extends CancellableRegistor {
     }
 
     abstract execute(): Promise<void>;
+
+    shouldAddToHistory(selectionChanged: boolean) {
+        return true;
+    }
 }

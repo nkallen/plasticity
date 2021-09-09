@@ -1,5 +1,7 @@
 import * as THREE from 'three';
-import c3d from '../../../build/Release/c3d.node';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
+import c3d from '../../build/Release/c3d.node';
 import { ModifierStack } from '../editor/ModifierManager';
 import * as visual from "../editor/VisualModel";
 import Command, * as cmd from "./Command";
@@ -9,6 +11,8 @@ import { RebuildFactory } from "./rebuild/RebuildFactory";
 import { RebuildKeyboardGizmo } from './rebuild/RebuildKeyboardGizmo';
 import { MoveGizmo } from './translate/MoveGizmo';
 import { MoveFactory } from './translate/TranslateFactory';
+import * as fs from 'fs';
+import { ExportFactory } from './export/ExportFactory';
 
 /**
  * These aren't typical commands, with a set of steps and gizmos to perform a geometrical operation.
@@ -29,6 +33,10 @@ export class ClickChangeSelectionCommand extends Command {
         const intersection = this.editor.selectionInteraction.onClick(this.intersections);
         this.intersection = intersection;
     }
+
+    shouldAddToHistory(selectionChanged: boolean) {
+        return selectionChanged;
+    }
 }
 
 export class BoxChangeSelectionCommand extends Command {
@@ -39,6 +47,10 @@ export class BoxChangeSelectionCommand extends Command {
 
     async execute(): Promise<void> {
         this.editor.selectionInteraction.onBoxSelect(this.selected);
+    }
+
+    shouldAddToHistory(selectionChanged: boolean) {
+        return selectionChanged;
     }
 }
 
@@ -202,3 +214,23 @@ export class RemoveModifierCommand extends Command {
         selection.selected.addSolid(stack.premodified);
     }
 }
+
+export class ExportOBJCommand extends Command {
+    filePath!: string;
+
+    async execute(): Promise<void> {
+        const { editor: { db, selection: { selected } } } = this;
+        const solid = selected.solids.first;
+        const factory = new ExportFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        factory.solid = solid;
+        await factory.update();
+        await factory.commit();
+
+    }
+
+    shouldAddToHistory(selectionChanged: boolean) {
+        return false;
+    }
+}
+
+module.hot?.accept();

@@ -123,6 +123,10 @@ export default {
             extends: ["SpaceItem", "AttributeContainer", "Transactions"],
             functions: [
                 "MbItem * CreateMesh(const MbStepData & stepData, const MbFormNote & note, MbRegDuplicate * iReg = NULL)",
+                {
+                    signature: "void CalculateMesh(const MbStepData & stepData, const MbFormNote & note, MbMesh & mesh)",
+                    mesh: isReturn
+                },
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
                 { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, ProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool, progInd: isRaw },
@@ -640,7 +644,16 @@ export default {
         StepData: {
             rawHeader: "mb_data.h",
             initializers: [
-                "MbeStepType t, double sag"
+                "MbeStepType t, double sag",
+                "",
+            ],
+            functions: [
+                "void SetSag(double s)",
+                "void SetAngle(double a)",
+                "void SetLength(double l)",
+                "void SetMaxCount(size_t c)",
+                "void SetStepType(MbeStepType t, bool add = true)",
+                "void Init(MbeStepType t, double s, double a, double l, size_t c = 0)"
             ]
         },
         Name: {

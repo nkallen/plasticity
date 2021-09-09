@@ -111,6 +111,10 @@ export abstract class AbstractGeometryFactory extends ResourceRegistration {
         }
 
         // 3.c. show the newly created temporary items.
+        return this.showTemps(finished);
+    }
+
+    protected showTemps(finished: TemporaryObject[]) {
         const temps = [];
         for (const p of finished) {
             const temp = p;
