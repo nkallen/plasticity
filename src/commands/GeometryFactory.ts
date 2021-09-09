@@ -70,7 +70,7 @@ export abstract class AbstractGeometryFactory extends ResourceRegistration {
 
         // 0. Make sure original items are visible if we're not going to remove them
         if (!this.shouldRemoveOriginalItemOnCommit) for (const i of this.originalItems)
-            this.db.unhide(i);
+            i.visible = true;
 
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
         performance.mark('begin-factory-calculate');

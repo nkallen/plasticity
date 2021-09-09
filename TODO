@@ -1,13 +1,10 @@
 # PRE ALPHA:
 
-stress test undo
-integration tests for basic commands
-point picker nearby targets aren't scaling like normal helpers
-optimize outline code
 keyboard seems broken on boolean commands
-canceling move factory puts system into a bad state
-min and max in number srubber should be respected
 tab and enter in dialogs not working
+
+stress test undo & redo
+integration tests for basic commands
 
 curves:
     creating curves not on XY constr plane causes weirdness with the planecontourman
@@ -24,16 +21,17 @@ curves:
 
 
 - when you delete region you delete its curve / and vice versa
-
-- bug: clicking adds items to history even when no selection is changed
-
 - region has equal sort priority to face, but higher when identical distance
 
 - audit name generation in sample models to see how they obtained unique names
 
+add dialogs for everything
+
 windows build
 
-add dialogs for everything
+min and max in number srubber should be respected
+optimize outline code
+point picker nearby targets aren't scaling like normal helpers
 
 ## POST ALPHA
 
