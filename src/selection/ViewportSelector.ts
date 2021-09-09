@@ -1,13 +1,13 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
 import * as THREE from "three";
 import Command, * as cmd from "../commands/Command";
 import { CancelOrFinish } from "../commands/CommandExecutor";
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
 import { EditorSignals } from "../editor/EditorSignals";
-import { DatabaseLike, GeometryDatabase } from "../editor/GeometryDatabase";
+import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator } from "../editor/History";
 import * as visual from "../editor/VisualModel";
+import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
 
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import { ObjectPicker } from "../src/commands/ObjectPicker";
