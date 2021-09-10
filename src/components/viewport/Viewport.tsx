@@ -2,7 +2,6 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
@@ -18,6 +17,8 @@ import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
 import { GridHelper } from "./GridHelper";
+import { OutlinePass } from "./OutlinePass";
+
 import { ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
 
 const near = 0.01;
