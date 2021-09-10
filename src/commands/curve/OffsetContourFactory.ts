@@ -1,5 +1,5 @@
 import * as visual from '../../editor/VisualModel';
-import { point2point, vec2vec } from '../../util/Conversion';
+import { point2point, unit, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory } from '../GeometryFactory';
 
@@ -49,7 +49,7 @@ export default class OffsetContourFactory extends GeometryFactory {
     async calculate() {
         const { curve, model, direction, distance, names } = this;
 
-        const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, model, direction, distance, names);
+        const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, model, direction, unit(distance), names);
         const curves = wireframe.GetCurves();
 
         return new c3d.SpaceInstance(curves[0]);
