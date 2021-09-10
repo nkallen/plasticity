@@ -99,10 +99,12 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictionSnaps: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
         performance.mark('begin-snap');
+        // NOTE: restriction snaps, including the construction plane, are always snappable
         let snappers = restrictionSnaps.map(a => a.snapper);
         if (this.shouldSnap) {
             snappers = snappers.concat([...this.snappers, ...additional.map(a => a.snapper)]);
         }
+        snappers = [...new Set(snappers)];
 
         raycaster.layers = this.layers;
         const snapperIntersections = raycaster.intersectObjects(snappers, true);

@@ -60,8 +60,8 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
         const side2 = params.side2;
         side2.rake = race2;
         params.side2 = side2;
-        params.thickness1 = thickness1;
-        params.thickness2 = thickness2;
+        params.thickness1 = unit(thickness1);
+        params.thickness2 = unit(thickness2);
 
         const solid = await this.performAction(sweptData, vec2vec(direction, 1), params, ns);
         return solid;

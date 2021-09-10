@@ -1,7 +1,10 @@
 # PRE ALPHA:
 
+see if you can figure out where the db corruption comes from
+
 stress test undo & redo
 integration tests for basic commands
+
 
 curves:
     creating curves not on XY constr plane causes weirdness with the planecontourman

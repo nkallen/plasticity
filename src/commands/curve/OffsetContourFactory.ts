@@ -38,7 +38,7 @@ export default class OffsetContourFactory extends GeometryFactory {
         this.center = point2point(p);
         this.normal = vec2vec(n, 1);
 
-        this.direction = new c3d.Axis3D(cp, new c3d.Vector3D(n_cross_tau.x, n_cross_tau.y, n_cross_tau.z));
+        this.direction = new c3d.Axis3D(cp, vec2vec(n_cross_tau, 1));
         this._face = face;
         this.model = model;
         this.curve = contour;
