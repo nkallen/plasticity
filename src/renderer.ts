@@ -21,6 +21,7 @@ import './css/index.less';
 import keymap from "./default-keymap";
 import { Editor, HotReloadingEditor } from './editor/Editor';
 import { ThreePointBoxFactory } from './commands/box/BoxFactory';
+import * as cmd from './commands/GeometryCommands';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -33,6 +34,11 @@ Object.defineProperty(window, 'editor', {
 
 Object.defineProperty(window, 'THREE', {
     value: THREE,
+    writable: false,
+})
+
+Object.defineProperty(window, 'cmd', {
+    value: cmd,
     writable: false,
 })
 

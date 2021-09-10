@@ -598,7 +598,7 @@ export class CornerBoxCommand extends Command {
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        const { point: p2 } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+        const { point: p2, info: { constructionPlane} } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             rect.p2 = p2;
             rect.constructionPlane = constructionPlane;
             rect.update();
@@ -607,6 +607,7 @@ export class CornerBoxCommand extends Command {
 
         box.p1 = p1;
         box.p2 = p2;
+        box.constructionPlane = constructionPlane;
 
         const keyboard = new BooleanKeyboardGizmo("box", this.editor);
         keyboard.prepare(box).resource(this);

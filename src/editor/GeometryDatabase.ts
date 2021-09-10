@@ -525,7 +525,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     debug() {
         console.group("GeometryDatabase");
-        console.log("Version: ", this.version);
+        console.info("Version: ", this.version);
         const { geometryModel, topologyModel, controlPointModel } = this;
         console.group("geometryModel");
         console.table([...geometryModel].map(([name]) => { return { name } }));

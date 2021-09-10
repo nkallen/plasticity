@@ -212,6 +212,8 @@ export class PointPicker {
 
                     // if within snap range, change point to snap position
                     const snappers = model.snap(raycaster, viewport.constructionPlane);
+                    if (snappers.length === 0) return;
+
                     const names = [];
                     const pos = snappers[0].position;
                     for (const { snap, position, indicator } of snappers) {

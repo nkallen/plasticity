@@ -3,10 +3,9 @@
  */
 
 import * as THREE from "three";
-import { CornerBoxCommand } from '../src/commands/GeometryCommands';
+import * as cmd from '../src/commands/GeometryCommands';
 import { Viewport } from '../src/components/viewport/Viewport';
 import { Editor } from '../src/editor/Editor';
-import { PlaneSnap } from "../src/editor/SnapManager";
 import { Executor } from '../src/util/Cancellable';
 import { MakeViewport } from '../__mocks__/FakeViewport';
 import './matchers';
@@ -48,53 +47,57 @@ async function step() {
     await Promise.resolve();
 }
 
+beforeEach(() => {
+    // jsdom bullshit
+    const domElement = editor.viewports[0].renderer.domElement;
+    domElement.setPointerCapture = jest.fn();
+    domElement.releasePointerCapture = jest.fn();
+})
+
 let pointerdown, pointermove, pointerup;
 
 const Y = new THREE.Vector3(0, 1, 0);
 const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
-test.skip('create a box and fillet an edge', async () => {
+test('create a box and fillet an edge', async () => {
+    const viewport = editor.viewports[0];
     const domElement = viewport.renderer.domElement;
     const camera = viewport.camera;
 
     camera.position.set(0, 0, 10);
     camera.lookAt(new THREE.Vector3());
 
-    editor.enqueue(new CornerBoxCommand(editor));
+    editor.enqueue(new cmd.CornerBoxCommand(editor));
 
-    pointermove = new MouseEvent('pointermove', { button: 0, clientX: 40, clientY: 40 });
+    pointermove = new PointerEvent('pointermove', { pointerId: 1, button: 0, clientX: 0, clientY: 0 });
     domElement.dispatchEvent(pointermove);
-    pointerdown = new MouseEvent('pointerdown', { button: 0, clientX: 0, clientY: 0 });
+    pointerdown = new PointerEvent('pointerdown', { pointerId: 1, button: 0, clientX: 0, clientY: 0 });
     domElement.dispatchEvent(pointerdown);
-    pointerup = new MouseEvent('pointerup', { button: 0, clientX: 0, clientY: 0 });
+    pointerup = new PointerEvent('pointerup', { pointerId: 1, button: 0, clientX: 0, clientY: 0 });
     domElement.dispatchEvent(pointerup);
 
     await step();
 
-    pointermove = new MouseEvent('pointermove', { button: 0, clientX: 60, clientY: 60 });
+    pointermove = new PointerEvent('pointermove', { pointerId: 1, button: 0, clientX: 60, clientY: 60 });
     domElement.dispatchEvent(pointermove);
-
-    pointerdown = new MouseEvent('pointerdown', { button: 0, clientX: 100, clientY: 100 });
+    pointerdown = new PointerEvent('pointerdown', {  pointerId: 1, button: 0, clientX: 100, clientY: 100 });
     domElement.dispatchEvent(pointerdown);
-    pointerup = new MouseEvent('pointerup', { button: 0, clientX: 100, clientY: 100 });
+    pointerup = new PointerEvent('pointerup', {  pointerId: 1, button: 0, clientX: 100, clientY: 100 });
     domElement.dispatchEvent(pointerup);
 
-    await step();
+    // await step();
 
-    camera.position.set(0, 10, 5);
-    camera.lookAt(new THREE.Vector3());
+    // camera.position.set(0, 10, 5);
+    // camera.lookAt(new THREE.Vector3());
 
-    pointermove = new MouseEvent('pointermove', { button: 0, clientX: 50, clientY: 40 });
-    domElement.dispatchEvent(pointermove);
+    // pointermove = new MouseEvent('pointermove', { button: 0, clientX: 50, clientY: 40 });
+    // domElement.dispatchEvent(pointermove);
 
-    pointerdown = new MouseEvent('pointerdown', { button: 0, clientX: 50, clientY: 50 });
-    domElement.dispatchEvent(pointerdown);
-    pointerup = new MouseEvent('pointerup', { button: 0, clientX: 50, clientY: 50 });
-    domElement.dispatchEvent(pointerup);
+    // pointerdown = new MouseEvent('pointerdown', { button: 0, clientX: 50, clientY: 50 });
+    // domElement.dispatchEvent(pointerdown);
+    // pointerup = new MouseEvent('pointerup', { button: 0, clientX: 50, clientY: 50 });
+    // domElement.dispatchEvent(pointerup);
 
-    await step();
-
-    await step();
-
+    // await step();
 });

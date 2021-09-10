@@ -591,7 +591,7 @@ export class AxisSnap extends Snap {
 // any where other than the line's origin. It's used mainly for extruding, where you want to limit
 // the direction of extrusion but allow the user to move the mouse wherever.
 export class LineSnap extends Snap {
-    readonly snapper = this.plane.snapper;
+    readonly snapper = new THREE.Group().add(this.plane1.snapper, this.plane2.snapper);
     readonly helper = this.axis.helper;
     protected readonly layer: Layers = Layers.AxisSnap;
 
@@ -604,11 +604,15 @@ export class LineSnap extends Snap {
         }
 
         const axis = new AxisSnap(name, direction, origin);
-        const plane = new PlaneSnap(p, origin);
-        return new LineSnap(name, axis, plane);
+        const plane1 = new PlaneSnap(p, origin);
+
+        const p2 = new THREE.Vector3().copy(p).cross(direction);
+        const plane2 = new PlaneSnap(p2, origin);
+
+        return new LineSnap(name, axis, plane1, plane2);
     }
 
-    private constructor(readonly name: string | undefined, private readonly axis: AxisSnap, private readonly plane: PlaneSnap) {
+    private constructor(readonly name: string | undefined, private readonly axis: AxisSnap, private readonly plane1: PlaneSnap, private readonly plane2: PlaneSnap) {
         super();
     }
 
@@ -617,7 +621,7 @@ export class LineSnap extends Snap {
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        return this.plane.isValid(pt);
+        return this.plane1.isValid(pt) || this.plane2.isValid(pt);
     }
 }
 

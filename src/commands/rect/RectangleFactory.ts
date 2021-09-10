@@ -1,7 +1,7 @@
 import { PlaneSnap } from "../../editor/SnapManager";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import { point2point } from "../../util/Conversion";
 import { CenterCircleFactory, Mode } from "../circle/CircleFactory";
 
