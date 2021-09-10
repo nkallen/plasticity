@@ -7,7 +7,7 @@ import { assertUnreachable, GConstructor } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
-import { BasicMeshCreator, BenchmarkMeshCreator, ParallelMeshCreator } from './MeshCreator';
+import { ParallelMeshCreator } from './MeshCreator';
 import * as visual from './VisualModel';
 
 const mesh_precision_distance: [number, number][] = [[5, 500], [0.25, 1]];

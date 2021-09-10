@@ -36,9 +36,9 @@ Object.defineProperty(window, 'THREE', {
     writable: false,
 })
 
-// const stats = new Stats();
-// document.body.appendChild(stats.dom);
-// stats.dom.setAttribute('style', 'position: fixed; bottom: 0px; left: 0px; cursor: pointer; opacity: 0.9; z-index: 10000;');
+const stats = new Stats();
+document.body.appendChild(stats.dom);
+stats.dom.setAttribute('style', 'position: fixed; bottom: 0px; left: 0px; cursor: pointer; opacity: 0.9; z-index: 10000;');
 
 editor.keymaps.add('/default', keymap);
 editor.registry.add("ispace-workspace", {
@@ -46,10 +46,10 @@ editor.registry.add("ispace-workspace", {
 
 registerDefaultCommands(editor);
 
-// requestAnimationFrame(function loop() {
-//     stats.update();
-//     requestAnimationFrame(loop)
-// });
+requestAnimationFrame(function loop() {
+    stats.update();
+    requestAnimationFrame(loop)
+});
 
 Header(editor);
 Toolbar(editor);
