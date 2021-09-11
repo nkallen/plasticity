@@ -1532,6 +1532,10 @@ export default {
                     model: isReturn,
                     return: { name: "result" }
                 },
+                {
+                    signature: "MbeConvResType c3d::ExportIntoFile(MbModel & model, const std::string & filePath, ConvConvertorProperty3D * prop = c3d_null, ProgressIndicator * indicator = c3d_null)",
+                    indicator: isRaw,
+                }
             ]
         }
     },
