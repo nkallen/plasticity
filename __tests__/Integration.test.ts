@@ -61,43 +61,84 @@ const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
 test('create a box and fillet an edge', async () => {
+    const bbox = new THREE.Box3();
+    const center = new THREE.Vector3();
+
     const viewport = editor.viewports[0];
     const domElement = viewport.renderer.domElement;
     const camera = viewport.camera;
+    const rect = domElement.getBoundingClientRect();
+    const info = (x, y) => {
+        return { pointerId: 1, button: 0, clientX: rect.left + (x + 1) / 2 * rect.width, clientY: rect.top - (y - 1) / 2 * rect.height };
+    }
 
-    camera.position.set(0, 0, 10);
+    camera.position.set(0, 0, 100);
     camera.lookAt(new THREE.Vector3());
+    camera.updateMatrixWorld();
 
-    editor.enqueue(new cmd.CornerBoxCommand(editor));
+    const command = new cmd.CornerBoxCommand(editor);
+    editor.enqueue(command);
 
-    pointermove = new PointerEvent('pointermove', { pointerId: 1, button: 0, clientX: 0, clientY: 0 });
+    pointermove = new PointerEvent('pointermove', info(0, 0));
     domElement.dispatchEvent(pointermove);
-    pointerdown = new PointerEvent('pointerdown', { pointerId: 1, button: 0, clientX: 0, clientY: 0 });
+    pointerdown = new PointerEvent('pointerdown', info(0, 0));
     domElement.dispatchEvent(pointerdown);
-    pointerup = new PointerEvent('pointerup', { pointerId: 1, button: 0, clientX: 0, clientY: 0 });
+    pointerup = new PointerEvent('pointerup', info(0, 0));
     domElement.dispatchEvent(pointerup);
 
     await step();
 
-    pointermove = new PointerEvent('pointermove', { pointerId: 1, button: 0, clientX: 60, clientY: 60 });
+    pointermove = new PointerEvent('pointermove', info(0.5, 0.5));
     domElement.dispatchEvent(pointermove);
-    pointerdown = new PointerEvent('pointerdown', {  pointerId: 1, button: 0, clientX: 100, clientY: 100 });
+    pointerdown = new PointerEvent('pointerdown', info(0.5, 0.5));
     domElement.dispatchEvent(pointerdown);
-    pointerup = new PointerEvent('pointerup', {  pointerId: 1, button: 0, clientX: 100, clientY: 100 });
+    pointerup = new PointerEvent('pointerup', info(0.5, 0.5));
     domElement.dispatchEvent(pointerup);
 
-    // await step();
+    await step();
 
-    // camera.position.set(0, 10, 5);
-    // camera.lookAt(new THREE.Vector3());
+    camera.position.set(0, 10, 5);
+    camera.lookAt(new THREE.Vector3());
+    camera.updateMatrixWorld();
 
-    // pointermove = new MouseEvent('pointermove', { button: 0, clientX: 50, clientY: 40 });
+    pointermove = new PointerEvent('pointermove', info(0, 0.5));
+    domElement.dispatchEvent(pointermove);
+    pointerdown = new PointerEvent('pointerdown', info(0, 0.5));
+    domElement.dispatchEvent(pointerdown);
+    pointerup = new PointerEvent('pointerup', info(0, 0.5));
+    domElement.dispatchEvent(pointerup);
+
+    await command.finished;
+
+    const box = editor.selection.selected.solids.first;
+    const edge = box.edges.get(1);
+
+    bbox.setFromObject(edge);
+    bbox.getCenter(center);
+
+    camera.position.set(0, 100, 100);
+    camera.lookAt(center);
+    camera.updateMatrixWorld();
+
+    pointermove = new PointerEvent('pointermove', info(0, 0));
+    domElement.dispatchEvent(pointermove);
+    pointerdown = new PointerEvent('pointerdown', info(0, 0));
+    domElement.dispatchEvent(pointerdown);
+    pointerup = new PointerEvent('pointerup', info(0, 0));
+    domElement.dispatchEvent(pointerup);
+
+    await step();
+
+    let keydown;
+    keydown = new KeyboardEvent('keydown', { key: 'd' });
+    domElement.dispatchEvent(keydown);
+
+    // pointermove = new PointerEvent('pointermove', info(1, 1));
     // domElement.dispatchEvent(pointermove);
-
-    // pointerdown = new MouseEvent('pointerdown', { button: 0, clientX: 50, clientY: 50 });
+    // pointerdown = new PointerEvent('pointerdown', info(1, 1));
     // domElement.dispatchEvent(pointerdown);
-    // pointerup = new MouseEvent('pointerup', { button: 0, clientX: 50, clientY: 50 });
+    // pointerup = new PointerEvent('pointerup', info(1, 1));
     // domElement.dispatchEvent(pointerup);
-
-    // await step();
 });
+
+const PointerEvent = MouseEvent;

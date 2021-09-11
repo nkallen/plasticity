@@ -329,13 +329,13 @@ describe(LineSnap, () => {
         expect(line.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
         expect(line.isValid(new THREE.Vector3(1, 0, 0))).toBe(true);
         expect(line.isValid(new THREE.Vector3(0, 0, 1))).toBe(true);
-        expect(line.isValid(new THREE.Vector3(0, 1, 0))).toBe(false);
+        expect(line.isValid(new THREE.Vector3(0, 1, 0))).toBe(true);
 
         line = LineSnap.make(undefined, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
         expect(line.isValid(new THREE.Vector3(0, 1, 0))).toBe(true);
         expect(line.isValid(new THREE.Vector3(1, 1, 0))).toBe(true);
         expect(line.isValid(new THREE.Vector3(0, 1, 1))).toBe(true);
-        expect(line.isValid(new THREE.Vector3(0, 0, 0))).toBe(false);
+        expect(line.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
     });
 
     test("project", () => {

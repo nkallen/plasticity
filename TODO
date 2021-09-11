@@ -66,15 +66,6 @@ https://github.com/bzztbomb
 right click repeat
 
 BUG/CRASH:
-# 1
-1. add regular polygon
-2. extrude
-3. fillet variable top face
-4. push/pull face down
-# 2
-1. Add cylinder
-2. Fillet top
-3. Squeeze side to smallest possible
 # 3
 1. crashes-at-fillet-100.c3d
 2. Fillet search 
@@ -101,7 +92,6 @@ BUG:
 
 BUGS for c3d
 - crashes when extruding composite curve
-- lots of push pull grow/shrink crashes
 - figure 8 intersection hangs
 
 --
