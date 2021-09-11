@@ -152,9 +152,9 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return view;
     }
 
-    private precisionAndDistanceFor(item: c3d.Item): [number, number][] {
+    private precisionAndDistanceFor(item: c3d.Item, mode: 'real' | 'temporary' = 'real'): [number, number][] {
         if (item.IsA() === c3d.SpaceType.Solid) {
-            return mesh_precision_distance;
+            return mode === 'real' ? mesh_precision_distance : temporary_precision_distance;
         } else {
             return other_precision_distance;
         }
@@ -175,7 +175,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     async addTemporaryItem(object: c3d.Item, ancestor?: visual.Item, materials?: MaterialOverride, into = this.temporaryObjects): Promise<TemporaryObject> {
         const note = new c3d.FormNote(true, true, false, false, false);
-        const mesh = await this.meshes(object, -1, note, temporary_precision_distance, materials);
+        const mesh = await this.meshes(object, -1, note, this.precisionAndDistanceFor(object, 'temporary'), materials);
         mesh.visible = false;
         into.add(mesh);
         return {
