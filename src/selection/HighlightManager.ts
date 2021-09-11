@@ -35,6 +35,7 @@ export class HighlightManager {
         } else if (item instanceof visual.PlaneInstance) {
             this.hoverRegion(item);
         } else if (item instanceof visual.ControlPoint) {
+            this.hoverControlPoint(item);
         }
         performance.measure('hover', 'begin-hover');
     }
@@ -73,6 +74,16 @@ export class HighlightManager {
         }
     }
 
+    private hoverControlPoint(v: visual.ControlPoint) {
+        const geometry = v.geometry!;
+        const colors = geometry.attributes.color;
+        const array = colors.array as unknown as Float32Array;
+        array[v.index * 3 + 0] = controlPoint_hovered.r;
+        array[v.index * 3 + 1] = controlPoint_hovered.g;
+        array[v.index * 3 + 2] = controlPoint_hovered.b;
+        colors.needsUpdate = true;
+    }
+
     unhover(item: visual.Selectable) {
         performance.mark('begin-unhover');
         if (item instanceof visual.SpaceInstance) {
@@ -87,6 +98,7 @@ export class HighlightManager {
         } else if (item instanceof visual.PlaneInstance) {
             this.highlightRegion(item);
         } else if (item instanceof visual.ControlPoint) {
+            this.highlightCurve(item.parentItem);
         }
         performance.measure('unhover', 'begin-unhover');
     }
@@ -108,8 +120,9 @@ export class HighlightManager {
                 this.highlightCurve(item);
             } else if (item instanceof visual.PlaneInstance) {
                 this.highlightRegion(item);
-            }
+            } else throw new Error("invalid type: " + item.constructor.name);
         }
+        this.highlightControlPoints();
         performance.measure('highlight', 'begin-highlight');
     }
 
@@ -146,7 +159,31 @@ export class HighlightManager {
                 segment.line.layers.set(visual.Layers.Curve);
                 segment.occludedLine.layers.set(visual.Layers.Curve);
             }
+            const geometry = curve.points.geometry;
+            if (geometry !== undefined) {
+                const colors = geometry.attributes.color;
+                const array = colors.array as unknown as Float32Array;
+                for (let i = 0; i < array.length / 3; i++) {
+                    array[i * 3 + 0] = controlPoint_unhighlighted.r;
+                    array[i * 3 + 1] = controlPoint_unhighlighted.g;
+                    array[i * 3 + 2] = controlPoint_unhighlighted.b;
+                }
+                colors.needsUpdate = true;
+            }
             curve.layers.set(visual.Layers.Curve);
+        }
+    }
+
+    private highlightControlPoints() {
+        const { selected } = this.selection;
+        for (const point of selected.controlPoints) {
+            const geometry = point.geometry!;
+            const colors = geometry.attributes.color;
+            const array = colors.array as unknown as Float32Array;
+            array[point.index * 3 + 0] = controlPoint_highlighted.r;
+            array[point.index * 3 + 1] = controlPoint_highlighted.g;
+            array[point.index * 3 + 2] = controlPoint_highlighted.b;
+            colors.needsUpdate = true;
         }
     }
 
@@ -356,6 +393,7 @@ region_unhighlighted.side = THREE.DoubleSide;
 
 const controlPoint_hovered = new THREE.Color(0xffff88);
 const controlPoint_highlighted = new THREE.Color(0xffff00);
+const controlPoint_unhighlighted = new THREE.Color(0xa000aa);
 
 const invisible = new THREE.MeshBasicMaterial({
     transparent: true,

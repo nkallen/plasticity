@@ -1,5 +1,9 @@
 # PRE ALPHA:
 
+control point hover/unhover broken
+higher precision for control point temp/preview
+moving point deselecting not working
+
 see if you can figure out where the db corruption comes from
 
 stress test undo & redo
@@ -15,7 +19,6 @@ curves:
     draw curve around solid
     multiline (stroke)
     file save and reload needs to respect curve segments:
-    control point hover/unhover broken
     select after create
     fillet every corner
 

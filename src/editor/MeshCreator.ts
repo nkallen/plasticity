@@ -79,37 +79,3 @@ export class ParallelMeshCreator implements MeshCreator {
         };
     }
 }
-
-export class BenchmarkMeshCreator implements MeshCreator {
-    private readonly basic = new BasicMeshCreator();
-    private readonly parallel = new ParallelMeshCreator();
-
-    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike> {
-        // console.time("Basic mesh creation");
-        // const p1 = this.basic.create(obj, stepData, formNote, outlinesOnly);
-        // const r1 = await p1;
-        // console.timeEnd("Basic mesh creation");
-
-        console.time("Parallel mesh creation");
-        const p2 = this.parallel.create(obj, stepData, formNote, outlinesOnly);
-        const r2 = await p2;
-        console.timeEnd("Parallel mesh creation")
-        
-        // console.assert(r1.faces.length === r2.faces.length, "r1.faces.length === r2.faces.length", r1.faces.length, r2.faces.length);
-        // console.log(r1.edges.length, r2.edges.length);
-        // console.assert(r1.edges.length === r2.edges.length, "r1.edges.length === r2.edges.length", r1.edges.length, r2.edges.length);
-
-        // for (let i = 0; i < r1.faces.length; i++) {
-        //     // console.log("Checking: ", i);
-        //     const face1 = r1.faces[i];
-        //     const face2 = r2.faces[i];
-        //     console.assert(face1.simpleName === face2.simpleName, "face1.simpleName === face2.simpleName", face1.simpleName, face2.simpleName);
-        //     console.assert(face1.i === face2.i, "face1.i === face2.i", face1.i, face2.i);
-        //     console.assert(face1.index.length === face2.index.length, "face1.index.length === face2.index.length", face1.index.length, face2.index.length);
-        //     console.assert(face1.position.length === face2.position.length, "face1.position.length === face2.position.length", face1.position.length, face2.position.length);
-        //     console.assert(face1.normal.length === face2.normal.length, "face1.normal.length === face2.normal.length", face1.normal.length, face2.normal.length);
-        // }
-
-        return r2;
-    }
-}

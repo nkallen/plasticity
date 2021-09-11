@@ -92,7 +92,6 @@ export default class KeyboardEventManager {
     }
 
     onKeyDown(event: KeyboardEvent) {
-        console.log(event);
         const lastTarget = this.lastTarget;
         if (lastTarget === undefined) return;
         

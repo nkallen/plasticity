@@ -183,7 +183,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             for (const id of collection) {
                 collection.delete(id);
                 const { views } = this.db.lookupTopologyItemById(id);
-                this.signals.objectRemoved.dispatch(views.values().next().value);
+                this.signals.objectRemoved.dispatch([...views][0]);
             }
         }
         for (const collection of [this.solidIds, this.curveIds, this.regionIds]) {
@@ -196,7 +196,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         for (const id of this.controlPointIds) {
             this.controlPointIds.delete(id);
             const { views } = this.db.lookupControlPointById(id);
-            this.signals.objectRemoved.dispatch(views.entries().next().value);
+            this.signals.objectRemoved.dispatch([...views][0]);
         }
         this.parentsWithSelectedChildren.clear();
     }

@@ -4,6 +4,7 @@ import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
 import { BetterRaycastingPoint, BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
+import { deunit } from "../util/Conversion";
 
 /**
  * This class hierarchy mirrors the c3d hierarchy into the THREE.js Object3D hierarchy.
@@ -114,7 +115,7 @@ export class ControlPoint extends THREE.Object3D {
         super()
     }
 
-    get geometry() { return this.points.points }
+    get geometry() { return this.points.geometry }
 }
 
 export type FragmentInfo = { start: number, stop: number, untrimmedAncestor: SpaceInstance<Curve3D> };
@@ -441,12 +442,12 @@ export class ControlPointGroup extends THREE.Group {
         positions = new Float32Array(ps.length * 3);
         colors = new Float32Array(ps.length * 3);
         for (const [i, p] of ps.entries()) {
-            positions[i * 3 + 0] = p.x / 100;
-            positions[i * 3 + 1] = p.y / 100;
-            positions[i * 3 + 2] = p.z / 100;
-            colors[i * 3 + 0] = 1;
-            colors[i * 3 + 1] = 1;
-            colors[i * 3 + 2] = 1;
+            positions[i * 3 + 0] = deunit(p.x);
+            positions[i * 3 + 1] = deunit(p.y);
+            positions[i * 3 + 2] = deunit(p.z);
+            colors[i * 3 + 0] = 0.1;
+            colors[i * 3 + 1] = 0.1;
+            colors[i * 3 + 2] = 0.1;
         }
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -488,6 +489,7 @@ export class ControlPointGroup extends THREE.Group {
     }
 
     get parentId(): number { return this.userData.parentId }
+    get geometry() {  return this.points?.geometry }
 
     dispose() {
         this.points?.geometry.dispose();
