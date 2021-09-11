@@ -115,13 +115,26 @@ export class Editor {
     }
 
     async open() {
-        const result = await remote.dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'C3D', extensions: ['c3d'] }, { name: 'STEP', extensions: ['stp', 'step'] }] })
+        const result = await remote.dialog.showOpenDialog({
+            properties: ['openFile'],
+            filters: [
+                { name: 'All supported', extensions: ['stp', 'step', 'c3d', 'igs', 'iges', 'sat']},
+                { name: 'STEP files', extensions: ['stp', 'step'] },
+                { name: 'IGES files', extensions: ['igs', 'iges'] },
+                { name: 'SAT files', extensions: ['sat'] },
+                { name: 'C3D files', extensions: ['c3d'] }
+            ]
+        });
         for (const filePath of result.filePaths) {
             if (/\.c3d$/.test(filePath)) {
                 const data = await fs.promises.readFile(filePath);
                 this._db.deserialize(data);
             } else {
                 const { result, model } = await c3d.Conversion.ImportFromFile_async(filePath);
+                if (result !== c3d.ConvResType.Success) {
+                    console.error(filePath, c3d.ConvResType[result]);
+                    continue;
+                }
                 this._db.load(model);
             }
         }

@@ -31,6 +31,8 @@
             const char * <%- arg.name %>; size_t <%- arg.name %>_length;
             <%_ } else if (arg.isC3dString) { _%>
             const std::wstring <%- arg.name %>;
+            <%_ } else if (arg.isBasicString) { _%>
+            const std::string <%- arg.name %>;
             <%_ } else { _%>
             <%- arg.const %> <%- arg.rawType %> <%- arg.ref %> <%- arg.name _%><%_ if (arg.isOptional) { _%> = <%- arg.default _%><%_ } _%>;
             <%_ } _%>

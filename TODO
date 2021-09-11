@@ -1,24 +1,17 @@
 # PRE ALPHA:
 
-control point hover/unhover broken
-higher precision for control point temp/preview
 moving point deselecting not working
-
-see if you can figure out where the db corruption comes from
+file save and reload needs to respect curve segments:
+curve fragment layer not set by highlighter
 
 stress test undo & redo
-integration tests for basic commands
-
 
 curves:
     creating curves not on XY constr plane causes weirdness with the planecontourman
     curve movement not working well
     bridge curve
-    drag drop points?
     duplicate edges to curves
-    draw curve around solid
     multiline (stroke)
-    file save and reload needs to respect curve segments:
     select after create
     fillet every corner
 
@@ -43,6 +36,9 @@ change selection mode 123 keys
 fix box select
 
 - audit depth pass
+
+drag drop points?
+    draw curve around solid
 
 
 memoize mesh generation of faces in mesh creator (for the duration of a command).

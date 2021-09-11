@@ -18,6 +18,9 @@ export class Backup {
         const data = await this.originator.serialize();
         const tempFilePath = await this.tempFilePath();
         await fs.promises.writeFile(tempFilePath, Buffer.from(data));
+
+        const c3dTempFilePath = await this.c3dTempFilePath();
+        await fs.promises.writeFile(c3dTempFilePath, Buffer.from(await this.originator.db.serialize()));
     }
 
     async load() {
@@ -47,5 +50,10 @@ export class Backup {
     async tempFilePath() {
         await this.makeTempDir();
         return path.join(this.dir, 'backup.plasticity');
+    }
+
+    async c3dTempFilePath() {
+        await this.makeTempDir();
+        return path.join(this.dir, 'debug.c3d');
     }
 }
