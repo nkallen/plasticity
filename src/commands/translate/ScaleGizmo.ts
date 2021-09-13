@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/Cancellable";
-import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
+import { EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
 import { AbstractAxialScaleGizmo, AxisHelper, boxGeometry, CircularGizmo, CompositeHelper, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, PlanarGizmo } from "../MiniGizmos";
@@ -39,10 +39,6 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
 
         this.add(x, y, z, xy, yz, xz, xyz);
 
-        for (const viewport of viewports) {
-            viewport.selector.enabled = false;
-        }
-
         x.quaternion.setFromUnitVectors(Y, X);
         y.quaternion.setFromUnitVectors(Y, Y);
         z.quaternion.setFromUnitVectors(Y, Z);
@@ -51,7 +47,7 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
         xz.quaternion.setFromUnitVectors(Z, _Y);
     }
 
-    execute(cb: (params: ScaleParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: ScaleParams) => void, mode: Mode = Mode.Persistent | Mode.DisableSelection): CancellablePromise<void> {
         const { x, y, z, xy, yz, xz, xyz, params} = this;
 
         const set = () => {
@@ -69,7 +65,7 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
         this.addGizmo(xz, set);
         this.addGizmo(xyz, set);
 
-        return super.execute(cb, finishFast);
+        return super.execute(cb, mode);
     }
 
     render(params: ScaleParams) {

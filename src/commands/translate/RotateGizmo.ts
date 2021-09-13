@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
-import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
+import { EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
 import { AngleGizmo, QuaternionStateMachine } from "../MiniGizmos";
@@ -46,7 +46,7 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
         z.quaternion.setFromUnitVectors(Z, Z);
     }
 
-    execute(cb: (params: RotateParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: RotateParams) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
         const { x, y, z, screen, params} = this;
 
         const state = new QuaternionStateMachine(new THREE.Quaternion());

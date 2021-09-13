@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { AbstractGizmo, EditorLike, GizmoStateMachine, Intersector, mode, MovementInfo } from "../../src/commands/AbstractGizmo";
+import { AbstractGizmo, EditorLike, GizmoStateMachine, Intersector, Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { CompositeGizmo } from "../../src/commands/CompositeGizmo";
 import { Viewport } from "../../src/components/viewport/Viewport";
@@ -41,7 +41,7 @@ class MyCompositeGizmo extends CompositeGizmo<Params> {
     readonly distance = new MockGizmo("my:distance", this.editor);
     readonly length = new MockGizmo("my:length", this.editor);
 
-    execute(cb: (params: Params) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: Params) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
         const { angle, distance, length, params } = this;
 
         this.add(angle, distance, length);

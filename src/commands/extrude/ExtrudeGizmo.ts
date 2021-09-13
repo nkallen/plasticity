@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/Cancellable";
-import { EditorLike, mode } from "../AbstractGizmo";
+import { EditorLike, Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AbstractAxialScaleGizmo, AngleGizmo, boxGeometry, lineGeometry, MagnitudeStateMachine } from "../MiniGizmos";
 import { ExtrudeLikeGizmo } from "../modifyface/OffsetFaceGizmo";
@@ -14,7 +14,7 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
     private readonly distance2Gizmo = new ExtrudeLikeGizmo("extrude:distance2", this.editor);
     private readonly thicknessGizmo = new MagnitudeGizmo("extrude:thickness", this.editor);
 
-    prepare() {
+    protected prepare(mode: Mode) {
         const { race1Gizmo, distance1Gizmo, race2Gizmo, distance2Gizmo, thicknessGizmo } = this;
         race1Gizmo.relativeScale.setScalar(0.3);
         race2Gizmo.relativeScale.setScalar(0.3);
@@ -27,7 +27,7 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
         distance2Gizmo.tip.add(race2Gizmo);
     }
 
-    execute(cb: (params: ExtrudeParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: ExtrudeParams) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
         const { race1Gizmo, distance1Gizmo, race2Gizmo, distance2Gizmo, thicknessGizmo, params } = this;
 
         distance2Gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0));

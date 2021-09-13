@@ -3,7 +3,7 @@
  */
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { EditorLike, mode, MovementInfo } from "../../src/commands/AbstractGizmo";
+import { EditorLike, Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { MaxFilletFactory } from "../../src/commands/fillet/FilletFactory";
 import { FilletGizmo } from "../../src/commands/fillet/FilletGizmo";
@@ -62,7 +62,7 @@ describe(FilletGizmo, () => {
         gizmo = new FilletGizmo(fillet, editor, new THREE.Vector3());
         promise = gizmo.execute(async params => {
             gizmo.toggle(fillet.mode);
-        }, mode.Persistent);
+        }, Mode.Persistent);
         expect(fillet.distance).toBeCloseTo(0);
         expect(fillet.mode).toBe(c3d.CreatorType.FilletSolid);
     })

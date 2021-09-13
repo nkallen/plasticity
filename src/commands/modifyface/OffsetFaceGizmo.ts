@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../build/Release/c3d.node';
 import { CancellablePromise } from "../../util/Cancellable";
 import { point2point, vec2vec } from "../../util/Conversion";
-import { EditorLike, mode } from "../AbstractGizmo";
+import { EditorLike, Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
 import { OffsetFaceParams } from './ModifyFaceFactory';
@@ -22,7 +22,7 @@ export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
         this.angle.relativeScale.setScalar(0.3);
     }
 
-    execute(cb: (params: OffsetFaceParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: OffsetFaceParams) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
         const { distance, angle, params } = this;
 
         const { point, normal } = this.placement(this.hint);

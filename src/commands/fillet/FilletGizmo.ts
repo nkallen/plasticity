@@ -4,23 +4,24 @@ import c3d from '../../../build/Release/c3d.node';
 import { CurveEdgeSnap } from "../../editor/SnapManager";
 import { CancellablePromise } from "../../util/Cancellable";
 import { point2point, vec2vec } from "../../util/Conversion";
-import { EditorLike, mode } from "../AbstractGizmo";
+import { EditorLike, Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AbstractAxialScaleGizmo, AngleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
-import { FilletParams, Mode } from './FilletFactory';
+import * as fillet from './FilletFactory';
+import { FilletParams } from './FilletFactory';
 
 export class FilletGizmo extends CompositeGizmo<FilletParams> {
     private readonly main = new MagnitudeGizmo("fillet:distance", this.editor);
     private readonly angle = new AngleGizmo("fillet:angle", this.editor, this.editor.gizmos.white);
     private readonly variables: MagnitudeGizmo[] = [];
 
-    private mode: Mode = c3d.CreatorType.FilletSolid;
+    private mode: fillet.Mode = c3d.CreatorType.FilletSolid;
 
     constructor(params: FilletParams, editor: EditorLike, private readonly hint?: THREE.Vector3) {
         super(params, editor);
     }
 
-    execute(cb: (params: FilletParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: FilletParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const { main, params, angle } = this;
 
         const { point, normal } = this.placement(this.hint);
@@ -48,12 +49,12 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         });
 
 
-        const result = super.execute(cb, finishFast);
+        const result = super.execute(cb, mode);
         this.toggle(this.mode);
         return result;
     }
 
-    toggle(mode: Mode) {
+    toggle(mode: fillet.Mode) {
         this.mode = mode;
         const { angle, variables } = this;
         if (mode === c3d.CreatorType.ChamferSolid) {

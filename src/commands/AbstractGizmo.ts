@@ -40,10 +40,14 @@ export interface EditorLike {
 }
 
 export interface GizmoLike<CB> {
-    execute(cb: CB, finishFast?: mode): CancellablePromise<void>;
+    execute(cb: CB, finishFast?: Mode): CancellablePromise<void>;
 }
 
-export enum mode { Persistent, Transitory };
+export enum Mode {
+    None = 0,
+    Persistent = 1 << 0,
+    DisableSelection = 1 << 1,
+};
 
 export abstract class AbstractGizmo<CB> extends Helper {
     stateMachine?: GizmoStateMachine<CB>;
@@ -66,7 +70,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
     abstract onPointerUp(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onInterrupt(cb: CB): void;
 
-    execute(cb: CB, finishFast: mode = mode.Transitory): CancellablePromise<void> {
+    execute(cb: CB, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const disposables = new CompositeDisposable();
         if (this.parent === null) {
             this.editor.helpers.add(this);
@@ -93,6 +97,10 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
             for (const viewport of this.editor.viewports) {
                 const { renderer: { domElement } } = viewport;
+
+                if ((mode & Mode.DisableSelection) === Mode.DisableSelection) {
+                    viewport.selector.enabled = false;
+                }
 
                 const addEventHandlers = () => {
                     domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
@@ -140,7 +148,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     stateMachine.update(viewport, pointer);
                     stateMachine.pointerUp(() => {
-                        if (finishFast === mode.Transitory) {
+                        if ((mode & Mode.Persistent) !== Mode.Persistent) {
                             disposables.dispose();
                             resolve();
                         }

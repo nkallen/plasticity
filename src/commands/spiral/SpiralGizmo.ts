@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
-import { EditorLike, GizmoLike, mode } from "../AbstractGizmo";
+import { EditorLike, GizmoLike, Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AngleGizmo, LengthGizmo } from "../MiniGizmos";
 import { SpiralParams } from "./SpiralFactory";
@@ -13,7 +13,7 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
     private readonly lengthGizmo = new LengthGizmo("spiral:length", this.editor);
     private readonly radiusGizmo = new LengthGizmo("spiral:radius", this.editor);
 
-    execute(cb: (params: SpiralParams) => void, finishFast: mode = mode.Transitory): CancellablePromise<void> {
+    execute(cb: (params: SpiralParams) => void, finishFast: Mode = Mode.None): CancellablePromise<void> {
         const { angleGizmo, lengthGizmo, radiusGizmo, params } = this;
         const { p2, p1, angle, radius } = params;
 

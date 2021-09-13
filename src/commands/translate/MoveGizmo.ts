@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/Cancellable";
-import { EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
+import { EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
 import { AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, lineGeometry, MagnitudeStateMachine, PlanarGizmo, VectorStateMachine } from "../MiniGizmos";
@@ -33,8 +33,9 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 
     private originalPosition!: THREE.Vector3;
 
-    prepare() {
-        const { x, y, z, xy, yz, xz, screen, editor: { viewports } } = this;
+    protected prepare(mode: Mode) {
+        const { x, y, z, xy, yz, xz, screen } = this;
+        
         for (const o of [x, y, z, xy, yz, xz]) o.relativeScale.setScalar(0.8);
         screen.relativeScale.setScalar(0.25);
         this.add(x, y, z, xy, yz, xz, screen);
@@ -47,13 +48,9 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
         xz.quaternion.setFromUnitVectors(Z, _Y);
 
         this.originalPosition = this.position.clone();
-
-        for (const viewport of viewports) {
-            viewport.selector.enabled = false;
-        }
     }
 
-    execute(cb: (params: MoveParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: MoveParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const { x, y, z, xy, yz, xz, screen, params } = this;
 
         const set = () => {
@@ -74,10 +71,10 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
         this.addGizmo(xz, set);
         this.addGizmo(screen, set);
 
-        return super.execute(cb, finishFast);
+        return super.execute(cb, mode);
     }
 
-    render(params: MoveParams){
+    render(params: MoveParams) {
         this.position.copy(this.originalPosition).add(params.move);
     }
 }

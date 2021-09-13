@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Cancel, CancellablePromise } from "../util/Cancellable";
 import { Helper } from "../util/Helpers";
-import { AbstractGizmo, EditorLike, GizmoLike, mode } from "./AbstractGizmo";
+import { AbstractGizmo, EditorLike, GizmoLike, Mode } from "./AbstractGizmo";
 
 export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: P) => void> {
     private readonly gizmos: [AbstractGizmo<any>, (a: any) => void][] = [];
@@ -11,10 +11,11 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
         super();
     }
 
-    protected prepare() {}
+    protected prepare(mode: Mode) {
+    }
 
-    execute(compositeCallback: (params: P) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        this.prepare();
+    execute(compositeCallback: (params: P) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
+        this.prepare(mode);
 
         const disposables = new CompositeDisposable();
 
@@ -38,7 +39,7 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
             const executingGizmo = gizmo.execute((x: any) => {
                 miniCallback(x);
                 compositeCallback(this.params);
-            }, finishFast);
+            }, mode);
             cancellables.push(executingGizmo);
         }
 

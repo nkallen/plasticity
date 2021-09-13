@@ -41,8 +41,8 @@ describe(ChangePointFactory, () => {
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
     });
 
-    test('invokes the appropriate c3d commands', async () => {
-        changePoint.controlPoint = curve.underlying.points.findByIndex(0);
+    test('moving one point', async () => {
+        changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
         changePoint.move = new THREE.Vector3(-2, -2, 0);
         const newCurve = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
         const bbox = new THREE.Box3().setFromObject(newCurve);
@@ -52,6 +52,24 @@ describe(ChangePointFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-4, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
         expect(db.visibleObjects.length).toBe(1);
+    })
+
+    test('moving two points', async () => {
+        changePoint.controlPoints = [curve.underlying.points.findByIndex(0), curve.underlying.points.findByIndex(1)];
+        changePoint.move = new THREE.Vector3(-2, -2, 0);
+        const newCurve = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const bbox = new THREE.Box3().setFromObject(newCurve);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-4, -2, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+        expect(db.visibleObjects.length).toBe(1);
+    })
+
+    test('originalPosition', async () => {
+        changePoint.controlPoints = [curve.underlying.points.findByIndex(0), curve.underlying.points.findByIndex(1)];
+        expect(changePoint.originalPosition).toApproximatelyEqual(new THREE.Vector3(-0.5, 1, 0));
     })
 });
 
@@ -67,7 +85,7 @@ describe(RemovePointFactory, () => {
     });
 
     test('invokes the appropriate c3d commands', async () => {
-        removePoint.controlPoint = curve.underlying.points.findByIndex(2);
+        removePoint.controlPoints = [curve.underlying.points.findByIndex(2)];
         const newCurve = await removePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
         const bbox = new THREE.Box3().setFromObject(newCurve);
         const center = new THREE.Vector3();

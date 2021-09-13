@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/Cancellable";
-import { AbstractGizmo, EditorLike, Intersector, mode, MovementInfo } from "../AbstractGizmo";
+import { AbstractGizmo, EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
 import { arrowGeometry, AxisHelper, lineGeometry } from "../MiniGizmos";
@@ -41,12 +41,8 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
         this.add(x, y, z, _x, _y, _z);
     }
 
-    execute(cb: (params: MirrorParams) => void, finishFast: mode = mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, _x, _y, _z, params, editor: { viewports} } = this;
-
-        for (const viewport of viewports) {
-            viewport.selector.enabled = false;
-        }
+    execute(cb: (params: MirrorParams) => void, mode: Mode = Mode.Persistent | Mode.DisableSelection): CancellablePromise<void> {
+        const { x, y, z, _x, _y, _z, params } = this;
 
         x.quaternion.setFromUnitVectors(Y, X);
         y.quaternion.setFromUnitVectors(Y, Y);
@@ -76,7 +72,7 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
             params.orientation = mirrorNegZ;
         });
 
-        return super.execute(cb, finishFast);
+        return super.execute(cb, mode);
     }
 }
 

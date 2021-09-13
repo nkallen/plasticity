@@ -4,7 +4,7 @@ import { AxisSnap, PointSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
 import { point2point } from "../util/Conversion";
-import { mode } from "./AbstractGizmo";
+import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
 import { BooleanFactory, CutAndSplitFactory, CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
@@ -342,7 +342,7 @@ export class SpiralCommand extends Command {
         const spiralGizmo = new SpiralGizmo(spiral, this.editor);
         spiralGizmo.execute(params => {
             spiral.update();
-        }, mode.Persistent).resource(this);
+        }, Mode.Persistent).resource(this);
 
         await this.finished;
 
@@ -859,7 +859,7 @@ export class FilletCommand extends Command {
                     added.execute(async delta => {
                         fn.InsertValue(t, delta);
                         await fillet.update();
-                    }, mode.Persistent).resource(this);
+                    }, Mode.Persistent).resource(this);
                     break;
             }
         }).resource(this);
@@ -937,7 +937,7 @@ export class DraftSolidCommand extends Command {
         const gizmo = new RotateGizmo(draftSolid, this.editor);
         await gizmo.execute(params => {
             draftSolid.update();
-        }, mode.Persistent).resource(this);
+        }, Mode.Persistent).resource(this);
 
         await draftSolid.commit();
     }
@@ -1058,7 +1058,7 @@ export class LoftCommand extends Command {
         await gizmo.execute(async thickness => {
             loft.thickness = thickness;
             loft.update();
-        }, mode.Persistent).resource(this);
+        }, Mode.Persistent).resource(this);
 
         // curve.cancel();
         await loft.commit();
@@ -1139,10 +1139,10 @@ export class DeleteCommand extends Command {
 
 export class ChangePointCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoint = this.editor.selection.selected.controlPoints.first;
+        const controlPoints = [...this.editor.selection.selected.controlPoints];
 
         const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        changePoint.controlPoint = controlPoint;
+        changePoint.controlPoints = controlPoints;
 
         const gizmo = new MoveGizmo(changePoint, this.editor);
         gizmo.position.copy(changePoint.originalPosition);
@@ -1152,9 +1152,9 @@ export class ChangePointCommand extends Command {
 
         const newInstance = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const newCurve = newInstance.underlying;
-        const newPoint = newCurve.points.findByIndex(controlPoint.index)!;
-        this.editor.selection.selected.addControlPoint(newPoint, newInstance);
+        // const newCurve = newInstance.underlying;
+        // const newPoint = newCurve.points.findByIndex(controlPoint.index)!;
+        // this.editor.selection.selected.addControlPoint(newPoint, newInstance);
     }
 }
 
@@ -1207,7 +1207,7 @@ export class FilletCurveCommand extends Command {
         await gizmo.execute(d => {
             factory.radius = d;
             factory.update();
-        }, mode.Persistent).resource(this);
+        }, Mode.Persistent).resource(this);
 
         await factory.commit();
     }
@@ -1278,7 +1278,7 @@ export class OffsetLoopCommand extends Command {
         await gizmo.execute(async distance => {
             offsetContour.distance = distance;
             offsetContour.update();
-        }, mode.Persistent).resource(this);
+        }, Mode.Persistent).resource(this);
 
         this.editor.selection.selected.removeFace(face, parent);
 

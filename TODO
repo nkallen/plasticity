@@ -5,6 +5,7 @@ file save and reload needs to respect curve segments:
 curve fragment layer not set by highlighter
 
 stress test undo & redo
+offset face broken
 
 curves:
     creating curves not on XY constr plane causes weirdness with the planecontourman
