@@ -3,6 +3,7 @@ import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { Agent, GeometryDatabase } from '../src/editor/GeometryDatabase';
+import { CurveMemento } from "../src/editor/History";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { PlanarCurveDatabase } from "../src/editor/PlanarCurveDatabase";
 import * as visual from '../src/editor/VisualModel';
@@ -24,13 +25,16 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
+    curves = new PlanarCurveDatabase(db);
+});
+
+beforeEach(() => {
     makeCircle1 = new CenterCircleFactory(db, materials, signals);
     makeCircle2 = new CenterCircleFactory(db, materials, signals);
     makeCircle3 = new CenterCircleFactory(db, materials, signals);
     makeCurve1 = new CurveFactory(db, materials, signals);
     makeCurve2 = new CurveFactory(db, materials, signals);
     makeCurve3 = new CurveFactory(db, materials, signals);
-    curves = new PlanarCurveDatabase(db);
 })
 
 test('adding and deleting a circle', async () => {
@@ -408,4 +412,4 @@ describe("findWithSamePlacement", () => {
 
         expect(coplanar.length).toBe(1);
     });
-})
+});

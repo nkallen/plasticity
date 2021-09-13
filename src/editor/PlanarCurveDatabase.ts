@@ -7,7 +7,7 @@ import * as visual from "./VisualModel";
 
 export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     private readonly curve2info = new Map<c3d.SimpleName, CurveInfo>();
-    private readonly foo = new Map<c3d.SimpleName, c3d.Curve>();
+    private readonly id2planarCurve = new Map<c3d.SimpleName, c3d.Curve>();
     private readonly placements = new Set<c3d.Placement3D>();
     private counter = 0;
 
@@ -32,7 +32,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
      * startpoints of the next curve (a "joint"), etc. etc.
      */
     async add(newCurve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
-        const { curve2info, db, foo: id2planarCurve } = this;
+        const { curve2info, db, id2planarCurve: id2planarCurve } = this;
 
         // Collect all existing planar curves
         const planar2instance = new Map<Curve2dId, c3d.SimpleName>();
@@ -246,7 +246,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         const coplanarCurves = [];
         for (const candidate of candidates) {
             if (isSamePlacement(placement, candidate.placement)) {
-                coplanarCurves.push(this.foo.get(candidate.planarCurve)!);
+                coplanarCurves.push(this.id2planarCurve.get(candidate.planarCurve)!);
             }
         }
         return coplanarCurves;
