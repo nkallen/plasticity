@@ -166,7 +166,7 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     readonly hovered: ModifiesSelection;
 
     constructor(
-        db: GeometryDatabase,
+        db: DatabaseLike,
         protected readonly selection: HasSelectedAndHovered,
         protected readonly materials: MaterialDatabase,
         protected readonly signals: EditorSignals

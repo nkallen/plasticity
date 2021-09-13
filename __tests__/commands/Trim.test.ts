@@ -24,15 +24,15 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
     curves = new PlanarCurveDatabase(db);
     regions = new RegionManager(db, curves);
-    contours = new ContourManager(curves, regions, signals);
+    contours = new ContourManager(db, curves, regions, signals);
 })
 
 let circle1: visual.SpaceInstance<visual.Curve3D>;
 let circle2: visual.SpaceInstance<visual.Curve3D>;
 
 beforeEach(async () => {
-    const makeCircle1 = new CenterCircleFactory(db, materials, signals);
-    const makeCircle2 = new CenterCircleFactory(db, materials, signals);
+    const makeCircle1 = new CenterCircleFactory(contours, materials, signals);
+    const makeCircle2 = new CenterCircleFactory(contours, materials, signals);
 
     await contours.transaction(async () => {
         makeCircle1.center = new THREE.Vector3(0, 0.25, 0);
@@ -50,7 +50,7 @@ describe(TrimFactory, () => {
     let trim: TrimFactory;
 
     beforeEach(() => {
-        trim = new TrimFactory(db, materials, signals);
+        trim = new TrimFactory(contours, materials, signals);
     });
 
     test("two overlapping circles, ", async () => {

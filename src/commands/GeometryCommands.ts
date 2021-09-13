@@ -1152,19 +1152,16 @@ export class ChangePointCommand extends Command {
 
         const newInstance = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        // const newCurve = newInstance.underlying;
-        // const newPoint = newCurve.points.findByIndex(controlPoint.index)!;
-        // this.editor.selection.selected.addControlPoint(newPoint, newInstance);
+        this.editor.selection.selected.addCurve(newInstance);
     }
 }
 
 export class RemovePointCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoint = this.editor.selection.selected.controlPoints.first;
-        const instance = controlPoint.parentItem;
+        const controlPoint = [...this.editor.selection.selected.controlPoints];
 
         const removePoint = new RemovePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        removePoint.controlPoint = controlPoint;
+        removePoint.controlPoints = controlPoint;
 
         const newInstance = await removePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(newInstance);

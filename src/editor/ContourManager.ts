@@ -1,8 +1,23 @@
 import c3d from '../../build/Release/c3d.node';
+import { DatabaseProxy } from './DatabaseProxy';
 import { EditorSignals } from "./EditorSignals";
+import { Agent, GeometryDatabase } from './GeometryDatabase';
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
 import { RegionManager } from "./RegionManager";
 import * as visual from "./VisualModel";
+
+/**
+ * The ContourManager is a DatabaseProxy that observes inserts/deletes/replaces of curves. When the curves change in the system
+ * it notifies the PlanarCurveDatabase (which is responsible for trimming planar curves at intersections) as well as the
+ * RegionManager (which is responsible for taking planar curves and turning them into regions).
+ * 
+ * In general, methods of this class MUST to be called with the transaction() wrapper, otherwise race conditions related
+ * to asynchronous code will cause things to explode.
+ * 
+ * The transaction wrapper aggregates adds/deletes so that all of the work can be processed at once. It makes code more
+ * efficient, of course. But equally importantly, you have to worry about cases where removing one curve "dirties" the
+ * intersections of another curve, and if that curve is also deleted in parallel, everything goes wrong.
+ */
 
 export class CurveInfo {
     readonly touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
@@ -17,23 +32,64 @@ export type Transaction = { dirty: CurveSet, added: CurveSet, removed: CurveSet 
 type CurveSet = Set<visual.SpaceInstance<visual.Curve3D>>;
 type State = { tag: 'none' } | { tag: 'transaction', transaction: Transaction }
 
-export default class ContourManager {
+export default class ContourManager extends DatabaseProxy {
     private state: State = { tag: 'none' };
 
     constructor(
+        db: GeometryDatabase,
         private readonly curves: PlanarCurveDatabase,
         private readonly regions: RegionManager,
         signals: EditorSignals,
     ) {
-        signals.objectAdded.add(([c, agent]) => {
-            if (agent === 'user' && c instanceof visual.SpaceInstance) this.add(c)
-        });
-        signals.objectRemoved.add(([c, agent]) => {
-            if (agent === 'user' && c instanceof visual.SpaceInstance) this.remove(c)
-        });
+        super(db);
     }
 
-    async remove(curve: visual.SpaceInstance<visual.Curve3D>) {
+    async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
+    async addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    async addItem(model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
+    async addItem(model: c3d.Item, agent: Agent = 'user'): Promise<visual.Item> {
+        const result = await this.db.addItem(model, agent);
+        if (result instanceof visual.SpaceInstance) {
+            await this.addCurve(result);
+        }
+        return result;
+    }
+
+    async replaceItem(from: visual.Solid, model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
+    async replaceItem<T extends visual.SpaceItem>(from: visual.SpaceInstance<T>, model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    async replaceItem<T extends visual.PlaneItem>(from: visual.PlaneInstance<T>, model: c3d.PlaneInstance, agent?: Agent): Promise<visual.PlaneInstance<visual.Region>>;
+    async replaceItem(from: visual.Item, model: c3d.Item, agent?: Agent): Promise<visual.Item>;
+    async replaceItem(from: visual.Item, to: c3d.Item): Promise<visual.Item> {
+        const result = await this.db.replaceItem(from, to);
+        if (from instanceof visual.SpaceInstance) {
+            await this.removeCurve(from);
+            await this.addCurve(result as visual.SpaceInstance<visual.Curve3D>);
+        }
+        return result;
+    }
+
+    async removeItem(view: visual.Item, agent?: Agent): Promise<void> {
+        const result = await this.db.removeItem(view, agent);
+        if (view instanceof visual.SpaceInstance) {
+            await this.removeCurve(view);
+        }
+        return result;
+    }
+
+    async addCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
+        switch (this.state.tag) {
+            case 'none':
+                const result = this.curves.add(curve);
+                const info = this.curves.lookup(curve);
+                await this.regions.updatePlacement(info.placement);
+                return result;
+            case 'transaction':
+                this.state.transaction.added.add(curve);
+                break;
+        }
+    }
+
+    async removeCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
         switch (this.state.tag) {
             case 'none':
                 const info = this.curves.lookup(curve);
@@ -46,24 +102,11 @@ export default class ContourManager {
         }
     }
 
-    add(curve: visual.SpaceInstance<visual.Curve3D>) {
-        switch (this.state.tag) {
-            case 'none':
-                const result = this.curves.add(curve);
-                const info = this.curves.lookup(curve);
-                this.regions.updatePlacement(info.placement);
-                return result;
-            case 'transaction':
-                this.state.transaction.added.add(curve);
-                break;
-        }
-    }
-
     async transaction(f: () => Promise<void>) {
         switch (this.state.tag) {
             case 'none': {
                 const transaction: Transaction = { dirty: new Set(), added: new Set(), removed: new Set() };
-                this.state = { tag: 'transaction', transaction: transaction};
+                this.state = { tag: 'transaction', transaction: transaction };
                 try {
                     await f();
                     const placements = new Set<c3d.Placement3D>();
@@ -79,7 +122,7 @@ export default class ContourManager {
                 }
                 return;
             }
-            default: throw new Error("invalid state");
+            default: throw new Error("invalid state: " + this.state.tag);
         }
     }
 

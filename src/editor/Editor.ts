@@ -41,13 +41,17 @@ export class Editor {
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly sprites = new SpriteDatabase();
     readonly _db = new GeometryDatabase(this.materials, this.signals);
+
+    readonly curves = new PlanarCurveDatabase(this._db);
+    readonly regions = new RegionManager(this._db, this.curves);
+    readonly contours = new ContourManager(this._db, this.curves, this.regions, this.signals);
+
     readonly _selection = new SelectionManager(this._db, this.materials, this.signals);
-    readonly modifiers = new ModifierManager(this._db, this._selection, this.materials, this.signals);
+
+    readonly modifiers = new ModifierManager(this.contours, this._selection, this.materials, this.signals);
     readonly selection = this.modifiers;
     readonly db = this.modifiers as DatabaseLike;
-    readonly curves = new PlanarCurveDatabase(this.db);
-    readonly regions = new RegionManager(this._db, this.curves);
-    readonly contours = new ContourManager(this.curves, this.regions, this.signals);
+
     readonly snaps = new SnapManager(this.db, this.gizmos, this.signals);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
@@ -118,7 +122,7 @@ export class Editor {
         const result = await remote.dialog.showOpenDialog({
             properties: ['openFile'],
             filters: [
-                { name: 'All supported', extensions: ['stp', 'step', 'c3d', 'igs', 'iges', 'sat']},
+                { name: 'All supported', extensions: ['stp', 'step', 'c3d', 'igs', 'iges', 'sat'] },
                 { name: 'STEP files', extensions: ['stp', 'step'] },
                 { name: 'IGES files', extensions: ['igs', 'iges'] },
                 { name: 'SAT files', extensions: ['sat'] },

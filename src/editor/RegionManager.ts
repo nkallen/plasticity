@@ -1,8 +1,8 @@
 import c3d from '../../build/Release/c3d.node';
-import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
-import * as visual from "./VisualModel";
-import { PlanarCurveDatabase } from './PlanarCurveDatabase';
 import { isSamePlacement } from '../util/Conversion';
+import { GeometryDatabase } from './GeometryDatabase';
+import { PlanarCurveDatabase } from './PlanarCurveDatabase';
+import * as visual from "./VisualModel";
 
 export class RegionManager {
     constructor(
