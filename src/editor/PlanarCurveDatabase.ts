@@ -7,7 +7,9 @@ import * as visual from "./VisualModel";
 
 export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     private readonly curve2info = new Map<c3d.SimpleName, CurveInfo>();
+    private readonly foo = new Map<c3d.SimpleName, c3d.Curve>();
     private readonly placements = new Set<c3d.Placement3D>();
+    private counter = 0;
 
     constructor(
         private readonly db: DatabaseLike
@@ -30,24 +32,34 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
      * startpoints of the next curve (a "joint"), etc. etc.
      */
     async add(newCurve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
-        const { curve2info, db } = this;
+        const { curve2info, db, foo: id2planarCurve } = this;
+
+        // Collect all existing planar curves
         const planar2instance = new Map<Curve2dId, c3d.SimpleName>();
+        const allPlanarCurves = [];
         for (const [simpleName, { planarCurve }] of curve2info.entries()) {
-            planar2instance.set(planarCurve.Id(), simpleName);
+            const curve = id2planarCurve.get(planarCurve)!;
+            allPlanarCurves.push(curve);
+            planar2instance.set(curve.Id(), simpleName);
         }
 
+        // Planarize the new curve
         const inst = db.lookup(newCurve);
         const item = inst.GetSpaceItem()!;
         const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
         const planarInfo = this.planarizeAndNormalize(curve3d);
         if (planarInfo === undefined) return Promise.resolve();
 
+        // Store the planarized curve for future use
         const { curve: newPlanarCurve, placement } = planarInfo;
-        const info = new CurveInfo(newPlanarCurve, placement);
+        const counter = this.counter++;
+        id2planarCurve.set(counter, newPlanarCurve);
+        const info = new CurveInfo(counter, placement);
         curve2info.set(newCurve.simpleName, info);
         planar2instance.set(newPlanarCurve.Id(), newCurve.simpleName);
+        allPlanarCurves.push(newPlanarCurve);
 
-        const allPlanarCurves = [...curve2info.values()].map(info => info.planarCurve);
+        // Process all curves that intersect the new curve (and their intersections), starting with the new curve itself
         const curvesToProcess = new Map<Curve2dId, c3d.Curve>();
         curvesToProcess.set(newPlanarCurve.Id(), newPlanarCurve);
         const visited = new Set<Curve2dId>();
@@ -234,7 +246,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         const coplanarCurves = [];
         for (const candidate of candidates) {
             if (isSamePlacement(placement, candidate.placement)) {
-                coplanarCurves.push(candidate.planarCurve);
+                coplanarCurves.push(this.foo.get(candidate.planarCurve)!);
             }
         }
         return coplanarCurves;

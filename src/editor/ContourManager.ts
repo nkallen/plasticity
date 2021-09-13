@@ -23,7 +23,7 @@ export class CurveInfo {
     readonly touched = new Set<c3d.SimpleName>();
     fragments = new Array<Promise<c3d.SimpleName>>();
     readonly joints = new Joints();
-    constructor(readonly planarCurve: c3d.Curve, readonly placement: c3d.Placement3D) { }
+    constructor(readonly planarCurve: c3d.SimpleName, readonly placement: c3d.Placement3D) { }
 }
 
 export type Curve2dId = bigint;
