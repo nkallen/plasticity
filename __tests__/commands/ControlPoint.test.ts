@@ -8,6 +8,7 @@ import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 import c3d from '../../build/Release/c3d.node';
+import { NoOpError } from "../../src/commands/GeometryFactory";
 
 let db: GeometryDatabase;
 let changePoint: ChangePointFactory;
@@ -70,6 +71,11 @@ describe(ChangePointFactory, () => {
     test('originalPosition', async () => {
         changePoint.controlPoints = [curve.underlying.points.findByIndex(0), curve.underlying.points.findByIndex(1)];
         expect(changePoint.originalPosition).toApproximatelyEqual(new THREE.Vector3(-0.5, 1, 0));
+    })
+
+    test('with no move vector it doesn\'t error', async () => {
+        changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
+        await expect(changePoint.commit()).rejects.toThrow(NoOpError);
     })
 });
 

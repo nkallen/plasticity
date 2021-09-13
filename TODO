@@ -1,7 +1,7 @@
 # PRE ALPHA:
 
 file save and reload needs to respect curve segments:
-curve fragment layer not set by highlighter
+when moving a control point, it's weird that you can select the curve
 
 moving point deselecting not working
 

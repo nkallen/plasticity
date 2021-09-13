@@ -13,7 +13,10 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (this.hovered.mode.has(SelectionMode.Curve) && !this.selected.curves.has(parentItem)) {
+        if (!this.hovered.mode.has(SelectionMode.Curve)) return false;
+        if (this.selected.hasSelectedChildren(parentItem)) return false;
+
+        if (!this.selected.curves.has(parentItem)) {
             if (!this.hovered.curves.has(parentItem)) {
                 this.hovered.removeAll();
                 this.hovered.addCurve(parentItem);

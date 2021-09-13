@@ -14,19 +14,16 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (this.selected.mode.has(SelectionMode.Curve)) {
-            if (this.selected.curves.has(parentItem)) {
-                this.selected.removeCurve(parentItem);
-            } else {
-                this.selected.addCurve(parentItem);
-                if (this.selected.hasSelectedChildren(parentItem)) {
-                    this.selected.deselectChildren(parentItem);
-                }
-            }
-            this.hovered.removeAll();
-            return true;
+        if (!this.hovered.mode.has(SelectionMode.Curve)) return false;
+        if (this.selected.hasSelectedChildren(parentItem)) return false;
+
+        if (this.selected.curves.has(parentItem)) {
+            this.selected.removeCurve(parentItem);
+        } else {
+            this.selected.addCurve(parentItem);
         }
-        return false;
+        this.hovered.removeAll();
+        return true;
     }
 
     solid(object: TopologyItem, parentItem: Solid): boolean {
