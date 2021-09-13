@@ -17,7 +17,7 @@ export default class TrimFactory extends GeometryFactory {
     }
 
     async calculate() {
-        const { curve, info: {start, stop} } = this;
+        const { curve, info: { start, stop } } = this;
 
         const result = [];
 

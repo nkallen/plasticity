@@ -165,21 +165,19 @@ export class Curve3D extends SpaceItem {
     }
 
     get fragmentInfo(): FragmentInfo | undefined {
-        const layer = new THREE.Layers();
-        layer.set(Layers.CurveFragment);
-        if (!this.layers.test(layer)) return undefined;
+        if (!this.isFragment) return undefined;
         return this.userData as FragmentInfo;
     }
 
     befragment(start: number, stop: number, ancestor: SpaceInstance<Curve3D>) {
-        this.layers.set(Layers.CurveFragment);
-        this.traverse(child => child.layers.set(Layers.CurveFragment));
-
         this.userData.start = start;
         this.userData.stop = stop;
         this.userData.untrimmedAncestor = ancestor;
-        // FIXME rethink this -- but fragments don't need control points, and we don't want them ever being visible/raycast targets/
         this.points.clear();
+    }
+
+    get isFragment(): boolean {
+        return !!this.userData.untrimmedAncestor;
     }
 
     dispose() {
@@ -489,7 +487,7 @@ export class ControlPointGroup extends THREE.Group {
     }
 
     get parentId(): number { return this.userData.parentId }
-    get geometry() {  return this.points?.geometry }
+    get geometry() { return this.points?.geometry }
 
     dispose() {
         this.points?.geometry.dispose();

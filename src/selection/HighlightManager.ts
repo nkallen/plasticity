@@ -152,12 +152,12 @@ export class HighlightManager {
         const { selected } = this.selection;
         for (const level of item.levels) {
             const curve = level as visual.Curve3D;
+            const layer = curve.isFragment ? visual.Layers.CurveFragment : visual.Layers.Curve
             const isSelected = selected.curveIds.has(item.simpleName);
             for (const segment of curve.segments) {
                 segment.line.material = isSelected ? line_highlighted : line_unhighlighted;
-                segment.layers.set(visual.Layers.Curve);
-                segment.line.layers.set(visual.Layers.Curve);
-                segment.occludedLine.layers.set(visual.Layers.Curve);
+                segment.line.layers.set(layer);
+                segment.occludedLine.layers.set(layer);
             }
             const geometry = curve.points.geometry;
             if (geometry !== undefined) {
@@ -215,6 +215,10 @@ export class HighlightManager {
 
     get outlineSelection() { return this.selection.selected.solids }
     get outlineHover() { return this.selection.hovered.solids }
+
+}
+
+export class CurveHighlightManager extends HighlightManager {
 
 }
 
