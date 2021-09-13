@@ -68,7 +68,6 @@ export class SnapMemento {
 export class CurveMemento {
     constructor(
         readonly curve2info: PlanarCurveDatabase["curve2info"],
-        readonly planar2instance: PlanarCurveDatabase["planar2instance"],
         readonly placements: PlanarCurveDatabase["placements"],
     ) { }
 

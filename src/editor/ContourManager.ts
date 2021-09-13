@@ -21,7 +21,7 @@ import * as visual from "./VisualModel";
 
 export class CurveInfo {
     readonly touched = new Set<c3d.SimpleName>();
-    fragments = new Array<Promise<visual.Item>>();
+    fragments = new Array<Promise<c3d.SimpleName>>();
     readonly joints = new Joints();
     constructor(readonly planarCurve: c3d.Curve, readonly placement: c3d.Placement3D) { }
 }
@@ -79,10 +79,10 @@ export default class ContourManager extends DatabaseProxy {
     async addCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
         switch (this.state.tag) {
             case 'none':
-                const result = this.curves.add(curve);
+                await this.curves.add(curve);
                 const info = this.curves.lookup(curve);
                 await this.regions.updatePlacement(info.placement);
-                return result;
+                return;
             case 'transaction':
                 this.state.transaction.added.add(curve.simpleName);
                 break;

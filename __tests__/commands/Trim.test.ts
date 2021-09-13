@@ -57,8 +57,8 @@ describe(TrimFactory, () => {
         expect(db.find(visual.PlaneInstance).length).toBe(1);
         expect(db.find(visual.SpaceInstance).length).toBe(6);
         const { fragments } = curves.lookup(circle1);
-        const fragment = await fragments[0] as visual.SpaceInstance<visual.Curve3D>;
-        trim.fragment = fragment;
+        const fragment = await fragments[0];
+        trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
 
         await contours.transaction(async () => {
             await trim.commit();

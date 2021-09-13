@@ -2,6 +2,7 @@
 
 file save and reload needs to respect curve segments:
 when moving a control point, it's weird that you can select the curve
+moving the point of a circle is off by unit
 
 after extruding region, selection is weird
 
