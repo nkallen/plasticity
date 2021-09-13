@@ -96,11 +96,15 @@ export class JointFilletFactory extends GeometryFactory {
 
     get joint() { return this._joint }
 
+    private _originalItems!: [visual.SpaceInstance<visual.Curve3D>, visual.SpaceInstance<visual.Curve3D>]
     async setJoint(joint: Joint) {
         this._joint = joint;
         const contourFactory = new JoinCurvesFactory(this.db, this.materials, this.signals);
-        contourFactory.push(joint.on1.curve);
-        contourFactory.push(joint.on2.curve);
+        const on1curve = this.db.lookupItemById(joint.on1.curve).view as visual.SpaceInstance<visual.Curve3D>;
+        const on2curve = this.db.lookupItemById(joint.on2.curve).view as visual.SpaceInstance<visual.Curve3D>
+        this._originalItems = [on1curve, on2curve];
+        contourFactory.push(on1curve);
+        contourFactory.push(on2curve);
         const contours = await contourFactory.calculate();
         const inst = contours[0];
         const item = inst.GetSpaceItem()!;
@@ -113,7 +117,10 @@ export class JointFilletFactory extends GeometryFactory {
     get cornerAngle() { return this.factory.cornerAngle }
     async calculate() { return this.factory.calculate() }
     set radius(r: number) { this.factory.radius = r }
-    get originalItem() { return [this.joint.on1.curve, this.joint.on2.curve] }
+
+    get originalItem() {
+        return this._originalItems;
+    }
 
     // This is not strictly necessary but conceptually we should do this.
     resource(reg: CancellableRegistor): this {

@@ -71,6 +71,24 @@ export class CurveMemento {
         readonly planar2instance: PlanarCurveDatabase["planar2instance"],
         readonly placements: PlanarCurveDatabase["placements"],
     ) { }
+
+    // serialize(): Buffer {
+    //     const string = JSON.stringify({
+    //         curve2info: this.curve2info,
+    //         planar2instance: this.planar2instance,
+    //         placements: this.placements,
+    //     }, this.replacer);
+    //     return Buffer.from(string);
+    // }
+
+    // static deserialize(data: Buffer, db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals): CurveMemento {
+    //     const p = JSON.parse(data.toString(), (key, value) => this.reviver(db, materials, signals)(key, value));
+    //     return new CurveMemento(
+    //         p.curve2info,
+    //         p.planar2instance,
+    //         p.placements,
+    //     );
+    // }
 }
 
 export class ModifierMemento {

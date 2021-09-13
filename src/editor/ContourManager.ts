@@ -20,7 +20,7 @@ import * as visual from "./VisualModel";
  */
 
 export class CurveInfo {
-    readonly touched = new Set<visual.SpaceInstance<visual.Curve3D>>();
+    readonly touched = new Set<c3d.SimpleName>();
     fragments = new Array<Promise<visual.Item>>();
     readonly joints = new Joints();
     constructor(readonly planarCurve: c3d.Curve, readonly placement: c3d.Placement3D) { }
@@ -29,7 +29,7 @@ export class CurveInfo {
 export type Curve2dId = bigint;
 export type Trim = { trimmed: c3d.Curve, start: number, stop: number };
 export type Transaction = { dirty: CurveSet, added: CurveSet, removed: CurveSet }
-type CurveSet = Set<visual.SpaceInstance<visual.Curve3D>>;
+type CurveSet = Set<c3d.SimpleName>;
 type State = { tag: 'none' } | { tag: 'transaction', transaction: Transaction }
 
 export default class ContourManager extends DatabaseProxy {
@@ -84,7 +84,7 @@ export default class ContourManager extends DatabaseProxy {
                 await this.regions.updatePlacement(info.placement);
                 return result;
             case 'transaction':
-                this.state.transaction.added.add(curve);
+                this.state.transaction.added.add(curve.simpleName);
                 break;
         }
     }
@@ -136,7 +136,7 @@ export default class ContourManager extends DatabaseProxy {
 
 export class PointOnCurve {
     constructor(
-        readonly curve: visual.SpaceInstance<visual.Curve3D>,
+        readonly curve: c3d.SimpleName,
         readonly t: number,
         readonly tmin: number,
         readonly tmax: number

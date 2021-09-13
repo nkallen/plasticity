@@ -91,7 +91,7 @@ describe(JoinCurvesFactory, () => {
             const contour = contours[0];
 
             const inst = db.lookup(contour) as c3d.SpaceInstance;
-            const item = inst.GetSpaceItem();
+            const item = inst.GetSpaceItem()!;
             const curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
 
             expect(curve.IsPlanar()).toBe(true);
@@ -114,7 +114,7 @@ describe(ContourFilletFactory, () => {
         const makeContour = new JoinCurvesFactory(db, materials, signals);
         makeContour.push(line1);
         makeContour.push(line2);
-        const contour = (await makeContour.commit())[0] as visual.SpaceInstance<visual.Curve3D>;
+        const contour = (await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[])[0] as visual.SpaceInstance<visual.Curve3D>;
 
         const makeFillet = new ContourFilletFactory(db, materials, signals);
         makeFillet.contour = contour;
@@ -177,7 +177,7 @@ describe(JointFilletFactory, () => {
         curveFillet = new JointFilletFactory(db, materials, signals);
     })
 
-    test("when filleting Joints", async () => {
+    test.only("when filleting Joints", async () => {
         const makeLine1 = new LineFactory(db, materials, signals);
         makeLine1.p1 = new THREE.Vector3();
         makeLine1.p2 = new THREE.Vector3(1, 1, 0);
@@ -188,8 +188,8 @@ describe(JointFilletFactory, () => {
         makeLine2.p2 = new THREE.Vector3(0, 1, 0);
         const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const on1 = new PointOnCurve(line1, 1, 0, 1);
-        const on2 = new PointOnCurve(line2, 0, 0, 1);
+        const on1 = new PointOnCurve(line1.simpleName, 1, 0, 1);
+        const on2 = new PointOnCurve(line2.simpleName, 0, 0, 1);
         const joint = new Joint(on1, on2);
 
         await curveFillet.setJoint(joint);
@@ -227,8 +227,8 @@ describe(JointFilletFactory, () => {
         makeLine3.p2 = new THREE.Vector3(0, 1, 0);
         const line3 = await makeLine3.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-        const on1 = new PointOnCurve(line3, 0, 0, 1);
-        const on2 = new PointOnCurve(contour, 2, 0, 2);
+        const on1 = new PointOnCurve(line3.simpleName, 0, 0, 1);
+        const on2 = new PointOnCurve(contour.simpleName, 2, 0, 2);
         const joint = new Joint(on1, on2);
 
         await curveFillet.setJoint(joint);
@@ -242,7 +242,7 @@ describe(JointFilletFactory, () => {
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
 
         const inst = db.lookup(filletted) as c3d.SpaceInstance;
-        const item = inst.GetSpaceItem();
+        const item = inst.GetSpaceItem()!;
         const curve = item.Cast<c3d.Curve3D>(item.IsA());
         expect(curve.IsClosed()).toBe(true);
 
