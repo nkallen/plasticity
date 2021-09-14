@@ -300,7 +300,7 @@ describe(PolylineFilletFactory, () => {
     })
 
     test("when filleting middle points", async () => {
-        await curveFillet.setPolyline(polyline);
+        await curveFillet.setCurve(polyline);
         curveFillet.controlPoints = [1, 3];
         curveFillet.radius = 0.1;
         expect(curveFillet.cornerAngles.length).toBe(2);
@@ -316,7 +316,7 @@ describe(PolylineFilletFactory, () => {
     })
 
     test("when filleting all points", async () => {
-        await curveFillet.setPolyline(polyline);
+        await curveFillet.setCurve(polyline);
         curveFillet.radius = 0.1;
         expect(curveFillet.cornerAngles.length).toBe(3);
         const filletted = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>;

@@ -16,7 +16,7 @@ import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } f
 import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
+import { JointOrPolylineOrContourFilletFactory, PolylineFilletFactory, PolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1204,7 +1204,7 @@ export class FilletCurveCommand extends Command {
         const controlPoints = [...selected.controlPoints];
         const curve = selected.curves.first;
         
-        const factory = new JointOrPolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        const factory = new JointOrPolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
         if (curve !== undefined) await factory.setCurve(curve);
         await factory.setControlPoints(controlPoints);
@@ -1212,7 +1212,8 @@ export class FilletCurveCommand extends Command {
         const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
 
         const cornerAngle = factory.cornerAngle;
-        gizmo.position.copy(cornerAngle.origin);
+        if (cornerAngle === undefined) return;
+        
         const quat = new THREE.Quaternion();
         quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), cornerAngle.tau.cross(cornerAngle.axis));
         gizmo.quaternion.copy(quat);
