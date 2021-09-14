@@ -1,6 +1,7 @@
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from '../commands/mirror/MirrorFactory';
 import { RefCounter } from '../util/Util';
+import ContourManager from './ContourManager';
 import { EditorSignals } from './EditorSignals';
 import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
 import MaterialDatabase from './MaterialDatabase';
@@ -15,7 +16,7 @@ export class Memento {
         readonly db: GeometryMemento,
         readonly selection: SelectionMemento,
         readonly snaps: SnapMemento,
-        readonly contours: CurveMemento,
+        readonly curves: CurveMemento,
         readonly modifiers: ModifierMemento,
     ) { }
 }
@@ -25,14 +26,15 @@ export class GeometryMemento {
         readonly geometryModel: GeometryDatabase["geometryModel"],
         readonly topologyModel: GeometryDatabase["topologyModel"],
         readonly controlPointModel: GeometryDatabase["controlPointModel"],
-        readonly hidden: Set<c3d.SimpleName>
+        readonly hidden: Set<c3d.SimpleName>,
+        readonly automatics: GeometryDatabase["automatics"],
     ) { }
 
     async serialize(): Promise<Buffer> {
         const { geometryModel } = this;
         const everything = new c3d.Model();
         for (const [id, { model }] of geometryModel.entries()) {
-            if (model.IsA() !== c3d.SpaceType.Solid) continue;
+            if (this.automatics.has(id)) continue;
             everything.AddItem(model, id);
         }
         const { memory } = await c3d.Writer.WriteItems_async(everything);
@@ -68,26 +70,9 @@ export class SnapMemento {
 export class CurveMemento {
     constructor(
         readonly curve2info: PlanarCurveDatabase["curve2info"],
+        readonly id2planarCurve: PlanarCurveDatabase["id2planarCurve"],
         readonly placements: PlanarCurveDatabase["placements"],
     ) { }
-
-    // serialize(): Buffer {
-    //     const string = JSON.stringify({
-    //         curve2info: this.curve2info,
-    //         planar2instance: this.planar2instance,
-    //         placements: this.placements,
-    //     }, this.replacer);
-    //     return Buffer.from(string);
-    // }
-
-    // static deserialize(data: Buffer, db: DatabaseLike, materials: MaterialDatabase, signals: EditorSignals): CurveMemento {
-    //     const p = JSON.parse(data.toString(), (key, value) => this.reviver(db, materials, signals)(key, value));
-    //     return new CurveMemento(
-    //         p.curve2info,
-    //         p.planar2instance,
-    //         p.placements,
-    //     );
-    // }
 }
 
 export class ModifierMemento {
@@ -190,7 +175,8 @@ export class EditorOriginator {
         readonly db: MementoOriginator<GeometryMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
-        readonly contours: MementoOriginator<CurveMemento>,
+        readonly curves: MementoOriginator<CurveMemento>,
+        readonly contours: ContourManager,
         readonly modifiers: MementoOriginator<ModifierMemento>,
     ) { }
 
@@ -200,7 +186,7 @@ export class EditorOriginator {
             this.db.saveToMemento(),
             this.selection.saveToMemento(),
             this.snaps.saveToMemento(),
-            this.contours.saveToMemento(),
+            this.curves.saveToMemento(),
             this.modifiers.saveToMemento());
 
         this.state = { tag: 'group', memento: memento };
@@ -219,7 +205,7 @@ export class EditorOriginator {
                     this.db.saveToMemento(),
                     this.selection.saveToMemento(),
                     this.snaps.saveToMemento(),
-                    this.contours.saveToMemento(),
+                    this.curves.saveToMemento(),
                     this.modifiers.saveToMemento());
             case 'group':
                 return this.state.memento;
@@ -231,7 +217,7 @@ export class EditorOriginator {
         this.modifiers.restoreFromMemento(m.modifiers);
         this.selection.restoreFromMemento(m.selection);
         this.snaps.restoreFromMemento(m.snaps);
-        this.contours.restoreFromMemento(m.contours);
+        this.curves.restoreFromMemento(m.curves);
     }
 
     async serialize(): Promise<Buffer> {
@@ -249,14 +235,15 @@ export class EditorOriginator {
         const db = Number(data.readBigUInt64BE());
         await this.db.deserialize(data.slice(8, 8 + db));
         const modifiers = Number(data.readBigUInt64BE(db + 8));
-        await this.modifiers.deserialize(data.slice(8 + db + 8, 8 + db + 8 + modifiers))
+        await this.modifiers.deserialize(data.slice(8 + db + 8, 8 + db + 8 + modifiers));
+        await this.contours.rebuild()
     }
 
     validate() {
         this.modifiers.validate();
         this.snaps.validate();
         this.selection.validate();
-        this.contours.validate();
+        this.curves.validate();
         this.db.validate();
     }
 
@@ -266,7 +253,7 @@ export class EditorOriginator {
         this.modifiers.debug();
         this.snaps.debug();
         this.selection.debug();
-        this.contours.debug();
+        this.curves.debug();
         this.db.debug();
         console.groupEnd();
     }

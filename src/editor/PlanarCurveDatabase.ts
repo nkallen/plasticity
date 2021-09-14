@@ -283,6 +283,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     saveToMemento(): CurveMemento {
         return new CurveMemento(
             new Map(this.curve2info),
+            new Map(this.id2planarCurve),
             new Set(this.placements));
     }
 

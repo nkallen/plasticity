@@ -76,7 +76,7 @@ export class ModifierStack {
         }
 
         const modified = (this.modified === this.premodified) ?
-            await this.db.addItem(model, 'automatic') :
+            await this.db.addItem(model) :
             await this.db.replaceItem(this.modified, model);
 
         const premodified = await view;

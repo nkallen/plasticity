@@ -2,6 +2,7 @@ import c3d from '../../build/Release/c3d.node';
 import { DatabaseProxy } from './DatabaseProxy';
 import { EditorSignals } from "./EditorSignals";
 import { Agent, GeometryDatabase } from './GeometryDatabase';
+import { CurveMemento, MementoOriginator } from './History';
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
 import { RegionManager } from "./RegionManager";
 import * as visual from "./VisualModel";
@@ -124,6 +125,14 @@ export default class ContourManager extends DatabaseProxy {
             }
             default: throw new Error("invalid state: " + this.state.tag);
         }
+    }
+
+    async rebuild() {
+        const curves = this.db.find(visual.SpaceInstance);
+        await this.transaction(async () => {
+            for (const curve of curves)
+                this.addCurve(curve.view);
+        });
     }
 
     private placementsAffectedByTransaction(dirty: CurveSet, placements: Set<c3d.Placement3D>) {

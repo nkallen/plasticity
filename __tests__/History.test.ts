@@ -13,6 +13,8 @@ import { Selection, SelectionManager } from '../src/selection/SelectionManager';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 import { SymmetryFactory } from '../src/commands/mirror/MirrorFactory';
+import ContourManager from '../src/editor/ContourManager';
+import { RegionManager } from '../src/editor/RegionManager';
 
 describe(EditorOriginator, () => {
     let db: GeometryDatabase;
@@ -24,7 +26,9 @@ describe(EditorOriginator, () => {
     let originator: EditorOriginator;
     let curves: PlanarCurveDatabase;
     let modifiers: ModifierManager;
+    let contours: ContourManager;
     let selection: SelectionManager;
+    let regions: RegionManager;
 
     beforeEach(() => {
         materials = new FakeMaterials();
@@ -36,7 +40,9 @@ describe(EditorOriginator, () => {
         selected = selection.selected;
         curves = new PlanarCurveDatabase(db);
         modifiers = new ModifierManager(db, selection, materials, signals);
-        originator = new EditorOriginator(db, selected, snaps, curves, modifiers);
+        const regions = new RegionManager(db, curves);
+        contours = new ContourManager(db, curves, regions, signals);
+        originator = new EditorOriginator(db, selected, snaps, curves, contours, modifiers);
     });
 
     let box: visual.Solid;
@@ -59,7 +65,7 @@ describe(EditorOriginator, () => {
 
         db = new GeometryDatabase(materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
-        originator = new EditorOriginator(db, selected, snaps, curves, modifiers);
+        originator = new EditorOriginator(db, selected, snaps, curves, contours, modifiers);
 
         originator.restoreFromMemento(memento);
         expect(1).toBe(1);
@@ -70,7 +76,7 @@ describe(EditorOriginator, () => {
 
         db = new GeometryDatabase(materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
-        originator = new EditorOriginator(db, selected, snaps, curves, modifiers);
+        originator = new EditorOriginator(db, selected, snaps, curves, contours, modifiers);
 
         await originator.deserialize(data);
         expect(1).toBe(1);

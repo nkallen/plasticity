@@ -50,9 +50,9 @@ describe(CommandExecutor, () => {
         snaps = new SnapManager(db, gizmos, signals);
         curves = new PlanarCurveDatabase(db);
         regions = new RegionManager(db, curves);
-        contours = new ContourManager(curves, regions, signals);
+        contours = new ContourManager(db, curves, regions, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
-        originator = new EditorOriginator(db, selection.selected, snaps, curves, modifiers);
+        originator = new EditorOriginator(db, selection.selected, snaps, curves, contours, modifiers);
         history = new History(originator, signals);
         editor = {
             materials, sprites: gizmos, signals, db, registry, selection, snaps, curves, originator, history, contours, selectionGizmo

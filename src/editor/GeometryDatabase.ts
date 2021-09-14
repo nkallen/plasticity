@@ -98,6 +98,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     private readonly topologyModel = new Map<string, TopologyData>();
     private readonly controlPointModel = new Map<string, ControlPointData>();
     private readonly hidden = new Set<c3d.SimpleName>();
+    private readonly automatics = new Set<c3d.SimpleName>();
     readonly queue = new SequentialExecutor();
 
     constructor(
@@ -146,6 +147,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 for (const child of t) this.addControlPoint(model, child);
             }
         });
+        if (agent === 'automatic') this.automatics.add(name);
 
         this.signals.sceneGraphChanged.dispatch();
         this.signals.objectAdded.dispatch([view, agent]);
@@ -209,6 +211,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         this.removeTopologyItems(view);
         this.removeControlPoints(view);
         this.hidden.delete(simpleName);
+        this.automatics.delete(simpleName);
 
         this.signals.objectRemoved.dispatch([view, agent]);
         this.signals.sceneGraphChanged.dispatch();
@@ -491,7 +494,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             new Map(this.geometryModel),
             new Map(this.topologyModel),
             new Map(this.controlPointModel),
-            new Set(this.hidden));
+            new Set(this.hidden),
+            new Set(this.automatics));
     }
 
     restoreFromMemento(m: GeometryMemento) {
