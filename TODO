@@ -1,9 +1,5 @@
 # PRE ALPHA:
 
-initiating rectangle command twice seems to screw things
-moving lines around that delete regions seems to corrup
-trimming overlapping rectangles screws region
-
 stress test undo & redo
 offset face broken
 
@@ -28,6 +24,7 @@ min and max in number srubber should be respected
 point picker nearby targets aren't scaling like normal helpers
 
 ## POST ALPHA
+initiating rectangle command twice seems to screw things
 
 performance audit hit testing and snaps
 refactor factory to take editorlike?

@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from '../../editor/EditorSignals';
-import { DatabaseLike, GeometryDatabase } from '../../editor/GeometryDatabase';
+import { DatabaseLike } from '../../editor/GeometryDatabase';
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import * as visual from '../../editor/VisualModel';
 import { deunit, unit } from '../../util/Conversion';

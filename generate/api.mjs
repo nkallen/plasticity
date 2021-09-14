@@ -361,6 +361,7 @@ export default {
                 { signature: "void GetSegments(RPArray<MbCurve3D> & segments)", segments: isReturn },
                 { signature: "void FindCorner(size_t index, MbCartPoint3D &t)", t: isReturn },
                 { signature: "bool GetCornerAngle(size_t index, MbCartPoint3D & origin, MbVector3D & axis, MbVector3D & tau, double & angle, double angleEps = (double)Math::AngleEps)", origin: isReturn, axis: isReturn, tau: isReturn, angle: isReturn, return: isErrorBool },
+                "bool Init(const SArray<MbCartPoint3D> & points)"
             ]
         },
         Plane: {
