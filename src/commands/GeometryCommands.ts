@@ -16,6 +16,7 @@ import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } f
 import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
+import { BridgeCurvesDialog } from "./curve/BridgeCurvesDialog";
 import BridgeCurvesFactory from "./curve/BridgeCurvesFactory";
 import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import { CurveWithPreviewFactory } from "./curve/CurveFactory";
@@ -1238,6 +1239,13 @@ export class BridgeCurvesCommand extends Command {
         const factory = new BridgeCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         factory.curve1 = curves[0];
         factory.curve2 = curves[1];
+        factory.update();
+
+        const dialog = new BridgeCurvesDialog(factory, this.editor.signals);
+        await dialog.execute(params => {
+            factory.update();
+            dialog.render();
+        }).resource(this);
 
         const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>[];
         selected.addCurve(result[0]);

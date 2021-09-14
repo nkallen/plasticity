@@ -1,8 +1,17 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { unit } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
-export default class BridgeCurvesFactory extends GeometryFactory {
+export interface BridgeCurvesParams {
+    t1: number;
+    t2: number;
+    radius: number;
+    sense: boolean;
+    type: c3d.ConnectingType;
+}
+
+export default class BridgeCurvesFactory extends GeometryFactory implements BridgeCurvesParams {
     private _curve1!: visual.SpaceInstance<visual.Curve3D>;
     private _curve2!: visual.SpaceInstance<visual.Curve3D>;
 
@@ -23,12 +32,18 @@ export default class BridgeCurvesFactory extends GeometryFactory {
         this.model2 = item.Cast<c3d.Curve3D>(item.IsA());
     }
 
+    t1 = 0;
+    t2 = 0;
+    radius = 0;
+    sense = true;
+    type = c3d.ConnectingType.Fillet;
+
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0);
 
     async calculate() {
-        const { model1: curve1, model2: curve2, names } = this;
+        const { model1: curve1, model2: curve2, names, t1, t2, radius, sense, type } = this;
 
-        const { result, surface } = c3d.ActionSurfaceCurve.FilletCurve(curve1, 0, 0, curve2, 0, 0, 0, true, true, c3d.ConnectingType.Bridge, names);
+        const { result } = c3d.ActionSurfaceCurve.FilletCurve(curve1, t1, curve2, t2, unit(radius), sense, type, names);
         const curves = result.GetCurves();
         if (curves.length !== 1) throw new ValidationError();
 

@@ -33,6 +33,11 @@ export default (editor: Editor) => {
             this.toggle = this.toggle.bind(this);
         }
 
+        private _enabled = true;
+        set enabled(enabled: boolean) {
+            this._enabled = enabled;
+        }
+
         connectedCallback() {
             this.render();
         }
@@ -254,7 +259,7 @@ export default (editor: Editor) => {
         get isDisabled() {
             const stringDisabled = this.getAttribute('disabled');
             const stringValue = this.getAttribute('value')!;
-            return stringValue === stringDisabled;
+            return !this._enabled || stringValue === stringDisabled;
         }
     }
     customElements.define('ispace-number-scrubber', Scrubber);

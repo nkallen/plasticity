@@ -27,7 +27,7 @@ export abstract class AbstractDialog<T> extends HTMLElement {
                     else if (e.target.type === 'text')
                         value = e.target.value;
                     else if (e.target.type === 'radio')
-                        value = e.target.value;
+                        value = Number(e.target.value);
                 } else if (e.target instanceof HTMLSelectElement) {
                     value = e.target.value;
                 } else if (e.target instanceof HTMLElement && e.target.tagName == 'ISPACE-NUMBER-SCRUBBER') {
