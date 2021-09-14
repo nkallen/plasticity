@@ -4,8 +4,6 @@ stress test undo & redo
 offset face broken
 
 curves:
-    creating curves not on XY constr plane causes weirdness with the planecontourman
-    curve movement not working well
     bridge curve
     duplicate edges to curves
     multiline (stroke)

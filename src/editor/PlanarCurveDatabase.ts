@@ -34,24 +34,25 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     async add(newCurve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
         const { curve2info, db, id2planarCurve: id2planarCurve } = this;
 
-        // Collect all existing planar curves
-        const planar2instance = new Map<Curve2dId, c3d.SimpleName>();
-        const allPlanarCurves = [];
-        for (const [simpleName, { planarCurve }] of curve2info.entries()) {
-            const curve = id2planarCurve.get(planarCurve)!;
-            allPlanarCurves.push(curve);
-            planar2instance.set(curve.Id(), simpleName);
-        }
-
         // Planarize the new curve
         const inst = db.lookup(newCurve);
         const item = inst.GetSpaceItem()!;
         const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
         const planarInfo = this.planarizeAndNormalize(curve3d);
         if (planarInfo === undefined) return Promise.resolve();
+        const { curve: newPlanarCurve, placement } = planarInfo;
+
+        // Collect all existing planar curves
+        const planar2instance = new Map<Curve2dId, c3d.SimpleName>();
+        const allPlanarCurves = [];
+        for (const [simpleName, { planarCurve, placement: existingPlacement }] of curve2info.entries()) {
+            const curve = id2planarCurve.get(planarCurve)!;
+            if (isSamePlacement(placement, existingPlacement))
+                allPlanarCurves.push(curve);
+            planar2instance.set(curve.Id(), simpleName);
+        }
 
         // Store the planarized curve for future use
-        const { curve: newPlanarCurve, placement } = planarInfo;
         const counter = this.counter++;
         id2planarCurve.set(counter, newPlanarCurve);
         const info = new CurveInfo(counter, placement);
@@ -72,7 +73,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
 
             const crosses = c3d.CurveEnvelope.IntersectWithAll(current, allPlanarCurves, true);
             if (crosses.length === 0) {
-                promises.push(this.updateCurve(newCurve, [{ trimmed: newPlanarCurve, start: -1, stop: -1 }]));
+                promises.push(this.updateCurve(newCurve, [{ trimmed: newPlanarCurve, start: -1, stop: -1 }], placement));
                 continue;
             }
             crosses.sort((a, b) => a.on1.t - b.on1.t);
@@ -121,7 +122,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
             }
             const name = planar2instance.get(id)!;
             const { view } = db.lookupItemById(name);
-            promises.push(this.updateCurve(view as visual.SpaceInstance<visual.Curve3D>, result));
+            promises.push(this.updateCurve(view as visual.SpaceInstance<visual.Curve3D>, result, placement));
         }
         await Promise.all(promises);
     }
@@ -202,7 +203,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         return this.commit(data);
     }
 
-    private async updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[]): Promise<void> {
+    private async updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[], placement: c3d.Placement3D): Promise<void> {
         const { curve2info, db } = this;
         const info = curve2info.get(instance.simpleName)!;
         for (const invalid of info.fragments) {
@@ -211,7 +212,6 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
                 db.removeItem(item, 'automatic')
             });
         }
-        const placement = new c3d.Placement3D();
         const views: Promise<c3d.SimpleName>[] = [];
         for (const { trimmed, start, stop } of result) {
             const inst = new c3d.SpaceInstance(new c3d.PlaneCurve(placement, trimmed, true));

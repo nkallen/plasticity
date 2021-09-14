@@ -107,6 +107,52 @@ test('two non-intersecting circles', async () => {
     expect(db.visibleObjects.length).toBe(2);
 });
 
+test('two cirlces that intersect in 2d but not 3d', async () => {
+    makeCircle1.center = new THREE.Vector3(-0.25, 0, 0);
+    makeCircle1.radius = 1;
+    const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    expect(db.visibleObjects.length).toBe(1);
+
+    await curves.add(circle1);
+    expect(db.visibleObjects.length).toBe(2);
+
+    makeCircle2.center = new THREE.Vector3(0.25, 0, 1);
+    makeCircle2.radius = 1;
+    const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    expect(db.visibleObjects.length).toBe(3);
+
+    await curves.add(circle2);
+    expect(db.visibleObjects.length).toBe(4);
+
+    await curves.remove(circle2);
+    await db.removeItem(circle2);
+    expect(db.visibleObjects.length).toBe(2);
+});
+
+test('the newly created curves have right placement', async () => {
+    makeCircle1.center = new THREE.Vector3(0, 0, 1);
+    makeCircle1.radius = 1;
+    const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    expect(db.visibleObjects.length).toBe(1);
+
+    await curves.add(circle1);
+    expect(db.visibleObjects.length).toBe(2);
+
+    expect(db.visibleObjects[0]).toBeInstanceOf(visual.SpaceInstance);
+    expect(db.visibleObjects[1]).toBeInstanceOf(visual.SpaceInstance);
+
+    const bbox = new THREE.Box3();
+    const center = new THREE.Vector3();
+
+    bbox.setFromObject(db.visibleObjects[0]);
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+
+    bbox.setFromObject(db.visibleObjects[1]);
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+});
+
 test('open curve through circle, added then deleted', async () => {
     makeCircle1.center = new THREE.Vector3(0, 0, 0);
     makeCircle1.radius = 1;
