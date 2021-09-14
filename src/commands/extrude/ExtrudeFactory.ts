@@ -242,11 +242,18 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
         this.curveExtrude.curves = curves;
     }
 
-    calculate() {
+    calculate(): Promise<c3d.Solid> {
         if (this.regionExtrude.region !== undefined) return this.regionExtrude.calculate();
         else if (this.faceExtrude.face !== undefined) return this.faceExtrude.calculate();
         else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.calculate();
         else throw new ValidationError("need region, face, or curves");
+    }
+
+    get extruded() {
+        if (this.regionExtrude.region !== undefined) return this.regionExtrude.region;
+        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.face;
+        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.curves;
+        else throw new ValidationError();
     }
 
     set solid(solid: visual.Solid | undefined) { for (const f of this.factories) f.solid = solid }
@@ -302,6 +309,8 @@ export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<Extrud
         const solid = face.parentItem;
         this.solid = solid;
     }
+
+    get extruded() { return this.bool.extruded }
 
     get distance1() { return this.bool.distance1 }
     get distance2() { return this.bool.distance2 }

@@ -30,6 +30,7 @@ export interface HasSelection {
 
 export interface ModifiesSelection extends HasSelection {
     add(items: visual.Item | visual.Item[]): void;
+    remove(selectables: visual.Selectable | visual.Selectable[]): void;
 
     removeFace(object: visual.Face, parentItem: visual.Solid): void;
     addFace(object: visual.Face, parentItem: visual.Solid): void;
@@ -105,6 +106,26 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             } else if (item instanceof visual.PlaneInstance) {
                 this.addRegion(item);
             } else throw new Error("invalid type");
+        }
+    }
+
+    remove(selectables: visual.Selectable[]) {
+        if (!(selectables instanceof Array)) selectables = [selectables];
+        
+        for (const selectable of selectables) {
+            if (selectable instanceof visual.Solid) {
+                this.removeSolid(selectable);
+            } else if (selectable instanceof visual.SpaceInstance) {
+                this.removeCurve(selectable);
+            } else if (selectable instanceof visual.PlaneInstance) {
+                this.removeRegion(selectable);
+            } else if (selectable instanceof visual.Face) {
+                this.removeFace(selectable, selectable.parentItem);
+            } else if (selectable instanceof visual.CurveEdge) {
+                this.removeEdge(selectable, selectable.parentItem);
+            } else if (selectable instanceof visual.ControlPoint) {
+                this.removeControlPoint(selectable, selectable.parentItem);
+            }
         }
     }
 

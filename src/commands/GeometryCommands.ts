@@ -1088,7 +1088,10 @@ export class ExtrudeCommand extends Command {
             keyboard.toggle(extrude.isOverlapping);
         }).resource(this);
 
-        await extrude.commit();
+        const result = await extrude.commit() as visual.Solid;
+
+        selected.addSolid(result);
+        selected.remove(extrude.extruded);
     }
 }
 

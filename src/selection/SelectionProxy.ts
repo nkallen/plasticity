@@ -1,4 +1,4 @@
-import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance } from "../editor/VisualModel";
+import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Selectable, Solid, SpaceInstance } from "../editor/VisualModel";
 import { ModifiesSelection } from "./SelectionManager";
 
 export class SelectionProxy implements ModifiesSelection {
@@ -6,6 +6,9 @@ export class SelectionProxy implements ModifiesSelection {
 
     add(items: Item | Item[]): void {
         this.selection.add(items);
+    }
+    remove(selectables: Selectable[]): void {
+        this.selection.remove(selectables);
     }
     removeFace(object: Face, parentItem: Solid): void {
         this.selection.removeFace(object, parentItem);
