@@ -168,6 +168,36 @@ describe(ContourFilletFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
     });
+
+    test("two joined lines with no control points specified", async () => {
+        const makeLine1 = new LineFactory(db, materials, signals);
+        makeLine1.p1 = new THREE.Vector3();
+        makeLine1.p2 = new THREE.Vector3(1, 1, 0);
+        const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeLine2 = new LineFactory(db, materials, signals);
+        makeLine2.p1 = new THREE.Vector3(1, 1, 0);
+        makeLine2.p2 = new THREE.Vector3(0, 1, 0);
+        const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeContour = new JoinCurvesFactory(db, materials, signals);
+        makeContour.push(line1);
+        makeContour.push(line2);
+        const contour = (await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[])[0] as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeFillet = new ContourFilletFactory(db, materials, signals);
+        makeFillet.contour = contour;
+        makeFillet.radius = 0.1;
+        expect(makeFillet.cornerAngles.length).toBe(1);
+        const filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const bbox = new THREE.Box3().setFromObject(filleted);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.499, 0.5, 0));
+
+        expect(db.visibleObjects.length).toBe(1);
+    });
 });
 
 describe(JointFilletFactory, () => {
@@ -284,6 +314,20 @@ describe(PolylineFilletFactory, () => {
 
         expect(db.visibleObjects.length).toBe(1);
     })
+
+    test("when filleting all points", async () => {
+        await curveFillet.setPolyline(polyline);
+        curveFillet.radius = 0.1;
+        expect(curveFillet.cornerAngles.length).toBe(3);
+        const filletted = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const bbox = new THREE.Box3().setFromObject(filletted);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
+
+        expect(db.visibleObjects.length).toBe(1);
+    })
 });
 
 describe(PolylineOrContourFilletFactory, () => {
@@ -366,6 +410,22 @@ describe(JointOrPolylineOrContourFilletFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.57, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+
+        expect(db.visibleObjects.length).toBe(1);
+    });
+
+    test.only("when given just a curve", async () => {
+        await curveFillet.setCurve(contour);
+        curveFillet.radius = 0.1;
+        const filletteds = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>[];
+        const filletted = filletteds[0];
+
+        const bbox = new THREE.Box3().setFromObject(filletted);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.43, 0.57, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.85, 1, 0));
 
         expect(db.visibleObjects.length).toBe(1);
     })

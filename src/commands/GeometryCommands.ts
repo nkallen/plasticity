@@ -1200,11 +1200,16 @@ export class TrimCommand extends Command {
 
 export class FilletCurveCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoints = [...this.editor.selection.selected.controlPoints];
+        const selected = this.editor.selection.selected;
+        const controlPoints = [...selected.controlPoints];
+        const curve = selected.curves.first;
+        
         const factory = new JointOrPolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals);
         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
+        if (curve !== undefined) await factory.setCurve(curve);
         await factory.setControlPoints(controlPoints);
-        const gizmo = new LengthGizmo("contour-fillet:radius", this.editor);
+
+        const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
 
         const cornerAngle = factory.cornerAngle;
         gizmo.position.copy(cornerAngle.origin);

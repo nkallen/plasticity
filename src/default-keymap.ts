@@ -85,6 +85,10 @@ export default {
         "a": "gizmo:fillet:angle",
     },
 
+    "[command='fillet-curve'] ispace-viewport": {
+        "d": "gizmo:fillet-curve:radius",
+    },
+
     "[command='rotate'] ispace-viewport": {
         "x": "gizmo:rotate:x",
         "y": "gizmo:rotate:y",

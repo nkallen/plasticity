@@ -56,25 +56,41 @@ export class ContourFilletFactory extends GeometryFactory implements CurveFillet
     }
 
     set radius(radius: number) {
-        for (const p of this.controlPoints) {
-            const index = (p === 0 && this.model.IsClosed()) ? this.model.GetSegmentsCount() - 1 : p - 1;
-            this.radiuses[index] = unit(radius);
+        if (this.controlPoints !== undefined) {
+            for (const p of this.controlPoints) {
+                const index = (p === 0 && this.model.IsClosed()) ? this.model.GetSegmentsCount() - 1 : p - 1;
+                this.radiuses[index] = unit(radius);
+            }
+        } else {
+            (this.radiuses as ContourFilletFactory['radiuses']) = new Array<number>(this.model.GetSegmentsCount());
+            this.radiuses.fill(unit(radius));
         }
     }
 
     get cornerAngles() {
         const result = [];
-        for (const i of this.controlPoints) {
-            const contour = this.model;
-            const info = contour.GetCornerAngle(i);
-            result.push({
-                origin: point2point(info.origin),
-                tau: vec2vec(info.tau, 1),
-                axis: vec2vec(info.axis, 1),
-                angle: info.angle,
-            })
+        const contour = this.model;
+        if (this.controlPoints !== undefined) {
+            for (const i of this.controlPoints) {
+                const info = contour.GetCornerAngle(i);
+                result.push(this.info2info(info));
+            }
+        } else {
+            for (let i = 0, l = this.model.GetSegmentsCount() - 1; i < l; i++) {
+                const info = contour.GetCornerAngle(i + 1);
+                result.push(this.info2info(info));
+            }
         }
         return result;
+    }
+
+    private info2info(info: ReturnType<c3d.Contour3D["GetCornerAngle"]>) {
+        return {
+            origin: point2point(info.origin),
+            tau: vec2vec(info.tau, 1),
+            axis: vec2vec(info.axis, 1),
+            angle: info.angle,
+        }
     }
 
     get cornerAngle() { return averageCornerAngles(this.cornerAngles) }
@@ -151,10 +167,6 @@ export class PolylineFilletFactory extends GeometryFactory implements CurveFille
     get cornerAngle() { return this.factory.cornerAngle }
 
     async calculate() {
-        const { controlPoints } = this;
-        if (controlPoints.length < 1) throw new Error("invalid precondition");
-        if (controlPoints.length > this.factory.model.GetSegmentsCount() - 1) throw new Error("invalid precondition");
-
         return this.factory.calculate();
     }
 
@@ -231,6 +243,12 @@ export class JointOrPolylineOrContourFilletFactory extends GeometryFactory {
             pcfactory.controlPoints = nonJoints.map(cp => cp.index);
             this.factory.push(pcfactory);
         }
+    }
+
+    async setCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
+        const pcfactory = new PolylineOrContourFilletFactory(this.db, this.materials, this.signals)
+        await pcfactory.setCurve(curve);
+        this.factory.push(pcfactory);
     }
 
     set radius(radius: number) { for (const f of this.factory) f.radius = radius }

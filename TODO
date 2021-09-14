@@ -2,6 +2,7 @@
 
 stress test undo & redo
 offset face broken
+escaping while filleting curve disappears
 
 curves:
     bridge curve

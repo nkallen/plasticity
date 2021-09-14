@@ -217,6 +217,7 @@ keybindings.set("gizmo:symmetry:-y", "Negative Y");
 keybindings.set("gizmo:symmetry:-z", "Negative Z");
 keybindings.set("gizmo:rebuild:forward", "Go forward in history");
 keybindings.set("gizmo:rebuild:backward", "Go backward in history");
+keybindings.set("gizmo:fillet-curve:radius", "Fillet radius");
 
 export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {
