@@ -1144,10 +1144,18 @@ export class ChangePointCommand extends Command {
         const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         changePoint.controlPoints = controlPoints;
 
+        const dialog = new MoveDialog(changePoint, this.editor.signals);
         const gizmo = new MoveGizmo(changePoint, this.editor);
+
+        dialog.execute(async params => {
+            await changePoint.update();
+            gizmo.render(params);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
         gizmo.position.copy(changePoint.originalPosition);
         await gizmo.execute(delta => {
             changePoint.update();
+            dialog.render();
         }).resource(this);
 
         const newInstance = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;

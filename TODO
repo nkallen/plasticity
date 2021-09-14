@@ -1,6 +1,5 @@
 # PRE ALPHA:
 
-dialog for control point move and trim curve
 after extruding region, selection is weird
 pointpick control points missing
 initiating rectangle command twice seems to screw things
