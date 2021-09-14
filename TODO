@@ -7,9 +7,6 @@ curves:
     bridge curve
     duplicate edges to curves
     multiline (stroke)
-    select after create
-    fillet every corner
-
 
 - when you delete region you delete its curve / and vice versa
 - region has equal sort priority to face, but higher when identical distance

@@ -16,7 +16,7 @@ import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } f
 import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
-import { JointOrPolylineOrContourFilletFactory, PolylineFilletFactory, PolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
+import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
 import { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -33,7 +33,7 @@ import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
-import { DistanceGizmo, LengthGizmo } from "./MiniGizmos";
+import { DistanceGizmo } from "./MiniGizmos";
 import { MirrorFactory, SymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
@@ -449,7 +449,8 @@ export class CurveCommand extends Command {
         }
 
         makeCurve.preview.cancel();
-        await makeCurve.commit();
+        const result = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -1213,7 +1214,7 @@ export class FilletCurveCommand extends Command {
 
         const cornerAngle = factory.cornerAngle;
         if (cornerAngle === undefined) return;
-        
+
         const quat = new THREE.Quaternion();
         quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), cornerAngle.tau.cross(cornerAngle.axis));
         gizmo.quaternion.copy(quat);
@@ -1223,7 +1224,8 @@ export class FilletCurveCommand extends Command {
             factory.update();
         }, Mode.Persistent).resource(this);
 
-        await factory.commit();
+        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>[];
+        selected.addCurve(result[0]);
     }
 }
 
