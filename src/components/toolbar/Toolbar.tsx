@@ -75,6 +75,9 @@ export class Model {
             result.push(cmd.LoftCommand);
             result.push(cmd.JoinCurvesCommand);
         }
+        if (selection.curves.size === 2) {
+            result.push(cmd.BridgeCurvesCommand);
+        }
         if (selection.controlPoints.size > 0) {
             result.push(cmd.ChangePointCommand);
             result.push(cmd.RemovePointCommand);
