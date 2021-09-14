@@ -1,10 +1,10 @@
 # PRE ALPHA:
 
-moving the point of a circle is off by unit
 dialog for control point move and trim curve
 after extruding region, selection is weird
 pointpick control points missing
 initiating rectangle command twice seems to screw things
+moving lines around that delete regions seems to corrup
 
 stress test undo & redo
 offset face broken

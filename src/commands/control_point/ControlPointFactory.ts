@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { point2point } from "../../util/Conversion";
+import { point2point, unit } from "../../util/Conversion";
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 import { MoveParams } from "../translate/TranslateFactory";
 
@@ -63,7 +63,7 @@ export class ChangePointFactory extends ControlPointFactory implements MoveParam
             } else if (curve instanceof c3d.Arc3D) {
                 if (curve.IsClosed()) {
                     const center = point2point(curve.GetCentre());
-                    curve.SetRadius(center.distanceTo(newPosition));
+                    curve.SetRadius(unit(center.distanceTo(newPosition)));
                 } else {
                     curve.SetLimitPoint(index + 1, point2point(newPosition));
                 }

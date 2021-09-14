@@ -9,6 +9,7 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 import c3d from '../../build/Release/c3d.node';
 import { NoOpError } from "../../src/commands/GeometryFactory";
+import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 
 let db: GeometryDatabase;
 let changePoint: ChangePointFactory;
@@ -76,6 +77,28 @@ describe(ChangePointFactory, () => {
     test('with no move vector it doesn\'t error', async () => {
         changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
         await expect(changePoint.commit()).rejects.toThrow(NoOpError);
+    })
+
+    test('moving an arc/circle', async () => {
+        const makeCircle = new CenterCircleFactory(db, materials, signals);
+        makeCircle.center = new THREE.Vector3();
+        makeCircle.radius = 1;
+        const curve = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
+        changePoint.move = new THREE.Vector3(2, 0, 0);
+        const newCurve = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const bbox = new THREE.Box3().setFromObject(newCurve);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3());
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-3, -3, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
+
+        expect(db.visibleObjects.length).toBe(2);
+        expect(db.visibleObjects[0]).toBeInstanceOf(visual.SpaceInstance);
+
     })
 });
 
