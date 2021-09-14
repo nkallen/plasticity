@@ -177,7 +177,7 @@ describe(JointFilletFactory, () => {
         curveFillet = new JointFilletFactory(db, materials, signals);
     })
 
-    test.only("when filleting Joints", async () => {
+    test("when filleting Joints", async () => {
         const makeLine1 = new LineFactory(db, materials, signals);
         makeLine1.p1 = new THREE.Vector3();
         makeLine1.p2 = new THREE.Vector3(1, 1, 0);

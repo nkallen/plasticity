@@ -202,26 +202,44 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const inst = this.db.lookup(item);
         const item_ = inst.GetSpaceItem();
         if (item_ === null) throw new Error("invalid precondition");
-        const curve = item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-        const min = curve.PointOn(curve.GetTMin());
-        const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
-        const max = curve.PointOn(curve.GetTMax());
-        const begSnap = new PointSnap("Beginning", point2point(min));
-        const midSnap = new PointSnap("Middle", point2point(mid));
-        const endSnap = new PointSnap("End", point2point(max));
-        this.begPoints.add(begSnap);
-        this.midPoints.add(midSnap);
-        this.endPoints.add(endSnap);
 
-        const curveSnap = new CurveSnap(item, curve);
-        this.curves.add(curveSnap);
+        if (item_.IsA() === c3d.SpaceType.Polyline3D) {
+            const polyline = item_.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
+            const points = polyline.GetPoints();
+            const endSnaps = points.map(point =>
+                new PointSnap("End", point2point(point))
+            );
+            for (const endSnap of endSnaps) this.endPoints.add(endSnap);
 
-        return new Redisposable(() => {
-            this.begPoints.delete(begSnap);
-            this.midPoints.delete(midSnap);
-            this.endPoints.delete(endSnap);
-            this.curves.delete(curveSnap);
-        });
+            const curveSnap = new CurveSnap(item, polyline);
+            this.curves.add(curveSnap);
+
+            return new Redisposable(() => {
+                for (const endSnap of endSnaps) this.endPoints.delete(endSnap);
+                this.curves.delete(curveSnap);
+            });
+        } else {
+            const curve = item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            const min = curve.PointOn(curve.GetTMin());
+            const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
+            const max = curve.PointOn(curve.GetTMax());
+            const begSnap = new PointSnap("Beginning", point2point(min));
+            const midSnap = new PointSnap("Middle", point2point(mid));
+            const endSnap = new PointSnap("End", point2point(max));
+            this.begPoints.add(begSnap);
+            this.midPoints.add(midSnap);
+            this.endPoints.add(endSnap);
+
+            const curveSnap = new CurveSnap(item, curve);
+            this.curves.add(curveSnap);
+
+            return new Redisposable(() => {
+                this.begPoints.delete(begSnap);
+                this.midPoints.delete(midSnap);
+                this.endPoints.delete(endSnap);
+                this.curves.delete(curveSnap);
+            });
+        }
     }
 
     private delete(item: visual.Item): void {

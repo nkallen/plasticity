@@ -96,13 +96,28 @@ test("adding & hiding & unhiding solid", async () => {
 });
 
 test("adding & removing curve", async () => {
-    const makeLine = new LineFactory(db, materials, signals);
-    makeLine.p1 = new THREE.Vector3();
-    makeLine.p2 = new THREE.Vector3(1, 0, 0);
+    const makeLine = new CurveFactory(db, materials, signals);
+    makeLine.type = c3d.SpaceType.Hermit3D;
+    makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
     expect(snaps['snappers'].length).toBe(8);
     expect(snaps['nearbys'].length).toBe(4);
+
+    db.removeItem(line);
+
+    expect(snaps['snappers'].length).toBe(4);
+    expect(snaps['nearbys'].length).toBe(1);
+});
+
+test("adding & removing polyline points", async () => {
+    const makeLine = new CurveFactory(db, materials, signals);
+    makeLine.type = c3d.SpaceType.Polyline3D;
+    makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0), new THREE.Vector3(2, 1, 0), new THREE.Vector3(3, 0, 0));
+    const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+    expect(snaps['snappers'].length).toBe(9);
+    expect(snaps['nearbys'].length).toBe(5);
 
     db.removeItem(line);
 
@@ -181,7 +196,7 @@ describe("snap()", () => {
 
             snaps.toggle();
 
-            [{ snap, }, ] = snaps.snap(raycaster, [planeSnap, pointSnap], [planeSnap], [planeSnap]);
+            [{ snap, },] = snaps.snap(raycaster, [planeSnap, pointSnap], [planeSnap], [planeSnap]);
             expect(snap).toBe(pointSnap);
         });
     });
