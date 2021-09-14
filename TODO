@@ -1,8 +1,8 @@
 # PRE ALPHA:
 
-pointpick control points missing
 initiating rectangle command twice seems to screw things
 moving lines around that delete regions seems to corrup
+trimming overlapping rectangles screws region
 
 stress test undo & redo
 offset face broken

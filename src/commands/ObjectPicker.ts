@@ -33,7 +33,7 @@ class MyViewportSelector extends AbstractViewportSelector {
     }
 
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
-    // Ttis class is used in commands temporarily modify the selection
+    // This class is used in commands temporarily modify the selection
     protected processClick(intersections: THREE.Intersection[]) {
         this.interaction.onClick(intersections);
         if (intersections.length === 0) this.onEmptyIntersection();
@@ -44,10 +44,12 @@ class MyViewportSelector extends AbstractViewportSelector {
     }
 
     protected processBoxHover(selected: Set<visual.Selectable>): void {
-        throw new Error('Method not implemented.');
+        this.editor.selectionInteraction.onBoxHover(selected);
     }
+
     protected processBoxSelect(selected: Set<visual.Selectable>): void {
-        throw new Error('Method not implemented.');
+        this.interaction.onBoxSelect(selected);
+        if (selected.size === 0) this.onEmptyIntersection();
     }
 }
 
