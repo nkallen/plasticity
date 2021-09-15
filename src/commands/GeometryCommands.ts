@@ -42,6 +42,7 @@ import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
+import MultilineFactory from "./multiline/MultilineFactory";
 import { ObjectPicker } from "./ObjectPicker";
 import { PointPicker } from './PointPicker';
 import { PolygonFactory } from "./polygon/PolygonFactory";
@@ -1327,25 +1328,10 @@ export class OffsetLoopCommand extends Command {
 
 export class MultilineCommand extends Command {
     async execute(): Promise<void> {
-        const inst = this.editor.selection.selected.curves.first;
-        const model = this.editor.db.lookup(inst);
-        const item = model.GetSpaceItem()!;
-        const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
-        const vertInfo = new c3d.VertexOfMultilineInfo();
-        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D())!;
-        const inContour = new c3d.Contour([curve2d], false);
-        const tip = new c3d.MLTipParams(2, 10);
-        const multiline = new c3d.Multiline(inContour, vertInfo, [-10, 10], tip, tip, true, false);
-        const begTipCurve = multiline.GetBegTipCurve()!;
-        const endTipCurve = multiline.GetEndTipCurve()!;
-        const contour1 = multiline.GetCurve(0)!;
-        const contour2 = multiline.GetCurve(multiline.GetCurvesCount() - 1)!;
-        const outContour = new c3d.Contour([], false);
-        outContour.AddCurveWithRuledCheck(begTipCurve, 1e-6);
-        outContour.AddCurveWithRuledCheck(contour1, 1e-6);
-        outContour.AddCurveWithRuledCheck(endTipCurve, 1e-6);
-        outContour.AddCurveWithRuledCheck(contour2, 1e-6);
-        await this.editor.db.addItem(new c3d.SpaceInstance(new c3d.PlaneCurve(placement, outContour, false)));
+        const curve = this.editor.selection.selected.curves.first;
+        const factory = new MultilineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        factory.curve = curve;
+        await factory.commit();
     }
 }
 
