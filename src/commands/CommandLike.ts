@@ -127,12 +127,13 @@ export class UnhideAllCommand extends Command {
 
 export class DuplicateCommand extends Command {
     async execute(): Promise<void> {
-        const { solids, curves } = this.editor.selection.selected;
+        const { editor: { selection: { selected: { solids, curves, edges }, selected } } } = this;
         const db = this.editor.db;
 
         const promises: Promise<visual.Item>[] = [];
         for (const solid of solids) promises.push(db.duplicate(solid));
         for (const curve of curves) promises.push(db.duplicate(curve));
+        for (const edge of edges) promises.push(db.duplicate(edge));
 
         const objects = await Promise.all(promises);
 
@@ -153,6 +154,10 @@ export class DuplicateCommand extends Command {
 
         const selection = await move.commit();
         this.editor.selection.selected.add(selection);
+
+        for (const solid of solids) selected.removeSolid(solid);
+        for (const curve of curves) selected.removeCurve(curve);
+        for (const edge of edges) selected.removeEdge(edge, edge.parentItem);
     }
 }
 

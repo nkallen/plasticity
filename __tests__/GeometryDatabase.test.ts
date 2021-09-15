@@ -213,10 +213,34 @@ test("find", async () => {
     expect(db.find(visual.PlaneInstance).length).toBe(0);
 });
 
-test("duplicate", async () => {
+test("duplicate solid", async () => {
     const view = await db.addItem(box) as visual.Solid;
-    const dup = db.duplicate(view);
+    const dup = await db.duplicate(view);
+    expect(dup).not.toBe(view);
+
+    const bbox_original = new THREE.Box3();
+    bbox_original.setFromObject(view);
+
+    const bbox_dup = new THREE.Box3();
+    bbox_dup.setFromObject(dup);
+
+    expect(bbox_original.equals(bbox_dup)).toBe(true);
+});
+
+test("duplicate edge", async () => {
+    const view = await db.addItem(box) as visual.Solid;
+    const edge = view.edges.get(0);
+    const dup = await db.duplicate(edge);
+
+    const bbox = new THREE.Box3();
+    bbox.setFromObject(view);
+    const center = new THREE.Vector3();
+    bbox.getCenter(center);
+    expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
+    expect(bbox.min).toApproximatelyEqual(new THREE.Vector3());
+    expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
 })
+
 
 test("serialize & deserialize", async () => {
     const view = await db.addItem(box, 'user', 10) as visual.Solid;

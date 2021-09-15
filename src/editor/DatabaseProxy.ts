@@ -30,7 +30,8 @@ export class DatabaseProxy implements DatabaseLike {
     async duplicate(model: visual.Solid): Promise<visual.Solid>;
     async duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;
     async duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
-    async duplicate(item: visual.Item): Promise<visual.Item> {
+    async duplicate(edge: visual.CurveEdge): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    async duplicate(item: visual.Item | visual.CurveEdge): Promise<visual.Item> {
         // @ts-expect-error('typescript cant type polymorphism like this')
         return this.db.duplicate(item);
     }

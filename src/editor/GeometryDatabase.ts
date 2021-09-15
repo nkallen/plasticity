@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PointsMaterial } from 'three';
+import { Curve, PointsMaterial } from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
 import { SequentialExecutor } from '../util/SequentialExecutor';
@@ -36,6 +36,7 @@ export interface DatabaseLike {
     duplicate(model: visual.Solid): Promise<visual.Solid>;
     duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;
     duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
+    duplicate(model: visual.CurveEdge): Promise<visual.SpaceInstance<visual.Curve3D>>;
 
     addPhantom(object: c3d.Item, materials?: MaterialOverride): Promise<TemporaryObject>;
     addTemporaryItem(object: c3d.Item): Promise<TemporaryObject>;
@@ -278,10 +279,17 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     async duplicate(model: visual.Solid): Promise<visual.Solid>;
     async duplicate<T extends visual.SpaceItem>(model: visual.SpaceInstance<T>): Promise<visual.SpaceInstance<T>>;
     async duplicate<T extends visual.PlaneItem>(model: visual.PlaneInstance<T>): Promise<visual.PlaneInstance<T>>;
-    async duplicate(item: visual.Item): Promise<visual.Item> {
-        const model = this.lookup(item);
-        const dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
-        return this.addItem(dup); // FIXME we shouldn't duplicate the geometry
+    async duplicate(edge: visual.CurveEdge): Promise<visual.SpaceInstance<visual.Curve3D>>;
+    async duplicate(item: visual.Item | visual.CurveEdge): Promise<visual.Item> {
+        if (item instanceof visual.Item) {
+            const model = this.lookup(item);
+            const dup = model.Duplicate().Cast<c3d.Item>(model.IsA());
+            return this.addItem(dup); // FIXME we shouldn't duplicate the geometry
+        } else if (item instanceof visual.TopologyItem) {
+            const edge = this.lookupTopologyItem(item);
+            const curve = edge.MakeCurve()!;
+            return this.addItem(new c3d.SpaceInstance(curve));
+        } else throw new Error("unsupported duplication");
     }
 
     get visibleObjects(): visual.Item[] {

@@ -1,10 +1,8 @@
 # PRE ALPHA:
 
 stress test undo & redo
-move face broken
 
 curves:
-    duplicate edges to curves
     multiline (stroke)
 
 - when you delete region you delete its curve / and vice versa
