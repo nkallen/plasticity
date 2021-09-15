@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, PointSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { curve3d2curve2d, point2point } from "../util/Conversion";
+import { point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
