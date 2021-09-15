@@ -42,7 +42,6 @@ test("it works", async () => {
     const center = new THREE.Vector3();
     bbox.getCenter(center);
     expect(center).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
-    expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.0999, -1.223, 0));
+    expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.1, -1.223, 0));
     expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(4.1, 1.223, 0));
-
 })

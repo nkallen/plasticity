@@ -4,7 +4,9 @@ import { curve3d2curve2d, unit } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export interface MultilineParams {
-
+    begTipType: c3d.MLTipType;
+    endTipType: c3d.MLTipType;
+    radius: number;
 }
 
 export default class MultilineFactory extends GeometryFactory implements MultilineParams {
@@ -24,12 +26,18 @@ export default class MultilineFactory extends GeometryFactory implements Multili
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0);
 
+    begTipType = c3d.MLTipType.ArcTip;
+    endTipType = c3d.MLTipType.ArcTip;
+    radius = 0.1;
+
     async calculate() {
-        const { model, placement } = this;
+        const { model, placement, begTipType, endTipType, radius } = this;
 
         const vertInfo = new c3d.VertexOfMultilineInfo();
-        const tip = new c3d.MLTipParams(2, 10);
-        const multiline = new c3d.Multiline(model, vertInfo, [-10, 10], tip, tip, true, false);
+        const begTip = new c3d.MLTipParams(begTipType, unit(radius));
+        const endTip = new c3d.MLTipParams(endTipType, unit(radius));
+
+        const multiline = new c3d.Multiline(model, vertInfo, [-unit(radius), unit(radius)], begTip, endTip, true, false);
 
         const begTipCurve = multiline.GetBegTipCurve()!;
         const endTipCurve = multiline.GetEndTipCurve()!;

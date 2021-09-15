@@ -387,7 +387,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             }
             case c3d.SpaceType.PlaneInstance: {
                 const instance = builder as visual.PlaneInstanceBuilder<visual.Region>;
-                console.log(item);
                 if (item.faces.length != 1) throw new Error("Invalid precondition: grid with length: " + item.faces.length);
                 const grid = item.faces[0];
                 const material = materials?.region ?? this.materials.region();

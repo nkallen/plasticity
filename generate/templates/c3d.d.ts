@@ -475,5 +475,14 @@ declare module "*c3d.node" {
         NotEnoughMemory,       ///< \ru Недостаточно памяти.                 \en Not enough memory.
         UnknownExtension       ///< \ru Неизвестное расширение файла.        \en Unknown file extenstion.
       };
+
+      declare enum MLTipType {
+        UndefTip,    ///< \ru Законцовки нет. \en No tip. 
+        LinearTip,   ///< \ru Линейная законцовка. \en Linear tip. 
+        ArcTip,      ///< \ru Дуговая законцовка. \en Arc tip. 
+        PolylineTip, ///< \ru Ломаная законцовка. \en Polyline tip. 
+        ObliqueTip,  ///< \ru Наклонная законцовка. \en Inclined tip. 
+        // \ru ДОБАВЛЕНИЕ ТОЛЬКО В КОНЕЦ!!! \en ADDITION ONLY TO THE END!!! 
+      };     
     
 }

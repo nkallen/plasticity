@@ -673,7 +673,17 @@ enum ConvResType {
     LicenseNotFound,       ///< \ru Ошибка получения лицензии.           \en License check failure.
     NotEnoughMemory,       ///< \ru Недостаточно памяти.                 \en Not enough memory.
     UnknownExtension       ///< \ru Неизвестное расширение файла.        \en Unknown file extenstion.
-  };
+};
+
+enum MLTipType {
+    UndefTip,    ///< \ru Законцовки нет. \en No tip. 
+    LinearTip,   ///< \ru Линейная законцовка. \en Linear tip. 
+    ArcTip,      ///< \ru Дуговая законцовка. \en Arc tip. 
+    PolylineTip, ///< \ru Ломаная законцовка. \en Polyline tip. 
+    ObliqueTip,  ///< \ru Наклонная законцовка. \en Inclined tip. 
+    // \ru ДОБАВЛЕНИЕ ТОЛЬКО В КОНЕЦ!!! \en ADDITION ONLY TO THE END!!! 
+  };     
+
 
 Object.assign(c3d, {
     ESides,
@@ -699,5 +709,6 @@ Object.assign(c3d, {
     TopologyType,
     SenseValue,
     RefType,
-    ConvResType
+    ConvResType,
+    MLTipType,
 });

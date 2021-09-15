@@ -42,6 +42,7 @@ import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
+import { MultilineDialog } from "./multiline/MultilineDialog";
 import MultilineFactory from "./multiline/MultilineFactory";
 import { ObjectPicker } from "./ObjectPicker";
 import { PointPicker } from './PointPicker';
@@ -1331,6 +1332,14 @@ export class MultilineCommand extends Command {
         const curve = this.editor.selection.selected.curves.first;
         const factory = new MultilineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         factory.curve = curve;
+        
+        const dialog = new MultilineDialog(factory, this.editor.signals);
+        
+        await factory.update();
+        await dialog.execute(params => {
+            factory.update();
+        }).resource(this);
+
         await factory.commit();
     }
 }
