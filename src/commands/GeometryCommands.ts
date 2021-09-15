@@ -997,8 +997,7 @@ export class ActionFaceCommand extends Command {
         actionFace.faces = faces;
 
         const faceModel = this.editor.db.lookupTopologyItem(face);
-        const point_ = faceModel.Point(0.5, 0.5);
-        const point = new THREE.Vector3(point_.x, point_.y, point_.z);
+        const point = point2point(faceModel.Point(0.5, 0.5));
         const gizmo = new MoveGizmo(actionFace, this.editor);
         gizmo.position.copy(point);
 
