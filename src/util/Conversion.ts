@@ -53,15 +53,13 @@ export function mat2mat(mat: c3d.Matrix3D, into = new THREE.Matrix4): THREE.Matr
 }
 
 export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D }
-// FIXME there is also a GetFlatProjection function
+
 export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): ContourAndPlacement | undefined {
     if (curve3d.IsStraight(true)) {
-        if (!(curve3d instanceof c3d.PolyCurve3D)) throw new Error("invalid precondition");
         hint = new c3d.Placement3D(hint);
-        const points3d = curve3d.GetPoints();
         const points2d = [];
 
-        const inout = point2point(points3d[0]);
+        const inout = point2point(curve3d.GetLimitPoint(1));
         const origin = point2point(hint.GetOrigin());
         inout.sub(origin);
         const Z = vec2vec(hint.GetAxisZ(), 1);
@@ -69,7 +67,7 @@ export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): Co
 
         hint.Move(vec2vec(Z));
 
-        for (const point of points3d) {
+        for (const point of [curve3d.GetLimitPoint(1), curve3d.GetLimitPoint(2)]) {
             const location = hint.PointRelative(point);
             if (location !== c3d.ItemLocation.OnItem) return;
             const { x, y } = hint.PointProjection(point);

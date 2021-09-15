@@ -1,10 +1,9 @@
 # PRE ALPHA:
 
 stress test undo & redo
-offset face broken
+move face broken
 
 curves:
-    bridge curve
     duplicate edges to curves
     multiline (stroke)
 
