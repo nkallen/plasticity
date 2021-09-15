@@ -33,7 +33,7 @@ abstract class ControlPointFactory extends GeometryFactory {
                 position = curve.FindCorner(point.index);
             } else if (curve instanceof c3d.Arc3D) {
                 position = curve.GetLimitPoint(point.index + 1);
-            } else throw new Error("not yet supported");
+            } else throw new Error("not yet supported: " + curve.constructor.name);
             this.originalPositions.push(point2point(position));
         }
     }

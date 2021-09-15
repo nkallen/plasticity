@@ -278,7 +278,13 @@ export default {
             functions: [
                 "double GetArea(double sag = 1*Math::deviateSag)",
                 "size_t GetSegmentsCount()",
+                "bool AddCurveWithRuledCheck(MbCurve & newCur, double absEps, bool toEndOnly = false, bool checkSame = true, VERSION version = Math::DefaultMathVersion())"
             ]
+        },
+        ContourWithBreaks: {
+            rawHeader: "cur_contour_with_breaks.h",
+            dependencies: ["Contour.h"],
+            extends: "Contour",
         },
         PlanarCheckParams: {
             rawHeader: "mb_data.h",
@@ -1336,6 +1342,41 @@ export default {
             cppClassName: "_C3DPmiToItem",
             rawClassName: "C3DPmiToItem",
             jsClassName: "C3DPmiToItem",
+        },
+        Multiline: {
+            rawHeader: "multiline.h",
+            extends: "PlaneItem",
+            dependencies: ["PlaneItem.h", "Contour.h", "VertexOfMultilineInfo.h", "MLTipParams.h", "ContourWithBreaks.h"],
+            initializers: [
+                "",
+                "const MbContour & _basisCurve, const StVertexOfMultilineInfo & vertInfo, const SArray<double> & _equidRadii, const StMLTipParams & _begTipParams, const StMLTipParams & _endTipParams, bool _processClosed, bool _isTransparent",
+            ],
+            functions: [
+                "const MbContour * GetBegTipCurve()",
+                "const MbContour * GetEndTipCurve()",
+                "size_t GetCurvesCount()",
+                "const MbContourWithBreaks * GetCurve(size_t i)",
+            ]
+
+        },
+        VertexOfMultilineInfo: {
+            rawHeader: "multiline.h",
+            cppClassName: "VertexOfMultilineInfo",
+            rawClassName: "StVertexOfMultilineInfo",
+            jsClassName: "VertexOfMultilineInfo",
+            initializers: [
+                "",
+            ]
+        },
+        MLTipParams: {
+            rawHeader: "multiline.h",
+            cppClassName: "MLTipParams",
+            rawClassName: "StMLTipParams",
+            jsClassName: "MLTipParams",
+            initializers: [
+                "",
+                "EnMLTipType _tipType, double _tipParam",
+            ]
         }
     },
     modules: {
@@ -1575,5 +1616,6 @@ export default {
         "MbeSenseValue",
         "MbeRefType",
         "MbeConvResType",
+        "EnMLTipType"
     ]
 }

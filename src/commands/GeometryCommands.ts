@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, PointSnap } from "../editor/SnapManager";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { point2point } from "../util/Conversion";
+import { curve3d2curve2d, point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
@@ -601,7 +601,7 @@ export class CornerBoxCommand extends Command {
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        const { point: p2, info: { constructionPlane} } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+        const { point: p2, info: { constructionPlane } } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
             rect.p2 = p2;
             rect.constructionPlane = constructionPlane;
             rect.update();
@@ -1205,7 +1205,7 @@ export class FilletCurveCommand extends Command {
         const selected = this.editor.selection.selected;
         const controlPoints = [...selected.controlPoints];
         const curve = selected.curves.first;
-        
+
         const factory = new JointOrPolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
         if (curve !== undefined) await factory.setCurve(curve);
@@ -1234,7 +1234,7 @@ export class BridgeCurvesCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
         const curves = [...selected.curves];
-        
+
         const factory = new BridgeCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         factory.curve1 = curves[0];
         factory.curve2 = curves[1];
@@ -1320,7 +1320,32 @@ export class OffsetLoopCommand extends Command {
 
         this.editor.selection.selected.removeFace(face, parent);
 
-        const foo = await offsetContour.commit();
+        const offset = await offsetContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+    }
+}
+
+export class MultilineCommand extends Command {
+    async execute(): Promise<void> {
+        const inst = this.editor.selection.selected.curves.first;
+        const model = this.editor.db.lookup(inst);
+        const item = model.GetSpaceItem()!;
+        const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+        const vertInfo = new c3d.VertexOfMultilineInfo();
+        const { curve: curve2d, placement } = curve3d2curve2d(curve3d, new c3d.Placement3D())!;
+        const inContour = new c3d.Contour([curve2d], false);
+        const tip = new c3d.MLTipParams(2, 10);
+        const multiline = new c3d.Multiline(inContour, vertInfo, [-10, 10], tip, tip, true, false);
+        const begTipCurve = multiline.GetBegTipCurve()!;
+        const endTipCurve = multiline.GetEndTipCurve()!;
+        const contour1 = multiline.GetCurve(0)!;
+        const contour2 = multiline.GetCurve(multiline.GetCurvesCount() - 1)!;
+        const outContour = new c3d.Contour([], false);
+        outContour.AddCurveWithRuledCheck(begTipCurve, 1e-6);
+        outContour.AddCurveWithRuledCheck(contour1, 1e-6);
+        outContour.AddCurveWithRuledCheck(endTipCurve, 1e-6);
+        outContour.AddCurveWithRuledCheck(contour2, 1e-6);
+        await this.editor.db.addItem(new c3d.SpaceInstance(new c3d.PlaneCurve(placement, outContour, false)));
     }
 }
 

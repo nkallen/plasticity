@@ -70,6 +70,7 @@ export class Model {
             result.push(cmd.ExtrudeCommand);
             result.push(cmd.MirrorCommand);
             result.push(cmd.FilletCurveCommand);
+            result.push(cmd.MultilineCommand);
         }
         if (selection.curves.size > 1) {
             result.push(cmd.LoftCommand);
