@@ -78,7 +78,8 @@ export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): Co
     } else if (curve3d.IsPlanar()) {
         const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.01));
 
-        return { curve: curve2d, placement };
+        const dup = curve2d.Duplicate().Cast<c3d.Curve>(c3d.PlaneType.Curve);
+        return { curve: dup, placement };
     }
     return undefined;
 }

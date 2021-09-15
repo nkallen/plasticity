@@ -236,6 +236,7 @@ export default {
                 { signature: "MbPlaneItem * Cast()", isManual: true },
                 { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn },
                 "void Transform(const MbMatrix & matr, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)",
+                "MbPlaneItem & Duplicate(MbRegDuplicate * dup = c3d_null)",
             ]
         },
         Curve: {

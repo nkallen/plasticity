@@ -4,7 +4,7 @@
 #include "../include/PlaneItem.h"
 #include "../include/Region.h"
 
-Napi::Value cast(MbPlaneItem * _underlying, const Napi::CallbackInfo &info)
+Napi::Value cast(MbPlaneItem *_underlying, const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     if (info.Length() != 1)
@@ -31,6 +31,13 @@ Napi::Value cast(MbPlaneItem * _underlying, const Napi::CallbackInfo &info)
     {
     case pt_Region:
         return Region::NewInstance(env, (MbRegion *)(_underlying));
+    case pt_Curve:
+        return Curve::NewInstance(env, (MbCurve *)(_underlying));
+    default:
+        std::ostringstream msg;
+        msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << "\n";
+        Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 }
 

@@ -14,7 +14,7 @@ export class MultilineDialog extends AbstractDialog<MultilineParams> {
 
         render(
             <>
-                <h4>Bridge Curves</h4>
+                <h4>Stroke Curves</h4>
                 <ul>
                     <li>
                         <label for="radius">radius

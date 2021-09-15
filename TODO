@@ -2,9 +2,6 @@
 
 stress test undo & redo
 
-curves:
-    multiline (stroke)
-
 - when you delete region you delete its curve / and vice versa
 - region has equal sort priority to face, but higher when identical distance
 
