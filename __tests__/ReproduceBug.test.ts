@@ -1,17 +1,11 @@
-import * as THREE from "three";
+import * as fs from 'fs';
 import c3d from '../build/Release/c3d.node';
-import { IntersectionFactory } from '../src/commands/boolean/BooleanFactory';
-import { ThreePointBoxFactory } from "../src/commands/box/BoxFactory";
-import CylinderFactory from "../src/commands/cylinder/CylinderFactory";
-import { FaceCollector } from "../src/commands/modifyface/OffsetFaceFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
+import * as visual from "../src/editor/VisualModel";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
-import * as fs from 'fs';
-import * as visual from "../src/editor/VisualModel";
-import FilletFactory, { Max, MaxFilletFactory } from "../src/commands/fillet/FilletFactory";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
