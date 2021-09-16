@@ -129,8 +129,8 @@ export class Viewport {
 
         this.disposable.add(
             this.editor.registry.add(this.domElement, {
-                'viewport:front': () => this.navigate('posX'),
-                'viewport:right': () => this.navigate('negY'),
+                'viewport:front': () => this.navigate('negY'),
+                'viewport:right': () => this.navigate('posX'),
                 'viewport:top': () => this.navigate('posZ'),
             })
         );

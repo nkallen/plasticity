@@ -145,9 +145,9 @@ export default {
 
         "shift-d": "command:duplicate",
 
-        "7": "viewport:front",
+        "1": "viewport:front",
         "3": "viewport:right",
-        "1": "viewport:top"
+        "7": "viewport:top",
     },
 
     "ispace-workspace": {
