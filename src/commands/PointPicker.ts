@@ -302,12 +302,12 @@ export class PointPicker {
                 const onKeyDown = (e: KeyboardEvent) => {
                     if (!e.ctrlKey) return;
                     ctrlKey = true;
-                    this.model.toggleSnaps();
+                    editor.snaps.toggle();
                     if (lastMoveEvent !== undefined) onPointerMove(lastMoveEvent);
                 }
                 const onKeyUp = (e: KeyboardEvent) => {
                     if (!ctrlKey) return;
-                    this.model.toggleSnaps();
+                    editor.snaps.toggle();
                     if (lastMoveEvent !== undefined) onPointerMove(lastMoveEvent);
                 }
 
