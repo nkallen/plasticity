@@ -46,7 +46,31 @@ export class Model {
     }
 
     snap(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap) {
-        return this.manager.snap(raycaster, this.snapsFor(constructionPlane), this.restrictionSnapsFor(constructionPlane), this.restrictionsFor(constructionPlane));
+        const snappers = this.manager.snap(raycaster, this.snapsFor(constructionPlane), this.restrictionSnapsFor(constructionPlane), this.restrictionsFor(constructionPlane));
+        if (snappers.length === 0) return;
+
+        // First match is assumed best
+        const first = snappers[0];
+        const { snap, position, indicator } = first;
+
+        // Collect indicators, etc. as feedback for the user
+        const helpers = [];
+        helpers.push(indicator);
+        const snapHelper = snap.helper;
+        if (snapHelper !== undefined) helpers.push(snapHelper);
+
+        const info = { snap, position, constructionPlane: this.actualConstructionPlaneGiven(constructionPlane), helpers };
+
+        // Collect names of other matches to display to user
+        let names = [];
+        const pos = first.position;
+        for (const { snap, position } of snappers) {
+            if (position.manhattanDistanceTo(pos) > 10e-6) continue;
+            names.push(snap.name);
+        }
+        names = names.filter(x => x !== undefined) as string[];
+
+        return { info, names };
     }
 
     snapsFor(constructionPlane: PlaneSnap): Snap[] {
@@ -212,32 +236,19 @@ export class PointPicker {
 
                     // if within snap range, change point to snap position
                     const snappers = model.snap(raycaster, viewport.constructionPlane);
-                    if (snappers.length === 0) return;
+                    if (snappers === undefined) return;
 
-                    const first = snappers[0];
-                    
-                    // Assume the first match is best,
-                    const { snap, position, indicator } = first;
-                    helpers.add(indicator);
-                    info = { snap, constructionPlane: this.model.actualConstructionPlaneGiven(constructionPlane) };
-                    if (cb !== undefined) cb({ point: position, info });
+                    const { info: { position, helpers: newHelpers }, names } = snappers;
+
+                    helpers.add(...newHelpers);
+                    info = snappers.info;
                     pointTarget.position.copy(position);
-                    const snapHelper = snap.helper;
-                    if (snapHelper !== undefined) helpers.add(snapHelper);
-                    
-                    // Collect names of other matches
-                    const names = [];
-                    const pos = first.position;
-                    for (const { snap, position, indicator } of snappers) {
-                        if (position.manhattanDistanceTo(pos) > 10e-6) continue;
-                        names.push(snap.name);
-                    }
-                    const nonempty = names.filter(x => x !== undefined) as string[];
-                    if (nonempty.length > 0) {
-                        editor.signals.snapped.dispatch({ position: pos.clone().project(camera), names: nonempty });
-                    } else {
-                        editor.signals.snapped.dispatch(undefined);
-                    }
+                    if (cb !== undefined) cb({ point: position, info });
+
+                    editor.signals.snapped.dispatch(
+                        names.length > 0 ?
+                            { position: position.clone().project(camera), names: names }
+                            : undefined);
 
                     editor.signals.pointPickerChanged.dispatch();
                 }

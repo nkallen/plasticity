@@ -320,3 +320,30 @@ describe('addAxesAt', () => {
         expect(axisSnap.o).toApproximatelyEqual(new THREE.Vector3());
     })
 });
+
+describe('snap', () => {
+    test("it gives info for best snap and names other possible snaps", () => {
+        const hitPosition = new THREE.Vector3(1, 1, 1);
+        const indicator = new THREE.Object3D();
+        const pointSnap = new PointSnap("endpoint", new THREE.Vector3(1, 1, 1));
+        jest.spyOn(snaps, 'snap').mockImplementation(
+            (raycaster, additionalSnaps, restrictionSnaps, restrictions) => {
+                return [
+                    {
+                        snap: pointSnap,
+                        position: hitPosition,
+                        indicator: indicator
+                    }
+                ];
+            }
+        );
+
+        const result = pointPicker.snap(new THREE.Raycaster(), new PlaneSnap());
+        expect(result).not.toBe(undefined);
+        const { info, names } = result!;
+        expect(names).toEqual(["endpoint"]);
+        expect(info.position).toBe(hitPosition);
+        expect(info.snap).toBe(pointSnap);
+        expect(info.helpers[0]).toBe(indicator);
+    })
+});
