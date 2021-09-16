@@ -138,11 +138,14 @@ export class Model {
         this.pickedPointSnaps.pop();
     }
 
+    private readonly activatedSnaps = new Set<Snap>();
     activate(snaps: SnapResult[]) {
-        // for (const snap of snaps) {
-        //     console.log(snap);
-        // }
-        // console.log("=");
+        for (const { snap } of snaps) {
+            if (snap instanceof PointSnap && !this.activatedSnaps.has(snap)) {
+                this.activatedSnaps.add(snap);
+                this.addAxesAt(snap.position);
+            }
+        }
     }
 }
 
