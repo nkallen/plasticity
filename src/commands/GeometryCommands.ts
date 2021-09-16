@@ -1095,7 +1095,8 @@ export class ExtrudeCommand extends Command {
         const result = await extrude.commit() as visual.Solid;
 
         selected.addSolid(result);
-        selected.remove(extrude.extruded);
+        const extruded = extrude.extruded;
+        if (!(extruded instanceof visual.Face)) selected.remove(extruded);
     }
 }
 

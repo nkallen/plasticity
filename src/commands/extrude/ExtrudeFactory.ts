@@ -311,14 +311,6 @@ export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<Extrud
     protected bool = new ExtrudeFactory(this.db, this.materials, this.signals);
     protected fantom = new ExtrudeFactory(this.db, this.materials, this.signals);
 
-    set face(face: visual.Face) {
-        this.bool.face = face;
-        this.fantom.face = face;
-
-        const solid = face.parentItem;
-        this.solid = solid;
-    }
-
     get extruded() { return this.bool.extruded }
 
     get distance1() { return this.bool.distance1 }
@@ -336,6 +328,15 @@ export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<Extrud
     set race2(race2: number) { this.bool.race2 = race2; this.fantom.race2 = race2 }
     set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.fantom.thickness1 = thickness1 }
     set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.fantom.thickness2 = thickness2 }
+
+    // NOTE: Face differes from region and curves in that we infer the solid
+    set face(face: visual.Face) {
+        this.bool.face = face;
+        this.fantom.face = face;
+
+        const solid = face.parentItem;
+        this.solid = solid;
+    }
 
     set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.fantom.region = region }
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) { this.bool.curves = curves; this.fantom.curves = curves }

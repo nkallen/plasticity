@@ -3,34 +3,27 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo, AngleGizmo, boxGeometry, lineGeometry, MagnitudeStateMachine } from "../MiniGizmos";
-import { ExtrudeLikeGizmo } from "../modifyface/OffsetFaceGizmo";
+import { AbstractAxialScaleGizmo, AbstractAxisGizmo, AngleGizmo, AxisHelper, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
 import { ExtrudeParams } from "./ExtrudeFactory";
 
 export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
-    private readonly distance1Gizmo = new ExtrudeLikeGizmo("extrude:distance1", this.editor);
+    private readonly distance1Gizmo = new DistanceGizmo("extrude:distance1", this.editor);
     private readonly race1Gizmo = new AngleGizmo("extrude:race1", this.editor, this.editor.gizmos.white);
-    private readonly race2Gizmo = new AngleGizmo("extrude:race2", this.editor, this.editor.gizmos.white);
-    private readonly distance2Gizmo = new ExtrudeLikeGizmo("extrude:distance2", this.editor);
     private readonly thicknessGizmo = new MagnitudeGizmo("extrude:thickness", this.editor);
 
     protected prepare(mode: Mode) {
-        const { race1Gizmo, distance1Gizmo, race2Gizmo, distance2Gizmo, thicknessGizmo } = this;
+        const { race1Gizmo, distance1Gizmo, thicknessGizmo } = this;
         race1Gizmo.relativeScale.setScalar(0.3);
-        race2Gizmo.relativeScale.setScalar(0.3);
         distance1Gizmo.relativeScale.setScalar(0.8);
-        distance2Gizmo.relativeScale.setScalar(0.8);
 
-        this.add(distance1Gizmo, distance2Gizmo, thicknessGizmo);
+        this.add(distance1Gizmo, thicknessGizmo);
 
         distance1Gizmo.tip.add(race1Gizmo);
-        distance2Gizmo.tip.add(race2Gizmo);
     }
 
     execute(cb: (params: ExtrudeParams) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
-        const { race1Gizmo, distance1Gizmo, race2Gizmo, distance2Gizmo, thicknessGizmo, params } = this;
+        const { race1Gizmo, distance1Gizmo, thicknessGizmo, params } = this;
 
-        distance2Gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0));
         thicknessGizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
 
         this.addGizmo(distance1Gizmo, length => {
@@ -39,14 +32,6 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
 
         this.addGizmo(race1Gizmo, angle => {
             params.race1 = angle;
-        });
-
-        this.addGizmo(distance2Gizmo, length => {
-            params.distance2 = length;
-        });
-
-        this.addGizmo(race2Gizmo, angle => {
-            params.race2 = angle;
         });
 
         this.addGizmo(thicknessGizmo, thickness => {
