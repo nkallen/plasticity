@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
-import { DatabaseLike, GeometryDatabase } from '../editor/GeometryDatabase';
+import { DatabaseLike } from '../editor/GeometryDatabase';
 import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
 import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
@@ -214,20 +214,22 @@ export class PointPicker {
                     const snappers = model.snap(raycaster, viewport.constructionPlane);
                     if (snappers.length === 0) return;
 
+                    const first = snappers[0];
+                    
+                    // Assume the first match is best,
+                    const { snap, position, indicator } = first;
+                    helpers.add(indicator);
+                    info = { snap, constructionPlane: this.model.actualConstructionPlaneGiven(constructionPlane) };
+                    if (cb !== undefined) cb({ point: position, info });
+                    pointTarget.position.copy(position);
+                    const snapHelper = snap.helper;
+                    if (snapHelper !== undefined) helpers.add(snapHelper);
+                    
+                    // Collect names of other matches
                     const names = [];
-                    const pos = snappers[0].position;
+                    const pos = first.position;
                     for (const { snap, position, indicator } of snappers) {
                         if (position.manhattanDistanceTo(pos) > 10e-6) continue;
-
-                        // we only invoke the callback, etc. for the first match; but we collect names of all matches with the same position
-                        if (names.length === 0) {
-                            helpers.add(indicator);
-                            info = { snap, constructionPlane: this.model.actualConstructionPlaneGiven(constructionPlane) };
-                            if (cb !== undefined) cb({ point: position, info });
-                            pointTarget.position.copy(position);
-                            const snapHelper = snap.helper;
-                            if (snapHelper !== undefined) helpers.add(snapHelper);
-                        }
                         names.push(snap.name);
                     }
                     const nonempty = names.filter(x => x !== undefined) as string[];
@@ -236,6 +238,7 @@ export class PointPicker {
                     } else {
                         editor.signals.snapped.dispatch(undefined);
                     }
+
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
