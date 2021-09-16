@@ -137,19 +137,29 @@ export class Model {
     undo() {
         this.pickedPointSnaps.pop();
     }
+
+    activate(snaps: SnapResult[]) {
+        // for (const snap of snaps) {
+        //     console.log(snap);
+        // }
+        // console.log("=");
+    }
 }
 
 interface SnapInfo extends PointInfo {
     position: THREE.Vector3;
 }
 
+// This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
+// There are icons, indicators, textual names explanations, etc.
 export class Presentation {
     static make(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap, model: Model, snaps: SnapManager) {
         const nearby = snaps.nearby(raycaster, model.snaps, model.restrictionsFor(constructionPlane));
         const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane), model.restrictionSnapsFor(constructionPlane), model.restrictionsFor(constructionPlane));
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane);
 
-        return new Presentation(nearby, snappers, actualConstructionPlaneGiven);
+        const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven);
+        return { presentation, snappers };
     }
 
     readonly helpers: THREE.Object3D[];
@@ -242,7 +252,8 @@ export class PointPicker {
                     raycaster.setFromCamera(pointer, camera);
                     const constructionPlane = viewport.constructionPlane;
 
-                    const presentation = Presentation.make(raycaster, constructionPlane, model, editor.snaps);
+                    const { presentation, snappers } = Presentation.make(raycaster, constructionPlane, model, editor.snaps);
+                    this.model.activate(snappers);
 
                     helpers.clear();
                     const indicators = presentation.nearby;
