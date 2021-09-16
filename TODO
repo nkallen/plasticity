@@ -1,21 +1,19 @@
 # PRE ALPHA:
 
 stress test undo & redo
-
-- when you delete region you delete its curve / and vice versa
-- region has equal sort priority to face, but higher when identical distance
+top view has X going up/down
 
 add dialogs for everything
 
 windows build
 
-min and max in number srubber should be respected
 point picker nearby targets aren't scaling like normal helpers
 
 make extrude gizmo 1d
 
 ## POST ALPHA
 initiating rectangle command twice seems to screw things
+min and max in number srubber should be respected
 
 performance audit hit testing and snaps
 refactor factory to take editorlike?

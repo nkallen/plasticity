@@ -146,10 +146,11 @@ export class ViewportNavigator extends THREE.Object3D {
         targetPosition.multiplyScalar(this.radius).add(target);
 
         dummy.position.copy(target);
-        dummy.lookAt(viewportCamera.position);
-        q1.copy(dummy.quaternion);
+        // dummy.lookAt(viewportCamera.position);
+        // q1.copy(dummy.quaternion);
 
         dummy.lookAt(targetPosition);
+        console.log(dummy.position, dummy.quaternion.normalize());
         q2.copy(dummy.quaternion);
 
         this.update();
@@ -160,8 +161,7 @@ export class ViewportNavigator extends THREE.Object3D {
         const { controls, q2 } = this;
         const { object: viewportCamera, target } = controls;
 
-        viewportCamera.position.set(0, 0, 1).applyQuaternion(q2).multiplyScalar(this.radius).add(target);
-        viewportCamera.quaternion.copy(q2);
+        viewportCamera.position.copy(this.targetPosition);
         controls.update();
     }
 
