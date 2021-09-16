@@ -12,6 +12,8 @@ windows build
 min and max in number srubber should be respected
 point picker nearby targets aren't scaling like normal helpers
 
+make extrude gizmo 1d
+
 ## POST ALPHA
 initiating rectangle command twice seems to screw things
 

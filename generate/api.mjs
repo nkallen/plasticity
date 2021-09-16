@@ -1378,7 +1378,14 @@ export default {
                 "",
                 "EnMLTipType _tipType, double _tipParam",
             ]
-        }
+        },
+        ShellsIntersectionData: {
+            rawHeader: "check_geometry.h",
+            functions: [
+                "bool IsSolid()",
+                "bool IsSurface()",
+            ]
+        },
     },
     modules: {
         Enabler: {
@@ -1389,9 +1396,14 @@ export default {
         },
         Action: {
             rawHeader: "action.h",
-            dependencies: ["Solid.h"],
+            dependencies: ["Solid.h", "Matrix3D.h", "ShellsIntersectionData.h"],
             functions: [
-                "bool IsSolidsIntersection(const MbSolid & solid1, const MbSolid & solid2, const MbSNameMaker & snMaker)",
+                // "bool IsSolidsIntersection(const MbSolid & solid1, const MbSolid & solid2, const MbSNameMaker & snMaker)",
+                {
+                    signature: "bool IsSolidsIntersection(const MbSolid & solid1, const MbMatrix3D & matr1, const MbSolid & solid2, const MbMatrix3D & matr2, bool checkTangent, bool getIntersectionSolids, bool checkTouchPoints, RPArray<MbShellsIntersectionData> & intData)",
+                    intData: isReturn,
+                    return: { name: "isIntersection" },
+                }
             ],
         },
         ActionSurface: {

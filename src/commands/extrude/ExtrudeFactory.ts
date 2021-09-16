@@ -22,6 +22,9 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     thickness1 = 0;
     thickness2 = 0;
 
+    isOverlapping = false;
+    isSurface = false;
+
     abstract direction: THREE.Vector3;
 
     protected names = new c3d.SNameMaker(c3d.CreatorType.CurveExtrusionSolid, c3d.ESides.SideNone, 0);
@@ -30,7 +33,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     protected abstract curves3d: c3d.Curve3D[];
     protected abstract surface: c3d.Surface;
 
-    private _operationType = c3d.OperationType.Difference
+    protected _operationType = c3d.OperationType.Difference
     get operationType() { return this._operationType }
     set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
 
@@ -209,6 +212,9 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
         bbox.getCenter(this._center);
     }
 
+    set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
+    get operationType() { return this.isSurface ? c3d.OperationType.Union : this._operationType }
+
     get direction(): THREE.Vector3 {
         const placement = this._placement;
         const z = placement.GetAxisZ();
@@ -278,6 +284,9 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
     set race2(race2: number) { for (const f of this.factories) f.race2 = race2 }
     set thickness1(thickness1: number) { for (const f of this.factories) f.thickness1 = thickness1 }
     set thickness2(thickness2: number) { for (const f of this.factories) f.thickness2 = thickness2 }
+
+    set isOverlapping(isOverlapping: boolean) { for (const f of this.factories) f.isOverlapping = isOverlapping }
+    set isSurface(isSurface: boolean) { for (const f of this.factories) f.isSurface = isSurface }
 
     get direction() {
         if (this.regionExtrude.region !== undefined) return this.regionExtrude.direction;

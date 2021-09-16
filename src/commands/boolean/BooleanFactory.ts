@@ -10,6 +10,10 @@ import { GeometryFactory, PhantomInfo, ValidationError } from '../GeometryFactor
 interface BooleanLikeFactory extends GeometryFactory {
     solid?: visual.Solid;
     operationType: c3d.OperationType;
+
+    // NOTE: These are hints for the factory to infer which operation
+    isOverlapping: boolean;
+    isSurface: boolean;
 }
 
 export interface BooleanParams {
@@ -22,6 +26,9 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
     operationType: c3d.OperationType = c3d.OperationType.Difference;
     mergingFaces = true;
     mergingEdges = true;
+
+    isOverlapping = false;
+    isSurface = false;
 
     private _solid!: visual.Solid;
     solidModel!: c3d.Solid;
@@ -258,20 +265,38 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
 
     protected _isOverlapping = false;
     get isOverlapping() { return this._isOverlapping }
+    set isOverlapping(isOverlapping: boolean) {
+        this._isOverlapping = isOverlapping;
+        this.bool.isOverlapping = isOverlapping;
+    }
+
+    protected _isSurface = false;
+    get isSurface() { return this._isSurface }
+    set isSurface(isSurface: boolean) {
+        this._isSurface = isSurface;
+        this.bool.isSurface = isSurface;
+    }
 
     protected async precomputeGeometry() {
         const phantom = await this.fantom.calculate() as c3d.Solid;
         this._phantom = phantom;
         if (this.solid === undefined) {
-            this._isOverlapping = false;
+            this.isOverlapping = false;
+            this.isSurface = false;
         } else {
-            this._isOverlapping = c3d.Action.IsSolidsIntersection(this.model!, phantom, new c3d.SNameMaker(-1, c3d.ESides.SideNone, 0));
+            const { isIntersection, intData } = c3d.Action.IsSolidsIntersection(this.model!, new c3d.Matrix3D(), phantom, new c3d.Matrix3D(), true, false, false);
+            this.isOverlapping = isIntersection;
+            if (intData.length === 0)  {
+                this.isSurface = false;
+            } else {
+                this.isSurface = intData[0].IsSurface() && !intData[0].IsSolid();
+            }
         }
     }
 
     async calculate() {
         await this.precomputeGeometry();
-        if (this._isOverlapping && !this.newBody) {
+        if (this.isOverlapping && !this.newBody) {
             const result = await this.bool.calculate() as c3d.Solid;
             return result;
         } else {
@@ -283,7 +308,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         if (this.solid === undefined) return [];
         if (this.newBody) return [];
         if (this.operationType === c3d.OperationType.Union) return [];
-        if (!this._isOverlapping) return [];
+        if (!this.isOverlapping) return [];
 
         let material: MaterialOverride
         if (this.operationType === c3d.OperationType.Difference) material = phantom_red;
@@ -298,7 +323,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     get originalItem() { return this.solid }
 
     get shouldRemoveOriginalItemOnCommit() {
-        return this._isOverlapping && this.solid !== undefined && !this.newBody;
+        return this.isOverlapping && this.solid !== undefined && !this.newBody;
     }
 }
 
