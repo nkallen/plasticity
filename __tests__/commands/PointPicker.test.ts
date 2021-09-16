@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
-import { Model } from '../../src/commands/PointPicker';
+import { Model, Presentation } from '../../src/commands/PointPicker';
 import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -321,29 +321,19 @@ describe('addAxesAt', () => {
     })
 });
 
-describe('snap', () => {
+describe(Presentation, () => {
     test("it gives info for best snap and names other possible snaps", () => {
         const hitPosition = new THREE.Vector3(1, 1, 1);
         const indicator = new THREE.Object3D();
         const pointSnap = new PointSnap("endpoint", new THREE.Vector3(1, 1, 1));
-        jest.spyOn(snaps, 'snap').mockImplementation(
-            (raycaster, additionalSnaps, restrictionSnaps, restrictions) => {
-                return [
-                    {
-                        snap: pointSnap,
-                        position: hitPosition,
-                        indicator: indicator
-                    }
-                ];
-            }
-        );
+        const snapResults = [
+            { snap: pointSnap, position: hitPosition, indicator: indicator }
+        ];
+        const presentation = new Presentation([], snapResults, new PlaneSnap());
 
-        const result = pointPicker.snap(new THREE.Raycaster(), new PlaneSnap());
-        expect(result).not.toBe(undefined);
-        const { info, names } = result!;
-        expect(names).toEqual(["endpoint"]);
-        expect(info.position).toBe(hitPosition);
-        expect(info.snap).toBe(pointSnap);
-        expect(info.helpers[0]).toBe(indicator);
+        expect(presentation.names).toEqual(["endpoint"]);
+        expect(presentation.info!.position).toBe(hitPosition);
+        expect(presentation.info!.snap).toBe(pointSnap);
+        expect(presentation.helpers[0]).toBe(indicator);
     })
 });

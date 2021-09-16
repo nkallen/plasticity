@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager } from '../editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager, SnapResult } from '../editor/SnapManager';
 import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
 import { Helper, Helpers } from '../util/Helpers';
@@ -40,38 +40,6 @@ export class Model {
         private readonly db: DatabaseLike,
         private readonly manager: SnapManager
     ) { }
-
-    nearby(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap) {
-        return this.manager.nearby(raycaster, this.snaps, this.restrictionsFor(constructionPlane));
-    }
-
-    snap(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap) {
-        const snappers = this.manager.snap(raycaster, this.snapsFor(constructionPlane), this.restrictionSnapsFor(constructionPlane), this.restrictionsFor(constructionPlane));
-        if (snappers.length === 0) return;
-
-        // First match is assumed best
-        const first = snappers[0];
-        const { snap, position, indicator } = first;
-
-        // Collect indicators, etc. as feedback for the user
-        const helpers = [];
-        helpers.push(indicator);
-        const snapHelper = snap.helper;
-        if (snapHelper !== undefined) helpers.push(snapHelper);
-
-        const info = { snap, position, constructionPlane: this.actualConstructionPlaneGiven(constructionPlane), helpers };
-
-        // Collect names of other matches to display to user
-        let names = [];
-        const pos = first.position;
-        for (const { snap, position } of snappers) {
-            if (position.manhattanDistanceTo(pos) > 10e-6) continue;
-            names.push(snap.name);
-        }
-        names = names.filter(x => x !== undefined) as string[];
-
-        return { info, names };
-    }
 
     snapsFor(constructionPlane: PlaneSnap): Snap[] {
         const result = [...this.snaps];
@@ -169,9 +137,53 @@ export class Model {
     undo() {
         this.pickedPointSnaps.pop();
     }
+}
 
-    toggleSnaps() {
-        this.manager.toggle();
+interface SnapInfo extends PointInfo {
+    position: THREE.Vector3;
+}
+
+export class Presentation {
+    static make(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap, model: Model, snaps: SnapManager) {
+        const nearby = snaps.nearby(raycaster, model.snaps, model.restrictionsFor(constructionPlane));
+        const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane), model.restrictionSnapsFor(constructionPlane), model.restrictionsFor(constructionPlane));
+        const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane);
+
+        return new Presentation(nearby, snappers, actualConstructionPlaneGiven);
+    }
+
+    readonly helpers: THREE.Object3D[];
+    readonly info?: SnapInfo;
+    readonly names: string[];
+
+    constructor(readonly nearby: THREE.Object3D[], private readonly snaps: SnapResult[], constructionPlane: PlaneSnap) {
+        if (snaps.length === 0) {
+            this.names = [];
+            this.helpers = [];
+            return;
+        }
+
+        // First match is assumed best
+        const first = snaps[0];
+        const { snap, position, indicator } = first;
+
+        // Collect indicators, etc. as feedback for the user
+        const helpers = [];
+        helpers.push(indicator);
+        const snapHelper = snap.helper;
+        if (snapHelper !== undefined) helpers.push(snapHelper);
+        this.helpers = helpers;
+
+        this.info = { snap, position, constructionPlane };
+
+        // Collect names of other matches to display to user
+        let names = [];
+        const pos = first.position;
+        for (const { snap, position } of snaps) {
+            if (position.manhattanDistanceTo(pos) > 10e-6) continue;
+            names.push(snap.name);
+        }
+        this.names = names.filter(x => x !== undefined) as string[];
     }
 }
 
@@ -230,18 +242,19 @@ export class PointPicker {
                     raycaster.setFromCamera(pointer, camera);
                     const constructionPlane = viewport.constructionPlane;
 
+                    const presentation = Presentation.make(raycaster, constructionPlane, model, editor.snaps);
+
                     helpers.clear();
-                    const indicators = model.nearby(raycaster, constructionPlane);
+                    const indicators = presentation.nearby;
                     for (const i of indicators) helpers.add(i);
 
-                    // if within snap range, change point to snap position
-                    const snappers = model.snap(raycaster, viewport.constructionPlane);
-                    if (snappers === undefined) return;
+                    info = presentation.info;
+                    if (info === undefined) return;
 
-                    const { info: { position, helpers: newHelpers }, names } = snappers;
+                    const { names, helpers: newHelpers } = presentation;
+                    const { position } = presentation.info!;
 
                     helpers.add(...newHelpers);
-                    info = snappers.info;
                     pointTarget.position.copy(position);
                     if (cb !== undefined) cb({ point: position, info });
 
