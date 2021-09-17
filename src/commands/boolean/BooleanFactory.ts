@@ -138,10 +138,10 @@ abstract class AbstractCutFactory extends GeometryFactory implements CutParams {
 
         const Z = vec2vec(placement.GetAxisZ(), 1);
         const bbox = new THREE.Box3().setFromObject(this.solid);
-        let inout_max = point2point(bbox.max);
-        let inout_min = point2point(bbox.min);
-        placement.GetPointInto(inout_max);
-        placement.GetPointInto(inout_min);
+        let inout_max = bbox.max;
+        let inout_min = bbox.min;
+        placement.GetPointInto(point2point(inout_max));
+        placement.GetPointInto(point2point(inout_min));
         Z.multiplyScalar(Math.abs(inout_max.z) > Math.abs(inout_min.z) ? inout_max.z : inout_min.z);
 
         fantom.model = new c3d.PlaneCurve(placement, contour, true);
@@ -225,7 +225,7 @@ export class CutAndSplitFactory extends GeometryFactory implements CutParams {
     async calculate() {
         const { faces, cut, split } = this;
         if (faces.length === 0) return cut.calculate();
-        else return split.calculate();
+        else return [await split.calculate()];
     }
 
     get phantoms() {

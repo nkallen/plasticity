@@ -135,7 +135,8 @@ describe(CutAndSplitFactory, () => {
         split.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
         split.faces = [box.faces.get(0)];
         split.curve = line;
-        const result = await split.commit() as visual.Solid;
+        const results = await split.commit() as visual.Solid[];
+        const result = results[0];
 
         expect([...result.faces].length).toBe(7);
     });

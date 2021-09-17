@@ -823,7 +823,8 @@ export class CutCommand extends Command {
             await cut.update();
         }).resource(this);
 
-        await cut.commit();
+        const results = await cut.commit() as visual.Solid[];
+        this.editor.selection.selected.addSolid(results[0]);
     }
 }
 
