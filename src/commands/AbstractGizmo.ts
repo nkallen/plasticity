@@ -65,6 +65,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
     onPointerEnter(intersector: Intersector) { }
     onPointerLeave(intersector: Intersector) { }
+    onKeyPress(cb: CB, text: string) {}
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
     abstract onPointerDown(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(cb: CB, intersect: Intersector, info: MovementInfo): void;
@@ -156,6 +157,10 @@ export abstract class AbstractGizmo<CB> extends Helper {
                     });
                 }
 
+                const onKeyPress = (event: KeyboardEvent) => {
+                    stateMachine.keyPress(event.key);
+                }
+
                 const onPointerHover = (event: PointerEvent) => {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     stateMachine.update(viewport, pointer);
@@ -164,9 +169,11 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
                 domElement.addEventListener('pointerdown', onPointerDown);
                 domElement.addEventListener('pointermove', onPointerHover);
+                domElement.ownerDocument.addEventListener('keypress', onKeyPress);
                 disposables.add(new Disposable(() => viewport.enableControls()));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerHover)));
+                disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('keypress', onKeyPress)));
                 disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointerup', onPointerUp)));
                 disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointermove', onPointerMove)));
                 this.editor.signals.gizmoChanged.dispatch();
@@ -228,7 +235,7 @@ export interface MovementInfo {
 // This class handles computing some useful data (like click start and click end) of the
 // gizmo user interaction. It deals with the hover->click->drag->unclick case (the traditional
 // gizmo interactions) as well as the keyboardCommand->move->click->unclick case (blender modal-style).
-type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'dragging', clearEventHandlers: Disposable } | { tag: 'command', clearEventHandlers: Disposable }
+type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'dragging', clearEventHandlers: Disposable } | { tag: 'command', clearEventHandlers: Disposable, text: string }
 export class GizmoStateMachine<T> implements MovementInfo {
     isActive = true;
     isEnabled = true;
@@ -307,7 +314,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 if (fn(this.cb) === undefined) {
                     this.gizmo.update(this.camera); // FIXME: need to update the gizmo after calling fn. figure out a way to test
                     this.begin();
-                    this.state = { tag: 'command', clearEventHandlers };
+                    this.state = { tag: 'command', clearEventHandlers, text: "" };
                     this.gizmo.dispatchEvent({ type: 'start' });
                 } else {
                     clearEventHandlers.dispose();
@@ -404,6 +411,22 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 break;
             }
             default: break;
+        }
+    }
+
+    keyPress(key: string): void {
+        if (!this.isActive) return;
+        if (!this.isEnabled) return;
+
+        switch (this.state.tag) {
+            case 'dragging':
+                break;
+            case 'command':
+                this.state.text += key;
+                this.gizmo.onKeyPress(this.cb, this.state.text);
+                this.signals.gizmoChanged.dispatch();
+                break;
+            default: throw new Error('invalid state: ' + this.state.tag);
         }
     }
 

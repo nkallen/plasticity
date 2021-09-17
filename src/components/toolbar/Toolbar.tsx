@@ -25,9 +25,8 @@ export class Model {
             result.push(cmd.MoveCommand);
             result.push(cmd.RotateCommand);
             result.push(cmd.ScaleCommand);
-            result.push(cmd.SelectFilletsCommand);
-            result.push(cmd.ClipCurveCommand);
-            result.push(cmd.SymmetryCommand);
+            if (selection.faces.size === 0 && selection.edges.size === 0 && selection.curves.size === 0)
+                result.push(cmd.SymmetryCommand);
         }
         if (selection.solids.size > 1) {
             result.push(cmd.UnionCommand);

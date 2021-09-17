@@ -112,6 +112,12 @@ export class AngleGizmo extends CircularGizmo<number> {
         this.state.current = angle;
         cb(this.state.current);
     }
+
+    onKeyPress(cb: (angle: number) => void, text: string) {
+        const angle = THREE.MathUtils.degToRad(Number(text));
+        this.state.current = angle;
+        cb(angle);
+    }
 }
 
 const localY = new THREE.Vector3();
