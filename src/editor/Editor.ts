@@ -63,7 +63,7 @@ export class Editor {
     readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.curves, this.contours, this.modifiers);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
-    readonly mouse2keyboard = new KeyboardEventManager(this.keymaps);
+    readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new ModifierHighlightManager(this.modifiers, this.db, this.materials, this.selection, this.signals);
 

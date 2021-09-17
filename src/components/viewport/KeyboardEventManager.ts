@@ -1,7 +1,6 @@
 import KeymapManager from "atom-keymap";
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { Pane } from "../pane/Pane";
 
 // Time thresholds are in milliseconds, distance thresholds are in pixels.
 const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
@@ -41,16 +40,16 @@ export default class KeyboardEventManager {
         }
     }
 
-    onPointerDown(e: PointerEvent) {
+    onPointerDown(downEvent: PointerEvent) {
         switch (this.state.tag) {
             case 'none':
-                const disposables = new CompositeDisposable();
+                const disposable = new CompositeDisposable();
 
-                if (e.button != 2) return;
+                if (downEvent.button != 2) return;
 
                 window.addEventListener('pointerup', this.onPointerUp);
-                disposables.add(new Disposable(() => window.removeEventListener('pointerup', this.onPointerUp)));
-                this.state = { tag: 'down', downEvent: e, disposable: disposables };
+                disposable.add(new Disposable(() => window.removeEventListener('pointerup', this.onPointerUp)));
+                this.state = { tag: 'down', downEvent, disposable };
                 break;
             default: throw new Error('invalid state: ' + this.state.tag);
         }
@@ -71,7 +70,7 @@ export default class KeyboardEventManager {
                 ) {
                     // FIXME need to map ctrlKey->ctrl and fix the incorrect types.
                     // @ts-expect-error
-                    this.keymaps.handleKeyboardEvent(KeymapManager.buildKeydownEvent('mouse2', e));
+                    this.handleKeyboardEvent(KeymapManager.buildKeydownEvent('mouse2', e));
                 }
 
                 disposable.dispose();
@@ -88,7 +87,7 @@ export default class KeyboardEventManager {
         const e = (event.deltaY > 0) ?
             this.wheel2keyboard('wheel+up', event) :
             this.wheel2keyboard('wheel+down', event);
-        this.keymaps.handleKeyboardEvent(e);
+        this.handleKeyboardEvent(e);
     }
 
     onKeyDown(event: KeyboardEvent) {
@@ -96,6 +95,10 @@ export default class KeyboardEventManager {
         if (lastTarget === undefined) return;
         
         Object.defineProperty(event, 'target', { value: lastTarget });
+        this.handleKeyboardEvent(event);
+    }
+
+    private handleKeyboardEvent(event: KeyboardEvent) {
         this.keymaps.handleKeyboardEvent(event);
     }
 
