@@ -16,7 +16,7 @@ import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import ModifierManager from "../../src/editor/ModifierManager";
 import { PlanarCurveDatabase } from "../../src/editor/PlanarCurveDatabase";
 import { RegionManager } from "../../src/editor/RegionManager";
-import { SnapManager } from "../../src/editor/SnapManager";
+import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { Selection, SelectionManager } from "../../src/selection/SelectionManager";
 import { Delay } from "../../src/util/SequentialExecutor";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";

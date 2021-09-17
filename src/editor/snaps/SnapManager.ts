@@ -1,16 +1,16 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import c3d from '../../build/Release/c3d.node';
-import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
-import { PointPicker } from "../commands/PointPicker";
-import { deunit, point2point, vec2vec } from "../util/Conversion";
-import { Helper, SimpleHelper } from "../util/Helpers";
-import { CircleGeometry, Redisposable, RefCounter } from "../util/Util";
-import { EditorSignals } from "./EditorSignals";
-import { DatabaseLike } from "./GeometryDatabase";
-import { MementoOriginator, SnapMemento } from "./History";
-import * as visual from './VisualModel';
+import c3d from '../../../build/Release/c3d.node';
+import { GizmoMaterialDatabase } from "../../commands/GizmoMaterials";
+import { PointPicker } from "../../commands/PointPicker";
+import { deunit, point2point, vec2vec } from "../../util/Conversion";
+import { Helper, SimpleHelper } from "../../util/Helpers";
+import { CircleGeometry, Redisposable, RefCounter } from "../../util/Util";
+import { EditorSignals } from "../EditorSignals";
+import { DatabaseLike } from "../GeometryDatabase";
+import { MementoOriginator, SnapMemento } from "../History";
+import * as visual from '../VisualModel';
 
 const discGeometry = new THREE.CircleGeometry(0.05, 16);
 const circleGeometry = new LineGeometry();

@@ -1,7 +1,7 @@
 import { point2point, vec2vec } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { PlaneSnap } from "../../editor/SnapManager";
+import { PlaneSnap } from "../../editor/snaps/SnapManager";
 import { GeometryFactory } from '../GeometryFactory';
 
 export class CenterPointArcFactory extends GeometryFactory {

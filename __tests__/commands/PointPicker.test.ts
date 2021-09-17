@@ -6,7 +6,7 @@ import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, FaceSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../../src/editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, FaceSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../../src/editor/snaps/SnapManager';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';

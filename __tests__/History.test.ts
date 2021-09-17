@@ -8,7 +8,7 @@ import { EditorOriginator } from '../src/editor/History';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import ModifierManager, { ModifierStack } from '../src/editor/ModifierManager';
 import { PlanarCurveDatabase } from '../src/editor/PlanarCurveDatabase';
-import { SnapManager } from '../src/editor/SnapManager';
+import { SnapManager } from '../src/editor/snaps/SnapManager';
 import { Selection, SelectionManager } from '../src/selection/SelectionManager';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';

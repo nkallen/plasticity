@@ -7,7 +7,7 @@ import LineFactory from "../src/commands/line/LineFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, LineSnap, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, LineSnap, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/snaps/SnapManager';
 import * as visual from '../src/editor/VisualModel';
 import { point2point, vec2vec } from "../src/util/Conversion";
 import { Helper } from "../src/util/Helpers";

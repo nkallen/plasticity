@@ -7,7 +7,7 @@ import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
 import MaterialDatabase from './MaterialDatabase';
 import ModifierManager, { ModifierStack } from './ModifierManager';
 import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
-import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap } from './SnapManager';
+import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap } from './snaps/SnapManager';
 import * as visual from "./VisualModel";
 
 export class Memento {

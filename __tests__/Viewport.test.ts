@@ -11,7 +11,7 @@ import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { EditorOriginator } from "../src/editor/History";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
-import { PlaneSnap } from "../src/editor/SnapManager";
+import { PlaneSnap } from "../src/editor/snaps/SnapManager";
 import * as visual from '../src/editor/VisualModel';
 import { HighlightManager } from "../src/selection/HighlightManager";
 import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";

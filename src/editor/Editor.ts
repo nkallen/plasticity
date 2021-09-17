@@ -26,7 +26,7 @@ import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import ModifierManager from "./ModifierManager";
 import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { RegionManager } from "./RegionManager";
-import { SnapManager } from './SnapManager';
+import { SnapManager } from './snaps/SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import c3d from '../../build/Release/c3d.node';
 import { ExportCommand } from "../commands/CommandLike";

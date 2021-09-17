@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager, SnapResult } from '../editor/SnapManager';
+import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap, SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
 import { Helper, Helpers } from '../util/Helpers';

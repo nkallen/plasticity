@@ -7,7 +7,7 @@ import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
 import { PlanarCurveDatabase } from "../editor/PlanarCurveDatabase";
-import { SnapManager } from "../editor/SnapManager";
+import { SnapManager } from "../editor/snaps/SnapManager";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { HasSelectedAndHovered } from "../selection/SelectionManager";
 import { CancellableRegistor } from "../util/Cancellable";
