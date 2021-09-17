@@ -167,7 +167,7 @@ export class Presentation {
         const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane), model.restrictionSnapsFor(constructionPlane), model.restrictionsFor(constructionPlane));
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane);
 
-        const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven);
+        const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho);
         return { presentation, snappers };
     }
 
@@ -175,7 +175,7 @@ export class Presentation {
     readonly info?: SnapInfo;
     readonly names: string[];
 
-    constructor(readonly nearby: THREE.Object3D[], private readonly snaps: SnapResult[], constructionPlane: PlaneSnap) {
+    constructor(readonly nearby: THREE.Object3D[], private readonly snaps: SnapResult[], constructionPlane: PlaneSnap, private readonly isOrtho: boolean) {
         if (snaps.length === 0) {
             this.names = [];
             this.helpers = [];
@@ -240,7 +240,7 @@ export class PointPicker {
             this.editor.helpers.add(helpers);
             disposables.add(new Disposable(() => this.editor.helpers.remove(helpers)));
 
-            let info: PointInfo | undefined = undefined;
+            let info: SnapInfo | undefined = undefined;
             for (const viewport of this.editor.viewports) {
                 viewport.selector.enabled = false;
                 disposables.add(new Disposable(() => viewport.enableControls()))
@@ -271,7 +271,7 @@ export class PointPicker {
                     if (info === undefined) return;
 
                     const { names, helpers: newHelpers } = presentation;
-                    const { position } = presentation.info!;
+                    const { position } = info;
 
                     helpers.add(...newHelpers);
                     pointTarget.position.copy(position);

@@ -114,12 +114,18 @@ export interface RotateParams {
     pivot: THREE.Vector3
     axis: THREE.Vector3;
     angle: number;
+    degrees: number;
 }
 
 export class RotateFactory extends TranslateFactory implements RotateParams {
     pivot!: THREE.Vector3
     axis = new THREE.Vector3(1, 0, 0);
     angle = 0;
+
+    get degrees() { return THREE.MathUtils.radToDeg(this.angle) }
+    set degrees(degrees: number) {
+        this.angle = THREE.MathUtils.degToRad(degrees);
+    }
 
     // I'm honestly not sure why we can't use apply matrices as in TranslateFactory above,
     // but this works instead.

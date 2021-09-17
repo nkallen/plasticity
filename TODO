@@ -7,6 +7,8 @@ add dialogs for everything
 windows build
 
 rotate 90 degrees
+should project onto construction plane in ortho view
+
 
 ## POST ALPHA
 initiating rectangle command twice seems to screw things

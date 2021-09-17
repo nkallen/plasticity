@@ -10,6 +10,11 @@ export class DraftSolidFactory extends GeometryFactory implements RotateParams {
     pivot!: THREE.Vector3;
     axis!: THREE.Vector3;
 
+    get degrees() { return THREE.MathUtils.radToDeg(this.angle) }
+    set degrees(degrees: number) {
+        this.angle = THREE.MathUtils.degToRad(degrees);
+    }
+
     faces = new Array<visual.Face>();
     solid!: visual.Solid;
     protected solidModel!: c3d.Solid;
