@@ -5,7 +5,7 @@ import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
-import { AxisSnap, CurveEdgeSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisSnap, CurveEdgeSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
 import { Helper, Helpers } from '../util/Helpers';
@@ -157,7 +157,12 @@ interface SnapInfo extends PointInfo {
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
 // There are icons, indicators, textual names explanations, etc.
 export class Presentation {
-    static make(raycaster: THREE.Raycaster, constructionPlane: PlaneSnap, model: Model, snaps: SnapManager) {
+    static make(raycaster: THREE.Raycaster, viewport: Viewport, model: Model, snaps: SnapManager) {
+        const { constructionPlane, isOrtho } = viewport;
+
+        if (isOrtho) snaps.layers.disable(Layers.FaceSnap);
+        else snaps.layers.enable(Layers.FaceSnap);
+
         const nearby = snaps.nearby(raycaster, model.snaps, model.restrictionsFor(constructionPlane));
         const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane), model.restrictionSnapsFor(constructionPlane), model.restrictionsFor(constructionPlane));
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane);
@@ -254,9 +259,8 @@ export class PointPicker {
                     lastMoveEvent = e;
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
-                    const constructionPlane = viewport.constructionPlane;
 
-                    const { presentation, snappers } = Presentation.make(raycaster, constructionPlane, model, editor.snaps);
+                    const { presentation, snappers } = Presentation.make(raycaster, viewport, model, editor.snaps);
                     this.model.activate(snappers);
 
                     helpers.clear();

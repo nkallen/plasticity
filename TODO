@@ -7,7 +7,6 @@ add dialogs for everything
 windows build
 
 rotate 90 degrees
-ortho view should not snap to faces, or it should snap to things but projected onto the construction plane
 
 ## POST ALPHA
 initiating rectangle command twice seems to screw things
