@@ -7,6 +7,7 @@ import Command from "../src/commands/Command";
 import { CancelOrFinish } from "../src/commands/CommandExecutor";
 import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorLike, Viewport } from "../src/components/viewport/Viewport";
+import { Orientation } from "../src/components/viewport/ViewportHelper";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { EditorOriginator } from "../src/editor/History";
@@ -106,15 +107,27 @@ test("navigation start & end restores selector state correctly", () => {
     expect(viewport.selector.enabled).toBe(false);
 });
 
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
 test("changing construction plane changes grid orientation", () => {
     const quat = new THREE.Quaternion();
 
-    expect(viewport.constructionPlane.n).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-    quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0));
+    expect(viewport.constructionPlane.n).toApproximatelyEqual(X);
+    quat.setFromUnitVectors(Y, X);
     expect(viewport.grid.quaternion.angleTo(quat)).toBeCloseTo(0)
 
-    viewport.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 1, 0));
+    viewport.constructionPlane = new PlaneSnap(Y);
 
-    quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 1, 0));
+    quat.setFromUnitVectors(Y, Y);
     expect(viewport.grid.quaternion.angleTo(quat)).toBeCloseTo(0)
+});
+
+test("navigate(to)", () => {
+    expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+    expect(viewport.camera.quaternion.dot(new THREE.Quaternion())).toBeCloseTo(1);
+    viewport.navigate(Orientation.posX);
+    expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+    expect(viewport.camera.quaternion.dot(new THREE.Quaternion().setFromUnitVectors(Z, X))).toBeCloseTo(1);
 });

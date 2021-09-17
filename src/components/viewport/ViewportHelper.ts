@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Pass } from "three/examples/jsm/postprocessing/Pass";
 
+export enum Orientation { posX, posY, posZ, negX, negY, negZ };
+
 export class ViewportNavigator extends THREE.Object3D {
     readonly camera = new THREE.OrthographicCamera(- 2, 2, 2, - 2, 0, 4);
     private readonly interactiveObjects: THREE.Object3D[];
@@ -35,17 +37,17 @@ export class ViewportNavigator extends THREE.Object3D {
         this.add(yAxis);
 
         const posXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1, 'X'));
-        posXAxisHelper.userData.type = 'posX';
+        posXAxisHelper.userData.type = Orientation.posX;
         const posYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2, 'Y'));
-        posYAxisHelper.userData.type = 'posY';
+        posYAxisHelper.userData.type = Orientation.posY;
         const posZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3, 'Z'));
-        posZAxisHelper.userData.type = 'posZ';
+        posZAxisHelper.userData.type = Orientation.posZ;
         const negXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1));
-        negXAxisHelper.userData.type = 'negX';
+        negXAxisHelper.userData.type = Orientation.negX;
         const negYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2));
-        negYAxisHelper.userData.type = 'negY';
+        negYAxisHelper.userData.type = Orientation.negY;
         const negZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3));
-        negZAxisHelper.userData.type = 'negZ';
+        negZAxisHelper.userData.type = Orientation.negZ;
 
         posXAxisHelper.position.x = 1;
         posYAxisHelper.position.y = 1;
@@ -109,32 +111,32 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly q2 = new THREE.Quaternion();
     private readonly dummy = new THREE.Object3D();
     private radius = 0;
-    prepareAnimationData(type: string): THREE.Vector3 {
+    prepareAnimationData(type: Orientation): THREE.Vector3 {
         const { targetPosition, targetQuaternion, controls, q1, q2, dummy } = this;
         const { object: viewportCamera, target } = controls;
 
         switch (type) {
-            case 'posX':
+            case Orientation.posX:
                 targetPosition.set(1, 0, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI * 0.5, 0));
                 break;
-            case 'posY':
+            case Orientation.posY:
                 targetPosition.set(0, 1, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(- Math.PI * 0.5, 0, 0));
                 break;
-            case 'posZ':
+            case Orientation.posZ:
                 targetPosition.set(0, 0, 1);
                 targetQuaternion.setFromEuler(new THREE.Euler());
                 break;
-            case 'negX':
+            case Orientation.negX:
                 targetPosition.set(- 1, 0, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, - Math.PI * 0.5, 0));
                 break;
-            case 'negY':
+            case Orientation.negY:
                 targetPosition.set(0, - 1, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(Math.PI * 0.5, 0, 0));
                 break;
-            case 'negZ':
+            case Orientation.negZ:
                 targetPosition.set(0, 0, - 1);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI, 0));
                 break;
@@ -150,7 +152,6 @@ export class ViewportNavigator extends THREE.Object3D {
         // q1.copy(dummy.quaternion);
 
         dummy.lookAt(targetPosition);
-        console.log(dummy.position, dummy.quaternion.normalize());
         q2.copy(dummy.quaternion);
 
         this.update();

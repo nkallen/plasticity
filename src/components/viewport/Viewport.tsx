@@ -19,7 +19,7 @@ import { Pane } from '../pane/Pane';
 import { GridHelper } from "./GridHelper";
 import { OutlinePass } from "./OutlinePass";
 
-import { ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
+import { Orientation, ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
 
 const near = 0.01;
 const far = 10000;
@@ -129,9 +129,9 @@ export class Viewport {
 
         this.disposable.add(
             this.editor.registry.add(this.domElement, {
-                'viewport:front': () => this.navigate('negY'),
-                'viewport:right': () => this.navigate('posX'),
-                'viewport:top': () => this.navigate('posZ'),
+                'viewport:front': () => this.navigate(Orientation.negY),
+                'viewport:right': () => this.navigate(Orientation.posX),
+                'viewport:top': () => this.navigate(Orientation.posZ),
             })
         );
 
@@ -349,10 +349,14 @@ export class Viewport {
         }
     }
 
-    private navigate(to: string) {
+    navigate(to: Orientation) {
         const n = this.navigator.prepareAnimationData(to);
         const constructionPlane = new PlaneSnap(n);
         this.constructionPlane = constructionPlane;
+    }
+
+    get isOrtho(): boolean {
+        return false;
     }
 }
 
