@@ -297,13 +297,21 @@ export class Viewport {
     private navigationStart() {
         this.navigationControls.addEventListener('change', this.navigationChange);
         this.navigationControls.addEventListener('end', this.navigationEnd);
-        this.navigationState = { tag: 'navigating', selectorEnabled: this.selector.enabled };
+        this.navigationState = { tag: 'navigating', selectorEnabled: this.selector.enabled, quaternion: this.camera.quaternion.clone() };
         this.selector.enabled = false;
         this.editor.signals.viewportActivated.dispatch(this);
     }
 
     private navigationChange() {
-        this.constructionPlane.update(this.camera);
+        switch (this.navigationState.tag) {
+            case 'navigating':
+                this.constructionPlane.update(this.camera);
+                if (!this.navigationState.quaternion.equals(this.camera.quaternion)) {
+                    this._isOrtho = false;
+                }
+                break;
+            default: throw new Error("invalid state");
+        }
     }
 
     private navigationEnd() {
@@ -353,14 +361,14 @@ export class Viewport {
         const n = this.navigator.prepareAnimationData(to);
         const constructionPlane = new PlaneSnap(n);
         this.constructionPlane = constructionPlane;
+        this._isOrtho = true;
     }
 
-    get isOrtho(): boolean {
-        return false;
-    }
+    private _isOrtho = false;
+    get isOrtho() { return this._isOrtho }
 }
 
-type NavigationState = { tag: 'none' } | { tag: 'navigating', selectorEnabled: boolean }
+type NavigationState = { tag: 'none' } | { tag: 'navigating', selectorEnabled: boolean, quaternion: THREE.Quaternion }
 
 export interface ViewportElement {
     readonly model: Viewport;
