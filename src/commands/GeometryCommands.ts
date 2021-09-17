@@ -941,6 +941,13 @@ export class DraftSolidCommand extends Command {
         draftSolid.pivot = point;
 
         const gizmo = new RotateGizmo(draftSolid, this.editor);
+
+        const bbox = new THREE.Box3();
+        for (const face of faces) bbox.expandByObject(face);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+        gizmo.position.copy(centroid);
+
         await gizmo.execute(params => {
             draftSolid.update();
         }, Mode.Persistent).resource(this);

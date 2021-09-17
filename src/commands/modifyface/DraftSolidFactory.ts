@@ -24,6 +24,7 @@ export class DraftSolidFactory extends GeometryFactory implements RotateParams {
         const { solid, faces, pivot, axis, angle, names } = this;
         const model = this.db.lookup(solid);
         const faces_ = faces.map(f => this.db.lookupTopologyItem(f));
+
         const placement = new c3d.Placement3D();
         placement.SetOrigin(point2point(pivot));
         if (axis.dot(new THREE.Vector3(1, 0, 0)) > 1e-6) {
