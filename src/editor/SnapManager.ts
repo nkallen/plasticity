@@ -5,15 +5,16 @@ import c3d from '../../build/Release/c3d.node';
 import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
 import { PointPicker } from "../commands/PointPicker";
 import { deunit, point2point, vec2vec } from "../util/Conversion";
+import { Helper, SimpleHelper } from "../util/Helpers";
 import { CircleGeometry, Redisposable, RefCounter } from "../util/Util";
 import { EditorSignals } from "./EditorSignals";
 import { DatabaseLike } from "./GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "./History";
 import * as visual from './VisualModel';
 
-const discGeometry = new THREE.CircleGeometry(0.03, 16);
+const discGeometry = new THREE.CircleGeometry(0.05, 16);
 const circleGeometry = new LineGeometry();
-circleGeometry.setPositions(CircleGeometry(0.05, 16));
+circleGeometry.setPositions(CircleGeometry(0.1, 16));
 
 export enum Layers {
     PointSnap,
@@ -28,7 +29,7 @@ export enum Layers {
 export interface SnapResult {
     snap: Snap;
     position: THREE.Vector3;
-    indicator: THREE.Object3D;
+    indicator: Helper;
 }
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
@@ -76,7 +77,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.update();
     }
 
-    nearby(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): THREE.Object3D[] {
+    nearby(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): Helper[] {
         if (!this.shouldSnap) return [];
         performance.mark('begin-nearby');
 
@@ -247,8 +248,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.update();
     }
 
-    private hoverIndicatorFor(intersection: THREE.Intersection): THREE.Object3D {
-        const disc = new THREE.Mesh(discGeometry, this.materials.black.hover.mesh);
+    private hoverIndicatorFor(intersection: THREE.Intersection): Helper {
+        const disc = new SimpleHelper(new THREE.Mesh(discGeometry, this.materials.black.hover.mesh));
 
         const snap = intersection.object.userData.snap as Snap;
         const { position, orientation } = snap.project(intersection);
@@ -257,8 +258,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         return disc;
     }
 
-    private snapIndicatorFor(intersection: THREE.Intersection): THREE.Object3D {
-        const circle = new Line2(circleGeometry, this.materials.black.line2);
+    private snapIndicatorFor(intersection: THREE.Intersection): Helper {
+        const circle = new SimpleHelper(new Line2(circleGeometry, this.materials.black.line2));
 
         const snap = intersection.object.userData.snap as Snap;
         const { position, orientation } = snap.project(intersection);

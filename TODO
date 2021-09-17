@@ -8,6 +8,7 @@ windows build
 
 point picker nearby targets aren't scaling like normal helpers
 active snaps when hovering or whatever
+rotate 90 degrees
 
 ## POST ALPHA
 initiating rectangle command twice seems to screw things

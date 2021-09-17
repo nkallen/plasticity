@@ -4,13 +4,13 @@ import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import LineFactory from "../src/commands/line/LineFactory";
-import { PointPicker } from "../src/commands/PointPicker";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, LineSnap, originSnap, OrRestriction, PlaneSnap, PointSnap, SnapManager } from '../src/editor/SnapManager';
 import * as visual from '../src/editor/VisualModel';
 import { point2point, vec2vec } from "../src/util/Conversion";
+import { Helper } from "../src/util/Helpers";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -132,7 +132,7 @@ describe("snap()", () => {
     beforeEach(() => {
         point = new THREE.Vector3(1, 0, 0);
         // Basically, say you intersect with everything
-        intersect.mockImplementation(as => as.map(a => {
+        intersect.mockImplementation(as => as.map((a: THREE.Object3D) => {
             return {
                 object: a,
                 point: point
@@ -209,7 +209,7 @@ describe("nearby()", () => {
     beforeEach(() => {
         point = new THREE.Vector3(1, 1, 1);
         // Basically, say you intersect with everything
-        intersect.mockImplementation(as => as.map(a => {
+        intersect.mockImplementation(as => as.map((a: THREE.Object3D) => {
             return {
                 object: a,
                 point: point
@@ -226,7 +226,7 @@ describe("nearby()", () => {
     test("restrictions", async () => {
         const pointSnap = new PointSnap(undefined, point);
         const [pick,] = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
-        expect(pick).toBeInstanceOf(THREE.Mesh);
+        expect(pick).toBeInstanceOf(Helper);
         expect(pick.position).toApproximatelyEqual(point)
     });
 
@@ -253,7 +253,7 @@ test("saveToMemento & restoreFromMemento", async () => {
     expect(snaps['snappers'].length).toBe(52);
     expect(snaps['nearbys'].length).toBe(31);
 
-    const memento = snaps.saveToMemento(new Map());
+    const memento = snaps.saveToMemento();
 
     db.removeItem(box);
 

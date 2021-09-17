@@ -9,7 +9,7 @@ import * as visual from "../editor/VisualModel";
 import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
 import { Helper, Helpers } from '../util/Helpers';
 
-const geometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
+const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
 interface EditorLike {
     db: DatabaseLike,
@@ -201,7 +201,7 @@ export class Presentation {
 }
 
 class PointTarget extends Helper {
-    private readonly mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial());
+    private readonly mesh = new THREE.Mesh(pointGeometry, new THREE.MeshStandardMaterial());
 
     constructor() {
         super();
