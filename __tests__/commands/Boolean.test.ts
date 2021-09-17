@@ -8,12 +8,12 @@ import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { PlaneSnap } from "../../src/editor/snaps/SnapManager";
 import * as visual from '../../src/editor/VisualModel';
 import { Cancel } from "../../src/util/Cancellable";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 import c3d from '../../build/Release/c3d.node';
+import { PlaneSnap } from "../../src/editor/snaps/Snap";
 
 let db: GeometryDatabase;
 let intersect: IntersectionFactory;

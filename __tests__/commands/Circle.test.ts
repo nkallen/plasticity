@@ -3,7 +3,7 @@ import { CenterCircleFactory, Mode, TwoPointCircleFactory } from "../../src/comm
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { PlaneSnap } from "../../src/editor/snaps/SnapManager";
+import { PlaneSnap } from "../../src/editor/snaps/Snap";
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';

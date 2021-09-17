@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EditorLike, Viewport } from '../src/components/viewport/Viewport';
-import { PlaneSnap } from '../src/editor/snaps/SnapManager';
+import { PlaneSnap } from '../src/editor/snaps/Snap';
 
 class FakeWebGLRenderer implements THREE.Renderer {
     constructor(readonly domElement = document.createElement("canvas")) { }

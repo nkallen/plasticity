@@ -4,7 +4,7 @@ import * as THREE from "three";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../editor/EditorSignals';
-import { PlaneSnap } from "../editor/snaps/SnapManager";
+import { PlaneSnap } from "../editor/snaps/Snap";
 import { Cancel, CancellablePromise } from "../util/Cancellable";
 import { Helper, Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";

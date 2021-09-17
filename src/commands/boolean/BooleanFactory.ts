@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride } from "../../editor/GeometryDatabase";
-import { PlaneSnap } from '../../editor/snaps/SnapManager';
+import { PlaneSnap } from "../../editor/snaps/Snap";
 import * as visual from '../../editor/VisualModel';
 import { curve3d2curve2d, point2point, vec2vec } from '../../util/Conversion';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";

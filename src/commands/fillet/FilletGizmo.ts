@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
-import { CurveEdgeSnap } from "../../editor/snaps/SnapManager";
+import { CurveEdgeSnap } from "../../editor/snaps/Snap";
 import { CancellablePromise } from "../../util/Cancellable";
 import { point2point, vec2vec } from "../../util/Conversion";
 import { EditorLike, Mode } from "../AbstractGizmo";

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { PlaneSnap } from "../../editor/snaps/SnapManager";
+import { PlaneSnap } from "../../editor/snaps/Snap";
 import { point2point } from "../../util/Conversion";
 import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';

@@ -1,7 +1,7 @@
 import { point2point, unit, vec2vec } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { PlaneSnap } from "../../editor/snaps/SnapManager";
+import { PlaneSnap } from "../../editor/snaps/Snap";
 import { GeometryFactory } from '../GeometryFactory';
 
 export enum Mode { Horizontal, Vertical }
