@@ -138,7 +138,7 @@ test("isOrtho", () => {
     expect(viewport.isOrtho).toBe(true);
 });
 
-test.only("navigation start & end turns off isOrtho", () => {
+test("navigation start & end turns off isOrtho", () => {
     expect(viewport.isOrtho).toBe(false);
     viewport.navigate(Orientation.posX);
     expect(viewport.isOrtho).toBe(true);
