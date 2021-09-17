@@ -65,7 +65,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
     onPointerEnter(intersector: Intersector) { }
     onPointerLeave(intersector: Intersector) { }
-    onKeyPress(cb: CB, text: string) {}
+    onKeyPress(cb: CB, text: string) { }
     abstract onPointerMove(cb: CB, intersector: Intersector, info: MovementInfo): void;
     abstract onPointerDown(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(cb: CB, intersect: Intersector, info: MovementInfo): void;
@@ -122,6 +122,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                         const pointer = AbstractGizmo.getPointer(domElement, lastEvent);
                         stateMachine.update(viewport, pointer);
                         stateMachine.command(fn, () => {
+                            domElement.ownerDocument.body.setAttribute("gizmo", this.title);
                             viewport.disableControls();
                             return addEventHandlers();
                         });
@@ -134,6 +135,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                     const pointer = AbstractGizmo.getPointer(domElement, event);
                     stateMachine.update(viewport, pointer);
                     stateMachine.pointerDown(() => {
+                        domElement.ownerDocument.body.setAttribute("gizmo", this.title);
                         viewport.disableControls();
                         return addEventHandlers();
                     });
@@ -153,6 +155,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                             disposables.dispose();
                             resolve();
                         }
+                        domElement.ownerDocument.body.removeAttribute('gizmo');
                         viewport.enableControls();
                     });
                 }
@@ -170,12 +173,15 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 domElement.addEventListener('pointerdown', onPointerDown);
                 domElement.addEventListener('pointermove', onPointerHover);
                 domElement.ownerDocument.addEventListener('keypress', onKeyPress);
-                disposables.add(new Disposable(() => viewport.enableControls()));
-                disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
-                disposables.add(new Disposable(() => domElement.removeEventListener('pointermove', onPointerHover)));
-                disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('keypress', onKeyPress)));
-                disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointerup', onPointerUp)));
-                disposables.add(new Disposable(() => domElement.ownerDocument.removeEventListener('pointermove', onPointerMove)));
+                disposables.add(new Disposable(() => {
+                    viewport.enableControls();
+                    domElement.removeEventListener('pointerdown', onPointerDown);
+                    domElement.removeEventListener('pointermove', onPointerHover);
+                    domElement.ownerDocument.removeEventListener('keypress', onKeyPress);
+                    domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+                    domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
+                    domElement.ownerDocument.body.removeAttribute('gizmo');
+                }));
                 this.editor.signals.gizmoChanged.dispatch();
             }
             const cancel = () => {
@@ -419,14 +425,12 @@ export class GizmoStateMachine<T> implements MovementInfo {
         if (!this.isEnabled) return;
 
         switch (this.state.tag) {
-            case 'dragging':
-                break;
             case 'command':
                 this.state.text += key;
                 this.gizmo.onKeyPress(this.cb, this.state.text);
                 this.signals.gizmoChanged.dispatch();
                 break;
-            default: throw new Error('invalid state: ' + this.state.tag);
+            default: break;
         }
     }
 

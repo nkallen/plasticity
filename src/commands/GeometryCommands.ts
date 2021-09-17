@@ -956,7 +956,6 @@ export class DraftSolidCommand extends Command {
     }
 }
 
-
 export class RemoveFaceCommand extends Command {
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selected.faces];

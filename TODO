@@ -6,9 +6,6 @@ add dialogs for everything
 
 windows build
 
-rotate 90 degrees
-when gizmos are active, commands should not be possible
-
 ## POST ALPHA
 should project onto construction plane in ortho view
 initiating rectangle command twice seems to screw things

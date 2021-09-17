@@ -118,6 +118,18 @@ export default {
     },
 
     "ispace-viewport": {
+        "escape": "command:abort",
+        "enter": "command:finish",
+        "mouse2": "command:finish",
+    },
+
+    "body:not([gizmo]) ispace-viewport": {
+        "1": "viewport:front",
+        "3": "viewport:right",
+        "7": "viewport:top",
+    },
+
+    "body:not([gizmo]) ispace-workspace": {
         "c": "command:center-circle",
         "g": "command:move",
         "r": "command:rotate",
@@ -135,19 +147,12 @@ export default {
         "backspace": "command:delete",
         "q": "command:rebuild",
 
-        "escape": "command:abort",
-        "enter": "command:finish",
-        "mouse2": "command:finish",
 
         "h": "command:hide-selected",
         "shift-h": "command:hide-unselected",
         "alt-h": "command:unhide-all",
 
         "shift-d": "command:duplicate",
-
-        "1": "viewport:front",
-        "3": "viewport:right",
-        "7": "viewport:top",
     },
 
     "ispace-workspace": {
