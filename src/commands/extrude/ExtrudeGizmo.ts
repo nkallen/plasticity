@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo, AbstractAxisGizmo, AngleGizmo, AxisHelper, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
+import { AbstractAxialScaleGizmo, AngleGizmo, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine } from "../MiniGizmos";
 import { ExtrudeParams } from "./ExtrudeFactory";
 
 export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {

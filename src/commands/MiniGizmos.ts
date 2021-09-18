@@ -102,7 +102,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 
 export class AngleGizmo extends CircularGizmo<number> {
     constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
-        super(name, editor, material ?? editor.gizmos.default, new MagnitudeStateMachine(0));
+        super(name, editor, material ?? editor.gizmos.white, new MagnitudeStateMachine(0));
     }
 
     onPointerDown(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) { }

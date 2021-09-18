@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, GizmoLike, Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
+import { MagnitudeGizmo } from "../fillet/FilletGizmo";
 import { AngleGizmo, LengthGizmo } from "../MiniGizmos";
 import { SpiralParams } from "./SpiralFactory";
 
@@ -10,31 +11,40 @@ const X = new THREE.Vector3(1, 0, 0);
 
 export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
     private readonly angleGizmo = new AngleGizmo("spiral:angle", this.editor);
-    private readonly lengthGizmo = new LengthGizmo("spiral:length", this.editor);
-    private readonly radiusGizmo = new LengthGizmo("spiral:radius", this.editor);
+    private readonly lengthGizmo = new MagnitudeGizmo("spiral:length", this.editor);
+    private readonly radiusGizmo = new MagnitudeGizmo("spiral:radius", this.editor);
 
-    execute(cb: (params: SpiralParams) => void, finishFast: Mode = Mode.None): CancellablePromise<void> {
+    protected prepare(mode: Mode) {
         const { angleGizmo, lengthGizmo, radiusGizmo, params } = this;
         const { p2, p1, angle, radius } = params;
 
         const axis = new THREE.Vector3().copy(p2).sub(p1);
-        axis.normalize();
-
+        
         lengthGizmo.position.copy(p1);
-        lengthGizmo.value = axis.length();
         const quat = new THREE.Quaternion();
+        lengthGizmo.value = 1;
+        axis.normalize();
         quat.setFromUnitVectors(Y, axis);
         lengthGizmo.quaternion.copy(quat);
+        lengthGizmo.relativeScale.setScalar(0.8);
 
         radiusGizmo.position.copy(p1);
         quat.setFromUnitVectors(X, axis);
         radiusGizmo.quaternion.copy(quat);
-        radiusGizmo.value = params.radius;
+        radiusGizmo.relativeScale.setScalar(0.8);
+        radiusGizmo.value = radius;
 
         lengthGizmo.tip.add(angleGizmo);
-        angleGizmo.scale.setScalar(radius);
+        angleGizmo.relativeScale.setScalar(0.3);
 
         this.add(lengthGizmo, radiusGizmo);
+    }
+
+    execute(cb: (params: SpiralParams) => void, finishFast: Mode = Mode.None): CancellablePromise<void> {
+        const { angleGizmo, lengthGizmo, radiusGizmo, params } = this;
+        const { p2, p1 } = params;
+
+        const axis = new THREE.Vector3().copy(p2).sub(p1);
 
         this.addGizmo(angleGizmo, angle => {
             params.angle = angle;
@@ -47,7 +57,6 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
         });
         this.addGizmo(radiusGizmo, radius => {
             params.radius = radius;
-            angleGizmo.scale.setScalar(radius);
             cb(params);
         });
 

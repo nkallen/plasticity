@@ -1,6 +1,8 @@
 # PRE ALPHA:
 
 stress test undo & redo
+fillet curve arrow in wrong place
+trying to extrude a region in ortho view spews errors
 
 add dialogs for everything
 
