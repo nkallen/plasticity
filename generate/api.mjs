@@ -1063,6 +1063,15 @@ export default {
                 "bool closed",
             ]
         },
+        EvolutionValues: {
+            extends: "SweptValues",
+            dependencies: ["_SweptValues.h"],
+            cppClassName: "_EvolutionValues",
+            rawClassName: "EvolutionValues",
+            jsClassName: "EvolutionValues",
+            rawHeader: "op_swept_parameter.h",
+            initializers: [""],
+        },
         SweptSide: {
             isPOD: true,
             rawHeader: "op_swept_parameter.h",
@@ -1084,6 +1093,15 @@ export default {
                 "MbSweptSide side1",
                 "MbSweptSide side2"
             ]
+        },
+        RevolutionValues: {
+            rawHeader: "op_swept_parameter.h",
+            extends: "SweptValuesAndSides",
+            dependencies: ["_SweptValuesAndSides.h"],
+            cppClassName: "_RevolutionValues",
+            rawClassName: "RevolutionValues",
+            jsClassName: "RevolutionValues",
+            initializers: [""],
         },
         ExtrusionValues: {
             isPOD: true,
@@ -1431,7 +1449,7 @@ export default {
         },
         ActionSolid: {
             rawHeader: "action_solid.h",
-            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h", "ShellCuttingParams.h", "_SweptValues.h"],
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h", "ShellCuttingParams.h", "_SweptValues.h", "_RevolutionValues.h", "_EvolutionValues.h"],
             functions: [
                 "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
                 // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
@@ -1448,7 +1466,9 @@ export default {
                 "MbResultType ExtrusionResult(MbSolid & solid, MbeCopyMode sameShell, const MbSweptData & sweptData, const MbVector3D & direction, const ExtrusionValues & params, OperationType oType, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)",
                 "MbResultType SymmetrySolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & place, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType MirrorSolid(const MbSolid & solid, const MbPlacement3D & place, const MbSNameMaker & names, MbSolid *& result)",
-                "MbResultType ThinSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbFace> & outFaces, RPArray<MbFace> & offFaces, SArray<double> & offDists, SweptValues & params, const MbSNameMaker & names, bool copyFaceAttrs, MbSolid *& result)"
+                "MbResultType ThinSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbFace> & outFaces, RPArray<MbFace> & offFaces, SArray<double> & offDists, SweptValues & params, const MbSNameMaker & names, bool copyFaceAttrs, MbSolid *& result)",
+                "MbResultType RevolutionSolid(const MbSweptData & sweptData, const MbAxis3D & axis, const RevolutionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)",
+                "MbResultType EvolutionSolid(const MbSweptData & sweptData, const MbCurve3D & spine, const EvolutionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, const MbSNameMaker & spineNames, MbSolid *& result)",
             ]
 
         },
