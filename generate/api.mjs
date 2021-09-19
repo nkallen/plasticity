@@ -1039,11 +1039,12 @@ export default {
             ]
         },
         SweptValues: {
-            isPOD: true,
+            // isPOD: true,
             rawHeader: "op_swept_parameter.h",
             cppClassName: "_SweptValues",
             rawClassName: "SweptValues",
             jsClassName: "SweptValues",
+            initializers: [""],
             fields: [
                 "double thickness1",
                 "double thickness2",
@@ -1430,7 +1431,7 @@ export default {
         },
         ActionSolid: {
             rawHeader: "action_solid.h",
-            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h", "ShellCuttingParams.h"],
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h", "ShellCuttingParams.h", "_SweptValues.h"],
             functions: [
                 "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
                 // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
@@ -1447,6 +1448,7 @@ export default {
                 "MbResultType ExtrusionResult(MbSolid & solid, MbeCopyMode sameShell, const MbSweptData & sweptData, const MbVector3D & direction, const ExtrusionValues & params, OperationType oType, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)",
                 "MbResultType SymmetrySolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & place, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType MirrorSolid(const MbSolid & solid, const MbPlacement3D & place, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType ThinSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbFace> & outFaces, RPArray<MbFace> & offFaces, SArray<double> & offDists, SweptValues & params, const MbSNameMaker & names, bool copyFaceAttrs, MbSolid *& result)"
             ]
 
         },

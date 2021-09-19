@@ -38,6 +38,7 @@ export class Model {
         }
         if (selection.faces.size > 0) {
             result.push(cmd.OffsetFaceCommand);
+            result.push(cmd.ThinSolidCommand);
             result.push(cmd.DraftSolidCommand);
             result.push(cmd.OffsetLoopCommand);
             result.push(cmd.ExtrudeCommand);

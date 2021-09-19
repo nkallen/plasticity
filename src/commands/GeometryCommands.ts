@@ -1222,6 +1222,7 @@ export class FilletCurveCommand extends Command {
         await factory.setControlPoints(controlPoints);
 
         const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
+        gizmo.relativeScale.setScalar(0.8);
 
         const cornerAngle = factory.cornerAngle;
         if (cornerAngle === undefined) return;
@@ -1229,6 +1230,7 @@ export class FilletCurveCommand extends Command {
         const quat = new THREE.Quaternion();
         quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), cornerAngle.tau.cross(cornerAngle.axis));
         gizmo.quaternion.copy(quat);
+        gizmo.position.copy(cornerAngle.origin);
 
         await gizmo.execute(d => {
             factory.radius = d;
@@ -1340,15 +1342,39 @@ export class MultilineCommand extends Command {
         const curve = this.editor.selection.selected.curves.first;
         const factory = new MultilineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         factory.curve = curve;
-        
+
         const dialog = new MultilineDialog(factory, this.editor.signals);
-        
+
         await factory.update();
         await dialog.execute(params => {
             factory.update();
         }).resource(this);
 
         await factory.commit();
+    }
+}
+
+export class ThinSolidCommand extends Command {
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selected.faces];
+        const solid = faces[0].parentItem;
+
+        const faces_ = faces.map(face => this.editor.db.lookupTopologyItem(face));
+        const solid_ = this.editor.db.lookup(solid);
+
+        let params = new c3d.SweptValues();
+        params.thickness1 = 0;
+        params.thickness2 = 0;
+        params.shellClosed = false;
+        const names = new c3d.SNameMaker(c3d.CreatorType.ThinShellCreator, c3d.ESides.SideNone, 0);
+        let result = c3d.ActionSolid.ThinSolid(solid_, c3d.CopyMode.Copy, faces_, [], [], params, names, true);
+
+        params = new c3d.SweptValues();
+        params.thickness1 = 30;
+        params.shellClosed = true;
+        result = c3d.ActionSolid.ThinSolid(result, c3d.CopyMode.Copy, faces_, [], [], params, names, true);
+
+        this.editor.db.addItem(result);
     }
 }
 

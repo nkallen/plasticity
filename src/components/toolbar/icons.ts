@@ -88,6 +88,7 @@ icons.set(cmd.OffsetLoopCommand, line);
 icons.set(cmd.SymmetryCommand, mirror);
 icons.set(cmd.BridgeCurvesCommand, mirror);
 icons.set(cmd.MultilineCommand, line);
+icons.set(cmd.ThinSolidCommand, line);
 
 icons.set(c3d.ElementarySolid, box);
 icons.set(c3d.FilletSolid, fillet);
@@ -150,6 +151,7 @@ tooltips.set(cmd.OffsetLoopCommand, "Offset Loop");
 tooltips.set(cmd.SymmetryCommand, "Mirror solid");
 tooltips.set(cmd.BridgeCurvesCommand, "Bridge two curves");
 tooltips.set(cmd.MultilineCommand, "Add stroke to curve");
+tooltips.set(cmd.ThinSolidCommand, "Thin Solid");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
