@@ -57,10 +57,10 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
 
         // NOTE: structs are always copy-on-read because of memory boundary issues, so you need to do this convoluted
         // assignment for nested structs.
-        const side1 = params.side1;
+        const {side1, side2} = params;
         side1.rake = race1;
         params.side1 = side1;
-        const side2 = params.side2;
+
         side2.rake = race2;
         params.side2 = side2;
         params.thickness1 = unit(thickness1);

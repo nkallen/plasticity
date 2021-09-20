@@ -1076,6 +1076,7 @@ export default {
             isPOD: true,
             rawHeader: "op_swept_parameter.h",
             fields: [
+                "MbSweptWay way",
                 "double rake",
                 "double distance",
                 "double scalarValue",
@@ -1102,6 +1103,9 @@ export default {
             rawClassName: "RevolutionValues",
             jsClassName: "RevolutionValues",
             initializers: [""],
+            fields: [
+                "int shape",
+            ],
         },
         ExtrusionValues: {
             isPOD: true,
@@ -1651,6 +1655,7 @@ export default {
         "MbeSenseValue",
         "MbeRefType",
         "MbeConvResType",
-        "EnMLTipType"
+        "EnMLTipType",
+        "MbSweptWay",
     ]
 }

@@ -26,6 +26,7 @@ import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
+import RevolutionFactory from "./evolution/RevolutionFactory";
 import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
@@ -113,7 +114,8 @@ export class CenterCircleCommand extends Command {
             circle.update();
         }).resource(this);
 
-        await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -1377,5 +1379,28 @@ export class ThinSolidCommand extends Command {
         this.editor.db.addItem(result);
     }
 }
+
+export class RevolutionCommand extends Command {
+    async execute(): Promise<void> {
+        const curves = [...this.editor.selection.selected.curves];
+        const revolution = new RevolutionFactory(this.editor.db, this.editor.materials, this.editor.signals);
+
+        revolution.curves = curves;
+        revolution.thickness1 = 0;
+        revolution.thickness2 = 0;
+
+        const pointPicker = new PointPicker(this.editor);
+        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
+        revolution.origin = p1;
+
+        await pointPicker.execute(({ point: p2 }) => {
+            revolution.axis = p2.clone().sub(p1);
+            revolution.update();
+        }).resource(this);
+
+        await revolution.commit();
+    }
+}
+
 
 module.hot?.accept();

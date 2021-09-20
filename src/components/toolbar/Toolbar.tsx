@@ -68,6 +68,7 @@ export class Model {
         }
         if (selection.curves.size > 0) {
             result.push(cmd.ExtrudeCommand);
+            result.push(cmd.RevolutionCommand);
             result.push(cmd.MirrorCommand);
             result.push(cmd.FilletCurveCommand);
             result.push(cmd.MultilineCommand);

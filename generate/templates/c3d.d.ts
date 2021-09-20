@@ -484,5 +484,11 @@ declare module "*c3d.node" {
         ObliqueTip,  ///< \ru Наклонная законцовка. \en Inclined tip. 
         // \ru ДОБАВЛЕНИЕ ТОЛЬКО В КОНЕЦ!!! \en ADDITION ONLY TO THE END!!! 
       };     
+
+      declare enum SweptWay {
+        scalarValue = -2, ///< \ru Выдавить на заданную глубину / вращать на заданный угол. \en Extrude to a given depth / rotate by a given angle.
+        shell       = -1, ///< \ru До ближайшего объекта (тела). \en To the nearest object (solid).
+        surface     =  0, ///< \ru До поверхности. \en To the surface.
+      };
     
 }
