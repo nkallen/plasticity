@@ -1,7 +1,6 @@
 # PRE ALPHA:
 
 stress test undo & redo
-construction plane should reset to normal when leaving ortho view
 some bugs with move screenspace sometimes, it flickers?
 
 add dialogs for everything

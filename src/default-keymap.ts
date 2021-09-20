@@ -153,10 +153,9 @@ export default {
         "alt-h": "command:unhide-all",
 
         "shift-d": "command:duplicate",
-    },
 
-    "ispace-workspace": {
         "cmd-z": "undo",
         "cmd-shift-z": "redo",
-    }
+    },
+
 }
