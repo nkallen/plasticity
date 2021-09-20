@@ -226,6 +226,9 @@ export class PointPicker {
             const disposables = new CompositeDisposable();
             const { helper: pointTarget, editor, model } = this;
 
+            document.body.setAttribute("gizmo", "point-picker");
+            disposables.add(new Disposable(() => document.body.removeAttribute('gizmo')));
+
             const raycaster = new THREE.Raycaster();
             raycaster.params.Line = { threshold: 0.1 };
             // @ts-expect-error("Line2 is missing from the typedef")

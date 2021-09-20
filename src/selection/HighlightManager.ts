@@ -20,6 +20,7 @@ export class HighlightManager {
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
         signals.commandEnded.add(() => this.highlight());
         signals.modifiersLoaded.add(() => this.highlight());
+        signals.historyChanged.add(() => this.highlight());
         signals.objectHovered.add(selectable => this.hover(selectable));
         signals.objectUnhovered.add(selectable => this.unhover(selectable));
     }

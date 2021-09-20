@@ -6,10 +6,11 @@ some bugs with move screenspace sometimes, it flickers?
 add dialogs for everything
 
 windows build
+line undo not working
 
 ## POST ALPHA
 should project onto construction plane in ortho view
-initiating rectangle command twice seems to screw things
+initiating rectangle command twice seems to screw things (clicking on the button does a click and queues the next command)
 min and max in number srubber should be respected
 
 performance audit hit testing and snaps

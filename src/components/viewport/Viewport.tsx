@@ -257,7 +257,7 @@ export class Viewport {
         const toOutline = [...selection].flatMap(item => item.outline);
         this.outlinePassSelection.selectedObjects = toOutline;
     }
-1   
+
     outlineHover() {
         const hover = this.editor.highlighter.outlineHover;
         const toOutline = [...hover].flatMap(item => item.outline);

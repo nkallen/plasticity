@@ -111,19 +111,6 @@ const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
-test("changing construction plane changes grid orientation", () => {
-    const quat = new THREE.Quaternion();
-
-    expect(viewport.constructionPlane.n).toApproximatelyEqual(X);
-    quat.setFromUnitVectors(Y, X);
-    expect(viewport.grid.quaternion.angleTo(quat)).toBeCloseTo(0)
-
-    viewport.constructionPlane = new PlaneSnap(Y);
-
-    quat.setFromUnitVectors(Y, Y);
-    expect(viewport.grid.quaternion.angleTo(quat)).toBeCloseTo(0)
-});
-
 test("navigate(to)", () => {
     expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
     expect(viewport.camera.quaternion.dot(new THREE.Quaternion())).toBeCloseTo(1);
