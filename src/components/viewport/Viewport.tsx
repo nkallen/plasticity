@@ -24,6 +24,11 @@ import { Orientation, ViewportNavigator, ViewportNavigatorPass } from "./Viewpor
 const near = 0.01;
 const far = 10000;
 const frustumSize = 20;
+const gridColor = new THREE.Color(0x666666).convertGammaToLinear();
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+const backgroundColor = new THREE.Color(0x424242).convertGammaToLinear();
 
 export interface EditorLike extends selector.EditorLike {
     db: DatabaseLike,
@@ -51,6 +56,8 @@ export class Viewport {
 
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
 
+    private grid = new GridHelper(300, 300, gridColor, gridColor);
+
     constructor(
         private readonly editor: EditorLike,
         readonly renderer: THREE.WebGLRenderer,
@@ -58,7 +65,6 @@ export class Viewport {
         readonly camera: THREE.Camera,
         constructionPlane: PlaneSnap,
         readonly navigationControls: OrbitControls,
-        readonly grid: GridHelper,
     ) {
         this.constructionPlane = constructionPlane;
         const rendererDomElement = this.renderer.domElement;
@@ -140,7 +146,7 @@ export class Viewport {
             this.navigationControls.dispose();
         }));
 
-        this.scene.background = new THREE.Color(0x424242).convertGammaToLinear();
+        this.scene.background = backgroundColor;
     }
 
     private started = false;
@@ -212,18 +218,18 @@ export class Viewport {
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 
-        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, grid, composer, camera, lastFrameNumber, offsetWidth, offsetHeight, phantomsPass, helpersPass } = this
+        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, offsetWidth, offsetHeight, phantomsPass, helpersPass, grid, constructionPlane } = this
 
         try {
             // prepare the scene, once per frame:
             if (frameNumber > lastFrameNumber) {
                 db.rebuildScene();
-                scene.add(helpers.axes);
                 scene.add(db.scene);
-                if (grid) {
-                    scene.add(grid);
-                    grid.update(camera);
-                }
+                grid.quaternion.setFromUnitVectors(Y, constructionPlane.n);
+                grid.update(camera);
+                scene.add(helpers.axes);
+                scene.add(grid);
+
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
                 phantomsPass.enabled = db.phantomObjects.children.length > 0;
@@ -251,7 +257,7 @@ export class Viewport {
         const toOutline = [...selection].flatMap(item => item.outline);
         this.outlinePassSelection.selectedObjects = toOutline;
     }
-
+1   
     outlineHover() {
         const hover = this.editor.highlighter.outlineHover;
         const toOutline = [...hover].flatMap(item => item.outline);
@@ -305,10 +311,11 @@ export class Viewport {
     private navigationChange() {
         switch (this.navigationState.tag) {
             case 'navigating':
-                this.constructionPlane.update(this.camera);
                 if (!this.navigationState.quaternion.equals(this.camera.quaternion)) {
                     this._isOrtho = false;
+                    this.constructionPlane = new PlaneSnap(Z);
                 }
+                this.constructionPlane.update(this.camera);
                 break;
             default: throw new Error("invalid state");
         }
@@ -340,13 +347,7 @@ export class Viewport {
     get constructionPlane() { return this._constructionPlane }
     set constructionPlane(plane: PlaneSnap) {
         this._constructionPlane = plane;
-        this.grid.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), plane.n);
         this.setNeedsRender();
-        if (this.constructionPlane instanceof CameraPlaneSnap) {
-            this.grid.visible = false;
-        } else {
-            this.grid.visible = true;
-        }
     }
 
     toggleConstructionPlane() {
@@ -383,9 +384,6 @@ export default (editor: EditorLike) => {
 
             const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
 
-            const gridColor = new THREE.Color(0x666666).convertGammaToLinear();
-            const grid = new GridHelper(300, 300, gridColor, gridColor);
-
             this.append(renderer.domElement);
 
             const view = this.getAttribute("view");
@@ -400,24 +398,24 @@ export default (editor: EditorLike) => {
                 case "3d":
                     camera = orthographicCamera;
                     camera.position.set(100, -100, 100);
-                    n = new THREE.Vector3(0, 0, 1);
+                    n = Z;
                     enableRotate = true;
                     break;
                 case "top":
                     camera = orthographicCamera;
                     camera.position.set(0, 0, 10);
-                    n = new THREE.Vector3(0, 0, 1);
+                    n = Z;
                     break;
                 case "right":
                     camera = orthographicCamera;
                     camera.position.set(10, 0, 0);
-                    n = new THREE.Vector3(1, 0, 0);
+                    n = X;
                     break;
                 case "front":
                 default:
                     camera = orthographicCamera;
                     camera.position.set(0, 10, 0);
-                    n = new THREE.Vector3(0, 1, 0);
+                    n = Y;
                     break;
             }
             camera.layers = visual.VisibleLayers;
@@ -444,7 +442,6 @@ export default (editor: EditorLike) => {
                 camera,
                 constructionPlane,
                 navigationControls,
-                grid,
             );
 
             this.resize = this.resize.bind(this);

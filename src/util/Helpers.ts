@@ -1,5 +1,5 @@
-import { EditorSignals } from '../editor/EditorSignals';
 import * as THREE from 'three';
+import { EditorSignals } from '../editor/EditorSignals';
 import * as visual from "../editor/VisualModel";
 
 // Helpers are little visualization tools like gizmos that should
@@ -66,6 +66,9 @@ export class Helpers {
         const axes = new THREE.AxesHelper(10_000);
         axes.layers.set(visual.Layers.Overlay);
         this.axes = axes;
+        axes.renderOrder = -1;
+        const material = axes.material as THREE.Material;
+        material.transparent = true;
     }
 
     add(...objects: THREE.Object3D[]) {

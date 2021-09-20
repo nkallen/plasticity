@@ -592,9 +592,9 @@ export class Curve3DBuilder {
 }
 
 const RenderOrder = {
-    CurveEdge: 10,
-    Face: 1,
-    CurveSegment: 1,
+    CurveEdge: 11,
+    Face: 10,
+    CurveSegment: 10,
 }
 
 export enum Layers {
