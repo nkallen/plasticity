@@ -288,6 +288,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         (this.faces as SnapManager['faces']) = m.faces;
         (this.edges as SnapManager['edges']) = m.edges;
         (this.curves as SnapManager['curves']) = m.curves;
+        (this.garbageDisposal as SnapManager['garbageDisposal']) = m.garbageDisposal;
         (this.begPoints as SnapManager['begPoints']) = m.begPoints;
         (this.midPoints as SnapManager['midPoints']) = m.midPoints;
         (this.endPoints as SnapManager['endPoints']) = m.endPoints;

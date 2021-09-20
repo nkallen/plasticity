@@ -1,7 +1,6 @@
 # PRE ALPHA:
 
 stress test undo & redo
-snap points don't seem to clear even when deleting some objects... maybe has to do with duplication
 construction plane should reset to normal when leaving ortho view
 some bugs with move screenspace sometimes, it flickers?
 
