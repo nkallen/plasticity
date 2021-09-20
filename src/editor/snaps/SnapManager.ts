@@ -299,6 +299,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     serialize(): Promise<Buffer> {
         throw new Error("Method not implemented.");
     }
+    
     deserialize(data: Buffer): Promise<void> {
         throw new Error("Method not implemented.");
     }
@@ -307,6 +308,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     debug() {
+        console.group("Snaps");
+        console.groupEnd();
     }
 }
 

@@ -289,6 +289,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
 
     restoreFromMemento(m: CurveMemento) {
         (this.curve2info as PlanarCurveDatabase['curve2info']) = m.curve2info;
+        (this.id2planarCurve as PlanarCurveDatabase['id2planarCurve']) = m.id2planarCurve;
         (this.placements as PlanarCurveDatabase['placements']) = m.placements;
     }
 

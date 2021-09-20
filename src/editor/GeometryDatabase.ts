@@ -511,6 +511,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         (this.topologyModel as GeometryDatabase['topologyModel']) = m.topologyModel;
         (this.controlPointModel as GeometryDatabase['controlPointModel']) = m.controlPointModel;
         (this.hidden as GeometryDatabase['hidden']) = m.hidden;
+        (this.automatics as GeometryDatabase['automatics']) = m.automatics;
     }
 
     async serialize(): Promise<Buffer> {
