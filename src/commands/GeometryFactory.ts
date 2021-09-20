@@ -73,9 +73,16 @@ export abstract class AbstractGeometryFactory extends ResourceRegistration {
             i.visible = true;
 
         // 1. Asynchronously compute the geometry (and the phantom if there is one)
-        performance.mark('begin-factory-calculate');
-        const result = await this.calculate(options);
-        performance.measure('factory-calculate', 'begin-factory-calculate');
+        let result;
+        try {
+            performance.mark('begin-factory-calculate');
+            result = await this.calculate(options);
+        } catch (e) {
+            for (const temp of this.temps) temp.cancel();
+            throw e;
+        } finally {
+            performance.measure('factory-calculate', 'begin-factory-calculate');
+        }
         if (this.state.tag === 'cancelled' || this.state.tag === 'committed') return Promise.resolve([]);
 
         // 2. Asynchronously compute the mesh for temporary items.

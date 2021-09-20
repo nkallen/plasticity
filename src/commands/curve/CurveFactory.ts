@@ -80,8 +80,13 @@ export class CurveWithPreviewFactory extends GeometryFactory {
     }
 
     undo() {
-        this.underlying.points.pop();
-        this.preview.points.pop();
+        const { underlying, preview } = this;
+
+        const last = preview.points.pop()!;
+        preview.points.pop();
+        preview.points.push(last);
+
+        underlying.points.pop();
     }
 
     get canBeClosed() {
@@ -104,9 +109,9 @@ export class CurveWithPreviewFactory extends GeometryFactory {
         this.preview.push(p.clone());
     }
 
-    doUpdate() {
-        if (this.preview.hasEnoughPoints) this.preview.update();
-        if (this.underlying.hasEnoughPoints) this.underlying.update();
+    async doUpdate() {
+        const promises = [this.preview.update(), this.underlying.update()];
+        await Promise.all(promises);
         return Promise.resolve([]);
     }
 

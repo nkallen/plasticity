@@ -194,7 +194,7 @@ describe(ContourFilletFactory, () => {
         const bbox = new THREE.Box3().setFromObject(filleted);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0.499, 0.5, 0));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.5, 0));
 
         expect(db.visibleObjects.length).toBe(1);
     });
@@ -324,7 +324,7 @@ describe(PolylineFilletFactory, () => {
         const bbox = new THREE.Box3().setFromObject(filletted);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
+        expect(center).toApproximatelyEqual(new THREE.Vector3(2, -0.035, 0));
 
         expect(db.visibleObjects.length).toBe(1);
     })
@@ -414,7 +414,7 @@ describe(JointOrPolylineOrContourFilletFactory, () => {
         expect(db.visibleObjects.length).toBe(1);
     });
 
-    test.only("when given just a curve", async () => {
+    test("when given just a curve", async () => {
         await curveFillet.setCurve(contour);
         curveFillet.radius = 0.1;
         const filletteds = await curveFillet.commit() as visual.SpaceInstance<visual.Curve3D>[];

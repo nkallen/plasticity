@@ -78,5 +78,38 @@ describe(CurveWithPreviewFactory, () => {
         expect(makeCurve.wouldBeClosed(p2)).toBe(true);
         makeCurve.closed = true;
         await makeCurve.update();
+    });
+
+    test.only('undo', async () => {
+        const p1 = new THREE.Vector3(-1, -1, -1);
+        const p2 = new THREE.Vector3(1, 1, 1);
+        const p3 = new THREE.Vector3(1, 2, 3);
+        const p4 = new THREE.Vector3(3, 2, 3);
+
+        makeCurve.push(p1);
+        await makeCurve.update();
+        makeCurve.push(p2);
+        await makeCurve.update();
+
+        expect(makeCurve.preview.points).toEqual([p1, p2, p2]);
+        expect(makeCurve.underlying.points).toEqual([p1, p2]);
+
+        expect(db.temporaryObjects.children.length).toBe(2);
+
+        makeCurve.undo();
+        await makeCurve.update();
+
+        expect(makeCurve.preview.points).toEqual([p1, p2]);
+        expect(makeCurve.underlying.points).toEqual([p1]);
+
+        expect(db.temporaryObjects.children.length).toBe(1);
+
+        makeCurve.undo();
+        await makeCurve.update();
+
+        expect(makeCurve.preview.points).toEqual([p2]);
+        expect(makeCurve.underlying.points).toEqual([]);
+
+        expect(db.temporaryObjects.children.length).toBe(0);
     })
 })
