@@ -1,17 +1,17 @@
 # PRE ALPHA:
 
 stress test undo & redo
-some bugs with move screenspace sometimes, it flickers?
 
 add dialogs for everything
 
 windows build
 
 switching commands in multi-step commands has problems
-
-- try switching commands while doing 3 point box
+finish revolve
 
 ## POST ALPHA
+some bugs with move screenspace sometimes, it flickers?
+- try switching commands while doing 3 point box
 should project onto construction plane in ortho view
 min and max in number srubber should be respected
 

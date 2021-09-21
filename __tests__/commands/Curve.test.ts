@@ -80,7 +80,7 @@ describe(CurveWithPreviewFactory, () => {
         await makeCurve.update();
     });
 
-    test.only('undo', async () => {
+    test('undo', async () => {
         const p1 = new THREE.Vector3(-1, -1, -1);
         const p2 = new THREE.Vector3(1, 1, 1);
         const p3 = new THREE.Vector3(1, 2, 3);

@@ -20,6 +20,11 @@ export default {
         "r": "gizmo:spiral:radius",
     },
 
+    "[command='revolution'] ispace-viewport": {
+        "a": "gizmo:revolution:angle",
+        "t": "gizmo:revolution:thickness",
+    },
+
     "[command='box'] ispace-viewport": {
         "q": "gizmo:box:union",
         "w": "gizmo:box:difference",

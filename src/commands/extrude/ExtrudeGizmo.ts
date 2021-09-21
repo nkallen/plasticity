@@ -42,7 +42,7 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
     }
 }
 
-class MagnitudeGizmo extends AbstractAxialScaleGizmo {
+export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
     readonly state = new MagnitudeStateMachine(0);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(boxGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);

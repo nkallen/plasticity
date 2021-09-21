@@ -78,7 +78,7 @@ export abstract class AbstractGeometryFactory extends ResourceRegistration {
             performance.mark('begin-factory-calculate');
             result = await this.calculate(options);
         } catch (e) {
-            for (const temp of this.temps) temp.cancel();
+            if (e instanceof ValidationError) for (const temp of this.temps) temp.cancel();
             throw e;
         } finally {
             performance.measure('factory-calculate', 'begin-factory-calculate');

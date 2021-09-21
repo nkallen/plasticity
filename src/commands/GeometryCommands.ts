@@ -26,7 +26,9 @@ import OffsetContourFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
+import { RevolutionDialog } from "./evolution/RevolutionDialog";
 import RevolutionFactory from "./evolution/RevolutionFactory";
+import { RevolutionGizmo } from "./evolution/RevolutionGizmo";
 import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
@@ -1386,11 +1388,9 @@ export class RevolutionCommand extends Command {
         const revolution = new RevolutionFactory(this.editor.db, this.editor.materials, this.editor.signals);
 
         revolution.curves = curves;
-        revolution.thickness1 = 0;
-        revolution.thickness2 = 0;
 
         const pointPicker = new PointPicker(this.editor);
-        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
+        const { point: p1 } = await pointPicker.execute().resource(this);
         revolution.origin = p1;
 
         await pointPicker.execute(({ point: p2 }) => {
@@ -1398,7 +1398,23 @@ export class RevolutionCommand extends Command {
             revolution.update();
         }).resource(this);
 
-        await revolution.commit();
+        const dialog = new RevolutionDialog(revolution, this.editor.signals);
+        const gizmo = new RevolutionGizmo(revolution, this.editor);
+
+        dialog.execute(async params => {
+            await revolution.update();
+            gizmo.render(params);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        gizmo.execute(params => {
+            revolution.update();
+            dialog.render();
+        }).resource(this);
+
+        await this.finished;
+
+        const revolved = await revolution.commit();
+        this.editor.selection.selected.add(revolved);
     }
 }
 

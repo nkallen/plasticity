@@ -4,14 +4,25 @@ import * as visual from '../../editor/VisualModel';
 import { point2point, unit, vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 
-export default class RevolutionFactory extends GeometryFactory {
+export interface RevolutionParams {
+    origin: THREE.Vector3;
+    axis: THREE.Vector3;
+
+    thickness: number;
+    thickness1: number;
+    thickness2: number;
+    side1: number;
+    side2: number;
+}
+
+export default class RevolutionFactory extends GeometryFactory implements RevolutionParams {
     origin!: THREE.Vector3;
     axis!: THREE.Vector3;
 
     thickness1 = 0;
     thickness2 = 0;
     set thickness(thickness: number) {
-        this.thickness1 = this.thickness2 = thickness;
+        this.thickness1 = this.thickness2 = Math.max(0, thickness);
     }
 
     side1 = Math.PI;
