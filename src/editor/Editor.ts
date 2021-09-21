@@ -165,6 +165,10 @@ export class Editor {
         this.executor.enqueueDefaultCommand();
     }
 
+    debug() {
+        this.originator.debug();
+        this.executor.debug();
+    }
 }
 
 export class HotReloadingEditor extends Editor {

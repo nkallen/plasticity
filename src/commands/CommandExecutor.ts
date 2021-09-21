@@ -109,4 +109,11 @@ export class CommandExecutor {
         const command = this.editor.selectionGizmo.commandFor();
         if (command) await this.enqueue(command);
     }
+
+    debug() {
+        console.group("Debug")
+        console.info("Active: ", this.active);
+        console.info("Command: ", this.next);
+        console.groupEnd();
+    }
 }

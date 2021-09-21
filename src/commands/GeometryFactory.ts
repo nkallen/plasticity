@@ -267,13 +267,16 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
     private async revertToLastSuccess() {
         switch (this.state.tag) {
             case 'failed':
+                const e = this.state.error;
+                if (e instanceof ValidationError || e.isC3dError) {
+                    console.warn(`${this.constructor.name}: ${e.message}`);
+                }
+
                 if (this.state.last !== undefined) {
                     this.restoreSavedState(this.state.last);
                     await this.update();
                 } else {
-                    const e = this.state.error;
                     if (e instanceof ValidationError || e.isC3dError) {
-                        console.warn(`${this.constructor.name}: ${e.message}`);
                         this.signals.factoryUpdateFailed.dispatch(e);
                     }
                     else throw e;
