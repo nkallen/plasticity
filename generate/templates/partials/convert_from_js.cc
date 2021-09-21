@@ -66,7 +66,7 @@
 <%_ } else if (arg.isCppString2CString) { _%>
     const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString().Utf8Value();
 <%_ } else if (arg.isC3dString) { _%>
-    const std::wstring <%- arg.name %> = c3d::StdToWString(info[<%- arg.jsIndex %>].ToString().Utf8Value());
+    const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString().Utf8Value();
 <%_ } else if (arg.isBasicString) { _%>
     const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString();
 <%_ } else if (arg.isEnum) { _%>

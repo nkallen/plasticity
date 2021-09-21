@@ -8,7 +8,7 @@
             <% if (arg.isCppString2CString) { _%>
             const char * <%- arg.name %>, size_t <%- arg.name %>_length
             <%_ } else if (arg.isC3dString) { _%>
-            const std::wstring <%- arg.name %>
+            const std::string <%- arg.name %>
             <%_ } else { _%>
             <%- arg.const %> <%- arg.rawType %> <%- arg.ref %> <%- arg.name _%>
             <%_ } _%>

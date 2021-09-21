@@ -82,7 +82,7 @@ export default {
                 "const MbSNameMaker & GetYourNameMaker()",
                 "MbeProcessState GetStatus()",
                 "void SetStatus(MbeProcessState l)",
-                { signature: "bool CreateShell(MbFaceShell *& shell, MbeCopyMode sameShell, RPArray<MbSpaceItem> * items = c3d_null)", items: isReturn, shell: { isInput: true }, return: { name: "success" } },
+                { signature: "bool CreateShell(MbFaceShell *& shell, MbeCopyMode sameShell, RPArray<MbSpaceItem> * items = NULL)", items: isReturn, shell: { isInput: true }, return: { name: "success" } },
             ]
         },
         Transactions: {
@@ -236,7 +236,7 @@ export default {
                 { signature: "MbPlaneItem * Cast()", isManual: true },
                 { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn },
                 "void Transform(const MbMatrix & matr, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)",
-                "MbPlaneItem & Duplicate(MbRegDuplicate * dup = c3d_null)",
+                "MbPlaneItem & Duplicate(MbRegDuplicate * dup = NULL)",
             ]
         },
         Curve: {
@@ -838,7 +838,7 @@ export default {
                 "const MbSurface & GetSurface()",
                 "MbLoop * GetLoop(size_t index)",
                 "bool IsSameSense()",
-                "MbFace * DataDuplicate(MbRegDuplicate * dup = c3d_null)",
+                "MbFace * DataDuplicate(MbRegDuplicate * dup = NULL)",
             ]
         },
         Vertex: {
@@ -1614,13 +1614,13 @@ export default {
             dependencies: ["Model.h", "_ConvConvertorProperty3D.h", "ProgressIndicator.h"],
             functions: [
                 {
-                    signature: "MbeConvResType c3d::ImportFromFile(MbModel & model, const std::string & filePath, ConvConvertorProperty3D * prop = c3d_null, ProgressIndicator * indicator = c3d_null)",
+                    signature: "MbeConvResType c3d::ImportFromFile(MbModel & model, const std::string & filePath, ConvConvertorProperty3D * prop = NULL, ProgressIndicator * indicator = NULL)",
                     indicator: isRaw,
                     model: isReturn,
                     return: { name: "result" }
                 },
                 {
-                    signature: "MbeConvResType c3d::ExportIntoFile(MbModel & model, const std::string & filePath, ConvConvertorProperty3D * prop = c3d_null, ProgressIndicator * indicator = c3d_null)",
+                    signature: "MbeConvResType c3d::ExportIntoFile(MbModel & model, const std::string & filePath, ConvConvertorProperty3D * prop = NULL, ProgressIndicator * indicator = NULL)",
                     indicator: isRaw,
                 }
             ]
