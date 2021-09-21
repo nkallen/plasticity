@@ -66,9 +66,11 @@
 <%_ } else if (arg.isCppString2CString) { _%>
     const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString().Utf8Value();
 <%_ } else if (arg.isC3dString) { _%>
-    const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString().Utf8Value();
+    const c3d::string_t <%- arg.name %> = c3d::ToC3Dstring(info[<%- arg.jsIndex %>].ToString().Utf8Value());
 <%_ } else if (arg.isBasicString) { _%>
     const std::string <%- arg.name %> = info[<%- arg.jsIndex %>].ToString();
+<%_ } else if (arg.isPathString) { _%>
+    const c3d::path_string <%- arg.name %> = c3d::ToC3Dstring(info[<%- arg.jsIndex %>].ToString());
 <%_ } else if (arg.isEnum) { _%>
     const <%- arg.rawType %> <%- arg.name %> = static_cast<<%- arg.rawType %>>(info[<%- arg.jsIndex %>].ToNumber().Uint32Value());
 <%_ } else { _%>

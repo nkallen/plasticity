@@ -126,3 +126,8 @@ Napi::Value Creator::Cast(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
 }
+
+Napi::Value Creator::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}

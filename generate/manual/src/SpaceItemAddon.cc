@@ -136,15 +136,6 @@ Napi::Value Item::Cast(const Napi::CallbackInfo &info)
     return cast(this->_underlying, info);
 }
 
-// Napi::Value SpaceItem::Duplicate(const Napi::CallbackInfo &info)
-// {
-//     Napi::Env env = info.Env();
-//     MbSpaceItem *item = _underlying;
-//     MbSpaceItem * dup =  static_cast<MbSpaceItem *>( &item->Duplicate() );
-//     return SpaceItem::NewInstance(env, dup);
-// }
-
-
 Napi::Value Surface::Cast(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
@@ -152,6 +143,29 @@ Napi::Value Surface::Cast(const Napi::CallbackInfo &info)
 
 
 Napi::Value Curve3D::Cast(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+
+
+Napi::Value SpaceItem::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+Napi::Value Item::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+Napi::Value Surface::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+
+Napi::Value Curve3D::Cast_async(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
 }

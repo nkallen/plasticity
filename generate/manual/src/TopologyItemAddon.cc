@@ -4,7 +4,7 @@
 #include "../include/Face.h"
 #include "../include/Edge.h"
 
-Napi::Value cast(MbTopologyItem * _underlying, const Napi::CallbackInfo &info)
+Napi::Value cast(MbTopologyItem *_underlying, const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     if (info.Length() != 1)
@@ -37,4 +37,9 @@ Napi::Value cast(MbTopologyItem * _underlying, const Napi::CallbackInfo &info)
 Napi::Value TopologyItem::Cast(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
+}
+
+Napi::Value TopologyItem::Cast_async(const Napi::CallbackInfo &info)
+{
+    return info.Env().Undefined();
 }

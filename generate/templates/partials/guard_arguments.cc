@@ -8,9 +8,7 @@
                 || !info[<%- arg.jsIndex %>].IsBuffer())) {
             <%_ } else if (arg.isCppString2CString) { _%>
                 || !info[<%- arg.jsIndex %>].IsString())) {
-            <%_ } else if (arg.isC3dString) { _%>
-                || !info[<%- arg.jsIndex %>].IsString())) {
-            <%_ } else if (arg.isBasicString) { _%>
+            <%_ } else if (arg.isC3dString || arg.isBasicString || arg.isPathString) { _%>
                 || !info[<%- arg.jsIndex %>].IsString())) {
             <%_ } else if (arg.isBoolean) { _%>
                 || !info[<%- arg.jsIndex %>].IsBoolean())) {

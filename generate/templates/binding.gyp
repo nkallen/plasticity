@@ -64,7 +64,7 @@
                     '-Wl,-rpath,\'@loader_path\''
                 ]
             },
-            'defines': ['NAPI_DISABLE_CPP_EXCEPTIONS'],
+            'defines': ['NAPI_DISABLE_CPP_EXCEPTIONS', '_UNICODE'],
         }
     ],
     'xcode_settings': {

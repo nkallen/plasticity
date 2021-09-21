@@ -26,6 +26,7 @@ function cppType2jsType(cppType) {
         case 'double': return 'number';
         case 'c3d::string_t': return 'string';
         case 'std::string': return 'string';
+        case 'c3d::path_string': return 'string';
         default: return cppType;
     }
 }
@@ -297,6 +298,10 @@ class TypeDeclaration {
 
     get isBasicString() {
         return this.rawType == "std::string"
+    }
+
+    get isPathString() {
+        return this.rawType == "c3d::path_string"
     }
 
     get isBoolean() {

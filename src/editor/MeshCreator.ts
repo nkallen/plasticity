@@ -9,6 +9,19 @@ export interface MeshCreator {
     create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike>;
 }
 
+export class SyncMeshCreator implements MeshCreator {
+    async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike> {
+        const item = obj.CreateMesh(stepData, formNote)!;
+        const mesh = item.Cast<c3d.Mesh>(c3d.SpaceType.Mesh);
+        const grids = mesh.GetBuffers();
+        const polygons = mesh.GetEdges(outlinesOnly);
+        return {
+            faces: grids,
+            edges: polygons,
+        };
+    }
+}
+
 // This is the basic mesh creation strategy. It definitely works correctly, but because it lacks parallelism it is slow
 export class BasicMeshCreator implements MeshCreator {
     async create(obj: c3d.Item, stepData: c3d.StepData, formNote: c3d.FormNote, outlinesOnly: boolean): Promise<MeshLike> {

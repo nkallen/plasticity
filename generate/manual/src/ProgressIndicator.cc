@@ -1,7 +1,6 @@
 
 #include "../include/ProgressIndicator.h"
 
-
 ProgressIndicator::ProgressIndicator(const Napi::CallbackInfo &info) : Napi::ObjectWrap<ProgressIndicator>(info)
 {
 }
@@ -26,10 +25,10 @@ Napi::Object ProgressIndicator::Init(const Napi::Env env, Napi::Object exports)
     return exports;
 }
 
-bool ProgressIndicator::Initialize( size_t, size_t, IStrData & strData )
+bool ProgressIndicator::Initialize(size_t, size_t, IStrData &strData)
 {
-  cancel = false;
-  return true;
+    cancel = false;
+    return true;
 }
 
 bool ProgressIndicator::Progress(size_t n)
@@ -82,6 +81,7 @@ void CallJs1(Napi::Env env, Napi::Function callback, Context *context,
 
 Napi::Value ProgressIndicator::GetValue_progress(const Napi::CallbackInfo &info)
 {
+    return info.Env().Undefined();
 }
 
 void ProgressIndicator::SetValue_progress(const Napi::CallbackInfo &info, const Napi::Value &value)

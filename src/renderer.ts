@@ -1,27 +1,26 @@
 import Stats from 'stats.js';
 import * as THREE from 'three';
+import '../build/Release/c3d.dll'; // On windows, this will copy the file into the webpack bundle
 import c3d from '../build/Release/c3d.node';
-// import '../build/Release/c3d.dll'; // On windows, this will copy the file into the webpack bundle
-import '../build/Release/libc3d.dylib'; // On mac
+// import '../build/Release/libc3d.dylib'; // On mac
 import '../lib/c3d/enums';
 import license from '../license-key.json';
+import * as cmd from './commands/GeometryCommands';
 import Creators from './components/creators/Creators';
 import Dialog from './components/dialog/Dialog';
 import NumberScrubber from './components/dialog/NumberScrubber';
+import Header from './components/header/Header';
 import Modifiers from './components/modifiers/Modifiers';
 import './components/pane/Pane';
 import registerDefaultCommands from './components/toolbar/icons';
 import Palette from './components/toolbar/Palette';
 import Toolbar from './components/toolbar/Toolbar';
-import Header from './components/header/Header';
 import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
 import './css/index.less';
 import keymap from "./default-keymap";
-import { Editor, HotReloadingEditor } from './editor/Editor';
-import { ThreePointBoxFactory } from './commands/box/BoxFactory';
-import * as cmd from './commands/GeometryCommands';
+import { HotReloadingEditor } from './editor/Editor';
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
