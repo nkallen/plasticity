@@ -1,6 +1,6 @@
 {
-    "name": "ispace",
-    "productName": "ispace",
+    "name": "plasticity",
+    "productName": "plasticity",
     "version": "1.0.0",
     "description": "My Electron application description",
     "main": ".webpack/main",
@@ -60,8 +60,10 @@
                 [
                     "@electron-forge/plugin-webpack",
                     {
+                        "devContentSecurityPolicy": "default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-eval' 'unsafe-inline' data:",
                         "mainConfig": "./webpack.main.config.js",
                         "renderer": {
+                            "nodeIntegration": true,
                             "config": "./webpack.renderer.config.js",
                             "entryPoints": [
                                 {
@@ -79,13 +81,13 @@
     "devDependencies": {
         "@babel/core": "^7.15.0",
         "@babel/preset-env": "^7.15.0",
-        "@electron-forge/cli": "^6.0.0-beta.54",
-        "@electron-forge/maker-deb": "^6.0.0-beta.54",
-        "@electron-forge/maker-rpm": "^6.0.0-beta.54",
-        "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
-        "@electron-forge/maker-zip": "^6.0.0-beta.54",
-        "@electron-forge/plugin-auto-unpack-natives": "^6.0.0-beta.54",
-        "@electron-forge/plugin-webpack": "6.0.0-beta.54",
+        "@electron-forge/cli": "^6.0.0-beta.61",
+        "@electron-forge/maker-deb": "^6.0.0-beta.61",
+        "@electron-forge/maker-rpm": "^6.0.0-beta.61",
+        "@electron-forge/maker-squirrel": "^6.0.0-beta.61",
+        "@electron-forge/maker-zip": "^6.0.0-beta.61",
+        "@electron-forge/plugin-auto-unpack-natives": "^6.0.0-beta.61",
+        "@electron-forge/plugin-webpack": "^6.0.0-beta.61",
         "@types/atom-keymap": "^8.0.3",
         "@types/event-kit": "^2.4.0",
         "@types/jest": "^26.0.22",
@@ -116,6 +118,7 @@
         "node-loader": "^1.0.1",
         "style-loader": "^1.2.1",
         "svg-inline-loader": "^0.8.2",
+        "terser-webpack-plugin": "^5.2.4",
         "ts-jest": "^27.0.0-next.10",
         "ts-loader": "^8.0.2",
         "ts-node": "^9.1.1",
@@ -133,9 +136,11 @@
         "atom-keymap": "^8.2.14",
         "bootstrap-icons": "^1.4.1",
         "clear-cut": "^2.0.2",
+        "crypto-browserify": "^3.12.0",
         "electron-squirrel-startup": "^1.0.0",
         "event-kit": "^2.5.3",
         "node-gyp": "^8.1.0",
+        "path-browserify": "^1.0.1",
         "preact": "^10.5.13",
         "signals": "^1.0.0",
         "stats.js": "^0.17.0",

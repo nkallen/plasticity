@@ -1,5 +1,6 @@
 const rules = require('./webpack.rules');
 const plugins = require('./webpack.plugins');
+const TerserPlugin = require("terser-webpack-plugin");
 
 rules.push({
     test: /\.css$/,
@@ -50,6 +51,12 @@ module.exports = {
     },
     plugins: plugins,
     resolve: {
-        extensions: ['.js', '.ts', '.jsx', '.tsx', '.css']
+        extensions: ['.js', '.ts', '.jsx', '.tsx', '.css'],
+    },
+    optimization: {
+        minimize: true,
+        minimizer: [new TerserPlugin({
+            terserOptions: { keep_classnames: true }
+        })],
     },
 };

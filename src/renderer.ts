@@ -67,12 +67,3 @@ NumberScrubber(editor);
 Dialog(editor);
 ViewportHeader(editor);
 SnapOverlay(editor);
-
-const { db, materials, signals } = editor;
-
-// const makeBox = new ThreePointBoxFactory(db, materials, signals); // NOTE: passing in modifier rather than raw db as in most other tests
-// makeBox.p1 = new THREE.Vector3();
-// makeBox.p2 = new THREE.Vector3(1, 0, 0);
-// makeBox.p3 = new THREE.Vector3(1, 1, 0);
-// makeBox.p4 = new THREE.Vector3(1, 1, 1);
-// makeBox.commit();

@@ -1,19 +1,19 @@
 module.exports = {
     target: 'electron-main',
     'node': {
-      __dirname: false,
-      __filename: false,
+        __dirname: false,
+        __filename: false,
     },
-  /**
-   * This is the main entry point for your application, it's the first file
-   * that runs in the main process.
-   */
-  entry: './src/index.ts',
-  // Put your normal webpack config below here
-  module: {
-    rules: require('./webpack.rules'),
-  },
-  resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json', '.scss', '.sass']
-  },
+    /**
+     * This is the main entry point for your application, it's the first file
+     * that runs in the main process.
+     */
+    entry: './src/index.ts',
+    // Put your normal webpack config below here
+    module: {
+        rules: require('./webpack.rules'),
+    },
+    resolve: {
+        extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json', '.scss', '.sass']
+    },
 };
