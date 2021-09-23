@@ -4,12 +4,18 @@ module.exports = [
     {
         test: /\.node$/,
         use: [
-            { loader: path.resolve('node-loader.js') },
             {
-                loader: 'file-loader',
+                loader: path.resolve('node-loader.js'),
                 options: {
-                    name: '[name].[ext]'
-                }
+                    name: "[name].[ext]",
+                    publicPath: "../."
+                },
+            },
+            {
+                loader: "file-loader",
+                options: {
+                    name: "[name].[ext]",
+                },
             },
         ],
     },

@@ -1,4 +1,8 @@
 {
+    "variables": {
+        "module_name":"c3d",
+        "module_path":"./lib"
+    },
     "targets": [
         {
             "target_name": "c3d",
@@ -45,14 +49,14 @@
                 ['OS=="win"',
                     {
                         'link_settings': {
-                            'library_dirs': ['<(module_root_dir)/vendor/c3d/Debug'],
+                            'library_dirs': ['<(module_root_dir)/vendor/c3d/Release'],
                             'libraries': [
                                 'c3d.lib',
                             ],
                             "copies": [
                                 {
                                     "destination": "<(module_root_dir)/build/Release/",
-                                    "files": ["<(module_root_dir)/vendor/c3d/Debug/c3d.dll"]
+                                    "files": ["<(module_root_dir)/vendor/c3d/Release/c3d.dll"]
                                 }
                             ]
                         }
@@ -65,7 +69,18 @@
                 ]
             },
             'defines': ['NAPI_DISABLE_CPP_EXCEPTIONS', '_UNICODE'],
-        }
+        },
+        {
+            "target_name": "action_after_build",
+            "type": "none",
+            "dependencies": [ "<(module_name)" ],
+            "copies": [
+                {
+                "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
+                "destination": "<(module_path)"
+                }
+            ]
+        },
     ],
     'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',

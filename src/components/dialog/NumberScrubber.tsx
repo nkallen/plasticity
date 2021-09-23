@@ -229,7 +229,7 @@ export default (editor: Editor) => {
             switch (this.state.tag) {
                 case 'none':
                 case 'dragging':
-                    input = <span class={`number-scrubber ${this.isDisabled ? 'disabled' : ''}`} onPointerDown={this.onPointerDown} disabled={this.isDisabled} tabindex="0" onFocus={this.onFocus}>
+                    input = <span class={`number-scrubber ${this.isDisabled ? 'disabled' : ''}`} onPointerDown={this.onPointerDown} disabled={this.isDisabled} tabIndex={0} onFocus={this.onFocus}>
                         <span class="prefix"></span>
                         <span class="value">{full}</span>
                         <span class="suffix"></span>

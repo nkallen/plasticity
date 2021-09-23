@@ -10,7 +10,6 @@ const path = require('path');
 module.exports = function loader(content) {
     const options = getOptions(this);
 
-
     const name = interpolateName(
         this,
         typeof options.name !== 'undefined' ? options.name : '[name].[ext]',
@@ -23,6 +22,10 @@ module.exports = function loader(content) {
     const compiler = this._compiler;
     const outputPath = compiler.options.output.path;
     const fullPath = path.join(outputPath, name);
-    return `module.exports = __non_webpack_require__(String.raw\`${fullPath}\`);` 
-    // return `module.exports = __non_webpack_require__('.././${name}');`
+
+    if (this.mode == "development") {
+        return `module.exports = __non_webpack_require__(String.raw\`${fullPath}\`);` 
+    } else {
+        return `process.dlopen(module, __dirname + require("path").sep + '${options.publicPath}' + require("path").sep + '${name}');`
+    }
 }

@@ -26,7 +26,7 @@
         "name": "Nick Kallen",
         "email": "nickkallen@me.com"
     },
-    "license": "MIT",
+    "license": "LGPL",
     "config": {
         "forge": {
             "packagerConfig": {},
@@ -115,7 +115,7 @@
         "less": "^4.1.1",
         "less-loader": "7.3.0",
         "node-addon-api": "^4.0.0",
-        "node-loader": "^1.0.1",
+        "node-loader": "^2.0.0",
         "style-loader": "^1.2.1",
         "svg-inline-loader": "^0.8.2",
         "terser-webpack-plugin": "^5.2.4",
