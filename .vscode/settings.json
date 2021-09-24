@@ -6,6 +6,7 @@
         "iosfwd": "cpp",
         "filesystem": "cpp",
         "memory": "cpp",
-        "locale": "cpp"
+        "locale": "cpp",
+        "string": "cpp"
     }
 }

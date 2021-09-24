@@ -1580,6 +1580,13 @@ export default {
                 { signature: "void SortCrossPoints(double tProj, const MbCurve * selectCurve, SArray<MbCrossPoint> & cross, SArray<MbCrossPoint> & crossLeft, SArray<MbCrossPoint> & crossRight)", crossLeft: isReturn, crossRight: isReturn },
             ]
         },
+        CurveTangent: {
+            rawHeader: "alg_curve_tangent.h",
+            dependencies: ["CartPoint.h", "Curve.h", "Line.h"],
+            functions: [
+                { signature: "void LinePointTangentCurve(const MbCartPoint & pnt, const MbCurve & pCurve, PArray<MbLine> & pLine, bool lineAsCurve = false)", pLine: isReturn }
+            ]
+        },
         CurveUtil: {
             rawHeader: "curve.h",
             dependencies: ["Curve.h"],
