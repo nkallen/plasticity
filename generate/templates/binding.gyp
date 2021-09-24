@@ -56,7 +56,14 @@
                             "copies": [
                                 {
                                     "destination": "<(module_root_dir)/build/Release/",
-                                    "files": ["<(module_root_dir)/vendor/c3d/Release/c3d.dll"]
+                                    "files": [
+                                        "<(module_root_dir)/vendor/c3d/Release/c3d.dll",
+                                        "<(module_root_dir)/vendor/microsoft/msvcp140.dll",
+                                        "<(module_root_dir)/vendor/microsoft/vccorlib140.dll",
+                                        "<(module_root_dir)/vendor/microsoft/vcomp140.dll",
+                                        "<(module_root_dir)/vendor/microsoft/vcruntime140.dll",
+                                        "<(module_root_dir)/vendor/microsoft/vcruntime140_1.dll",
+                                    ]
                                 }
                             ]
                         }
