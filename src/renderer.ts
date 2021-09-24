@@ -1,13 +1,15 @@
 import Stats from 'stats.js';
 import * as THREE from 'three';
-import '../build/Release/c3d.dll'; // On windows, this will copy the file into the webpack bundle
-import '../build/Release/msvcp140.dll'; // On windows, this will copy the file into the webpack bundle
-import '../build/Release/vccorlib140.dll'; // On windows, this will copy the file into the webpack bundle
-import '../build/Release/vcomp140.dll'; // On windows, this will copy the file into the webpack bundle
-import '../build/Release/vcruntime140.dll'; // On windows, this will copy the file into the webpack bundle
-import '../build/Release/vcruntime140_1.dll'; // On windows, this will copy the file into the webpack bundle
+
+import '../build/Release/libc3d.dylib';
+// import '../build/Release/c3d.dll';
+// import '../build/Release/msvcp140.dll';
+// import '../build/Release/vccorlib140.dll';
+// import '../build/Release/vcomp140.dll';
+// import '../build/Release/vcruntime140.dll';
+// import '../build/Release/vcruntime140_1.dll';
+
 import c3d from '../build/Release/c3d.node';
-// import '../build/Release/libc3d.dylib'; // On mac
 import '../lib/c3d/enums';
 import license from '../license-key.json';
 import * as cmd from './commands/GeometryCommands';
