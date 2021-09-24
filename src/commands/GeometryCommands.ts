@@ -12,7 +12,8 @@ import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
-import { CenterCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
+import { EditCircleDialog } from "./circle/CircleDialog";
+import { CenterCircleFactory, EditCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
@@ -117,6 +118,28 @@ export class CenterCircleCommand extends Command {
         }).resource(this);
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
+
+        const next = new EditCircleCommand(this.editor);
+        next.circle = result;
+        this.editor.enqueue(next);
+    }
+}
+
+class EditCircleCommand extends Command {
+    circle!: visual.SpaceInstance<visual.Curve3D>
+
+    async execute(): Promise<void> {
+        const edit = new EditCircleFactory(this.editor.db, this.editor.materials, this.editor.signals);
+        edit.circle = this.circle;
+        
+        const dialog = new EditCircleDialog(edit, this.editor.signals);
+        await dialog.execute(params => {
+            edit.update();
+            dialog.render();
+        }, 'RejectOnFinish').resource(this);
+
+        const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
     }
 }

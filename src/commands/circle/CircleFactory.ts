@@ -1,8 +1,9 @@
-import { point2point, unit, vec2vec } from "../../util/Conversion";
+import { deunit, point2point, unit, vec2vec } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from "../../editor/snaps/Snap";
 import { GeometryFactory } from '../GeometryFactory';
+import * as visual from "../../editor/VisualModel";
 
 export enum Mode { Horizontal, Vertical }
 
@@ -12,7 +13,9 @@ export class CenterCircleFactory extends GeometryFactory {
     constructionPlane = new PlaneSnap();
     mode = Mode.Horizontal;
 
-    get radius() { return this.point.distanceTo(this.center) }
+    get radius() {
+        return this.point.distanceTo(this.center)
+    }
     set radius(r: number) { this.point = this.center.clone().add(new THREE.Vector3(r, 0, 0)) }
 
     toggleMode() {
@@ -76,5 +79,42 @@ export class ThreePointCircleFactory extends GeometryFactory {
         const circle = new c3d.Arc3D(point2point(p1), point2point(p2), point2point(p3), 1, true);
 
         return new c3d.SpaceInstance(circle);
+    }
+}
+
+export interface EditCircleParams {
+    radius: number;
+}
+
+export class EditCircleFactory extends GeometryFactory implements EditCircleParams {
+    private arc!: c3d.Arc3D;
+
+    private _radius?: number;
+    get radius() {
+        return this._radius ?? deunit(this.arc.GetRadius());
+    }
+
+    set radius(radius: number) {
+        this._radius = radius;
+    }
+
+    private _circle!: visual.SpaceInstance<visual.Curve3D>
+    set circle(circle: visual.SpaceInstance<visual.Curve3D>) {
+        this._circle = circle;
+        let model = this.db.lookup(circle);
+        model = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
+        const item = model.GetSpaceItem()!;
+        const arc = item.Cast<c3d.Arc3D>(item.IsA());
+        this.arc = arc;
+    }
+
+    async calculate() {
+        const { arc, radius } = this;
+        arc.SetRadius(unit(radius));
+        return new c3d.SpaceInstance(arc);
+    }
+
+    get originalItem() {
+        return this._circle;
     }
 }

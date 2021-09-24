@@ -23,7 +23,7 @@ interface EditorLike {
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
-type mode = 'RejectOnFinish' | 'ResolveOnFinish'
+export type Mode = 'RejectOnFinish' | 'ResolveOnFinish'
 
 export class Model {
     private readonly pickedPointSnaps = new Array<PointSnap>(); // Snaps inferred from points the user actually picked
@@ -221,7 +221,7 @@ export class PointPicker {
 
     constructor(private readonly editor: EditorLike) { }
 
-    execute<T>(cb?: (pt: PointResult) => T, resolveOnFinish: mode = 'ResolveOnFinish'): CancellablePromise<PointResult> {
+    execute<T>(cb?: (pt: PointResult) => T, resolveOnFinish: Mode = 'ResolveOnFinish'): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const { helper: pointTarget, editor, model } = this;
@@ -338,8 +338,8 @@ export class PointPicker {
             }
             const finish = () => {
                 const point = pointTarget.position.clone();
-                editor.signals.pointPickerChanged.dispatch();
                 disposables.dispose();
+                editor.signals.pointPickerChanged.dispatch();
                 if (resolveOnFinish === 'ResolveOnFinish') resolve({ point, info: info! });
                 else reject(Finish);
             }

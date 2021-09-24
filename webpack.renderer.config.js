@@ -59,4 +59,7 @@ module.exports = {
             terserOptions: { keep_classnames: true }
         })],
     },
+    devServer: {
+        liveReload: false,
+    },
 };

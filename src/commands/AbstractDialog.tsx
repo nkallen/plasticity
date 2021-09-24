@@ -1,6 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import { EditorSignals } from "../editor/EditorSignals";
-import { Cancel, CancellablePromise } from "../util/Cancellable";
+import { Cancel, CancellablePromise, Finish } from "../util/Cancellable";
+import { Mode } from "./PointPicker";
 
 export type State<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, finish: () => void, cancel: () => void } | { tag: 'finished' }
 
@@ -49,7 +50,7 @@ export abstract class AbstractDialog<T> extends HTMLElement {
         }
     }
 
-    execute(cb: (sv: T) => void) {
+    execute(cb: (sv: T) => void, resolveOnFinish: Mode = 'ResolveOnFinish') {
         return new CancellablePromise<void>((resolve, reject) => {
             const disposables = new CompositeDisposable();
             disposables.add(new Disposable(() => this.state = { tag: 'none' }));
@@ -62,7 +63,8 @@ export abstract class AbstractDialog<T> extends HTMLElement {
             };
             const finish = () => {
                 disposables.dispose();
-                resolve();
+                if (resolveOnFinish === 'ResolveOnFinish') resolve();
+                else reject(Finish);
             };
             this.state = { tag: 'executing', cb, finish, cancel };
             return { cancel, finish };
