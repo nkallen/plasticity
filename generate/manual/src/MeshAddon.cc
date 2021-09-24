@@ -33,6 +33,11 @@ Napi::Object getBuffer(const Napi::CallbackInfo &info, const size_t i, const MbG
     return result;
 }
 
+Napi::Value Mesh::GetBuffers_async(const Napi::CallbackInfo &info)
+{
+    return info.Env().Undefined();
+}
+
 Napi::Value Mesh::GetBuffers(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
@@ -53,6 +58,11 @@ Napi::Value Mesh::GetBuffers(const Napi::CallbackInfo &info)
         }
     }
     return result;
+}
+
+Napi::Value Mesh::GetApexes_async(const Napi::CallbackInfo &info)
+{
+    return info.Env().Undefined();
 }
 
 Napi::Value Mesh::GetApexes(const Napi::CallbackInfo &info)
@@ -81,6 +91,11 @@ Napi::Value Mesh::GetApexes(const Napi::CallbackInfo &info)
         }
     }
     return result;
+}
+
+Napi::Value Mesh::GetEdges_async(const Napi::CallbackInfo &info)
+{
+    return info.Env().Undefined();
 }
 
 Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
@@ -156,6 +171,6 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
 
 void AutoReg(MbAutoRegDuplicate *&autoReg, MbRegDuplicate *&iReg)
 {
-      iReg = NULL;
-      autoReg = new MbAutoRegDuplicate( iReg );
+    iReg = NULL;
+    autoReg = new MbAutoRegDuplicate(iReg);
 }

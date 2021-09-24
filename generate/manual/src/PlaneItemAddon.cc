@@ -45,3 +45,8 @@ Napi::Value PlaneItem::Cast(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
 }
+
+Napi::Value PlaneItem::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}

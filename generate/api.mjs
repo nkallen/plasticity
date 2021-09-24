@@ -1621,13 +1621,13 @@ export default {
             dependencies: ["Model.h", "_ConvConvertorProperty3D.h", "ProgressIndicator.h"],
             functions: [
                 {
-                    signature: "MbeConvResType c3d::ImportFromFile(MbModel & model, const std::string & filePath, ConvConvertorProperty3D * prop = NULL, ProgressIndicator * indicator = NULL)",
+                    signature: "MbeConvResType c3d::ImportFromFile(MbModel & model, const c3d::path_string & fileName, ConvConvertorProperty3D * prop = NULL, ProgressIndicator * indicator = NULL)",
                     indicator: isRaw,
                     model: isReturn,
                     return: { name: "result" }
                 },
                 {
-                    signature: "MbeConvResType c3d::ExportIntoFile(MbModel & model, const std::string & filePath, ConvConvertorProperty3D * prop = NULL, ProgressIndicator * indicator = NULL)",
+                    signature: "MbeConvResType c3d::ExportIntoFile(MbModel & model, const c3d::path_string & fileName, ConvConvertorProperty3D * prop = NULL, ProgressIndicator * indicator = NULL)",
                     indicator: isRaw,
                 }
             ]

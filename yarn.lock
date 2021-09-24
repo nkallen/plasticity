@@ -11931,15 +11931,14 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"node-loader@npm:^1.0.1":
-  version: 1.0.3
-  resolution: "node-loader@npm:1.0.3"
+"node-loader@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "node-loader@npm:2.0.0"
   dependencies:
     loader-utils: ^2.0.0
-    schema-utils: ^3.0.0
   peerDependencies:
-    webpack: ^4.0.0 || ^5.0.0
-  checksum: 16799098231e367f4aab5fa50f9ea4693a59ae7f2fda9713225daf4bef96030e8513faa60475574721924ef80a1927403056f2dbb9f8f5d0ba344a29545747c1
+    webpack: ^5.0.0
+  checksum: 9252a92b226c0e6fdd29fef92d9853d6c389a4c65119a32306dc12cee7886f2ab4dde333dda5e37df92283c34bd0267e98c384be6d548dbe69676e3343f549ea
   languageName: node
   linkType: hard
 
@@ -13013,7 +13012,7 @@ fsevents@^1.2.7:
     less-loader: 7.3.0
     node-addon-api: ^4.0.0
     node-gyp: ^8.1.0
-    node-loader: ^1.0.1
+    node-loader: ^2.0.0
     path-browserify: ^1.0.1
     preact: ^10.5.13
     signals: ^1.0.0

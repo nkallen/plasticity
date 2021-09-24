@@ -5,7 +5,7 @@
 
 typedef unsigned int       uint;
 
-//define _T(x)      x
+#define _T(x)      x
 
 // \ru сообщения эскиза о причинах провала построения контуров \en messages of a sketch about reasons of contours creation failure
 #if defined ( __NATIVE_LANGUAGE__ )
