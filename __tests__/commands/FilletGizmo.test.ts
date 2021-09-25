@@ -7,7 +7,7 @@ import { EditorLike, Mode, MovementInfo } from "../../src/commands/AbstractGizmo
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { MaxFilletFactory } from "../../src/commands/fillet/FilletFactory";
 import { FilletGizmo } from "../../src/commands/fillet/FilletGizmo";
-import { FilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
+import { ChamferAndFilletKeyboardGizmo, FilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { EditorSignals } from "../../src/editor/EditorSignals";
@@ -118,12 +118,12 @@ describe(FilletGizmo, () => {
 });
 
 
-describe(FilletKeyboardGizmo, () => {
-    let keyboard: FilletKeyboardGizmo;
+describe(ChamferAndFilletKeyboardGizmo, () => {
+    let keyboard: ChamferAndFilletKeyboardGizmo;
     let promise: CancellablePromise<void>;
 
     beforeEach(() => {
-        keyboard = new FilletKeyboardGizmo(editor);
+        keyboard = new ChamferAndFilletKeyboardGizmo(editor);
         promise = keyboard.execute(async params => {
             keyboard.toggle(fillet.mode);
         });
