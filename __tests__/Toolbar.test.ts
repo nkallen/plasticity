@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { ClipCurveCommand, MoveCommand, RotateCommand, ScaleCommand, SelectFilletsCommand, SymmetryCommand } from "../src/commands/GeometryCommands";
+import { MoveCommand, RotateCommand, ScaleCommand, SymmetryCommand } from "../src/commands/GeometryCommands";
 import { Model } from "../src/components/toolbar/Toolbar";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';

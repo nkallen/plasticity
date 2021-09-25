@@ -184,19 +184,12 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 }));
                 this.editor.signals.gizmoChanged.dispatch();
             }
-            const cancel = () => {
+            const dispose = () => {
                 stateMachine.finish();
                 disposables.dispose();
                 this.editor.signals.gizmoChanged.dispatch();
-                reject(Cancel);
             }
-            const finish = () => {
-                stateMachine.finish();
-                disposables.dispose();
-                this.editor.signals.gizmoChanged.dispatch();
-                resolve();
-            }
-            return { cancel, finish };
+            return { dispose, finish: resolve };
         });
     }
 

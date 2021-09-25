@@ -4,10 +4,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import { AxisSnap, CurveEdgeSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import * as visual from "../editor/VisualModel";
-import { Cancel, CancellablePromise, Finish } from '../util/Cancellable';
+import { CancellablePromise } from '../util/Cancellable';
 import { Helper, Helpers } from '../util/Helpers';
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
@@ -22,8 +22,6 @@ interface EditorLike {
 
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
-
-export type Mode = 'RejectOnFinish' | 'ResolveOnFinish'
 
 export class Model {
     private readonly pickedPointSnaps = new Array<PointSnap>(); // Snaps inferred from points the user actually picked
@@ -221,7 +219,7 @@ export class PointPicker {
 
     constructor(private readonly editor: EditorLike) { }
 
-    execute<T>(cb?: (pt: PointResult) => T, resolveOnFinish: Mode = 'ResolveOnFinish'): CancellablePromise<PointResult> {
+    execute<T>(cb?: (pt: PointResult) => T): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const { helper: pointTarget, editor, model } = this;
@@ -301,12 +299,9 @@ export class PointPicker {
 
                 const onPointerDown = (e: PointerEvent) => {
                     if (e.button != 0) return;
-                    const point = pointTarget.position.clone();
-                    resolve({ point, info: info! });
-                    disposables.dispose();
-                    this.model.addPickedPoint(info!.snap, point);
+                    dispose();
+                    finish();
                     info = undefined;
-                    editor.signals.pointPickerChanged.dispatch();
                 }
 
                 let ctrlKey = false;
@@ -331,19 +326,15 @@ export class PointPicker {
                 disposables.add(new Disposable(() => document.removeEventListener('keydown', onKeyDown)));
                 disposables.add(new Disposable(() => document.removeEventListener('keyup', onKeyUp)));
             }
-            const cancel = () => {
+            const dispose = () => {
                 disposables.dispose();
                 editor.signals.pointPickerChanged.dispatch();
-                reject(Cancel);
             }
             const finish = () => {
                 const point = pointTarget.position.clone();
-                disposables.dispose();
-                editor.signals.pointPickerChanged.dispatch();
-                if (resolveOnFinish === 'ResolveOnFinish') resolve({ point, info: info! });
-                else reject(Finish);
+                resolve({ point, info: info! });
             }
-            return { cancel, finish };
+            return { dispose, finish };
         });
     }
 

@@ -35,7 +35,7 @@ import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
 import { MaxFilletFactory } from './fillet/FilletFactory';
 import { FilletGizmo, MagnitudeGizmo } from './fillet/FilletGizmo';
-import { FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
+import { ChamferAndFilletKeyboardGizmo, FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
@@ -137,7 +137,7 @@ class EditCircleCommand extends Command {
         await dialog.execute(params => {
             edit.update();
             dialog.render();
-        }, 'RejectOnFinish').resource(this);
+        }).onFinish((reject) => reject(Finish)).resource(this);
 
         const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -466,7 +466,7 @@ export class CurveCommand extends Command {
                     makeCurve.preview.closed = makeCurve.preview.wouldBeClosed(point);
                     if (!makeCurve.preview.hasEnoughPoints) return;
                     await makeCurve.preview.update();
-                }, 'RejectOnFinish').resource(this);
+                }).onFinish(reject => reject(Finish)).resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
                     makeCurve.closed = true;
                     throw Finish;
@@ -871,7 +871,9 @@ export class FilletCommand extends Command {
         const gizmo = new FilletGizmo(fillet, this.editor, this.point);
         gizmo.showEdges();
 
+        const keyboard = new ChamferAndFilletKeyboardGizmo(this.editor);
         const dialog = new FilletDialog(fillet, this.editor.signals);
+
         dialog.execute(async params => {
             gizmo.toggle(fillet.mode);
             keyboard.toggle(fillet.mode);
@@ -879,11 +881,10 @@ export class FilletCommand extends Command {
             await fillet.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        const keyboard = new FilletKeyboardGizmo(this.editor);
         const pp = new PointPicker(this.editor);
         const restriction = pp.restrictToEdges(edges);
         keyboard.execute(async s => {
-            switch (s.tag) {
+            switch (s) {
                 case 'add':
                     const { point } = await pp.execute().resource(this);
                     const { view, t } = restriction.match;
@@ -1303,38 +1304,6 @@ export class SelectFilletsCommand extends Command {
             const view = views.values().next().value;
             this.editor.selection.selected.addFace(view, solid);
         }
-    }
-}
-
-export class ClipCurveCommand extends Command {
-    async execute(): Promise<void> {
-        const makeCurve = new CurveWithPreviewFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const cut = new CutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-
-        const pointPicker = new PointPicker(this.editor);
-        pointPicker.restrictToConstructionPlane = true;
-        while (true) {
-            try {
-                const { point } = await pointPicker.execute(async ({ point }) => {
-                    makeCurve.preview.last = point;
-                    if (!makeCurve.preview.hasEnoughPoints) return;
-                    await makeCurve.preview.update();
-                }, 'RejectOnFinish').resource(this);
-
-                makeCurve.push(point);
-                makeCurve.update();
-            } catch (e) {
-                if (e !== Finish) throw e;
-                break;
-            }
-        }
-
-        cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
-        cut.solid = this.editor.selection.selected.solids.first;
-        cut.curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        const result = await cut.commit() as visual.Solid[];
-        this.editor.selection.selected.addSolid(result[0]);
     }
 }
 

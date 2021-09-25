@@ -43,15 +43,7 @@ export abstract class AbstractCommandKeyboardInput<CB> {
         disposables.add(new Disposable(() => this.editor.signals.keybindingsCleared.dispatch(this.commands)));
 
         return new CancellablePromise<void>((resolve, reject) => {
-            const cancel = () => {
-                disposables.dispose();
-                reject(Cancel);
-            }
-            const finish = () => {
-                disposables.dispose();
-                resolve();
-            }
-            return { cancel, finish };
+            return { dispose: () => disposables.dispose(), finish: resolve };
         });
     }
 

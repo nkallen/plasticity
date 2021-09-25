@@ -1,9 +1,8 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import { EditorSignals } from "../editor/EditorSignals";
-import { Cancel, CancellablePromise, Finish } from "../util/Cancellable";
-import { Mode } from "./PointPicker";
+import { CancellablePromise } from "../util/Cancellable";
 
-export type State<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, finish: () => void, cancel: () => void } | { tag: 'finished' }
+export type State<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, cancellable: CancellablePromise<void> } | { tag: 'finished' }
 
 export abstract class AbstractDialog<T> extends HTMLElement {
     private state: State<T> = { tag: 'none' };
@@ -50,30 +49,23 @@ export abstract class AbstractDialog<T> extends HTMLElement {
         }
     }
 
-    execute(cb: (sv: T) => void, resolveOnFinish: Mode = 'ResolveOnFinish') {
-        return new CancellablePromise<void>((resolve, reject) => {
+    execute(cb: (sv: T) => void) {
+        const cancellable = new CancellablePromise<void>((resolve, reject) => {
             const disposables = new CompositeDisposable();
             disposables.add(new Disposable(() => this.state = { tag: 'none' }));
 
             this.signals.dialogAdded.dispatch(this);
             disposables.add(new Disposable(() => this.signals.dialogRemoved.dispatch()));
-            const cancel = () => {
-                disposables.dispose();
-                reject(Cancel);
-            };
-            const finish = () => {
-                disposables.dispose();
-                if (resolveOnFinish === 'ResolveOnFinish') resolve();
-                else reject(Finish);
-            };
-            this.state = { tag: 'executing', cb, finish, cancel };
-            return { cancel, finish };
+
+            return { dispose: () => disposables.dispose(), finish: resolve };
         });
+        this.state = { tag: 'executing', cb, cancellable };
+        return cancellable;
     }
 
     finish() {
         switch (this.state.tag) {
-            case 'executing': this.state.finish();
+            case 'executing': this.state.cancellable.finish();
                 this.state = { tag: 'finished' };
                 break;
             case 'none': throw new Error('invalid precondition');
@@ -82,7 +74,7 @@ export abstract class AbstractDialog<T> extends HTMLElement {
 
     cancel() {
         switch (this.state.tag) {
-            case 'executing': this.state.cancel();
+            case 'executing': this.state.cancellable.cancel();
                 break;
             case 'none': throw new Error('invalid precondition');
         }

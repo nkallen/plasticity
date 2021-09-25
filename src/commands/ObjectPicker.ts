@@ -57,20 +57,12 @@ export class ObjectPicker {
     constructor(private readonly editor: EditorLike) { }
 
     execute(cb?: (o: visual.Selectable) => void): CancellablePromise<HasSelection> {
-        return new CancellablePromise((resolve, reject) => {
+        const signals = new EditorSignals();
+        const cancellable = new CancellablePromise<HasSelection>((resolve, reject) => {
             const editor = this.editor;
 
             const disposables = new CompositeDisposable();
-            const cancel = () => {
-                disposables.dispose();
-                reject(Cancel);
-            }
-            const finish = () => {
-                disposables.dispose();
-                resolve(selection.selected);
-            }
             
-            const signals = new EditorSignals();
             editor.signals.objectRemoved.add(signals.objectRemoved.dispatch);
             disposables.add(new Disposable(() => editor.signals.objectRemoved.remove(signals.objectRemoved.dispatch)));
 
@@ -80,22 +72,24 @@ export class ObjectPicker {
                 signals.objectSelected.add(cb);
                 disposables.add(new Disposable(() => signals.objectSelected.remove(cb)));
             }
+            const finish = () => cancellable.finish();
             signals.objectSelected.add(finish);
             disposables.add(new Disposable(() => signals.objectSelected.remove(finish)));
-
+            
             for (const viewport of this.editor.viewports) {
                 viewport.selector.enabled = false;
                 disposables.add(new Disposable(() => viewport.enableControls()));
-
+                
                 const selector = new MyViewportSelector(viewport.camera, viewport.renderer.domElement, editor, selection, finish);
-
+                
                 disposables.add(new Disposable(() => selector.dispose()));
             }
 
-            return { cancel, finish };
+            return { dispose: () => disposables.dispose(), finish: () => resolve(selection.selected) };
         });
+        return cancellable;
     }
-
+    
     allowCurveFragments() {
         
     }

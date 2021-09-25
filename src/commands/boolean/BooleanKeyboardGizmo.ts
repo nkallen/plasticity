@@ -1,5 +1,5 @@
 import c3d from '../../../build/Release/c3d.node';
-import { Cancel, CancellablePromise } from "../../util/Cancellable";
+import { CancellablePromise } from "../../util/Cancellable";
 import { AbstractCommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
 import { PossiblyBooleanFactory } from './BooleanFactory';
 
@@ -7,11 +7,19 @@ export type BooleanKeyboardEvent = { tag: 'boolean', type: number } | { tag: 'ne
 
 export class BooleanKeyboardGizmo extends AbstractCommandKeyboardInput<(e: BooleanKeyboardEvent) => void> {
     private active?: CancellablePromise<void>;
-    private cb?: (e: BooleanKeyboardEvent) => void;
+    private cb!: (e: BooleanKeyboardEvent) => void;
     private map = commands(this.name).map;
 
     constructor(private readonly name: string, editor: EditorLike) {
         super(name, editor, commands(name).commands);
+    }
+
+    execute(cb: (e: BooleanKeyboardEvent) => void) {
+        this.cb = cb;
+        return new CancellablePromise<void>((resolve, reject) => {
+            const dispose = () => this.active?._dispose();
+            return { dispose, finish: resolve };
+        });
     }
 
     protected resolve(cb: (e: BooleanKeyboardEvent) => void, command: string) {
@@ -22,31 +30,6 @@ export class BooleanKeyboardGizmo extends AbstractCommandKeyboardInput<(e: Boole
             default:
                 cb({ tag: 'boolean', type: this.map[command] });
         }
-    }
-
-    execute(cb: (e: BooleanKeyboardEvent) => void) {
-        this.cb = cb;
-        return new CancellablePromise<void>((resolve, reject) => {
-            const cancel = () => {
-                const active = this.active;
-                if (active !== undefined) {
-                    active.then(() => { }, e => reject(e));
-                    active.cancel();
-                } else {
-                    reject(Cancel);
-                }
-            }
-            const finish = () => {
-                const active= this.active;
-                if (active !== undefined) {
-                    active.then(() => resolve());
-                    active.finish();
-                } else {
-                    resolve();
-                }
-            }
-            return { cancel, finish };
-        });
     }
 
     prepare(factory: PossiblyBooleanFactory<any>) {
@@ -70,12 +53,12 @@ export class BooleanKeyboardGizmo extends AbstractCommandKeyboardInput<(e: Boole
             this.active?.finish();
             this.active = undefined;
         } else {
-            if (this.active === undefined)
-                this.active = super.execute(this.cb!);
+            if (this.active === undefined) {
+                this.active = super.execute(this.cb);
+            }
         }
     }
 }
-
 
 function commands(name: string) {
     const commands = new Array<string>();

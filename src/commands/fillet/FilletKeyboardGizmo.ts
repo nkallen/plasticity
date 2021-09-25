@@ -1,48 +1,19 @@
-import { AbstractCommandKeyboardInput, CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
-import { Mode } from "./FilletFactory";
 import c3d from '../../../build/Release/c3d.node';
-import { Cancel, CancellablePromise } from "../../util/Cancellable";
+import { CancellablePromise } from "../../util/Cancellable";
+import { CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
+import { Mode } from "./FilletFactory";
 
-export type FilletKeyboardEvent = { tag: 'add' }
-
-export class FilletKeyboardGizmo extends AbstractCommandKeyboardInput<(e: FilletKeyboardEvent) => void> {
+export class ChamferAndFilletKeyboardGizmo  {
     private active?: CancellablePromise<void>;
-    private cb?: (e: FilletKeyboardEvent) => void;
+    private cb!: (e: string) => void;
 
-    constructor(editor: EditorLike) {
-        super("fillet", editor, [`gizmo:fillet:add`]);
-    }
+    constructor(private readonly editor: EditorLike) { }
 
-    protected resolve(cb: (e: FilletKeyboardEvent) => void, command: string) {
-        switch (command) {
-            case `gizmo:fillet:add`:
-                cb({ tag: 'add' });
-                break;
-        }
-    }
-
-    execute(cb: (e: FilletKeyboardEvent) => void) {
+    execute(cb: (e: string) => void) {
         this.cb = cb;
         return new CancellablePromise<void>((resolve, reject) => {
-            const cancel = () => {
-                const active = this.active;
-                if (active !== undefined) {
-                    active.then(() => { }, e => reject(e));
-                    active.cancel();
-                } else {
-                    reject(Cancel);
-                }
-            }
-            const finish = () => {
-                const active = this.active;
-                if (active !== undefined) {
-                    active.then(() => resolve());
-                    active.finish();
-                } else {
-                    resolve();
-                }
-            }
-            return { cancel, finish };
+            const dispose = () => this.active?._dispose();
+            return { dispose, finish: resolve };
         });
     }
 
@@ -52,8 +23,14 @@ export class FilletKeyboardGizmo extends AbstractCommandKeyboardInput<(e: Fillet
             this.active = undefined;
         } else if (mode === c3d.CreatorType.FilletSolid) {
             if (this.active === undefined) {
-                this.active = super.execute(this.cb!);
+                this.active = new FilletKeyboardGizmo(this.editor).execute(this.cb);
             }
         }
+    }
+}
+
+export class FilletKeyboardGizmo extends CommandKeyboardInput {
+    constructor(editor: EditorLike) {
+        super("fillet", editor, [`gizmo:fillet:add`]);
     }
 }

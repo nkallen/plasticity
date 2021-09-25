@@ -23,15 +23,7 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
 
         const p = new CancellablePromise<void>((resolve, reject) => {
-            const cancel = () => {
-                disposables.dispose();
-                reject(Cancel);
-            };
-            const finish = () => {
-                disposables.dispose();
-                resolve();
-            };
-            return { cancel, finish };
+            return { dispose: () => disposables.dispose(), finish: resolve };
         });
 
         const cancellables = [];

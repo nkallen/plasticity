@@ -30,7 +30,7 @@ export abstract class ResourceRegistration implements Cancellable, Finishable {
 export const Cancel = { tag: 'Cancel' };
 export const Finish = { tag: 'Finish' };
 
-export type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => { cancel: (() => void), finish: (() => void) };
+export type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => { dispose: (() => void), finish: (() => void) };
 
 type State = 'None' | 'Cancelled' | 'Finished';
 
@@ -83,64 +83,73 @@ export class CancellablePromise<T> extends ResourceRegistration implements Promi
 
     static all(ps: CancellablePromise<any>[]) {
         return new CancellablePromise<void>((resolve, reject) => {
-            const cancel = () => {
+            const dispose = () => {
                 for (const p of ps) {
                     p.promise.catch(err => {
                         if (err !== Cancel) reject(err);
                     });
                     p.cancel();
                 }
-                reject(Cancel);
             }
-            const finish = () => {
-                for (const p of ps) {
-                    p.promise.catch(err => {
-                        if (err !== Finish) reject(err);
-                    });
-                    p.finish();
-                }
-                resolve();
-            }
-            return { cancel, finish };
+            return { dispose, finish: resolve };
         });
     }
 
     static resolve() {
         return new CancellablePromise<void>((resolve, reject) => {
             resolve();
-            const cancel = () => { }
+            const dispose = () => { }
             const finish = () => { }
-            return { cancel, finish };
+            return { dispose, finish };
         });
     }
 
-    _cancel!: () => void;
+    _dispose!: () => void;
     _finish!: () => void;
+    _reject!: (reason?: any) => void;
     private readonly promise: Promise<T>;
 
     constructor(executor: Executor<T>) {
         super();
         const that = this;
         this.promise = new Promise<T>((resolve, reject) => {
-            const { cancel, finish } = executor(resolve, reject);
-            that._cancel = cancel;
+            const { dispose, finish } = executor(resolve, reject);
+            that._dispose = dispose;
             that._finish = finish;
+            this._reject = reject;
         });
     }
 
     cancel() {
         if (this.state != 'None') return;
-        this._cancel();
-        this.state = 'Cancelled';
+        try {
+            this._dispose();
+            this._reject(Cancel);
+        } finally {
+            this.state = 'Cancelled';
+        }
     }
 
     finish() {
         if (this.state != 'None') return;
-        this._finish();
-        this.state = 'Finished';
+        try {
+            this._dispose();
+            this._onFinish(this._reject);
+        } finally {
+            this.state = 'Finished';
+        }
     }
 
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2> {
         return this.promise.then(onfulfilled, onrejected);
+    }
+
+    private _onFinish(reject: (reason?: any) => void) {
+        this._finish()
+    }
+    
+    onFinish(cb: (reject: (reason?: any) => void) => void) {
+        this._onFinish = cb;
+        return this;
     }
 }
