@@ -1,15 +1,53 @@
 import * as visual from '../../editor/VisualModel';
 import { point2point, unit, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import * as THREE from "three";
 
 export default class OffsetContourFactory extends GeometryFactory {
+    private offsetFace = new OffsetFaceFactory(this.db, this.materials, this.signals);
+    private offsetCurve = new OffsetCurveFactory(this.db, this.materials, this.signals);
+
+    set distance(d: number) {
+        this.offsetFace.distance = d;
+        this.offsetCurve.distance = d;
+    }
+
+    set face(f: visual.Face) { this.offsetFace.face = f }
+    set curve(c: visual.SpaceInstance<visual.Curve3D>) { this.offsetCurve.curve = c }
+
+    get center() {
+        const { offsetCurve, offsetFace } = this;
+        if (offsetCurve.curve !== undefined) return offsetCurve.center;
+        if (offsetFace.face !== undefined) return offsetFace.center;
+        throw new ValidationError();
+    }
+
+    get normal() {
+        const { offsetCurve, offsetFace } = this;
+        if (offsetCurve.curve !== undefined) return offsetCurve.normal;
+        if (offsetFace.face !== undefined) return offsetFace.normal;
+        throw new ValidationError();
+    }
+
+    async calculate() {
+        const { offsetCurve, offsetFace } = this;
+        if (offsetCurve.curve !== undefined) return offsetCurve.calculate();
+        if (offsetFace.face !== undefined) return offsetFace.calculate();
+        throw new ValidationError();
+    }
+}
+
+export class OffsetFaceFactory extends GeometryFactory {
     distance = 0;
-    
-    center!: THREE.Vector3;
-    normal!: THREE.Vector3;
-    
-    private curve!: c3d.Curve3D;
+
+    _center!: THREE.Vector3;
+    get center() { return this._center }
+
+    _normal!: THREE.Vector3;
+    get normal() { return this._normal }
+
+    curve!: c3d.Curve3D;
     private model!: c3d.Face;
     private direction!: c3d.Axis3D;
     set face(face: visual.Face) {
@@ -34,8 +72,8 @@ export default class OffsetContourFactory extends GeometryFactory {
         const p = fsurface.PointOn(new c3d.CartPoint(u, v));
         const n = fsurface.Normal(u, v);
 
-        this.center = point2point(p);
-        this.normal = vec2vec(n, 1);
+        this._center = point2point(p);
+        this._normal = vec2vec(n, 1);
 
         this.direction = new c3d.Axis3D(cp, vec2vec(n_cross_tau, 1));
         this.model = model;
@@ -52,5 +90,31 @@ export default class OffsetContourFactory extends GeometryFactory {
         const curves = wireframe.GetCurves();
 
         return new c3d.SpaceInstance(curves[0]);
+    }
+}
+
+export class OffsetCurveFactory extends GeometryFactory {
+    distance = 0;
+
+    get center() { return new THREE.Vector3() }
+    get normal() { return new THREE.Vector3(0, 0, 1) }
+
+    private _curve!: c3d.Curve3D;
+    get curve() { return this._curve }
+    set curve(curve: visual.SpaceInstance<visual.Curve3D> | c3d.Curve3D) {
+        if (curve instanceof c3d.Curve3D) {
+            this._curve = curve;
+        } else {
+            const inst = this.db.lookup(curve);
+            const item = inst.GetSpaceItem()!;
+            this._curve = item.Cast<c3d.Curve3D>(item.IsA());
+        }
+    }
+
+    async calculate() {
+        const { _curve, distance } = this;
+
+        const offset = await c3d.ActionSurfaceCurve.OffsetPlaneCurve_async(_curve, unit(distance));
+        return new c3d.SpaceInstance(offset);
     }
 }

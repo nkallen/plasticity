@@ -1456,6 +1456,7 @@ export default {
             dependencies: ["Contour3D.h", "Curve3D.h", "SurfaceOffsetCurveParams.h", "WireFrame.h", "ElementarySurface.h", "WireFrame.h", "SurfaceOffsetCurveParams.h", "SpatialOffsetCurveParams.h"],
             functions: [
                 "MbResultType CreateContourFillets(const MbContour3D & contour, SArray<double> & radiuses, MbCurve3D *& result, const MbeConnectingType type)",
+                "MbResultType OffsetPlaneCurve(const MbCurve3D &curve, double dist, MbCurve3D *& result)",
                 {
                     signature: "MbResultType OffsetCurve(const MbCurve3D & curve, const MbSurfaceOffsetCurveParams & params, SPtr<MbWireFrame> & result)",
                     result: isReturn

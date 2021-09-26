@@ -1,6 +1,7 @@
 audit boolean and fillet dialog mode switching;; almost surely broken by latest refactoring
 test curve
 object picker (trim)
+remove c3d.node from version history
 
 switching commands in multi-step commands has problems
 

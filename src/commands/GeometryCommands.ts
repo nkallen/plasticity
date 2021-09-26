@@ -1308,13 +1308,14 @@ export class SelectFilletsCommand extends Command {
     }
 }
 
-export class OffsetLoopCommand extends Command {
+export class OffsetCurveCommand extends Command {
     async execute(): Promise<void> {
         const face = this.editor.selection.selected.faces.first;
-        const parent = face.parentItem as visual.Solid
+        const curve = this.editor.selection.selected.curves.first;
 
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        offsetContour.face = face;
+        if (face !== undefined) offsetContour.face = face;
+        if (curve !== undefined) offsetContour.curve = curve;
 
         const gizmo = new DistanceGizmo("offset-loop:distance", this.editor);
         gizmo.position.copy(offsetContour.center);
@@ -1325,7 +1326,8 @@ export class OffsetLoopCommand extends Command {
             offsetContour.update();
         }, Mode.Persistent).resource(this);
 
-        this.editor.selection.selected.removeFace(face, parent);
+        if (face !== undefined) this.editor.selection.selected.removeFace(face, face.parentItem);
+        if (curve !== undefined) this.editor.selection.selected.removeCurve(curve);
 
         const offset = await offsetContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
