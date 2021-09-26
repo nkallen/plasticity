@@ -10,6 +10,8 @@ import { AbstractAxialScaleGizmo, AngleGizmo, lineGeometry, MagnitudeStateMachin
 import * as fillet from './FilletFactory';
 import { FilletParams } from './FilletFactory';
 
+const Y = new THREE.Vector3(0, 1, 0);
+
 export class FilletGizmo extends CompositeGizmo<FilletParams> {
     private readonly main = new MagnitudeGizmo("fillet:distance", this.editor);
     private readonly angle = new AngleGizmo("fillet:angle", this.editor, this.editor.gizmos.white);
@@ -25,7 +27,7 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         const { main, params, angle } = this;
 
         const { point, normal } = this.placement(this.hint);
-        main.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        main.quaternion.setFromUnitVectors(Y, normal);
         main.position.copy(point);
         angle.position.copy(point);
 
@@ -104,7 +106,7 @@ export class FilletGizmo extends CompositeGizmo<FilletParams> {
         gizmo.relativeScale.setScalar(0.5);
         gizmo.value = 1;
         gizmo.position.copy(point);
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec2vec(normal, 1));
+        gizmo.quaternion.setFromUnitVectors(Y, vec2vec(normal, 1));
         this.variables.push(gizmo);
 
         return gizmo;

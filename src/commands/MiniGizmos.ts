@@ -426,7 +426,6 @@ export class DashedLineMagnitudeHelper implements GizmoHelper {
         this.element.appendChild(this.line);
     }
 
-
     onStart(parentElement: HTMLElement, position: THREE.Vector2) {
         switch (this.state) {
             case 'none':
@@ -506,21 +505,22 @@ export class CompositeHelper extends THREE.Object3D implements GizmoHelper {
             if (helper instanceof THREE.Object3D) this.add(helper);
         }
     }
+
     onStart(parentElement: HTMLElement, position: THREE.Vector2): void {
         for (const helper of this.helpers) {
             helper.onStart(parentElement, position);
         }
     }
+
     onMove(position: THREE.Vector2): void {
         for (const helper of this.helpers) {
             helper.onMove(position);
         }
     }
+
     onEnd(): void {
         for (const helper of this.helpers) {
             helper.onEnd();
         }
     }
-
-
 }

@@ -1,3 +1,5 @@
+BUG: offset contour, go to top view, things are frozen
+
 audit boolean and fillet dialog mode switching;; almost surely broken by latest refactoring
 test curve
 object picker (trim)

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
-import OffsetContourFactory, { OffsetCurveFactory, OffsetFaceFactory } from "../../src/commands/curve/OffsetContourFactory";
+import OffsetCurveFactory, { OffsetFaceFactory, OffsetSpaceCurveFactory } from "../../src/commands/curve/OffsetContourFactory";
 import CylinderFactory from "../../src/commands/cylinder/CylinderFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -55,11 +55,11 @@ describe(OffsetFaceFactory, () => {
     });
 });
 
-describe(OffsetCurveFactory, () => {
-    let offsetCurve: OffsetCurveFactory;
+describe(OffsetSpaceCurveFactory, () => {
+    let offsetCurve: OffsetSpaceCurveFactory;
 
     beforeEach(() => {
-        offsetCurve = new OffsetCurveFactory(db, materials, signals);
+        offsetCurve = new OffsetSpaceCurveFactory(db, materials, signals);
     });
 
     describe('planar curves', () => {
@@ -77,7 +77,7 @@ describe(OffsetCurveFactory, () => {
             offsetCurve.distance = 0.1;
 
             expect(offsetCurve.center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-            expect(offsetCurve.normal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(offsetCurve.normal).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
 
             const curve = await offsetCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
             const bbox = new THREE.Box3().setFromObject(curve);
@@ -91,11 +91,11 @@ describe(OffsetCurveFactory, () => {
 });
 
 
-describe(OffsetContourFactory, () => {
-    let offsetContour: OffsetContourFactory;
+describe(OffsetCurveFactory, () => {
+    let offsetContour: OffsetCurveFactory;
 
     beforeEach(() => {
-        offsetContour = new OffsetContourFactory(db, materials, signals);
+        offsetContour = new OffsetCurveFactory(db, materials, signals);
     });
 
     describe('planar curves', () => {
@@ -113,7 +113,7 @@ describe(OffsetContourFactory, () => {
             offsetContour.distance = 0.1;
 
             expect(offsetContour.center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-            expect(offsetContour.normal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+            expect(offsetContour.normal).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
 
             const curve = await offsetContour.commit() as visual.SpaceInstance<visual.Curve3D>;
             const bbox = new THREE.Box3().setFromObject(curve);

@@ -226,6 +226,7 @@ keybindings.set("gizmo:rebuild:backward", "Go backward in history");
 keybindings.set("gizmo:fillet-curve:radius", "Fillet radius");
 keybindings.set("gizmo:revolution:angle", "Revolution angle");
 keybindings.set("gizmo:revolution:thickness", "Revolution thickness");
+keybindings.set("gizmo:offset-curve:distance", "Offset distance");
 
 export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {

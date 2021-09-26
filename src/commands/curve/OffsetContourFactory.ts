@@ -4,9 +4,9 @@ import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import * as THREE from "three";
 
-export default class OffsetContourFactory extends GeometryFactory {
+export default class OffsetCurveFactory extends GeometryFactory {
     private offsetFace = new OffsetFaceFactory(this.db, this.materials, this.signals);
-    private offsetCurve = new OffsetCurveFactory(this.db, this.materials, this.signals);
+    private offsetCurve = new OffsetSpaceCurveFactory(this.db, this.materials, this.signals);
 
     set distance(d: number) {
         this.offsetFace.distance = d;
@@ -93,7 +93,7 @@ export class OffsetFaceFactory extends GeometryFactory {
     }
 }
 
-export class OffsetCurveFactory extends GeometryFactory {
+export class OffsetSpaceCurveFactory extends GeometryFactory {
     distance = 0;
 
     private _center!: THREE.Vector3;
@@ -112,7 +112,7 @@ export class OffsetCurveFactory extends GeometryFactory {
             const item = inst.GetSpaceItem()!;
             this._curve = item.Cast<c3d.Curve3D>(item.IsA());
             this._center = point2point(this._curve.GetLimitPoint(1));
-            this._normal = vec2vec(this._curve.BNormal(this._curve.GetTMin()), 1);
+            this._normal = vec2vec(this._curve.Normal(this._curve.GetTMin()), -1);
         }
     }
 

@@ -23,7 +23,7 @@ import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFact
 import { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
-import OffsetContourFactory from "./curve/OffsetContourFactory";
+import OffsetCurveFactory from "./curve/OffsetContourFactory";
 import TrimFactory from "./curve/TrimFactory";
 import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
@@ -1313,11 +1313,11 @@ export class OffsetCurveCommand extends Command {
         const face = this.editor.selection.selected.faces.first;
         const curve = this.editor.selection.selected.curves.first;
 
-        const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const offsetContour = new OffsetCurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         if (face !== undefined) offsetContour.face = face;
         if (curve !== undefined) offsetContour.curve = curve;
 
-        const gizmo = new DistanceGizmo("offset-loop:distance", this.editor);
+        const gizmo = new MagnitudeGizmo("offset-curve:distance", this.editor);
         gizmo.position.copy(offsetContour.center);
         gizmo.quaternion.setFromUnitVectors(Y, offsetContour.normal);
 
@@ -1330,7 +1330,7 @@ export class OffsetCurveCommand extends Command {
         if (curve !== undefined) this.editor.selection.selected.removeCurve(curve);
 
         const offset = await offsetContour.commit() as visual.SpaceInstance<visual.Curve3D>;
-
+        this.editor.selection.selected.addCurve(offset);
     }
 }
 
