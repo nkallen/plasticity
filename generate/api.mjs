@@ -1459,7 +1459,13 @@ export default {
                 "MbResultType OffsetPlaneCurve(const MbCurve3D &curve, double dist, MbCurve3D *& result)",
                 {
                     signature: "MbResultType OffsetCurve(const MbCurve3D & curve, const MbSurfaceOffsetCurveParams & params, SPtr<MbWireFrame> & result)",
+                    jsName: "OffsetSurfaceCurve",
                     result: isReturn
+                },
+                {
+                    signature: "MbResultType OffsetCurve(const MbCurve3D & initCurve, const MbSpatialOffsetCurveParams & params, SPtr<MbWireFrame> & result)",
+                    jsName: "OffsetCurve",
+                    result: isReturn,
                 },
                 {
                     signature: "MbResultType FilletCurve(const MbCurve3D & curve1, double & t1, double & w1, const MbCurve3D & curve2, double & t2, double & w2, double & radius, bool sense, bool & unchanged, const MbeConnectingType type, const MbSNameMaker & names, MbElementarySurface *& surface, MbWireFrame *& result)",

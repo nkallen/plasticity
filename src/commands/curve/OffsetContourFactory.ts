@@ -86,7 +86,7 @@ export class OffsetFaceFactory extends GeometryFactory {
         const { curve, model, direction, distance, names } = this;
 
         const params = new c3d.SurfaceOffsetCurveParams(model, direction, unit(distance), names);
-        const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, params);
+        const wireframe = await c3d.ActionSurfaceCurve.OffsetSurfaceCurve_async(curve, params);
         const curves = wireframe.GetCurves();
 
         return new c3d.SpaceInstance(curves[0]);
@@ -96,8 +96,11 @@ export class OffsetFaceFactory extends GeometryFactory {
 export class OffsetCurveFactory extends GeometryFactory {
     distance = 0;
 
-    get center() { return new THREE.Vector3() }
-    get normal() { return new THREE.Vector3(0, 0, 1) }
+    private _center!: THREE.Vector3;
+    get center() { return this._center }
+
+    private _normal!: THREE.Vector3;
+    get normal() { return this._normal }
 
     private _curve!: c3d.Curve3D;
     get curve() { return this._curve }
@@ -108,13 +111,19 @@ export class OffsetCurveFactory extends GeometryFactory {
             const inst = this.db.lookup(curve);
             const item = inst.GetSpaceItem()!;
             this._curve = item.Cast<c3d.Curve3D>(item.IsA());
+            this._center = point2point(this._curve.GetLimitPoint(1));
+            this._normal = vec2vec(this._curve.BNormal(this._curve.GetTMin()), 1);
         }
     }
 
-    async calculate() {
-        const { _curve, distance } = this;
+    private names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0)
 
-        const offset = await c3d.ActionSurfaceCurve.OffsetPlaneCurve_async(_curve, unit(distance));
-        return new c3d.SpaceInstance(offset);
+    async calculate() {
+        const { _curve, distance, names } = this;
+
+        const vec = new c3d.Vector3D(unit(distance), 0, 0);
+        const params = new c3d.SpatialOffsetCurveParams(vec, names);
+        const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(_curve, params);
+        return new c3d.SpaceInstance(wireframe.GetCurves()[0]);
     }
 }

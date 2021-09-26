@@ -1,9 +1,9 @@
 <%_ for (const func of klass.functions) { _%>
 <%_ if (func.isManual) continue _%>
 
-  class <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker : public PromiseWorker {
+  class <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker : public PromiseWorker {
       public:
-          <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(
+          <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker(
             <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying,<% } _%>
             Napi::Promise::Deferred const &d<%_ _%>
             <%_ for (const arg of func.params) { _%>
@@ -17,7 +17,7 @@
                 <%_ } _%>
             <%_ } _%>
           <%_ %>);
-          virtual ~<%- klass.cppClassName %>_<%- func.name %>_AsyncWorker() {};
+          virtual ~<%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker() {};
 
           void Execute() override;
           void Resolve(Napi::Promise::Deferred const &deferred) override;

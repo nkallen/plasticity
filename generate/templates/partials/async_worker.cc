@@ -1,6 +1,6 @@
 <%_ for (const func of klass.functions) { _%>
     <%_ if (func.isManual) continue _%>
-    <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::<%- klass.cppClassName %>_<%- func.name %>_AsyncWorker(
+    <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker::<%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker(
         <%_ if (!func.isStatic) { _%><%- klass.rawClassName %> * _underlying,<% } _%>
         Napi::Promise::Deferred const &d
         <%_ for (const arg of func.params) { _%>
@@ -25,7 +25,7 @@
             <%_ } _%>
         <%_ } _%> {};
 
-    void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::Execute() {
+    void <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker::Execute() {
         EnterParallelRegion();
 
         <%- include('declare_out_params.cc', { func }) %>
@@ -65,13 +65,13 @@
         <% if (func.returnType.isErrorCode) { _%>
         } else {
             std::ostringstream msg;
-            msg << "Operation <%- func.name %> failed with error: " << Error::GetSolidErrorResId(_result);
+            msg << "Operation <%- func.jsName %> failed with error: " << Error::GetSolidErrorResId(_result);
             SetError(msg.str());
         }
         <%_ } else if (func.returnType.isErrorBool) { _%>
         } else {
             std::ostringstream msg;
-            msg << "Operation <%- func.name %> failed";
+            msg << "Operation <%- func.jsName %> failed";
             SetError(msg.str());
         }
         <%_ } _%>
@@ -79,7 +79,7 @@
         ExitParallelRegion();
     }
 
-    void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::Resolve(Napi::Promise::Deferred const &deferred) {
+    void <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker::Resolve(Napi::Promise::Deferred const &deferred) {
         Napi::Env env = deferred.Env();
         <%_ if (func.returnsCount == 0) { _%>
             deferred.Resolve(env.Undefined());
@@ -108,7 +108,7 @@
         <%_ } _%>
     }
 
-    void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::Reject(Napi::Promise::Deferred const &deferred, Napi::Error const & error) {
+    void <%- klass.cppClassName %>_<%- func.jsName %>_AsyncWorker::Reject(Napi::Promise::Deferred const &deferred, Napi::Error const & error) {
         error.Value()["isC3dError"] = true;
         deferred.Reject(error.Value());
     }

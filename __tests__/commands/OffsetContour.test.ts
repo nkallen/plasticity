@@ -76,8 +76,8 @@ describe(OffsetCurveFactory, () => {
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3());
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.9, -0.9, 0));
-            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.9, 0.9, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.1, -1.1, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.1, 1.1, 0));
         });
     });
 });

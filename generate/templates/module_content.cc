@@ -10,8 +10,8 @@ Napi::Object <%- klass.cppClassName %>::Init(Napi::Env env, Napi::Object exports
     Napi::Object object = Napi::Object::New(env);
 
     <%_ for (const func of klass.functions) { _%>
-    object.Set("<%- func.name %>", Napi::Function::New<&<%- klass.cppClassName %>::<%- func.name %>>(env));
-    object.Set("<%- func.name %>_async", Napi::Function::New<&<%- klass.cppClassName %>::<%- func.name %>_async>(env));
+    object.Set("<%- func.jsName %>", Napi::Function::New<&<%- klass.cppClassName %>::<%- func.jsName %>>(env));
+    object.Set("<%- func.jsName %>_async", Napi::Function::New<&<%- klass.cppClassName %>::<%- func.jsName %>_async>(env));
     <%_ } _%>
 
     exports.Set("<%- klass.cppClassName %>", object);

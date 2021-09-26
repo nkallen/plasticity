@@ -19,8 +19,8 @@ class <%- klass.cppClassName %> : public
         static Napi::Object Init(Napi::Env env, Napi::Object exports);
 
     <%_ for (const func of klass.functions) { _%>
-        static Napi::Value <%- func.name %>(const Napi::CallbackInfo& info);
-        static Napi::Value <%- func.name %>_async(const Napi::CallbackInfo& info);
+        static Napi::Value <%- func.jsName %>(const Napi::CallbackInfo& info);
+        static Napi::Value <%- func.jsName %>_async(const Napi::CallbackInfo& info);
     <%_ } _%>
 };
 

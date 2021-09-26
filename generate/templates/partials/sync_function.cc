@@ -9,9 +9,9 @@
 <%- func.before %>
 <% if (func.returnType.isReturn || func.returnType.isErrorCode || func.returnType.isErrorBool) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> <%- func.returnType.name %> = <% } _%>
 <%_ if (func.isStatic) { _%>
-<%- /::/.test(func.rawName) ? func.rawName : '::' + func.name %>
+<%- /::/.test(func.rawName) ? func.rawName : '::' + func.cppName %>
 <%_ } else { _%>
-_underlying-><%- func.name %>
+_underlying-><%- func.cppName %>
 <%_ } _%>(
 <%_ for (const arg of func.params) { _%>
     <% if (arg.isCppString2CString) { _%>

@@ -226,6 +226,7 @@ class FunctionDeclaration {
 
         this.rawName = matchMethod.groups.name;
         this.name = this.rawName.split(/::/)[1] ?? matchMethod.groups.name;
+        this.jsName = options.jsName ?? this.name;
 
         this.returnType = new ReturnDeclaration(matchMethod.groups.return, this.typeRegistry, options.return);
         const paramDescs = matchMethod.groups.params.split(/,\s*/);
@@ -263,6 +264,10 @@ class FunctionDeclaration {
             }
         }
         return result;
+    }
+
+    get cppName() {
+        return this.name;
     }
 }
 
