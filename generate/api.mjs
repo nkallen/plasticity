@@ -1409,6 +1409,20 @@ export default {
                 "bool IsSurface()",
             ]
         },
+        SpatialOffsetCurveParams: {
+            rawHeader: "op_curve_parameter.h",
+            dependencies: ["Vector3D.h", "SNameMaker.h"],
+            initializers: [
+                "const MbVector3D & v, const MbSNameMaker & nm"
+            ]
+        },
+        SurfaceOffsetCurveParams: {
+            rawHeader: "op_curve_parameter.h",
+            dependencies: ["Face.h", "Axis3D.h", "SNameMaker.h"],
+            initializers: [
+                "const MbFace & f, const MbAxis3D & a, double d, const MbSNameMaker & nm"
+            ]
+        }
     },
     modules: {
         Enabler: {
@@ -1439,10 +1453,13 @@ export default {
         },
         ActionSurfaceCurve: {
             rawHeader: "action_surface_curve.h",
-            dependencies: ["Contour3D.h", "Curve3D.h", "SurfaceOffsetCurveParams.h", "WireFrame.h", "ElementarySurface.h", "WireFrame.h"],
+            dependencies: ["Contour3D.h", "Curve3D.h", "SurfaceOffsetCurveParams.h", "WireFrame.h", "ElementarySurface.h", "WireFrame.h", "SurfaceOffsetCurveParams.h", "SpatialOffsetCurveParams.h"],
             functions: [
                 "MbResultType CreateContourFillets(const MbContour3D & contour, SArray<double> & radiuses, MbCurve3D *& result, const MbeConnectingType type)",
-                "MbResultType OffsetCurve(const MbCurve3D & curve, const MbFace & face, const MbAxis3D & dirAxis, double dist, const MbSNameMaker & snMaker, MbWireFrame *& result)",
+                {
+                    signature: "MbResultType OffsetCurve(const MbCurve3D & curve, const MbSurfaceOffsetCurveParams & params, SPtr<MbWireFrame> & result)",
+                    result: isReturn
+                },
                 {
                     signature: "MbResultType FilletCurve(const MbCurve3D & curve1, double & t1, double & w1, const MbCurve3D & curve2, double & t2, double & w2, double & radius, bool sense, bool & unchanged, const MbeConnectingType type, const MbSNameMaker & names, MbElementarySurface *& surface, MbWireFrame *& result)",
                     w1: isReturn,

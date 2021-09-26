@@ -8,7 +8,7 @@ declare module "*c3d.node" {
 
     <%_ for (c of classes) if (c.templatePrefix == 'class') { _%>
         <%_ if (c.cppClassName == 'AttributeContainer') continue; _%>
-        declare class <%- c.jsClassName %><%_ if (c.extends.length > 0) { %> extends <%- c.extends[0].jsClassName %><%_ } _%><%_ if (c.extends.length > 1) { %> implements <%- c.extends[1] %><%_ } _%> {
+        declare class <%- c.jsClassName %><%_ if (c.extends.length > 0) { %> extends <%- c.extends[0].jsClassName %><%_ } _%><%_ if (c.extends.length > 1) { %> implements <%- c.extends[1].jsClassName %><%_ } _%> {
             <%_ if (c.extends.length == 0) { %>private _useNominal: undefined;<% } %>
             <%_ for (const init of c.initializers) { _%>
                 constructor(<%- include('params.d.ts', { params: init.params }) %>);

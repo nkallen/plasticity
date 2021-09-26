@@ -9,7 +9,6 @@ export default class OffsetContourFactory extends GeometryFactory {
     center!: THREE.Vector3;
     normal!: THREE.Vector3;
     
-    private _face!: visual.Face;
     private curve!: c3d.Curve3D;
     private model!: c3d.Face;
     private direction!: c3d.Axis3D;
@@ -39,7 +38,6 @@ export default class OffsetContourFactory extends GeometryFactory {
         this.normal = vec2vec(n, 1);
 
         this.direction = new c3d.Axis3D(cp, vec2vec(n_cross_tau, 1));
-        this._face = face;
         this.model = model;
         this.curve = contour;
     }
@@ -49,7 +47,8 @@ export default class OffsetContourFactory extends GeometryFactory {
     async calculate() {
         const { curve, model, direction, distance, names } = this;
 
-        const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, model, direction, unit(distance), names);
+        const params = new c3d.SurfaceOffsetCurveParams(model, direction, unit(distance), names);
+        const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, params);
         const curves = wireframe.GetCurves();
 
         return new c3d.SpaceInstance(curves[0]);

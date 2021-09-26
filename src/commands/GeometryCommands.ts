@@ -7,7 +7,7 @@ import { point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
-import { BooleanFactory, CutAndSplitFactory, CutFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
+import { BooleanFactory, CutAndSplitFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
@@ -35,7 +35,7 @@ import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
 import { MaxFilletFactory } from './fillet/FilletFactory';
 import { FilletGizmo, MagnitudeGizmo } from './fillet/FilletGizmo';
-import { ChamferAndFilletKeyboardGizmo, FilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
+import { ChamferAndFilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
@@ -65,6 +65,7 @@ import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
 
+const Y = new THREE.Vector3(0, 1, 0);
 export class SphereCommand extends Command {
     async execute(): Promise<void> {
         const sphere = new PossiblyBooleanSphereFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -1057,7 +1058,7 @@ export class RefilletFaceCommand extends Command {
 
         const gizmo = new DistanceGizmo("refillet-face:distance", this.editor);
         const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(faces[0]));
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        gizmo.quaternion.setFromUnitVectors(Y, normal);
         gizmo.position.copy(point);
 
         gizmo.state.min = Number.NEGATIVE_INFINITY;
@@ -1120,7 +1121,7 @@ export class ExtrudeCommand extends Command {
 
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
         gizmo.position.copy(this.point ?? extrude.center);
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), extrude.direction);
+        gizmo.quaternion.setFromUnitVectors(Y, extrude.direction);
 
         await gizmo.execute(params => {
             extrude.update();
@@ -1256,7 +1257,7 @@ export class FilletCurveCommand extends Command {
         if (cornerAngle === undefined) return;
 
         const quat = new THREE.Quaternion();
-        quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), cornerAngle.tau.cross(cornerAngle.axis));
+        quat.setFromUnitVectors(Y, cornerAngle.tau.cross(cornerAngle.axis));
         gizmo.quaternion.copy(quat);
         gizmo.position.copy(cornerAngle.origin);
 
@@ -1309,17 +1310,15 @@ export class SelectFilletsCommand extends Command {
 
 export class OffsetLoopCommand extends Command {
     async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selected.faces];
-        const face = faces[0];
-        const parent = faces[0].parentItem as visual.Solid
-
+        const face = this.editor.selection.selected.faces.first;
+        const parent = face.parentItem as visual.Solid
 
         const offsetContour = new OffsetContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         offsetContour.face = face;
 
         const gizmo = new DistanceGizmo("offset-loop:distance", this.editor);
         gizmo.position.copy(offsetContour.center);
-        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), offsetContour.normal);
+        gizmo.quaternion.setFromUnitVectors(Y, offsetContour.normal);
 
         await gizmo.execute(async distance => {
             offsetContour.distance = distance;

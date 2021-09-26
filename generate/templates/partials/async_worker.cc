@@ -28,13 +28,7 @@
     void <%- klass.cppClassName %>_<%- func.name %>_AsyncWorker::Execute() {
         EnterParallelRegion();
 
-        <%_ for (const _return of func.outParams) { _%>
-            <% if (_return.shouldAlloc) { _%>
-            <%- _return.rawType %> *<%- _return.name %> = new <%- _return.rawType %>;
-            <% } else { _%>
-            <%- _return.const %> <%- _return.rawType %> <%- _return.isPointer ? '*' : '' %> <%- _return.name %> = NULL;
-            <%_ } _%>
-        <%_ } _%>
+        <%- include('declare_out_params.cc', { func }) %>
 
         <%- func.before %>
         <% if (func.returnType.isReturn || func.returnType.isErrorCode || func.returnType.isErrorBool) { _%> <%- func.returnType.const %> <%- func.returnType.rawType %> <%- func.returnType.ref %> <%- func.returnType.name %> = <% } _%>
@@ -92,7 +86,12 @@
         <%_ } else if (func.returnsCount == 1) { _%>
             Napi::Value _to;
             <%_ const arg = func.returns[0] _%>
+            <%_ if (arg.isSPtr) { _%>
+            <%- arg.rawType %> <%- arg.name %> = this-><%- arg.name %>;
+            <%- arg.name %>->AddRef();
+            <%_ } else { _%>
             <%- arg.const %> <%- arg.rawType %> <%- arg.isPrimitive ? '' : '*' %> <%- arg.name %> = this-><%- arg.name %>;
+            <%_ } _%>
             <%- include('convert_to_js.cc', { arg: arg, skipCopy: true }) %>
             deferred.Resolve(_to);
         <%_ } else { _%>

@@ -18,6 +18,8 @@
         {
             delete[] finalizeData;
         });
+<%_ } else if (arg.isSPtr) { _%>
+    _to = <%- arg.elementType.cppType %>::NewInstance(env, <%- arg.name %>.detach());
 <%_ } else if (arg.klass?.isPOD) { _%>
     _to = <%- arg.cppType %>::NewInstance(env, <%- arg.name %>);
 <%_ } else if (!skipCopy && arg.isOnStack) { _%>

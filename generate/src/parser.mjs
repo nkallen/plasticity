@@ -312,6 +312,10 @@ class TypeDeclaration {
         return /Array/.test(this.rawType) || /List/.test(this.rawType) || /LIterator/.test(this.rawType);
     }
 
+    get isSPtr() {
+        return /SPtr/.test(this.rawType);
+    }
+
     get isBuffer() {
         return this.rawType === "char" && this.const && this.ref === "*&" ||
             this.rawType === "void" && this.const && this.ref === "*";
@@ -377,6 +381,7 @@ class ParamDeclaration extends TypeDeclaration {
 
     get shouldAlloc() {
         if (this.isPrimitive) return false;
+        if (this.isSPtr) return false;
         return (this.isReturn && this.ref == "&") || (this.isReturn && this.isArray)
     }
 

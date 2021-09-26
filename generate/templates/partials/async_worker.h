@@ -43,7 +43,11 @@
         <%_ if (func.returnsCount == 0) { _%>
         <%_ } else if (func.returnsCount > 0) { _%>
             <%_ for (const arg of func.returns) { _%>
+                <% if (arg.isSPtr) { %>
+                SPtr<<%- arg.elementType.rawType %>> <%- arg.name %>;
+                <% } else { %>
                 <%- arg.const %> <%- arg.rawType %> <%- arg.isPrimitive ? '' : '*' %> <%- arg.name %>;
+                <% } %>
             <%_ } _%>
         <%_ } _%>
   };
