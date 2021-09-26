@@ -40,6 +40,10 @@ describe(OffsetFaceFactory, () => {
         test('it works', async () => {
             offsetContour.face = cylinder.faces.get(1);
             offsetContour.distance = 0.1;
+
+            expect(offsetContour.center).toApproximatelyEqual(new THREE.Vector3());
+            expect(offsetContour.normal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+
             const curve = await offsetContour.commit() as visual.SpaceInstance<visual.Curve3D>;
             const bbox = new THREE.Box3().setFromObject(curve);
             const center = new THREE.Vector3();
@@ -71,7 +75,75 @@ describe(OffsetCurveFactory, () => {
         test('it works', async () => {
             offsetCurve.curve = circle;
             offsetCurve.distance = 0.1;
+
+            expect(offsetCurve.center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(offsetCurve.normal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+
             const curve = await offsetCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const bbox = new THREE.Box3().setFromObject(curve);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3());
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.1, -1.1, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.1, 1.1, 0));
+        });
+    });
+});
+
+
+describe(OffsetContourFactory, () => {
+    let offsetContour: OffsetContourFactory;
+
+    beforeEach(() => {
+        offsetContour = new OffsetContourFactory(db, materials, signals);
+    });
+
+    describe('planar curves', () => {
+        let circle: visual.SpaceInstance<visual.Curve3D>;
+
+        beforeEach(async () => {
+            const makeCircle = new CenterCircleFactory(db, materials, signals);
+            makeCircle.center = new THREE.Vector3();
+            makeCircle.radius = 1;
+            circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        })
+
+        test('it works', async () => {
+            offsetContour.curve = circle;
+            offsetContour.distance = 0.1;
+
+            expect(offsetContour.center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(offsetContour.normal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+
+            const curve = await offsetContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const bbox = new THREE.Box3().setFromObject(curve);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3());
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.1, -1.1, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.1, 1.1, 0));
+        });
+    });
+
+    describe('faces', () => {
+        let cylinder: visual.Solid;
+
+        beforeEach(async () => {
+            const makeCylinder = new CylinderFactory(db, materials, signals);
+            makeCylinder.base = new THREE.Vector3();
+            makeCylinder.radius = new THREE.Vector3(1, 0, 0);
+            makeCylinder.height = new THREE.Vector3(0, 0, 10);
+            cylinder = await makeCylinder.commit() as visual.Solid;
+        })
+
+        test('it works', async () => {
+            offsetContour.face = cylinder.faces.get(1);
+            offsetContour.distance = 0.1;
+
+            expect(offsetContour.center).toApproximatelyEqual(new THREE.Vector3());
+            expect(offsetContour.normal).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+
+            const curve = await offsetContour.commit() as visual.SpaceInstance<visual.Curve3D>;
             const bbox = new THREE.Box3().setFromObject(curve);
             const center = new THREE.Vector3();
             bbox.getCenter(center);

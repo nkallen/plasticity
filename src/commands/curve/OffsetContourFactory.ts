@@ -19,22 +19,22 @@ export default class OffsetContourFactory extends GeometryFactory {
     get center() {
         const { offsetCurve, offsetFace } = this;
         if (offsetCurve.curve !== undefined) return offsetCurve.center;
-        if (offsetFace.face !== undefined) return offsetFace.center;
-        throw new ValidationError();
+        if (offsetFace.curve !== undefined) return offsetFace.center;
+        throw new ValidationError("no face or curve");
     }
 
     get normal() {
         const { offsetCurve, offsetFace } = this;
         if (offsetCurve.curve !== undefined) return offsetCurve.normal;
-        if (offsetFace.face !== undefined) return offsetFace.normal;
-        throw new ValidationError();
+        if (offsetFace.curve !== undefined) return offsetFace.normal;
+        throw new ValidationError("no face or curve");
     }
 
     async calculate() {
         const { offsetCurve, offsetFace } = this;
         if (offsetCurve.curve !== undefined) return offsetCurve.calculate();
-        if (offsetFace.face !== undefined) return offsetFace.calculate();
-        throw new ValidationError();
+        if (offsetFace.curve !== undefined) return offsetFace.calculate();
+        throw new ValidationError("no face or curve");
     }
 }
 
