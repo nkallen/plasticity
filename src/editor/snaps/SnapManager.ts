@@ -7,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceSnap, PlaneSnap, PointSnap, Restriction, Snap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -283,6 +283,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 export const originSnap = new PointSnap("Origin");
 
 const map = new Map<any, number>();
+map.set(TanTanSnap, 1);
 map.set(PointSnap, 1);
 map.set(CurveEdgeSnap, 2);
 map.set(CurveSnap, 2);

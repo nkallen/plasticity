@@ -202,8 +202,8 @@ export class CurveSnap extends Snap {
         const lines = c3d.CurveTangent.LinePointTangentCurve(point2d, curve, true);
         const result = [];
         for (const line of lines) {
-            const { result1 } = c3d.ActionPoint.CurveCurveIntersection2D(curve, line, 10e-6, 10e-6, true);
-            for (const t of result1) {
+            const { result1: intersections } = c3d.ActionPoint.CurveCurveIntersection2D(curve, line, 10e-6, 10e-6, true);
+            for (const t of intersections) {
                 const point2d = curve.PointOn(t);
                 const point = point2point(placement.GetPointFrom(point2d.x, point2d.y, 0));
                 const snap = new PointSnap("Tangent", point);
@@ -220,15 +220,27 @@ export class CurveSnap extends Snap {
             normalizePlacement(lastCurve, lastPlacement, new Set([placement]));
 
             const { pLine, secondPoint } = c3d.CurveTangent.LineTangentTwoCurves(lastCurve, curve);
-            console.log(pLine, secondPoint);
-            for (const point2d of secondPoint) {
-                const point = point2point(placement.GetPointFrom(point2d.x, point2d.y, 0));
-                const snap = new PointSnap("Tangent/Tangent", point);
+            for (const [i, point2d] of secondPoint.entries()) {
+                const point2 = point2point(placement.GetPointFrom(point2d.x, point2d.y, 0));
+
+                const line = pLine[i];
+                const { result2: intersections } = c3d.ActionPoint.CurveCurveIntersection2D(line, lastCurve, 10e-6, 10e-6, true);
+                const t = intersections[0];
+                const intersectionPoint2d = lastCurve.PointOn(t);
+                const point1 = point2point(placement.GetPointFrom(intersectionPoint2d.x, intersectionPoint2d.y, 0));
+
+                const snap = new TanTanSnap(point1, point2);
                 result.push(snap);
             }
         }
 
         return result;
+    }
+}
+
+export class TanTanSnap extends PointSnap {
+    constructor(readonly point1: THREE.Vector3, readonly point2: THREE.Vector3) {
+        super("Tan/Tan", point2);
     }
 }
 

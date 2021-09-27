@@ -3,6 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike, GeometryDatabase } from "../../editor/GeometryDatabase";
 import MaterialDatabase from "../../editor/MaterialDatabase";
+import { Snap, TanTanSnap } from "../../editor/snaps/Snap";
 import { point2point } from "../../util/Conversion";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
@@ -49,6 +50,7 @@ export default class CurveFactory extends GeometryFactory {
 
     set last(point: THREE.Vector3) {
         this.points[this.points.length - 1] = point;
+        if (this.wouldBeClosed(point)) this.closed = closed;
     }
 
     get last() {
@@ -57,6 +59,22 @@ export default class CurveFactory extends GeometryFactory {
 
     push(point: THREE.Vector3) {
         this.points.push(point);
+    }
+
+    temp?: THREE.Vector3;
+    set snap(snap: Snap) {
+        const points = this.points;
+        if (points.length > 2) {
+            this.temp = undefined;
+            return;
+        }
+        if (snap instanceof TanTanSnap) {
+            if (this.temp === undefined) this.temp = points[points.length - 2];
+            points[points.length - 2] = snap.point1;
+        } else if (this.temp !== undefined) {
+            points[this.points.length - 2] = this.temp;
+            this.temp = undefined;
+        }
     }
 }
 
@@ -107,6 +125,11 @@ export class CurveWithPreviewFactory extends GeometryFactory {
         this.underlying.points.push(p);
         this.preview.last = p;
         this.preview.push(p.clone());
+        this.preview.temp = undefined;
+    }
+
+    set snap(snap: Snap) {
+        this.underlying.snap = snap;
     }
 
     async doUpdate() {

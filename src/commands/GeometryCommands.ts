@@ -460,12 +460,14 @@ export class CurveCommand extends Command {
         }).resource(this);
 
         while (true) {
-            if (makeCurve.canBeClosed) pointPicker.addSnap(new PointSnap("closed", makeCurve.startPoint));
+            if (makeCurve.canBeClosed) {
+                pointPicker.clearAddedSnaps();
+                pointPicker.addSnap(new PointSnap("closed", makeCurve.startPoint));
+            }
             try {
-                const { point } = await pointPicker.execute(async ({ point }) => {
+                const { point, info: { snap } } = await pointPicker.execute(async ({ point, info: { snap } }) => {
                     makeCurve.preview.last = point;
-                    makeCurve.preview.closed = makeCurve.preview.wouldBeClosed(point);
-                    if (!makeCurve.preview.hasEnoughPoints) return;
+                    makeCurve.preview.snap = snap;
                     await makeCurve.preview.update();
                 }).onFinish(reject => reject(Finish)).resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
@@ -473,6 +475,7 @@ export class CurveCommand extends Command {
                     throw Finish;
                 }
                 makeCurve.push(point);
+                makeCurve.snap = snap;
                 makeCurve.update();
             } catch (e) {
                 if (e !== Finish) throw e;

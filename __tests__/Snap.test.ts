@@ -1,13 +1,14 @@
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
+import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import LineFactory from "../src/commands/line/LineFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap } from "../src/editor/snaps/Snap";
+import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap, TanTanSnap } from "../src/editor/snaps/Snap";
 import { SnapManager } from "../src/editor/snaps/SnapManager";
 import * as visual from '../src/editor/VisualModel';
 import { point2point, vec2vec } from "../src/util/Conversion";
@@ -350,6 +351,39 @@ describe(CurveSnap, () => {
         result = snap.additionalSnapsForLast(new THREE.Vector3(0, 10, 10), new PlaneSnap());
         expect(result.length).toBe(0);
     });
+
+    test('additionalSnapsForLast when given a coplanar curve snap', async () => {
+        let snap1: CurveSnap;
+        let snap2: CurveSnap;
+        {
+            const makeCircle = new CenterCircleFactory(db, materials, signals);
+            makeCircle.center = new THREE.Vector3(-2, 0, 0);
+            makeCircle.radius = 1;
+            const circle1 = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const inst = db.lookup(circle1);
+            const item = inst.GetSpaceItem()!;
+            const model1 = item.Cast<c3d.Curve3D>(item.IsA());
+            snap1 = new CurveSnap(circle1, model1);
+        }
+
+        {
+            const makeCircle = new CenterCircleFactory(db, materials, signals);
+            makeCircle.center = new THREE.Vector3(2, 0, 0);
+            makeCircle.radius = 1;
+            const circle2 = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const inst = db.lookup(circle2);
+            const item = inst.GetSpaceItem()!;
+            const model2 = item.Cast<c3d.Curve3D>(item.IsA());
+            snap2 = new CurveSnap(circle2, model2);
+        }
+
+        const snaps = snap1.additionalSnapsForLast(new THREE.Vector3(), snap2);
+        expect(snaps.length).toBe(6);
+        expect(snaps[2]).toBeInstanceOf(TanTanSnap);
+        const tantan = snaps[2] as TanTanSnap;
+        expect(tantan.point1).toApproximatelyEqual(new THREE.Vector3(2, -1, 0));
+        expect(tantan.point2).toApproximatelyEqual(new THREE.Vector3(-2, -1, 0));
+    });
 })
 
 describe(FaceSnap, () => {
@@ -431,6 +465,6 @@ describe(PointSnap, () => {
 
 describe("Experiment", () => {
     test("it works", () => {
-        
+
     })
 });

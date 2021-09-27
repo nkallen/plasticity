@@ -90,6 +90,10 @@ export class Model {
         this.otherAddedSnaps.push(...snap);
     }
 
+    clearAddedSnaps() {
+        this.otherAddedSnaps.length = 0;
+    }
+
     addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion()) {
         const rotated = [];
         for (const snap of this.straightSnaps) rotated.push(snap.rotate(orientation));
@@ -151,7 +155,7 @@ export class Model {
         }
         this.activatePointActivatedSnaps(snaps);
     }
-    
+
     private readonly pointActivatedSnaps = new Set<Snap>();
     private activatePointActivatedSnaps(nearby: SnapResult[]) {
         const { pointActivatedSnaps, pickedPointSnaps, lastPickedSnap } = this;
@@ -384,6 +388,7 @@ export class PointPicker {
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) { this.model.restrictToLine(origin, direction) }
     addAxesAt(pt: THREE.Vector3, orientation = new THREE.Quaternion()) { this.model.addAxesAt(pt, orientation) }
     addSnap(...snaps: Snap[]) { this.model.addSnap(...snaps) }
+    clearAddedSnaps() { this.model.clearAddedSnaps() }
     undo() { this.model.undo() }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
     set restrictToConstructionPlane(v: boolean) { this.model.restrictToConstructionPlane = v }
