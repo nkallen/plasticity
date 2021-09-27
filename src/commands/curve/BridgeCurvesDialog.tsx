@@ -35,12 +35,12 @@ export class BridgeCurvesDialog extends AbstractDialog<BridgeCurvesParams> {
                         <label for="type">Type </label>
                         <input type="radio" name="type" id="spline" value={c3d.ConnectingType.Spline} checked={type === c3d.ConnectingType.Spline} onClick={this.onChange}></input>
                         <label class="btn" for="spline">Spline</label>
-                        <input type="radio" name="type" id="fillet" value={c3d.ConnectingType.Fillet} checked={type === c3d.ConnectingType.Fillet} onClick={this.onChange}></input>
-                        <label class="btn" for="fillet">Fillet</label>
+                        {/* <input type="radio" name="type" id="fillet" value={c3d.ConnectingType.Fillet} checked={type === c3d.ConnectingType.Fillet} onClick={this.onChange}></input>
+                        <label class="btn" for="fillet">Fillet</label> */}
                         <input type="radio" name="type" id="bridge" value={c3d.ConnectingType.Bridge} checked={type === c3d.ConnectingType.Bridge} onClick={this.onChange}></input>
                         <label class="btn" for="bridge">Bridge</label>
-                        <input type="radio" name="type" id="double" value={c3d.ConnectingType.Double} checked={type === c3d.ConnectingType.Double} onClick={this.onChange}></input>
-                        <label class="btn" for="double">Double</label>
+                        {/* <input type="radio" name="type" id="double" value={c3d.ConnectingType.Double} checked={type === c3d.ConnectingType.Double} onClick={this.onChange}></input>
+                        <label class="btn" for="double">Double</label> */}
                     </li>
                     <li>
                         <label for="sense">Sense

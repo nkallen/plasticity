@@ -95,6 +95,15 @@ export class PointSnap extends Snap {
     }
 }
 
+export class ParametricPointSnap extends PointSnap {
+    constructor(readonly name: string, position: THREE.Vector3, readonly curveSnap: CurveSnap, readonly t: number) {
+        super(name, position);
+    }
+
+    get view() { return this.curveSnap.view }
+    get model() { return this.curveSnap.model }
+}
+
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
     t!: number;

@@ -7,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceSnap, ParametricPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -188,14 +188,15 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
         if (item_.IsA() === c3d.SpaceType.Polyline3D) {
             const polyline = item_.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
-            const points = polyline.GetPoints();
-            const endSnaps = points.map(point =>
-                new PointSnap("End", point2point(point))
-            );
-            for (const endSnap of endSnaps) this.endPoints.add(endSnap);
 
             const curveSnap = new CurveSnap(item, polyline);
             this.curves.add(curveSnap);
+
+            const points = polyline.GetPoints();
+            const endSnaps = points.map(point =>
+                new ParametricPointSnap("End", point2point(point), curveSnap, polyline.NearPointProjection(point, false).t)
+            );
+            for (const endSnap of endSnaps) this.endPoints.add(endSnap);
 
             return new Redisposable(() => {
                 for (const endSnap of endSnaps) this.endPoints.delete(endSnap);
@@ -203,18 +204,19 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             });
         } else {
             const curve = item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            const min = curve.PointOn(curve.GetTMin());
-            const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
-            const max = curve.PointOn(curve.GetTMax());
-            const begSnap = new PointSnap("Beginning", point2point(min));
-            const midSnap = new PointSnap("Middle", point2point(mid));
-            const endSnap = new PointSnap("End", point2point(max));
-            this.begPoints.add(begSnap);
-            this.midPoints.add(midSnap);
-            this.endPoints.add(endSnap);
 
             const curveSnap = new CurveSnap(item, curve);
             this.curves.add(curveSnap);
+
+            const min = curve.PointOn(curve.GetTMin());
+            const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
+            const max = curve.PointOn(curve.GetTMax());
+            const begSnap = new ParametricPointSnap("Beginning", point2point(min), curveSnap, curve.GetTMin());
+            const midSnap = new ParametricPointSnap("Middle", point2point(mid), curveSnap, 0.5 * (curve.GetTMin() + curve.GetTMax()));
+            const endSnap = new ParametricPointSnap("End", point2point(max), curveSnap, curve.GetTMax());
+            this.begPoints.add(begSnap);
+            this.midPoints.add(midSnap);
+            this.endPoints.add(endSnap);
 
             return new Redisposable(() => {
                 this.begPoints.delete(begSnap);
@@ -285,6 +287,7 @@ export const originSnap = new PointSnap("Origin");
 const map = new Map<any, number>();
 map.set(TanTanSnap, 1);
 map.set(PointSnap, 1);
+map.set(ParametricPointSnap, 1);
 map.set(CurveEdgeSnap, 2);
 map.set(CurveSnap, 2);
 map.set(FaceSnap, 3);

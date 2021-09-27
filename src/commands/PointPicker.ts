@@ -1,3 +1,4 @@
+import c3d from '../../build/Release/c3d.node';
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -132,6 +133,21 @@ export class Model {
         return restriction;
     }
 
+    restrictToCurves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
+        const restrictions = [];
+        for (const curve of curves) {
+            const inst = this.db.lookup(curve);
+            const item = inst.GetSpaceItem()!;
+            const model = item.Cast<c3d.Curve3D>(item.IsA());
+            const restriction = new CurveSnap(curve, model);
+            this.restrictionSnaps.push(restriction);
+            restrictions.push(restriction);
+        }
+        const restriction = new OrRestriction(restrictions);
+        this.restrictions.push(restriction);
+        return restriction;
+    }
+
     private lastPickedSnap?: Snap;
     addPickedPoint(pointResult: PointResult) {
         const { point, info: { snap } } = pointResult;
@@ -247,6 +263,12 @@ export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.snaps);
     private readonly helper = new PointTarget();
 
+    raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+        Line: { threshold: 0.1 },
+        Line2: { threshold: 20 },
+        Points: { threshold: 1 }
+    };
+
     constructor(private readonly editor: EditorLike) { }
 
     execute<T>(cb?: (pt: PointResult) => T): CancellablePromise<PointResult> {
@@ -258,9 +280,7 @@ export class PointPicker {
             disposables.add(new Disposable(() => document.body.removeAttribute('gizmo')));
 
             const raycaster = new THREE.Raycaster();
-            raycaster.params.Line = { threshold: 0.1 };
-            // @ts-expect-error("Line2 is missing from the typedef")
-            raycaster.params.Line2 = { threshold: 20 };
+            raycaster.params = this.raycasterParams;
             raycaster.layers = visual.VisibleLayers;
 
             editor.helpers.add(pointTarget);
@@ -392,5 +412,6 @@ export class PointPicker {
     clearAddedSnaps() { this.model.clearAddedSnaps() }
     undo() { this.model.undo() }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
+    restrictToCurves(curves: visual.SpaceInstance<visual.Curve3D>[]) { return this.model.restrictToCurves(curves) }
     set restrictToConstructionPlane(v: boolean) { this.model.restrictToConstructionPlane = v }
 }

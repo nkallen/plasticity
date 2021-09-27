@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { AxisSnap, PointSnap } from "../editor/snaps/Snap";
+import { AxisSnap, CurveSnap, Layers, ParametricPointSnap, PointSnap } from "../editor/snaps/Snap";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
 import { point2point } from "../util/Conversion";
@@ -20,7 +20,7 @@ import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlP
 import { BridgeCurvesDialog } from "./curve/BridgeCurvesDialog";
 import BridgeCurvesFactory from "./curve/BridgeCurvesFactory";
 import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
-import { CurveWithPreviewFactory } from "./curve/CurveFactory";
+import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import OffsetCurveFactory from "./curve/OffsetContourFactory";
@@ -133,7 +133,7 @@ class EditCircleCommand extends Command {
     async execute(): Promise<void> {
         const edit = new EditCircleFactory(this.editor.db, this.editor.materials, this.editor.signals);
         edit.circle = this.circle;
-        
+
         const dialog = new EditCircleDialog(edit, this.editor.signals);
         await dialog.execute(params => {
             edit.update();
@@ -1276,19 +1276,48 @@ export class FilletCurveCommand extends Command {
 
 export class BridgeCurvesCommand extends Command {
     async execute(): Promise<void> {
-        const selected = this.editor.selection.selected;
-        const curves = [...selected.curves];
-
         const factory = new BridgeCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        factory.curve1 = curves[0];
-        factory.curve2 = curves[1];
-        factory.update();
+        const selected = this.editor.selection.selected;
+
+        const mask = this.editor.snaps.layers.mask;
+        this.editor.snaps.layers.disableAll();
+        this.editor.snaps.layers.enable(Layers.CurveSnap);
+        this.editor.snaps.layers.enable(Layers.PlaneSnap);
+        this.editor.snaps.layers.enable(Layers.PointSnap);
+        this.ensure(() => this.editor.snaps.layers.mask = mask);
 
         const dialog = new BridgeCurvesDialog(factory, this.editor.signals);
-        await dialog.execute(params => {
+        dialog.execute(params => {
             factory.update();
             dialog.render();
         }).resource(this);
+
+        const pointPicker = new PointPicker(this.editor);
+        pointPicker.raycasterParams.Line2.threshold = 400;
+        const line = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        line.style = 1;
+        const { point: p1, info: { snap: snap1 } } = await pointPicker.execute().resource(this);
+        if (!(snap1 instanceof CurveSnap || snap1 instanceof ParametricPointSnap)) throw new ValidationError();
+
+        line.push(p1);
+        line.push(p1);
+        factory.curve1 = snap1.view;
+        factory.t1 = snap1.t;
+
+        const { info: { snap: snap2 } } = await pointPicker.execute(({ point: p2, info: { snap: snap2 } }) => {
+            line.last = p2;
+            line.update();
+
+            if (!(snap2 instanceof CurveSnap || snap2 instanceof ParametricPointSnap)) return;
+            factory.curve2 = snap2.view;
+            factory.t2 = snap2.t;
+            factory.update();
+            dialog.render();
+        }).resource(this);
+        if (!(snap2 instanceof CurveSnap || snap2 instanceof ParametricPointSnap)) throw new ValidationError();
+        line.cancel();
+
+        await this.finished;
 
         const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>[];
         selected.addCurve(result[0]);

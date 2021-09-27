@@ -36,7 +36,7 @@ export default class BridgeCurvesFactory extends GeometryFactory implements Brid
     t2 = 0;
     radius = 0;
     sense = true;
-    type = c3d.ConnectingType.Fillet;
+    type = c3d.ConnectingType.Bridge;
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0);
 
