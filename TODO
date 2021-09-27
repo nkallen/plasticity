@@ -1,11 +1,8 @@
 BUG: offset contour, go to top view, things are frozen
+BUG: keybindings not working for move face
 
-audit boolean and fillet dialog mode switching;; almost surely broken by latest refactoring
-test curve
-object picker (trim)
-remove c3d.node from version history
-
-switching commands in multi-step commands has problems
+Trim polyline
+Bridge command that's more like a drawing command
 
 # PRE ALPHA:
 in moi if you run the same command twice it doesn't cancel the current one

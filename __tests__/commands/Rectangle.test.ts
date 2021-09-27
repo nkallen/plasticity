@@ -83,5 +83,4 @@ describe(CenterRectangleFactory, () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
         })
     })
-
 });

@@ -1,9 +1,8 @@
-import { PlaneSnap } from "../../editor/snaps/Snap";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import { PlaneSnap } from "../../editor/snaps/Snap";
 import { point2point } from "../../util/Conversion";
-import { CenterCircleFactory, Mode } from "../circle/CircleFactory";
+import { GeometryFactory } from '../GeometryFactory';
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 };
 

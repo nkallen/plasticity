@@ -19,22 +19,22 @@ export class BridgeCurvesDialog extends AbstractDialog<BridgeCurvesParams> {
                     <li>
                         <label for="t1">t1
                         </label>
-                        <ispace-number-scrubber name="t1" enabled={type === c3d.ConnectingType.Fillet || type === c3d.ConnectingType.Bridge} value={t1} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <ispace-number-scrubber name="t1" enabled={type === c3d.ConnectingType.Fillet || type === c3d.ConnectingType.Bridge || type === c3d.ConnectingType.Spline} value={t1} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
                         <label for="t2">t2
                         </label>
-                        <ispace-number-scrubber name="t2" enabled={type === c3d.ConnectingType.Fillet || type === c3d.ConnectingType.Bridge} value={t2} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <ispace-number-scrubber name="t2" enabled={type === c3d.ConnectingType.Fillet || type === c3d.ConnectingType.Bridge || type === c3d.ConnectingType.Spline} value={t2} min={0} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
                         <label for="radius">Radius
                         </label>
-                        <ispace-number-scrubber enabled={type !== c3d.ConnectingType.Spline && type !== c3d.ConnectingType.Bridge} name="radius" min={0} value={radius} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
+                        <ispace-number-scrubber enabled={type !== c3d.ConnectingType.Bridge} name="radius" min={0} value={radius} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
-                        <label for="type">Type
-                        </label>
-
+                        <label for="type">Type </label>
+                        <input type="radio" name="type" id="spline" value={c3d.ConnectingType.Spline} checked={type === c3d.ConnectingType.Spline} onClick={this.onChange}></input>
+                        <label class="btn" for="spline">Spline</label>
                         <input type="radio" name="type" id="fillet" value={c3d.ConnectingType.Fillet} checked={type === c3d.ConnectingType.Fillet} onClick={this.onChange}></input>
                         <label class="btn" for="fillet">Fillet</label>
                         <input type="radio" name="type" id="bridge" value={c3d.ConnectingType.Bridge} checked={type === c3d.ConnectingType.Bridge} onClick={this.onChange}></input>

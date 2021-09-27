@@ -1,11 +1,11 @@
 import { CompositeDisposable, Disposable } from "event-kit";
-import { DatabaseLike, GeometryDatabase } from "../editor/GeometryDatabase";
 import * as THREE from "three";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../editor/EditorSignals';
+import { DatabaseLike } from "../editor/GeometryDatabase";
 import { PlaneSnap } from "../editor/snaps/Snap";
-import { Cancel, CancellablePromise } from "../util/Cancellable";
+import { CancellablePromise } from "../util/Cancellable";
 import { Helper, Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
