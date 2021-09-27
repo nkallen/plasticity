@@ -9,7 +9,11 @@
 <%_ } else if (arg.isArray) { _%>
     Napi::Array arr_<%- arg.name %> = Napi::Array::New(env);
     for (size_t i = 0; i < <%- arg.name %>->Count(); i++) {
-        arr_<%- arg.name %>[i] = <%- arg.elementType.cppType %>::NewInstance(env, <%- (arg.isStructArray && !arg.elementType.klass?.isPOD) ? "&" : '' %>(*<%- arg.name %>)[i]);
+        <%_ if (arg.elementType.rawType === "double") { _%>
+            arr_<%- arg.name %>[i] = (*<%- arg.name %>)[i];
+        <%_ } else { _%>
+            arr_<%- arg.name %>[i] = <%- arg.elementType.cppType %>::NewInstance(env, <%- (arg.isStructArray && !arg.elementType.klass?.isPOD) ? "&" : '' %>(*<%- arg.name %>)[i]);
+        <%_ } _%>
     }
     _to = arr_<%- arg.name %>;
 <%_ } else if (arg.isBuffer) { _%>

@@ -30,6 +30,7 @@ import { SnapManager } from './snaps/SnapManager';
 import { SpriteDatabase } from "./SpriteDatabase";
 import c3d from '../../build/Release/c3d.node';
 import { ExportCommand } from "../commands/CommandLike";
+import { SnapPresenter } from "./snaps/SnapPresenter";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -52,7 +53,8 @@ export class Editor {
     readonly selection = this.modifiers;
     readonly db = this.modifiers as DatabaseLike;
 
-    readonly snaps = new SnapManager(this.db, this.gizmos, this.signals);
+    readonly snaps = new SnapManager(this.db, this.signals);
+    readonly snapPresenter = new SnapPresenter(this.gizmos);
     readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null

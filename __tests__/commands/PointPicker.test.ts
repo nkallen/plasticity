@@ -1,30 +1,33 @@
 import * as THREE from "three";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
+import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { Model, Presentation } from '../../src/commands/PointPicker';
-import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, FaceSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap } from '../../src/editor/snaps/Snap';
+import { AxisSnap, CurveEdgeSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
+import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import c3d from '../build/Release/c3d.node';
 
 let pointPicker: Model;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 let snaps: SnapManager;
-let gizmos: GizmoMaterialDatabase;
+let presenter: SnapPresenter;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    gizmos = new GizmoMaterialDatabase(signals);
-    snaps = new SnapManager(db, gizmos, signals);
+    const gizmos = new GizmoMaterialDatabase(signals);
+    presenter = new SnapPresenter(gizmos);
+    snaps = new SnapManager(db, signals);
     pointPicker = new Model(db, snaps);
 });
 
@@ -238,22 +241,93 @@ describe('addAxesAt', () => {
         axisSnap = snaps[2] as AxisSnap;
         expect(axisSnap.n).toApproximatelyEqual(new THREE.Vector3(-0.333, -0.667, 0.667));
         expect(axisSnap.o).toApproximatelyEqual(new THREE.Vector3());
-    })
+    });
+
+
+    describe('activateSnapped', () => {
+        test("for points activateSnapped adds axes, and deduplicates", () => {
+            let snaps;
+            snaps = pointPicker.snapsFor(constructionPlane);
+            expect(snaps.length).toBe(4);
+
+            const position = new THREE.Vector3(1, 1, 1);
+            const orientation = new THREE.Quaternion();
+            const snap = new PointSnap("startpoint", position);
+            const snapResults = [{ snap, position, orientation }];
+            pointPicker.activateSnapped(snapResults);
+
+            snaps = pointPicker.snapsFor(constructionPlane)
+            expect(snaps.length).toBe(7);
+
+            pointPicker.activateSnapped(snapResults);
+            snaps = pointPicker.snapsFor(constructionPlane)
+            expect(snaps.length).toBe(7);
+        });
+
+        describe('for curves', () => {
+            let circle: visual.SpaceInstance<visual.Curve3D>;
+            let model: c3d.Curve3D;
+
+            beforeEach(async () => {
+                const makeCircle = new CenterCircleFactory(db, materials, signals);
+                makeCircle.center = new THREE.Vector3();
+                makeCircle.radius = 1;
+                circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+                const inst = db.lookup(circle);
+                const item = inst.GetSpaceItem()!;
+                model = item.Cast<c3d.Curve3D>(item.IsA());
+            });
+
+            test("activateNearby adds tangents, and deduplicates, respects undo", () => {
+                let snaps;
+                snaps = pointPicker.snapsFor(constructionPlane);
+                expect(snaps.length).toBe(4);
+
+                const position = new THREE.Vector3(1, 0, 0);
+                const orientation = new THREE.Quaternion();
+                const snap = new CurveSnap(circle, model);
+                const snapResults = [{ snap, position, orientation }];
+                pointPicker.activateSnapped(snapResults);
+
+                snaps = pointPicker.snapsFor(constructionPlane)
+                expect(snaps.length).toBe(4);
+
+                pointPicker.addPickedPoint(new THREE.Vector3(10, 1, 0));
+                snaps = pointPicker.snapsFor(constructionPlane)
+                expect(snaps.length).toBe(7);
+
+                pointPicker.activateSnapped(snapResults);
+                snaps = pointPicker.snapsFor(constructionPlane)
+                expect(snaps.length).toBe(9);
+
+                pointPicker.activateSnapped(snapResults);
+                snaps = pointPicker.snapsFor(constructionPlane)
+                expect(snaps.length).toBe(9);
+
+                pointPicker.undo();
+                pointPicker.activateSnapped(snapResults);
+                snaps = pointPicker.snapsFor(constructionPlane)
+                expect(snaps.length).toBe(6);
+            });
+        });
+    });
+
 });
 
 describe(Presentation, () => {
     test("it gives info for best snap and names other possible snaps", () => {
         const hitPosition = new THREE.Vector3(1, 1, 1);
-        const indicator = new THREE.Object3D();
-        const pointSnap = new PointSnap("endpoint", new THREE.Vector3(1, 1, 1));
+        const orientation = new THREE.Quaternion();
+        const startPoint = new PointSnap("startpoint", new THREE.Vector3(1, 1, 1));
+        const endPoint = new PointSnap("endpoint", new THREE.Vector3(1, 1, 1));
         const snapResults = [
-            { snap: pointSnap, position: hitPosition, indicator: indicator }
+            { snap: endPoint, position: hitPosition, orientation },
+            { snap: startPoint, position: hitPosition, orientation }
         ];
-        const presentation = new Presentation([], snapResults, new PlaneSnap());
+        const presentation = new Presentation([], snapResults, new PlaneSnap(), false, presenter);
 
-        expect(presentation.names).toEqual(["endpoint"]);
+        expect(presentation.names).toEqual(["endpoint", "startpoint"]);
         expect(presentation.info!.position).toBe(hitPosition);
-        expect(presentation.info!.snap).toBe(pointSnap);
-        expect(presentation.helpers[0]).toBe(indicator);
+        expect(presentation.info!.snap).toBe(endPoint);
     })
 });

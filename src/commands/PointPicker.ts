@@ -4,11 +4,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import { AxisSnap, CurveEdgeSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisSnap, CurveEdgeSnap, CurveSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
+import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import * as visual from "../editor/VisualModel";
 import { CancellablePromise } from '../util/Cancellable';
 import { Helper, Helpers } from '../util/Helpers';
+import { GizmoMaterialDatabase } from './GizmoMaterials';
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
@@ -17,7 +19,8 @@ interface EditorLike {
     viewports: Viewport[],
     snaps: SnapManager,
     signals: EditorSignals,
-    helpers: Helpers
+    helpers: Helpers,
+    snapPresenter: SnapPresenter
 }
 
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap }
@@ -126,16 +129,38 @@ export class Model {
         return restriction;
     }
 
-    undo() {
-        this.pickedPointSnaps.pop();
+    addPickedPoint(point: THREE.Vector3) {
+        this.pickedPointSnaps.push(new PointSnap(undefined, point));
+        this.pointActivatedSnaps.clear();
     }
 
-    private readonly activatedSnaps = new Set<Snap>();
-    activate(snaps: SnapResult[]) {
+    undo() {
+        this.pickedPointSnaps.pop();
+        this.pointActivatedSnaps.clear();
+    }
+
+    private readonly snapActivatedSnaps = new Set<Snap>();
+    activateSnapped(snaps: SnapResult[]) {
         for (const { snap } of snaps) {
-            if (snap instanceof PointSnap && !this.activatedSnaps.has(snap)) {
-                this.activatedSnaps.add(snap);
+            if (snap instanceof PointSnap && !this.snapActivatedSnaps.has(snap)) {
+                this.snapActivatedSnaps.add(snap);
                 this.addAxesAt(snap.position);
+            }
+        }
+        this.activatePointActivatedSnaps(snaps);
+    }
+    
+    private readonly pointActivatedSnaps = new Set<Snap>();
+    private activatePointActivatedSnaps(nearby: SnapResult[]) {
+        const { pointActivatedSnaps, pickedPointSnaps } = this;
+        if (pickedPointSnaps.length === 0) return;
+
+        const last = pickedPointSnaps[pickedPointSnaps.length - 1];
+        for (const { snap } of nearby) {
+            if (snap instanceof CurveSnap && !pointActivatedSnaps.has(snap)) {
+                pointActivatedSnaps.add(snap);
+                const additional = snap.additionalSnapsForLast(last.position);
+                this.addSnap(...additional);
             }
         }
     }
@@ -148,7 +173,7 @@ interface SnapInfo extends PointInfo {
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
 // There are icons, indicators, textual names explanations, etc.
 export class Presentation {
-    static make(raycaster: THREE.Raycaster, viewport: Viewport, model: Model, snaps: SnapManager) {
+    static make(raycaster: THREE.Raycaster, viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
         if (isOrtho) snaps.layers.disable(Layers.FaceSnap);
@@ -159,15 +184,18 @@ export class Presentation {
         const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane), model.restrictionSnapsFor(constructionPlane), restrictions);
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane);
 
-        const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho);
-        return { presentation, snappers };
+        const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho, presenter);
+        return { presentation, snappers, nearby };
     }
 
     readonly helpers: THREE.Object3D[];
     readonly info?: SnapInfo;
     readonly names: string[];
+    readonly nearby: Helper[];
 
-    constructor(readonly nearby: THREE.Object3D[], private readonly snaps: SnapResult[], constructionPlane: PlaneSnap, private readonly isOrtho: boolean) {
+    constructor(nearby: SnapResult[], snaps: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapPresenter) {
+        this.nearby = nearby.map(n => presenter.hoverIndicatorFor(n));
+
         if (snaps.length === 0) {
             this.names = [];
             this.helpers = [];
@@ -176,7 +204,8 @@ export class Presentation {
 
         // First match is assumed best
         const first = snaps[0];
-        const { snap, position, indicator } = first;
+        const { snap, position } = first;
+        const indicator = presenter.snapIndicatorFor(first);
 
         // Collect indicators, etc. as feedback for the user
         const helpers = [];
@@ -255,17 +284,17 @@ export class PointPicker {
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
 
-                    const { presentation, snappers } = Presentation.make(raycaster, viewport, model, editor.snaps);
-                    this.model.activate(snappers);
+                    const { presentation, snappers, nearby } = Presentation.make(raycaster, viewport, model, editor.snaps, editor.snapPresenter);
+
+                    this.model.activateSnapped(snappers);
 
                     helpers.clear();
-                    const indicators = presentation.nearby;
+                    const { names, helpers: newHelpers, nearby: indicators } = presentation;
                     for (const i of indicators) helpers.add(i);
 
                     info = presentation.info;
                     if (info === undefined) return;
 
-                    const { names, helpers: newHelpers } = presentation;
                     const { position } = info;
 
                     helpers.add(...newHelpers);
@@ -326,6 +355,7 @@ export class PointPicker {
             }
             const finish = () => {
                 const point = pointTarget.position.clone();
+                model.addPickedPoint(point);
                 resolve({ point, info: info! });
             }
             return { dispose, finish };

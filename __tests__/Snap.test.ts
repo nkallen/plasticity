@@ -29,7 +29,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     gizmos = new GizmoMaterialDatabase(signals);
     db = new GeometryDatabase(materials, signals);
-    snaps = new SnapManager(db, gizmos, signals);
+    snaps = new SnapManager(db, signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();
@@ -197,7 +197,6 @@ describe(CurveEdgeSnap, () => {
 describe(CurveSnap, () => {
     let line: visual.SpaceInstance<visual.Curve3D>;
     let snap: CurveSnap;
-    const e = {} as PointerEvent;
 
     beforeEach(async () => {
         const makeLine = new LineFactory(db, materials, signals);
@@ -238,7 +237,7 @@ describe(CurveSnap, () => {
 
         expect((match as CurveSnap).view.simpleName).toBe(snap.view.simpleName);
         expect(position).toApproximatelyEqual(new THREE.Vector3())
-    })
+    });
 
     describe("addAdditionalSnapsTo", () => {
         test("when curvy", async () => {
@@ -342,6 +341,15 @@ describe(CurveSnap, () => {
             expect(additional[2].o).toApproximatelyEqual(makeLine.p2);
         })
     })
+
+    test('additionalSnapsForLast', () => {
+        let result;
+        result = snap.additionalSnapsForLast(new THREE.Vector3(0, 10, 0));
+        expect(result.length).toBe(1);
+
+        result = snap.additionalSnapsForLast(new THREE.Vector3(0, 10, 10));
+        expect(result.length).toBe(0);
+    });
 })
 
 describe(FaceSnap, () => {

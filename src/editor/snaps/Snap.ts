@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
 import { PointPicker } from "../../commands/PointPicker";
-import { deunit, point2point, vec2vec } from "../../util/Conversion";
+import { curve3d2curve2d, deunit, point2point, vec2vec } from "../../util/Conversion";
 import * as visual from '../VisualModel';
 
 export enum Layers {
@@ -53,7 +53,8 @@ export abstract class Snap implements Restriction {
     abstract isValid(pt: THREE.Vector3): boolean;
 
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
-    additionalSnapsFor(point: THREE.Vector3): Snap[] { return []; }
+    additionalSnapsFor(point: THREE.Vector3): Snap[] { return [] }
+    additionalSnapsForLast(point: THREE.Vector3): Snap[] { return [] }
 }
 
 export class PointSnap extends Snap {
@@ -124,7 +125,9 @@ export class CurveEdgeSnap extends Snap {
         return result;
     }
 }
+
 const zero = new THREE.Vector3();
+
 export class CurveSnap extends Snap {
     readonly name = "Curve";
     t!: number;
@@ -182,6 +185,32 @@ export class CurveSnap extends Snap {
         const binormalSnap = new AxisSnap("Binormal", binormal, point);
         const tangentSnap = new AxisSnap("Tangent", tangent, point);
         return [normalSnap, binormalSnap, tangentSnap];
+    }
+
+    additionalSnapsForLast(last: THREE.Vector3) {
+        const { model } = this;
+        const planarized = curve3d2curve2d(model, new c3d.Placement3D());
+        if (planarized === undefined) return [];
+        const { curve, placement } = planarized;
+
+        const point = point2point(last);
+        const location = placement.PointRelative(point);
+        if (location !== c3d.ItemLocation.OnItem) return [];
+        placement.GetPointInto(point);
+        const point2d = new c3d.CartPoint(point.x, point.y);
+
+        const lines = c3d.CurveTangent.LinePointTangentCurve(point2d, curve, true);
+        const result = [];
+        for (const line of lines) {
+            const { result1 } = c3d.ActionPoint.CurveCurveIntersection2D(curve, line, 10e-6, 10e-6, true);
+            for (const t of result1) {
+                const point2d = curve.PointOn(t);
+                const point = point2point(placement.GetPointFrom(point2d.x, point2d.y, 0));
+                const snap = new PointSnap("Tangent", point);
+                result.push(snap);
+            }
+        }
+        return result;
     }
 }
 

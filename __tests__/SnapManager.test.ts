@@ -9,7 +9,6 @@ import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { PlaneSnap, PointSnap } from "../src/editor/snaps/Snap";
 import { originSnap, SnapManager } from "../src/editor/snaps/SnapManager";
 import * as visual from '../src/editor/VisualModel';
-import { Helper } from "../src/util/Helpers";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -28,7 +27,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     gizmos = new GizmoMaterialDatabase(signals);
     db = new GeometryDatabase(materials, signals);
-    snaps = new SnapManager(db, gizmos, signals);
+    snaps = new SnapManager(db, signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();
@@ -203,7 +202,6 @@ describe("snap()", () => {
 
 describe("nearby()", () => {
     let point: THREE.Vector3;
-    const e = {} as PointerEvent;
 
     beforeEach(() => {
         point = new THREE.Vector3(1, 1, 1);
@@ -218,15 +216,22 @@ describe("nearby()", () => {
 
     test("basic behavior", async () => {
         const [pick,] = snaps.nearby(raycaster);
-        expect(pick).toBeInstanceOf(THREE.Object3D);
         expect(pick.position).toEqual(originSnap.position);
+        expect(pick.snap).toEqual(originSnap);
     });
 
-    test("restrictions", async () => {
+    test("restrictions satisfied", async () => {
         const pointSnap = new PointSnap(undefined, point);
         const [pick,] = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
-        expect(pick).toBeInstanceOf(Helper);
         expect(pick.position).toApproximatelyEqual(point)
+        expect(pick.snap).toBe(pointSnap)
+    });
+
+    test("restrictions unsatisfied", async () => {
+        const match = new PointSnap(undefined, new THREE.Vector3);
+        const restriction = new PointSnap(undefined, point);
+        const [pick,] = snaps.nearby(raycaster, [match], [restriction]);
+        expect(pick).toBe(undefined);
     });
 
     test("snaps disabled (with ctrl key)", async () => {

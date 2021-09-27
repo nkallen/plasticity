@@ -1,25 +1,18 @@
 import * as THREE from "three";
-import { Line2 } from "three/examples/jsm/lines/Line2";
-import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import c3d from '../../../build/Release/c3d.node';
 import { GizmoMaterialDatabase } from "../../commands/GizmoMaterials";
 import { point2point, vec2vec } from "../../util/Conversion";
-import { Helper, SimpleHelper } from "../../util/Helpers";
-import { CircleGeometry, Redisposable, RefCounter } from "../../util/Util";
+import { Redisposable, RefCounter } from "../../util/Util";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
 import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceSnap, PlaneSnap, PointSnap, Restriction, Snap } from "./Snap";
 
-const discGeometry = new THREE.CircleGeometry(0.05, 16);
-const circleGeometry = new LineGeometry();
-circleGeometry.setPositions(CircleGeometry(0.1, 16));
-
 export interface SnapResult {
     snap: Snap;
     position: THREE.Vector3;
-    indicator: Helper;
+    orientation: THREE.Quaternion;
 }
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
@@ -44,7 +37,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     constructor(
         private readonly db: DatabaseLike,
-        private readonly materials: GizmoMaterialDatabase,
         signals: EditorSignals
     ) {
         this.basicSnaps.add(originSnap);
@@ -67,7 +59,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.update();
     }
 
-    nearby(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): Helper[] {
+    nearby(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
         if (!this.shouldSnap) return [];
         performance.mark('begin-nearby');
 
@@ -80,9 +72,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const result = [];
         for (const intersection of intersections) {
             if (!this.satisfiesRestrictions(intersection.object.position, restrictions)) continue;
-
-            const indicator = this.hoverIndicatorFor(intersection);
-            result.push(indicator);
+            const snap = intersection.object.userData.snap as Snap;
+            const { position, orientation } = snap.project(intersection);
+            result.push({snap, position, orientation});
         }
         performance.measure('nearby', 'begin-nearby');
         return result;
@@ -103,10 +95,10 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const result: SnapResult[] = [];
 
         for (const intersection of snapperIntersections) {
-            const [snap, { position, orientation }] = this.helperFor(intersection);
+            const snap = intersection.object.userData.snap as Snap;
+            const { position, orientation } = snap.project(intersection);
             if (!this.satisfiesRestrictions(position, restrictions)) continue;
-            const indicator = this.snapIndicatorFor(intersection);
-            result.push({ snap, position, indicator });
+            result.push({ snap, position, orientation });
         }
         performance.measure('snap', 'begin-snap');
         return result;
@@ -238,31 +230,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.update();
     }
 
-    private hoverIndicatorFor(intersection: THREE.Intersection): Helper {
-        const disc = new SimpleHelper(new THREE.Mesh(discGeometry, this.materials.black.hover.mesh));
-
-        const snap = intersection.object.userData.snap as Snap;
-        const { position, orientation } = snap.project(intersection);
-        disc.position.copy(position);
-        disc.quaternion.copy(orientation);
-        return disc;
-    }
-
-    private snapIndicatorFor(intersection: THREE.Intersection): Helper {
-        const circle = new SimpleHelper(new Line2(circleGeometry, this.materials.black.line2));
-
-        const snap = intersection.object.userData.snap as Snap;
-        const { position, orientation } = snap.project(intersection);
-        circle.position.copy(position);
-        circle.quaternion.copy(orientation);
-        return circle;
-    }
-
-    private helperFor(intersection: THREE.Intersection): [Snap, { position: THREE.Vector3, orientation: THREE.Quaternion }] {
-        const snap = intersection.object.userData.snap as Snap;
-        return [snap, snap.project(intersection)];
-    }
-
     toggle() {
         this.isToggled = !this.isToggled;
     }
@@ -299,7 +266,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     serialize(): Promise<Buffer> {
         throw new Error("Method not implemented.");
     }
-    
+
     deserialize(data: Buffer): Promise<void> {
         throw new Error("Method not implemented.");
     }

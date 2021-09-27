@@ -497,7 +497,8 @@ export default {
         },
         Line: {
             rawHeader: "cur_line.h",
-            dependencies: ["CartPoint.h"],
+            extends: "Curve",
+            dependencies: ["Curve.h", "CartPoint.h"],
             initializers: [
                 "const MbCartPoint & p1, const MbCartPoint & p2"
             ]
@@ -1510,6 +1511,12 @@ export default {
             dependencies: ["Line3D.h", "CartPoint3D.h"],
             functions: [
                 "double LineLineNearestPoints(const MbLine3D & line1, const MbLine3D & line2, MbCartPoint3D & p1, MbCartPoint3D & p2)",
+                {
+                    signature: "ptrdiff_t CurveCurveIntersection(const MbCurve & curve1, const MbCurve & curve2, SArray<double> & result1, SArray<double> & result2, double xEpsilon, double yEpsilon, bool touchInclude, bool allowInaccuracy = true)",
+                    result1: isReturn, result2: isReturn,
+                    jsName: "CurveCurveIntersection2D",
+                    return: { name: "count" },
+                },
             ]
         },
         ActionDirect: {

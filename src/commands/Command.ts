@@ -8,6 +8,7 @@ import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
 import { PlanarCurveDatabase } from "../editor/PlanarCurveDatabase";
 import { SnapManager } from "../editor/snaps/SnapManager";
+import { SnapPresenter } from "../editor/snaps/SnapPresenter";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { HasSelectedAndHovered } from "../selection/SelectionManager";
 import { CancellableRegistor } from "../util/Cancellable";
@@ -53,6 +54,7 @@ export interface EditorLike {
     activeViewport?: Viewport,
     enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>,
     modifiers: ModifierManager,
+    snapPresenter: SnapPresenter,
 }
 
 export default abstract class Command extends CancellableRegistor {
