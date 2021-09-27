@@ -25,7 +25,6 @@ export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
 export class Model {
     private readonly pickedPointSnaps = new Array<PointSnap>(); // Snaps inferred from points the user actually picked
-    private lastPickedPointSnap?: Snap;
     straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]); // Snaps going straight off the last picked point
     private readonly otherAddedSnaps = new Array<Snap>();
 
@@ -76,12 +75,11 @@ export class Model {
     }
 
     private get axesOfLastPickedPoint(): Snap[] {
-        const { pickedPointSnaps, straightSnaps, lastPickedPointSnap } = this;
+        const { pickedPointSnaps, straightSnaps } = this;
         let result: Snap[] = [];
         if (pickedPointSnaps.length > 0) {
             const last = pickedPointSnaps[pickedPointSnaps.length - 1];
             result = result.concat(last.axes(straightSnaps));
-            result = result.concat(lastPickedPointSnap!.additionalSnapsFor(last.position));
         }
         return result;
     }
@@ -128,11 +126,6 @@ export class Model {
         return restriction;
     }
 
-    addPickedPoint(snap: Snap, point: THREE.Vector3) {
-        this.pickedPointSnaps.push(new PointSnap("point", point));
-        this.lastPickedPointSnap = snap;
-    }
-
     undo() {
         this.pickedPointSnaps.pop();
     }
@@ -161,8 +154,9 @@ export class Presentation {
         if (isOrtho) snaps.layers.disable(Layers.FaceSnap);
         else snaps.layers.enable(Layers.FaceSnap);
 
-        const nearby = snaps.nearby(raycaster, model.snaps, model.restrictionsFor(constructionPlane));
-        const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane), model.restrictionSnapsFor(constructionPlane), model.restrictionsFor(constructionPlane));
+        const restrictions = model.restrictionsFor(constructionPlane);
+        const nearby = snaps.nearby(raycaster, model.snaps, restrictions);
+        const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane), model.restrictionSnapsFor(constructionPlane), restrictions);
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane);
 
         const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho);
