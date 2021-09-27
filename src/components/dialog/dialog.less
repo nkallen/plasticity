@@ -71,16 +71,21 @@ ispace-dialog {
                     font-size: 1rem;
                     border-radius: .25rem;
                     transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-                }
 
-                label.btn:hover {
-                    color: #212529;
+                    &:hover {
+                        color: #212529;
+                    }
                 }
 
                 input[type="radio"]:checked+label.btn {
                     color: #fff;
                     background-color: #0d6efd;
                     border-color: #0d6efd;
+                }
+
+                input[type="radio"]:disabled+label.btn {
+                    opacity: 0.1;
+                    pointer-events: none;
                 }
 
                 ispace-number-scrubber {

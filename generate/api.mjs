@@ -1478,7 +1478,9 @@ export default {
                     w1: isReturn,
                     w2: isReturn,
                     unchanged: isReturn,
-                }
+                },
+                "MbResultType BridgeCurve(const MbCurve3D & curve1, double t1, bool sense1, const MbCurve3D & curve2, double t2, bool sense2, const MbSNameMaker & names, MbWireFrame *& result)",
+                "MbResultType ConnectingSpline(const MbCurve3D & curve1, double t1, MbeMatingType mating1, const MbCurve3D & curve2, double t2, MbeMatingType mating2, double tension1, double tension2, const MbSNameMaker & names, MbWireFrame *& result)",
             ]
         },
         ActionSolid: {
@@ -1701,5 +1703,6 @@ export default {
         "MbeConvResType",
         "EnMLTipType",
         "MbSweptWay",
+        "MbeMatingType",
     ]
 }

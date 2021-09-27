@@ -490,5 +490,15 @@ declare module "*c3d.node" {
         shell       = -1, ///< \ru До ближайшего объекта (тела). \en To the nearest object (solid).
         surface     =  0, ///< \ru До поверхности. \en To the surface.
       };
+
+      declare enum MatingType {
+        // \ru Не менять номера, тип пишется и читается, новые добавлять в конец \en Do not change the numbers. Type is written and read. Append new types to the end 
+        None     = -1, ///< \ru Без сопряжений. \en Without conjugations. 
+        Position =  0, ///< \ru Соединение по позиции      (эквивалентно tt_SmoothG0). \en The connection by the position (equivalent to tt_SmoothG0). 
+        Tangent  =  1, ///< \ru Соединение по касательной  (эквивалентно tt_SmoothG1). \en Tangential connection  (equivalent to tt_SmoothG1). 
+        Normal   =  2, ///< \ru Соединение перпендикулярно (эквивалентно tt_SmoothG1). \en Perpendicular connection (equivalent to tt_SmoothG1). 
+        SmoothG2 =  3, ///< \ru Гладкое соединение по первой производной касательной (по кривизне). \en The smooth connection by the first derivative of the tangent (the curvature). 
+        SmoothG3 =  4, ///< \ru Гладкое сопряжение по второй производной касательной.               \en The smooth conjugation by the second derivative of the tangent.                    //-V112 
+      };
     
 }

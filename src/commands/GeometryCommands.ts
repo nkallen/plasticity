@@ -138,7 +138,9 @@ class EditCircleCommand extends Command {
         await dialog.execute(params => {
             edit.update();
             dialog.render();
-        }).onFinish((reject) => reject(Finish)).resource(this);
+        })
+            // .onFinish((reject) => reject(Finish))
+            .resource(this)
 
         const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -1319,8 +1321,8 @@ export class BridgeCurvesCommand extends Command {
 
         await this.finished;
 
-        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>[];
-        selected.addCurve(result[0]);
+        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        selected.addCurve(result);
     }
 }
 
