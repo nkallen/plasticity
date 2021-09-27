@@ -225,11 +225,12 @@ export class Presentation {
         // Collect names of other matches to display to user
         let names = [];
         const pos = first.position;
-        for (const { snap, position } of snaps) {
+        for (const { snap, position } of new Set(snaps)) {
             if (position.manhattanDistanceTo(pos) > 10e-6) continue;
             names.push(snap.name);
         }
-        this.names = names.filter(x => x !== undefined) as string[];
+        names = names.filter(x => x !== undefined);
+        this.names = [...new Set(names as string[])];
     }
 }
 
