@@ -123,7 +123,7 @@ export class CenterCircleCommand extends Command {
 
         const next = new EditCircleCommand(this.editor);
         next.circle = result;
-        this.editor.enqueue(next);
+        this.editor.enqueue(next, 'after');
     }
 }
 
@@ -1235,7 +1235,7 @@ export class TrimCommand extends Command {
         factory.fragment = fragment;
         await factory.commit();
 
-        this.editor.enqueue(new TrimCommand(this.editor));
+        this.editor.enqueue(new TrimCommand(this.editor), 'after');
     }
 }
 

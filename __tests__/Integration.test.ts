@@ -60,7 +60,7 @@ const Y = new THREE.Vector3(0, 1, 0);
 const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
-test('create a box and fillet an edge', async () => {
+test.skip('create a box and fillet an edge', async () => {
     const bbox = new THREE.Box3();
     const center = new THREE.Vector3();
 

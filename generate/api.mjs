@@ -1620,7 +1620,8 @@ export default {
             rawHeader: "alg_curve_tangent.h",
             dependencies: ["CartPoint.h", "Curve.h", "Line.h"],
             functions: [
-                { signature: "void LinePointTangentCurve(const MbCartPoint & pnt, const MbCurve & pCurve, PArray<MbLine> & pLine, bool lineAsCurve = false)", pLine: isReturn }
+                { signature: "void LinePointTangentCurve(const MbCartPoint & pnt, const MbCurve & pCurve, PArray<MbLine> & pLine, bool lineAsCurve = false)", pLine: isReturn },
+                { signature: "void LineTangentTwoCurves(const MbCurve * pCurve1, const MbCurve * pCurve2, PArray<MbLine> * pLine, SArray<MbCartPoint> * secondPoint)", pLine: isReturn, secondPoint: isReturn },
             ]
         },
         CurveUtil: {

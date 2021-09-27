@@ -10,7 +10,6 @@ import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import * as visual from "../editor/VisualModel";
 import { CancellablePromise } from '../util/Cancellable';
 import { Helper, Helpers } from '../util/Helpers';
-import { GizmoMaterialDatabase } from './GizmoMaterials';
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
@@ -129,9 +128,12 @@ export class Model {
         return restriction;
     }
 
-    addPickedPoint(point: THREE.Vector3) {
+    private lastPickedSnap?: Snap;
+    addPickedPoint(pointResult: PointResult) {
+        const { point, info: { snap } } = pointResult;
         this.pickedPointSnaps.push(new PointSnap(undefined, point));
         this.pointActivatedSnaps.clear();
+        this.lastPickedSnap = snap;
     }
 
     undo() {
@@ -152,14 +154,14 @@ export class Model {
     
     private readonly pointActivatedSnaps = new Set<Snap>();
     private activatePointActivatedSnaps(nearby: SnapResult[]) {
-        const { pointActivatedSnaps, pickedPointSnaps } = this;
-        if (pickedPointSnaps.length === 0) return;
+        const { pointActivatedSnaps, pickedPointSnaps, lastPickedSnap } = this;
+        if (pickedPointSnaps.length === 0 || lastPickedSnap === undefined) return;
 
         const last = pickedPointSnaps[pickedPointSnaps.length - 1];
         for (const { snap } of nearby) {
             if (snap instanceof CurveSnap && !pointActivatedSnaps.has(snap)) {
                 pointActivatedSnaps.add(snap);
-                const additional = snap.additionalSnapsForLast(last.position);
+                const additional = snap.additionalSnapsForLast(last.position, lastPickedSnap);
                 this.addSnap(...additional);
             }
         }
@@ -355,8 +357,9 @@ export class PointPicker {
             }
             const finish = () => {
                 const point = pointTarget.position.clone();
-                model.addPickedPoint(point);
-                resolve({ point, info: info! });
+                const pointResult = { point, info: info! };
+                model.addPickedPoint(pointResult);
+                resolve(pointResult);
             }
             return { dispose, finish };
         });

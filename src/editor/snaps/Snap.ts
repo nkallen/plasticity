@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
 import { PointPicker } from "../../commands/PointPicker";
-import { curve3d2curve2d, deunit, point2point, vec2vec } from "../../util/Conversion";
+import { curve3d2curve2d, deunit, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
 import * as visual from '../VisualModel';
 
 export enum Layers {
@@ -54,7 +54,7 @@ export abstract class Snap implements Restriction {
 
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
     additionalSnapsFor(point: THREE.Vector3): Snap[] { return [] }
-    additionalSnapsForLast(point: THREE.Vector3): Snap[] { return [] }
+    additionalSnapsForLast(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] { return [] }
 }
 
 export class PointSnap extends Snap {
@@ -187,7 +187,7 @@ export class CurveSnap extends Snap {
         return [normalSnap, binormalSnap, tangentSnap];
     }
 
-    additionalSnapsForLast(last: THREE.Vector3) {
+    additionalSnapsForLast(last: THREE.Vector3, lastPickedSnap: Snap) {
         const { model } = this;
         const planarized = curve3d2curve2d(model, new c3d.Placement3D());
         if (planarized === undefined) return [];
@@ -210,6 +210,24 @@ export class CurveSnap extends Snap {
                 result.push(snap);
             }
         }
+
+        if (lastPickedSnap instanceof CurveSnap) {
+            const planarized = curve3d2curve2d(lastPickedSnap.model, placement);
+            if (planarized === undefined) return result;
+            const { curve: lastCurve, placement: lastPlacement } = planarized;
+
+            if (!isSamePlacement(placement, lastPlacement)) return result;
+            normalizePlacement(lastCurve, lastPlacement, new Set([placement]));
+
+            const { pLine, secondPoint } = c3d.CurveTangent.LineTangentTwoCurves(lastCurve, curve);
+            console.log(pLine, secondPoint);
+            for (const point2d of secondPoint) {
+                const point = point2point(placement.GetPointFrom(point2d.x, point2d.y, 0));
+                const snap = new PointSnap("Tangent/Tangent", point);
+                result.push(snap);
+            }
+        }
+
         return result;
     }
 }

@@ -113,7 +113,16 @@ export class CancellablePromise<T> extends ResourceRegistration implements Promi
         super();
         const that = this;
         this.promise = new Promise<T>((resolve, reject) => {
-            const { dispose, finish } = executor(resolve, reject);
+            const { dispose, finish } = executor(
+                t => {
+                    resolve(t)
+                    this.finalize('Finished');
+                },
+                reason => {
+                    reject(reason)
+                    this.finalize('Cancelled');
+                }
+            );
             that._dispose = dispose;
             that._finish = finish;
             this._reject = reject;
@@ -140,6 +149,11 @@ export class CancellablePromise<T> extends ResourceRegistration implements Promi
         }
     }
 
+    finalize(state: State) {
+        if (this.state != 'None') return;
+        this.state = state;
+    }
+
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2> {
         return this.promise.then(onfulfilled, onrejected);
     }
@@ -147,7 +161,7 @@ export class CancellablePromise<T> extends ResourceRegistration implements Promi
     private _onFinish(reject: (reason?: any) => void) {
         this._finish()
     }
-    
+
     onFinish(cb: (reject: (reason?: any) => void) => void) {
         this._onFinish = cb;
         return this;

@@ -344,10 +344,10 @@ describe(CurveSnap, () => {
 
     test('additionalSnapsForLast', () => {
         let result;
-        result = snap.additionalSnapsForLast(new THREE.Vector3(0, 10, 0));
+        result = snap.additionalSnapsForLast(new THREE.Vector3(0, 10, 0), new PlaneSnap());
         expect(result.length).toBe(1);
 
-        result = snap.additionalSnapsForLast(new THREE.Vector3(0, 10, 10));
+        result = snap.additionalSnapsForLast(new THREE.Vector3(0, 10, 10), new PlaneSnap());
         expect(result.length).toBe(0);
     });
 })
@@ -427,4 +427,10 @@ describe(PointSnap, () => {
         expect(snap.isValid(new THREE.Vector3(0, 0, 0))).toBe(false);
         expect(snap.isValid(new THREE.Vector3(1, 1, 1))).toBe(true);
     })
-})
+});
+
+describe("Experiment", () => {
+    test("it works", () => {
+        
+    })
+});

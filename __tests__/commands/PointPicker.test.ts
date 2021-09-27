@@ -265,17 +265,52 @@ describe('addAxesAt', () => {
         });
 
         describe('for curves', () => {
-            let circle: visual.SpaceInstance<visual.Curve3D>;
-            let model: c3d.Curve3D;
+            let circle1: visual.SpaceInstance<visual.Curve3D>;
+            let model1: c3d.Curve3D;
+            let circle2: visual.SpaceInstance<visual.Curve3D>;
+            let model2: c3d.Curve3D;
 
             beforeEach(async () => {
-                const makeCircle = new CenterCircleFactory(db, materials, signals);
-                makeCircle.center = new THREE.Vector3();
-                makeCircle.radius = 1;
-                circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
-                const inst = db.lookup(circle);
-                const item = inst.GetSpaceItem()!;
-                model = item.Cast<c3d.Curve3D>(item.IsA());
+                {
+                    const makeCircle = new CenterCircleFactory(db, materials, signals);
+                    makeCircle.center = new THREE.Vector3();
+                    makeCircle.radius = 1;
+                    circle1 = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+                    const inst = db.lookup(circle1);
+                    const item = inst.GetSpaceItem()!;
+                    model1 = item.Cast<c3d.Curve3D>(item.IsA());
+                }
+
+                {
+                    const makeCircle = new CenterCircleFactory(db, materials, signals);
+                    makeCircle.center = new THREE.Vector3(5, 0, 0);
+                    makeCircle.radius = 1;
+                    circle2 = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+                    const inst = db.lookup(circle2);
+                    const item = inst.GetSpaceItem()!;
+                    model2 = item.Cast<c3d.Curve3D>(item.IsA());
+                }
+            });
+
+            test("activateNearby adds tan/tan", () => {
+                let snaps;
+                snaps = pointPicker.snapsFor(constructionPlane);
+                expect(snaps.length).toBe(4);
+
+                pointPicker.addPickedPoint({
+                    point: new THREE.Vector3(5, 1, 0),
+                    info: { snap: new CurveSnap(circle2, model2) }
+                });
+                snaps = pointPicker.snapsFor(constructionPlane)
+                expect(snaps.length).toBe(7);
+
+                const orientation = new THREE.Quaternion();
+                const snap = new CurveSnap(circle1, model1);
+                const snapResults = [{ snap, position: new THREE.Vector3(1, 0, 0), orientation }];
+                pointPicker.activateSnapped(snapResults);
+
+                snaps = pointPicker.snapsFor(constructionPlane)
+                expect(snaps.length).toBe(13);
             });
 
             test("activateNearby adds tangents, and deduplicates, respects undo", () => {
@@ -285,14 +320,14 @@ describe('addAxesAt', () => {
 
                 const position = new THREE.Vector3(1, 0, 0);
                 const orientation = new THREE.Quaternion();
-                const snap = new CurveSnap(circle, model);
+                const snap = new CurveSnap(circle1, model1);
                 const snapResults = [{ snap, position, orientation }];
                 pointPicker.activateSnapped(snapResults);
 
                 snaps = pointPicker.snapsFor(constructionPlane)
                 expect(snaps.length).toBe(4);
 
-                pointPicker.addPickedPoint(new THREE.Vector3(10, 1, 0));
+                pointPicker.addPickedPoint({ point: new THREE.Vector3(10, 1, 0), info: { snap: new PointSnap(undefined) } });
                 snaps = pointPicker.snapsFor(constructionPlane)
                 expect(snaps.length).toBe(7);
 

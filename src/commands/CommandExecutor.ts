@@ -9,7 +9,7 @@ import Command from "./Command";
 import { ValidationError } from "./GeometryFactory";
 import { SelectionCommandManager } from "./SelectionCommandManager";
 
-export type CancelOrFinish = 'cancel' | 'finish';
+export type CancelOrFinish = 'cancel' | 'finish' | 'after';
 
 export interface EditorLike {
     db: DatabaseLike;
