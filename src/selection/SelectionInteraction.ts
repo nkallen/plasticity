@@ -94,8 +94,8 @@ const map = new Map<any, number>();
 map.set(visual.ControlPoint, 0);
 map.set(visual.Curve3D, 1);
 map.set(visual.CurveEdge, 2);
-map.set(visual.Region, 3);
-map.set(visual.Face, 4);
+map.set(visual.Region, 4);
+map.set(visual.Face, 4.1);
 
 function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
     const x = map.get(i1.object.constructor);
@@ -105,5 +105,13 @@ function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
         console.error(i2);
         throw new Error("invalid precondition");
     }
-    return x - y;
+    if (Math.floor(x) === Math.floor(y)) {
+        if (Math.abs(i1.distance - i2.distance) < 10e-3) {
+            return x - y;
+        } else {
+            return i1.distance - i2.distance;
+        }
+    } else {
+        return x - y;
+    }
 }
