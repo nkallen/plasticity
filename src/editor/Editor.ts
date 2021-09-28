@@ -43,7 +43,7 @@ export class Editor {
     readonly sprites = new SpriteDatabase();
     readonly _db = new GeometryDatabase(this.materials, this.signals);
 
-    readonly curves = new PlanarCurveDatabase(this._db);
+    readonly curves = new PlanarCurveDatabase(this._db, this.materials, this.signals);
     readonly regions = new RegionManager(this._db, this.curves);
     readonly contours = new ContourManager(this._db, this.curves, this.regions, this.signals);
 

@@ -244,6 +244,7 @@ export default {
             extends: "PlaneItem",
             dependencies: ["PlaneItem.h"],
             functions: [
+                { signature: "MbCurve3D * Cast()", isManual: true },
                 "void Inverse(MbRegTransform * iReg = NULL)",
                 "MbCurve * Trimmed(double t1, double t2, int sense)",
                 "bool IsStraight(bool ignoreParams = false)",
@@ -269,6 +270,11 @@ export default {
                 "MbeLocation PointLocation(const MbCartPoint &pnt, double eps=Math::LengthEps)"
             ],
         },
+        PolyCurve: {
+            rawHeader: "cur_polycurve.h",
+            extends: "Curve",
+            dependencies: ["Curve.h"],
+        },
         Contour: {
             rawHeader: "cur_contour.h",
             extends: "Curve",
@@ -279,7 +285,9 @@ export default {
             functions: [
                 "double GetArea(double sag = 1*Math::deviateSag)",
                 "size_t GetSegmentsCount()",
-                "bool AddCurveWithRuledCheck(MbCurve & newCur, double absEps, bool toEndOnly = false, bool checkSame = true, VERSION version = Math::DefaultMathVersion())"
+                "const MbCurve * GetSegment(size_t i)",
+                "bool AddCurveWithRuledCheck(MbCurve & newCur, double absEps, bool toEndOnly = false, bool checkSame = true, VERSION version = Math::DefaultMathVersion())",
+                { signature: "void GetCornerParams(SArray<double> & params)", params: isReturn }
             ]
         },
         ContourWithBreaks: {

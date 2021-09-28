@@ -1,10 +1,9 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../editor/VisualModel';
-import { CancellableRegistor } from '../../util/Cancellable';
-import { point2point, unit, vec2vec } from '../../util/Conversion';
 import { Joint } from '../../editor/ContourManager';
 import { PlanarCurveDatabase } from "../../editor/PlanarCurveDatabase";
+import * as visual from '../../editor/VisualModel';
+import { point2point, unit, vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 import LineFactory from '../line/LineFactory';
 import JoinCurvesFactory from './JoinCurvesFactory';
@@ -294,6 +293,8 @@ export class Polyline2ContourFactory extends GeometryFactory {
             const segment = factory.calculate();
             segments.push(segment);
         }
+        if (segments.length === 1) return segments[0];
+        
         const finished = await Promise.all(segments);
         const makeContour = new JoinCurvesFactory(this.db, this.materials, this.signals);
         for (const segment of finished) makeContour.push(segment);

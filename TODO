@@ -1,8 +1,10 @@
 BUG: offset contour, go to top view, things are frozen
-
 Trim polyline
+
 chamfer curve
 keybindings for fillet and chamfer curve must be same
+
+make trim viewport selector more permissive
 
 # PRE ALPHA:
 in moi if you run the same command twice it doesn't cancel the current one

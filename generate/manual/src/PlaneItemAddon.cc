@@ -3,6 +3,7 @@
 
 #include "../include/PlaneItem.h"
 #include "../include/Region.h"
+#include "../include/Contour.h"
 
 Napi::Value cast(MbPlaneItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -33,9 +34,11 @@ Napi::Value cast(MbPlaneItem *_underlying, const Napi::CallbackInfo &info)
         return Region::NewInstance(env, (MbRegion *)(_underlying));
     case pt_Curve:
         return Curve::NewInstance(env, (MbCurve *)(_underlying));
-    default:
+     case pt_Contour:
+        return Contour::NewInstance(env, (MbContour *)(_underlying));
+   default:
         std::ostringstream msg;
-        msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << "\n";
+        msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << " -- perhaps change PlaneItemAddon.cc \n";
         Napi::Error::New(env, msg.str()).ThrowAsJavaScriptException();
         return env.Undefined();
     }
@@ -47,6 +50,11 @@ Napi::Value PlaneItem::Cast(const Napi::CallbackInfo &info)
 }
 
 Napi::Value PlaneItem::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+Napi::Value Curve::Cast(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
 }

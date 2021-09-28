@@ -1,3 +1,4 @@
+import c3d from '../build/Release/c3d.node';
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
@@ -9,6 +10,7 @@ import { PlanarCurveDatabase } from "../src/editor/PlanarCurveDatabase";
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
+import { CornerRectangleFactory } from '../src/commands/rect/RectangleFactory';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -25,7 +27,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    curves = new PlanarCurveDatabase(db);
+    curves = new PlanarCurveDatabase(db, materials, signals);
 });
 
 beforeEach(() => {
@@ -107,7 +109,7 @@ test('two non-intersecting circles', async () => {
     expect(db.visibleObjects.length).toBe(2);
 });
 
-test('two cirlces that intersect in 2d but not 3d', async () => {
+test('two circles that intersect in 2d but not 3d', async () => {
     makeCircle1.center = new THREE.Vector3(-0.25, 0, 0);
     makeCircle1.radius = 1;
     const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
@@ -273,6 +275,42 @@ test("removing lines in reverse order works", async () => {
     await curves.remove(curve3);
     await db.removeItem(curve3);
     expect(db.visibleObjects.length).toBe(0);
+});
+
+test("simple polylines don't error", async () => {
+    const makeLine = new CurveFactory(db, materials, signals);
+    makeLine.type = c3d.SpaceType.Polyline3D;
+    makeLine.points.push(new THREE.Vector3());
+    makeLine.points.push(new THREE.Vector3(-2, 4, 0));
+    const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+    
+    expect(db.visibleObjects.length).toBe(1);
+    await curves.add(line);
+    expect(db.visibleObjects.length).toBe(2);
+});
+
+test("polylines are broken into their constituent segments", async () => {
+    const makeLine = new CurveFactory(db, materials, signals);
+    makeLine.type = c3d.SpaceType.Polyline3D;
+    makeLine.points.push(new THREE.Vector3());
+    makeLine.points.push(new THREE.Vector3(-2, 4, 0));
+    makeLine.points.push(new THREE.Vector3(-4, -4, 0));
+    const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+    
+    expect(db.visibleObjects.length).toBe(1);
+    await curves.add(line);
+    expect(db.visibleObjects.length).toBe(3);
+});
+
+test("closed polylines are borken into their constituent segments", async () => {
+    const makeRectangle = new CornerRectangleFactory(db, materials, signals);
+    makeRectangle.p1 = new THREE.Vector3(-1, -1, -1);
+    makeRectangle.p2 = new THREE.Vector3(1, 1, 1);
+    const rectangle = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
+    
+    expect(db.visibleObjects.length).toBe(1);
+    await curves.add(rectangle);
+    expect(db.visibleObjects.length).toBe(5);
 });
 
 describe("Joints", () => {

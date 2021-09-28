@@ -1,8 +1,11 @@
 import c3d from '../../build/Release/c3d.node';
+import { Polyline2ContourFactory } from '../commands/curve/ContourFilletFactory';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../util/Conversion';
 import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
+import { EditorSignals } from './EditorSignals';
 import { DatabaseLike } from './GeometryDatabase';
 import { CurveMemento, MementoOriginator } from './History';
+import MaterialDatabase from './MaterialDatabase';
 import * as visual from "./VisualModel";
 
 export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
@@ -12,7 +15,9 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     private counter = 0;
 
     constructor(
-        private readonly db: DatabaseLike
+        private readonly db: DatabaseLike,
+        private readonly materials: MaterialDatabase,
+        private readonly signals: EditorSignals
     ) {
         const origin = new c3d.CartPoint3D(0, 0, 0);
         const X = new c3d.Vector3D(1, 0, 0);
@@ -34,15 +39,25 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     async add(newCurve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
         const { curve2info, db, id2planarCurve: id2planarCurve } = this;
 
-        // Planarize the new curve
         const inst = db.lookup(newCurve);
         const item = inst.GetSpaceItem()!;
-        const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+        let curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+
+        // If the curve is a Polyline, convert to Contour
+        if (curve3d.IsA() === c3d.SpaceType.Polyline3D) {
+            const factory = new Polyline2ContourFactory(db, this.materials, this.signals);
+            factory.polyline = newCurve;
+            const inst = await factory.calculate();
+            const item = inst.GetSpaceItem()!;
+            curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+        }
+
+        // Planarize the new curve
         const planarInfo = this.planarizeAndNormalize(curve3d);
         if (planarInfo === undefined) return;
         const { curve: newPlanarCurve, placement } = planarInfo;
 
-        // Collect all existing planar curves
+        // Collect all existing planar curves on same placement
         const planar2instance = new Map<Curve2dId, c3d.SimpleName>();
         const allPlanarCurves = [];
         for (const [simpleName, { planarCurve, placement: existingPlacement }] of curve2info.entries()) {
@@ -67,15 +82,36 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
 
         const promises = [];
         while (curvesToProcess.size > 0) {
-            const [id, current] = curvesToProcess.entries().next().value;
+            const [id, current] = curvesToProcess.entries().next().value as [bigint, c3d.Curve];
+            const name = planar2instance.get(id)!;
+            const { view } = db.lookupItemById(name);
             visited.add(id);
             curvesToProcess.delete(id);
 
             const crosses = c3d.CurveEnvelope.IntersectWithAll(current, allPlanarCurves, true);
+
+            // If the curve is a contour, break it into segments and fake those as cross points
+            if (current.IsA() === c3d.PlaneType.Contour) {
+                const contour = current.Cast<c3d.Contour>(c3d.PlaneType.Contour);
+                const params = contour.GetCornerParams();
+                for (const param of params) {
+                    const pointOnCurve1 = new c3d.PointOnCurve(param, current);
+                    const cross = new c3d.CrossPoint(new c3d.CartPoint(0, 0), pointOnCurve1, pointOnCurve1);
+                    crosses.push(cross);
+                }
+                // If it's closed, add the beginning point
+                if (contour.IsClosed()) {
+                    const pointOnCurve1 = new c3d.PointOnCurve(0, current);
+                    const cross = new c3d.CrossPoint(new c3d.CartPoint(0, 0), pointOnCurve1, pointOnCurve1);
+                    crosses.push(cross);
+                }
+            }
+
             if (crosses.length === 0) {
-                promises.push(this.updateCurve(newCurve, [{ trimmed: newPlanarCurve, start: -1, stop: -1 }], placement));
+                promises.push(this.updateCurve(view as visual.SpaceInstance<visual.Curve3D>, [{ trimmed: current, start: -1, stop: -1 }], placement));
                 continue;
             }
+
             crosses.sort((a, b) => a.on1.t - b.on1.t);
 
             const { on1: { curve: curve1 } } = crosses[0];
@@ -100,7 +136,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
 
             // The crosses (intersections) are sorted, so each t[i] (start) to t[i+1] (stop) section of the curve is a cuttable.
             let start = crosses[0].on1.t;
-            const result: Trim[] = [];
+            const trims: Trim[] = [];
             for (const cross of crosses) {
                 const { on1: { t }, on2: { curve: other } } = cross;
                 const otherId = other.Id();
@@ -112,7 +148,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
                 const stop = t;
                 if (Math.abs(start - stop) > 10e-6) {
                     const trimmed = curve1.Trimmed(start, stop, 1)!;
-                    result.push({ trimmed, start, stop });
+                    trims.push({ trimmed, start, stop });
                 }
                 start = stop;
 
@@ -120,9 +156,8 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
                     curvesToProcess.set(otherId, other);
                 }
             }
-            const name = planar2instance.get(id)!;
-            const { view } = db.lookupItemById(name);
-            promises.push(this.updateCurve(view as visual.SpaceInstance<visual.Curve3D>, result, placement));
+
+            promises.push(this.updateCurve(view as visual.SpaceInstance<visual.Curve3D>, trims, placement));
         }
         await Promise.all(promises);
     }
