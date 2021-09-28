@@ -1022,11 +1022,11 @@ export class CreateFaceCommand extends Command {
         const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid
 
-        const removeFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        removeFace.solid = parent;
-        removeFace.faces = faces;
+        const createFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        createFace.solid = parent;
+        createFace.faces = faces;
 
-        await removeFace.commit();
+        await createFace.commit();
     }
 }
 

@@ -1,11 +1,12 @@
 BUG: offset contour, go to top view, things are frozen
-BUG: keybindings not working for move face
 BUG: Edit circle not really working because finish (right click) cancels
   - i want interrupt to cancel, not finish
 BUG: moving and undo are incompatible. probably the position needs to be reset on commit
 BUG: bridged curves seem non planar. Report bug
 
 Trim polyline
+chamfer curve
+keybindings for fillet and chamfer curve must be same
 
 # PRE ALPHA:
 in moi if you run the same command twice it doesn't cancel the current one
