@@ -1,5 +1,4 @@
 BUG: offset contour, go to top view, things are frozen
-Trim polyline
 
 chamfer curve
 keybindings for fillet and chamfer curve must be same

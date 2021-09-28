@@ -19,8 +19,64 @@ export default class TrimFactory extends GeometryFactory {
     async calculate() {
         const { curve, info: { start, stop } } = this;
 
-        const result = [];
+        if (curve.IsA() === c3d.SpaceType.Polyline3D) {
+            return this.trimPolyline();
+        } else {
+            return this.trimGeneral();
+        }
+    }
 
+    private async trimPolyline() {
+        const { curve, info: { start, stop } } = this;
+        const polyline = curve.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
+        const allPoints = polyline.GetPoints();
+        const startPoint = polyline.PointOn(start);
+        const stopPoint = polyline.PointOn(stop);
+
+        const ts = [...Array(allPoints.length).keys()];
+
+        const result = [];
+        if (polyline.IsClosed()) {
+            const first = ts.filter(p => p > stop)[0];
+            const last = ts.filter(p => p < start)[0];
+            const index = ts.indexOf(first);
+            const vertices = [];
+            for (let i = index; i < index + ts.length; i++) {
+                const mod = i % ts.length;
+                const t = ts[mod];
+                vertices.push(t);
+                if (mod === last) break;
+            }
+            const points = vertices.map(t => allPoints[t]);
+            points.unshift(stopPoint);
+            points.push(startPoint);
+            
+            const line = c3d.ActionCurve3D.SplineCurve(points, false, c3d.SpaceType.Polyline3D);
+            result.push(new c3d.SpaceInstance(line));
+        } else {
+            const first = ts.filter(p => p < start);
+            if (first.length > 0) {
+                const points = first.map(t => allPoints[t]);
+                points.push(startPoint);
+                const line = c3d.ActionCurve3D.SplineCurve(points, false, c3d.SpaceType.Polyline3D);
+                result.push(new c3d.SpaceInstance(line));
+            }
+
+            const second = ts.filter(p => p > stop);
+            if (second.length > 0) {
+                const points = second.map(t => allPoints[t]);
+                points.unshift(stopPoint);
+                const line = c3d.ActionCurve3D.SplineCurve(points, false, c3d.SpaceType.Polyline3D);
+                result.push(new c3d.SpaceInstance(line));
+            }
+        }
+        return result;
+    }
+
+    private async trimGeneral() {
+        const { curve, info: { start, stop } } = this;
+
+        const result = [];
         if (!curve.IsClosed()) {
             let from = curve.GetTMin(), to = start;
             if (Math.abs(from - to) > 10e-4) {

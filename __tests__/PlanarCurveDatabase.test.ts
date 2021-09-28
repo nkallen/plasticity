@@ -283,7 +283,7 @@ test("simple polylines don't error", async () => {
     makeLine.points.push(new THREE.Vector3());
     makeLine.points.push(new THREE.Vector3(-2, 4, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
-    
+
     expect(db.visibleObjects.length).toBe(1);
     await curves.add(line);
     expect(db.visibleObjects.length).toBe(2);
@@ -296,7 +296,7 @@ test("polylines are broken into their constituent segments", async () => {
     makeLine.points.push(new THREE.Vector3(-2, 4, 0));
     makeLine.points.push(new THREE.Vector3(-4, -4, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
-    
+
     expect(db.visibleObjects.length).toBe(1);
     await curves.add(line);
     expect(db.visibleObjects.length).toBe(3);
@@ -307,7 +307,7 @@ test("closed polylines are borken into their constituent segments", async () => 
     makeRectangle.p1 = new THREE.Vector3(-1, -1, -1);
     makeRectangle.p2 = new THREE.Vector3(1, 1, 1);
     const rectangle = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
-    
+
     expect(db.visibleObjects.length).toBe(1);
     await curves.add(rectangle);
     expect(db.visibleObjects.length).toBe(5);

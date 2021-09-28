@@ -73,7 +73,6 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
         this.addGizmo(z, rotate(Z));
 
         this.addGizmo(screen, angle => {
-            console.log(cameraZ.copy(Z).applyQuaternion(screen.camera.quaternion));
             rotate(cameraZ.copy(Z).applyQuaternion(screen.camera.quaternion))(angle);
         });
 
