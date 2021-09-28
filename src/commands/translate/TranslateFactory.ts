@@ -75,6 +75,15 @@ abstract class TranslateFactory extends GeometryFactory {
         return Promise.all(result);
     }
 
+    protected async doCommit(): Promise<visual.Item | visual.Item[]> {
+        for (const item of this.items) {
+            item.position.set(0, 0, 0);
+            item.quaternion.set(0, 0, 0, 1);
+            item.scale.set(1, 1, 1);
+        }
+        return super.doCommit();
+    }
+
     doCancel() {
         const { db, items } = this;
         for (const item of items) {

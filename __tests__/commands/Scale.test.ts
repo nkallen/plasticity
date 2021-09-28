@@ -53,13 +53,25 @@ test('commit', async () => {
     expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 2));
 });
 
+test('update & commit resets scale of original visual item', async () => {
+    scale.items = [box];
+    scale.pivot = new THREE.Vector3();
+    scale.scale = new THREE.Vector3(2, 2, 2);
+
+    await scale.update();
+    expect(box.scale).toEqual(new THREE.Vector3(2, 2, 2));
+
+    await scale.commit();
+    expect(box.scale).toEqual(new THREE.Vector3(1, 1, 1));
+})
+
 describe("when no values given it doesn't fail", () => {
     test('update', async () => {
         scale.items = [box];
         await scale.update();
         expect(box.scale).toEqual(new THREE.Vector3(1, 1, 1));
     });
-    
+
     test('commit', async () => {
         scale.items = [box];
         await expect(scale.commit()).rejects.toThrowError(/no effect/);

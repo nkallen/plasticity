@@ -72,6 +72,20 @@ test('commit', async () => {
     expect(db.visibleObjects.length).toBe(1);
 })
 
+test('update & commit resets orientation of original visual item', async () => {
+    rotate.items = [box];
+    rotate.pivot = new THREE.Vector3();
+    rotate.axis = new THREE.Vector3(1, 0, 0);
+    rotate.angle = Math.PI;
+
+    await rotate.update();
+    const result = new THREE.Quaternion().setFromAxisAngle(rotate.axis, rotate.angle);
+    expect(box).toHaveQuaternion(result);
+
+    await rotate.commit();
+    expect(box).toHaveQuaternion(new THREE.Quaternion());
+})
+
 describe("when no values given it doesn't fail", () => {
     test('update', async () => {
         rotate.items = [box];

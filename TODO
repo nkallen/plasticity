@@ -1,7 +1,6 @@
 BUG: offset contour, go to top view, things are frozen
 BUG: Edit circle not really working because finish (right click) cancels
   - i want interrupt to cancel, not finish
-BUG: moving and undo are incompatible. probably the position needs to be reset on commit
 BUG: bridged curves seem non planar. Report bug
 
 Trim polyline

@@ -73,6 +73,17 @@ test('commit', async () => {
     const center = new THREE.Vector3();
     bbox.getCenter(center);
     expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0.5));
+});
+
+test('update & commit resets position of original visual item', async () => {
+    move.items = [box];
+    move.pivot = new THREE.Vector3();
+    move.move = new THREE.Vector3(1, 0, 0);
+    await move.update();
+    expect(box.position).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+
+    await move.commit() as visual.Solid[];
+    expect(box.position).toApproximatelyEqual(new THREE.Vector3());
 })
 
 describe("when no values given it doesn't fail", () => {
