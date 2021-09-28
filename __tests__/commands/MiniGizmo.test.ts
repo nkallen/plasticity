@@ -8,11 +8,13 @@ import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { AngleGizmo, DistanceGizmo, LengthGizmo } from "../../src/commands/MiniGizmos";
 import { CircleMoveGizmo, MoveAxisGizmo, PlanarMoveGizmo } from "../../src/commands/translate/MoveGizmo";
 import { CircleScaleGizmo, PlanarScaleGizmo, ScaleAxisGizmo } from "../../src/commands/translate/ScaleGizmo";
+import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { Helpers } from "../../src/util/Helpers";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 
 let db: GeometryDatabase;
@@ -28,8 +30,9 @@ beforeEach(() => {
     gizmos = new GizmoMaterialDatabase(signals);
     db = new GeometryDatabase(materials, signals);
     helpers = new Helpers(signals);
+    const registry = new CommandRegistry();
     editor = {
-        gizmos, helpers, signals, viewports: [],
+        registry, db, gizmos, helpers, signals, viewports: [],
     } as unknown as EditorLike;
 })
 
@@ -44,18 +47,19 @@ describe(AngleGizmo, () => {
     test("it changes the angle, and respects interrupts", () => {
         const intersector = jest.fn();
         const cb = jest.fn();
-        let info = {} as MovementInfo;
+        const viewport = MakeViewport(editor);
+        const info = { viewport } as MovementInfo;
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector, info);
-        gizmo.onPointerMove(cb, intersector, { angle: Math.PI / 2 } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { angle: Math.PI / 2, viewport } as MovementInfo);
         expect(gizmo.value).toBe(Math.PI / 2);
         gizmo.onPointerUp(cb, intersector, info);
         gizmo.onPointerLeave(intersector);
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector, info);
-        gizmo.onPointerMove(cb, intersector, { angle: Math.PI / 2 } as MovementInfo);
+        gizmo.onPointerMove(cb, intersector, { angle: Math.PI / 2, viewport } as MovementInfo);
         expect(gizmo.value).toBe(Math.PI);
 
         gizmo.onInterrupt(intersector);

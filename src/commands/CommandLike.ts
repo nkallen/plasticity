@@ -153,11 +153,12 @@ export class DuplicateCommand extends Command {
         }).resource(this);
 
         const selection = await move.commit();
-        this.editor.selection.selected.add(selection);
 
         for (const solid of solids) selected.removeSolid(solid);
         for (const curve of curves) selected.removeCurve(curve);
         for (const edge of edges) selected.removeEdge(edge, edge.parentItem);
+
+        this.editor.selection.selected.add(selection);
     }
 }
 
