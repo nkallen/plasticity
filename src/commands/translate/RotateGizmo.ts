@@ -33,21 +33,19 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
     }
 
     prepare() {
-        const { x, y, z, screen, editor: { viewports }  } = this;
+        const { x, y, z, screen, editor: { viewports } } = this;
         for (const o of [x, y, z]) o.relativeScale.setScalar(0.7);
         screen.relativeScale.setScalar(0.8);
-
-        for (const viewport of viewports) {
-            viewport.selector.enabled = false;
-        }
 
         x.quaternion.setFromUnitVectors(Z, X);
         y.quaternion.setFromUnitVectors(Z, Y);
         z.quaternion.setFromUnitVectors(Z, Z);
     }
 
+    private readonly cameraZ = new THREE.Vector3();
+
     execute(cb: (params: RotateParams) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, screen, params} = this;
+        const { x, y, z, screen, params, cameraZ } = this;
 
         const state = new QuaternionStateMachine(new THREE.Quaternion());
         state.start();
@@ -75,7 +73,8 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
         this.addGizmo(z, rotate(Z));
 
         this.addGizmo(screen, angle => {
-            rotate(screen.eye)(angle);
+            console.log(cameraZ.copy(Z).applyQuaternion(screen.camera.quaternion));
+            rotate(cameraZ.copy(Z).applyQuaternion(screen.camera.quaternion))(angle);
         });
 
         return super.execute(cb, finishFast);

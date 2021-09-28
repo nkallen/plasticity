@@ -39,7 +39,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         const item = inst.GetSpaceItem()!;
         const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
         const planarInfo = this.planarizeAndNormalize(curve3d);
-        if (planarInfo === undefined) return Promise.resolve();
+        if (planarInfo === undefined) return;
         const { curve: newPlanarCurve, placement } = planarInfo;
 
         // Collect all existing planar curves

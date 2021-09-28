@@ -229,6 +229,8 @@ export interface MovementInfo {
     constructionPlane: PlaneSnap;
 
     eye: THREE.Vector3;
+
+    viewport: Viewport;
 }
 
 // This class handles computing some useful data (like click start and click end) of the
@@ -261,11 +263,13 @@ export class GizmoStateMachine<T> implements MovementInfo {
         private readonly cb: T,
     ) { }
 
+    private _viewport!: Viewport;
+    get viewport() { return this._viewport }
+
     private camera!: THREE.Camera;
-    private viewport!: Viewport;
     update(viewport: Viewport, pointer: Pointer) {
         const camera = viewport.camera;
-        this.viewport = viewport;
+        this._viewport = viewport;
         this.camera = camera;
         this.eye.copy(camera.position).sub(this.gizmo.position).normalize();
         this.gizmo.update(camera);

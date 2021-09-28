@@ -211,7 +211,7 @@ export class Viewport {
         this.needsRender = true;
     }
 
-    lastFrameNumber = -1;
+    lastFrameNumber = -1; // FIXME move to editor
 
     render(frameNumber: number) {
         if (!this.started) return;
@@ -221,7 +221,7 @@ export class Viewport {
         const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, offsetWidth, offsetHeight, phantomsPass, helpersPass, grid, constructionPlane } = this
 
         try {
-            // prepare the scene, once per frame:
+            // prepare the scene, once per frame (there may be multiple viewports rendering the same frame):
             if (frameNumber > lastFrameNumber) {
                 db.rebuildScene();
                 scene.add(db.scene);

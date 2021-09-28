@@ -548,7 +548,8 @@ export class CornerRectangleCommand extends Command {
             rect.update();
         }).resource(this);
 
-        await rect.commit();
+        const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 

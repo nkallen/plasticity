@@ -101,6 +101,9 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 }
 
 export class AngleGizmo extends CircularGizmo<number> {
+    private _camera!: THREE.Camera;
+    get camera() { return this._camera }
+
     constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
         super(name, editor, material ?? editor.gizmos.white, new MagnitudeStateMachine(0));
     }
@@ -110,6 +113,7 @@ export class AngleGizmo extends CircularGizmo<number> {
     onPointerMove(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo): void {
         const angle = info.angle + this.state.original;
         this.state.current = angle;
+        this._camera = info.viewport.camera;
         cb(this.state.current);
     }
 
@@ -176,7 +180,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     onPointerDown(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) return;
-        
+
         this.startMousePosition.copy(planeIntersect.point);
         this.sign = Math.sign(planeIntersect.point.dot(localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion)));
         if (this.sign === 0) this.sign = 1;
