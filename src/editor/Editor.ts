@@ -3,8 +3,10 @@ import { remote } from 'electron';
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as fs from 'fs';
 import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
 import Command from '../commands/Command';
-import { CancelOrFinish, CommandExecutor } from "../commands/CommandExecutor";
+import { CommandExecutor } from "../commands/CommandExecutor";
+import { ExportCommand } from "../commands/CommandLike";
 import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
 import { SelectionCommandManager } from "../commands/SelectionCommandManager";
 import CommandRegistry from "../components/atom/CommandRegistry";
@@ -27,10 +29,8 @@ import ModifierManager from "./ModifierManager";
 import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
 import { RegionManager } from "./RegionManager";
 import { SnapManager } from './snaps/SnapManager';
-import { SpriteDatabase } from "./SpriteDatabase";
-import c3d from '../../build/Release/c3d.node';
-import { ExportCommand } from "../commands/CommandLike";
 import { SnapPresenter } from "./snaps/SnapPresenter";
+import { SpriteDatabase } from "./SpriteDatabase";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -96,8 +96,8 @@ export class Editor {
         this.disposable.add(d);
     }
 
-    async enqueue(command: Command, cancelOrFinish?: CancelOrFinish) {
-        await this.executor.enqueue(command, cancelOrFinish);
+    async enqueue(command: Command, interrupt?: boolean) {
+        await this.executor.enqueue(command, interrupt);
     }
 
     onWindowResize() {

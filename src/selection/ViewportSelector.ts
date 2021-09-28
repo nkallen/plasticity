@@ -1,7 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import Command, * as cmd from "../commands/Command";
-import { CancelOrFinish } from "../commands/CommandExecutor";
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
@@ -11,7 +10,7 @@ import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
 
 export interface EditorLike extends cmd.EditorLike {
     originator: EditorOriginator,
-    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>;
+    enqueue(command: Command, interrupt?: boolean): Promise<void>;
 }
 
 type State = { tag: 'none' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
@@ -204,12 +203,12 @@ export class ViewportSelector extends AbstractViewportSelector {
 
     protected processBoxSelect(selected: Set<visual.Selectable>) {
         const command = new BoxChangeSelectionCommand(this.editor, selected);
-        this.editor.enqueue(command, 'finish');
+        this.editor.enqueue(command, true);
     }
 
     protected processClick(intersects: THREE.Intersection[]) {
         const command = new ClickChangeSelectionCommand(this.editor, intersects);
-        this.editor.enqueue(command, 'finish');
+        this.editor.enqueue(command, true);
     }
 
     protected processHover(intersects: THREE.Intersection[]) {

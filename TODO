@@ -1,7 +1,4 @@
 BUG: offset contour, go to top view, things are frozen
-BUG: Edit circle not really working because finish (right click) cancels
-  - i want interrupt to cancel, not finish
-BUG: bridged curves seem non planar. Report bug
 
 Trim polyline
 chamfer curve
@@ -9,6 +6,10 @@ keybindings for fillet and chamfer curve must be same
 
 # PRE ALPHA:
 in moi if you run the same command twice it doesn't cancel the current one
+currently FINISH is always available, even at step 1 of 3 points box.
+  - this disables subsequent cancel for example
+  - registry.add(command:finish) should maybe not happen in command executor but in await this.finished
+  - if so, each command needs to be slightly rewritten
 
 stress test undo & redo
 

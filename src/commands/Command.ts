@@ -13,7 +13,6 @@ import { SelectionInteractionManager } from "../selection/SelectionInteraction";
 import { HasSelectedAndHovered } from "../selection/SelectionManager";
 import { CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
-import { CancelOrFinish } from "./CommandExecutor";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
 /**
@@ -52,7 +51,7 @@ export interface EditorLike {
     selectionInteraction: SelectionInteractionManager,
     layers: LayerManager,
     activeViewport?: Viewport,
-    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>,
+    enqueue(command: Command, interrupt?: boolean): Promise<void>,
     modifiers: ModifierManager,
     snapPresenter: SnapPresenter,
 }

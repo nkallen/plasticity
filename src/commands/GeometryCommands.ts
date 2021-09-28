@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, CurveSnap, Layers, ParametricPointSnap, PointSnap } from "../editor/snaps/Snap";
 import * as visual from "../editor/VisualModel";
-import { Finish } from "../util/Cancellable";
+import { Finish, Interrupt } from "../util/Cancellable";
 import { point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
@@ -66,6 +66,7 @@ import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
 
 const Y = new THREE.Vector3(0, 1, 0);
+
 export class SphereCommand extends Command {
     async execute(): Promise<void> {
         const sphere = new PossiblyBooleanSphereFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -123,7 +124,7 @@ export class CenterCircleCommand extends Command {
 
         const next = new EditCircleCommand(this.editor);
         next.circle = result;
-        this.editor.enqueue(next, 'after');
+        this.editor.enqueue(next, false);
     }
 }
 
@@ -138,9 +139,7 @@ class EditCircleCommand extends Command {
         await dialog.execute(params => {
             edit.update();
             dialog.render();
-        })
-            // .onFinish((reject) => reject(Finish))
-            .resource(this)
+        }).rejectOnInterrupt().resource(this);
 
         const result = await edit.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(result);
@@ -471,7 +470,7 @@ export class CurveCommand extends Command {
                     makeCurve.preview.last = point;
                     makeCurve.preview.snap = snap;
                     await makeCurve.preview.update();
-                }).onFinish(reject => reject(Finish)).resource(this);
+                }).rejectOnFinish().resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
                     makeCurve.closed = true;
                     throw Finish;
@@ -1241,7 +1240,7 @@ export class TrimCommand extends Command {
         factory.fragment = fragment;
         await factory.commit();
 
-        this.editor.enqueue(new TrimCommand(this.editor), 'after');
+        this.editor.enqueue(new TrimCommand(this.editor), false);
     }
 }
 

@@ -4,12 +4,10 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator, History } from "../editor/History";
 import { HasSelectedAndHovered } from "../selection/SelectionManager";
-import { Cancel } from "../util/Cancellable";
+import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import Command from "./Command";
 import { ValidationError } from "./GeometryFactory";
 import { SelectionCommandManager } from "./SelectionCommandManager";
-
-export type CancelOrFinish = 'cancel' | 'finish' | 'after';
 
 export interface EditorLike {
     db: DatabaseLike;
@@ -28,15 +26,14 @@ export class CommandExecutor {
     private active?: Command;
     private next?: Command;
 
-    // Cancel any active commands and "enqueue" another.
+    // (Optionally) interrupt any active commands and "enqueue" another.
     // Ensure commands are executed ATOMICALLY.
     // That is, do not start a new command until the previous is fully completed,
     // including any cancelation cleanup. (await this.execute(next))
-    async enqueue(command: Command, cancelOrFinish: CancelOrFinish = 'finish') {
+    async enqueue(command: Command, interrupt = true) {
         this.next = command;
         const isActive = !!this.active;
-        if (cancelOrFinish === 'cancel') this.cancelActiveCommand();
-        else if (cancelOrFinish === 'finish') this.finishActiveCommand();
+        if (interrupt) this.active?.interrupt();
 
         if (!isActive) await this.dequeue();
     }
@@ -52,7 +49,7 @@ export class CommandExecutor {
                 const command = this.editor.selectionGizmo.commandFor(next);
                 if (command !== undefined) await this.enqueue(command);
             } catch (e) {
-                if (e !== Cancel) {
+                if (e !== Cancel && e !== Finish && e !== Interrupt) {
                     if (e instanceof ValidationError) console.warn(`${next.title}: ${e.message}`);
                     else console.warn(e);
                 }
@@ -75,7 +72,7 @@ export class CommandExecutor {
             signals.objectDeselected.addOnce(() => selectionChanged = true);
             await contours.transaction(async () => {
                 await command.execute();
-                command.finish();
+                command.finish(); // FIXME I'm not sure this is necessary
             })
             if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
             if (command.shouldAddToHistory(selectionChanged)) history.add("Command", state);
@@ -98,11 +95,6 @@ export class CommandExecutor {
     cancelActiveCommand() {
         const active = this.active;
         if (active) active.cancel();
-    }
-
-    private finishActiveCommand() {
-        const active = this.active;
-        if (active) active.finish();
     }
 
     async enqueueDefaultCommand() {

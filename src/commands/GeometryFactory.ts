@@ -3,7 +3,7 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
-import { ResourceRegistration } from '../util/Cancellable';
+import { CancellableRegisterable } from '../util/Cancellable';
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { zip } from '../util/Util';
 
@@ -54,7 +54,7 @@ export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride }
  * when a user exceeds some max value, (like a max fillet radius).
  */
 
-export abstract class AbstractGeometryFactory extends ResourceRegistration {
+export abstract class AbstractGeometryFactory extends CancellableRegisterable {
     state: State = { tag: 'none', last: undefined };
 
     constructor(
@@ -207,8 +207,9 @@ export abstract class AbstractGeometryFactory extends ResourceRegistration {
         this.doCancel();
     }
 
-    // NOTE: finish is a no-op on factories; all factories should be explicitly commit or cancel.
+    // NOTE: All factories should be explicitly commit or cancel.
     finish() { }
+    interrupt() { }
 }
 
 export abstract class GeometryFactory extends AbstractGeometryFactory {

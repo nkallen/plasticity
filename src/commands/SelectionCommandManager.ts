@@ -1,16 +1,14 @@
-import * as THREE from 'three';
-import { DatabaseLike, GeometryDatabase } from '../editor/GeometryDatabase';
+import { DatabaseLike } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as gizmo from './AbstractGizmo';
 import Command, * as cmd from './Command';
-import { CancelOrFinish } from './CommandExecutor';
 import { ClickChangeSelectionCommand } from './CommandLike';
 import { ChangePointCommand, ExtrudeCommand, FilletCommand, OffsetFaceCommand } from './GeometryCommands';
 
 export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
     db: DatabaseLike;
     materials: MaterialDatabase;
-    enqueue(command: Command, cancelOrFinish?: CancelOrFinish): Promise<void>;
+    enqueue(command: Command, interrupt?: boolean): Promise<void>;
 }
 
 export class SelectionCommandManager {

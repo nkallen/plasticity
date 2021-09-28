@@ -12,7 +12,7 @@ export class ChamferAndFilletKeyboardGizmo  {
     execute(cb: (e: string) => void) {
         this.cb = cb;
         return new CancellablePromise<void>((resolve, reject) => {
-            const dispose = () => this.active?._dispose();
+            const dispose = () => this.active?.dispose();
             return { dispose, finish: resolve };
         });
     }

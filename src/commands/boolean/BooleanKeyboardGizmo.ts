@@ -17,7 +17,7 @@ export class BooleanKeyboardGizmo extends AbstractCommandKeyboardInput<(e: Boole
     execute(cb: (e: BooleanKeyboardEvent) => void) {
         this.cb = cb;
         return new CancellablePromise<void>((resolve, reject) => {
-            const dispose = () => this.active?._dispose();
+            const dispose = () => this.active?.dispose();
             return { dispose, finish: resolve };
         });
     }
