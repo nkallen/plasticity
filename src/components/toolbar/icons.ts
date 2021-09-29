@@ -41,7 +41,7 @@ export const icons = new Map<any, string>();
 icons.set(cmd.MoveCommand, move);
 icons.set(cmd.RotateCommand, rotate);
 icons.set(cmd.ScaleCommand, scale);
-icons.set(cmd.FilletCommand, fillet);
+icons.set(cmd.FilletSolidCommand, fillet);
 icons.set(cmd.IntersectionCommand, intersection);
 icons.set(cmd.DifferenceCommand, difference);
 icons.set(cmd.UnionCommand, union);
@@ -104,7 +104,7 @@ export const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");
 tooltips.set(cmd.RotateCommand, "Rotate");
 tooltips.set(cmd.ScaleCommand, "Scale");
-tooltips.set(cmd.FilletCommand, "Fillet");
+tooltips.set(cmd.FilletSolidCommand, "Fillet");
 tooltips.set(cmd.IntersectionCommand, "Boolean intersection");
 tooltips.set(cmd.DifferenceCommand, "Boolean difference");
 tooltips.set(cmd.UnionCommand, "Boolean union");
@@ -186,9 +186,9 @@ keybindings.set("gizmo:curve:bezier", "Bezier");
 keybindings.set("gizmo:curve:cubic-spline", "Cubic spline");
 keybindings.set("gizmo:curve:undo", "Undo");
 keybindings.set("gizmo:line:undo", "Undo");
-keybindings.set("gizmo:fillet:add", "Add variable fillet point");
-keybindings.set("gizmo:fillet:distance", "Distance");
-keybindings.set("gizmo:fillet:angle", "Chamfer angle");
+keybindings.set("gizmo:fillet-solid:add", "Add variable fillet point");
+keybindings.set("gizmo:fillet-solid:distance", "Distance");
+keybindings.set("gizmo:fillet-solid:angle", "Chamfer angle");
 keybindings.set("gizmo:circle:mode", "Toggle vertical/horizontal");
 keybindings.set("gizmo:polygon:add-vertex", "Add a vertex");
 keybindings.set("gizmo:polygon:subtract-vertex", "Subtract a vertex");
@@ -249,7 +249,6 @@ export default (editor: Editor): void => {
         'command:offset': () => editor.enqueue(new cmd.OffsetCurveCommand(editor)),
         'command:cut': () => editor.enqueue(new cmd.CutCommand(editor)),
         'command:fillet': () => editor.enqueue(new cmd.FilletCommand(editor)),
-        'command:fillet-curve': () => editor.enqueue(new cmd.FilletCurveCommand(editor)),
         'command:modify-face': () => editor.enqueue(new cmd.OffsetFaceCommand(editor)),
         'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),
         'command:extrude': () => editor.enqueue(new cmd.ExtrudeCommand(editor)),

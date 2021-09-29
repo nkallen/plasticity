@@ -12,9 +12,9 @@ import { FilletParams } from './FilletFactory';
 
 const Y = new THREE.Vector3(0, 1, 0);
 
-export class FilletGizmo extends CompositeGizmo<FilletParams> {
-    private readonly main = new MagnitudeGizmo("fillet:distance", this.editor);
-    private readonly angle = new AngleGizmo("fillet:angle", this.editor, this.editor.gizmos.white);
+export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
+    private readonly main = new MagnitudeGizmo("fillet-solid:distance", this.editor);
+    private readonly angle = new AngleGizmo("fillet-solid:angle", this.editor, this.editor.gizmos.white);
     private readonly variables: MagnitudeGizmo[] = [];
 
     private mode: fillet.Mode = c3d.CreatorType.FilletSolid;

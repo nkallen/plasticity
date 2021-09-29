@@ -31,6 +31,6 @@ export class ChamferAndFilletKeyboardGizmo  {
 
 export class FilletKeyboardGizmo extends CommandKeyboardInput {
     constructor(editor: EditorLike) {
-        super("fillet", editor, [`gizmo:fillet:add`]);
+        super("fillet", editor, [`gizmo:fillet-solid:add`]);
     }
 }

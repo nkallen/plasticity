@@ -46,8 +46,10 @@ export class CommandExecutor {
             this.next = undefined;
             try {
                 await this.execute(next);
-                const command = this.editor.selectionGizmo.commandFor(next);
-                if (command !== undefined) await this.enqueue(command);
+                if (this.next === undefined) {
+                    const command = this.editor.selectionGizmo.commandFor(next);
+                    if (command !== undefined) await this.enqueue(command);
+                }
             } catch (e) {
                 if (e !== Cancel && e !== Finish && e !== Interrupt) {
                     if (e instanceof ValidationError) console.warn(`${next.title}: ${e.message}`);

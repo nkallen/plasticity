@@ -90,10 +90,10 @@ export default {
         "f": "gizmo:scale:free",
     },
 
-    "[command='fillet'] ispace-viewport": {
-        "v": "gizmo:fillet:add",
-        "d": "gizmo:fillet:distance",
-        "a": "gizmo:fillet:angle",
+    "[command='fillet-solid'] ispace-viewport": {
+        "v": "gizmo:fillet-solid:add",
+        "d": "gizmo:fillet-solid:distance",
+        "a": "gizmo:fillet-solid:angle",
     },
 
     "[command='fillet-curve'] ispace-viewport": {
@@ -147,8 +147,7 @@ export default {
         "r": "command:rotate",
         "R": "command:center-rectangle",
         "s": "command:scale",
-        "f": "command:fillet",
-        // "f": "command:fillet-curve",
+        "b": "command:fillet",
         "e": "command:extrude",
         "t": "command:trim",
         "i": "command:offset",

@@ -6,7 +6,7 @@ import c3d from '../../build/Release/c3d.node';
 import { EditorLike, Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { MaxFilletFactory } from "../../src/commands/fillet/FilletFactory";
-import { FilletGizmo } from "../../src/commands/fillet/FilletGizmo";
+import { FilletSolidGizmo } from "../../src/commands/fillet/FilletGizmo";
 import { ChamferAndFilletKeyboardGizmo, FilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { Viewport } from "../../src/components/viewport/Viewport";
@@ -38,7 +38,7 @@ beforeEach(() => {
     editor = { db, gizmos, helpers, signals, viewports } as unknown as EditorLike;
 })
 
-describe(FilletGizmo, () => {
+describe(FilletSolidGizmo, () => {
     let solid: visual.Solid;
     let edge: visual.CurveEdge;
 
@@ -55,11 +55,11 @@ describe(FilletGizmo, () => {
         fillet.edges = [edge];
     });
 
-    let gizmo: FilletGizmo;
+    let gizmo: FilletSolidGizmo;
     let promise: CancellablePromise<void>;
 
     beforeEach(() => {
-        gizmo = new FilletGizmo(fillet, editor, new THREE.Vector3());
+        gizmo = new FilletSolidGizmo(fillet, editor, new THREE.Vector3());
         promise = gizmo.execute(async params => {
             gizmo.toggle(fillet.mode);
         }, Mode.Persistent);

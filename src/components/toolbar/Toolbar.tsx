@@ -34,7 +34,7 @@ export class Model {
             result.push(cmd.DifferenceCommand);
         }
         if (selection.edges.size > 0) {
-            result.push(cmd.FilletCommand);
+            result.push(cmd.FilletSolidCommand);
         }
         if (selection.faces.size > 0) {
             result.push(cmd.OffsetFaceCommand);

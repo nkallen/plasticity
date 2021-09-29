@@ -34,7 +34,7 @@ import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
 import { MaxFilletFactory } from './fillet/FilletFactory';
-import { FilletGizmo, MagnitudeGizmo } from './fillet/FilletGizmo';
+import { FilletSolidGizmo, MagnitudeGizmo } from './fillet/FilletGizmo';
 import { ChamferAndFilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
@@ -874,6 +874,19 @@ export class CutCommand extends Command {
 }
 
 export class FilletCommand extends Command {
+    async execute(): Promise<void> {
+        const selected = this.editor.selection.selected;
+        const editor = this.editor;
+        console.log(selected.edges.size);
+        if (selected.edges.size > 0) {
+            editor.enqueue(new FilletSolidCommand(editor), false);
+        } else {
+            editor.enqueue(new FilletCurveCommand(editor), false);
+        }
+    }
+}
+
+export class FilletSolidCommand extends Command {
     point?: THREE.Vector3
 
     async execute(): Promise<void> {
@@ -886,7 +899,7 @@ export class FilletCommand extends Command {
         fillet.edges = edges;
         fillet.start();
 
-        const gizmo = new FilletGizmo(fillet, this.editor, this.point);
+        const gizmo = new FilletSolidGizmo(fillet, this.editor, this.point);
         gizmo.showEdges();
 
         const keyboard = new ChamferAndFilletKeyboardGizmo(this.editor);
