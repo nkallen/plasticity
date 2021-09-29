@@ -64,6 +64,7 @@ import { RotateDialog } from "./translate/RotateDialog";
 import { RotateGizmo } from './translate/RotateGizmo';
 import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
+import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
 import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -759,6 +760,7 @@ export class ScaleCommand extends Command {
 
         const gizmo = new ScaleGizmo(scale, this.editor);
         const dialog = new ScaleDialog(scale, this.editor.signals);
+        const keyboard = new ScaleKeyboardGizmo(this.editor);
 
         dialog.execute(async params => {
             await scale.update();
@@ -770,6 +772,8 @@ export class ScaleCommand extends Command {
             scale.update();
             dialog.render();
         }).resource(this);
+
+        keyboard.prepare(gizmo, scale, dialog, this).resource(this);
 
         await this.finished;
 

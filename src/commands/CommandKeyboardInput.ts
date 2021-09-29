@@ -24,35 +24,40 @@ export abstract class AbstractCommandKeyboardInput<CB> {
     ) { }
 
     execute(cb: CB) {
-        const disposables = new CompositeDisposable();
-
-        for (const viewport of this.editor.viewports) {
-            for (const command of this.commands) {
-                const d = this.editor.registry.addOne(
-                    viewport.domElement,
-                    command,
-                    (e: Event) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        this.resolve(cb, command)
-                    });
-                disposables.add(d);
-            }
-        }
-        this.editor.signals.keybindingsRegistered.dispatch(this.commands);
-        disposables.add(new Disposable(() => this.editor.signals.keybindingsCleared.dispatch(this.commands)));
-
         return new CancellablePromise<void>((resolve, reject) => {
+            const disposables = new CompositeDisposable();
+
+            for (const viewport of this.editor.viewports) {
+                for (const commandName of this.commands) {
+                    const d = this.editor.registry.addOne(
+                        viewport.domElement,
+                        commandName,
+                        (e: Event) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            this.resolve(cb, commandName, reject);
+                        });
+                    disposables.add(d);
+                }
+            }
+            this.editor.signals.keybindingsRegistered.dispatch(this.commands);
+            disposables.add(new Disposable(() => this.editor.signals.keybindingsCleared.dispatch(this.commands)));
+
             return { dispose: () => disposables.dispose(), finish: resolve };
         });
     }
 
-    protected abstract resolve(cb: CB, command: string): void;
+    protected abstract resolve(cb: CB, command: string, reject: (reason?: any) => void): void;
 }
 
-export class CommandKeyboardInput extends AbstractCommandKeyboardInput<(s: string) => void> {
-    protected resolve(cb: (s: string) => void, command: string) {
+type Callback = ((s: string) => void) | ((s: string) => Promise<void>);
+
+export class CommandKeyboardInput extends AbstractCommandKeyboardInput<Callback> {
+    protected resolve(cb: Callback, command: string, reject: (reason?: any) => void) {
         const components = command.split(':')
-        cb(components[components.length - 1]);
+        const result = cb(components[components.length - 1]);
+        if (result instanceof Promise) {
+            result.then(() => { }, reject);
+        }
     }
 }

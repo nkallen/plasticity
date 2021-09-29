@@ -69,9 +69,9 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     }
 
     render(params: ScaleParams) {
-        this.x.render(params.scale.x);
-        this.y.render(params.scale.y);
-        this.z.render(params.scale.z);
+        this.x.value = params.scale.x;
+        this.y.value = params.scale.y;
+        this.z.value = params.scale.z;
     }
 }
 

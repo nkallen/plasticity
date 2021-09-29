@@ -87,6 +87,7 @@ export default {
         "X": "gizmo:scale:yz",
         "Y": "gizmo:scale:xz",
         "s": "gizmo:scale:xyz",
+        "f": "gizmo:scale:free",
     },
 
     "[command='fillet'] ispace-viewport": {
