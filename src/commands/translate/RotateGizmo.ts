@@ -73,7 +73,15 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
         this.addGizmo(z, rotate(Z));
 
         this.addGizmo(screen, angle => {
-            rotate(cameraZ.copy(Z).applyQuaternion(screen.camera.quaternion))(angle);
+            let axis = cameraZ.copy(Z).applyQuaternion(screen.camera.quaternion);
+            console.log(axis);
+            AvoidFloatingPointPrecisionIssues: {
+                if (Math.abs(Math.abs(axis.dot(X)) - 1) < 10e-5) axis = X.clone().multiplyScalar(Math.sign(axis.dot(X)));
+                if (Math.abs(Math.abs(axis.dot(Y)) - 1) < 10e-5) axis = Y.clone().multiplyScalar(Math.sign(axis.dot(Y)));
+                if (Math.abs(Math.abs(axis.dot(Z)) - 1) < 10e-5) axis = Z.clone().multiplyScalar(Math.sign(axis.dot(Z)));
+            }
+            console.log(axis);
+            rotate(axis)(angle);
         });
 
         return super.execute(cb, finishFast);
