@@ -107,7 +107,7 @@ export default class BridgeOrSplineFactory extends GeometryFactory implements Br
     get mating2() { return this.spline.mating2 }
     set mating2(mating2: c3d.MatingType) { this.spline.mating2 = mating2 }
 
-    type = c3d.ConnectingType.Bridge;
+    type = c3d.ConnectingType.Spline;
 
     async calculate() {
         switch (this.type) {
