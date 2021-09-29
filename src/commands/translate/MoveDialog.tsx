@@ -1,6 +1,7 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../AbstractDialog";
+import { CommandKeyboardInput } from '../CommandKeyboardInput';
 import { MoveParams } from "./TranslateFactory";
 
 export class MoveDialog extends AbstractDialog<MoveParams> {

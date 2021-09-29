@@ -75,6 +75,9 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
     }
 
     render(params: MoveParams) {
+        this.x.value = params.move.x;
+        this.y.value = params.move.y;
+        this.z.value = params.move.z;
         this.position.copy(this.originalPosition).add(params.move);
     }
 }

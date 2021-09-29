@@ -76,12 +76,13 @@ abstract class TranslateFactory extends GeometryFactory {
     }
 
     protected async doCommit(): Promise<visual.Item | visual.Item[]> {
+        const result = super.doCommit();
         for (const item of this.items) {
             item.position.set(0, 0, 0);
             item.quaternion.set(0, 0, 0, 1);
             item.scale.set(1, 1, 1);
         }
-        return super.doCommit();
+        return result;
     }
 
     doCancel() {

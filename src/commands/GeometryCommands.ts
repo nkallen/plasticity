@@ -59,6 +59,7 @@ import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
 import { MoveDialog } from "./translate/MoveDialog";
 import { MoveGizmo } from './translate/MoveGizmo';
+import { MoveKeyboardGizmo } from "./translate/MoveKeyboardGizmo";
 import { RotateDialog } from "./translate/RotateDialog";
 import { RotateGizmo } from './translate/RotateGizmo';
 import { ScaleDialog } from "./translate/ScaleDialog";
@@ -721,6 +722,7 @@ export class MoveCommand extends Command {
 
         const dialog = new MoveDialog(move, this.editor.signals);
         const gizmo = new MoveGizmo(move, this.editor);
+        const keyboard = new MoveKeyboardGizmo(this.editor);
 
         dialog.execute(async params => {
             await move.update();
@@ -732,6 +734,8 @@ export class MoveCommand extends Command {
             move.update();
             dialog.render();
         }).resource(this);
+
+        keyboard.prepare(gizmo, move, dialog, this).resource(this);
 
         await this.finished;
 

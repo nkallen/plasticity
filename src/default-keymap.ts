@@ -76,6 +76,7 @@ export default {
         "X": "gizmo:move:yz",
         "Y": "gizmo:move:xz",
         "s": "gizmo:move:screen",
+        "f": "gizmo:move:free",
     },
 
     "[command='scale'] ispace-viewport": {
