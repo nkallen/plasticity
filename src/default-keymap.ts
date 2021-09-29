@@ -105,6 +105,7 @@ export default {
         "y": "gizmo:rotate:y",
         "z": "gizmo:rotate:z",
         "s": "gizmo:rotate:screen",
+        "f": "gizmo:rotate:free",
     },
 
     "[command='curve'] ispace-viewport": {

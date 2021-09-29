@@ -1,17 +1,18 @@
+import * as THREE from "three";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import MaterialDatabase from "../../editor/MaterialDatabase";
+import { AxisSnap } from "../../editor/snaps/Snap";
 import { SnapManager } from "../../editor/snaps/SnapManager";
 import { SnapPresenter } from "../../editor/snaps/SnapPresenter";
 import { CancellablePromise } from "../../util/Cancellable";
 import * as cmd from "../CommandKeyboardInput";
 import { CommandKeyboardInput } from "../CommandKeyboardInput";
-import { ScaleCommand } from "../GeometryCommands";
+import { RotateCommand } from "../GeometryCommands";
 import LineFactory from "../line/LineFactory";
 import { PointPicker } from "../PointPicker";
-import { ScaleDialog } from "./ScaleDialog";
-import { ScaleGizmo } from "./ScaleGizmo";
-import { ScaleFactory } from "./TranslateFactory";
-import * as THREE from "three";
+import { RotateDialog } from "./RotateDialog";
+import { RotateGizmo } from "./RotateGizmo";
+import { RotateFactory } from "./TranslateFactory";
 
 interface EditorLike extends cmd.EditorLike {
     db: DatabaseLike,
@@ -21,15 +22,16 @@ interface EditorLike extends cmd.EditorLike {
 }
 
 const X = new THREE.Vector3(1, 0, 0);
+const Z = new THREE.Vector3(0, 0, 1);
 
-export class ScaleKeyboardGizmo extends CommandKeyboardInput {
+export class RotateKeyboardGizmo extends CommandKeyboardInput {
     constructor(editor: EditorLike) {
-        super('scale', editor, [
-            'gizmo:scale:free',
+        super('rotate', editor, [
+            'gizmo:rotate:free',
         ]);
     }
 
-    prepare(gizmo: ScaleGizmo, scale: ScaleFactory, dialog: ScaleDialog, cmd: ScaleCommand): CancellablePromise<void> {
+    prepare(gizmo: RotateGizmo, rotate: RotateFactory, dialog: RotateDialog, cmd: RotateCommand): CancellablePromise<void> {
         const editor = this.editor as EditorLike;
         return this.execute(async s => {
             switch (s) {
@@ -37,37 +39,37 @@ export class ScaleKeyboardGizmo extends CommandKeyboardInput {
                     gizmo.visible = false;
                     const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(cmd);
                     const pointPicker = new PointPicker(editor);
-                    const { point: p1 } = await pointPicker.execute().resource(cmd);
+                    const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(cmd);
                     referenceLine.p1 = p1;
-                    scale.pivot = p1;
+                    rotate.pivot = p1;
+                    rotate.axis = constructionPlane.n;
                     pointPicker.restrictToPlaneThroughPoint(p1);
+                    pointPicker.straightSnaps.delete(AxisSnap.Z);
+
+                    const quat = new THREE.Quaternion().setFromUnitVectors(constructionPlane.n, Z);
 
                     const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
                         referenceLine.p2 = p2;
                         referenceLine.update();
                     }).resource(cmd);
-                    const reference = p2.clone().sub(p1);
-                    const referenceMagnitude = reference.length();
-                    reference.divideScalar(referenceMagnitude);
+                    const reference = p2.clone().sub(p1).applyQuaternion(quat);
 
                     const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(cmd);
                     transformationLine.p1 = p1;
-                    const quat = new THREE.Quaternion().setFromUnitVectors(X, reference);
-                    const inv = quat.clone().invert();
 
                     pointPicker.restrictToLine(p1, reference);
+                    const transformation = new THREE.Vector3();
                     await pointPicker.execute(({ point: p3 }) => {
                         transformationLine.p2 = p3;
                         transformationLine.update();
+                        transformation.copy(p3).sub(p1).applyQuaternion(quat);
 
-                        const mag = p3.distanceTo(p1) / referenceMagnitude;
-                        scale.scale.set(1, 1, 1).applyQuaternion(inv);
-                        scale.scale.x *= mag;
-                        scale.scale.applyQuaternion(quat);
+                        const angle = Math.atan2(transformation.y, transformation.x) - Math.atan2(reference.y, reference.x);
 
-                        scale.update();
+                        rotate.angle = angle;
+                        rotate.update();
                         dialog.render();
-                        gizmo.render(scale);
+                        gizmo.render(rotate);
                     }).resource(cmd);
 
                     transformationLine.cancel();

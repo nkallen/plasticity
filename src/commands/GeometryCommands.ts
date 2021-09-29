@@ -62,6 +62,7 @@ import { MoveGizmo } from './translate/MoveGizmo';
 import { MoveKeyboardGizmo } from "./translate/MoveKeyboardGizmo";
 import { RotateDialog } from "./translate/RotateDialog";
 import { RotateGizmo } from './translate/RotateGizmo';
+import { RotateKeyboardGizmo } from "./translate/RotateKeyboardGizmo";
 import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
@@ -799,6 +800,7 @@ export class RotateCommand extends Command {
 
         const gizmo = new RotateGizmo(rotate, this.editor);
         const dialog = new RotateDialog(rotate, this.editor.signals);
+        const keyboard = new RotateKeyboardGizmo(this.editor);
 
         dialog.execute(async params => {
             await rotate.update();
@@ -809,6 +811,8 @@ export class RotateCommand extends Command {
             rotate.update();
             dialog.render();
         }).resource(this);
+
+        keyboard.prepare(gizmo, rotate, dialog, this).resource(this);
 
         await this.finished;
 

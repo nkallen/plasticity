@@ -79,6 +79,11 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
         return super.execute(cb, finishFast);
     }
 
+    render(params: RotateParams) {
+        this.position.copy(params.pivot);
+        this.z.value = params.angle;
+    }
+
     update(camera: THREE.Camera): void {
         super.update(camera);
 

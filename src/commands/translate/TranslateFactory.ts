@@ -145,7 +145,11 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
         let result: Promise<TemporaryObject>[] = [];
         for (const item of items) {
             const temps = db.optimization(item, async () => {
-                if (angle === 0) return [];
+                if (angle === 0) {
+                    item.position.set(0, 0, 0);
+                    item.quaternion.set(0, 0, 0, 1);
+                    return [];
+                }
 
                 item.position.set(0, 0, 0);
                 item.position.sub(point);
@@ -186,6 +190,7 @@ export interface ScaleParams {
 }
 
 const identity = new THREE.Vector3(1, 1, 1);
+
 export class ScaleFactory extends TranslateFactory implements ScaleParams {
     scale = new THREE.Vector3(1, 1, 1);
     pivot = new THREE.Vector3();
