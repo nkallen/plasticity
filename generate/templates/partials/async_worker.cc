@@ -54,7 +54,13 @@
         <%_ if (func.returnsCount == 0) { _%>
         <%_ } else { _%>
             <%_ for (const arg of func.returns) { _%>
-                <%_  if (!arg.isPrimitive && arg.isOnStack) { _%>
+                <%_ if (arg.isPrimitive) { _%>
+                this-><%- arg.name %> = <%- arg.name %>;
+                <%_ } else if (arg.isOnStack) { _%>
+                this-><%- arg.name %> = new (<%- arg.rawType %>)(<%- arg.name %>);
+                <%_ } else if (arg.isSPtr) { _%>
+                this-><%- arg.name %> = <%- arg.name %>;
+                <%_ } else if (!arg.isPointer) { _%>
                 this-><%- arg.name %> = (<%- arg.rawType %> *)&(<%- arg.name %>);
                 <%_ } else { _%>
                 this-><%- arg.name %> = <%- arg.name %>;

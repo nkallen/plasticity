@@ -36,20 +36,38 @@ export function quat2axisAngle(quat: THREE.Quaternion): { axis: THREE.Vector3, a
     return { axis, angle };
 }
 
-
-export function mat2mat(mat: c3d.Matrix3D, into = new THREE.Matrix4): THREE.Matrix4 {
-    const row0 = mat.GetAxisX();
-    const row1 = mat.GetAxisY();
-    const row2 = mat.GetAxisZ();
-    const row3 = mat.GetOrigin();
-    const col3 = mat.GetOffset();
-    into.set(
-        row0.x, row0.y, row0.z, col3.x,
-        row1.x, row1.y, row1.z, col3.y,
-        row2.x, row2.y, row2.z, col3.z,
-        row3.x, row3.y, row3.z, 1,
-    );
-    return into;
+export function mat2mat(mat: c3d.Matrix3D, into?: THREE.Matrix4): THREE.Matrix4;
+export function mat2mat(mat: THREE.Matrix4, into?: c3d.Matrix3D): c3d.Matrix3D;
+export function mat2mat(mat: THREE.Matrix4 | c3d.Matrix3D, into?: THREE.Matrix4 | c3d.Matrix3D): THREE.Matrix4 | c3d.Matrix3D {
+    if (mat instanceof c3d.Matrix3D) {
+        if (into === undefined) into = new THREE.Matrix4();
+        if (!(into instanceof THREE.Matrix4)) throw new Error();
+        const row0 = mat.GetColumn(0);
+        const row1 = mat.GetColumn(1);
+        const row2 = mat.GetColumn(2);
+        const row3 = mat.GetColumn(3);
+        const col3 = mat.GetRow(3);
+        into.set(
+            row0.x, row0.y, row0.z, col3.x,
+            row1.x, row1.y, row1.z, col3.y,
+            row2.x, row2.y, row2.z, col3.z,
+            row3.x, row3.y, row3.z, mat.El(3, 3),
+        );
+        return into;
+    } else {
+        if (into === undefined) into = new c3d.Matrix3D();
+        if (!(into instanceof c3d.Matrix3D)) throw new Error();
+        const elements = mat.elements;
+        const col0 = new c3d.Homogeneous3D(elements[0], elements[1], elements[2], elements[3]);
+        const col1 = new c3d.Homogeneous3D(elements[4], elements[5], elements[6], elements[7]);
+        const col2 = new c3d.Homogeneous3D(elements[8], elements[9], elements[10], elements[11]);
+        const col3 = new c3d.Homogeneous3D(elements[12], elements[13], elements[14], elements[15]);
+        into.SetRow(0, col0);
+        into.SetRow(1, col1);
+        into.SetRow(2, col2);
+        into.SetRow(3, col3);
+        return into;
+    }
 }
 
 export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D }

@@ -877,7 +877,6 @@ export class FilletCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
         const editor = this.editor;
-        console.log(selected.edges.size);
         if (selected.edges.size > 0) {
             editor.enqueue(new FilletSolidCommand(editor), false);
         } else {

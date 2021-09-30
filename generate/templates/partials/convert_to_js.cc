@@ -27,6 +27,8 @@
 <%_ } else if (arg.klass?.isPOD) { _%>
     _to = <%- arg.cppType %>::NewInstance(env, <%- arg.name %>);
 <%_ } else if (!skipCopy && arg.isOnStack) { _%>
+    _to = <%- arg.cppType %>::NewInstance(env, new <%- arg.rawType %>(<%- arg.name %>));
+<%_ } else if (!arg.isPointer && !arg.shouldAlloc) { _%>
     _to = <%- arg.cppType %>::NewInstance(env, (<%- arg.rawType %> *)&(<%- arg.name %>));
 <%_ } else { _%>
     if (<%- arg.name %> != NULL) {

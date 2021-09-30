@@ -47,8 +47,10 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
         xz.quaternion.setFromUnitVectors(Z, _Y);
     }
 
+    private readonly _scale = new THREE.Vector3();
+
     execute(cb: (params: ScaleParams) => void, mode: Mode = Mode.Persistent | Mode.DisableSelection): CancellablePromise<void> {
-        const { x, y, z, xy, yz, xz, xyz, params} = this;
+        const { x, y, z, xy, yz, xz, xyz, params, _scale} = this;
 
         const set = () => {
             params.scale.set(

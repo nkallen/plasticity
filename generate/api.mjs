@@ -3,6 +3,7 @@ const isNullable = { isNullable: true };
 const isErrorBool = { isErrorBool: true };
 const ignore = { ignore: true };
 const isRaw = { isRaw: true };
+const isOnHeap = { isOnStack: false };
 
 export default {
     classes: {
@@ -50,7 +51,7 @@ export default {
                 "void Rotate(const MbAxis3D & axis, double angle, MbRegTransform * iReg = NULL )",
                 "void Refresh()",
                 // { signature: "MbSpaceItem * Duplicate(MbRegDuplicate * iReg = NULL)", isManual: true },
-                "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)",
+                { signature: "MbSpaceItem & Duplicate(MbRegDuplicate * iReg = NULL)", return: { isOnStack: false } },
                 "void AddYourGabaritTo(MbCube & cube)",
             ]
         },
@@ -79,7 +80,7 @@ export default {
                 "void SetBasisPoints(const MbControlData3D & cd)",
                 { signature: "void GetBasisItems(RPArray<MbSpaceItem> & items)", items: isReturn },
                 "size_t GetCreatorsCount(MbeCreatorType ct)",
-                "const MbSNameMaker & GetYourNameMaker()",
+                { signature: "const MbSNameMaker & GetYourNameMaker()", return: isOnHeap },
                 "MbeProcessState GetStatus()",
                 "void SetStatus(MbeProcessState l)",
                 { signature: "bool CreateShell(MbFaceShell *& shell, MbeCopyMode sameShell, RPArray<MbSpaceItem> * items = NULL)", items: isReturn, shell: { isInput: true }, return: { name: "success" } },
@@ -182,7 +183,7 @@ export default {
             dependencies: ["SpaceItem.h", "Placement3D.h", "CartPoint.h"],
             functions: [
                 { signature: "MbSurface * Cast()", isManual: true },
-                "const MbSurface & GetSurface()",
+                { signature: "const MbSurface & GetSurface()", return: isOnHeap },
                 "double GetUEpsilon()",
                 "double GetVEpsilon()",
                 "double GetUMid()",
@@ -236,7 +237,7 @@ export default {
                 { signature: "MbPlaneItem * Cast()", isManual: true },
                 { signature: "void Move(const MbVector & to, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)", newSurface: isReturn },
                 "void Transform(const MbMatrix & matr, MbRegTransform * iReg = NULL, const MbSurface * newSurface = NULL)",
-                "MbPlaneItem & Duplicate(MbRegDuplicate * dup = NULL)",
+                { signature: "MbPlaneItem & Duplicate(MbRegDuplicate * dup = NULL)", return: isOnHeap },
             ]
         },
         Curve: {
@@ -702,9 +703,15 @@ export default {
                 "void ScaleY(double s)",
             ]
         },
+        Homogeneous3D: {
+            rawHeader: "mb_homogeneous3d.h",
+            initializers: [
+                "double initX, double initY, double initZ, double initW"
+            ]
+        },
         Matrix3D: {
             rawHeader: "mb_matrix3d.h",
-            dependencies: ["CartPoint3D.h", "Vector3D.h", "Axis3D.h"],
+            dependencies: ["CartPoint3D.h", "Vector3D.h", "Axis3D.h", "Homogeneous3D.h"],
             initializers: [""],
             functions: [
                 "void Scale(double sx, double sy, double sz)",
@@ -712,6 +719,8 @@ export default {
                 "void Symmetry(const MbCartPoint3D & origin, MbVector3D & normal)",
                 "MbVector3D GetRow(size_t i)",
                 "MbVector3D GetColumn(size_t i)",
+                "void SetRow(size_t i, MbHomogeneous3D h)",
+                "void SetColumn(size_t i, MbHomogeneous3D h)",
                 "const MbVector3D & GetAxisX()",
                 "const MbVector3D & GetAxisY()",
                 "const MbVector3D & GetAxisZ()",
@@ -759,8 +768,8 @@ export default {
                 // "const MbSurfaceCurve * GetSCurveTwo()",
                 "const MbCurve * GetPCurveOne()",
                 "const MbCurve * GetPCurveTwo()",
-                "const MbSurface & GetCurveOneSurface()",
-                "const MbSurface & GetCurveTwoSurface()"
+                { signature: "const MbSurface & GetCurveOneSurface()", return: isOnHeap },
+                { signature: "const MbSurface & GetCurveTwoSurface()", return: isOnHeap },
             ]
         },
         CurveEdge: {
@@ -773,7 +782,7 @@ export default {
                     p: isReturn,
                     return: isErrorBool
                 },
-                "const MbSurfaceIntersectionCurve & GetIntersectionCurve()",
+                { signature: "const MbSurfaceIntersectionCurve & GetIntersectionCurve()", return: isOnHeap },
                 "MbFace * GetFacePlus()",
                 "MbFace * GetFaceMinus()",
                 "bool IsSplit(bool strict = false)",
@@ -793,8 +802,8 @@ export default {
                 "const MbSurface & surf, int sense",
             ],
             functions: [
-                "const MbContour & GetContour()",
-                "const MbSurface & GetSurface()"
+                { signature: "const MbContour & GetContour()", return: isOnHeap },
+                { signature: "const MbSurface & GetSurface()", return: isOnHeap }
             ]
         },
         ContourOnPlane: {
@@ -814,7 +823,7 @@ export default {
             rawHeader: "topology.h",
             dependencies: ["CurveEdge.h"],
             functions: [
-                "MbCurveEdge & GetCurveEdge()",
+                { signature: "MbCurveEdge & GetCurveEdge()", return: isOnHeap },
             ]
         },
         Loop: {
@@ -822,7 +831,7 @@ export default {
             extends: "TopItem",
             dependencies: ["TopItem.h", "Surface.h", "ContourOnSurface.h", "OrientedEdge.h"],
             functions: [
-                "MbContourOnSurface & MakeContourOnSurface(const MbSurface & surf, bool faceSense, bool doExact=false)",
+                { signature: "MbContourOnSurface & MakeContourOnSurface(const MbSurface & surf, bool faceSense, bool doExact=false)", return: isOnHeap },
                 "ptrdiff_t GetEdgesCount()",
                 "MbOrientedEdge * GetOrientedEdge(size_t index)",
             ]
@@ -849,7 +858,7 @@ export default {
                 { signature: "MbSurface * GetSurfaceCurvesData(RPArray<MbContour> & contours)", contours: isReturn, return: { name: "surface" } },
                 "bool HasNeighborFace()",
                 "size_t GetLoopsCount()",
-                "const MbSurface & GetSurface()",
+                { signature: "const MbSurface & GetSurface()", return: isOnHeap },
                 "MbLoop * GetLoop(size_t index)",
                 "bool IsSameSense()",
                 "MbFace * DataDuplicate(MbRegDuplicate * dup = NULL)",

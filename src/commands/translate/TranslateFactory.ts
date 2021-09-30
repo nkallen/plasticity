@@ -21,7 +21,7 @@ abstract class TranslateFactory extends GeometryFactory {
 
     private readonly names = new c3d.SNameMaker(c3d.CreatorType.TransformedSolid, c3d.ESides.SideNone, 0);
 
-    private readonly _matrix = new THREE.Matrix4();
+    protected readonly _matrix = new THREE.Matrix4();
     get matrix(): THREE.Matrix4 {
         const { transform, _matrix } = this;
         const mat = transform.GetMatrix();
@@ -31,12 +31,16 @@ abstract class TranslateFactory extends GeometryFactory {
 
     async doUpdate() {
         const { matrix, db, items } = this;
+        const de = deunit(1);
+        matrix.elements[12] *= de;
+        matrix.elements[13] *= de;
+        matrix.elements[14] *= de;
         let result: Promise<TemporaryObject>[] = [];
         for (const item of items) {
             const temps = db.optimization(item, async () => {
-                matrix.decompose(item.position, item.quaternion, item.scale);
-                item.position.multiplyScalar(deunit(1));
-                item.updateMatrixWorld();
+                item.matrixAutoUpdate = false;
+                item.matrix.copy(matrix);
+                item.matrix.decompose(item.position, item.quaternion, item.scale);
 
                 return [{
                     underlying: item,
@@ -55,16 +59,17 @@ abstract class TranslateFactory extends GeometryFactory {
     }
 
     async calculate(only?: visual.Item) {
-        const { transform, names } = this;
+        const { matrix, names } = this;
         let { models } = this;
         if (only !== undefined) models = [this.db.lookup(only)];
 
-        const mat = transform.GetMatrix();
+        const mat = mat2mat(matrix);
 
         const result = [];
         for (const model of models) {
             let transformed;
             if (model instanceof c3d.Solid) {
+                const transform = new c3d.TransformValues(mat);
                 transformed = c3d.ActionDirect.TransformedSolid(model, c3d.CopyMode.Copy, transform, names);
             } else if (model instanceof c3d.SpaceInstance) {
                 transformed = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
@@ -76,23 +81,23 @@ abstract class TranslateFactory extends GeometryFactory {
     }
 
     protected async doCommit(): Promise<visual.Item | visual.Item[]> {
-        const result = super.doCommit();
-        for (const item of this.items) {
-            item.position.set(0, 0, 0);
-            item.quaternion.set(0, 0, 0, 1);
-            item.scale.set(1, 1, 1);
-        }
+        const result = await super.doCommit();
+        this.reset();
         return result;
     }
 
-    doCancel() {
-        const { db, items } = this;
-        for (const item of items) {
+    private reset() {
+        for (const item of this.items) {
+            item.matrixAutoUpdate = true;
             item.position.set(0, 0, 0);
-            item.quaternion.set(0, 0, 0, 1);
+            item.quaternion.identity();
             item.scale.set(1, 1, 1);
         }
+    }
+
+    doCancel() {
         super.doCancel();
+        this.reset();
     }
 
     protected abstract get transform(): c3d.TransformValues
@@ -189,16 +194,93 @@ export interface ScaleParams {
     pivot: THREE.Vector3;
 }
 
-const identity = new THREE.Vector3(1, 1, 1);
+const identityMatrix = new THREE.Matrix4();
+const X = new THREE.Vector3(1, 0, 0);
 
-export class ScaleFactory extends TranslateFactory implements ScaleParams {
-    scale = new THREE.Vector3(1, 1, 1);
-    pivot = new THREE.Vector3();
+export class ScaleFactory extends TranslateFactory {
+    private readonly basic = new BasicScaleFactory(this.db, this.materials, this.signals);
+    private readonly freestyle = new FreestyleScaleFactory(this.db, this.materials, this.signals);
+
+    get scale() { return this.basic.scale }
+    get pivot() { return this.basic.pivot }
+    set pivot(pivot: THREE.Vector3) { this.basic.pivot = pivot; this.freestyle.pivot = pivot }
+
+    get ref() { return this.freestyle.ref }
+
+    from(p1: THREE.Vector3, p2: THREE.Vector3) {
+        this.freestyle.from(p1, p2);
+    }
+
+    to(p1: THREE.Vector3, p3: THREE.Vector3) {
+        this.freestyle.to(p1, p3);
+    }
 
     protected get transform(): c3d.TransformValues {
-        const { scale, pivot } = this;
-        if (scale.equals(identity)) throw new NoOpError();
+        throw new Error("Method not implemented.");
+    }
 
+    get matrix() {
+        this._matrix.copy(this.basic.matrix).multiply(this.freestyle.matrix);
+        if (this._matrix.equals(identityMatrix)) throw new NoOpError();
+        return this._matrix;
+    }
+}
+
+export class BasicScaleFactory extends TranslateFactory implements ScaleParams {
+    pivot = new THREE.Vector3();
+    scale = new THREE.Vector3(1, 1, 1);
+    protected get transform(): c3d.TransformValues {
+        const { scale, pivot } = this;
         return new c3d.TransformValues(scale.x, scale.y, scale.z, point2point(pivot));
+    }
+}
+
+export class FreestyleScaleFactory extends TranslateFactory {
+    set pivot(pivot: THREE.Vector3) {
+        const { translateFrom, translateTo } = this;
+        translateFrom.makeTranslation(-unit(pivot.x), -unit(pivot.y), -unit(pivot.z));
+        translateTo.makeTranslation(unit(pivot.x), unit(pivot.y), unit(pivot.z));
+    }
+
+    get matrix() { return this._matrix }
+
+    ref = new THREE.Vector3();
+    private refMagnitude = 1;
+    private quat = new THREE.Quaternion();
+    private rotateFrom = new THREE.Matrix4();
+    private rotateTo = new THREE.Matrix4();
+    private translateFrom = new THREE.Matrix4();
+    private translateTo = new THREE.Matrix4();
+    private scale = new THREE.Matrix4();
+
+    from(p1: THREE.Vector3, p2: THREE.Vector3) {
+        const { ref, quat, rotateFrom, rotateTo } = this;
+        ref.copy(p2).sub(p1);
+        this.refMagnitude = ref.length();
+        ref.divideScalar(this.refMagnitude);
+
+        quat.setFromUnitVectors(X, ref);
+
+        rotateTo.makeRotationFromQuaternion(quat);
+        rotateFrom.copy(rotateTo).transpose();
+    }
+
+    to(p1: THREE.Vector3, p3: THREE.Vector3) {
+        const { _matrix, refMagnitude, rotateFrom, rotateTo, scale, translateFrom, translateTo } = this;
+        const transMagnitude = p3.distanceTo(p1);
+
+        const scaleRatio = transMagnitude / refMagnitude;
+        scale.makeScale(scaleRatio, 1, 1);
+
+        _matrix.identity();
+        _matrix.premultiply(translateFrom);
+        _matrix.premultiply(rotateFrom);
+        _matrix.premultiply(scale);
+        _matrix.premultiply(rotateTo);
+        _matrix.premultiply(translateTo);
+    }
+
+    protected get transform(): c3d.TransformValues {
+        throw new Error("Method not implemented.");
     }
 }

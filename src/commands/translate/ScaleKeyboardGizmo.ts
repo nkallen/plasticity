@@ -46,25 +46,17 @@ export class ScaleKeyboardGizmo extends CommandKeyboardInput {
                         referenceLine.p2 = p2;
                         referenceLine.update();
                     }).resource(cmd);
-                    const reference = p2.clone().sub(p1);
-                    const referenceMagnitude = reference.length();
-                    reference.divideScalar(referenceMagnitude);
+                    scale.from(p1, p2);
 
                     const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(cmd);
                     transformationLine.p1 = p1;
-                    const quat = new THREE.Quaternion().setFromUnitVectors(X, reference);
-                    const inv = quat.clone().invert();
 
-                    pointPicker.restrictToLine(p1, reference);
+                    pointPicker.restrictToLine(p1, scale.ref);
                     await pointPicker.execute(({ point: p3 }) => {
                         transformationLine.p2 = p3;
                         transformationLine.update();
 
-                        const mag = p3.distanceTo(p1) / referenceMagnitude;
-                        scale.scale.set(1, 1, 1).applyQuaternion(inv);
-                        scale.scale.x *= mag;
-                        scale.scale.applyQuaternion(quat);
-
+                        scale.to(p1, p3);
                         scale.update();
                         dialog.render();
                         gizmo.render(scale);

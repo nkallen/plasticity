@@ -418,6 +418,7 @@ class ReturnDeclaration extends TypeDeclaration {
     }
 
     get isOnStack() {
+        if (this.options?.isOnStack !== undefined) return this.options.isOnStack;
         return this.ref != "*";
     }
 }
