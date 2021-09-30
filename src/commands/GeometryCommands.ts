@@ -24,6 +24,7 @@ import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import OffsetCurveFactory from "./curve/OffsetContourFactory";
+import { OffsetCurveGizmo } from "./curve/OffsetCurveGizmo";
 import TrimFactory from "./curve/TrimFactory";
 import { PossiblyBooleanCylinderFactory } from './cylinder/CylinderFactory';
 import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/EllipseFactory";
@@ -472,7 +473,7 @@ export class CurveCommand extends Command {
                 const { point, info: { snap } } = await pointPicker.execute(async ({ point, info: { snap } }) => {
                     makeCurve.preview.last = point;
                     makeCurve.preview.snap = snap;
-                    await makeCurve.preview.update();
+                    if (makeCurve.preview.hasEnoughPoints) await makeCurve.preview.update();
                 }).rejectOnFinish().resource(this);
                 if (makeCurve.wouldBeClosed(point)) {
                     makeCurve.closed = true;
@@ -577,7 +578,8 @@ export class CenterRectangleCommand extends Command {
             rect.update();
         }).resource(this);
 
-        await rect.commit();
+        const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -1375,9 +1377,10 @@ export class OffsetCurveCommand extends Command {
         if (face !== undefined) offsetContour.face = face;
         if (curve !== undefined) offsetContour.curve = curve;
 
-        const gizmo = new MagnitudeGizmo("offset-curve:distance", this.editor);
+        const gizmo = new OffsetCurveGizmo("offset-curve:distance", this.editor);
         gizmo.position.copy(offsetContour.center);
         gizmo.quaternion.setFromUnitVectors(Y, offsetContour.normal);
+        gizmo.relativeScale.setScalar(0.8);
 
         await gizmo.execute(async distance => {
             offsetContour.distance = distance;

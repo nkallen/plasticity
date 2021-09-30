@@ -367,6 +367,11 @@ export class Viewport {
 
     private _isOrtho = false;
     get isOrtho() { return this._isOrtho }
+
+    validate() {
+        console.assert(this.selector.enabled, "this.selector.enabled");
+        this.selector.enabled = true;
+    }
 }
 
 type NavigationState = { tag: 'none' } | { tag: 'navigating', selectorEnabled: boolean, quaternion: THREE.Quaternion }

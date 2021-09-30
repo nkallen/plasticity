@@ -114,8 +114,8 @@ test("adding & removing polyline points", async () => {
     makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0), new THREE.Vector3(2, 1, 0), new THREE.Vector3(3, 0, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps['snappers'].length).toBe(9);
-    expect(snaps['nearbys'].length).toBe(5);
+    expect(snaps['snappers'].length).toBe(12);
+    expect(snaps['nearbys'].length).toBe(8);
 
     db.removeItem(line);
 

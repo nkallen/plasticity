@@ -74,7 +74,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             if (!this.satisfiesRestrictions(intersection.object.position, restrictions)) continue;
             const snap = intersection.object.userData.snap as Snap;
             const { position, orientation } = snap.project(intersection);
-            result.push({snap, position, orientation});
+            result.push({ snap, position, orientation });
         }
         performance.measure('nearby', 'begin-nearby');
         return result;
@@ -198,8 +198,28 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             );
             for (const endSnap of endSnaps) this.endPoints.add(endSnap);
 
+            const first = point2point(points.shift()!);
+            let prev = first;
+            const mid = new THREE.Vector3();
+            const midSnaps: ParametricPointSnap[] = [];
+            for (const point of points) {
+                const current = point2point(point);
+                mid.copy(prev).add(current).multiplyScalar(0.5);
+                const midSnap = new ParametricPointSnap("Mid", mid, curveSnap, polyline.NearPointProjection(point2point(mid), false).t);
+                midSnaps.push(midSnap);
+                prev = current;
+            }
+            if (polyline.IsClosed()) {
+                const current = first;
+                mid.copy(prev).add(current).multiplyScalar(0.5);
+                const midSnap = new ParametricPointSnap("Mid", mid, curveSnap, polyline.NearPointProjection(point2point(mid), false).t);
+                midSnaps.push(midSnap);
+            }
+            for (const midSnap of midSnaps) this.midPoints.add(midSnap);
+
             return new Redisposable(() => {
                 for (const endSnap of endSnaps) this.endPoints.delete(endSnap);
+                for (const midSnap of midSnaps) this.midPoints.delete(midSnap);
                 this.curves.delete(curveSnap);
             });
         } else {

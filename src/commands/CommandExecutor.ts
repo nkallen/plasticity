@@ -8,6 +8,7 @@ import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import Command from "./Command";
 import { ValidationError } from "./GeometryFactory";
 import { SelectionCommandManager } from "./SelectionCommandManager";
+import { Viewport } from "../components/viewport/Viewport";
 
 export interface EditorLike {
     db: DatabaseLike;
@@ -18,6 +19,7 @@ export interface EditorLike {
     history: History;
     selection: HasSelectedAndHovered;
     contours: PlanarCurveDatabase;
+    viewports: ReadonlyArray<Viewport>;
 }
 
 export class CommandExecutor {
@@ -90,6 +92,9 @@ export class CommandExecutor {
             originator.validate();
             console.groupCollapsed(command.title);
             originator.debug();
+            for (const viewport of this.editor.viewports) {
+                viewport.validate();
+            }
             console.groupEnd();
         }
     }
