@@ -58,3 +58,8 @@ Napi::Value Curve::Cast(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
 }
+
+Napi::Value Curve::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
