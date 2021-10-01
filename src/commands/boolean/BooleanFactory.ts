@@ -56,7 +56,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         flags.SetMergingFaces(mergingFaces);
         flags.SetMergingEdges(mergingEdges);
 
-        const { result, notGluedSolids } = await c3d.ActionSolid.UnionResult_async(solidModel, c3d.CopyMode.Copy, toolModels, c3d.CopyMode.Copy, this.operationType, true, flags, names, false);
+        const { result } = await c3d.ActionSolid.UnionResult_async(solidModel, c3d.CopyMode.Copy, toolModels, c3d.CopyMode.Copy, this.operationType, true, flags, names, false);
         this._isOverlapping = true;
         return result;
     }

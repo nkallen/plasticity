@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
+import CurveFactory from "../../src/commands/curve/CurveFactory";
 import OffsetCurveFactory, { OffsetFaceFactory, OffsetSpaceCurveFactory } from "../../src/commands/curve/OffsetContourFactory";
 import CylinderFactory from "../../src/commands/cylinder/CylinderFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -7,6 +8,7 @@ import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import c3d from '../../build/Release/c3d.node';
 import '../matchers';
 
 let db: GeometryDatabase;
@@ -88,6 +90,35 @@ describe(OffsetSpaceCurveFactory, () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.1, 1.1, 0));
         });
     });
+
+    describe('planar open curves', () => {
+        let line: visual.SpaceInstance<visual.Curve3D>;
+
+        beforeEach(async () => {
+            const makeLine = new CurveFactory(db, materials, signals);
+            makeLine.type = c3d.SpaceType.Polyline3D;
+            makeLine.points.push(new THREE.Vector3());
+            makeLine.points.push(new THREE.Vector3(1, 0, 0));
+            makeLine.points.push(new THREE.Vector3(1, 1, 0));
+            line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+        })
+
+        test('it works', async () => {
+            offsetCurve.curve = line;
+            offsetCurve.distance = 0.1;
+
+            expect(offsetCurve.center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+            expect(offsetCurve.normal).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+
+            const curve = await offsetCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const bbox = new THREE.Box3().setFromObject(curve);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.57, 0.43, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -0.14, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.14, 1, 0));
+        });
+    });
 });
 
 
@@ -98,7 +129,7 @@ describe(OffsetCurveFactory, () => {
         offsetContour = new OffsetCurveFactory(db, materials, signals);
     });
 
-    describe('planar curves', () => {
+    describe('planar closed curves', () => {
         let circle: visual.SpaceInstance<visual.Curve3D>;
 
         beforeEach(async () => {

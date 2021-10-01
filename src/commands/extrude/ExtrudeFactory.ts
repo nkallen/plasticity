@@ -33,9 +33,10 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     protected abstract curves3d: c3d.Curve3D[];
     protected abstract surface: c3d.Surface;
 
-    protected _operationType = c3d.OperationType.Difference
-    get operationType() { return this._operationType }
+    protected _operationType?: c3d.OperationType;
+    get operationType() { return this._operationType ?? this.defaultOperationType }
     set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
+    protected get defaultOperationType() { return c3d.OperationType.Difference }
 
     private _solid?: visual.Solid;
     protected model?: c3d.Solid;
@@ -57,7 +58,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
 
         // NOTE: structs are always copy-on-read because of memory boundary issues, so you need to do this convoluted
         // assignment for nested structs.
-        const {side1, side2} = params;
+        const { side1, side2 } = params;
         side1.rake = race1;
         params.side1 = side1;
 
@@ -66,8 +67,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
         params.thickness1 = unit(thickness1);
         params.thickness2 = unit(thickness2);
 
-        const solid = await this.performAction(sweptData, vec2vec(direction, 1), params, ns);
-        return solid;
+        return this.performAction(sweptData, vec2vec(direction, 1), params, ns);
     }
 
     protected async performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): Promise<c3d.Solid> {
@@ -173,10 +173,9 @@ export class FaceExtrudeFactory extends AbstractExtrudeFactory {
         this._normal = vec2vec(n, 1);
     }
 
-    get operationType() {
+    get defaultOperationType() {
         return this.distance1 > 0 ? c3d.OperationType.Union : c3d.OperationType.Difference;
     }
-    set operationType(ot: c3d.OperationType) { }
 
     get normal(): THREE.Vector3 { return this._normal }
     get center(): THREE.Vector3 { return this._center }
@@ -212,8 +211,7 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
         bbox.getCenter(this._center);
     }
 
-    set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
-    get operationType() { return this.isSurface ? c3d.OperationType.Union : this._operationType }
+    get defaultOperationType() { return this.isSurface ? c3d.OperationType.Union : c3d.OperationType.Difference }
 
     get direction(): THREE.Vector3 {
         const placement = this._placement;

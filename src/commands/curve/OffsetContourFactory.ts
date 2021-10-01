@@ -119,11 +119,11 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
     private names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0)
 
     async calculate() {
-        const { _curve, distance, names } = this;
-
-        const vec = new c3d.Vector3D(unit(distance), 0, 0);
+        const { _curve: curve, distance, names } = this;
+        const dist = unit(distance);
+        const vec = curve.IsClosed() ? new c3d.Vector3D(dist, 0, 0) : new c3d.Vector3D(-dist, -dist, 0);
         const params = new c3d.SpatialOffsetCurveParams(vec, names);
-        const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(_curve, params);
+        const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, params);
         return new c3d.SpaceInstance(wireframe.GetCurves()[0]);
     }
 }
