@@ -7,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceSnap, ParametricPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceSnap, CurvePointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, FacePointSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -154,7 +154,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const faceSnap = new FaceSnap(face, model);
         this.faces.add(faceSnap);
 
-        const centerSnap = new PointSnap("Center", point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1));
+        const centerSnap = new FacePointSnap("Center", point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
         this.centerPoints.add(centerSnap);
 
         return new Redisposable(() => {
@@ -194,25 +194,25 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
             const points = polyline.GetPoints();
             const endSnaps = points.map(point =>
-                new ParametricPointSnap("End", point2point(point), curveSnap, polyline.NearPointProjection(point, false).t)
+                new CurvePointSnap("End", point2point(point), curveSnap, polyline.NearPointProjection(point, false).t)
             );
             for (const endSnap of endSnaps) this.endPoints.add(endSnap);
 
             const first = point2point(points.shift()!);
             let prev = first;
             const mid = new THREE.Vector3();
-            const midSnaps: ParametricPointSnap[] = [];
+            const midSnaps: CurvePointSnap[] = [];
             for (const point of points) {
                 const current = point2point(point);
                 mid.copy(prev).add(current).multiplyScalar(0.5);
-                const midSnap = new ParametricPointSnap("Mid", mid, curveSnap, polyline.NearPointProjection(point2point(mid), false).t);
+                const midSnap = new CurvePointSnap("Mid", mid, curveSnap, polyline.NearPointProjection(point2point(mid), false).t);
                 midSnaps.push(midSnap);
                 prev = current;
             }
             if (polyline.IsClosed()) {
                 const current = first;
                 mid.copy(prev).add(current).multiplyScalar(0.5);
-                const midSnap = new ParametricPointSnap("Mid", mid, curveSnap, polyline.NearPointProjection(point2point(mid), false).t);
+                const midSnap = new CurvePointSnap("Mid", mid, curveSnap, polyline.NearPointProjection(point2point(mid), false).t);
                 midSnaps.push(midSnap);
             }
             for (const midSnap of midSnaps) this.midPoints.add(midSnap);
@@ -231,9 +231,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const min = curve.PointOn(curve.GetTMin());
             const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
             const max = curve.PointOn(curve.GetTMax());
-            const begSnap = new ParametricPointSnap("Beginning", point2point(min), curveSnap, curve.GetTMin());
-            const midSnap = new ParametricPointSnap("Middle", point2point(mid), curveSnap, 0.5 * (curve.GetTMin() + curve.GetTMax()));
-            const endSnap = new ParametricPointSnap("End", point2point(max), curveSnap, curve.GetTMax());
+            const begSnap = new CurvePointSnap("Beginning", point2point(min), curveSnap, curve.GetTMin());
+            const midSnap = new CurvePointSnap("Middle", point2point(mid), curveSnap, 0.5 * (curve.GetTMin() + curve.GetTMax()));
+            const endSnap = new CurvePointSnap("End", point2point(max), curveSnap, curve.GetTMax());
             this.begPoints.add(begSnap);
             this.midPoints.add(midSnap);
             this.endPoints.add(endSnap);
@@ -307,10 +307,11 @@ export const originSnap = new PointSnap("Origin");
 const map = new Map<any, number>();
 map.set(TanTanSnap, 1);
 map.set(PointSnap, 1);
-map.set(ParametricPointSnap, 1);
+map.set(CurvePointSnap, 1);
 map.set(CurveEdgeSnap, 2);
 map.set(CurveSnap, 2);
 map.set(FaceSnap, 3);
+map.set(FacePointSnap, 3);
 map.set(AxisSnap, 4);
 map.set(PlaneSnap, 5);
 map.set(ConstructionPlaneSnap, 6);
@@ -321,7 +322,7 @@ function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
     if (x === undefined || y === undefined) {
         console.error(i1);
         console.error(i2);
-        throw new Error("invalid precondition");
+        throw new Error("invalid precondition: " + `${i1.object.userData.snap.constructor}, ${i2.object.userData.snap.constructor}`);
     }
     return x - y;
 }

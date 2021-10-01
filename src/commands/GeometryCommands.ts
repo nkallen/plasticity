@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { AxisSnap, CurveSnap, Layers, ParametricPointSnap, PointSnap } from "../editor/snaps/Snap";
+import { AxisSnap, CurveSnap, Layers, CurvePointSnap, PointSnap } from "../editor/snaps/Snap";
 import * as visual from "../editor/VisualModel";
 import { Finish, Interrupt } from "../util/Cancellable";
 import { point2point } from "../util/Conversion";
@@ -535,8 +535,9 @@ export class ThreePointRectangleCommand extends Command {
 export class CornerRectangleCommand extends Command {
     async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
-        const { point: p1 } = await pointPicker.execute().resource(this);
+        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         pointPicker.restrictToPlaneThroughPoint(p1);
+        snap.addAdditionalRestrictionsTo(pointPicker, p1);
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
@@ -1325,7 +1326,7 @@ export class BridgeCurvesCommand extends Command {
         const line = new CurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         line.style = 1;
         const { point: p1, info: { snap: snap1 } } = await pointPicker.execute().resource(this);
-        if (!(snap1 instanceof CurveSnap || snap1 instanceof ParametricPointSnap)) throw new ValidationError();
+        if (!(snap1 instanceof CurveSnap || snap1 instanceof CurvePointSnap)) throw new ValidationError();
 
         line.push(p1);
         line.push(p1);
@@ -1336,13 +1337,13 @@ export class BridgeCurvesCommand extends Command {
             line.last = p2;
             line.update();
 
-            if (!(snap2 instanceof CurveSnap || snap2 instanceof ParametricPointSnap)) return;
+            if (!(snap2 instanceof CurveSnap || snap2 instanceof CurvePointSnap)) return;
             factory.curve2 = snap2.view;
             factory.t2 = snap2.t;
             factory.update();
             dialog.render();
         }).resource(this);
-        if (!(snap2 instanceof CurveSnap || snap2 instanceof ParametricPointSnap)) throw new ValidationError();
+        if (!(snap2 instanceof CurveSnap || snap2 instanceof CurvePointSnap)) throw new ValidationError();
         line.cancel();
 
         await this.finished;
