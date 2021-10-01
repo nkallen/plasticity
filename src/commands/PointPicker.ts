@@ -42,37 +42,41 @@ export class Model {
         private readonly manager: SnapManager
     ) { }
 
-    snapsFor(constructionPlane: PlaneSnap): Snap[] {
+    snapsFor(constructionPlane: PlaneSnap, isOrtho: boolean): Snap[] {
         const result = [...this.snaps];
-        result.push(this.actualConstructionPlaneGiven(constructionPlane));
+        result.push(this.actualConstructionPlaneGiven(constructionPlane, isOrtho));
         return result;
     }
 
-    restrictionSnapsFor(constructionPlane: PlaneSnap): Snap[] {
+    restrictionSnapsFor(constructionPlane: PlaneSnap, isOrtho: boolean): Snap[] {
         const snaps = [...this.restrictionSnaps];
-        if (snaps.length === 0) snaps.push(this.actualConstructionPlaneGiven(constructionPlane))
+        if (snaps.length === 0) snaps.push(this.actualConstructionPlaneGiven(constructionPlane, isOrtho))
         return snaps;
     }
 
-    restrictionsFor(constructionPlane: PlaneSnap): Restriction[] {
+    restrictionsFor(constructionPlane: PlaneSnap, isOrtho: boolean): Restriction[] {
         const restrictions = [...this.restrictions];
-        this.addConstructionPlaneIfPlanarRestriction(constructionPlane, restrictions);
+        this.addConstructionPlaneIfPlanarRestriction(constructionPlane, restrictions, isOrtho);
         return restrictions;
     }
 
-    private addConstructionPlaneIfPlanarRestriction(constructionPlane: PlaneSnap, collection: Snap[] | Restriction[]) {
+    private addConstructionPlaneIfPlanarRestriction(constructionPlane: PlaneSnap, collection: Snap[] | Restriction[], isOrtho: boolean) {
         if (this.restrictionPlane !== undefined || this.restrictionPoint !== undefined || this.restrictToConstructionPlane) {
-            constructionPlane = this.actualConstructionPlaneGiven(constructionPlane);
+            constructionPlane = this.actualConstructionPlaneGiven(constructionPlane, isOrtho);
             collection.push(constructionPlane);
         }
     }
 
-    actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap) {
+    actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap, isOrtho: boolean) {
+        const { pickedPointSnaps, restrictionPlane, restrictionPoint } = this;
         let constructionPlane = baseConstructionPlane;
-        if (this.restrictionPlane !== undefined) {
-            constructionPlane = this.restrictionPlane;
-        } else if (this.restrictionPoint !== undefined) {
-            constructionPlane = constructionPlane.move(this.restrictionPoint);
+        if (restrictionPlane !== undefined) {
+            constructionPlane = restrictionPlane;
+        } else if (restrictionPoint !== undefined) {
+            constructionPlane = constructionPlane.move(restrictionPoint);
+        } else if (isOrtho && pickedPointSnaps.length > 0) {
+            const last = pickedPointSnaps[pickedPointSnaps.length - 1];
+            constructionPlane = constructionPlane.move(last.position);
         }
         return constructionPlane;
     }
@@ -201,10 +205,10 @@ export class Presentation {
         if (isOrtho) snaps.layers.disable(Layers.FaceSnap);
         else snaps.layers.enable(Layers.FaceSnap);
 
-        const restrictions = model.restrictionsFor(constructionPlane);
+        const restrictions = model.restrictionsFor(constructionPlane, isOrtho);
         const nearby = snaps.nearby(raycaster, model.snaps, restrictions);
-        const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane), model.restrictionSnapsFor(constructionPlane), restrictions);
-        const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane);
+        const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions);
+        const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
         const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho, presenter);
         return { presentation, snappers, nearby };
