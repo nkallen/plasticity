@@ -167,6 +167,9 @@ export default {
 
         "cmd-z": "undo",
         "cmd-shift-z": "redo",
+        "ctrl-z": "undo",
+        "ctrl-shift-z": "redo",
+
     },
 
 }
