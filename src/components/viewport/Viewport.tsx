@@ -1,15 +1,13 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
-import { CameraPlaneSnap, ConstructionPlaneSnap, PlaneSnap } from "../../editor/snaps/Snap";
+import { PlaneSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../editor/VisualModel";
 import { HighlightManager } from "../../selection/HighlightManager";
 import * as selector from '../../selection/ViewportSelector';
@@ -17,13 +15,11 @@ import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
 import { GridHelper } from "./GridHelper";
+import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
-
+import { ProxyCamera } from "./ProxyCamera";
 import { Orientation, ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
 
-const near = 0.01;
-const far = 10000;
-const frustumSize = 20;
 const gridColor = new THREE.Color(0x666666).convertGammaToLinear();
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -62,7 +58,7 @@ export class Viewport {
         private readonly editor: EditorLike,
         readonly renderer: THREE.WebGLRenderer,
         readonly domElement: HTMLElement,
-        readonly camera: THREE.Camera,
+        readonly camera: ProxyCamera,
         constructionPlane: PlaneSnap,
         readonly navigationControls: OrbitControls,
     ) {
@@ -85,14 +81,13 @@ export class Viewport {
             const renderPass = new RenderPass(this.scene, this.camera);
             this.phantomsPass = new RenderPass(this.phantomsScene, this.camera);
             this.helpersPass = new RenderPass(this.helpersScene, this.camera);
-            const copyPass = new ShaderPass(CopyShader);
 
             this.phantomsPass.clear = false;
             this.phantomsPass.clearDepth = true;
             this.helpersPass.clear = false;
             this.helpersPass.clearDepth = true;
 
-            const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
+            const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), editor.db.scene, this.camera);
             outlinePassSelection.edgeStrength = 3;
             outlinePassSelection.edgeGlow = 0;
             outlinePassSelection.edgeThickness = 1;
@@ -101,7 +96,7 @@ export class Viewport {
             outlinePassSelection.downSampleRatio = 1;
             this.outlinePassSelection = outlinePassSelection;
 
-            const outlinePassHover = new OutlinePass(new THREE.Vector2(this.offsetWidth, this.offsetHeight), editor.db.scene, this.camera);
+            const outlinePassHover = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), editor.db.scene, this.camera);
             outlinePassHover.edgeStrength = 3;
             outlinePassHover.edgeGlow = 0;
             outlinePassHover.edgeThickness = 1;
@@ -207,18 +202,15 @@ export class Viewport {
     }
 
     private needsRender = true;
-    private setNeedsRender() {
-        this.needsRender = true;
-    }
+    private setNeedsRender() { this.needsRender = true }
 
     lastFrameNumber = -1; // FIXME move to editor
-
     render(frameNumber: number) {
         if (!this.started) return;
         requestAnimationFrame(this.render);
         if (!this.needsRender) return;
 
-        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, offsetWidth, offsetHeight, phantomsPass, helpersPass, grid, constructionPlane } = this
+        const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, phantomsPass, helpersPass, grid, constructionPlane, domElement } = this
 
         try {
             // prepare the scene, once per frame (there may be multiple viewports rendering the same frame):
@@ -236,7 +228,7 @@ export class Viewport {
                 helpersPass.enabled = helpers.scene.children.length > 0;
             }
 
-            const resolution = new THREE.Vector2(offsetWidth, offsetHeight);
+            const resolution = new THREE.Vector2(domElement.offsetWidth, domElement.offsetHeight);
             signals.renderPrepared.dispatch({ camera, resolution });
 
             composer.render();
@@ -264,24 +256,9 @@ export class Viewport {
         this.outlinePassHover.selectedObjects = toOutline;
     }
 
-    private offsetWidth: number = 100;
-    private offsetHeight: number = 100;
-
     setSize(offsetWidth: number, offsetHeight: number) {
-        this.offsetWidth = offsetWidth;
-        this.offsetHeight = offsetHeight;
-
         const { camera } = this;
-        const aspect = offsetWidth / offsetHeight;
-        if (camera instanceof THREE.PerspectiveCamera) {
-            camera.aspect = aspect;
-        } else if (camera instanceof THREE.OrthographicCamera) {
-            camera.left = frustumSize * aspect / - 2;
-            camera.right = frustumSize * aspect / 2;
-        } else throw new Error("Invalid camera");
-        camera.near = near;
-        camera.far = far;
-        camera.updateProjectionMatrix();
+        camera.setSize(offsetWidth, offsetHeight);
 
         this.renderer.setSize(offsetWidth, offsetHeight);
         this.composer.setSize(offsetWidth, offsetHeight);
@@ -350,12 +327,14 @@ export class Viewport {
         this.setNeedsRender();
     }
 
-    toggleConstructionPlane() {
-        if (this.constructionPlane instanceof CameraPlaneSnap) {
-            this.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(0, 0, 1));
-        } else {
-            this.constructionPlane = new CameraPlaneSnap(this.camera);
-        }
+    toggleOrtho() {
+        this.camera.toggle();
+        this.navigationControls.update();
+        this.setNeedsRender();
+    }
+
+    toggleXRay() {
+
     }
 
     navigate(to: Orientation) {
@@ -392,33 +371,30 @@ export default (editor: EditorLike) => {
             this.append(renderer.domElement);
 
             const view = this.getAttribute("view");
-            const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, 0, far);
-            orthographicCamera.zoom = 3;
-            const perspectiveCamera = new THREE.PerspectiveCamera(frustumSize, 1, near, far);
 
-            let camera: THREE.Camera;
+            let camera: ProxyCamera;
             let n: THREE.Vector3;
             let enableRotate = false;
             switch (view) {
                 case "3d":
-                    camera = orthographicCamera;
-                    camera.position.set(100, -100, 100);
+                    camera = new ProxyCamera();
+                    camera.position.set(50, -50, 50);
                     n = Z;
                     enableRotate = true;
                     break;
                 case "top":
-                    camera = orthographicCamera;
+                    camera = new ProxyCamera();
                     camera.position.set(0, 0, 10);
                     n = Z;
                     break;
                 case "right":
-                    camera = orthographicCamera;
+                    camera = new ProxyCamera();
                     camera.position.set(10, 0, 0);
                     n = X;
                     break;
                 case "front":
                 default:
-                    camera = orthographicCamera;
+                    camera = new ProxyCamera();
                     camera.position.set(0, 10, 0);
                     n = Y;
                     break;

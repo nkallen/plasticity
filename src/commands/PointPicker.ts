@@ -1,7 +1,6 @@
 import c3d from '../../build/Release/c3d.node';
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
@@ -11,6 +10,7 @@ import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import * as visual from "../editor/VisualModel";
 import { CancellablePromise } from '../util/Cancellable';
 import { Helper, Helpers } from '../util/Helpers';
+import { OrbitControls } from '../components/viewport/OrbitControls';
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
@@ -395,11 +395,11 @@ export class PointPicker {
     }
 
     private disablePickingDuringNavigation(navigationControls: OrbitControls, start: () => void, end: () => void): Disposable {
-        const onStart = (e: Event) => {
+        const onStart = (e: THREE.Event) => {
             start();
             navigationControls.addEventListener('end', onEnd);
         }
-        const onEnd = (e: Event) => {
+        const onEnd = (e: THREE.Event) => {
             end();
             navigationControls.removeEventListener('end', onEnd);
         }

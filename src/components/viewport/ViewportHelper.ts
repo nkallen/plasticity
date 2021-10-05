@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Pass } from "three/examples/jsm/postprocessing/Pass";
+import { OrbitControls } from "./OrbitControls";
 
 export enum Orientation { posX, posY, posZ, negX, negY, negZ };
 

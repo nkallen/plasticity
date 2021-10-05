@@ -16,12 +16,8 @@ export default (editor: Editor) => {
 
         }
 
-        connectedCallback() {
-            this.render();
-        }
-
-        disconnectedCallback() {
-        }
+        connectedCallback() { this.render() }
+        disconnectedCallback() { }
 
         render() {
             render(

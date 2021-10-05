@@ -514,9 +514,6 @@ export class CameraPlaneSnap extends PlaneSnap {
     }
 
     update(camera: THREE.Camera) {
-        if (!(camera instanceof THREE.PerspectiveCamera || camera instanceof THREE.OrthographicCamera))
-            throw Error("invalid precondition");
-
         const { worldDirection } = this;
         camera.getWorldDirection(worldDirection);
 

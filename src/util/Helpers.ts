@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { ProxyCamera } from "../components/viewport/ProxyCamera";
 import { EditorSignals } from '../editor/EditorSignals';
 import * as visual from "../editor/VisualModel";
 
@@ -36,13 +37,11 @@ export abstract class Helper extends THREE.Object3D {
         if (!this.shouldRescaleOnZoom) return;
 
         let factor;
-        if (camera instanceof THREE.OrthographicCamera) {
+        if (ProxyCamera.isOrthographic(camera)) {
             factor = (camera.top - camera.bottom) / camera.zoom;
-        } else if (camera instanceof THREE.PerspectiveCamera) {
+        } else if (ProxyCamera.isPerspective(camera)) {
             factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360) / camera.zoom, 7);
-        } else {
-            throw new Error("Invalid camera type");
-        }
+        } else throw new Error("invalid camera type");
 
         this.scale.multiplyScalar(factor * 1 / 11);
         this.updateMatrixWorld();

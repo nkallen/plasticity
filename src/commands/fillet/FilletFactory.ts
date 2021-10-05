@@ -45,7 +45,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         params.distance2 = 0;
         params.form = c3d.SmoothForm.Fillet;
         params.conic = 0;
-        params.prolong = false;
+        params.prolong = true;
         params.smoothCorner = c3d.CornerForm.uniform;
         params.begLength = unit(FilletFactory.LengthSentinel);
         params.endLength = unit(FilletFactory.LengthSentinel);
