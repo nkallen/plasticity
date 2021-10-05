@@ -7,7 +7,7 @@ import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
 export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFaceParams {
     angle = 0;
     operationType = c3d.ModifyingType.Offset;
-    set distance(d: number) { this.direction = new THREE.Vector3(d, 0, 0); }
+    set distance(d: number) { this.direction = new THREE.Vector3(d, 0, 0) }
 
     async calculate() {
         const { solidModel, facesModel, direction, angle } = this;

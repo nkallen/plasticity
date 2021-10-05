@@ -1,5 +1,16 @@
+perspective
+keybdinigs
+grid
+no backface
+double escape loses selection
+step/igs export
+focus
+1 and 2 for distance 1 and 2
+
 BUG: offset contour, go to top view, things are frozen
   - ensure all viewport controls are enabled after each command and log if not
+
+restrict to plane rotation is annoying
   
 chamfer curve
 keybindings for fillet and chamfer curve must be same

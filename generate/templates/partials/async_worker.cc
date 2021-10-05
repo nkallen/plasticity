@@ -60,7 +60,7 @@
                 this-><%- arg.name %> = new (<%- arg.rawType %>)(<%- arg.name %>);
                 <%_ } else if (arg.isSPtr) { _%>
                 this-><%- arg.name %> = <%- arg.name %>;
-                <%_ } else if (!arg.isPointer) { _%>
+                <%_ } else if (!arg.isPointer && !arg.shouldAlloc) { _%>
                 this-><%- arg.name %> = (<%- arg.rawType %> *)&(<%- arg.name %>);
                 <%_ } else { _%>
                 this-><%- arg.name %> = <%- arg.name %>;
