@@ -17,14 +17,9 @@ export class HoverStrategy implements SelectionStrategy {
         if (!this.hovered.mode.has(SelectionMode.Curve)) return false;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
-        if (!this.selected.curves.has(parentItem)) {
-            if (!this.hovered.curves.has(parentItem)) {
-                this.hovered.removeAll();
-                this.hovered.addCurve(parentItem);
-            }
-            return true;
-        }
-        return false;
+        this.hovered.removeAll();
+        this.hovered.addCurve(parentItem);
+        return true;
     }
 
     solid(object: TopologyItem, parentItem: Solid): boolean {
