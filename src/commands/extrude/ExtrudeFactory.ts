@@ -74,7 +74,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
         const { names, model: solid, operationType } = this;
 
         if (solid === undefined) {
-            return c3d.ActionSolid.ExtrusionSolid(sweptData, direction, null, null, false, params, names, ns);
+            return c3d.ActionSolid.ExtrusionSolid_async(sweptData, direction, null, null, false, params, names, ns);
         } else {
             return c3d.ActionSolid.ExtrusionResult_async(solid, c3d.CopyMode.Copy, sweptData, direction, params, operationType, names, ns)
         }
