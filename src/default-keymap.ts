@@ -129,7 +129,7 @@ export default {
         "shift-z": "gizmo:symmetry:-z",
     },
 
-    "ispace-viewport": {
+    "body[command] ispace-viewport": {
         "escape": "command:abort",
         "enter": "command:finish",
         "mouse2": "command:finish",
@@ -170,6 +170,10 @@ export default {
         "ctrl-z": "undo",
         "ctrl-shift-z": "redo",
 
+        "shift-A": "command:deselect-all",
+        "alt-A": "command:deselect-all",
+        "escape": "command:deselect-all",
+        "a a": "command:deselect-all",
     },
 
 }

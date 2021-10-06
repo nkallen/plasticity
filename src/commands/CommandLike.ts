@@ -52,6 +52,16 @@ export class BoxChangeSelectionCommand extends Command {
     }
 }
 
+export class DeselectAllCommand extends Command {
+    async execute(): Promise<void> {
+        this.editor.selection.selected.removeAll();
+    }
+
+    shouldAddToHistory(selectionChanged: boolean) {
+        return selectionChanged;
+    }
+}
+
 export class CreatorChangeSelectionCommand extends Command {
     constructor(
         editor: cmd.EditorLike,
@@ -238,9 +248,7 @@ export class ExportCommand extends Command {
         await factory.commit();
     }
 
-    shouldAddToHistory(selectionChanged: boolean) {
-        return false;
-    }
+    shouldAddToHistory(_: boolean) { return false }
 }
 
 module.hot?.accept();
