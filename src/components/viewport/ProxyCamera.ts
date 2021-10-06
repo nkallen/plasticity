@@ -39,6 +39,8 @@ export class ProxyCamera extends THREE.Camera {
         perspective.aspect = aspect;
         orthographic.left = frustumSize * aspect / -2;
         orthographic.right = frustumSize * aspect / 2;
+        orthographic.top = frustumSize / 2;
+        orthographic.bottom = - frustumSize / 2;
 
         perspective.near = near;
         perspective.far = far;
@@ -81,12 +83,13 @@ export class ProxyCamera extends THREE.Camera {
 }
 
 export function makeOrthographicCamera() {
-    const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, 0, far);
-    orthographicCamera.zoom = 0.6;
+    const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
+    // orthographicCamera.zoom = 0.6;
     return orthographicCamera;
 }
 
 export function makePerspectiveCamera() {
-    const persp = new THREE.PerspectiveCamera(frustumSize, 1, near, far);
-    return persp;
+    const perspective = new THREE.PerspectiveCamera(frustumSize, 1, near, far);
+    perspective.zoom = 1.5;
+    return perspective;
 }

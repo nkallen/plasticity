@@ -279,11 +279,16 @@ export class Viewport {
     private navigationState: NavigationState = { tag: 'none' }
 
     private navigationStart() {
-        this.navigationControls.addEventListener('change', this.navigationChange);
-        this.navigationControls.addEventListener('end', this.navigationEnd);
-        this.navigationState = { tag: 'navigating', selectorEnabled: this.selector.enabled, quaternion: this.camera.quaternion.clone() };
-        this.selector.enabled = false;
-        this.editor.signals.viewportActivated.dispatch(this);
+        switch (this.navigationState.tag) {
+            case 'none':
+                this.navigationControls.addEventListener('change', this.navigationChange);
+                this.navigationControls.addEventListener('end', this.navigationEnd);
+                this.navigationState = { tag: 'navigating', selectorEnabled: this.selector.enabled, quaternion: this.camera.quaternion.clone() };
+                this.selector.enabled = false;
+                this.editor.signals.viewportActivated.dispatch(this);
+                break;
+            default: throw new Error("invalid state");
+        }
     }
 
     private navigationChange() {

@@ -315,7 +315,7 @@ export class PointPicker {
                     const pointer = getPointer(e);
                     raycaster.setFromCamera(pointer, camera);
 
-                    const { presentation, snappers, nearby } = Presentation.make(raycaster, viewport, model, editor.snaps, editor.snapPresenter);
+                    const { presentation, snappers } = Presentation.make(raycaster, viewport, model, editor.snaps, editor.snapPresenter);
 
                     this.model.activateSnapped(snappers);
 

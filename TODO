@@ -8,6 +8,8 @@ step/igs export
 focus
 1 and 2 for distance 1 and 2
 
+line2 raycasting bad ortho camera
+
 BUG: offset contour, go to top view, things are frozen
   - ensure all viewport controls are enabled after each command and log if not
 
