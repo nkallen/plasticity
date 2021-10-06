@@ -41,23 +41,35 @@ ispace-viewport {
 
     ispace-viewport-header {
         position: absolute;
-        right: 100px;
+        right: 140px;
         margin: auto;
         top: 6px;
-        background: #aaa;
         text-align: center;
 
-        button {
-            color: #999;
+        &>button {
             position: relative;
-            border: 0px;
-            margin: 0px;
+            border: 0;
+            margin: 2px;
+            padding: 0;
             cursor: pointer;
             outline: none;
+            background-color: #999;
 
             &:hover {
                 color: #fff;
                 background-color: #08f;
+
+                img {
+                    background-color: #08f;
+                }
+            }
+
+            img {
+                margin: 4px;
+                color: rgba(0, 0, 0, 0.5);
+                width: 14px;
+                height: 14px;
+                background-color: #999;
             }
         }
     }
