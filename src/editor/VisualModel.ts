@@ -171,6 +171,7 @@ export class Curve3D extends SpaceItem {
     }
 
     befragment(start: number, stop: number, ancestor: SpaceInstance<Curve3D>) {
+        this.name = "fragment";
         this.userData.start = start;
         this.userData.stop = stop;
         this.userData.untrimmedAncestor = ancestor;
@@ -285,10 +286,12 @@ export class CurveEdge extends Edge {
         geometry.setPositions(edge.position);
         const line = new Line2(geometry, material);
         line.scale.setScalar(0.01);
+
         const occludedLine = new Line2(geometry, occludedMaterial);
         occludedLine.scale.setScalar(0.01);
         occludedLine.computeLineDistances();
         occludedLine.name = 'occluded';
+
         const result = new CurveEdge(line, occludedLine);
         result.userData.name = edge.name;
         result.userData.simpleName = `edge,${parentId},${edge.i}`;
