@@ -1,4 +1,5 @@
-import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Selectable, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
+import { Intersectable } from "../editor/SelectableLayers";
+import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { ModifiesSelection } from "./SelectionManager";
 
@@ -76,7 +77,7 @@ export class HoverStrategy implements SelectionStrategy {
         return false;
     }
 
-    box(set: Set<Selectable>) {
+    box(set: Set<Intersectable>) {
         const { hovered, selected } = this;
         hovered.removeAll();
 

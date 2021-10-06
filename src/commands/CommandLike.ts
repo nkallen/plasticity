@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { ModifierStack } from '../editor/ModifierManager';
+import { Intersectable, Intersection } from '../editor/SelectableLayers';
 import * as visual from "../editor/VisualModel";
 import Command, * as cmd from "./Command";
 import { ExportDialog } from './export/ExportDialog';
@@ -19,7 +20,7 @@ import { MoveFactory } from './translate/TranslateFactory';
 export class ClickChangeSelectionCommand extends Command {
     constructor(
         editor: cmd.EditorLike,
-        private readonly intersections: THREE.Intersection[]
+        private readonly intersections: Intersection[]
     ) {
         super(editor);
     }
@@ -39,11 +40,11 @@ export class ClickChangeSelectionCommand extends Command {
 export class BoxChangeSelectionCommand extends Command {
     constructor(
         editor: cmd.EditorLike,
-        private readonly selected: Set<visual.Selectable>
+        private readonly intersected: Set<Intersectable>
     ) { super(editor) }
 
     async execute(): Promise<void> {
-        this.editor.selectionInteraction.onBoxSelect(this.selected);
+        this.editor.selectionInteraction.onBoxSelect(this.intersected);
     }
 
     shouldAddToHistory(selectionChanged: boolean) {

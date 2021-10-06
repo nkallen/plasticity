@@ -1,5 +1,6 @@
 import { HasSelection } from '../selection/SelectionManager';
 import * as visual from '../editor/VisualModel';
+import * as SelectableLayers from "../editor/SelectableLayers";
 import { EditorSignals } from './EditorSignals';
 
 export default class LayerManager {
@@ -12,22 +13,22 @@ export default class LayerManager {
         visual.VisibleLayers.enable(visual.Layers.CurveFragment);
         visual.VisibleLayers.disable(visual.Layers.Curve);
 
-        visual.SelectableLayers.enable(visual.Layers.CurveFragment);
-        visual.SelectableLayers.disable(visual.Layers.Curve);
-        visual.SelectableLayers.disable(visual.Layers.Region);
-        visual.SelectableLayers.disable(visual.Layers.Solid);
-        visual.SelectableLayers.disable(visual.Layers.Face);
+        SelectableLayers.SelectableLayers.enable(visual.Layers.CurveFragment);
+        SelectableLayers.SelectableLayers.disable(visual.Layers.Curve);
+        SelectableLayers.SelectableLayers.disable(visual.Layers.Region);
+        SelectableLayers.SelectableLayers.disable(visual.Layers.Solid);
+        SelectableLayers.SelectableLayers.disable(visual.Layers.Face);
     }
 
     hideFragments() {
         visual.VisibleLayers.disable(visual.Layers.CurveFragment);
         visual.VisibleLayers.enable(visual.Layers.Curve);
 
-        visual.SelectableLayers.disable(visual.Layers.CurveFragment);
-        visual.SelectableLayers.enable(visual.Layers.Curve);
-        visual.SelectableLayers.enable(visual.Layers.Region);
-        visual.SelectableLayers.enable(visual.Layers.Solid);
-        visual.SelectableLayers.enable(visual.Layers.Face);
+        SelectableLayers.SelectableLayers.disable(visual.Layers.CurveFragment);
+        SelectableLayers.SelectableLayers.enable(visual.Layers.Curve);
+        SelectableLayers.SelectableLayers.enable(visual.Layers.Region);
+        SelectableLayers.SelectableLayers.enable(visual.Layers.Solid);
+        SelectableLayers.SelectableLayers.enable(visual.Layers.Face);
     }
 
     controlPoints() {
@@ -39,11 +40,16 @@ export default class LayerManager {
 
     showControlPoints() {
         visual.VisibleLayers.enable(visual.Layers.ControlPoint);
-        visual.SelectableLayers.enable(visual.Layers.ControlPoint);
+        SelectableLayers.SelectableLayers.enable(visual.Layers.ControlPoint);
     }
 
     hideControlPoints() {
         visual.VisibleLayers.disable(visual.Layers.ControlPoint);
-        visual.SelectableLayers.disable(visual.Layers.ControlPoint);
+        SelectableLayers.SelectableLayers.disable(visual.Layers.ControlPoint);
+    }
+
+    toggleXRay() {
+        visual.VisibleLayers.toggle(visual.Layers.XRay);
+        SelectableLayers.SelectableLayers.toggle(visual.Layers.XRay);
     }
 }

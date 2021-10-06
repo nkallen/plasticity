@@ -31,7 +31,7 @@ describe(ThreePointBoxFactory, () => {
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        const item = await makeBox.commit() as visual.SpaceItem;
+        const item = await makeBox.commit() as visual.Solid;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);

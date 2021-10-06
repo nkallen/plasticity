@@ -19,6 +19,6 @@ export class GridHelper extends THREE.GridHelper {
         eye.set(0, 0, 1).applyQuaternion(camera.quaternion);
         const dot = grid.dot(eye);
         const material = this.material as THREE.LineBasicMaterial;
-        material.opacity = dot;
+        material.opacity = dot * dot;
     }
 }

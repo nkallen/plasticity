@@ -2,13 +2,13 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
-import { DatabaseLike, GeometryDatabase } from '../editor/GeometryDatabase';
+import { DatabaseLike } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import * as visual from '../editor/VisualModel';
+import { Intersectable, Intersection } from '../editor/SelectableLayers';
 import { SelectionInteractionManager, SelectionMode } from '../selection/SelectionInteraction';
-import { HasSelection, Selection, SelectionManager } from '../selection/SelectionManager';
+import { HasSelection, Selectable, SelectionManager } from '../selection/SelectionManager';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
-import { Cancel, CancellablePromise } from '../util/Cancellable';
+import { CancellablePromise } from '../util/Cancellable';
 
 interface EditorLike {
     db: DatabaseLike;
@@ -34,20 +34,20 @@ class MyViewportSelector extends AbstractViewportSelector {
 
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands temporarily modify the selection
-    protected processClick(intersections: THREE.Intersection[]) {
+    protected processClick(intersections: Intersection[]) {
         this.interaction.onClick(intersections);
         if (intersections.length === 0) this.onEmptyIntersection();
     }
 
-    protected processHover(intersects: THREE.Intersection[]) {
+    protected processHover(intersects: Intersection[]) {
         this.editor.selectionInteraction.onHover(intersects);
     }
 
-    protected processBoxHover(selected: Set<visual.Selectable>): void {
+    protected processBoxHover(selected: Set<Intersectable>): void {
         this.editor.selectionInteraction.onBoxHover(selected);
     }
 
-    protected processBoxSelect(selected: Set<visual.Selectable>): void {
+    protected processBoxSelect(selected: Set<Intersectable>): void {
         this.interaction.onBoxSelect(selected);
         if (selected.size === 0) this.onEmptyIntersection();
     }
@@ -56,7 +56,7 @@ class MyViewportSelector extends AbstractViewportSelector {
 export class ObjectPicker {
     constructor(private readonly editor: EditorLike) { }
 
-    execute(cb?: (o: visual.Selectable) => void): CancellablePromise<HasSelection> {
+    execute(cb?: (o: Selectable) => void): CancellablePromise<HasSelection> {
         const signals = new EditorSignals();
         const cancellable = new CancellablePromise<HasSelection>((resolve, reject) => {
             const editor = this.editor;

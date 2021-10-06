@@ -3,7 +3,7 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
-import { BetterRaycastingPoint, BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
+import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { deunit } from "../util/Conversion";
 
 /**
@@ -130,6 +130,7 @@ export class CurveSegment extends THREE.Object3D {
         const occludedLine = new Line2(geometry, occludedMaterial);
         occludedLine.scale.setScalar(0.01);
         occludedLine.computeLineDistances();
+        occludedLine.name = 'occluded';
 
         const built = new CurveSegment(line, occludedLine, edge.name, edge.simpleName);
 
@@ -287,6 +288,7 @@ export class CurveEdge extends Edge {
         const occludedLine = new Line2(geometry, occludedMaterial);
         occludedLine.scale.setScalar(0.01);
         occludedLine.computeLineDistances();
+        occludedLine.name = 'occluded';
         const result = new CurveEdge(line, occludedLine);
         result.userData.name = edge.name;
         result.userData.simpleName = `edge,${parentId},${edge.i}`;
@@ -295,11 +297,12 @@ export class CurveEdge extends Edge {
         return result;
     }
 
-    private constructor(private readonly line: Line2, readonly occludedLine: Line2) {
+    private constructor(readonly line: Line2, readonly occludedLine: Line2) {
         super();
         if (arguments.length === 0) return;
         this.add(line, occludedLine);
         occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
+        occludedLine.layers.set(Layers.XRay);
     }
 
     dispose() {
@@ -623,78 +626,3 @@ export const VisibleLayers = new THREE.Layers();
 VisibleLayers.enableAll();
 VisibleLayers.disable(Layers.CurveFragment);
 VisibleLayers.disable(Layers.ControlPoint);
-
-export const SelectableLayers = new THREE.Layers();
-SelectableLayers.enableAll();
-SelectableLayers.disable(Layers.CurveFragment);
-SelectableLayers.disable(Layers.ControlPoint);
-SelectableLayers.disable(Layers.Unselectable);
-
-
-export type Selectable = Item | TopologyItem | ControlPoint | Region;
-
-// The following two methods are used for raycast (point and click) and box selection --
-// They take primitive view objects (Line2, Mesh, etc.), filter out the irrelevant (invisible, etc.),
-// and return higher level view objects (Face, CurveEdge, Region, etc.).
-
-export function select(selected: THREE.Mesh[]): Set<Selectable> {
-    const set = new Set<Selectable>();
-    for (const object of selected) {
-        if (!isSelectable(object)) continue;
-
-        const selectable = findSelectable(object);
-        set.add(selectable);
-    }
-    return set;
-}
-
-export interface Intersection {
-    object: Selectable;
-    point: THREE.Vector3;
-    distance: number;
-}
-
-export function filter(intersections: THREE.Intersection[]): Intersection[] {
-    const map = new Map<Selectable, [THREE.Vector3, number]>();
-    for (const intersection of intersections) {
-        const { object, point, distance } = intersection;
-        if (!isSelectable(object)) continue;
-
-        const selectable = findSelectable(intersection.object, intersection.index);
-        map.set(selectable, [point, distance]);
-    }
-    const result: Intersection[] = [];
-    for (const [object, [point, distance]] of map) {
-        result.push({ object, point, distance });
-    }
-    result.sort((a, b) => a.distance - b.distance);
-    return result;
-}
-
-function isSelectable(object: THREE.Object3D): boolean {
-    if (!object.layers.test(SelectableLayers)) return false;
-
-    let parent: THREE.Object3D | null = object;
-    while (parent) {
-        if (!parent.visible) return false;
-        parent = parent.parent;
-    }
-    return true;
-}
-
-function findSelectable(object: THREE.Object3D, index?: number): Selectable {
-    if (object instanceof BetterRaycastingPoint) {
-        const controlPointGroup = object.parent.parent! as ControlPointGroup;
-        if (!(controlPointGroup instanceof ControlPointGroup))
-            throw new Error("invalid precondition: " + parent.constructor.name);
-        return controlPointGroup.findByIndex(object.index)!;
-    } else {
-        const parent = object.parent!;
-        if (parent instanceof Item || parent instanceof TopologyItem || parent instanceof Region)
-            return parent as Selectable;
-        if (parent instanceof CurveSegment)
-            return parent.parent!.parent! as Item;
-
-        throw new Error("invalid precondition: " + parent.constructor.name);
-    }
-}

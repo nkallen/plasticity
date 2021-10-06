@@ -28,13 +28,17 @@ export default (editor: Editor) => {
             const result = (
                 <>
                     <button type="button" onClick={e => this.viewport.toggleOrtho()} tabIndex={-1}>
-                        <img src={ortho}></img>
+                        <img src={perspective}></img>
                         <ispace-tooltip placement="bottom">Switch the current view from perspective/orthographic</ispace-tooltip>
                     </button>
-                    {/* <button type="button" onClick={_ => this.viewport.toggleXRay()} tabIndex={-1}>
+                    <button type="button" onClick={_ => this.viewport.toggleXRay()} tabIndex={-1}>
                         <img src={xray}></img>
                         <ispace-tooltip placement="bottom">Toggle X-ray. Allow selecting through items</ispace-tooltip>
-                    </button> */}
+                    </button>
+                    <button type="button" onClick={_ => this.viewport.toggleGrid()} tabIndex={-1}>
+                        <img src={ortho}></img>
+                        <ispace-tooltip placement="bottom">Toggle grid</ispace-tooltip>
+                    </button>
                 </>
             );
             render(result, this);

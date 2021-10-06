@@ -1,6 +1,6 @@
-import * as THREE from "three";
 import { EditorSignals } from '../editor/EditorSignals';
 import MaterialDatabase from '../editor/MaterialDatabase';
+import { Intersectable, Intersection } from "../editor/SelectableLayers";
 import * as visual from '../editor/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../editor/VisualModel';
 import { ClickStrategy } from './Click';
@@ -20,7 +20,6 @@ export interface SelectionStrategy {
     controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean;
 }
 
-// Handles click and hovering logic
 export class SelectionInteractionManager {
     private readonly clickStrategy: ClickStrategy;
     private readonly hoverStrategy: HoverStrategy;
@@ -34,13 +33,12 @@ export class SelectionInteractionManager {
         this.hoverStrategy = new HoverStrategy(selection.selected, selection.hovered);
     }
 
-    private onIntersection(intersections: THREE.Intersection[], strategy: SelectionStrategy): THREE.Intersection | undefined {
+    private onIntersection(intersections: Intersection[], strategy: SelectionStrategy): Intersection | undefined {
         if (intersections.length == 0) {
             strategy.emptyIntersection();
             return;
         }
 
-        intersections.sort(sortIntersections);
         for (const intersection of intersections) {
             const object = intersection.object;
             if (object instanceof Face || object instanceof CurveEdge) {
@@ -66,19 +64,19 @@ export class SelectionInteractionManager {
         return;
     }
 
-    onClick(intersections: THREE.Intersection[]): THREE.Intersection | undefined {
+    onClick(intersections: Intersection[]): Intersection | undefined {
         return this.onIntersection(intersections, this.clickStrategy);
     }
 
-    onHover(intersections: THREE.Intersection[]): void {
+    onHover(intersections: Intersection[]): void {
         this.onIntersection(intersections, this.hoverStrategy);
     }
 
-    onBoxHover(hover: Set<visual.Selectable>) {
+    onBoxHover(hover: Set<Intersectable>) {
         this.hoverStrategy.box(hover);
     }
 
-    onBoxSelect(select: Set<visual.Selectable>) {
+    onBoxSelect(select: Set<Intersectable>) {
         this.clickStrategy.box(select);
     }
 
@@ -87,31 +85,5 @@ export class SelectionInteractionManager {
             if (!this.clickStrategy.solid(topo, topo.parentItem))
                 this.clickStrategy.topologicalItem(topo, topo.parentItem);
         }
-    }
-}
-
-const map = new Map<any, number>();
-map.set(visual.ControlPoint, 0);
-map.set(visual.Curve3D, 1);
-map.set(visual.CurveEdge, 2);
-map.set(visual.Region, 4);
-map.set(visual.Face, 4.1);
-
-function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
-    const x = map.get(i1.object.constructor);
-    const y = map.get(i2.object.constructor)
-    if (x === undefined || y === undefined) {
-        console.error(i1);
-        console.error(i2);
-        throw new Error("invalid precondition");
-    }
-    if (Math.floor(x) === Math.floor(y)) {
-        if (Math.abs(i1.distance - i2.distance) < 10e-3) {
-            return x - y;
-        } else {
-            return i1.distance - i2.distance;
-        }
-    } else {
-        return x - y;
     }
 }

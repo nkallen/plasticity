@@ -217,10 +217,11 @@ export class Viewport {
             if (frameNumber > lastFrameNumber) {
                 db.rebuildScene();
                 scene.add(db.scene);
+                grid.position.set(0, 0, -0.01);
                 grid.quaternion.setFromUnitVectors(Y, constructionPlane.n);
                 grid.update(camera);
                 scene.add(helpers.axes);
-                scene.add(grid);
+                if (this.showGrid) scene.add(grid);
 
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
@@ -334,7 +335,14 @@ export class Viewport {
     }
 
     toggleXRay() {
+        this.editor.layers.toggleXRay();
+        this.setNeedsRender();
+    }
 
+    private showGrid = true;
+    toggleGrid() {
+        this.showGrid = !this.showGrid;
+        this.setNeedsRender();
     }
 
     navigate(to: Orientation) {

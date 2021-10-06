@@ -9,6 +9,8 @@ import { Redisposable, RefCounter } from '../util/Util';
 import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './Selection';
 import { SelectionMode } from './SelectionInteraction';
 
+export type Selectable = visual.Item | visual.TopologyItem | visual.ControlPoint;
+
 export interface HasSelection {
     readonly mode: ReadonlySet<SelectionMode>;
     readonly solids: ItemSelection<visual.Solid>;
@@ -30,7 +32,7 @@ export interface HasSelection {
 
 export interface ModifiesSelection extends HasSelection {
     add(items: visual.Item | visual.Item[]): void;
-    remove(selectables: visual.Selectable | visual.Selectable[]): void;
+    remove(selectables: Selectable | Selectable[]): void;
 
     removeFace(object: visual.Face, parentItem: visual.Solid): void;
     addFace(object: visual.Face, parentItem: visual.Solid): void;
@@ -55,8 +57,8 @@ export interface ModifiesSelection extends HasSelection {
 
 interface SignalLike {
     objectRemovedFromDatabase: signals.Signal<[visual.Item, Agent]>;
-    objectAdded: signals.Signal<visual.Selectable>;
-    objectRemoved: signals.Signal<visual.Selectable>;
+    objectAdded: signals.Signal<Selectable>;
+    objectRemoved: signals.Signal<Selectable>;
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }>;
 }
 
@@ -109,7 +111,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         }
     }
 
-    remove(selectables: visual.Selectable[]) {
+    remove(selectables: Selectable[]) {
         if (!(selectables instanceof Array)) selectables = [selectables];
         
         for (const selectable of selectables) {

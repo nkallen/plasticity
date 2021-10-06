@@ -6,6 +6,7 @@ import { RegionFactory } from '../../src/commands/region/RegionFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
+import { Intersection } from '../../src/editor/SelectableLayers';
 import * as visual from '../../src/editor/VisualModel';
 import { SelectionInteractionManager } from '../../src/selection/SelectionInteraction';
 import { SelectionManager } from '../../src/selection/SelectionManager';
@@ -78,8 +79,8 @@ describe('onClick', () => {
         let intersections = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying as THREE.Object3D
-        }];
+            object: curve.underlying
+        }] as Intersection[];
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selected.curves.size).toBe(1);
@@ -103,8 +104,8 @@ describe('onClick', () => {
         let intersections = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying as THREE.Object3D
-        }];
+            object: curve.underlying
+        }] as Intersection[];
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selected.curves.size).toBe(1);
@@ -128,7 +129,7 @@ describe('onClick', () => {
         const intersectCurve = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying as THREE.Object3D
+            object: curve.underlying
         }];
 
         interactionManager.onClick(intersectCurve);
@@ -305,33 +306,6 @@ describe('onClick', () => {
         expect(selectionManager.selected.edges.size).toBe(0);
     });
 
-    test("clicking on both a edge and a face selects the edge", () => {
-        const intersections = [
-            {
-                distance: 1,
-                point: new THREE.Vector3(),
-                object: solid.faces.get(0)
-            },
-            {
-                distance: 1,
-                point: new THREE.Vector3(),
-                object: solid.edges.get(0)
-            }
-        ];
-
-        expect(selectionManager.selected.solids.size).toBe(0);
-        expect(selectionManager.selected.edges.size).toBe(0);
-        interactionManager.onClick(intersections);
-        expect(selectionManager.selected.solids.size).toBe(1);
-        expect(selectionManager.selected.edges.size).toBe(0);
-        expect(selectionManager.selected.faces.size).toBe(0);
-
-        interactionManager.onClick(intersections);
-        expect(selectionManager.selected.solids.size).toBe(0);
-        expect(selectionManager.selected.edges.size).toBe(1);
-        expect(selectionManager.selected.faces.size).toBe(0);
-    });
-
     test("signals", () => {
         const sel = jest.fn();
         signals.objectSelected.add(sel);
@@ -406,8 +380,8 @@ describe('onPointerMove', () => {
         let intersections = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying as THREE.Object3D
-        }];
+            object: curve.underlying
+        }] as Intersection[];
 
         interactionManager.onClick(intersections);
         expect(selectionManager.selected.curves.size).toBe(1);

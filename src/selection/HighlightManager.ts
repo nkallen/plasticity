@@ -8,7 +8,7 @@ import ModifierManager from "../editor/ModifierManager";
 import * as visual from '../editor/VisualModel';
 import matcap from '../img/matcap/ceramic_dark.exr';
 import { ItemSelection } from "./Selection";
-import { HasSelectedAndHovered } from "./SelectionManager";
+import { HasSelectedAndHovered, Selectable } from "./SelectionManager";
 
 export class HighlightManager {
     constructor(
@@ -25,7 +25,7 @@ export class HighlightManager {
         signals.objectUnhovered.add(selectable => this.unhover(selectable));
     }
 
-    hover(item: visual.Selectable) {
+    hover(item: Selectable) {
         performance.mark('begin-hover');
         if (item instanceof visual.SpaceInstance) {
             this.hoverCurve(item);
@@ -85,7 +85,7 @@ export class HighlightManager {
         colors.needsUpdate = true;
     }
 
-    unhover(item: visual.Selectable) {
+    unhover(item: Selectable) {
         performance.mark('begin-unhover');
         if (item instanceof visual.SpaceInstance) {
             this.highlightCurve(item);
