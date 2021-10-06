@@ -95,8 +95,10 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
     get curves() { return this._curves }
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
         this._curves = curves;
+        this._center = new THREE.Vector3();
         const contours2d: c3d.Contour[] = [];
         const curves3d: c3d.Curve3D[] = [];
+        const bbox = new THREE.Box3();
         for (const curve of curves) {
             const inst = this.db.lookup(curve);
             const item = inst.GetSpaceItem()!;
@@ -116,7 +118,9 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
                     curves3d.push(model);
                 }
             }
+            bbox.expandByObject(curve);
         }
+        this._center = bbox.getCenter(new THREE.Vector3());
         this.contours2d = contours2d;
         this.curves3d = curves3d;
 
@@ -142,7 +146,6 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
             }
         }
         this._normal = vec2vec(placement.GetAxisZ(), 1)
-        this._center = point2point(placement.GetOrigin());
     }
 
     get direction(): THREE.Vector3 { return this._normal }
