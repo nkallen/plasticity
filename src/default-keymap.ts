@@ -114,10 +114,12 @@ export default {
         "3": "gizmo:curve:nurbs",
         "4": "gizmo:curve:cubic-spline",
         "cmd-z": "gizmo:curve:undo",
+        "ctrl-z": "gizmo:curve:undo",
     },
 
     "[command='line'] ispace-viewport": {
         "cmd-z": "gizmo:line:undo",
+        "ctrl-z": "gizmo:line:undo",
     },
 
     "[command='symmetry'] ispace-viewport": {
@@ -172,7 +174,6 @@ export default {
 
         "shift-A": "command:deselect-all",
         "alt-A": "command:deselect-all",
-        "escape": "command:deselect-all",
         "a a": "command:deselect-all",
     },
 

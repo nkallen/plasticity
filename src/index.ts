@@ -1,4 +1,9 @@
 import { app, BrowserWindow, crashReporter } from 'electron';
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import fse from 'fs-extra';
+
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 
 crashReporter.start({
@@ -15,8 +20,12 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
     app.quit();
 }
 
+process.env.PLASTICITY_HOME = path.join(os.homedir(), '.plasticity');
+if (!fs.existsSync(process.env.PLASTICITY_HOME)) {
+    fse.copySync('dot-plasticity', process.env.PLASTICITY_HOME);
+}
+
 const createWindow = (): void => {
-    // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: 1920,
         height: 1080,

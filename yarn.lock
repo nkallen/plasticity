@@ -10631,7 +10631,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"json5@npm:2.x, json5@npm:^2.1.2":
+"json5@npm:2.x, json5@npm:^2.1.2, json5@npm:^2.2.0":
   version: 2.2.0
   resolution: "json5@npm:2.2.0"
   dependencies:
@@ -13008,6 +13008,7 @@ fsevents@^1.2.7:
     fs-extra: ^9.1.0
     jest: ^27.0.0-next.7
     js-beautify: ^1.13.5
+    json5: ^2.2.0
     less: ^4.1.1
     less-loader: 7.3.0
     node-addon-api: ^4.0.0

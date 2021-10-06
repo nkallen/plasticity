@@ -1,0 +1,23 @@
+// For the purpose of keybindings, it's important to understand that plasticity can be in three states:
+// 1. When no command is running
+// 2. When a command, like fillet is running
+// 3. When a command is running and you're actively using the gizmo (like dragging a handle)
+
+// Probably the keybindings you want to change the most are case 1., when no command or gizmo is running.
+{
+    "body:not([gizmo]) ispace-workspace": {
+        "escape": "command:deselect-all",
+
+        // bind offset to the letter 'o':
+        "o": "command:offset",
+
+        // bind capital Q to union:
+        "shift-Q": "command:union",
+
+        // bind double-tap q to difference
+        "q q": "command:difference",
+
+        // bind ctrl-z to undo:
+        "ctrl-z": "undo",
+    }
+}

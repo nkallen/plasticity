@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Plasticity 0.1</title>
+</head>
+
+<body>
+    <ispace-workspace>
+        <ispace-workspace-axis class="horizontal">
+            <ispace-pane-container>
+                <ispace-pane-axis class="vertical">
+                    <ispace-pane style="max-height: 36px">
+                        <ispace-header></ispace-header>
+                    </ispace-pane>
+                    <ispace-pane-axis class="horizontal">
+                        <ispace-pane-axis class="vertical" style="flex-grow: 0.2">
+                            <ispace-pane>
+                                <ispace-modifiers></ispace-modifiers>
+                            </ispace-pane>
+                        </ispace-pane-axis>
+                        <ispace-pane-resize-handle></ispace-pane-resize-handle>
+                        <ispace-pane-axis class="vertical">
+                            <ispace-pane-axis class="horizontal">
+                                <!-- <ispace-pane-axis class="vertical" style="flex-grow: 0.5;">
+                                <ispace-pane>
+                                    <ispace-viewport view="top">
+                                        <ispace-toolbar></ispace-toolbar>
+                                        <ispace-keybindings></ispace-keybindings>
+                                    </ispace-viewport>
+                                </ispace-pane>
+                                <ispace-pane>
+                                    <ispace-viewport view="front">
+                                        <ispace-toolbar></ispace-toolbar>
+                                        <ispace-keybindings></ispace-keybindings>
+                                    </ispace-viewport>
+                                </ispace-pane>
+                            </ispace-pane-axis> -->
+                                <!-- <ispace-pane-resize-handle></ispace-pane-resize-handle> -->
+                                <ispace-pane-axis class="vertical">
+                                    <ispace-pane>
+                                        <ispace-viewport view="3d">
+                                            <ispace-viewport-header></ispace-viewport-header>
+                                            <ispace-toolbar></ispace-toolbar>
+                                            <ispace-keybindings></ispace-keybindings>
+                                            <ispace-dialog></ispace-dialog>
+                                            <ispace-snap-overlay></ispace-snap-overlay>
+                                            <ispace-palette>
+                                                <section>
+                                                    <button is="ispace-command" name="line" tabIndex="-1"></button>
+                                                    <button is="ispace-command" name="curve" tabIndex="-1"></button>
+                                                    <ispace-button-group>
+                                                        <button is="ispace-command" name="center-circle" tabIndex="-1"></button>
+                                                        <button is="ispace-command" name="two-point-circle" tabIndex="-1"></button>
+                                                        <button is="ispace-command" name="three-point-circle" tabIndex="-1"></button>
+                                                    </ispace-button-group>
+                                                    <ispace-button-group>
+                                                        <button is="ispace-command" name="center-point-arc" tabIndex="-1"></button>
+                                                        <button is="ispace-command" name="three-point-arc" tabIndex="-1"></button>
+                                                    </ispace-button-group>
+                                                    <ispace-button-group>
+                                                        <button is="ispace-command" name="center-ellipse" tabIndex="-1"></button>
+                                                        <button is="ispace-command" name="three-point-ellipse" tabIndex="-1"></button>
+                                                    </ispace-button-group>
+                                                    <ispace-button-group>
+                                                        <button is="ispace-command" name="corner-rectangle" tabIndex="-1"></button>
+                                                        <button is="ispace-command" name="center-rectangle" tabIndex="-1"></button>
+                                                        <button is="ispace-command" name="three-point-rectangle" tabIndex="-1"></button>
+                                                    </ispace-button-group>
+                                                    <button is="ispace-command" name="polygon" tabIndex="-1"></button>
+                                                    <ispace-button-group>
+                                                        <button is="ispace-command" name="spiral" tabIndex="-1"></button>
+                                                        <button is="ispace-command" name="character-curve" tabIndex="-1"></button>
+                                                    </ispace-button-group>
+                                                    <button is="ispace-command" name="trim" tabIndex="-1"></button>
+                                                    <button is="ispace-command" name="bridge-curves" tabIndex="-1"></button>
+                                                </section>
+                                                <section>
+                                                    <button is="ispace-command" name="sphere" tabIndex="-1"></button>
+                                                    <button is="ispace-command" name="cylinder" tabIndex="-1"></button>
+                                                    <ispace-button-group>
+                                                        <button is="ispace-command" name="corner-box" tabIndex="-1"></button>
+                                                        <button is="ispace-command" name="center-box" tabIndex="-1"></button>
+                                                        <button is="ispace-command" name="three-point-box" tabIndex="-1"></button>
+                                                    </ispace-button-group>
+                                                </section>
+                                            </ispace-palette>
+                                        </ispace-viewport>
+                                    </ispace-pane>
+                                </ispace-pane-axis>
+                            </ispace-pane-axis>
+                            <ispace-pane style="max-height:36px">
+                                <ispace-creators></ispace-creators>
+                            </ispace-pane>
+                        </ispace-pane-axis>
+                    </ispace-pane-axis>
+                </ispace-pane-axis>
+            </ispace-pane-container>
+        </ispace-workspace-axis>
+    </ispace-workspace>
+</body>
+
+</html>

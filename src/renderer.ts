@@ -1,15 +1,16 @@
+import fs from 'fs';
+import json5 from 'json5';
+import path from 'path';
 import Stats from 'stats.js';
 import * as THREE from 'three';
-
-import '../build/Release/libc3d.dylib';
 // import '../build/Release/c3d.dll';
 // import '../build/Release/msvcp140.dll';
 // import '../build/Release/vccorlib140.dll';
 // import '../build/Release/vcomp140.dll';
 // import '../build/Release/vcruntime140.dll';
 // import '../build/Release/vcruntime140_1.dll';
-
 import c3d from '../build/Release/c3d.node';
+import '../build/Release/libc3d.dylib';
 import '../lib/c3d/enums';
 import license from '../license-key.json';
 import * as cmd from './commands/GeometryCommands';
@@ -26,8 +27,9 @@ import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
 import './css/index.less';
-import keymap from "./default-keymap";
+import defaultKeymap from "./default-keymap";
 import { HotReloadingEditor } from './editor/Editor';
+
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
@@ -52,9 +54,12 @@ const stats = new Stats();
 document.body.appendChild(stats.dom);
 stats.dom.setAttribute('style', 'position: fixed; bottom: 0px; left: 0px; cursor: pointer; opacity: 0.9; z-index: 10000;');
 
-editor.keymaps.add('/default', keymap);
-editor.registry.add("ispace-workspace", {
-});
+editor.keymaps.add('/default', defaultKeymap);
+const userKeymap = path.join(process.env.PLASTICITY_HOME!, 'keymap.json');
+if (fs.existsSync(userKeymap)) {
+    const parsed = json5.parse(fs.readFileSync(userKeymap).toString());
+    editor.keymaps.add('/user', parsed, 100);
+}
 
 registerDefaultCommands(editor);
 
