@@ -1,7 +1,7 @@
 import { Camera, MOUSE, TOUCH, Vector3 } from '../../../src/Three';
 
 export class OrbitControls {
-    constructor(object: Camera, domElement?: HTMLElement);
+    constructor(object: Camera, domElement?: HTMLElement, keymaps: AtomKeymap.KeymapManager);
 
     object: Camera;
     domElement: HTMLElement | HTMLDocument;
@@ -9,9 +9,6 @@ export class OrbitControls {
     // API
     enabled: boolean;
     target: Vector3;
-
-    // deprecated
-    center: Vector3;
 
     minDistance: number;
     maxDistance: number;
@@ -44,7 +41,7 @@ export class OrbitControls {
 
     enableKeys: boolean;
     keys: { LEFT: string; UP: string; RIGHT: string; BOTTOM: string };
-    mouseButtons: { LEFT: MOUSE; MIDDLE: MOUSE; RIGHT: MOUSE };
+    mouseButtons: Record<string, string>;
     touches: { ONE: TOUCH; TWO: TOUCH };
 
     focus(targets: THREE.Object[], everything: THREE.Object[]): void;

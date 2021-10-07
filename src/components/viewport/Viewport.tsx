@@ -34,6 +34,7 @@ export interface EditorLike extends selector.EditorLike {
     originator: EditorOriginator,
     windowLoaded: boolean,
     highlighter: HighlightManager,
+    keymaps: AtomKeymap.KeymapManager,
 }
 
 export class Viewport {
@@ -423,14 +424,8 @@ export default (editor: EditorLike) => {
             }
             camera.layers = visual.VisibleLayers;
 
-            const navigationControls = new OrbitControls(camera, renderer.domElement);
+            const navigationControls = new OrbitControls(camera, renderer.domElement, editor.keymaps);
             navigationControls.enableRotate = enableRotate;
-            navigationControls.mouseButtons = {
-                // @ts-expect-error
-                LEFT: undefined,
-                MIDDLE: THREE.MOUSE.ROTATE,
-                RIGHT: THREE.MOUSE.PAN
-            };
 
             camera.up.set(0, 0, 1);
             camera.lookAt(new THREE.Vector3());

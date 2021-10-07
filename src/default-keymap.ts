@@ -139,11 +139,11 @@ export default {
 
     "body:not([gizmo]) ispace-viewport": {
         "1": "viewport:front",
-        "numpad-1": "viewport:front",
+        "num1": "viewport:front",
         "3": "viewport:right",
-        "numpad-3": "viewport:right",
+        "num3": "viewport:right",
         "7": "viewport:top",
-        "numpad-7": "viewport:top",
+        "num7": "viewport:top",
 
         "/": "viewport:focus",
 
@@ -151,7 +151,7 @@ export default {
         "shift-alt-z": "viewport:toggle-grid",
 
         "5": "viewport:toggle-orthographic",
-        "numpad-5": "viewport:toggle-orthographic",
+        "num5": "viewport:toggle-orthographic",
     },
 
     "body:not([gizmo]) ispace-workspace": {
@@ -187,4 +187,8 @@ export default {
         "a a": "command:deselect-all",
     },
 
+    "orbit-controls": {
+        "mouse1": "orbit:rotate",
+        "mouse2": "orbit:pan"
+    }
 }

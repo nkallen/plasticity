@@ -1,7 +1,7 @@
 import { render } from 'preact';
 import { Editor } from '../../editor/Editor';
 import { ViewportElement } from './Viewport';
-import ortho from './img/ortho.svg';
+import grid from './img/ortho.svg';
 import perspective from './img/perspective.svg';
 import xray from './img/xray.svg';
 
@@ -29,15 +29,15 @@ export default (editor: Editor) => {
                 <>
                     <button type="button" onClick={e => this.viewport.toggleOrtho()} tabIndex={-1}>
                         <img src={perspective}></img>
-                        <ispace-tooltip placement="bottom">Switch the current view from perspective/orthographic</ispace-tooltip>
+                        <ispace-tooltip placement="bottom" command="viewport:toggle-orthographic">Switch the current view from perspective/orthographic</ispace-tooltip>
                     </button>
                     <button type="button" onClick={_ => this.viewport.toggleXRay()} tabIndex={-1}>
                         <img src={xray}></img>
-                        <ispace-tooltip placement="bottom">Toggle X-ray. Allow selecting through items</ispace-tooltip>
+                        <ispace-tooltip placement="bottom" command="viewport:toggle-x-ray">Toggle X-ray. Allow selecting through items</ispace-tooltip>
                     </button>
                     <button type="button" onClick={_ => this.viewport.toggleGrid()} tabIndex={-1}>
-                        <img src={ortho}></img>
-                        <ispace-tooltip placement="bottom">Toggle grid</ispace-tooltip>
+                        <img src={grid}></img>
+                        <ispace-tooltip placement="bottom" command="viewport:toggle-grid">Toggle grid</ispace-tooltip>
                     </button>
                 </>
             );

@@ -1,3 +1,13 @@
+New features this week:
+. basic step/iges export
+. customizable keybindings (requires a text editor)
+. customizable keybindings for orbit (e.g., for maya-style orbit/zoom/pan)
+. toggle on/off xray mode
+. toggle on/off perspective mode
+. toggle on/off grid
+. deselect all command
+
+
 1 and 2 for distance 1 and 2
 
 line2 raycasting bad ortho camera

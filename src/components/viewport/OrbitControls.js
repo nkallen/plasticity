@@ -8,6 +8,7 @@ import {
     Vector2,
     Vector3
 } from 'three';
+import { pointerEvent2keyboardEvent } from './KeyboardEventManager';
 
 // This set of controls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
@@ -21,7 +22,7 @@ const _startEvent = { type: 'start' };
 const _endEvent = { type: 'end' };
 
 export class OrbitControls extends EventDispatcher {
-    constructor(object, domElement) {
+    constructor(object, domElement, keymaps) {
         super();
 
         if (domElement === undefined) console.warn('THREE.OrbitControls: The second parameter "domElement" is now mandatory.');
@@ -30,6 +31,7 @@ export class OrbitControls extends EventDispatcher {
         this.object = object;
         this.domElement = domElement;
         this.domElement.style.touchAction = 'none'; // disable touch scroll
+        this.keymaps = keymaps;
 
         // Set to false to disable this control
         this.enabled = true;
@@ -84,7 +86,16 @@ export class OrbitControls extends EventDispatcher {
         this.keys = { LEFT: 'ArrowLeft', UP: 'ArrowUp', RIGHT: 'ArrowRight', BOTTOM: 'ArrowDown' };
 
         // Mouse buttons
-        this.mouseButtons = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN };
+        let bindings = keymaps.getKeyBindings();
+        bindings = bindings.filter(b => b.selector == 'orbit-controls');
+        const r = bindings.filter(b => b.command == 'orbit:rotate').sort((a, b) => a.compare(b))[0];
+        const p = bindings.filter(b => b.command == 'orbit:pan').sort((a, b) => a.compare(b))[0];
+        const d = bindings.filter(b => b.command == 'orbit:dolly').sort((a, b) => a.compare(b))[0];
+        const mouseButtons = {};
+        if (r !== undefined) mouseButtons[r.keystrokes] = r.command;
+        if (p !== undefined) mouseButtons[p.keystrokes] = p.command;
+        if (d !== undefined) mouseButtons[d.keystrokes] = d.command;
+        this.mouseButtons = mouseButtons;
 
         // Touch fingers
         this.touches = { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN };
@@ -704,30 +715,18 @@ export class OrbitControls extends EventDispatcher {
         }
 
         function onMouseDown(event) {
-            let mouseAction;
-
-            switch (event.button) {
-                case 0:
-                    mouseAction = scope.mouseButtons.LEFT;
-                    break;
-                case 1:
-                    mouseAction = scope.mouseButtons.MIDDLE;
-                    break;
-                case 2:
-                    mouseAction = scope.mouseButtons.RIGHT;
-                    break;
-                default:
-                    mouseAction = - 1;
-            }
+            const keyboard = pointerEvent2keyboardEvent(event);
+            const keystroke = scope.keymaps.keystrokeForKeyboardEvent(keyboard);
+            const mouseAction = scope.mouseButtons[keystroke];
 
             switch (mouseAction) {
-                case MOUSE.DOLLY:
+                case "orbit:dolly":
                     if (scope.enableZoom === false) return;
 
                     handleMouseDownDolly(event);
                     state = STATE.DOLLY;
                     break;
-                case MOUSE.ROTATE:
+                case "orbit:rotate":
                     if (event.ctrlKey || event.metaKey || event.shiftKey) {
                         if (scope.enablePan === false) return;
 
@@ -740,7 +739,7 @@ export class OrbitControls extends EventDispatcher {
                         state = STATE.ROTATE;
                     }
                     break;
-                case MOUSE.PAN:
+                case "orbit:pan":
                     if (event.ctrlKey || event.metaKey || event.shiftKey) {
                         if (scope.enableRotate === false) return;
 

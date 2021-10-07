@@ -68,9 +68,7 @@ export default class KeyboardEventManager {
                 if (e.timeStamp - dragStartTime < consummationTimeThreshold &&
                     currentPosition.distanceTo(startPosition) < consummationDistanceThreshold
                 ) {
-                    // FIXME need to map ctrlKey->ctrl and fix the incorrect types.
-                    // @ts-expect-error
-                    this.handleKeyboardEvent(KeymapManager.buildKeydownEvent('mouse2', e));
+                    this.handleKeyboardEvent(pointerEvent2keyboardEvent(e));
                 }
 
                 disposable.dispose();
@@ -126,4 +124,16 @@ export default class KeyboardEventManager {
     dispose() {
         this.disposable.dispose();
     }
+}
+
+export function pointerEvent2keyboardEvent(event: PointerEvent) {
+    const build = {
+        ctrl: event.ctrlKey,
+        alt: event.altKey,
+        shift: event.shiftKey,
+        cmd: event.metaKey,
+        target: event.target as Element | undefined,
+    }
+    const name = "mouse" + event.button;
+    return KeymapManager.buildKeydownEvent(name, build) as unknown as KeyboardEvent;
 }
