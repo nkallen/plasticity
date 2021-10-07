@@ -141,6 +141,7 @@ export default {
         "1": "viewport:front",
         "3": "viewport:right",
         "7": "viewport:top",
+        "/": "viewport:focus",
     },
 
     "body:not([gizmo]) ispace-workspace": {
@@ -159,7 +160,6 @@ export default {
         "delete": "command:delete",
         "backspace": "command:delete",
         "q": "command:rebuild",
-
 
         "h": "command:hide-selected",
         "shift-h": "command:hide-unselected",

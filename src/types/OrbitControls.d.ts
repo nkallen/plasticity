@@ -47,6 +47,8 @@ export class OrbitControls {
     mouseButtons: { LEFT: MOUSE; MIDDLE: MOUSE; RIGHT: MOUSE };
     touches: { ONE: TOUCH; TWO: TOUCH };
 
+    focus(targets: THREE.Object[], everything: THREE.Object[]): void;
+
     update(): boolean;
 
     listenToKeyEvents(domElement: HTMLElement): void;

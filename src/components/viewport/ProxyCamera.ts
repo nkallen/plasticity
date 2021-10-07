@@ -1,8 +1,10 @@
 import * as THREE from "three";
 
 export const near = 0.01;
-export const far = 10000;
-export const frustumSize = 20;
+export const far = 10_000;
+export const frustumSize = 6;
+export const fov = 50;
+export const aspect = 1;
 
 type Mode = 'orthographic' | 'perspective';
 
@@ -46,6 +48,11 @@ export class ProxyCamera extends THREE.Camera {
         perspective.far = far;
         orthographic.near = near;
         orthographic.far = far;
+
+        // Set orthographic zoom to something that corresponds to the effective field of view of the perspective camera
+        const zoom = (orthographic.top - orthographic.bottom) * Math.atan(Math.PI * perspective.getEffectiveFOV() / 360) / 3.1;
+        orthographic.zoom = zoom;
+
         this.updateProjectionMatrix();
     }
 
@@ -80,16 +87,17 @@ export class ProxyCamera extends THREE.Camera {
     get fov() { return this.perspective.fov }
     get near() { return this.perspective.near }
     get far() { return this.perspective.far }
+    get aspect() { return this.perspective.aspect }
+
+    getEffectiveFOV() { return this.perspective.getEffectiveFOV() }
 }
 
 export function makeOrthographicCamera() {
     const orthographicCamera = new THREE.OrthographicCamera(-frustumSize / 2, frustumSize / 2, frustumSize / 2, -frustumSize / 2, near, far);
-    // orthographicCamera.zoom = 0.6;
     return orthographicCamera;
 }
 
 export function makePerspectiveCamera() {
-    const perspective = new THREE.PerspectiveCamera(frustumSize, 1, near, far);
-    perspective.zoom = 1.5;
+    const perspective = new THREE.PerspectiveCamera(fov, aspect, near, far);
     return perspective;
 }

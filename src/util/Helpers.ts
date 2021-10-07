@@ -40,7 +40,7 @@ export abstract class Helper extends THREE.Object3D {
         if (ProxyCamera.isOrthographic(camera)) {
             factor = (camera.top - camera.bottom) / camera.zoom;
         } else if (ProxyCamera.isPerspective(camera)) {
-            factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.fov / 360) / camera.zoom, 7);
+            factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.getEffectiveFOV() / 360), 7);
         } else throw new Error("invalid camera type");
 
         this.scale.multiplyScalar(factor * 1 / 11);

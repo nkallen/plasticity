@@ -64,7 +64,8 @@
                         "devContentSecurityPolicy": "default-src 'self' 'unsafe-inline' data:; script-src 'self' 'unsafe-eval' 'unsafe-inline' data:",
                         "mainConfig": "./webpack.main.config.js",
                         "devServer": {
-                            "liveReload": false
+                            "liveReload": false,
+                            "hot": true
                         },
                         "renderer": {
                             "nodeIntegration": true,

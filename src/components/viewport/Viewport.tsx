@@ -133,6 +133,7 @@ export class Viewport {
                 'viewport:front': () => this.navigate(Orientation.negY),
                 'viewport:right': () => this.navigate(Orientation.posX),
                 'viewport:top': () => this.navigate(Orientation.posZ),
+                'viewport:focus': () => this.focus(),
             })
         );
 
@@ -357,6 +358,11 @@ export class Viewport {
         this._isOrtho = true;
     }
 
+    focus() {
+        const solids = this.editor.selection.selected.solids;
+        this.navigationControls.focus([...solids], this.editor.db.visibleObjects);
+    }
+
     private _isOrtho = false;
     get isOrtho() { return this._isOrtho }
 
@@ -391,7 +397,7 @@ export default (editor: EditorLike) => {
             switch (view) {
                 case "3d":
                     camera = new ProxyCamera();
-                    camera.position.set(50, -50, 50);
+                    camera.position.set(5, -5, 5);
                     n = Z;
                     enableRotate = true;
                     break;
