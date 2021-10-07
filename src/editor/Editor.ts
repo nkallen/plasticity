@@ -23,6 +23,7 @@ import ContourManager from "./ContourManager";
 import { EditorSignals } from "./EditorSignals";
 import { DatabaseLike, GeometryDatabase } from "./GeometryDatabase";
 import { EditorOriginator, History } from "./History";
+import { ImporterExporter } from "./ImporterExporter";
 import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import ModifierManager from "./ModifierManager";
@@ -68,6 +69,7 @@ export class Editor {
     readonly keyboard = new KeyboardEventManager(this.keymaps);
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new ModifierHighlightManager(this.modifiers, this.db, this.materials, this.selection, this.signals);
+    readonly importer = new ImporterExporter(this);
 
     disposable = new CompositeDisposable();
 
@@ -121,7 +123,7 @@ export class Editor {
     }
 
     async open() {
-        const result = await remote.dialog.showOpenDialog({
+        const { filePaths } = await remote.dialog.showOpenDialog({
             properties: ['openFile'],
             filters: [
                 { name: 'All supported', extensions: ['stp', 'step', 'c3d', 'igs', 'iges', 'sat'] },
@@ -131,19 +133,7 @@ export class Editor {
                 { name: 'C3D files', extensions: ['c3d'] }
             ]
         });
-        for (const filePath of result.filePaths) {
-            if (/\.c3d$/.test(filePath)) {
-                const data = await fs.promises.readFile(filePath);
-                this._db.deserialize(data);
-            } else {
-                const { result, model } = await c3d.Conversion.ImportFromFile_async(filePath);
-                if (result !== c3d.ConvResType.Success) {
-                    console.error(filePath, c3d.ConvResType[result]);
-                    continue;
-                }
-                this._db.load(model);
-            }
-        }
+        this.importer.open(filePaths);
     }
 
     async export() {
@@ -157,14 +147,7 @@ export class Editor {
             ] 
         });
         if (canceled) return;
-
-        if (/\.obj$/.test(filePath!)) {
-            const command = new ExportCommand(this);
-            command.filePath = filePath!;
-            this.enqueue(command);
-        } else {
-            await c3d.Conversion.ExportIntoFile_async(this._db.saveToMemento().model, filePath!);
-        }
+        this.importer.export(this._db.saveToMemento().model, filePath!);
     }
 
     private async undo() {

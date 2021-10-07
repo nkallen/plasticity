@@ -70,6 +70,9 @@ export interface DatabaseLike {
     hide(item: visual.Item): void;
     unhide(item: visual.Item): void;
     unhideAll(): void;
+
+    deserialize(data: Buffer): Promise<void>;
+    load(model: c3d.Model | c3d.Assembly): Promise<void>;
 }
 
 export interface TemporaryObject {

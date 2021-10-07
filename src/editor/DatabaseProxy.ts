@@ -118,4 +118,12 @@ export class DatabaseProxy implements DatabaseLike {
     get scene() {
         return this.db.scene;
     }
+
+    async deserialize(data: Buffer): Promise<void> {
+        return this.db.deserialize(data);
+    }
+
+    async load(model: c3d.Model | c3d.Assembly): Promise<void> {
+        return this.db.load(model);
+    }
 }

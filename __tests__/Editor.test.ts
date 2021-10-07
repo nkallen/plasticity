@@ -2,8 +2,11 @@
  * @jest-environment jsdom
  */
 
+import SphereFactory from '../src/commands/sphere/SphereFactory';
 import { Editor } from '../src/editor/Editor';
 import { MakeViewport } from '../__mocks__/FakeViewport';
+import * as THREE from "three";
+import * as visual from '../src/editor/VisualModel';
 import './matchers';
 
 let editor: Editor;
@@ -36,3 +39,11 @@ test('keeps track of active viewport', () => {
     viewport1.dispose();
     viewport2.dispose();
 });
+
+test("simple integration test", async () => {
+    const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
+    makeSphere.center = new THREE.Vector3();
+    makeSphere.radius = 1;
+    await makeSphere.commit() as visual.Solid;
+    expect(1).toBe(1);
+})
