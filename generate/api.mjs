@@ -222,6 +222,14 @@ export default {
                 "bool IsClosed()",
             ]
         },
+        Assembly: {
+            rawHeader: "assembly.h",
+            extends: "Item",
+            dependencies: ["Item.h"],
+            functions: [
+                { signature: "void GetItems(RPArray<MbItem> & items)", items: isReturn },
+            ]
+        },
         RegTransform: {
             rawHeader: "item_registrator.h"
         },

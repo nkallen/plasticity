@@ -26,6 +26,7 @@
 #include "../include/Plane.h"
 #include "../include/SurfaceIntersectionCurve.h"
 #include "../include/OffsetCurve3D.h"
+#include "../include/Assembly.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -52,8 +53,8 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 
     switch (isa)
     {
-    // case st_Assembly:
-    //     return Item::NewInstance(env, dynamic_cast<MbAssembly *>(_underlying));
+    case st_Assembly:
+        return Assembly::NewInstance(env, dynamic_cast<MbAssembly *>(_underlying));
     // case st_AssistedItem:
     //     return Item::NewInstance(env, dynamic_cast<MbAssistingItem´ *>(_underlying));
     // case st_Collection:

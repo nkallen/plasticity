@@ -247,6 +247,7 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
         if (curves.length === 0) return;
         this.curveExtrude.curves = curves;
+        if (this.thickness1 === 0) this.thickness1 = 0.1;
     }
 
     calculate(): Promise<c3d.Solid> {

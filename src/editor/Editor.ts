@@ -147,12 +147,24 @@ export class Editor {
     }
 
     async export() {
-        const { canceled, filePath } = await remote.dialog.showSaveDialog({ filters: [{ name: 'Wavefront OBJ', extensions: ['obj'] }] })
+        const { canceled, filePath } = await remote.dialog.showSaveDialog({
+            filters: [
+                { name: 'Wavefront OBJ', extensions: ['obj'] },
+                { name: 'STEP files', extensions: ['stp', 'step'] },
+                { name: 'IGES files', extensions: ['igs', 'iges'] },
+                { name: 'SAT files', extensions: ['sat'] },
+                { name: 'C3D files', extensions: ['c3d'] }
+            ] 
+        });
         if (canceled) return;
 
-        const command = new ExportCommand(this);
-        command.filePath = filePath!;
-        this.enqueue(command);
+        if (/\.obj$/.test(filePath!)) {
+            const command = new ExportCommand(this);
+            command.filePath = filePath!;
+            this.enqueue(command);
+        } else {
+            await c3d.Conversion.ExportIntoFile_async(this._db.saveToMemento().model, filePath!);
+        }
     }
 
     private async undo() {

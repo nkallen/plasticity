@@ -28,12 +28,12 @@ export default (editor: Editor) => {
                             <ispace-tooltip placement="bottom">New document</ispace-tooltip>
                         </button>
                     </li>
-                    <li>
+                    {/* <li>
                         <button type="button" onClick={_ => editor.clear()} tabIndex={-1}>
                             <img src={save}></img>
                             <ispace-tooltip placement="bottom">Save document</ispace-tooltip>
                         </button>
-                    </li>
+                    </li> */}
                     <li>
                         <button type="button" onClick={_ => editor.export()} tabIndex={-1}>
                             <img src={upload}></img>

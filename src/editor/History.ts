@@ -31,14 +31,19 @@ export class GeometryMemento {
     ) { }
 
     async serialize(): Promise<Buffer> {
+        const { memory } = await c3d.Writer.WriteItems_async(this.model);
+        return memory;
+    }
+
+    get model(): c3d.Model {
         const { geometryModel } = this;
+
         const everything = new c3d.Model();
         for (const [id, { model }] of geometryModel.entries()) {
             if (this.automatics.has(id)) continue;
             everything.AddItem(model, id);
         }
-        const { memory } = await c3d.Writer.WriteItems_async(everything);
-        return memory;
+        return everything;
     }
 }
 

@@ -523,12 +523,16 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         return this.load(everything);
     }
 
-    async load(model: c3d.Model): Promise<void> {
+    async load(model: c3d.Model | c3d.Assembly): Promise<void> {
         const items = model.GetItems();
         const promises = [];
         for (const item of items) {
             const cast = item.Cast<c3d.Item>(item.IsA());
-            promises.push(this.addItem(cast, 'user', item.GetItemName()));
+            if (cast instanceof c3d.Assembly) {
+                this.load(cast);
+            } else {
+                promises.push(this.addItem(cast, 'user', item.GetItemName()));
+            }
         }
         await Promise.all(promises);
     }

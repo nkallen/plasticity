@@ -1,21 +1,13 @@
-keybdinigs
 step/igs export
 focus
 1 and 2 for distance 1 and 2
 
 line2 raycasting bad ortho camera
 
-BUG: offset contour, go to top view, things are frozen
-  - ensure all viewport controls are enabled after each command and log if not
-
 restrict to plane rotation is annoying
-  
-chamfer curve
-keybindings for fillet and chamfer curve must be same
 
 make trim viewport selector more permissive
 
-# PRE ALPHA:
 in moi if you run the same command twice it doesn't cancel the current one
 currently FINISH is always available, even at step 1 of 3 points box.
   - this disables subsequent cancel for example
@@ -26,10 +18,6 @@ stress test undo & redo
 
 add dialogs for everything
 
-windows build
-
-
-## POST ALPHA
 some bugs with move screenspace sometimes, it flickers?
 - try switching commands while doing 3 point box
 should project onto construction plane in ortho view
@@ -42,11 +30,7 @@ refactor factory to take editorlike?
 change selection mode 123 keys
 fix box select
 
-- audit depth pass
-
 drag drop points?
-    draw curve around solid
-
 
 memoize mesh generation of faces in mesh creator (for the duration of a command).
 memoize and discretize calculations like fillet
@@ -54,27 +38,15 @@ memoize and discretize calculations like fillet
 toggle kinds of snaps with keybindings?
 
 need to convert offset curve to curve on surface
-extrude to target
 
 in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
   - shift should turn current axis snap into constraint?
 
-masking? like in zbrush; imagine a box atop a cylinder. I want to mask the box so I can clip curve just that.
-
-select edge and face add rotate face gizmo
-
-moving needs to have snapping
 drag and drop points    
 
 fillet face
 extrude face
-https://github.com/bzztbomb
 right click repeat
-
-BUG/CRASH:
-# 3
-1. crashes-at-fillet-100.c3d
-2. Fillet search 
 
 # c++ changes:
 rename Id() .id
@@ -85,29 +57,13 @@ audit array conversion is reserving and freeing elements:
     and especially check if instantiated RPArray/etc. is freed altogether
     - convert MbCartPoint3D and Vector to isPOD
 Get planar curve and placement if the space curve is planar (after the using call *******DeleteItem for two-dimensional curves).
-convert everything to isPOD possible
-  - ensure invocations to pass by reference use reference... but i think it should be fine.
 
 - 3d Joints
 
-gizmos for primitives
-
-tab to re-enter last command of object
-
-BUG:
-
 BUGS for c3d
-- crashes when extruding composite curve
 - figure 8 intersection hangs
 
 --
 
 Viewport week:
 - keybindings to create/remove viewports
-
-Cleanup week:
-- add dispose methods anywhere there is signal.add or .addEventListener
-- audit geometry disposable
-
-File save / open
-
