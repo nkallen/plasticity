@@ -149,7 +149,7 @@ export class OrbitControls extends EventDispatcher {
         };
 
         const box = new Box3();
-        const size = new THREE.Vector3();
+        const size = new Vector3();
         let lastFingerprint = "";
         this.focus = function (targets, everything) {
             if (fingerprint(targets) == lastFingerprint) {

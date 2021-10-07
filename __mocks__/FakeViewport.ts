@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { OrbitControls } from '../src/components/viewport/OrbitControls';
+import { ProxyCamera } from '../src/components/viewport/ProxyCamera';
 import { EditorLike, Viewport } from '../src/components/viewport/Viewport';
 import { PlaneSnap } from '../src/editor/snaps/Snap';
 
@@ -32,7 +33,7 @@ export function MakeViewport(editor: EditorLike) {
     const canvas = document.createElement('canvas');
     // @ts-expect-error('Cannot mock DomRect')
     canvas.getBoundingClientRect = () => { return { left: 0, top: 0, width: 100, height: 100 } };
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1);
+    const camera = new ProxyCamera()
     camera.position.set(0, 0, 1);
     camera.lookAt(0, 0, 0);
     const domElement = document.createElement('ispace-viewport');
@@ -42,8 +43,7 @@ export function MakeViewport(editor: EditorLike) {
         domElement,
         camera,
         new PlaneSnap(),
-        new OrbitControls(camera, canvas),
-        new THREE.GridHelper()
+        new OrbitControls(camera, canvas, editor.keymaps),
     );
     viewport.lastPointerEvent = new MouseEvent('pointermove', { clientX: 0, clientY: 0 }) as PointerEvent;
     return viewport;

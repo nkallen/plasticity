@@ -1,17 +1,19 @@
 /**
  * @jest-environment jsdom
  */
+import KeymapManager from "atom-keymap";
 import { Disposable } from "event-kit";
 import * as THREE from "three";
 import Command from "../src/commands/Command";
-import { CancelOrFinish } from "../src/commands/CommandExecutor";
 import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorLike, Viewport } from "../src/components/viewport/Viewport";
 import { Orientation } from "../src/components/viewport/ViewportHelper";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { EditorOriginator } from "../src/editor/History";
+import LayerManager from "../src/editor/LayerManager";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
+import { SelectableLayers } from "../src/editor/SelectableLayers";
 import { PlaneSnap } from "../src/editor/snaps/Snap";
 import * as visual from '../src/editor/VisualModel';
 import { HighlightManager } from "../src/selection/HighlightManager";
@@ -41,18 +43,22 @@ beforeEach(async () => {
     selection = new SelectionManager(db, materials, signals);
     interaction = new SelectionInteractionManager(selection, materials, signals);
     highlighter = new HighlightManager(db, materials, selection, signals);
+    const layers = new LayerManager(selection.selected, signals);
+    const keymaps = new KeymapManager();
     editor = {
-        db: db,
+        db,
         viewports: [],
         helpers: new Helpers(signals),
-        signals: signals,
-        selection: selection,
-        originator: originator,
-        materials: materials,
+        signals,
+        selection,
+        originator,
+        materials,
         selectionInteraction: interaction,
         registry: { add: () => new Disposable() },
-        enqueue: (command: Command, cancelOrFinish?: CancelOrFinish) => Promise.resolve(),
-        highlighter: highlighter
+        enqueue: (command: Command) => Promise.resolve(),
+        highlighter,
+        layers,
+        keymaps,
     } as unknown as EditorLike;
     const makeSphere = new SphereFactory(db, materials, signals);
     makeSphere.center = new THREE.Vector3();
@@ -137,4 +143,22 @@ test("navigation start & end turns off isOrtho", () => {
     viewport.camera.quaternion.copy(new THREE.Quaternion());
     viewport.navigationControls.dispatchEvent({ type: 'change', target: null });
     expect(viewport.isOrtho).toBe(false);
+});
+
+test("toggleOrtho", () => {
+    viewport.toggleOrtho();
+});
+
+test("toggleXRay", () => {
+    const xray = new THREE.Layers();
+    xray.set(visual.Layers.XRay);
+    expect(visual.VisibleLayers.test(xray)).toBe(true);
+    expect(SelectableLayers.test(xray)).toBe(true);
+    viewport.toggleXRay();
+    expect(visual.VisibleLayers.test(xray)).toBe(false);
+    expect(SelectableLayers.test(xray)).toBe(false);
+});
+
+test("toggleGrid", () => {
+    viewport.toggleGrid();
 });
