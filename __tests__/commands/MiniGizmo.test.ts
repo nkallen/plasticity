@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import KeymapManager from "atom-keymap";
 import * as THREE from "three";
 import { EditorLike, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { MagnitudeGizmo } from "../../src/commands/fillet/FilletGizmo";
@@ -31,8 +32,9 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
     helpers = new Helpers(signals);
     const registry = new CommandRegistry();
+    const keymaps = new KeymapManager();
     editor = {
-        registry, db, gizmos, helpers, signals, viewports: [],
+        registry, db, gizmos, helpers, signals, viewports: [], keymaps
     } as unknown as EditorLike;
 })
 

@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import KeymapManager from "atom-keymap";
 import { Disposable } from "event-kit";
 import * as THREE from "three";
 import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
@@ -49,11 +50,12 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
+    const keymaps = new KeymapManager();
     editor = {
         viewports: [],
         helpers: new Helpers(signals),
         registry: new CommandRegistry(),
-        signals, gizmos, db
+        signals, gizmos, db, keymaps
     } as unknown as EditorLike;
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);

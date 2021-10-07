@@ -27,6 +27,7 @@ export class ProxyCamera extends THREE.Camera {
 
     constructor(private mode: Mode = 'orthographic') {
         super();
+        this.updateProjectionMatrix();
     }
 
     offsetWidth: number = 100;
