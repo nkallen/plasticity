@@ -134,6 +134,9 @@ export class Viewport {
                 'viewport:right': () => this.navigate(Orientation.posX),
                 'viewport:top': () => this.navigate(Orientation.posZ),
                 'viewport:focus': () => this.focus(),
+                'viewport:toggle-orthographic': () => this.toggleOrtho(),
+                'viewport:toggle-x-ray': () => this.toggleXRay(),
+                'viewport:toggle-grid': () => this.toggleGrid(),
             })
         );
 

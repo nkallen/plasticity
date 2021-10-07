@@ -139,9 +139,19 @@ export default {
 
     "body:not([gizmo]) ispace-viewport": {
         "1": "viewport:front",
+        "numpad-1": "viewport:front",
         "3": "viewport:right",
+        "numpad-3": "viewport:right",
         "7": "viewport:top",
+        "numpad-7": "viewport:top",
+
         "/": "viewport:focus",
+
+        "alt-z": "viewport:toggle-x-ray",
+        "shift-alt-z": "viewport:toggle-grid",
+
+        "5": "viewport:toggle-orthographic",
+        "numpad-5": "viewport:toggle-orthographic",
     },
 
     "body:not([gizmo]) ispace-workspace": {
