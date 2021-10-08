@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { AxisSnap, CurveSnap, Layers, CurvePointSnap, PointSnap } from "../editor/snaps/Snap";
+import { AxisSnap, CurvePointSnap, CurveSnap, Layers, PointSnap } from "../editor/snaps/Snap";
 import * as visual from "../editor/VisualModel";
-import { Finish, Interrupt } from "../util/Cancellable";
+import { Finish } from "../util/Cancellable";
 import { point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";

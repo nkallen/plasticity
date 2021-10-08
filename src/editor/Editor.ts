@@ -124,7 +124,7 @@ export class Editor {
 
     async open() {
         const { filePaths } = await remote.dialog.showOpenDialog({
-            properties: ['openFile'],
+            properties: ['openFile', 'multiSelections'],
             filters: [
                 { name: 'All supported', extensions: ['stp', 'step', 'c3d', 'igs', 'iges', 'sat'] },
                 { name: 'STEP files', extensions: ['stp', 'step'] },
@@ -144,7 +144,7 @@ export class Editor {
                 { name: 'IGES files', extensions: ['igs', 'iges'] },
                 { name: 'SAT files', extensions: ['sat'] },
                 { name: 'C3D files', extensions: ['c3d'] }
-            ] 
+            ]
         });
         if (canceled) return;
         this.importer.export(this._db.saveToMemento().model, filePath!);
