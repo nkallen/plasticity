@@ -353,6 +353,7 @@ export class PointPicker {
 
                 const onPointerDown = (e: PointerEvent) => {
                     if (e.button != 0) return;
+                    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
                     dispose();
                     finish();
                     info = undefined;
