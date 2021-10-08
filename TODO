@@ -1,14 +1,17 @@
-New features this week:
-. basic step/iges export
-. customizable keybindings (requires a text editor)
-. customizable keybindings for orbit (e.g., for maya-style orbit/zoom/pan)
-. toggle on/off xray mode
-. toggle on/off perspective mode
-. toggle on/off grid
-. deselect all command
-. focus command
-. text in viewport indicating top/front/right views
+Release:
+point picker points created even when modifier key like alt
 
+Todo:
+
+circle on corner box top or side face
+better mirror influenced by moi
+region selection on top of face no longer possible
+hide xyz axis when hiding the grid
+scale snap point on diagonal
+creating a box on top of a box does not allow union-ing
+viewport state saved
+
+prolong on and off
 1 and 2 for distance 1 and 2
 slow gizmo
 more robust mirror
