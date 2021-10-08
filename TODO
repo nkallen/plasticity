@@ -6,9 +6,14 @@ New features this week:
 . toggle on/off perspective mode
 . toggle on/off grid
 . deselect all command
-
+. focus command
+. text in viewport indicating top/front/right views
 
 1 and 2 for distance 1 and 2
+slow gizmo
+more robust mirror
+submenu icons
+when move gizmo moves, it needs to reorient the circle towards camera
 
 line2 raycasting bad ortho camera
 
@@ -18,22 +23,25 @@ make trim viewport selector more permissive
 
 in moi if you run the same command twice it doesn't cancel the current one
 currently FINISH is always available, even at step 1 of 3 points box.
-  - this disables subsequent cancel for example
-  - registry.add(command:finish) should maybe not happen in command executor but in await this.finished
-  - if so, each command needs to be slightly rewritten
+
+- this disables subsequent cancel for example
+- registry.add(command:finish) should maybe not happen in command executor but in await this.finished
+- if so, each command needs to be slightly rewritten
 
 stress test undo & redo
 
 add dialogs for everything
 
 some bugs with move screenspace sometimes, it flickers?
+
 - try switching commands while doing 3 point box
-should project onto construction plane in ortho view
-min and max in number srubber should be respected
+  should project onto construction plane in ortho view
+  min and max in number srubber should be respected
 
 performance audit hit testing and snaps
 refactor factory to take editorlike?
-  -         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
+
+-         factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
 
 change selection mode 123 keys
 fix box select
@@ -48,30 +56,33 @@ toggle kinds of snaps with keybindings?
 need to convert offset curve to curve on surface
 
 in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?
-  - shift should turn current axis snap into constraint?
 
-drag and drop points    
+- shift should turn current axis snap into constraint?
+
+drag and drop points
 
 fillet face
 extrude face
 right click repeat
 
 # c++ changes:
+
 rename Id() .id
 
 audit array conversion is reserving and freeing elements:
-    ::AddRefItems( curveArray );
-    ::ReleaseItems( curveArray );
-    and especially check if instantiated RPArray/etc. is freed altogether
-    - convert MbCartPoint3D and Vector to isPOD
-Get planar curve and placement if the space curve is planar (after the using call *******DeleteItem for two-dimensional curves).
+::AddRefItems( curveArray );
+::ReleaseItems( curveArray );
+and especially check if instantiated RPArray/etc. is freed altogether - convert MbCartPoint3D and Vector to isPOD
+Get planar curve and placement if the space curve is planar (after the using call **\*\*\***DeleteItem for two-dimensional curves).
 
 - 3d Joints
 
 BUGS for c3d
+
 - figure 8 intersection hangs
 
 --
 
 Viewport week:
+
 - keybindings to create/remove viewports

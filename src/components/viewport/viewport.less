@@ -41,35 +41,46 @@ ispace-viewport {
 
     ispace-viewport-header {
         position: absolute;
-        right: 140px;
-        margin: auto;
+        width: 100%;
         top: 6px;
-        text-align: center;
 
-        &>button {
-            position: relative;
-            border: 0;
-            margin: 2px;
-            padding: 0;
-            cursor: pointer;
-            outline: none;
-            background-color: #999;
+        &>.info {
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, 0);
+            margin-top: 5px;
+        }
 
-            &:hover {
-                color: #fff;
-                background-color: #08f;
+        &>.properties {
+            position: absolute;
+            right: 140px;
+            text-align: center;
+            display: inline-block;
+
+            &>button {
+                border: 0;
+                margin: 2px;
+                padding: 0;
+                cursor: pointer;
+                outline: none;
+                background-color: #999;
+
+                &:hover {
+                    color: #fff;
+                    background-color: #08f;
+
+                    img {
+                        background-color: #08f;
+                    }
+                }
 
                 img {
-                    background-color: #08f;
+                    margin: 4px;
+                    color: rgba(0, 0, 0, 0.5);
+                    width: 14px;
+                    height: 14px;
+                    background-color: #999;
                 }
-            }
-
-            img {
-                margin: 4px;
-                color: rgba(0, 0, 0, 0.5);
-                width: 14px;
-                height: 14px;
-                background-color: #999;
             }
         }
     }
@@ -89,8 +100,8 @@ ispace-viewport {
             color: black;
             margin-left: 20px;
             margin-top: -20px;
-            border-radius: .25rem;
-            padding: .375rem .75rem;
+            border-radius: 0.25rem;
+            padding: 0.375rem 0.75rem;
             user-select: none;
             font-size: 1rem;
             border-color: #6c757d;

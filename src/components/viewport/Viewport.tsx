@@ -1,4 +1,5 @@
 import { CompositeDisposable, Disposable } from "event-kit";
+import signals from "signals";
 import * as THREE from "three";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -38,6 +39,7 @@ export interface EditorLike extends selector.EditorLike {
 }
 
 export class Viewport {
+    readonly changed = new signals.Signal();
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
@@ -300,8 +302,11 @@ export class Viewport {
         switch (this.navigationState.tag) {
             case 'navigating':
                 if (!this.navigationState.quaternion.equals(this.camera.quaternion)) {
-                    this._isOrtho = false;
-                    this.constructionPlane = new PlaneSnap(Z);
+                    if (this._isOrtho) {
+                        this._isOrtho = false;
+                        this.constructionPlane = new PlaneSnap(Z);
+                        this.changed.dispatch();
+                    }
                 }
                 this.constructionPlane.update(this.camera);
                 break;
@@ -342,17 +347,20 @@ export class Viewport {
         this.camera.toggle();
         this.navigationControls.update();
         this.setNeedsRender();
+        this.changed.dispatch();
     }
 
     toggleXRay() {
         this.editor.layers.toggleXRay();
         this.setNeedsRender();
+        this.changed.dispatch();
     }
 
     private showGrid = true;
     toggleGrid() {
         this.showGrid = !this.showGrid;
         this.setNeedsRender();
+        this.changed.dispatch();
     }
 
     navigate(to: Orientation) {
@@ -360,6 +368,7 @@ export class Viewport {
         const constructionPlane = new PlaneSnap(n);
         this.constructionPlane = constructionPlane;
         this._isOrtho = true;
+        this.changed.dispatch();
     }
 
     focus() {
