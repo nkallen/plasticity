@@ -1,12 +1,10 @@
+if (require('electron-squirrel-startup')) app.quit();
+
 import { app, BrowserWindow, crashReporter } from 'electron';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import fse from 'fs-extra';
-
-if (require('electron-squirrel-startup')) {
-    app.quit();
-}
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 
@@ -19,12 +17,9 @@ crashReporter.start({
 // This is required by atom-keymap
 app.allowRendererProcessReuse = false
 
-console.log(process.cwd());
-console.log(__dirname);
-
 process.env.PLASTICITY_HOME = path.join(os.homedir(), '.plasticity');
 if (!fs.existsSync(process.env.PLASTICITY_HOME)) {
-    fse.copySync('dot-plasticity', process.env.PLASTICITY_HOME);
+    fse.copySync(path.join(__dirname, 'dot-plasticity'), process.env.PLASTICITY_HOME);
 }
 
 const createWindow = (): void => {
