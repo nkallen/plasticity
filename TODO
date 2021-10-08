@@ -1,14 +1,15 @@
 Release:
-point picker points created even when modifier key like alt
+. fix bug: point picker points created even when modifier key like alt is pressed
+. inner box edges hard to select during xray off
+. region selection on top of face no longer possible
 
 Todo:
-
 circle on corner box top or side face
-better mirror influenced by moi
-region selection on top of face no longer possible
-hide xyz axis when hiding the grid
-scale snap point on diagonal
 creating a box on top of a box does not allow union-ing
+hide xyz axis when hiding the grid
+
+better mirror influenced by moi
+scale snap point on diagonal
 viewport state saved
 
 prolong on and off

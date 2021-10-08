@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { BetterRaycastingPoint } from '../util/BetterRaycastingPoints';
 import { ControlPoint, ControlPointGroup, Curve3D, CurveSegment, Layers, Region, Solid, TopologyItem } from "./VisualModel";
+import * as visual from '../editor/VisualModel';
 
 export type Intersectable = Curve3D | TopologyItem | ControlPoint | Region;
 
@@ -19,7 +20,7 @@ export function select(selected: THREE.Mesh[]): Set<Intersectable> {
     for (const object of selected) {
         if (!isSelectable(object)) continue;
 
-        const selectable = findSelectable(object);
+        const selectable = findIntersectable(object);
         set.add(selectable);
     }
     return set;
@@ -33,14 +34,14 @@ export interface Intersection {
 
 export function filter(intersections: THREE.Intersection[]): Intersection[] {
     intersections = intersections.filter(i => isSelectable(i.object));
-    intersections.sort(sortIntersections);
+    const sortable: [THREE.Intersection, Intersectable][] = intersections.map((i) => [i, findIntersectable(i.object, i.index)]);
+    sortable.sort(sortIntersections);
     const visited: Set<Intersectable> = new Set();
     const result: Intersection[] = [];
-    for (const { object, index, point, distance } of intersections) {
-        const selectable = findSelectable(object, index);
-        if (visited.has(selectable)) continue;
-        visited.add(selectable);
-        result.push({ object: selectable, point, distance });
+    for (const [{ point, distance }, intersectable] of sortable) {
+        if (visited.has(intersectable)) continue;
+        visited.add(intersectable);
+        result.push({ object: intersectable, point, distance });
     }
     return result;
 }
@@ -56,7 +57,7 @@ function isSelectable(object: THREE.Object3D): boolean {
     return true;
 }
 
-function findSelectable(object: THREE.Object3D, index?: number): Intersectable {
+function findIntersectable(object: THREE.Object3D, index?: number): Intersectable {
     if (object instanceof BetterRaycastingPoint) {
         const controlPointGroup = object.parent.parent! as ControlPointGroup;
         if (!(controlPointGroup instanceof ControlPointGroup))
@@ -73,11 +74,37 @@ function findSelectable(object: THREE.Object3D, index?: number): Intersectable {
     }
 }
 
+
+const priorities = new Map<any, number>();
+priorities.set(visual.ControlPoint, 0);
+priorities.set(visual.Curve3D, 1);
+priorities.set(visual.CurveEdge, 2);
+priorities.set(visual.Region, 3);
+priorities.set(visual.Face, 4);
+
+
 const xray = new THREE.Layers();
 xray.disableAll();
 xray.enable(Layers.XRay);
-function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
+function sortIntersections(ii1: [THREE.Intersection, Intersectable], ii2: [THREE.Intersection, Intersectable]) {
+    const [i1, intersectable1] = ii1;
+    const [i2, intersectable2] = ii2;
+
     if (i1.object.layers.test(xray)) return -1;
     if (i2.object.layers.test(xray)) return 1;
-    return i1.distance - i2.distance;
+
+    const delta = i1.distance - i2.distance;
+    if (Math.abs(delta) < 10e-3) {
+        const x = priorities.get(intersectable1.constructor);
+        const y = priorities.get(intersectable2.constructor);
+        if (x === undefined || y === undefined) {
+            console.error(i1.object.constructor.name);
+            console.error(i2.object.constructor.name);
+            throw new Error("invalid precondition");
+        }
+        return x - y;
+    } else {
+        return delta;
+    }
+    return delta;
 }
