@@ -159,6 +159,6 @@ test("toggleXRay", () => {
     expect(SelectableLayers.test(xray)).toBe(false);
 });
 
-test("toggleGrid", () => {
-    viewport.toggleGrid();
+test("toggleOverlays", () => {
+    viewport.toggleOverlays();
 });

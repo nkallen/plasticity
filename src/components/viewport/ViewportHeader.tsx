@@ -69,9 +69,9 @@ export default (editor: Editor) => {
                             <img src={xray}></img>
                             <ispace-tooltip placement="bottom" command="viewport:toggle-x-ray">Toggle X-ray. Allow selecting through items</ispace-tooltip>
                         </button>
-                        <button type="button" onClick={_ => this.viewport.toggleGrid()} tabIndex={-1}>
+                        <button type="button" onClick={_ => this.viewport.toggleOverlays()} tabIndex={-1}>
                             <img src={grid}></img>
-                            <ispace-tooltip placement="bottom" command="viewport:toggle-grid">Toggle grid</ispace-tooltip>
+                            <ispace-tooltip placement="bottom" command="viewport:toggle-overlays">Toggle overlays</ispace-tooltip>
                         </button>
                     </div>
                 </>

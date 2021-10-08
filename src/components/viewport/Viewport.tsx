@@ -139,7 +139,7 @@ export class Viewport {
                 'viewport:focus': () => this.focus(),
                 'viewport:toggle-orthographic': () => this.toggleOrtho(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
-                'viewport:toggle-grid': () => this.toggleGrid(),
+                'viewport:toggle-overlays': () => this.toggleOverlays(),
             })
         );
 
@@ -227,8 +227,10 @@ export class Viewport {
                 grid.position.set(0, 0, -0.01);
                 grid.quaternion.setFromUnitVectors(Y, constructionPlane.n);
                 grid.update(camera);
-                scene.add(helpers.axes);
-                if (this.showGrid) scene.add(grid);
+                if (this.showOverlays) {
+                    scene.add(helpers.axes);
+                    scene.add(grid);
+                }
 
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
@@ -356,9 +358,9 @@ export class Viewport {
         this.changed.dispatch();
     }
 
-    private showGrid = true;
-    toggleGrid() {
-        this.showGrid = !this.showGrid;
+    private showOverlays = true;
+    toggleOverlays() {
+        this.showOverlays = !this.showOverlays;
         this.setNeedsRender();
         this.changed.dispatch();
     }

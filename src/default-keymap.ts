@@ -25,7 +25,7 @@ export default {
         "t": "gizmo:revolution:thickness",
     },
 
-    "[command='box'] ispace-viewport": {
+    "[command='center-box'] ispace-viewport, [command='corner-box'] ispace-viewport, [command='three-point-box'] ispace-viewport": {
         "q": "gizmo:box:union",
         "w": "gizmo:box:difference",
         "e": "gizmo:box:intersect",
@@ -148,7 +148,7 @@ export default {
         "/": "viewport:focus",
 
         "alt-z": "viewport:toggle-x-ray",
-        "shift-alt-z": "viewport:toggle-grid",
+        "shift-alt-z": "viewport:toggle-overlays",
 
         "5": "viewport:toggle-orthographic",
         "num5": "viewport:toggle-orthographic",
