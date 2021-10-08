@@ -35,10 +35,11 @@ test("export & import c3d", async () => {
     makeSphere.center = new THREE.Vector3();
     makeSphere.radius = 1;
     const item = await makeSphere.commit() as visual.Solid;
+    const model = db.saveToMemento().model;
+
     await db.removeItem(item);
     expect(db.visibleObjects.length).toBe(0);
     
-    const model = db.saveToMemento().model;
     const dir = os.tmpdir();
     const filePath = path.join(dir, 'export.c3d');
     await importer.export(model, filePath);

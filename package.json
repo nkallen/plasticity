@@ -1,7 +1,7 @@
 {
     "name": "plasticity",
     "productName": "plasticity",
-    "version": "1.0.0",
+    "version": "0.1.2",
     "description": "My Electron application description",
     "main": ".webpack/main",
     "scripts": {
