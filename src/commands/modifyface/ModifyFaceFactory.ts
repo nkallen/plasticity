@@ -20,11 +20,10 @@ export abstract class ModifyFaceFactory extends GeometryFactory {
     protected abstract operationType: c3d.ModifyingType;
     direction = new THREE.Vector3();
 
-    protected facesModel!: c3d.Face[];
-    protected solidModel!: c3d.Solid;
     protected names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
 
     private _solid!: visual.Solid;
+    protected solidModel!: c3d.Solid;
     get solid() { return this._solid }
     set solid(obj: visual.Solid) {
         this._solid = obj;
@@ -32,6 +31,7 @@ export abstract class ModifyFaceFactory extends GeometryFactory {
     }
 
     private _faces = new Array<visual.Face>();
+    protected facesModel!: c3d.Face[];
     get faces() { return this._faces }
     set faces(faces: visual.Face[]) {
         this._faces = faces;

@@ -15,15 +15,32 @@ export class DraftSolidFactory extends GeometryFactory implements RotateParams {
         this.angle = THREE.MathUtils.degToRad(degrees);
     }
 
-    faces = new Array<visual.Face>();
-    solid!: visual.Solid;
-    protected solidModel!: c3d.Solid;
     private names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
 
+    private _solid!: visual.Solid;
+    private solidModel!: c3d.Solid;
+    get solid() { return this._solid }
+    set solid(obj: visual.Solid) {
+        this._solid = obj;
+        this.solidModel = this.db.lookup(this.solid);
+    }
+
+    private _faces = new Array<visual.Face>();
+    protected facesModel!: c3d.Face[];
+    get faces() { return this._faces }
+    set faces(faces: visual.Face[]) {
+        this._faces = faces;
+
+        const facesModel = [];
+        for (const face of faces) {
+            const model = this.db.lookupTopologyItem(face);
+            facesModel.push(model);
+        }
+        this.facesModel = facesModel;
+    }
+
     async calculate() {
-        const { solid, faces, pivot, axis, angle, names } = this;
-        const model = this.db.lookup(solid);
-        const faces_ = faces.map(f => this.db.lookupTopologyItem(f));
+        const { solidModel: solid, facesModel: faces, pivot, axis, angle, names } = this;
 
         const placement = new c3d.Placement3D();
         placement.SetOrigin(point2point(pivot));
@@ -35,8 +52,7 @@ export class DraftSolidFactory extends GeometryFactory implements RotateParams {
         }
         placement.Reset();
 
-        const drafted = await c3d.ActionSolid.DraftSolid_async(model, c3d.CopyMode.Copy, placement, angle, faces_, c3d.FacePropagation.All, false, names);
-        return drafted;
+        return await c3d.ActionSolid.DraftSolid_async(solid, c3d.CopyMode.Copy, placement, angle, faces, c3d.FacePropagation.All, false, names);
     }
 
     protected get originalItem() { return this.solid }
