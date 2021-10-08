@@ -145,6 +145,7 @@ export class CurveSegment extends THREE.Object3D {
         this.userData.name = name;
         this.userData.simpleName = simpleName;
         this.renderOrder = RenderOrder.CurveSegment;
+        occludedLine.layers.set(Layers.XRay);
     }
 
     dispose() {
