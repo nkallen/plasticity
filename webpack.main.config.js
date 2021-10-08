@@ -19,7 +19,7 @@ module.exports = {
     plugins: [
         new CopyPlugin({
             patterns: [
-                { from: "src/dot-plasticity", to: "dot-plasticity" },
+                { from: "dot-plasticity", to: "dot-plasticity" },
             ],
         }),
     ],

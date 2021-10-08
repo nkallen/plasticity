@@ -1,6 +1,7 @@
 const rules = require('./webpack.rules');
 const plugins = require('./webpack.plugins');
 const TerserPlugin = require("terser-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 
 rules.push({
     test: /\.css$/,
@@ -41,6 +42,15 @@ rules.push({
         },
     ],
 });
+
+const libraries = [];
+if (process.platform == "darwin") libraries.push({ from: "build/Release/libc3d.dylib", to: "[name][ext]" });
+if (process.platform == "win32") libraries.push({ from: "build/Release/*.dll", to: "[name][ext]" });
+plugins.push(
+    new CopyPlugin({
+        patterns: libraries,
+    })
+)
 
 module.exports = {
     'node': {

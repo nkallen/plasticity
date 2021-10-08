@@ -3,14 +3,7 @@ import json5 from 'json5';
 import path from 'path';
 import Stats from 'stats.js';
 import * as THREE from 'three';
-// import '../build/Release/c3d.dll';
-// import '../build/Release/msvcp140.dll';
-// import '../build/Release/vccorlib140.dll';
-// import '../build/Release/vcomp140.dll';
-// import '../build/Release/vcruntime140.dll';
-// import '../build/Release/vcruntime140_1.dll';
 import c3d from '../build/Release/c3d.node';
-import '../build/Release/libc3d.dylib';
 import '../lib/c3d/enums';
 import license from '../license-key.json';
 import * as cmd from './commands/GeometryCommands';
@@ -29,7 +22,6 @@ import ViewportHeader from './components/viewport/ViewportHeader';
 import './css/index.less';
 import defaultKeymap from "./default-keymap";
 import { HotReloadingEditor } from './editor/Editor';
-
 
 c3d.Enabler.EnableMathModules(license.name, license.key);
 
