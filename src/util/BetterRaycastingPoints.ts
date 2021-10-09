@@ -94,7 +94,7 @@ export class BetterSelectionBox extends SelectionBox {
 
             const start = Math.max(0, drawRange.start);
             const end = Math.min(positionAttribute.count, (drawRange.start + drawRange.count));
-            for (let i = start, l = end; i < l; i++) {
+            for (let i = start; i < end; i++) {
                 _position.fromBufferAttribute(positionAttribute, i);
                 _position.applyMatrix4(matrixWorld);
                 if (frustrum.containsPoint(_position)) {
