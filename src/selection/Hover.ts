@@ -1,4 +1,4 @@
-import { Intersectable } from "../editor/SelectableLayers";
+import { Intersectable } from "../editor/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { ModifiesSelection } from "./SelectionManager";

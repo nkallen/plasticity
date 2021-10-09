@@ -4,7 +4,7 @@ import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { Intersectable, Intersection } from '../editor/SelectableLayers';
+import { Intersectable, Intersection } from '../editor/Intersectable';
 import { SelectionInteractionManager, SelectionMode } from '../selection/SelectionInteraction';
 import { HasSelection, Selectable, SelectionManager } from '../selection/SelectionManager';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
@@ -26,7 +26,7 @@ class MyViewportSelector extends AbstractViewportSelector {
         domElement: HTMLElement,
         private readonly editor: EditorLike,
         private readonly selection: SelectionManager,
-        private readonly onEmptyIntersection = () => {}
+        private readonly onEmptyIntersection = () => { }
     ) {
         super(camera, domElement, editor.db, editor.signals);
         this.selection.mode.add(SelectionMode.Curve);
@@ -62,12 +62,12 @@ export class ObjectPicker {
             const editor = this.editor;
 
             const disposables = new CompositeDisposable();
-            
+
             editor.signals.objectRemoved.add(signals.objectRemoved.dispatch);
             disposables.add(new Disposable(() => editor.signals.objectRemoved.remove(signals.objectRemoved.dispatch)));
 
             const selection = new SelectionManager(editor.db, editor.materials, signals, new Set());
-            
+
             if (cb !== undefined) {
                 signals.objectSelected.add(cb);
                 disposables.add(new Disposable(() => signals.objectSelected.remove(cb)));
@@ -75,13 +75,13 @@ export class ObjectPicker {
             const finish = () => cancellable.finish();
             signals.objectSelected.add(finish);
             disposables.add(new Disposable(() => signals.objectSelected.remove(finish)));
-            
+
             for (const viewport of this.editor.viewports) {
                 viewport.selector.enabled = false;
                 disposables.add(new Disposable(() => viewport.enableControls()));
-                
+
                 const selector = new MyViewportSelector(viewport.camera, viewport.renderer.domElement, editor, selection, finish);
-                
+
                 disposables.add(new Disposable(() => selector.dispose()));
             }
 
@@ -89,8 +89,8 @@ export class ObjectPicker {
         });
         return cancellable;
     }
-    
+
     allowCurveFragments() {
-        
+
     }
 }

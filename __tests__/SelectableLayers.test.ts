@@ -7,7 +7,7 @@ import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { filter, select, SelectableLayers } from "../src/editor/SelectableLayers";
+import { filter, select, SelectableLayers } from "../src/editor/Intersectable";
 import * as visual from "../src/editor/VisualModel";
 import { HighlightManager } from "../src/selection/HighlightManager";
 import { SelectionManager } from "../src/selection/SelectionManager";

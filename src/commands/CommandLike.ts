@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ModifierStack } from '../editor/ModifierManager';
-import { Intersectable, Intersection } from '../editor/SelectableLayers';
+import { Intersectable, Intersection } from '../editor/Intersectable';
 import * as visual from "../editor/VisualModel";
 import Command, * as cmd from "./Command";
 import { ExportDialog } from './export/ExportDialog';

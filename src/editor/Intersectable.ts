@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { BetterRaycastingPoint } from '../util/BetterRaycastingPoints';
 import { ControlPoint, ControlPointGroup, Curve3D, CurveSegment, Layers, Region, Solid, TopologyItem } from "./VisualModel";
-import * as visual from '../editor/VisualModel';
+import * as visual from './VisualModel';
 
 export type Intersectable = Curve3D | TopologyItem | ControlPoint | Region;
 
@@ -16,14 +16,14 @@ SelectableLayers.disable(Layers.Unselectable);
 // and return higher level view objects (Face, CurveEdge, Region, etc.).
 
 export function select(selected: THREE.Mesh[]): Set<Intersectable> {
-    const set = new Set<Intersectable>();
+    const result = new Set<Intersectable>();
     for (const object of selected) {
         if (!isSelectable(object)) continue;
 
-        const selectable = findIntersectable(object);
-        set.add(selectable);
+        const intersectable = findIntersectable(object);
+        result.add(intersectable);
     }
-    return set;
+    return result;
 }
 
 export interface Intersection {

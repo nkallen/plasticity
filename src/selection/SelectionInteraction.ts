@@ -1,6 +1,6 @@
 import { EditorSignals } from '../editor/EditorSignals';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { Intersectable, Intersection } from "../editor/SelectableLayers";
+import { Intersectable, Intersection } from "../editor/Intersectable";
 import * as visual from '../editor/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../editor/VisualModel';
 import { ClickStrategy } from './Click';

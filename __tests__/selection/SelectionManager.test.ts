@@ -6,7 +6,7 @@ import { RegionFactory } from '../../src/commands/region/RegionFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { Intersection } from '../../src/editor/SelectableLayers';
+import { Intersection } from '../../src/editor/Intersectable';
 import * as visual from '../../src/editor/VisualModel';
 import { SelectionInteractionManager } from '../../src/selection/SelectionInteraction';
 import { SelectionManager } from '../../src/selection/SelectionManager';

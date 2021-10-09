@@ -1,6 +1,6 @@
 import { HasSelection } from '../selection/SelectionManager';
 import * as visual from '../editor/VisualModel';
-import * as SelectableLayers from "../editor/SelectableLayers";
+import * as SelectableLayers from "./Intersectable";
 import { EditorSignals } from './EditorSignals';
 
 export default class LayerManager {

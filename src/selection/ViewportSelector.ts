@@ -5,7 +5,7 @@ import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../comma
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator } from "../editor/History";
-import * as SelectableLayers from "../editor/SelectableLayers";
+import * as SelectableLayers from "../editor/Intersectable";
 import * as visual from "../editor/VisualModel";
 import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
 

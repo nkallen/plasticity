@@ -13,7 +13,7 @@ import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { EditorOriginator } from "../src/editor/History";
 import LayerManager from "../src/editor/LayerManager";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
-import { SelectableLayers } from "../src/editor/SelectableLayers";
+import { SelectableLayers } from "../src/editor/Intersectable";
 import { PlaneSnap } from "../src/editor/snaps/Snap";
 import * as visual from '../src/editor/VisualModel';
 import { HighlightManager } from "../src/selection/HighlightManager";
