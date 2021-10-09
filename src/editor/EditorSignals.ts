@@ -44,4 +44,5 @@ export class EditorSignals {
     dialogRemoved: signals.Signal = new signals.Signal();
     viewportActivated: signals.Signal<Viewport> = new signals.Signal();
     moduleReloaded: signals.Signal = new signals.Signal();
+    selectionModeChanged: signals.Signal = new signals.Signal();
 }

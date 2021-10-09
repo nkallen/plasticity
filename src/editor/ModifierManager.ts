@@ -7,7 +7,7 @@ import { SelectionProxy } from "../selection/SelectionProxy";
 import { GConstructor } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
 import { EditorSignals } from "./EditorSignals";
-import { Agent, DatabaseLike, GeometryDatabase, TemporaryObject } from "./GeometryDatabase";
+import { Agent, DatabaseLike, TemporaryObject } from "./GeometryDatabase";
 import { MementoOriginator, ModifierMemento, ModifierStackMemento } from "./History";
 import MaterialDatabase from "./MaterialDatabase";
 import * as visual from "./VisualModel";
@@ -100,7 +100,7 @@ export class ModifierStack {
 
         if (temps.length === 0) return {
             underlying: undefined as any,
-            show() {},
+            show() { },
             cancel() { },
         };
         if (temps.length > 1) throw new Error("invalid postcondition: " + temps.length);
@@ -175,6 +175,8 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         this.selected = new ModifierSelection(db, this, selection.selected);
         this.hovered = selection.hovered;
     }
+
+    get mode() { return this.selection.mode }
 
     add(object: visual.Solid, klass: GConstructor<SymmetryFactory>): { stack: ModifierStack, factory: SymmetryFactory } {
         const { version2name, name2stack, modified2name } = this;

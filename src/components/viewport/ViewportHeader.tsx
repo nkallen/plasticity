@@ -5,6 +5,7 @@ import grid from './img/ortho.svg';
 import perspective from './img/perspective.svg';
 import xray from './img/xray.svg';
 import * as THREE from "three";
+import { SelectionMode } from '../../selection/SelectionInteraction';
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -23,10 +24,12 @@ export default (editor: Editor) => {
         connectedCallback() {
             this.render();
             this.viewport.changed.add(this.render);
+            editor.signals.selectionModeChanged.add(this.render);
         }
 
         disconnectedCallback() {
             this.viewport.changed.remove(this.render);
+            editor.signals.selectionModeChanged.remove(this.render);
         }
 
         get viewport() {
@@ -57,22 +60,61 @@ export default (editor: Editor) => {
             const { description } = this;
             const result = (
                 <>
+                    <div class="selection">
+                        <input type="checkbox" class="btn" id="control-point" checked={editor.selection.mode.has(SelectionMode.ControlPoint)}
+                            onClick={e => editor.selection.mode.toggle(SelectionMode.ControlPoint)}
+                        />
+                        <label class="btn" for="control-point">
+                            <img src={perspective}></img>
+                            <ispace-tooltip placement="bottom" command="selection:toggle-control-point">Control-Point select</ispace-tooltip>
+                        </label>
+                        <input type="checkbox" class="btn" id="edge" checked={editor.selection.mode.has(SelectionMode.Edge)}
+                            onClick={e => editor.selection.mode.toggle(SelectionMode.Edge)}
+                        />
+                        <label class="btn" for="edge">
+                            <img src={perspective}></img>
+                            <ispace-tooltip placement="bottom" command="selection:toggle-edge">Edge select</ispace-tooltip>
+                        </label>
+                        <input type="checkbox" class="btn" id="face" checked={editor.selection.mode.has(SelectionMode.Face)}
+                            onClick={e => editor.selection.mode.toggle(SelectionMode.Face)}
+                        />
+                        <label class="btn" for="face">
+                            <img src={perspective}></img>
+                            <ispace-tooltip placement="bottom" command="selection:toggle-face">Face select</ispace-tooltip>
+                        </label>
+                        <input type="checkbox" class="btn" id="solid" checked={editor.selection.mode.has(SelectionMode.Solid)}
+                            onClick={e => editor.selection.mode.toggle(SelectionMode.Solid)}
+                        />
+                        <label class="btn" for="solid">
+                            <img src={perspective}></img>
+                            <ispace-tooltip placement="bottom" command="selection:toggle-solid">Solid select</ispace-tooltip>
+                        </label>
+                    </div>
                     <div class="info">
                         {description}
                     </div>
                     <div class="properties">
-                        <button type="button" onClick={e => this.viewport.toggleOrtho()} tabIndex={-1}>
+                        <input type="checkbox" class="btn" id="ortho" checked={this.viewport.camera.isPerspectiveCamera}
+                            onClick={e => this.viewport.togglePerspective()}
+                        />
+                        <label class="btn" for="ortho">
                             <img src={perspective}></img>
                             <ispace-tooltip placement="bottom" command="viewport:toggle-orthographic">Switch the current view from perspective/orthographic</ispace-tooltip>
-                        </button>
-                        <button type="button" onClick={_ => this.viewport.toggleXRay()} tabIndex={-1}>
+                        </label>
+                        <input type="checkbox" class="btn" id="xray" checked={this.viewport.isXRay}
+                            onClick={e => this.viewport.toggleXRay()}
+                        />
+                        <label class="btn" for="xray">
                             <img src={xray}></img>
-                            <ispace-tooltip placement="bottom" command="viewport:toggle-x-ray">Toggle X-ray. Allow selecting through items</ispace-tooltip>
-                        </button>
-                        <button type="button" onClick={_ => this.viewport.toggleOverlays()} tabIndex={-1}>
+                            <ispace-tooltip placement="bottom" command="viewport:toggle-xray">Toggle X-Ray mode</ispace-tooltip>
+                        </label>
+                        <input type="checkbox" class="btn" id="overlays" checked={this.viewport.showOverlays}
+                            onClick={e => this.viewport.toggleOverlays()}
+                        />
+                        <label class="btn" for="overlays">
                             <img src={grid}></img>
                             <ispace-tooltip placement="bottom" command="viewport:toggle-overlays">Toggle overlays</ispace-tooltip>
-                        </button>
+                        </label>
                     </div>
                 </>
             );

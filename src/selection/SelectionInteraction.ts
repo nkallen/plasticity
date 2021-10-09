@@ -29,8 +29,8 @@ export class SelectionInteractionManager {
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals
     ) {
-        this.clickStrategy = new ClickStrategy(selection.selected, selection.hovered);
-        this.hoverStrategy = new HoverStrategy(selection.selected, selection.hovered);
+        this.clickStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered);
+        this.hoverStrategy = new HoverStrategy(selection.mode, selection.selected, selection.hovered);
     }
 
     private onIntersection(intersections: Intersection[], strategy: SelectionStrategy): Intersection | undefined {

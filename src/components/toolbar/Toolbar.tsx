@@ -44,21 +44,8 @@ export class Model {
             result.push(cmd.ExtrudeCommand);
             const face = selection.faces.first;
             const parent = face.parentItem as visual.Solid;
-            const solid = db.lookup(parent);
-            try {
-                const shell = solid.GetShell();
-                if (shell === null) throw new Error("invalid precondition");
-                const purifiableFaces = c3d.ActionDirect.CollectFacesForModification(shell, c3d.ModifyingType.Purify, 1);
-                const purifiableNames = new Set(purifiableFaces.map(f => f.GetNameHash()));
-                const all = [...selection.faces].every(f => {
-                    const model = db.lookupTopologyItem(f);
-                    return purifiableNames.has(model.GetNameHash());
-                });
-                if (all) {
-                    result.push(cmd.PurifyFaceCommand);
-                    result.push(cmd.RefilletFaceCommand);
-                }
-            } catch { }
+            result.push(cmd.PurifyFaceCommand);
+            result.push(cmd.RefilletFaceCommand);
             result.push(cmd.RemoveFaceCommand);
             result.push(cmd.ActionFaceCommand);
             result.push(cmd.CreateFaceCommand);

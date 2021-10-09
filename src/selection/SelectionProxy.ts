@@ -49,7 +49,7 @@ export class SelectionProxy implements ModifiesSelection {
     removeAll(): void {
         this.selection.removeAll();
     }
-    get mode() { return this.selection.mode }
+
     get solids() { return this.selection.solids }
     get edges() { return this.selection.edges }
     get faces() { return this.selection.faces }

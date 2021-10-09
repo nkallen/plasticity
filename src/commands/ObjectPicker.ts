@@ -6,7 +6,7 @@ import { DatabaseLike } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { Intersectable, Intersection } from '../editor/Intersectable';
 import { SelectionInteractionManager, SelectionMode } from '../selection/SelectionInteraction';
-import { HasSelection, Selectable, SelectionManager } from '../selection/SelectionManager';
+import { HasSelection, Selectable, SelectionManager, ToggleableSet } from '../selection/SelectionManager';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from '../util/Cancellable';
 
@@ -66,7 +66,7 @@ export class ObjectPicker {
             editor.signals.objectRemoved.add(signals.objectRemoved.dispatch);
             disposables.add(new Disposable(() => editor.signals.objectRemoved.remove(signals.objectRemoved.dispatch)));
 
-            const selection = new SelectionManager(editor.db, editor.materials, signals, new Set());
+            const selection = new SelectionManager(editor.db, editor.materials, signals, new ToggleableSet([], signals));
 
             if (cb !== undefined) {
                 signals.objectSelected.add(cb);

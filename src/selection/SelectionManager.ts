@@ -1,5 +1,7 @@
+import { CompositeDisposable } from 'event-kit';
 import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
+import CommandRegistry from '../components/atom/CommandRegistry';
 import { EditorSignals } from '../editor/EditorSignals';
 import { Agent, DatabaseLike } from '../editor/GeometryDatabase';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
@@ -12,7 +14,6 @@ import { SelectionMode } from './SelectionInteraction';
 export type Selectable = visual.Item | visual.TopologyItem | visual.ControlPoint;
 
 export interface HasSelection {
-    readonly mode: ReadonlySet<SelectionMode>;
     readonly solids: ItemSelection<visual.Solid>;
     readonly edges: TopologyItemSelection<visual.CurveEdge>;
     readonly faces: TopologyItemSelection<visual.Face>;
@@ -77,8 +78,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
 
     constructor(
         readonly db: DatabaseLike,
-        readonly signals: SignalLike,
-        readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])
+        readonly signals: SignalLike
     ) {
         signals.objectRemovedFromDatabase.add(([item,]) => this.delete(item));
     }
@@ -113,7 +113,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
 
     remove(selectables: Selectable[]) {
         if (!(selectables instanceof Array)) selectables = [selectables];
-        
+
         for (const selectable of selectables) {
             if (selectable instanceof visual.Solid) {
                 this.removeSolid(selectable);
@@ -236,7 +236,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         } else throw new Error("invalid precondition");
         this.signals.objectRemoved.dispatch(item);
     }
-    
+
     saveToMemento() {
         return new SelectionMemento(
             new Set(this.solidIds),
@@ -280,15 +280,31 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         }
     }
 
-    debug() {}
+    debug() { }
+}
+
+export class ToggleableSet<T> extends Set<T> {
+    constructor(values: T[], private readonly signals: EditorSignals) {
+        super(values);
+    }
+
+    toggle(...elements: T[]) {
+        for (const element of elements) {
+            if (this.has(element)) this.delete(element);
+            else this.add(element);
+        }
+        this.signals.selectionModeChanged.dispatch();
+    }
 }
 
 export interface HasSelectedAndHovered {
+    readonly mode: ToggleableSet<SelectionMode>;
     readonly selected: ModifiesSelection;
     readonly hovered: ModifiesSelection;
 }
 
 export class SelectionManager implements HasSelectedAndHovered {
+    private readonly disposable = new CompositeDisposable();
     private readonly selectedSignals: SignalLike = {
         objectRemovedFromDatabase: this.signals.objectRemoved,
         objectAdded: this.signals.objectSelected,
@@ -301,13 +317,17 @@ export class SelectionManager implements HasSelectedAndHovered {
         objectRemoved: this.signals.objectUnhovered,
         selectionChanged: this.signals.selectionChanged
     }
-    readonly selected = new Selection(this.db, this.selectedSignals, this.mode);
-    readonly hovered = new Selection(this.db, this.hoveredSignals, this.mode);
+    readonly selected = new Selection(this.db, this.selectedSignals);
+    readonly hovered = new Selection(this.db, this.hoveredSignals);
 
     constructor(
         readonly db: DatabaseLike,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
-        readonly mode = new Set<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint])
+        readonly mode = new ToggleableSet<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint], signals)
     ) { }
+
+    dispose() {
+        this.disposable.dispose();
+    }
 }

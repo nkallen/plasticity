@@ -88,7 +88,7 @@ priorities.set(visual.Region, 3);
 priorities.set(visual.Face, 4);
 
 
-const xray = new THREE.Layers();
+export const xray = new THREE.Layers();
 xray.disableAll();
 xray.enable(Layers.XRay);
 function sortIntersections(ii1: [THREE.Intersection, Intersectable], ii2: [THREE.Intersection, Intersectable]) {

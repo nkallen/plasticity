@@ -5,8 +5,9 @@ import { ModifiesSelection } from "./SelectionManager";
 
 export class ClickStrategy implements SelectionStrategy {
     constructor(
-        private selected: ModifiesSelection,
-        private hovered: ModifiesSelection
+        private readonly mode: Set<SelectionMode>,
+        private readonly selected: ModifiesSelection,
+        private readonly hovered: ModifiesSelection
     ) { }
 
     emptyIntersection(): void {
@@ -15,7 +16,7 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (!this.hovered.mode.has(SelectionMode.Curve)) return false;
+        if (!this.mode.has(SelectionMode.Edge)) return false;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
         if (this.selected.curves.has(parentItem)) {
@@ -28,7 +29,7 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     solid(object: TopologyItem, parentItem: Solid): boolean {
-        if (!this.selected.mode.has(SelectionMode.Solid)) return false;
+        if (!this.mode.has(SelectionMode.Solid)) return false;
 
         if (this.selected.solids.has(parentItem)) {
             if (this.topologicalItem(object, parentItem)) {
@@ -47,7 +48,7 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
-        if (this.selected.mode.has(SelectionMode.Face) && object instanceof Face) {
+        if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
             if (this.selected.faces.has(object)) {
                 this.selected.removeFace(object, parentItem);
             } else {
@@ -55,7 +56,7 @@ export class ClickStrategy implements SelectionStrategy {
             }
             this.hovered.removeAll();
             return true;
-        } else if (this.selected.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
+        } else if (this.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
             if (this.selected.edges.has(object)) {
                 this.selected.removeEdge(object, parentItem);
             } else {
@@ -68,7 +69,7 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     region(object: Region, parentItem: PlaneInstance<Region>): boolean {
-        if (!this.selected.mode.has(SelectionMode.Face)) return false;
+        if (!this.mode.has(SelectionMode.Face)) return false;
 
         if (this.selected.regions.has(parentItem)) {
             this.selected.removeRegion(parentItem);
@@ -80,7 +81,7 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (!this.selected.mode.has(SelectionMode.ControlPoint)) return false;
+        if (!this.mode.has(SelectionMode.ControlPoint)) return false;
         if (!this.selected.curves.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) return false;
 
         if (this.selected.controlPoints.has(object)) {

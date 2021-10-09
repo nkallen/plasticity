@@ -8,6 +8,7 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
+import { xray } from "../../editor/Intersectable";
 import { PlaneSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../editor/VisualModel";
 import { HighlightManager } from "../../selection/HighlightManager";
@@ -137,7 +138,7 @@ export class Viewport {
                 'viewport:right': () => this.navigate(Orientation.posX),
                 'viewport:top': () => this.navigate(Orientation.posZ),
                 'viewport:focus': () => this.focus(),
-                'viewport:toggle-orthographic': () => this.toggleOrtho(),
+                'viewport:toggle-orthographic': () => this.togglePerspective(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
                 'viewport:toggle-overlays': () => this.toggleOverlays(),
             })
@@ -345,22 +346,24 @@ export class Viewport {
         this.setNeedsRender();
     }
 
-    toggleOrtho() {
+    togglePerspective() {
         this.camera.toggle();
         this.navigationControls.update();
         this.setNeedsRender();
         this.changed.dispatch();
     }
 
+    get isXRay() { return visual.VisibleLayers.test(xray) }
     toggleXRay() {
         this.editor.layers.toggleXRay();
         this.setNeedsRender();
         this.changed.dispatch();
     }
 
-    private showOverlays = true;
+    private _showOverlays = true;
+    get showOverlays() { return this._showOverlays }
     toggleOverlays() {
-        this.showOverlays = !this.showOverlays;
+        this._showOverlays = !this._showOverlays;
         this.setNeedsRender();
         this.changed.dispatch();
     }

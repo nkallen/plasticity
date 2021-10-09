@@ -44,6 +44,13 @@ ispace-viewport {
         width: 100%;
         top: 6px;
 
+        &>.selection {
+            position: absolute;
+            left: 40px;
+            text-align: center;
+            display: inline-block;
+        }
+
         &>.info {
             position: absolute;
             left: 50%;
@@ -56,14 +63,36 @@ ispace-viewport {
             right: 140px;
             text-align: center;
             display: inline-block;
+        }
 
-            &>button {
-                border: 0;
-                margin: 2px;
-                padding: 0;
+        &>.selection,
+        &>.properties {
+            &>input[type="checkbox"] {
+                position: absolute;
+                clip: rect(0, 0, 0, 0);
+                pointer-events: none;
+            }
+
+            &>label.btn {
+                margin: 0 2px;
+                color: #fff;
+                background-color: #6c757d;
+                border-color: #6c757d;
+                display: inline-block;
+                text-align: center;
                 cursor: pointer;
-                outline: none;
-                background-color: #999;
+                user-select: none;
+                border: 1px solid transparent;
+                font-size: 1rem;
+                border-radius: .25rem;
+                transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+
+                img {
+                    margin: 4px;
+                    color: rgba(0, 0, 0, 0.5);
+                    width: 14px;
+                    height: 14px;
+                }
 
                 &:hover {
                     color: #fff;
@@ -73,14 +102,12 @@ ispace-viewport {
                         background-color: #08f;
                     }
                 }
+            }
 
-                img {
-                    margin: 4px;
-                    color: rgba(0, 0, 0, 0.5);
-                    width: 14px;
-                    height: 14px;
-                    background-color: #999;
-                }
+            input[type="checkbox"]:checked+label.btn {
+                color: #fff;
+                background-color: #0d6efd;
+                border-color: #0d6efd;
             }
         }
     }

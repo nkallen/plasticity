@@ -145,8 +145,8 @@ test("navigation start & end turns off isOrtho", () => {
     expect(viewport.isOrtho).toBe(false);
 });
 
-test("toggleOrtho", () => {
-    viewport.toggleOrtho();
+test("togglePerspective", () => {
+    viewport.togglePerspective();
 });
 
 test("toggleXRay", () => {

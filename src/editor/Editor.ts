@@ -1,12 +1,9 @@
 import KeymapManager from "atom-keymap";
 import { remote } from 'electron';
 import { CompositeDisposable, Disposable } from "event-kit";
-import * as fs from 'fs';
 import * as THREE from "three";
-import c3d from '../../build/Release/c3d.node';
 import Command from '../commands/Command';
 import { CommandExecutor } from "../commands/CommandExecutor";
-import { ExportCommand } from "../commands/CommandLike";
 import { GizmoMaterialDatabase } from "../commands/GizmoMaterials";
 import { SelectionCommandManager } from "../commands/SelectionCommandManager";
 import CommandRegistry from "../components/atom/CommandRegistry";
@@ -14,7 +11,7 @@ import TooltipManager from "../components/atom/tooltip-manager";
 import KeyboardEventManager from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { ModifierHighlightManager } from "../selection/HighlightManager";
-import { SelectionInteractionManager } from "../selection/SelectionInteraction";
+import { SelectionInteractionManager, SelectionMode } from "../selection/SelectionInteraction";
 import { SelectionManager } from "../selection/SelectionManager";
 import { Helpers } from "../util/Helpers";
 import { CreateMutable } from "../util/Util";
@@ -39,6 +36,7 @@ export class Editor {
     readonly viewports: Viewport[] = [];
 
     readonly signals = new EditorSignals();
+    readonly registry = new CommandRegistry();
     readonly materials: MaterialDatabase = new BasicMaterialDatabase(this.signals);
     readonly gizmos = new GizmoMaterialDatabase(this.signals);
     readonly sprites = new SpriteDatabase();
@@ -56,7 +54,6 @@ export class Editor {
 
     readonly snaps = new SnapManager(this.db, this.signals);
     readonly snapPresenter = new SnapPresenter(this.gizmos);
-    readonly registry = new CommandRegistry();
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);
@@ -94,6 +91,10 @@ export class Editor {
         const d = this.registry.add("ispace-workspace", {
             'undo': () => this.undo(),
             'redo': () => this.redo(),
+            'selection:toggle-control-point': () => this.selection.mode.toggle(SelectionMode.ControlPoint),
+            'selection:toggle-edge': () => this.selection.mode.toggle(SelectionMode.Edge),
+            'selection:toggle-face': () => this.selection.mode.toggle(SelectionMode.Face),
+            'selection:toggle-solid': () => this.selection.mode.toggle(SelectionMode.Solid)
         });
         this.disposable.add(d);
     }

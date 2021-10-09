@@ -5,8 +5,9 @@ import { ModifiesSelection } from "./SelectionManager";
 
 export class HoverStrategy implements SelectionStrategy {
     constructor(
-        private selected: ModifiesSelection,
-        private hovered: ModifiesSelection
+        private readonly mode: Set<SelectionMode>,
+        private readonly selected: ModifiesSelection,
+        private readonly hovered: ModifiesSelection
     ) { }
 
     emptyIntersection(): void {
@@ -14,7 +15,7 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (!this.hovered.mode.has(SelectionMode.Curve)) return false;
+        if (!this.mode.has(SelectionMode.Curve)) return false;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
         this.hovered.removeAll();
@@ -23,6 +24,8 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     solid(object: TopologyItem, parentItem: Solid): boolean {
+        if (!this.mode.has(SelectionMode.Solid)) return false;
+
         if (!this.selected.solids.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) {
             if (!this.hovered.solids.has(parentItem)) {
                 this.hovered.removeAll();
@@ -34,13 +37,13 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
-        if (this.hovered.mode.has(SelectionMode.Face) && object instanceof Face) {
+        if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
             if (!this.hovered.faces.has(object)) {
                 this.hovered.removeAll();
                 this.hovered.addFace(object, parentItem);
             }
             return true;
-        } else if (this.hovered.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
+        } else if (this.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
             if (!this.hovered.edges.has(object)) {
                 this.hovered.removeAll();
                 this.hovered.addEdge(object, parentItem);
@@ -51,7 +54,7 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     region(object: Region, parentItem: PlaneInstance<Region>): boolean {
-        if (!this.hovered.mode.has(SelectionMode.Face)) return false;
+        if (!this.mode.has(SelectionMode.Face)) return false;
         if (!this.hovered.regions.has(parentItem)) {
             this.hovered.removeAll();
             this.hovered.addRegion(parentItem);
@@ -61,7 +64,7 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (!this.hovered.mode.has(SelectionMode.ControlPoint)) return false;
+        if (!this.mode.has(SelectionMode.ControlPoint)) return false;
         if (!this.selected.curves.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) return false;
 
         if (!this.selected.controlPoints.has(object)) {

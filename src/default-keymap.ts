@@ -138,11 +138,13 @@ export default {
     },
 
     "body:not([gizmo]) ispace-viewport": {
-        "1": "viewport:front",
+        "1": "selection:toggle-control-point",
+        "2": "selection:toggle-edge",
+        "3": "selection:toggle-face",
+        "4": "selection:toggle-solid",
+
         "num1": "viewport:front",
-        "3": "viewport:right",
         "num3": "viewport:right",
-        "7": "viewport:top",
         "num7": "viewport:top",
 
         "/": "viewport:focus",
@@ -150,7 +152,6 @@ export default {
         "alt-z": "viewport:toggle-x-ray",
         "shift-alt-z": "viewport:toggle-overlays",
 
-        "5": "viewport:toggle-orthographic",
         "num5": "viewport:toggle-orthographic",
     },
 
@@ -184,7 +185,6 @@ export default {
 
         "shift-A": "command:deselect-all",
         "alt-A": "command:deselect-all",
-        "a a": "command:deselect-all",
     },
 
     "orbit-controls": {
