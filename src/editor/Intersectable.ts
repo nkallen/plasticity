@@ -3,19 +3,24 @@ import { BetterRaycastingPoint } from '../util/BetterRaycastingPoints';
 import { ControlPoint, ControlPointGroup, Curve3D, CurveSegment, Layers, Region, Solid, TopologyItem } from "./VisualModel";
 import * as visual from './VisualModel';
 
+// FIXME this needs to be a class with state rather than a global
+// It's important to conceptually distinguish intersectable objects from selectable objects
+// Selectable objects are what the user actually stores in a selection (e.g., a SpaceInstance<Curve3D>)
+// whereas the user actually clicks on (intersects) a CurveFragment (and it's child mesh).
+
 export type Intersectable = Curve3D | TopologyItem | ControlPoint | Region;
 
-export const SelectableLayers = new THREE.Layers();
-SelectableLayers.enableAll();
-SelectableLayers.disable(Layers.CurveFragment);
-SelectableLayers.disable(Layers.ControlPoint);
-SelectableLayers.disable(Layers.Unselectable);
+export const IntersectableLayers = new THREE.Layers();
+IntersectableLayers.enableAll();
+IntersectableLayers.disable(Layers.CurveFragment);
+IntersectableLayers.disable(Layers.ControlPoint);
+IntersectableLayers.disable(Layers.Unselectable);
 
 // The following two methods are used for raycast (point and click) and box selection --
 // They take primitive view objects (Line2, Mesh, etc.), filter out the irrelevant (invisible, etc.),
 // and return higher level view objects (Face, CurveEdge, Region, etc.).
 
-export function select(selected: THREE.Mesh[]): Set<Intersectable> {
+export function filterMeshes(selected: THREE.Mesh[]): Set<Intersectable> {
     const result = new Set<Intersectable>();
     for (const object of selected) {
         if (!isSelectable(object)) continue;
@@ -32,7 +37,7 @@ export interface Intersection {
     distance: number;
 }
 
-export function filter(intersections: THREE.Intersection[]): Intersection[] {
+export function filterIntersections(intersections: THREE.Intersection[]): Intersection[] {
     intersections = intersections.filter(i => isSelectable(i.object));
     const sortable: [THREE.Intersection, Intersectable][] = intersections.map((i) => [i, findIntersectable(i.object, i.index)]);
     sortable.sort(sortIntersections);
@@ -47,7 +52,7 @@ export function filter(intersections: THREE.Intersection[]): Intersection[] {
 }
 
 function isSelectable(object: THREE.Object3D): boolean {
-    if (!object.layers.test(SelectableLayers)) return false;
+    if (!object.layers.test(IntersectableLayers)) return false;
 
     let parent: THREE.Object3D | null = object;
     while (parent) {
@@ -106,5 +111,4 @@ function sortIntersections(ii1: [THREE.Intersection, Intersectable], ii2: [THREE
     } else {
         return delta;
     }
-    return delta;
 }

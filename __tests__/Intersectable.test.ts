@@ -7,7 +7,7 @@ import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { filter, select, SelectableLayers } from "../src/editor/Intersectable";
+import { filterIntersections, filterMeshes, IntersectableLayers } from "../src/editor/Intersectable";
 import * as visual from "../src/editor/VisualModel";
 import { HighlightManager } from "../src/selection/HighlightManager";
 import { SelectionManager } from "../src/selection/SelectionManager";
@@ -29,14 +29,17 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
+    selection = new SelectionManager(db, materials, signals);
+    highlighter = new HighlightManager(db, materials, selection, signals);
+});
+
+beforeEach(() => {
     makeSphere = new SphereFactory(db, materials, signals);
     makeBox = new ThreePointBoxFactory(db, materials, signals);
     makeLine = new LineFactory(db, materials, signals);
     makeCircle = new CenterCircleFactory(db, materials, signals);
     makeRegion = new RegionFactory(db, materials, signals);
-    selection = new SelectionManager(db, materials, signals);
-    highlighter = new HighlightManager(db, materials, selection, signals);
-});
+})
 
 test('raycast simple solid', async () => {
     makeSphere.center = new THREE.Vector3();
@@ -52,12 +55,12 @@ test('raycast simple solid', async () => {
 
     const raycaster = new THREE.Raycaster();
     raycaster.params.Mesh.threshold = 0;
-    raycaster.layers = SelectableLayers;
+    raycaster.layers = IntersectableLayers;
     const pointer = { x: 0, y: 0 };
     raycaster.setFromCamera(pointer, camera);
 
     let intersections = raycaster.intersectObject(item, true);
-    intersections = filter(intersections);
+    intersections = filterIntersections(intersections);
 
     expect(intersections.length).toBe(1);
     expect(intersections[0].object).toBeInstanceOf(visual.Face);
@@ -77,19 +80,19 @@ test('raycast SpaceInstance<Curve3D>', async () => {
     item.lod.update(camera);
 
     const raycaster = new THREE.Raycaster();
-    raycaster.layers = SelectableLayers;
+    raycaster.layers = IntersectableLayers;
     const pointer = { x: 0, y: 0 };
     raycaster.setFromCamera(pointer, camera);
 
     raycaster.layers.disable(visual.Layers.ControlPoint);
     let intersections = raycaster.intersectObject(item, true);
-    intersections = filter(intersections);
+    intersections = filterIntersections(intersections);
     expect(intersections.length).toBe(1);
     expect(intersections[0].object).toBeInstanceOf(visual.Curve3D);
 
     raycaster.layers.enable(visual.Layers.ControlPoint);
     intersections = raycaster.intersectObject(item, true);
-    intersections = filter(intersections);
+    intersections = filterIntersections(intersections);
     expect(intersections.length).toBe(2);
     expect(intersections[0].object).toBeInstanceOf(visual.Curve3D);
     expect(intersections[1].object).toBeInstanceOf(visual.ControlPoint);
@@ -113,12 +116,12 @@ test('raycast PlaneInstance<Region>', async () => {
     region.lod.update(camera);
 
     const raycaster = new THREE.Raycaster();
-    raycaster.layers = SelectableLayers;
+    raycaster.layers = IntersectableLayers;
     const pointer = { x: 0, y: 0 };
     raycaster.setFromCamera(pointer, camera);
 
     let intersections = raycaster.intersectObject(region, true);
-    intersections = filter(intersections);
+    intersections = filterIntersections(intersections);
     expect(intersections.length).toBe(1);
     expect(intersections[0].object).toBeInstanceOf(visual.Region);
 });
@@ -140,10 +143,10 @@ test('box select SpaceInstance<Curve3D>', async () => {
     box.startPoint.set(-1, -1, 0.5);
     box.endPoint.set(1, 1, 0.5);
 
-    SelectableLayers.enable(visual.Layers.ControlPoint);
-    SelectableLayers.disable(visual.Layers.Curve);
+    IntersectableLayers.enable(visual.Layers.ControlPoint);
+    IntersectableLayers.disable(visual.Layers.Curve);
     const selected = box.select();
-    const filtered = [...select(selected)];
+    const filtered = [...filterMeshes(selected)];
 
     expect(filtered.length).toBe(2);
     expect(filtered[0]).toBeInstanceOf(visual.ControlPoint);
@@ -180,15 +183,50 @@ test('xray on off', async () => {
     ] as THREE.Intersection[];
 
     let filtered;
-    SelectableLayers.enable(visual.Layers.XRay);
-    SelectableLayers.enable(visual.Layers.Face);
-    SelectableLayers.enable(visual.Layers.CurveEdge);
-    filtered = filter(intersections);
+    IntersectableLayers.enable(visual.Layers.XRay);
+    IntersectableLayers.enable(visual.Layers.Face);
+    IntersectableLayers.enable(visual.Layers.CurveEdge);
+    filtered = filterIntersections(intersections);
     expect(filtered.length).toBe(2);
     expect(filtered[0].object).toBe(edge);
 
-    SelectableLayers.disable(visual.Layers.XRay);
-    filtered = filter(intersections);
+    IntersectableLayers.disable(visual.Layers.XRay);
+    filtered = filterIntersections(intersections);
     expect(filtered.length).toBe(2);
     expect(filtered[0].object).toBe(face);
 })
+
+test('when a region and face are the same distance, the region has priority', async () => {
+    makeBox.p1 = new THREE.Vector3();
+    makeBox.p2 = new THREE.Vector3(1, 0, 0);
+    makeBox.p3 = new THREE.Vector3(1, 1, 0);
+    makeBox.p4 = new THREE.Vector3(1, 1, 1);
+    const box = await makeBox.commit() as visual.Solid;
+
+    makeCircle.center = new THREE.Vector3();
+    makeCircle.radius = 1;
+    const circle = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+    makeRegion.contours = [circle];
+    const regions = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
+    const region = regions[0];
+    region.updateMatrixWorld();
+
+    const face = box.faces.get(0);
+    const intersections = [
+        {
+            object: face.child,
+            distance: 1,
+            point: new THREE.Vector3(),
+        },
+        {
+            object: region.underlying.child,
+            distance: 1,
+            point: new THREE.Vector3(),
+        },
+    ] as THREE.Intersection[];
+
+    IntersectableLayers.enable(visual.Layers.Face);
+    const filtered = filterIntersections(intersections);
+    expect(filtered.length).toBe(2);
+    expect(filtered[0].object).toBe(region.underlying);
+});

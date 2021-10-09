@@ -13,7 +13,7 @@ import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { EditorOriginator } from "../src/editor/History";
 import LayerManager from "../src/editor/LayerManager";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
-import { SelectableLayers } from "../src/editor/Intersectable";
+import { IntersectableLayers } from "../src/editor/Intersectable";
 import { PlaneSnap } from "../src/editor/snaps/Snap";
 import * as visual from '../src/editor/VisualModel';
 import { HighlightManager } from "../src/selection/HighlightManager";
@@ -153,10 +153,10 @@ test("toggleXRay", () => {
     const xray = new THREE.Layers();
     xray.set(visual.Layers.XRay);
     expect(visual.VisibleLayers.test(xray)).toBe(true);
-    expect(SelectableLayers.test(xray)).toBe(true);
+    expect(IntersectableLayers.test(xray)).toBe(true);
     viewport.toggleXRay();
     expect(visual.VisibleLayers.test(xray)).toBe(false);
-    expect(SelectableLayers.test(xray)).toBe(false);
+    expect(IntersectableLayers.test(xray)).toBe(false);
 });
 
 test("toggleOverlays", () => {

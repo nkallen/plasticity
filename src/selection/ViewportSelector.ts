@@ -5,7 +5,7 @@ import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../comma
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator } from "../editor/History";
-import * as SelectableLayers from "../editor/Intersectable";
+import * as intersectable from "../editor/Intersectable";
 import * as visual from "../editor/VisualModel";
 import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
 
@@ -101,7 +101,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         switch (this.state.tag) {
             case 'none':
                 const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
-                this.processHover(SelectableLayers.filter(intersects));
+                this.processHover(intersectable.filterIntersections(intersects));
                 break;
             case 'down':
                 const { downEvent, disposable } = this.state;
@@ -126,7 +126,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 this.selectionHelper.onSelectMove(moveEvent);
 
                 const selected = this.selectionBox.select();
-                this.processBoxHover(SelectableLayers.select(selected));
+                this.processBoxHover(intersectable.filterMeshes(selected));
 
                 break;
         }
@@ -141,7 +141,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         switch (this.state.tag) {
             case 'down':
                 const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
-                this.processClick(SelectableLayers.filter(intersects));
+                this.processClick(intersectable.filterIntersections(intersects));
 
                 this.state.disposable.dispose();
                 this.state = { tag: 'none' };
@@ -154,7 +154,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 this.selectionHelper.onSelectOver();
 
                 const selected = this.selectionBox.select();
-                this.processBoxSelect(SelectableLayers.select(selected));
+                this.processBoxSelect(intersectable.filterMeshes(selected));
 
                 this.dispatchEvent({ type: 'end' });
                 this.state.disposable.dispose();
@@ -165,11 +165,11 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         }
     }
 
-    protected abstract processBoxHover(selected: Set<SelectableLayers.Intersectable>): void;
-    protected abstract processBoxSelect(selected: Set<SelectableLayers.Intersectable>): void;
+    protected abstract processBoxHover(selected: Set<intersectable.Intersectable>): void;
+    protected abstract processBoxSelect(selected: Set<intersectable.Intersectable>): void;
 
-    protected abstract processClick(intersects: SelectableLayers.Intersection[]): void;
-    protected abstract processHover(intersects: SelectableLayers.Intersection[]): void;
+    protected abstract processClick(intersects: intersectable.Intersection[]): void;
+    protected abstract processHover(intersects: intersectable.Intersection[]): void;
 
     private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
         screen2normalized(screenPoint, this.normalizedMousePosition);
@@ -198,21 +198,21 @@ export class ViewportSelector extends AbstractViewportSelector {
         super(camera, domElement, editor.db, editor.signals);
     }
 
-    protected processBoxHover(selected: Set<SelectableLayers.Intersectable>) {
+    protected processBoxHover(selected: Set<intersectable.Intersectable>) {
         this.editor.selectionInteraction.onBoxHover(selected);
     }
 
-    protected processBoxSelect(selected: Set<SelectableLayers.Intersectable>) {
+    protected processBoxSelect(selected: Set<intersectable.Intersectable>) {
         const command = new BoxChangeSelectionCommand(this.editor, selected);
         this.editor.enqueue(command, true);
     }
 
-    protected processClick(intersects: SelectableLayers.Intersection[]) {
+    protected processClick(intersects: intersectable.Intersection[]) {
         const command = new ClickChangeSelectionCommand(this.editor, intersects);
         this.editor.enqueue(command, true);
     }
 
-    protected processHover(intersects: SelectableLayers.Intersection[]) {
+    protected processHover(intersects: intersectable.Intersection[]) {
         this.editor.selectionInteraction.onHover(intersects);
     }
 }
