@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import KeymapManager from "atom-keymap";
+import KeymapManager from "atom-keymap-plasticity";
 import * as THREE from "three";
 import { EditorLike, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { MagnitudeGizmo } from "../../src/commands/fillet/FilletGizmo";

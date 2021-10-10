@@ -1,4 +1,4 @@
-import KeymapManager from "atom-keymap";
+import KeymapManager from "atom-keymap-plasticity";
 import { remote } from 'electron';
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";

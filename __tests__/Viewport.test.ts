@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import KeymapManager from "atom-keymap";
+import KeymapManager from "atom-keymap-plasticity";
 import { Disposable } from "event-kit";
 import * as THREE from "three";
 import Command from "../src/commands/Command";

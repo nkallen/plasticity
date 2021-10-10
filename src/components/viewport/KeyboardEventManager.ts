@@ -1,4 +1,4 @@
-import KeymapManager from "atom-keymap";
+import KeymapManager from "atom-keymap-plasticity";
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 
@@ -91,7 +91,7 @@ export default class KeyboardEventManager {
     onKeyDown(event: KeyboardEvent) {
         const lastTarget = this.lastTarget;
         if (lastTarget === undefined) return;
-        
+
         Object.defineProperty(event, 'target', { value: lastTarget });
         this.handleKeyboardEvent(event);
     }

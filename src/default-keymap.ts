@@ -143,9 +143,9 @@ export default {
         "3": "selection:toggle-face",
         "4": "selection:toggle-solid",
 
-        "num1": "viewport:front",
-        "num3": "viewport:right",
-        "num7": "viewport:top",
+        "numpad1": "viewport:front",
+        "numpad3": "viewport:right",
+        "numpad7": "viewport:top",
 
         "/": "viewport:focus",
 

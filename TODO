@@ -1,11 +1,19 @@
-
 Todo:
+trim is basically broken because mouse selection is not working
+ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909
+hide should recalculate regions
+numpad orientation change not working
+some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)
+camera near plane sucks with ortho now
+crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196
+
 circle on corner box top or side face
 better mirror influenced by moi
 scale snap point on diagonal
 viewport state saved
 
-prolong on and off
+prolong on and off keybinding
+don't display fillet curve button at non-joint endpoint
 1 and 2 for distance 1 and 2
 slow gizmo
 more robust mirror
