@@ -1,11 +1,15 @@
+Release:
+
+- bug fix: numpad keybindings
+
 Todo:
 trim is basically broken because mouse selection is not working
 ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909
-hide should recalculate regions
-numpad orientation change not working
+hide curves should recalculate regions
 some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)
 camera near plane sucks with ortho now
 crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196
+shift drag on offset face is thin solid
 
 circle on corner box top or side face
 better mirror influenced by moi

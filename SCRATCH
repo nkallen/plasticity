@@ -1,5 +1,0 @@
-GeometryDatabase.ts:264 CreateMesh0.1: 39.922119140625 ms
-GeometryDatabase.ts:341 solid: 1.375244140625 ms
-GeometryDatabase.ts:264 CreateMesh0.003: 156.74609375 ms
-GeometryDatabase.ts:341 solid: 3.221923828125 ms
-GeometryDatabase.ts:252 meshes: 160.296142578125 ms
