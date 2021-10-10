@@ -44,7 +44,7 @@ export class Editor {
 
     readonly curves = new PlanarCurveDatabase(this._db, this.materials, this.signals);
     readonly regions = new RegionManager(this._db, this.curves);
-    readonly contours = new ContourManager(this._db, this.curves, this.regions, this.signals);
+    readonly contours = new ContourManager(this._db, this.curves, this.regions);
 
     readonly _selection = new SelectionManager(this._db, this.materials, this.signals);
 

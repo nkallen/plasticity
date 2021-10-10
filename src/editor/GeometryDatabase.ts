@@ -67,9 +67,9 @@ export interface DatabaseLike {
 
     get visibleObjects(): visual.Item[];
 
-    hide(item: visual.Item): void;
-    unhide(item: visual.Item): void;
-    unhideAll(): void;
+    hide(item: visual.Item): Promise<void>;
+    unhide(item: visual.Item): Promise<void>;
+    unhideAll(): Promise<visual.Item[]>;
 
     deserialize(data: Buffer): Promise<void>;
     load(model: c3d.Model | c3d.Assembly): Promise<void>;
@@ -484,20 +484,22 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         })
     }
 
-    hide(item: visual.Item) {
+    async hide(item: visual.Item) {
         this.hidden.add(item.simpleName);
         this.signals.objectHidden.dispatch(item);
     }
 
-    unhide(item: visual.Item) {
+    async unhide(item: visual.Item) {
         this.hidden.delete(item.simpleName);
         this.signals.objectUnhidden.dispatch(item);
     }
 
-    unhideAll() {
+    async unhideAll(): Promise<visual.Item[]> {
         const hidden = [...this.hidden].map(id => this.lookupItemById(id));
         this.hidden.clear();
-        for (const { view } of hidden) this.signals.objectUnhidden.dispatch(view);
+        const views = hidden.map(h => h.view);
+        for (const view of views) this.signals.objectUnhidden.dispatch(view);
+        return views;
     }
 
     saveToMemento(): GeometryMemento {

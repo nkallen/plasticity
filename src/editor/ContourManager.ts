@@ -40,9 +40,37 @@ export default class ContourManager extends DatabaseProxy {
         db: GeometryDatabase,
         private readonly curves: PlanarCurveDatabase,
         private readonly regions: RegionManager,
-        signals: EditorSignals,
     ) {
         super(db);
+    }
+
+    async hide(item: visual.Item) {
+        const result = await this.db.hide(item);
+        if (item instanceof visual.SpaceInstance) {
+            await this.removeCurve(item);
+        }
+        return result;
+    }
+
+    async unhide(item: visual.Item) {
+        const result = await this.db.unhide(item);
+        if (item instanceof visual.SpaceInstance) {
+            await this.addCurve(item);
+        }
+        return result;
+    }
+
+    // FIXME, this should be in a contour transaction
+    async unhideAll(): Promise<visual.Item[]> {
+        const unhidden = await this.db.unhideAll();
+        const promises = [];
+        for (const item of unhidden) {
+            if (item instanceof visual.SpaceInstance) {
+                promises.push(this.addCurve(item));
+            }
+        }
+        await Promise.all(promises);
+        return unhidden;
     }
 
     async addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;

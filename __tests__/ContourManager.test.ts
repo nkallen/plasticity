@@ -136,3 +136,25 @@ test("two overlapping coplanar circles, adding and removing creates the right re
     await contours.removeItem(circle1);
     expect(_db.find(visual.PlaneInstance).length).toBe(0);
 });
+
+test("two overlapping coplanar circles, adding and hiding creates the right regions", async () => {
+    let circle1: visual.SpaceInstance<visual.Curve3D>, circle2: visual.SpaceInstance<visual.Curve3D>;
+    makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
+    makeCircle1.radius = 1;
+    circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+
+    makeCircle2.center = new THREE.Vector3(0, 0, 0);
+    makeCircle2.radius = 1;
+    circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+
+    await contours.hide(circle2);
+    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+
+    await contours.hide(circle1);
+    expect(_db.find(visual.PlaneInstance).length).toBe(0);
+
+    await contours.unhideAll();
+    expect(_db.find(visual.PlaneInstance).length).toBe(1);
+});

@@ -1,11 +1,15 @@
 Release:
 
+- Toggle control point/edge/face/object select modes
+  - keybindings 1/2/3/4
+  - old 1/3/7 top view/front view/etc. have moved to numpad
+- buttons for perspectice/xray/grid now blue or gray if on/off
 - bug fix: numpad keybindings
+- bug fix: trim broken because mouse selection not working
+- hide/unhide curves now recalculates regions
 
 Todo:
-trim is basically broken because mouse selection is not working
 ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909
-hide curves should recalculate regions
 some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)
 camera near plane sucks with ortho now
 crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196

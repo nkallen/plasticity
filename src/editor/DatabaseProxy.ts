@@ -103,16 +103,16 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.visibleObjects;
     }
 
-    hide(item: visual.Item): void {
+    hide(item: visual.Item): Promise<void> {
         return this.db.hide(item);
     }
 
-    unhide(item: visual.Item): void {
+    unhide(item: visual.Item): Promise<void> {
         return this.db.unhide(item);
     }
 
-    unhideAll(): void {
-        this.db.unhideAll();
+    unhideAll(): Promise<visual.Item[]> {
+        return this.db.unhideAll();
     }
 
     get scene() {
