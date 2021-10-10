@@ -612,7 +612,9 @@ export enum Layers {
     ObjectGizmo,
 
     XRay,
+
     CurveFragment,
+    CurveFragment_XRay,
 
     Solid,
     Curve,
@@ -629,4 +631,5 @@ export enum Layers {
 export const VisibleLayers = new THREE.Layers();
 VisibleLayers.enableAll();
 VisibleLayers.disable(Layers.CurveFragment);
+VisibleLayers.disable(Layers.CurveFragment_XRay);
 VisibleLayers.disable(Layers.ControlPoint);

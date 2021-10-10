@@ -11,9 +11,11 @@ export default class LayerManager {
 
     showFragments() {
         visual.VisibleLayers.enable(visual.Layers.CurveFragment);
+        visual.VisibleLayers.enable(visual.Layers.CurveFragment_XRay);
         visual.VisibleLayers.disable(visual.Layers.Curve);
 
         intersectable.IntersectableLayers.enable(visual.Layers.CurveFragment);
+        intersectable.IntersectableLayers.enable(visual.Layers.CurveFragment_XRay);
         intersectable.IntersectableLayers.disable(visual.Layers.Curve);
         intersectable.IntersectableLayers.disable(visual.Layers.Region);
         intersectable.IntersectableLayers.disable(visual.Layers.Solid);
@@ -22,9 +24,11 @@ export default class LayerManager {
 
     hideFragments() {
         visual.VisibleLayers.disable(visual.Layers.CurveFragment);
+        visual.VisibleLayers.disable(visual.Layers.CurveFragment_XRay);
         visual.VisibleLayers.enable(visual.Layers.Curve);
 
         intersectable.IntersectableLayers.disable(visual.Layers.CurveFragment);
+        intersectable.IntersectableLayers.disable(visual.Layers.CurveFragment_XRay);
         intersectable.IntersectableLayers.enable(visual.Layers.Curve);
         intersectable.IntersectableLayers.enable(visual.Layers.Region);
         intersectable.IntersectableLayers.enable(visual.Layers.Solid);

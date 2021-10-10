@@ -153,8 +153,8 @@ export class HighlightManager {
         const { selected } = this.selection;
         for (const level of item.levels) {
             const curve = level as visual.Curve3D;
-            const layer = curve.isFragment ? visual.Layers.CurveFragment : visual.Layers.Curve
-            const occludedLayer = curve.isFragment ? visual.Layers.CurveFragment : visual.Layers.XRay
+            const layer = curve.isFragment ? visual.Layers.CurveFragment : visual.Layers.Curve;
+            const occludedLayer = curve.isFragment ? visual.Layers.CurveFragment_XRay : visual.Layers.XRay;
             const isSelected = selected.curveIds.has(item.simpleName);
             for (const segment of curve.segments) {
                 segment.line.material = isSelected ? line_highlighted : line_unhighlighted;

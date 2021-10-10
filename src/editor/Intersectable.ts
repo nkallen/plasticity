@@ -13,6 +13,7 @@ export type Intersectable = Curve3D | TopologyItem | ControlPoint | Region;
 export const IntersectableLayers = new THREE.Layers();
 IntersectableLayers.enableAll();
 IntersectableLayers.disable(Layers.CurveFragment);
+IntersectableLayers.disable(Layers.CurveFragment_XRay);
 IntersectableLayers.disable(Layers.ControlPoint);
 IntersectableLayers.disable(Layers.Unselectable);
 
@@ -87,10 +88,10 @@ priorities.set(visual.CurveEdge, 2);
 priorities.set(visual.Region, 3);
 priorities.set(visual.Face, 4);
 
-
 export const xray = new THREE.Layers();
 xray.disableAll();
 xray.enable(Layers.XRay);
+xray.enable(Layers.CurveFragment_XRay);
 function sortIntersections(ii1: [THREE.Intersection, Intersectable], ii2: [THREE.Intersection, Intersectable]) {
     const [i1, intersectable1] = ii1;
     const [i2, intersectable2] = ii2;
