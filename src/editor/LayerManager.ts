@@ -1,7 +1,22 @@
-import { HasSelection } from '../selection/SelectionManager';
+import * as THREE from "three";
 import * as visual from '../editor/VisualModel';
-import * as intersectable from "./Intersectable";
+import { HasSelection } from '../selection/SelectionManager';
 import { EditorSignals } from './EditorSignals';
+
+// FIXME make instance variables of LayerManager, and DI LayerManager where necessary
+
+export const VisibleLayers = new THREE.Layers();
+VisibleLayers.enableAll();
+VisibleLayers.disable(visual.Layers.CurveFragment);
+VisibleLayers.disable(visual.Layers.CurveFragment_XRay);
+VisibleLayers.disable(visual.Layers.ControlPoint);
+
+export const IntersectableLayers = new THREE.Layers();
+IntersectableLayers.enableAll();
+IntersectableLayers.disable(visual.Layers.CurveFragment);
+IntersectableLayers.disable(visual.Layers.CurveFragment_XRay);
+IntersectableLayers.disable(visual.Layers.ControlPoint);
+IntersectableLayers.disable(visual.Layers.Unselectable);
 
 export default class LayerManager {
     constructor(private readonly selection: HasSelection, signals: EditorSignals) {
@@ -10,29 +25,31 @@ export default class LayerManager {
     }
 
     showFragments() {
-        visual.VisibleLayers.enable(visual.Layers.CurveFragment);
-        visual.VisibleLayers.enable(visual.Layers.CurveFragment_XRay);
-        visual.VisibleLayers.disable(visual.Layers.Curve);
+        VisibleLayers.enable(visual.Layers.CurveFragment);
+        VisibleLayers.enable(visual.Layers.CurveFragment_XRay);
+        VisibleLayers.disable(visual.Layers.Curve);
+        VisibleLayers.disable(visual.Layers.XRay);
 
-        intersectable.IntersectableLayers.enable(visual.Layers.CurveFragment);
-        intersectable.IntersectableLayers.enable(visual.Layers.CurveFragment_XRay);
-        intersectable.IntersectableLayers.disable(visual.Layers.Curve);
-        intersectable.IntersectableLayers.disable(visual.Layers.Region);
-        intersectable.IntersectableLayers.disable(visual.Layers.Solid);
-        intersectable.IntersectableLayers.disable(visual.Layers.Face);
+        IntersectableLayers.enable(visual.Layers.CurveFragment);
+        IntersectableLayers.enable(visual.Layers.CurveFragment_XRay);
+        IntersectableLayers.disable(visual.Layers.Curve);
+        IntersectableLayers.disable(visual.Layers.Region);
+        IntersectableLayers.disable(visual.Layers.Solid);
+        IntersectableLayers.disable(visual.Layers.Face);
     }
 
     hideFragments() {
-        visual.VisibleLayers.disable(visual.Layers.CurveFragment);
-        visual.VisibleLayers.disable(visual.Layers.CurveFragment_XRay);
-        visual.VisibleLayers.enable(visual.Layers.Curve);
+        VisibleLayers.disable(visual.Layers.CurveFragment);
+        VisibleLayers.disable(visual.Layers.CurveFragment_XRay);
+        VisibleLayers.enable(visual.Layers.Curve);
+        VisibleLayers.enable(visual.Layers.XRay);
 
-        intersectable.IntersectableLayers.disable(visual.Layers.CurveFragment);
-        intersectable.IntersectableLayers.disable(visual.Layers.CurveFragment_XRay);
-        intersectable.IntersectableLayers.enable(visual.Layers.Curve);
-        intersectable.IntersectableLayers.enable(visual.Layers.Region);
-        intersectable.IntersectableLayers.enable(visual.Layers.Solid);
-        intersectable.IntersectableLayers.enable(visual.Layers.Face);
+        IntersectableLayers.disable(visual.Layers.CurveFragment);
+        IntersectableLayers.disable(visual.Layers.CurveFragment_XRay);
+        IntersectableLayers.enable(visual.Layers.Curve);
+        IntersectableLayers.enable(visual.Layers.Region);
+        IntersectableLayers.enable(visual.Layers.Solid);
+        IntersectableLayers.enable(visual.Layers.Face);
     }
 
     controlPoints() {
@@ -43,17 +60,17 @@ export default class LayerManager {
     }
 
     showControlPoints() {
-        visual.VisibleLayers.enable(visual.Layers.ControlPoint);
-        intersectable.IntersectableLayers.enable(visual.Layers.ControlPoint);
+        VisibleLayers.enable(visual.Layers.ControlPoint);
+        IntersectableLayers.enable(visual.Layers.ControlPoint);
     }
 
     hideControlPoints() {
-        visual.VisibleLayers.disable(visual.Layers.ControlPoint);
-        intersectable.IntersectableLayers.disable(visual.Layers.ControlPoint);
+        VisibleLayers.disable(visual.Layers.ControlPoint);
+        IntersectableLayers.disable(visual.Layers.ControlPoint);
     }
 
     toggleXRay() {
-        visual.VisibleLayers.toggle(visual.Layers.XRay);
-        intersectable.IntersectableLayers.toggle(visual.Layers.XRay);
+        VisibleLayers.toggle(visual.Layers.XRay);
+        IntersectableLayers.toggle(visual.Layers.XRay);
     }
 }

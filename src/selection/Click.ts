@@ -16,7 +16,7 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean {
-        if (!this.mode.has(SelectionMode.Edge)) return false;
+        if (!this.mode.has(SelectionMode.Curve)) return false;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
         if (this.selected.curves.has(parentItem)) {

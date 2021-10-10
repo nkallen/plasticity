@@ -627,9 +627,3 @@ export enum Layers {
 
     Unselectable,
 }
-
-export const VisibleLayers = new THREE.Layers();
-VisibleLayers.enableAll();
-VisibleLayers.disable(Layers.CurveFragment);
-VisibleLayers.disable(Layers.CurveFragment_XRay);
-VisibleLayers.disable(Layers.ControlPoint);

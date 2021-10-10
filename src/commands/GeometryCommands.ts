@@ -1258,7 +1258,8 @@ export class TrimCommand extends Command {
         this.ensure(() => this.editor.layers.hideFragments());
 
         const picker = new ObjectPicker(this.editor);
-        picker.allowCurveFragments();
+        picker.allowCurves();
+        picker.raycasterParams.Line2.threshold = 30;
         const selection = await picker.execute().resource(this);
         const fragment = selection.curves.first;
         if (fragment === undefined) return;

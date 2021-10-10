@@ -11,6 +11,7 @@ import * as visual from "../editor/VisualModel";
 import { CancellablePromise } from '../util/Cancellable';
 import { Helper, Helpers } from '../util/Helpers';
 import { OrbitControls } from '../components/viewport/OrbitControls';
+import { VisibleLayers } from '../editor/LayerManager';
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
@@ -267,7 +268,7 @@ export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.snaps);
     private readonly helper = new PointTarget();
 
-    raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Line: { threshold: 0.1 },
         Line2: { threshold: 20 },
         Points: { threshold: 1 }
@@ -285,7 +286,7 @@ export class PointPicker {
 
             const raycaster = new THREE.Raycaster();
             raycaster.params = this.raycasterParams;
-            raycaster.layers = visual.VisibleLayers;
+            raycaster.layers = VisibleLayers;
 
             editor.helpers.add(pointTarget);
             disposables.add(new Disposable(() => editor.helpers.remove(pointTarget)));

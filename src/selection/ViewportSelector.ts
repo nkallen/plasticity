@@ -6,7 +6,7 @@ import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator } from "../editor/History";
 import * as intersectable from "../editor/Intersectable";
-import * as visual from "../editor/VisualModel";
+import { VisibleLayers } from "../editor/LayerManager";
 import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
 
 export interface EditorLike extends cmd.EditorLike {
@@ -15,6 +15,13 @@ export interface EditorLike extends cmd.EditorLike {
 }
 
 type State = { tag: 'none' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
+
+const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+    Mesh: { threshold: 0 },
+    Line: { threshold: 0.1 },
+    Line2: { threshold: 15 },
+    Points: { threshold: 10 }
+};
 
 export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
     private _enabled = true;
@@ -49,16 +56,13 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         private readonly camera: THREE.Camera,
         private readonly domElement: HTMLElement,
         protected readonly db: DatabaseLike,
-        protected readonly signals: EditorSignals
+        protected readonly signals: EditorSignals,
+        readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
     ) {
         super();
 
-        // @ts-expect-error("Line2 is missing from the typedef")
-        this.raycaster.params.Line2 = { threshold: 15 };
-        this.raycaster.params.Mesh.threshold = 0;
-        // @ts-expect-error("Points is missing from the typedef")
-        this.raycaster.params.Points.threshold = 10;
-        this.raycaster.layers = visual.VisibleLayers;
+        this.raycaster.params = this.raycasterParams;
+        this.raycaster.layers = VisibleLayers;
 
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);

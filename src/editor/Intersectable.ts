@@ -2,20 +2,13 @@ import * as THREE from "three";
 import { BetterRaycastingPoint } from '../util/BetterRaycastingPoints';
 import { ControlPoint, ControlPointGroup, Curve3D, CurveSegment, Layers, Region, Solid, TopologyItem } from "./VisualModel";
 import * as visual from './VisualModel';
+import { IntersectableLayers } from "./LayerManager";
 
-// FIXME this needs to be a class with state rather than a global
 // It's important to conceptually distinguish intersectable objects from selectable objects
 // Selectable objects are what the user actually stores in a selection (e.g., a SpaceInstance<Curve3D>)
 // whereas the user actually clicks on (intersects) a CurveFragment (and it's child mesh).
 
 export type Intersectable = Curve3D | TopologyItem | ControlPoint | Region;
-
-export const IntersectableLayers = new THREE.Layers();
-IntersectableLayers.enableAll();
-IntersectableLayers.disable(Layers.CurveFragment);
-IntersectableLayers.disable(Layers.CurveFragment_XRay);
-IntersectableLayers.disable(Layers.ControlPoint);
-IntersectableLayers.disable(Layers.Unselectable);
 
 // The following two methods are used for raycast (point and click) and box selection --
 // They take primitive view objects (Line2, Mesh, etc.), filter out the irrelevant (invisible, etc.),

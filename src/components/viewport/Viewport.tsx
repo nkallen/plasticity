@@ -9,6 +9,7 @@ import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { EditorOriginator } from "../../editor/History";
 import { xray } from "../../editor/Intersectable";
+import { VisibleLayers } from "../../editor/LayerManager";
 import { PlaneSnap } from "../../editor/snaps/Snap";
 import * as visual from "../../editor/VisualModel";
 import { HighlightManager } from "../../selection/HighlightManager";
@@ -353,7 +354,7 @@ export class Viewport {
         this.changed.dispatch();
     }
 
-    get isXRay() { return visual.VisibleLayers.test(xray) }
+    get isXRay() { return VisibleLayers.test(xray) }
     toggleXRay() {
         this.editor.layers.toggleXRay();
         this.setNeedsRender();
@@ -436,7 +437,7 @@ export default (editor: EditorLike) => {
                     n = Y;
                     break;
             }
-            camera.layers = visual.VisibleLayers;
+            camera.layers = VisibleLayers;
 
             const navigationControls = new OrbitControls(camera, renderer.domElement, editor.keymaps);
             navigationControls.enableRotate = enableRotate;

@@ -26,9 +26,10 @@ class MyViewportSelector extends AbstractViewportSelector {
         domElement: HTMLElement,
         private readonly editor: EditorLike,
         private readonly selection: SelectionManager,
-        private readonly onEmptyIntersection = () => { }
+        private readonly onEmptyIntersection = () => { },
+        raycasterParams: THREE.RaycasterParameters,
     ) {
-        super(camera, domElement, editor.db, editor.signals);
+        super(camera, domElement, editor.db, editor.signals, raycasterParams);
         this.selection.mode.add(SelectionMode.Curve);
     }
 
@@ -54,6 +55,14 @@ class MyViewportSelector extends AbstractViewportSelector {
 }
 
 export class ObjectPicker {
+    private readonly mode = new ToggleableSet<SelectionMode>([], this.editor.signals);
+    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+        Mesh: { threshold: 0 },
+        Line: { threshold: 0.1 },
+        Line2: { threshold: 15 },
+        Points: { threshold: 10 }
+    };
+
     constructor(private readonly editor: EditorLike) { }
 
     execute(cb?: (o: Selectable) => void): CancellablePromise<HasSelection> {
@@ -66,7 +75,7 @@ export class ObjectPicker {
             editor.signals.objectRemoved.add(signals.objectRemoved.dispatch);
             disposables.add(new Disposable(() => editor.signals.objectRemoved.remove(signals.objectRemoved.dispatch)));
 
-            const selection = new SelectionManager(editor.db, editor.materials, signals, new ToggleableSet([], signals));
+            const selection = new SelectionManager(editor.db, editor.materials, signals, this.mode);
 
             if (cb !== undefined) {
                 signals.objectSelected.add(cb);
@@ -80,7 +89,7 @@ export class ObjectPicker {
                 viewport.selector.enabled = false;
                 disposables.add(new Disposable(() => viewport.enableControls()));
 
-                const selector = new MyViewportSelector(viewport.camera, viewport.renderer.domElement, editor, selection, finish);
+                const selector = new MyViewportSelector(viewport.camera, viewport.renderer.domElement, editor, selection, finish, this.raycasterParams);
 
                 disposables.add(new Disposable(() => selector.dispose()));
             }
@@ -90,7 +99,7 @@ export class ObjectPicker {
         return cancellable;
     }
 
-    allowCurveFragments() {
-
+    allowCurves() {
+        this.mode.add(SelectionMode.Curve);
     }
 }
