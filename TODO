@@ -7,6 +7,7 @@ Release:
 - bug fix: numpad keybindings
 - bug fix: trim broken because mouse selection not working
 - hide/unhide curves now recalculates regions
+- delete fillet/refillet tools always shown
 
 Video todo:
 
