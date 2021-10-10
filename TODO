@@ -8,6 +8,8 @@ Release:
 - bug fix: trim broken because mouse selection not working
 - hide/unhide curves now recalculates regions
 
+Video todo:
+
 Todo:
 ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909
 some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)

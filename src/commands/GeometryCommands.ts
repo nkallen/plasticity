@@ -46,7 +46,7 @@ import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
-import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
+import { ExtrudeLikeGizmo, OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import { MultilineDialog } from "./multiline/MultilineDialog";
 import MultilineFactory from "./multiline/MultilineFactory";
 import { ObjectPicker } from "./ObjectPicker";
@@ -58,6 +58,7 @@ import { RegionFactory } from "./region/RegionFactory";
 import { PossiblyBooleanSphereFactory } from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
+import { ThinSolidFactory } from "./thin-solid/ThinSolidFactory";
 import { MoveDialog } from "./translate/MoveDialog";
 import { MoveGizmo } from './translate/MoveGizmo';
 import { MoveKeyboardGizmo } from "./translate/MoveKeyboardGizmo";
@@ -1418,23 +1419,22 @@ export class ThinSolidCommand extends Command {
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selected.faces];
         const solid = faces[0].parentItem;
+        const thin = new ThinSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
-        const faces_ = faces.map(face => this.editor.db.lookupTopologyItem(face));
-        const solid_ = this.editor.db.lookup(solid);
+        thin.faces = faces;
+        thin.solid = solid;
 
-        let params = new c3d.SweptValues();
-        params.thickness1 = 0;
-        params.thickness2 = 0;
-        params.shellClosed = false;
-        const names = new c3d.SNameMaker(c3d.CreatorType.ThinShellCreator, c3d.ESides.SideNone, 0);
-        let result = c3d.ActionSolid.ThinSolid(solid_, c3d.CopyMode.Copy, faces_, [], [], params, names, true);
+        const gizmo = new MagnitudeGizmo("thin-solid", this.editor);
+        const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(faces[0]));
+        gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        gizmo.position.copy(point);
 
-        params = new c3d.SweptValues();
-        params.thickness1 = 30;
-        params.shellClosed = true;
-        result = c3d.ActionSolid.ThinSolid(result, c3d.CopyMode.Copy, faces_, [], [], params, names, true);
+        await gizmo.execute(thickness => {
+            thin.thickness1 = thickness;
+            thin.update();
+        }).resource(this);
 
-        this.editor.db.addItem(result);
+        await thin.commit();
     }
 }
 
