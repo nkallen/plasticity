@@ -1,7 +1,6 @@
 import { CompositeDisposable } from 'event-kit';
 import signals from 'signals';
 import c3d from '../../build/Release/c3d.node';
-import CommandRegistry from '../components/atom/CommandRegistry';
 import { EditorSignals } from '../editor/EditorSignals';
 import { Agent, DatabaseLike } from '../editor/GeometryDatabase';
 import { MementoOriginator, SelectionMemento } from '../editor/History';

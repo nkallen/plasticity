@@ -1,6 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
 import { point2point } from '../../util/Conversion';
 import { DatabaseLike } from "../GeometryDatabase";
+import { CrossPointMemento, MementoOriginator } from '../History';
 import * as visual from "../VisualModel";
 import { PointOnCurve, Transaction } from './ContourManager';
 
@@ -12,15 +13,13 @@ export class CrossPoint {
     ) { }
 }
 
-export class CrossPointDatabase {
+export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> {
     private readonly curve2touched = new Map<c3d.SimpleName, Set<c3d.SimpleName>>();
     private readonly id2cross = new Map<c3d.SimpleName, Set<CrossPoint>>();
     private readonly _crosses: Set<CrossPoint> = new Set();
     get crosses(): ReadonlySet<CrossPoint> { return this._crosses }
 
-    constructor(
-        private readonly db: DatabaseLike
-    ) { }
+    constructor(private readonly db: DatabaseLike) { }
 
     private cascade(curve: visual.SpaceInstance<visual.Curve3D>, transaction: Transaction = { dirty: new Set(), removed: new Set(), added: new Set() }) {
         const { curve2touched } = this;
@@ -115,7 +114,29 @@ export class CrossPointDatabase {
         id2joint.delete(id);
     }
 
-    validate() {
+    validate() { }
 
+    saveToMemento(): CrossPointMemento {
+        return new CrossPointMemento(
+            new Map(this.curve2touched),
+            new Map(this.id2cross),
+            new Set(this.crosses)
+        );
+    }
+
+    restoreFromMemento(m: CrossPointMemento) {
+        (this.curve2touched as CrossPointDatabase['curve2touched']) = m.curve2touched;
+        (this.id2cross as CrossPointDatabase['id2cross']) = m.id2cross;
+        (this._crosses as CrossPointDatabase['crosses']) = m.crosses;
+    }
+
+    serialize(): Promise<Buffer> {
+        throw new Error('Method not implemented.');
+    }
+    deserialize(data: Buffer): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    debug(): void {
+        throw new Error('Method not implemented.');
     }
 }

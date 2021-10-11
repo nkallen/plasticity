@@ -251,7 +251,7 @@ export class Presentation {
             names.push(snap.name);
         }
         names = names.filter(x => x !== undefined);
-        this.names = [...new Set(names as string[])];
+        this.names = [...new Set(names as string[])].sort();
     }
 }
 

@@ -17,6 +17,7 @@ import { Helpers } from "../util/Helpers";
 import { CreateMutable } from "../util/Util";
 import { Backup } from "./Backup";
 import ContourManager from "./curves/ContourManager";
+import { CrossPointDatabase } from "./curves/CrossPointDatabase";
 import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
 import { RegionManager } from "./curves/RegionManager";
 import { EditorSignals } from "./EditorSignals";
@@ -52,7 +53,8 @@ export class Editor {
     readonly selection = this.modifiers;
     readonly db = this.modifiers as DatabaseLike;
 
-    readonly snaps = new SnapManager(this.db, this.signals);
+    readonly crosses = new CrossPointDatabase(this.db);
+    readonly snaps = new SnapManager(this.db, this.crosses, this.signals);
     readonly snapPresenter = new SnapPresenter(this.gizmos);
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
@@ -60,7 +62,7 @@ export class Editor {
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly selectionInteraction = new SelectionInteractionManager(this.modifiers, this.materials, this.signals);
     readonly selectionGizmo = new SelectionCommandManager(this);
-    readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.curves, this.contours, this.modifiers);
+    readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.modifiers);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);
     readonly keyboard = new KeyboardEventManager(this.keymaps);

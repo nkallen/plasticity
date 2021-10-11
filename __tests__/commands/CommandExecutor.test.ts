@@ -9,6 +9,7 @@ import { SelectionCommandManager } from "../../src/commands/SelectionCommandMana
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import ContourManager from "../../src/editor/curves/ContourManager";
+import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { PlanarCurveDatabase } from "../../src/editor/curves/PlanarCurveDatabase";
 import { RegionManager } from "../../src/editor/curves/RegionManager";
 import { EditorSignals } from "../../src/editor/EditorSignals";
@@ -37,6 +38,7 @@ describe(CommandExecutor, () => {
     let regions: RegionManager;
     let contours: ContourManager;
     let modifiers: ModifierManager;
+    let crosses: CrossPointDatabase;
     let viewports: Viewport[];
 
     beforeEach(() => {
@@ -46,12 +48,13 @@ describe(CommandExecutor, () => {
         db = new GeometryDatabase(materials, signals);
         registry = new CommandRegistry();
         const selection = new SelectionManager(db, materials, signals);
-        snaps = new SnapManager(db, signals);
+        crosses = new CrossPointDatabase(db);
+        snaps = new SnapManager(db, crosses, signals);
         curves = new PlanarCurveDatabase(db, materials, signals);
         regions = new RegionManager(db, curves);
         contours = new ContourManager(db, curves, regions);
         modifiers = new ModifierManager(db, selection, materials, signals);
-        originator = new EditorOriginator(db, selection.selected, snaps, curves, contours, modifiers);
+        originator = new EditorOriginator(db, selection.selected, snaps, crosses, curves, contours, modifiers);
         history = new History(originator, signals);
         editor = {
             materials, sprites: gizmos, signals, db, registry, selection, snaps, curves, originator, history, contours, selectionGizmo

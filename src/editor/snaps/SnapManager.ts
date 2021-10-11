@@ -35,10 +35,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     readonly layers = new THREE.Layers();
 
-    private intersections = new CrossPointDatabase(this.db);
-
     constructor(
         private readonly db: DatabaseLike,
+        private readonly crosses: CrossPointDatabase,
         signals: EditorSignals
     ) {
         this.basicSnaps.add(originSnap);
@@ -126,7 +125,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     get crossSnaps(): CrossPointSnap[] {
-        return [...this.intersections.crosses].map(cross => new CrossPointSnap(cross));
+        return [...this.crosses.crosses].map(cross => new CrossPointSnap(cross));
     }
 
     private add(item: visual.Item) {
@@ -190,7 +189,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private addCurve(item: visual.SpaceInstance<visual.Curve3D>): Redisposable {
         const inst = this.db.lookup(item);
         const item_ = inst.GetSpaceItem()!;
-        this.intersections.add(item);
+        this.crosses.add(item);
 
         if (item_.IsA() === c3d.SpaceType.Polyline3D) {
             const polyline = item_.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
@@ -255,7 +254,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private delete(item: visual.Item): void {
         this.garbageDisposal.delete(item.simpleName);
-        if (item instanceof visual.SpaceInstance) this.intersections.remove(item);
+        if (item instanceof visual.SpaceInstance) this.crosses.remove(item);
         this.update();
     }
 

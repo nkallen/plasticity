@@ -15,6 +15,7 @@ import './matchers';
 import { SymmetryFactory } from '../src/commands/mirror/MirrorFactory';
 import ContourManager from '../src/editor/curves/ContourManager';
 import { RegionManager } from '../src/editor/curves/RegionManager';
+import { CrossPointDatabase } from '../src/editor/curves/CrossPointDatabase';
 
 describe(EditorOriginator, () => {
     let db: GeometryDatabase;
@@ -29,20 +30,22 @@ describe(EditorOriginator, () => {
     let contours: ContourManager;
     let selection: SelectionManager;
     let regions: RegionManager;
+    let crosses: CrossPointDatabase;
 
     beforeEach(() => {
         materials = new FakeMaterials();
         signals = new EditorSignals();
         db = new GeometryDatabase(materials, signals);
         gizmos = new GizmoMaterialDatabase(signals);
-        snaps = new SnapManager(db, signals);
+        crosses = new CrossPointDatabase(db);
+        snaps = new SnapManager(db, crosses, signals);
         selection = new SelectionManager(db, materials, signals);
         selected = selection.selected;
         curves = new PlanarCurveDatabase(db, materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
         const regions = new RegionManager(db, curves);
-        contours = new ContourManager(db, curves, regions, signals);
-        originator = new EditorOriginator(db, selected, snaps, curves, contours, modifiers);
+        contours = new ContourManager(db, curves, regions);
+        originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers);
     });
 
     let box: visual.Solid;
@@ -65,7 +68,7 @@ describe(EditorOriginator, () => {
 
         db = new GeometryDatabase(materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
-        originator = new EditorOriginator(db, selected, snaps, curves, contours, modifiers);
+        originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers);
 
         originator.restoreFromMemento(memento);
         expect(1).toBe(1);
@@ -76,7 +79,7 @@ describe(EditorOriginator, () => {
 
         db = new GeometryDatabase(materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);
-        originator = new EditorOriginator(db, selected, snaps, curves, contours, modifiers);
+        originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers);
 
         await originator.deserialize(data);
         expect(1).toBe(1);

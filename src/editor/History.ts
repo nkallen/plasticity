@@ -9,6 +9,7 @@ import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
 import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap } from "./snaps/Snap";
 import * as visual from "./VisualModel";
 import ContourManager from './curves/ContourManager';
+import { CrossPoint, CrossPointDatabase } from './curves/CrossPointDatabase';
 
 export class Memento {
     constructor(
@@ -16,6 +17,7 @@ export class Memento {
         readonly db: GeometryMemento,
         readonly selection: SelectionMemento,
         readonly snaps: SnapMemento,
+        readonly crosses: CrossPointMemento,
         readonly curves: CurveMemento,
         readonly modifiers: ModifierMemento,
     ) { }
@@ -69,6 +71,14 @@ export class SnapMemento {
         readonly midPoints: Set<PointSnap>,
         readonly endPoints: Set<PointSnap>,
         readonly centerPoints: Set<PointSnap>,
+    ) { }
+}
+
+export class CrossPointMemento {
+    constructor(
+        readonly curve2touched: Map<c3d.SimpleName, Set<c3d.SimpleName>>,
+        readonly id2cross: Map<c3d.SimpleName, Set<CrossPoint>>,
+        readonly crosses: Set<CrossPoint>,
     ) { }
 }
 
@@ -180,6 +190,7 @@ export class EditorOriginator {
         readonly db: MementoOriginator<GeometryMemento>,
         readonly selection: MementoOriginator<SelectionMemento>,
         readonly snaps: MementoOriginator<SnapMemento>,
+        readonly crosses: MementoOriginator<CrossPointMemento>,
         readonly curves: MementoOriginator<CurveMemento>,
         readonly contours: ContourManager,
         readonly modifiers: MementoOriginator<ModifierMemento>,
@@ -191,6 +202,7 @@ export class EditorOriginator {
             this.db.saveToMemento(),
             this.selection.saveToMemento(),
             this.snaps.saveToMemento(),
+            this.crosses.saveToMemento(),
             this.curves.saveToMemento(),
             this.modifiers.saveToMemento());
 
@@ -210,6 +222,7 @@ export class EditorOriginator {
                     this.db.saveToMemento(),
                     this.selection.saveToMemento(),
                     this.snaps.saveToMemento(),
+                    this.crosses.saveToMemento(),
                     this.curves.saveToMemento(),
                     this.modifiers.saveToMemento());
             case 'group':
@@ -219,10 +232,11 @@ export class EditorOriginator {
 
     restoreFromMemento(m: Memento) {
         this.db.restoreFromMemento(m.db);
-        this.modifiers.restoreFromMemento(m.modifiers);
         this.selection.restoreFromMemento(m.selection);
         this.snaps.restoreFromMemento(m.snaps);
+        this.crosses.restoreFromMemento(m.crosses);
         this.curves.restoreFromMemento(m.curves);
+        this.modifiers.restoreFromMemento(m.modifiers);
     }
 
     async serialize(): Promise<Buffer> {
@@ -247,6 +261,7 @@ export class EditorOriginator {
     validate() {
         this.modifiers.validate();
         this.snaps.validate();
+        this.crosses.validate();
         this.selection.validate();
         this.curves.validate();
         this.db.validate();
@@ -259,6 +274,7 @@ export class EditorOriginator {
         this.snaps.debug();
         this.selection.debug();
         this.curves.debug();
+        this.crosses.debug();
         this.db.debug();
         console.groupEnd();
     }
@@ -286,6 +302,7 @@ export class History {
         if (this.undoStack.length > 0 &&
             this.undoStack[this.undoStack.length - 1][1] === state) return;
         this.undoStack.push([name, state]);
+        this.redoStack.length = 0;
     }
 
     undo(): boolean {
@@ -302,7 +319,7 @@ export class History {
 
     redo(): boolean {
         const redo = this.redoStack.pop();
-        if (!redo) return false;
+        if (redo === undefined) return false;
 
         const [, memento] = redo;
         this.originator.restoreFromMemento(memento);

@@ -5,6 +5,7 @@ import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import LineFactory from "../src/commands/line/LineFactory";
+import { CrossPointDatabase } from "../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
@@ -30,7 +31,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     gizmos = new GizmoMaterialDatabase(signals);
     db = new GeometryDatabase(materials, signals);
-    snaps = new SnapManager(db, signals);
+    snaps = new SnapManager(db, new CrossPointDatabase(db), signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();
