@@ -53,7 +53,7 @@ export class Editor {
     readonly selection = this.modifiers;
     readonly db = this.modifiers as DatabaseLike;
 
-    readonly crosses = new CrossPointDatabase(this.db);
+    readonly crosses = new CrossPointDatabase();
     readonly snaps = new SnapManager(this.db, this.crosses, this.signals);
     readonly snapPresenter = new SnapPresenter(this.gizmos);
     readonly keymaps = new KeymapManager();

@@ -1,13 +1,10 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
-import { ContourFilletFactory } from "../src/commands/curve/ContourFilletFactory";
-import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";
-import LineFactory from "../src/commands/line/LineFactory";
+import { PlanarCurveDatabase } from "../src/editor/curves/PlanarCurveDatabase";
+import { RegionManager } from "../src/editor/curves/RegionManager";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { PlanarCurveDatabase } from "../src/editor/curves/PlanarCurveDatabase";
-import { RegionManager } from "../src/editor/curves/RegionManager";
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';

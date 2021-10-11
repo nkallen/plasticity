@@ -78,6 +78,7 @@ export class CrossPointMemento {
     constructor(
         readonly curve2touched: Map<c3d.SimpleName, Set<c3d.SimpleName>>,
         readonly id2cross: Map<c3d.SimpleName, Set<CrossPoint>>,
+        readonly id2curve: Map<c3d.SimpleName, c3d.Curve3D>,
         readonly crosses: Set<CrossPoint>,
     ) { }
 }

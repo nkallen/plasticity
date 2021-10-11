@@ -333,15 +333,15 @@ describe("Joints", () => {
         const joints2 = curves.lookup(curve2).joints;
 
         expect(joints1.start).toBeUndefined();
-        expect(joints1.stop!.on1.curve).toBe(curve1.simpleName);
+        expect(joints1.stop!.on1.id).toBe(curve1.simpleName);
         expect(joints1.stop!.on1.t).toBe(1);
-        expect(joints1.stop!.on2.curve).toBe(curve2.simpleName);
+        expect(joints1.stop!.on2.id).toBe(curve2.simpleName);
         expect(joints1.stop!.on2.t).toBe(0);
 
         expect(joints2.stop).toBeUndefined();
-        expect(joints2.start!.on1.curve).toBe(curve2.simpleName);
+        expect(joints2.start!.on1.id).toBe(curve2.simpleName);
         expect(joints2.start!.on1.t).toBe(0);
-        expect(joints2.start!.on2.curve).toBe(curve1.simpleName);
+        expect(joints2.start!.on2.id).toBe(curve1.simpleName);
         expect(joints2.start!.on2.t).toBe(1);
     });
 
@@ -364,15 +364,15 @@ describe("Joints", () => {
         const joints2 = curves.lookup(curve2).joints;
 
         expect(joints1.stop).toBeUndefined();
-        expect(joints1.start!.on1.curve).toBe(curve1.simpleName);
+        expect(joints1.start!.on1.id).toBe(curve1.simpleName);
         expect(joints1.start!.on1.t).toBe(0);
-        expect(joints1.start!.on2.curve).toBe(curve2.simpleName);
+        expect(joints1.start!.on2.id).toBe(curve2.simpleName);
         expect(joints1.start!.on2.t).toBe(0);
 
         expect(joints2.stop).toBeUndefined();
-        expect(joints2.start!.on1.curve).toBe(curve2.simpleName);
+        expect(joints2.start!.on1.id).toBe(curve2.simpleName);
         expect(joints2.start!.on1.t).toBe(0);
-        expect(joints2.start!.on2.curve).toBe(curve1.simpleName);
+        expect(joints2.start!.on2.id).toBe(curve1.simpleName);
         expect(joints2.start!.on2.t).toBe(0);
     });
 
@@ -395,15 +395,15 @@ describe("Joints", () => {
         const joints2 = curves.lookup(curve2).joints;
 
         expect(joints1.start).toBeUndefined();
-        expect(joints1.stop!.on1.curve).toBe(curve1.simpleName);
+        expect(joints1.stop!.on1.id).toBe(curve1.simpleName);
         expect(joints1.stop!.on1.t).toBe(1);
-        expect(joints1.stop!.on2.curve).toBe(curve2.simpleName);
+        expect(joints1.stop!.on2.id).toBe(curve2.simpleName);
         expect(joints1.stop!.on2.t).toBe(1);
 
         expect(joints2.start).toBeUndefined();
-        expect(joints2.stop!.on1.curve).toBe(curve2.simpleName);
+        expect(joints2.stop!.on1.id).toBe(curve2.simpleName);
         expect(joints2.stop!.on1.t).toBe(1);
-        expect(joints2.stop!.on2.curve).toBe(curve1.simpleName);
+        expect(joints2.stop!.on2.id).toBe(curve1.simpleName);
         expect(joints2.stop!.on2.t).toBe(1);
     });
 
@@ -433,31 +433,31 @@ describe("Joints", () => {
         const joints2 = curves.lookup(curve2).joints;
         const joints3 = curves.lookup(curve3).joints;
 
-        expect(joints1.start!.on1.curve).toBe(curve1.simpleName);
+        expect(joints1.start!.on1.id).toBe(curve1.simpleName);
         expect(joints1.start!.on1.t).toBe(0);
-        expect(joints1.start!.on2.curve).toBe(curve3.simpleName);
+        expect(joints1.start!.on2.id).toBe(curve3.simpleName);
         expect(joints1.start!.on2.t).toBe(0);
-        expect(joints1.stop!.on1.curve).toBe(curve1.simpleName);
+        expect(joints1.stop!.on1.id).toBe(curve1.simpleName);
         expect(joints1.stop!.on1.t).toBe(1);
-        expect(joints1.stop!.on2.curve).toBe(curve2.simpleName);
+        expect(joints1.stop!.on2.id).toBe(curve2.simpleName);
         expect(joints1.stop!.on2.t).toBe(0);
 
-        expect(joints2.start!.on1.curve).toBe(curve2.simpleName);
+        expect(joints2.start!.on1.id).toBe(curve2.simpleName);
         expect(joints2.start!.on1.t).toBe(0);
-        expect(joints2.start!.on2.curve).toBe(curve1.simpleName);
+        expect(joints2.start!.on2.id).toBe(curve1.simpleName);
         expect(joints2.start!.on2.t).toBe(1);
-        expect(joints2.stop!.on1.curve).toBe(curve2.simpleName);
+        expect(joints2.stop!.on1.id).toBe(curve2.simpleName);
         expect(joints2.stop!.on1.t).toBe(1);
-        expect(joints2.stop!.on2.curve).toBe(curve3.simpleName);
+        expect(joints2.stop!.on2.id).toBe(curve3.simpleName);
         expect(joints2.stop!.on2.t).toBe(1);
 
-        expect(joints3.start!.on1.curve).toBe(curve3.simpleName);
+        expect(joints3.start!.on1.id).toBe(curve3.simpleName);
         expect(joints3.start!.on1.t).toBe(0);
-        expect(joints3.start!.on2.curve).toBe(curve1.simpleName);
+        expect(joints3.start!.on2.id).toBe(curve1.simpleName);
         expect(joints3.start!.on2.t).toBe(0);
-        expect(joints3.stop!.on1.curve).toBe(curve3.simpleName);
+        expect(joints3.stop!.on1.id).toBe(curve3.simpleName);
         expect(joints3.stop!.on1.t).toBe(1);
-        expect(joints3.stop!.on2.curve).toBe(curve2.simpleName);
+        expect(joints3.stop!.on2.id).toBe(curve2.simpleName);
         expect(joints3.stop!.on2.t).toBe(1);
     });
 });

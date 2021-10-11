@@ -30,6 +30,8 @@ export abstract class Snap implements Restriction {
 
     protected init() {
         const { snapper, nearby, helper } = this;
+        if (snapper === helper) throw new Error("Snapper should not === helper because snappers have userData and helpers should be simple cloneable objects");
+
         snapper.updateMatrixWorld();
         nearby?.updateMatrixWorld();
         helper?.updateMatrixWorld();
@@ -41,8 +43,7 @@ export abstract class Snap implements Restriction {
             c.userData.snap = this;
         });
 
-        if (nearby != null)
-            nearby.userData.snap = this;
+        if (nearby != null) nearby.userData.snap = this;
         nearby?.layers.set(this.layer);
         nearby?.traverse(c => {
             c.userData.snap = this;
@@ -99,6 +100,18 @@ export class PointSnap extends Snap {
 export class CrossPointSnap extends PointSnap {
     constructor(readonly cross: CrossPoint) {
         super("Intersection", cross.position);
+    }
+}
+
+export class AxisCrossPointSnap extends CrossPointSnap {
+    readonly helper = new THREE.Group();
+
+    constructor(readonly cross: CrossPoint, axis1: AxisSnap, axis2?: AxisSnap) {
+        super(cross);
+        this.helper.add(axis1.helper.clone());
+        if (axis2 !== undefined) {
+            this.helper.add(axis2.helper.clone());
+        }
     }
 }
 
@@ -341,7 +354,7 @@ const Z = new THREE.Vector3(0, 0, 1);
 
 export class AxisSnap extends Snap {
     readonly snapper = new THREE.Line(axisGeometry, new THREE.LineBasicMaterial());
-    readonly helper = this.snapper;
+    readonly helper = this.snapper.clone();
 
     static X = new AxisSnap("X", new THREE.Vector3(1, 0, 0));
     static Y = new AxisSnap("Y", new THREE.Vector3(0, 1, 0));
@@ -356,6 +369,8 @@ export class AxisSnap extends Snap {
         super();
         this.snapper.position.copy(o);
         this.snapper.quaternion.setFromUnitVectors(Y, n);
+        this.helper.position.copy(this.snapper.position);
+        this.helper.quaternion.copy(this.snapper.quaternion);
 
         this.n.copy(n).normalize();
         this.o.copy(o);
@@ -389,13 +404,14 @@ export class AxisSnap extends Snap {
         return new AxisSnap(this.name?.toLowerCase(), this.n.clone().applyQuaternion(quat), o);
     }
 }
+
 // A line snap looks like an axis snap (it has a Line helper) but valid click targets are actually
 // any where other than the line's origin. It's used mainly for extruding, where you want to limit
 // the direction of extrusion but allow the user to move the mouse wherever.
 
 export class LineSnap extends Snap {
     readonly snapper = new THREE.Group().add(this.plane1.snapper, this.plane2.snapper);
-    readonly helper = this.axis.helper;
+    readonly helper = this.axis.helper.clone();
     protected readonly layer: Layers = Layers.AxisSnap;
 
     static make(name: string | undefined, direction: THREE.Vector3, origin: THREE.Vector3) {
@@ -417,6 +433,7 @@ export class LineSnap extends Snap {
 
     private constructor(readonly name: string | undefined, private readonly axis: AxisSnap, private readonly plane1: PlaneSnap, private readonly plane2: PlaneSnap) {
         super();
+        this.init();
     }
 
     project(intersection: THREE.Intersection) {
@@ -489,43 +506,3 @@ export class ConstructionPlaneSnap extends PlaneSnap {
     }
 }
 
-export class CameraPlaneSnap extends PlaneSnap {
-    private readonly worldDirection: THREE.Vector3;
-    private readonly projectionPoint: THREE.Vector3;
-
-    constructor(camera: THREE.Camera) {
-        super(new THREE.Vector3(), new THREE.Vector3());
-        this.worldDirection = new THREE.Vector3();
-        this.projectionPoint = new THREE.Vector3();
-        this.update(camera);
-    }
-
-    isValid(pt: THREE.Vector3): boolean {
-        const { worldDirection } = this;
-
-        const plane = new THREE.Plane();
-        plane.setFromNormalAndCoplanarPoint(worldDirection, this.snapper.position);
-
-        return Math.abs(plane.distanceToPoint(pt)) < 1e-4;
-    }
-
-    project(intersection: THREE.Intersection) {
-        const { worldDirection, projectionPoint } = this;
-
-        const plane = new THREE.Plane();
-        plane.setFromNormalAndCoplanarPoint(worldDirection, this.snapper.position);
-
-        const position = plane.projectPoint(intersection.point, projectionPoint);
-        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, worldDirection);
-        return { position, orientation };
-    }
-
-    update(camera: THREE.Camera) {
-        const { worldDirection } = this;
-        camera.getWorldDirection(worldDirection);
-
-        this.snapper.position.copy(camera.position).add(worldDirection.clone().multiplyScalar(15));
-        this.snapper.lookAt(worldDirection);
-        this.snapper.updateMatrixWorld();
-    }
-}

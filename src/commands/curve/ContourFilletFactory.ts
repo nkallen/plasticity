@@ -117,8 +117,8 @@ export class JointFilletFactory extends GeometryFactory {
     async setJoint(joint: Joint) {
         this._joint = joint;
         const contourFactory = new JoinCurvesFactory(this.db, this.materials, this.signals);
-        const on1curve = this.db.lookupItemById(joint.on1.curve).view as visual.SpaceInstance<visual.Curve3D>;
-        const on2curve = this.db.lookupItemById(joint.on2.curve).view as visual.SpaceInstance<visual.Curve3D>
+        const on1curve = this.db.lookupItemById(joint.on1.id).view as visual.SpaceInstance<visual.Curve3D>;
+        const on2curve = this.db.lookupItemById(joint.on2.id).view as visual.SpaceInstance<visual.Curve3D>
         this._originalItems = [on1curve, on2curve];
         contourFactory.push(on1curve);
         contourFactory.push(on2curve);

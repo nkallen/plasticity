@@ -11,12 +11,10 @@ import { PointPicker } from "../PointPicker";
 import { MoveDialog } from "./MoveDialog";
 import { MoveGizmo } from "./MoveGizmo";
 import { MoveFactory } from "./TranslateFactory";
+import * as pp from "../PointPicker";
 
-interface EditorLike extends cmd.EditorLike {
-    db: DatabaseLike,
+interface EditorLike extends cmd.EditorLike, pp.EditorLike {
     materials: MaterialDatabase,
-    snaps: SnapManager,
-    snapPresenter: SnapPresenter,
 }
 
 export class MoveKeyboardGizmo extends CommandKeyboardInput {

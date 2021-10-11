@@ -5,8 +5,8 @@ import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import c3d from '../../build/Release/c3d.node';
 import '../matchers';
 
 let db: GeometryDatabase;
@@ -24,7 +24,7 @@ beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    curves = new CrossPointDatabase(db);
+    curves = new CrossPointDatabase();
 });
 
 beforeEach(() => {
@@ -39,69 +39,69 @@ beforeEach(() => {
 test("two intersecting circles, add & remove", async () => {
     makeCircle1.center = new THREE.Vector3(0, -0.1, 0);
     makeCircle1.radius = 1;
-    const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
-    curves.add(circle1);
+    const circle1 = (await makeCircle1.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+    curves.add(0, circle1);
     expect(curves.crosses.size).toBe(0)
 
     makeCircle2.center = new THREE.Vector3(0, 0.1, 0);
     makeCircle2.radius = 1;
-    const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    const circle2 = (await makeCircle2.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
 
-    curves.add(circle2);
+    curves.add(1, circle2);
     expect(curves.crosses.size).toBe(2);
 
-    curves.remove(circle2);
+    curves.remove(1);
     expect(curves.crosses.size).toBe(0);
 });
 
 test('two non-intersecting circles', async () => {
     makeCircle1.center = new THREE.Vector3(0, 0, 0);
     makeCircle1.radius = 1;
-    const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    const circle1 = (await makeCircle1.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
 
-    curves.add(circle1);
+    curves.add(0, circle1);
     expect(curves.crosses.size).toBe(0);
 
     makeCircle2.center = new THREE.Vector3(0, 5, 0);
     makeCircle2.radius = 1;
-    const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    const circle2 = (await makeCircle2.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
     expect(curves.crosses.size).toBe(0);
 
-    curves.add(circle2);
+    curves.add(1, circle2);
     expect(curves.crosses.size).toBe(0);
 
-    curves.remove(circle2);
+    curves.remove(1);
     expect(curves.crosses.size).toBe(0);
 });
 
 test('three intersecting circles, added then deleted', async () => {
     makeCircle1.center = new THREE.Vector3(0, -1.1, 0);
     makeCircle1.radius = 1;
-    const circle1 = await makeCircle1.commit() as visual.SpaceInstance<visual.Curve3D>;
+    const circle1 = (await makeCircle1.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
     expect(curves.crosses.size).toBe(0);
 
-    curves.add(circle1);
+    curves.add(0, circle1);
     expect(curves.crosses.size).toBe(0);
 
     makeCircle2.center = new THREE.Vector3(0, 0, 0);
     makeCircle2.radius = 1;
-    const circle2 = await makeCircle2.commit() as visual.SpaceInstance<visual.Curve3D>;
+    const circle2 = (await makeCircle2.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
     expect(curves.crosses.size).toBe(0);
 
-    curves.add(circle2);
+    curves.add(1, circle2);
     expect(curves.crosses.size).toBe(2);
 
     makeCircle3.center = new THREE.Vector3(0, 1.1, 0);
     makeCircle3.radius = 1;
-    const circle3 = await makeCircle3.commit() as visual.SpaceInstance<visual.Curve3D>;
+    const circle3 = (await makeCircle3.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
     expect(curves.crosses.size).toBe(2);
 
-    curves.add(circle3);
+    curves.add(2, circle3);
     expect(curves.crosses.size).toBe(4);
 
-    curves.remove(circle3);
+    curves.remove(2);
     expect(curves.crosses.size).toBe(2);
 
-    curves.remove(circle2);
+    curves.remove(1);
     expect(curves.crosses.size).toBe(0);
 });

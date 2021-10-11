@@ -13,12 +13,10 @@ import { PointPicker } from "../PointPicker";
 import { RotateDialog } from "./RotateDialog";
 import { RotateGizmo } from "./RotateGizmo";
 import { RotateFactory } from "./TranslateFactory";
+import * as pp from "../PointPicker";
 
-interface EditorLike extends cmd.EditorLike {
-    db: DatabaseLike,
+interface EditorLike extends cmd.EditorLike, pp.EditorLike {
     materials: MaterialDatabase,
-    snaps: SnapManager,
-    snapPresenter: SnapPresenter,
 }
 
 const X = new THREE.Vector3(1, 0, 0);

@@ -7,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -186,15 +186,15 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         });
     }
 
-    private addCurve(item: visual.SpaceInstance<visual.Curve3D>): Redisposable {
-        const inst = this.db.lookup(item);
+    private addCurve(view: visual.SpaceInstance<visual.Curve3D>): Redisposable {
+        const inst = this.db.lookup(view);
         const item_ = inst.GetSpaceItem()!;
-        this.crosses.add(item);
+        this.crosses.add(view.simpleName, item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
 
         if (item_.IsA() === c3d.SpaceType.Polyline3D) {
             const polyline = item_.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
 
-            const curveSnap = new CurveSnap(item, polyline);
+            const curveSnap = new CurveSnap(view, polyline);
             this.curves.add(curveSnap);
 
             const points = polyline.GetPoints();
@@ -230,7 +230,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         } else {
             const curve = item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
 
-            const curveSnap = new CurveSnap(item, curve);
+            const curveSnap = new CurveSnap(view, curve);
             this.curves.add(curveSnap);
 
             const min = curve.PointOn(curve.GetTMin());
@@ -254,7 +254,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private delete(item: visual.Item): void {
         this.garbageDisposal.delete(item.simpleName);
-        if (item instanceof visual.SpaceInstance) this.crosses.remove(item);
+        if (item instanceof visual.SpaceInstance) this.crosses.remove(item.simpleName);
         this.update();
     }
 
@@ -312,6 +312,7 @@ export const originSnap = new PointSnap("Origin");
 
 const priorities = new Map<any, number>();
 priorities.set(CrossPointSnap, 1);
+priorities.set(AxisCrossPointSnap, 1);
 priorities.set(TanTanSnap, 1);
 priorities.set(PointSnap, 1);
 priorities.set(CurvePointSnap, 1);

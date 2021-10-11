@@ -169,7 +169,7 @@ export default class ContourManager extends DatabaseProxy {
 
 export class PointOnCurve {
     constructor(
-        readonly curve: c3d.SimpleName,
+        readonly id: c3d.SimpleName,
         readonly t: number,
         readonly tmin: number,
         readonly tmax: number

@@ -6,7 +6,7 @@ import { Model, Presentation } from '../../src/commands/PointPicker';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap } from '../../src/editor/snaps/Snap';
+import { AxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
 import * as visual from '../../src/editor/VisualModel';
@@ -28,8 +28,9 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
     const gizmos = new GizmoMaterialDatabase(signals);
     presenter = new SnapPresenter(gizmos);
-    snaps = new SnapManager(db, new CrossPointDatabase(db), signals);
-    pointPicker = new Model(db, snaps);
+    const crosses = new CrossPointDatabase();
+    snaps = new SnapManager(db, crosses, signals);
+    pointPicker = new Model(db, snaps, crosses);
 });
 
 describe('restrictToPlaneThroughPoint', () => {
@@ -246,51 +247,58 @@ describe('addAxesAt', () => {
 
 
     describe('activateSnapped', () => {
-        test("for points activateSnapped adds axes, and deduplicates", () => {
+        let circle1: visual.SpaceInstance<visual.Curve3D>;
+        let model1: c3d.Curve3D;
+
+        beforeEach(async () => {
+            const makeCircle = new CenterCircleFactory(db, materials, signals);
+            makeCircle.center = new THREE.Vector3();
+            makeCircle.radius = 1;
+            circle1 = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const inst = db.lookup(circle1);
+            const item = inst.GetSpaceItem()!;
+            model1 = item.Cast<c3d.Curve3D>(item.IsA());
+        });
+
+        test("for points on curves, activateSnapped adds axes, and deduplicates", () => {
             let snaps;
             snaps = pointPicker.snapsFor(constructionPlane, false);
             expect(snaps.length).toBe(4);
 
             const position = new THREE.Vector3(1, 1, 1);
             const orientation = new THREE.Quaternion();
-            const snap = new PointSnap("startpoint", position);
+            const snap = new CurvePointSnap("startpoint", position, new CurveSnap(circle1, model1), 0);
             const snapResults = [{ snap, position, orientation }];
             pointPicker.activateSnapped(snapResults);
 
             snaps = pointPicker.snapsFor(constructionPlane, false)
-            expect(snaps.length).toBe(7);
+            expect(snaps.length).toBe(8);
+            expect(snaps[0]).toBeInstanceOf(AxisSnap);
+            expect(snaps[1]).toBeInstanceOf(AxisSnap);
+            expect(snaps[2]).toBeInstanceOf(AxisSnap);
+            expect(snaps[3]).toBeInstanceOf(AxisSnap);
+            expect(snaps[4]).toBeInstanceOf(AxisSnap);
+            expect(snaps[5]).toBeInstanceOf(AxisCrossPointSnap);
+            expect(snaps[6]).toBeInstanceOf(AxisSnap);
+            expect(snaps[7]).toBe(constructionPlane);
 
             pointPicker.activateSnapped(snapResults);
             snaps = pointPicker.snapsFor(constructionPlane, false)
-            expect(snaps.length).toBe(7);
+            expect(snaps.length).toBe(8);
         });
 
         describe('for curves', () => {
-            let circle1: visual.SpaceInstance<visual.Curve3D>;
-            let model1: c3d.Curve3D;
             let circle2: visual.SpaceInstance<visual.Curve3D>;
             let model2: c3d.Curve3D;
 
             beforeEach(async () => {
-                {
-                    const makeCircle = new CenterCircleFactory(db, materials, signals);
-                    makeCircle.center = new THREE.Vector3();
-                    makeCircle.radius = 1;
-                    circle1 = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
-                    const inst = db.lookup(circle1);
-                    const item = inst.GetSpaceItem()!;
-                    model1 = item.Cast<c3d.Curve3D>(item.IsA());
-                }
-
-                {
-                    const makeCircle = new CenterCircleFactory(db, materials, signals);
-                    makeCircle.center = new THREE.Vector3(5, 0, 0);
-                    makeCircle.radius = 1;
-                    circle2 = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
-                    const inst = db.lookup(circle2);
-                    const item = inst.GetSpaceItem()!;
-                    model2 = item.Cast<c3d.Curve3D>(item.IsA());
-                }
+                const makeCircle = new CenterCircleFactory(db, materials, signals);
+                makeCircle.center = new THREE.Vector3(5, 0, 0);
+                makeCircle.radius = 1;
+                circle2 = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+                const inst = db.lookup(circle2);
+                const item = inst.GetSpaceItem()!;
+                model2 = item.Cast<c3d.Curve3D>(item.IsA());
             });
 
             test("activateNearby adds tan/tan", () => {

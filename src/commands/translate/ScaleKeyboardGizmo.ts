@@ -8,16 +8,14 @@ import { CommandKeyboardInput } from "../CommandKeyboardInput";
 import { ScaleCommand } from "../GeometryCommands";
 import LineFactory from "../line/LineFactory";
 import { PointPicker } from "../PointPicker";
+import * as pp from "../PointPicker";
 import { ScaleDialog } from "./ScaleDialog";
 import { ScaleGizmo } from "./ScaleGizmo";
 import { ScaleFactory } from "./TranslateFactory";
 import * as THREE from "three";
 
-interface EditorLike extends cmd.EditorLike {
-    db: DatabaseLike,
+interface EditorLike extends cmd.EditorLike, pp.EditorLike {
     materials: MaterialDatabase,
-    snaps: SnapManager,
-    snapPresenter: SnapPresenter,
 }
 
 const X = new THREE.Vector3(1, 0, 0);

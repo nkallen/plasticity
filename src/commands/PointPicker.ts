@@ -1,27 +1,30 @@
-import c3d from '../../build/Release/c3d.node';
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
+import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
+import { CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import { AxisSnap, CurveEdgeSnap, CurveSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { VisibleLayers } from '../editor/LayerManager';
+import { AxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import * as visual from "../editor/VisualModel";
 import { CancellablePromise } from '../util/Cancellable';
+import { point2point } from '../util/Conversion';
 import { Helper, Helpers } from '../util/Helpers';
-import { OrbitControls } from '../components/viewport/OrbitControls';
-import { VisibleLayers } from '../editor/LayerManager';
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
-interface EditorLike {
+export interface EditorLike {
     db: DatabaseLike,
     viewports: Viewport[],
     snaps: SnapManager,
     signals: EditorSignals,
     helpers: Helpers,
-    snapPresenter: SnapPresenter
+    snapPresenter: SnapPresenter,
+    crosses: CrossPointDatabase,
 }
 
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap }
@@ -40,7 +43,8 @@ export class Model {
 
     constructor(
         private readonly db: DatabaseLike,
-        private readonly manager: SnapManager
+        private readonly manager: SnapManager,
+        private readonly crosses: CrossPointDatabase,
     ) { }
 
     snapsFor(constructionPlane: PlaneSnap, isOrtho: boolean): Snap[] {
@@ -100,11 +104,22 @@ export class Model {
         this.otherAddedSnaps.length = 0;
     }
 
+    private counter = -1; // counter descends from -1 to avoid conflicting with objects in the geometry database
+    private readonly cross2axis = new Map<c3d.SimpleName, AxisSnap>();
     addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion()) {
         const rotated = [];
         for (const snap of this.straightSnaps) rotated.push(snap.rotate(orientation));
         const axes = new PointSnap(undefined, point).axes(rotated);
-        for (const axis of axes) this.otherAddedSnaps.push(axis);
+        for (const axis of axes) {
+            this.otherAddedSnaps.push(axis);
+            const counter = this.counter--;
+            const crosses = this.crosses.add(counter, new c3d.Line3D(point2point(axis.o), point2point(axis.o.clone().add(axis.n))));
+            this.cross2axis.set(counter, axis);
+            for (const cross of crosses) {
+                if (cross.position.manhattanDistanceTo(point) < 10e-3) continue;
+                this.otherAddedSnaps.push(new AxisCrossPointSnap(cross, axis, this.cross2axis.get(cross.on2.id)));
+            }
+        }
     }
 
     get snaps() {
@@ -169,8 +184,9 @@ export class Model {
     private readonly snapActivatedSnaps = new Set<Snap>();
     activateSnapped(snaps: SnapResult[]) {
         for (const { snap } of snaps) {
-            if (snap instanceof PointSnap && !this.snapActivatedSnaps.has(snap)) {
-                this.snapActivatedSnaps.add(snap);
+            if (this.snapActivatedSnaps.has(snap)) continue;
+            this.snapActivatedSnaps.add(snap); // idempotent
+            if (snap instanceof CurvePointSnap || snap instanceof FacePointSnap) {
                 this.addAxesAt(snap.position);
             }
         }
@@ -186,8 +202,10 @@ export class Model {
 
         const last = pickedPointSnaps[pickedPointSnaps.length - 1];
         for (const { snap } of nearby) {
-            if (snap instanceof CurveSnap && !pointActivatedSnaps.has(snap)) {
-                pointActivatedSnaps.add(snap);
+            if (pointActivatedSnaps.has(snap)) continue;
+            pointActivatedSnaps.add(snap); // idempotent
+
+            if (snap instanceof CurveSnap) {
                 const additional = snap.additionalSnapsForLast(last.position, lastPickedSnap);
                 this.addSnap(...additional);
             }
@@ -267,7 +285,7 @@ class PointTarget extends Helper {
 }
 
 export class PointPicker {
-    private readonly model = new Model(this.editor.db, this.editor.snaps);
+    private readonly model = new Model(this.editor.db, this.editor.snaps, new CrossPointDatabase(this.editor.crosses));
     private readonly helper = new PointTarget();
 
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {

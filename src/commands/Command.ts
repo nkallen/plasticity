@@ -14,6 +14,7 @@ import { HasSelectedAndHovered } from "../selection/SelectionManager";
 import { CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
+import { CrossPointDatabase } from "../editor/curves/CrossPointDatabase";
 
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
@@ -54,6 +55,7 @@ export interface EditorLike {
     enqueue(command: Command, interrupt?: boolean): Promise<void>,
     modifiers: ModifierManager,
     snapPresenter: SnapPresenter,
+    crosses: CrossPointDatabase,
 }
 
 export default abstract class Command extends CancellableRegistor {

@@ -31,7 +31,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     gizmos = new GizmoMaterialDatabase(signals);
     db = new GeometryDatabase(materials, signals);
-    snaps = new SnapManager(db, new CrossPointDatabase(db), signals);
+    snaps = new SnapManager(db, new CrossPointDatabase(), signals);
     camera = new THREE.PerspectiveCamera();
     camera.position.set(0, 0, 1);
     bbox = new THREE.Box3();

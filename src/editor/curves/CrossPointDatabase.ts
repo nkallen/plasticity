@@ -1,6 +1,5 @@
 import c3d from '../../../build/Release/c3d.node';
 import { point2point } from '../../util/Conversion';
-import { DatabaseLike } from "../GeometryDatabase";
 import { CrossPointMemento, MementoOriginator } from '../History';
 import * as visual from "../VisualModel";
 import { PointOnCurve, Transaction } from './ContourManager';
@@ -16,18 +15,86 @@ export class CrossPoint {
 export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> {
     private readonly curve2touched = new Map<c3d.SimpleName, Set<c3d.SimpleName>>();
     private readonly id2cross = new Map<c3d.SimpleName, Set<CrossPoint>>();
+    private readonly id2curve = new Map<c3d.SimpleName, c3d.Curve3D>();
     private readonly _crosses: Set<CrossPoint> = new Set();
     get crosses(): ReadonlySet<CrossPoint> { return this._crosses }
 
-    constructor(private readonly db: DatabaseLike) { }
+    constructor(other?: CrossPointDatabase) {
+        if (other !== undefined) {
+            this.restoreFromMemento(other.saveToMemento());
+        }
+    }
 
-    private cascade(curve: visual.SpaceInstance<visual.Curve3D>, transaction: Transaction = { dirty: new Set(), removed: new Set(), added: new Set() }) {
+    add(id: c3d.SimpleName, curve: c3d.Curve3D) {
+        const { curve2touched, _crosses: allCrosses, id2cross } = this;
+
+        const { crosses: newCrosses, touched } = this.calculate(id, curve);
+
+        this.id2curve.set(id, curve);
+        id2cross.set(id, new Set());
+        curve2touched.set(id, touched);
+
+        for (const cross of newCrosses) {
+            id2cross.get(cross.on1.id)!.add(cross);
+            id2cross.get(cross.on2.id)!.add(cross);
+            allCrosses.add(cross);
+        }
+        return newCrosses;
+    }
+
+    private calculate(name: c3d.SimpleName, curve: c3d.Curve3D): { crosses: Set<CrossPoint>, touched: Set<c3d.SimpleName> } {
+        const { allCurves } = this;
+        const touched = new Set<c3d.SimpleName>();
+
+        const crosses = new Set<CrossPoint>();
+        for (const { id: otherName, curve: other } of allCurves) {
+            const { count, result1, result2 } = c3d.ActionPoint.CurveCurveIntersection3D(curve, other, 10e-3,)
+            if (count > 0) {
+                touched.add(otherName);
+                for (let i = 0; i < count; i++) {
+                    const position = curve.PointOn(result1[i]);
+                    const cross = new CrossPoint(
+                        point2point(position),
+                        new PointOnCurve(name, result1[i], curve.GetTMin(), curve.GetTMax()),
+                        new PointOnCurve(otherName, result2[i], other.GetTMin(), other.GetTMax()));
+                    crosses.add(cross);
+                }
+            }
+        }
+        return { crosses, touched };
+    }
+
+    private get allCurves() {
+        return [...this.id2curve.entries()].map(([id, curve]) => { return { id, curve } });
+    }
+
+    remove(id: c3d.SimpleName) {
+        const data = this.cascade(id);
+        const readd = new Map<c3d.SimpleName, c3d.Curve3D>();
+        for (const touchee of data.dirty) {
+            readd.set(touchee, this.id2curve.get(touchee)!);
+            this.removeInfo(touchee);
+        }
+
+        for (const touchee of data.removed) {
+            if (data.dirty.has(touchee)) continue;
+
+            this.removeInfo(touchee);
+        }
+        for (const touchee of data.dirty) {
+            if (data.removed.has(touchee)) continue;
+
+            this.add(touchee, readd.get(touchee)!);
+        }
+    }
+
+    private cascade(id: c3d.SimpleName, transaction: Transaction = { dirty: new Set(), removed: new Set(), added: new Set() }) {
         const { curve2touched } = this;
         const { dirty, removed: deleted, added } = transaction;
 
-        deleted.add(curve.simpleName);
+        deleted.add(id);
 
-        const touched = curve2touched.get(curve.simpleName)!;
+        const touched = curve2touched.get(id)!;
 
         const visited = dirty;
         let walk = [...touched];
@@ -42,87 +109,15 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         return transaction;
     }
 
-    add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
-        const { db, curve2touched, _crosses: allCrosses, id2cross } = this;
-
-        const { crosses: newCrosses, touched } = this.calculate(newCurve);
-
-        id2cross.set(newCurve.simpleName, new Set());
-        curve2touched.set(newCurve.simpleName, touched);
-
-        for (const cross of newCrosses) {
-            id2cross.get(cross.on1.curve)!.add(cross);
-            id2cross.get(cross.on2.curve)!.add(cross);
-            allCrosses.add(cross);
-        }
-    }
-
-    calculate(newCurve: visual.SpaceInstance<visual.Curve3D>): { crosses: Set<CrossPoint>, touched: Set<c3d.SimpleName> } {
-        const { db } = this;
-        const touched = new Set<c3d.SimpleName>();
-
-        const inst = db.lookup(newCurve);
-        const curve = inst.GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-
-        const crosses = new Set<CrossPoint>();
-        const allCurves = [...this.curve2touched.keys()].map(id => db.lookupItemById(id)) as { view: visual.SpaceInstance<visual.Curve3D>; model: c3d.SpaceInstance }[];
-        for (const { view, model } of allCurves) {
-            const other = model.GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
-            const { count, result1, result2 } = c3d.ActionPoint.CurveCurveIntersection3D(curve, other, 10e-3,)
-            if (count > 0) {
-                touched.add(view.simpleName);
-                for (let i = 0; i < count; i++) {
-                    const position = curve.PointOn(result1[i]);
-                    const cross = new CrossPoint(
-                        point2point(position),
-                        new PointOnCurve(newCurve.simpleName, result1[i], curve.GetTMin(), curve.GetTMax()),
-                        new PointOnCurve(view.simpleName, result2[i], other.GetTMin(), other.GetTMax()));
-                    crosses.add(cross);
-                }
-            }
-        }
-        return { crosses, touched };
-    }
-
-    commit(data: Transaction) {
-        for (const touchee of data.dirty) {
-            this.removeInfo(touchee);
-        }
-        for (const touchee of data.removed) {
-            if (data.dirty.has(touchee)) continue;
-
-            this.removeInfo(touchee);
-        }
-        for (const touchee of data.dirty) {
-            if (data.removed.has(touchee)) continue;
-
-            const inst = this.db.lookupItemById(touchee).view as visual.SpaceInstance<visual.Curve3D>;
-            this.add(inst);
-        }
-        for (const touchee of data.added) {
-            if (data.removed.has(touchee)) continue;
-            if (data.dirty.has(touchee)) continue;
-
-            const inst = this.db.lookupItemById(touchee).view as visual.SpaceInstance<visual.Curve3D>;
-            this.add(inst);
-        }
-
-        return;
-    }
-
-    remove(curve: visual.SpaceInstance<visual.Curve3D>) {
-        const data = this.cascade(curve);
-        this.commit(data);
-    }
-
     private removeInfo(id: c3d.SimpleName) {
-        const { curve2touched, id2cross: id2joint, _crosses: joints } = this;
+        const { curve2touched, id2curve, id2cross, _crosses: crosses } = this;
+        id2curve.delete(id);
         curve2touched.delete(id);
-        const invalidatedJoints = id2joint.get(id)!;
-        for (const joint of invalidatedJoints) {
-            joints.delete(joint);
+        const invalidatedCrosses = id2cross.get(id)!;
+        for (const cross of invalidatedCrosses) {
+            crosses.delete(cross);
         }
-        id2joint.delete(id);
+        id2cross.delete(id);
     }
 
     validate() { }
@@ -131,6 +126,7 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         return new CrossPointMemento(
             new Map(this.curve2touched),
             new Map(this.id2cross),
+            new Map(this.id2curve),
             new Set(this.crosses)
         );
     }
@@ -138,16 +134,11 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
     restoreFromMemento(m: CrossPointMemento) {
         (this.curve2touched as CrossPointDatabase['curve2touched']) = m.curve2touched;
         (this.id2cross as CrossPointDatabase['id2cross']) = m.id2cross;
+        (this.id2curve as CrossPointDatabase['id2curve']) = m.id2curve;
         (this._crosses as CrossPointDatabase['crosses']) = m.crosses;
     }
 
-    serialize(): Promise<Buffer> {
-        throw new Error('Method not implemented.');
-    }
-    deserialize(data: Buffer): Promise<void> {
-        throw new Error('Method not implemented.');
-    }
-    debug(): void {
-        throw new Error('Method not implemented.');
-    }
+    serialize(): Promise<Buffer> { throw new Error('Method not implemented.') }
+    deserialize(data: Buffer): Promise<void> { throw new Error('Method not implemented.') }
+    debug(): void { }
 }
