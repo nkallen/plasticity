@@ -6,7 +6,7 @@ import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
-import { PlanarCurveDatabase } from "../editor/PlanarCurveDatabase";
+import { PlanarCurveDatabase } from "../editor/curves/PlanarCurveDatabase";
 import { SnapManager } from "../editor/snaps/SnapManager";
 import { SnapPresenter } from "../editor/snaps/SnapPresenter";
 import { SelectionInteractionManager } from "../selection/SelectionInteraction";

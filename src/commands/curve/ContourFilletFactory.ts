@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
-import { Joint } from '../../editor/ContourManager';
-import { PlanarCurveDatabase } from "../../editor/PlanarCurveDatabase";
+import { Joint } from '../../editor/curves/ContourManager';
+import { PlanarCurveDatabase } from "../../editor/curves/PlanarCurveDatabase";
 import * as visual from '../../editor/VisualModel';
 import { point2point, unit, vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
@@ -294,7 +294,7 @@ export class Polyline2ContourFactory extends GeometryFactory {
             segments.push(segment);
         }
         if (segments.length === 1) return segments[0];
-        
+
         const finished = await Promise.all(segments);
         const makeContour = new JoinCurvesFactory(this.db, this.materials, this.signals);
         for (const segment of finished) makeContour.push(segment);

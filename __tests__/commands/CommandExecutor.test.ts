@@ -8,14 +8,14 @@ import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { SelectionCommandManager } from "../../src/commands/SelectionCommandManager";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { Viewport } from "../../src/components/viewport/Viewport";
-import ContourManager from "../../src/editor/ContourManager";
+import ContourManager from "../../src/editor/curves/ContourManager";
+import { PlanarCurveDatabase } from "../../src/editor/curves/PlanarCurveDatabase";
+import { RegionManager } from "../../src/editor/curves/RegionManager";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import { EditorOriginator, History } from "../../src/editor/History";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import ModifierManager from "../../src/editor/ModifierManager";
-import { PlanarCurveDatabase } from "../../src/editor/PlanarCurveDatabase";
-import { RegionManager } from "../../src/editor/RegionManager";
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { Selection, SelectionManager } from "../../src/selection/SelectionManager";
 import { Delay } from "../../src/util/SequentialExecutor";
@@ -31,7 +31,6 @@ describe(CommandExecutor, () => {
     let originator: EditorOriginator;
     let history: History;
     let snaps: SnapManager;
-    let selection: Selection;
     let curves: PlanarCurveDatabase;
     let gizmos: GizmoMaterialDatabase;
     let editor: any
@@ -48,15 +47,15 @@ describe(CommandExecutor, () => {
         registry = new CommandRegistry();
         const selection = new SelectionManager(db, materials, signals);
         snaps = new SnapManager(db, signals);
-        curves = new PlanarCurveDatabase(db);
+        curves = new PlanarCurveDatabase(db, materials, signals);
         regions = new RegionManager(db, curves);
-        contours = new ContourManager(db, curves, regions, signals);
+        contours = new ContourManager(db, curves, regions);
         modifiers = new ModifierManager(db, selection, materials, signals);
         originator = new EditorOriginator(db, selection.selected, snaps, curves, contours, modifiers);
         history = new History(originator, signals);
         editor = {
             materials, sprites: gizmos, signals, db, registry, selection, snaps, curves, originator, history, contours, selectionGizmo
-        } as EditorLike;
+        } as unknown as EditorLike;
         selectionGizmo = new SelectionCommandManager(editor);
     })
 

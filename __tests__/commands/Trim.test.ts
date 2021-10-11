@@ -1,18 +1,18 @@
 import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
-import ContourManager from "../../src/editor/ContourManager";
+import CurveFactory from "../../src/commands/curve/CurveFactory";
 import TrimFactory from "../../src/commands/curve/TrimFactory";
+import { CornerRectangleFactory } from "../../src/commands/rect/RectangleFactory";
+import ContourManager from "../../src/editor/curves/ContourManager";
+import { PlanarCurveDatabase } from "../../src/editor/curves/PlanarCurveDatabase";
+import { RegionManager } from "../../src/editor/curves/RegionManager";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { PlanarCurveDatabase } from "../../src/editor/PlanarCurveDatabase";
-import { RegionManager } from "../../src/editor/RegionManager";
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import c3d from '../../build/Release/c3d.node';
 import '../matchers';
-import CurveFactory from "../../src/commands/curve/CurveFactory";
-import { CornerRectangleFactory } from "../../src/commands/rect/RectangleFactory";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
@@ -27,7 +27,7 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
     curves = new PlanarCurveDatabase(db, materials, signals);
     regions = new RegionManager(db, curves);
-    contours = new ContourManager(db, curves, regions, signals);
+    contours = new ContourManager(db, curves, regions);
 })
 
 describe(TrimFactory, () => {

@@ -6,7 +6,7 @@ import { EditorSignals } from '../src/editor/EditorSignals';
 import { Agent, GeometryDatabase } from '../src/editor/GeometryDatabase';
 import { CurveMemento } from "../src/editor/History";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { PlanarCurveDatabase } from "../src/editor/PlanarCurveDatabase";
+import { PlanarCurveDatabase } from "../src/editor/curves/PlanarCurveDatabase";
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';

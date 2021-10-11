@@ -1,11 +1,9 @@
-import c3d from '../../build/Release/c3d.node';
-import { DatabaseProxy } from './DatabaseProxy';
-import { EditorSignals } from "./EditorSignals";
-import { Agent, GeometryDatabase } from './GeometryDatabase';
-import { CurveMemento, MementoOriginator } from './History';
+import c3d from '../../../build/Release/c3d.node';
+import { DatabaseProxy } from '../DatabaseProxy';
+import { Agent, GeometryDatabase } from '../GeometryDatabase';
+import * as visual from "../VisualModel";
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
 import { RegionManager } from "./RegionManager";
-import * as visual from "./VisualModel";
 
 /**
  * The ContourManager is a DatabaseProxy that observes inserts/deletes/replaces of curves. When the curves change in the system

@@ -1,14 +1,14 @@
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from '../commands/mirror/MirrorFactory';
 import { RefCounter } from '../util/Util';
-import ContourManager from './ContourManager';
 import { EditorSignals } from './EditorSignals';
 import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
 import MaterialDatabase from './MaterialDatabase';
 import ModifierManager, { ModifierStack } from './ModifierManager';
-import { PlanarCurveDatabase } from "./PlanarCurveDatabase";
+import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
 import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap } from "./snaps/Snap";
 import * as visual from "./VisualModel";
+import ContourManager from './curves/ContourManager';
 
 export class Memento {
     constructor(

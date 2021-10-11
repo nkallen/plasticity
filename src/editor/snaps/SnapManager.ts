@@ -1,13 +1,12 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { GizmoMaterialDatabase } from "../../commands/GizmoMaterials";
 import { point2point, vec2vec } from "../../util/Conversion";
 import { Redisposable, RefCounter } from "../../util/Util";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceSnap, CurvePointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, FacePointSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;

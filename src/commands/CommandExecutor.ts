@@ -1,5 +1,6 @@
 import CommandRegistry from "../components/atom/CommandRegistry";
-import PlanarCurveDatabase from "../editor/ContourManager";
+import { Viewport } from "../components/viewport/Viewport";
+import ContourManager from "../editor/curves/ContourManager";
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator, History } from "../editor/History";
@@ -8,7 +9,6 @@ import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import Command from "./Command";
 import { ValidationError } from "./GeometryFactory";
 import { SelectionCommandManager } from "./SelectionCommandManager";
-import { Viewport } from "../components/viewport/Viewport";
 
 export interface EditorLike {
     db: DatabaseLike;
@@ -18,7 +18,7 @@ export interface EditorLike {
     originator: EditorOriginator;
     history: History;
     selection: HasSelectedAndHovered;
-    contours: PlanarCurveDatabase;
+    contours: ContourManager;
     viewports: ReadonlyArray<Viewport>;
 }
 

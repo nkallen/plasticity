@@ -1,12 +1,12 @@
-import c3d from '../../build/Release/c3d.node';
-import { Polyline2ContourFactory } from '../commands/curve/ContourFilletFactory';
-import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../util/Conversion';
+import c3d from '../../../build/Release/c3d.node';
+import { Polyline2ContourFactory } from '../../commands/curve/ContourFilletFactory';
+import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../../util/Conversion';
 import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
-import { EditorSignals } from './EditorSignals';
-import { DatabaseLike } from './GeometryDatabase';
-import { CurveMemento, MementoOriginator } from './History';
-import MaterialDatabase from './MaterialDatabase';
-import * as visual from "./VisualModel";
+import { EditorSignals } from '../EditorSignals';
+import { DatabaseLike } from '../GeometryDatabase';
+import { CurveMemento, MementoOriginator } from '../History';
+import MaterialDatabase from '../MaterialDatabase';
+import * as visual from "../VisualModel";
 
 export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     private readonly curve2info = new Map<c3d.SimpleName, CurveInfo>();
