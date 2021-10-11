@@ -177,6 +177,8 @@ export class Model {
         this.activatePointActivatedSnaps(snaps);
     }
 
+    // Activate snaps like tan/tan and perp/perp which only make sense when the previously selected point and the
+    // current nearby snaps match certain conditions.
     private readonly pointActivatedSnaps = new Set<Snap>();
     private activatePointActivatedSnaps(nearby: SnapResult[]) {
         const { pointActivatedSnaps, pickedPointSnaps, lastPickedSnap } = this;

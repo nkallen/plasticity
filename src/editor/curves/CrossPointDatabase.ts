@@ -43,15 +43,28 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
     }
 
     add(newCurve: visual.SpaceInstance<visual.Curve3D>) {
-        const { db, curve2touched, _crosses: joints, id2cross: id2cross } = this;
-        const touched = new Set<c3d.SimpleName>();
+        const { db, curve2touched, _crosses: allCrosses, id2cross } = this;
+
+        const { crosses: newCrosses, touched } = this.calculate(newCurve);
 
         id2cross.set(newCurve.simpleName, new Set());
         curve2touched.set(newCurve.simpleName, touched);
 
+        for (const cross of newCrosses) {
+            id2cross.get(cross.on1.curve)!.add(cross);
+            id2cross.get(cross.on2.curve)!.add(cross);
+            allCrosses.add(cross);
+        }
+    }
+
+    calculate(newCurve: visual.SpaceInstance<visual.Curve3D>): { crosses: Set<CrossPoint>, touched: Set<c3d.SimpleName> } {
+        const { db } = this;
+        const touched = new Set<c3d.SimpleName>();
+
         const inst = db.lookup(newCurve);
         const curve = inst.GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
 
+        const crosses = new Set<CrossPoint>();
         const allCurves = [...this.curve2touched.keys()].map(id => db.lookupItemById(id)) as { view: visual.SpaceInstance<visual.Curve3D>; model: c3d.SpaceInstance }[];
         for (const { view, model } of allCurves) {
             const other = model.GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
@@ -64,13 +77,11 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
                         point2point(position),
                         new PointOnCurve(newCurve.simpleName, result1[i], curve.GetTMin(), curve.GetTMax()),
                         new PointOnCurve(view.simpleName, result2[i], other.GetTMin(), other.GetTMax()));
-                    id2cross.get(newCurve.simpleName)!.add(cross);
-                    id2cross.get(view.simpleName)!.add(cross);
-                    joints.add(cross);
+                    crosses.add(cross);
                 }
             }
         }
-        return joints;
+        return { crosses, touched };
     }
 
     commit(data: Transaction) {
