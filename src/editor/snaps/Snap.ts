@@ -3,6 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
 import { PointPicker } from "../../commands/PointPicker";
 import { curve3d2curve2d, deunit, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
+import { CrossPoint } from "../curves/CrossPointDatabase";
 import * as visual from '../VisualModel';
 
 export enum Layers {
@@ -92,6 +93,12 @@ export class PointSnap extends Snap {
 
     isValid(pt: THREE.Vector3): boolean {
         return this.snapper.position.manhattanDistanceTo(pt) < 10e-6;
+    }
+}
+
+export class CrossPointSnap extends PointSnap {
+    constructor(readonly cross: CrossPoint) {
+        super("Intersection", cross.position);
     }
 }
 

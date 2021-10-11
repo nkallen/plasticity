@@ -1544,6 +1544,12 @@ export default {
                     jsName: "CurveCurveIntersection2D",
                     return: { name: "count" },
                 },
+                {
+                    signature: "ptrdiff_t CurveCurveIntersection(const MbCurve3D & curve1, const MbCurve3D & curve2, SArray<double> & result1, SArray<double> & result2, double mEps)",
+                    result1: isReturn, result2: isReturn,
+                    jsName: "CurveCurveIntersection3D",
+                    return: { name: "count" },
+                },
             ]
         },
         ActionDirect: {

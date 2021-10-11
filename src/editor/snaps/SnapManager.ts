@@ -2,11 +2,12 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { point2point, vec2vec } from "../../util/Conversion";
 import { Redisposable, RefCounter } from "../../util/Util";
+import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -33,6 +34,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private snappers: THREE.Object3D[] = []; // actual snap points
 
     readonly layers = new THREE.Layers();
+
+    private intersections = new CrossPointDatabase(this.db);
 
     constructor(
         private readonly db: DatabaseLike,
@@ -112,7 +115,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private update() {
         performance.mark('begin-snap-update');
-        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.centerPoints, ...this.endPoints, ...this.faces, ...this.edges, ...this.curves];
+        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.centerPoints, ...this.endPoints, ...this.faces, ...this.edges, ...this.curves, ...this.crossSnaps];
         for (const a of all) {
             a.snapper.userData.snapper = a;
             if (a.nearby !== undefined) a.nearby.userData.snapper = a;
@@ -120,6 +123,10 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         this.nearbys = all.map((s) => s.nearby).filter(x => !!x) as THREE.Object3D[];
         this.snappers = all.map((s) => s.snapper);
         performance.measure('snap-update', 'begin-snap-update');
+    }
+
+    get crossSnaps(): CrossPointSnap[] {
+        return [...this.intersections.crosses].map(cross => new CrossPointSnap(cross));
     }
 
     private add(item: visual.Item) {
@@ -182,8 +189,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private addCurve(item: visual.SpaceInstance<visual.Curve3D>): Redisposable {
         const inst = this.db.lookup(item);
-        const item_ = inst.GetSpaceItem();
-        if (item_ === null) throw new Error("invalid precondition");
+        const item_ = inst.GetSpaceItem()!;
+        this.intersections.add(item);
 
         if (item_.IsA() === c3d.SpaceType.Polyline3D) {
             const polyline = item_.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
@@ -248,6 +255,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private delete(item: visual.Item): void {
         this.garbageDisposal.delete(item.simpleName);
+        if (item instanceof visual.SpaceInstance) this.intersections.remove(item);
         this.update();
     }
 
@@ -303,25 +311,26 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
 export const originSnap = new PointSnap("Origin");
 
-const map = new Map<any, number>();
-map.set(TanTanSnap, 1);
-map.set(PointSnap, 1);
-map.set(CurvePointSnap, 1);
-map.set(CurveEdgeSnap, 2);
-map.set(CurveSnap, 2);
-map.set(FaceSnap, 3);
-map.set(FacePointSnap, 3);
-map.set(AxisSnap, 4);
-map.set(PlaneSnap, 5);
-map.set(ConstructionPlaneSnap, 6);
+const priorities = new Map<any, number>();
+priorities.set(CrossPointSnap, 1);
+priorities.set(TanTanSnap, 1);
+priorities.set(PointSnap, 1);
+priorities.set(CurvePointSnap, 1);
+priorities.set(CurveEdgeSnap, 2);
+priorities.set(CurveSnap, 2);
+priorities.set(FaceSnap, 3);
+priorities.set(FacePointSnap, 3);
+priorities.set(AxisSnap, 4);
+priorities.set(PlaneSnap, 5);
+priorities.set(ConstructionPlaneSnap, 6);
 
 function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
-    const x = i1.object.userData.snap.priority ?? map.get(i1.object.userData.snap.constructor);
-    const y = i2.object.userData.snap.priority ?? map.get(i2.object.userData.snap.constructor)
+    const x = i1.object.userData.snap.priority ?? priorities.get(i1.object.userData.snap.constructor);
+    const y = i2.object.userData.snap.priority ?? priorities.get(i2.object.userData.snap.constructor)
     if (x === undefined || y === undefined) {
         console.error(i1);
         console.error(i2);
-        throw new Error("invalid precondition: " + `${i1.object.userData.snap.constructor}, ${i2.object.userData.snap.constructor}`);
+        throw new Error("invalid precondition: " + `${i1.object.userData.snap.constructor}, ${i2.object.userData.snap.constructor.name}`);
     }
     return x - y;
 }

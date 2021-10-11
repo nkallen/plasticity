@@ -120,8 +120,7 @@ export default class ContourManager extends DatabaseProxy {
         switch (this.state.tag) {
             case 'none':
                 const info = this.curves.lookup(curve);
-                const data = this.curves.cascade(curve);
-                await this.curves.commit(data);
+                this.curves.remove(curve);
                 await this.regions.updatePlacement(info.placement);
                 break;
             case 'transaction':
@@ -156,8 +155,7 @@ export default class ContourManager extends DatabaseProxy {
     async rebuild() {
         const curves = this.db.find(visual.SpaceInstance);
         await this.transaction(async () => {
-            for (const curve of curves)
-                this.addCurve(curve.view);
+            for (const curve of curves) this.addCurve(curve.view);
         });
     }
 

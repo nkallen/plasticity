@@ -37,7 +37,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
      * startpoints of the next curve (a "joint"), etc. etc.
      */
     async add(newCurve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
-        const { curve2info, db, id2planarCurve: id2planarCurve } = this;
+        const { curve2info, db, id2planarCurve } = this;
 
         const inst = db.lookup(newCurve);
         const item = inst.GetSpaceItem()!;
@@ -162,7 +162,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         await Promise.all(promises);
     }
 
-    private removeInfo(curve: c3d.SimpleName, invalidateCurvesThatTouch = true): CurveInfo | undefined {
+    private removeInfo(curve: c3d.SimpleName): CurveInfo | undefined {
         const { curve2info, db } = this;
 
         const info = curve2info.get(curve);
@@ -196,8 +196,8 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         let walk = [...touched];
         while (walk.length > 0) {
             const touchee = walk.pop()!;
-            if (visited.has(touchee))
-                continue;
+            if (visited.has(touchee)) continue;
+
             visited.add(touchee);
             walk = walk.concat([...curve2info.get(touchee)!.touched]);
         }
@@ -233,9 +233,9 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         return;
     }
 
-    remove(curve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
+    async remove(curve: visual.SpaceInstance<visual.Curve3D>): Promise<void> {
         const data = this.cascade(curve);
-        return this.commit(data);
+        await this.commit(data);
     }
 
     private async updateCurve(instance: visual.SpaceInstance<visual.Curve3D>, result: Trim[], placement: c3d.Placement3D): Promise<void> {
