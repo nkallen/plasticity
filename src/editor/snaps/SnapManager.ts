@@ -7,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap, EdgePointSnap, LineSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap, EdgePointSnap, LineSnap, PointAxisSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -269,17 +269,22 @@ priorities.set(CurveSnap, 2);
 priorities.set(FaceSnap, 3);
 priorities.set(FacePointSnap, 3);
 priorities.set(AxisSnap, 4);
+priorities.set(PointAxisSnap, 4);
 priorities.set(PlaneSnap, 5);
 priorities.set(LineSnap, 5);
 priorities.set(ConstructionPlaneSnap, 6);
 
 function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
-    const x = i1.object.userData.snap.priority ?? priorities.get(i1.object.userData.snap.constructor);
-    const y = i2.object.userData.snap.priority ?? priorities.get(i2.object.userData.snap.constructor)
+    const snap1 = i1.object.userData.snap as Snap;
+    const snap2 = i2.object.userData.snap as Snap;
+    const x = priorities.get(snap1.constructor);
+    const y = priorities.get(snap2.constructor)
     if (x === undefined || y === undefined) {
         console.error(i1);
         console.error(i2);
         throw new Error("invalid precondition: missing priority for " + `${i1.object.userData.snap.constructor.name}, ${i2.object.userData.snap.constructor.name}`);
     }
-    return x - y;
+    const delta = x - y;
+    if (delta != 0) return delta;
+    else return snap2.counter - snap1.counter; // ensure deterministic order to avoid flickering
 }

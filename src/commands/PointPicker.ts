@@ -275,7 +275,7 @@ export class Presentation {
     }
 }
 
-class PointTarget extends Helper {
+export class PointTarget extends Helper {
     private readonly mesh = new THREE.Mesh(pointGeometry, new THREE.MeshStandardMaterial());
 
     constructor() {

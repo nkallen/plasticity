@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
-import { PointPicker } from "../../commands/PointPicker";
+import { PointPicker, PointTarget } from "../../commands/PointPicker";
 import { curve3d2curve2d, deunit, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
 import { CrossPoint } from "../curves/CrossPointDatabase";
 import * as visual from '../VisualModel';
@@ -20,12 +20,14 @@ export interface Restriction {
     isValid(pt: THREE.Vector3): boolean;
 }
 
+let uuid = 0;
+
 export abstract class Snap implements Restriction {
+    counter = uuid++;
     readonly name?: string = undefined;
     abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
     readonly nearby?: THREE.Object3D; // a slightly larger object for raycasting when showing nearby snap points
     readonly helper?: THREE.Object3D; // another indicator, like a long line for axis snaps
-    priority?: number;
     protected abstract layer: Layers;
 
     protected init() {
@@ -63,8 +65,8 @@ export class PointSnap extends Snap {
     readonly snapper = new THREE.Mesh(PointSnap.snapperGeometry);
     readonly nearby = new THREE.Mesh(PointSnap.nearbyGeometry);
     readonly position: THREE.Vector3;
-    private static snapperGeometry = new THREE.SphereGeometry(0.1);
-    private static nearbyGeometry = new THREE.SphereGeometry(0.2);
+    static snapperGeometry = new THREE.SphereGeometry(0.1);
+    static nearbyGeometry = new THREE.SphereGeometry(0.2);
     protected layer = Layers.PointSnap;
 
     constructor(readonly name?: string, position = new THREE.Vector3(), private readonly normal = Z) {
@@ -86,7 +88,7 @@ export class PointSnap extends Snap {
         const o = this.position.clone();
         const result = [];
         for (const snap of axisSnaps) {
-            result.push(snap.move(o));
+            result.push(snap.move(this));
         }
 
         return result;
@@ -356,7 +358,7 @@ const Z = new THREE.Vector3(0, 0, 1);
 
 export class AxisSnap extends Snap {
     readonly snapper = new THREE.Line(axisGeometry, new THREE.LineBasicMaterial());
-    readonly helper = this.snapper.clone();
+    readonly helper: THREE.Object3D = this.snapper.clone();
 
     static X = new AxisSnap("X", new THREE.Vector3(1, 0, 0));
     static Y = new AxisSnap("Y", new THREE.Vector3(0, 1, 0));
@@ -377,7 +379,7 @@ export class AxisSnap extends Snap {
         this.n.copy(n).normalize();
         this.o.copy(o);
 
-        this.init();
+        if (this.constructor === AxisSnap) this.init();
     }
 
     private readonly projection = new THREE.Vector3();
@@ -396,14 +398,32 @@ export class AxisSnap extends Snap {
         return this.valid.copy(pt).sub(o).cross(n).lengthSq() < 10e-6;
     }
 
-    move(o: THREE.Vector3) {
+    move(pointSnap: PointSnap) {
         const { n } = this;
-        return new AxisSnap(this.name?.toLowerCase(), this.n, o.clone().add(this.o));
+        return new PointAxisSnap(this.name?.toLowerCase(), this.n, pointSnap);
     }
 
     rotate(quat: THREE.Quaternion) {
         const { n, o } = this;
         return new AxisSnap(this.name?.toLowerCase(), this.n.clone().applyQuaternion(quat), o);
+    }
+}
+
+const dotGeometry = new THREE.BufferGeometry();
+dotGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0]), 3));
+const dotMaterial = new THREE.PointsMaterial({ size: 5, sizeAttenuation: false });
+
+
+export class PointAxisSnap extends AxisSnap {
+    readonly helper = new THREE.Group();
+
+    constructor(readonly name: string | undefined, n: THREE.Vector3, pointSnap: PointSnap) {
+        super(name, n, pointSnap.position);
+        this.helper.add(this.snapper.clone());
+        const sourcePointIndicator = new THREE.Points(dotGeometry, dotMaterial);
+        sourcePointIndicator.position.copy(pointSnap.position);
+        this.helper.add(sourcePointIndicator);
+        this.init();
     }
 }
 

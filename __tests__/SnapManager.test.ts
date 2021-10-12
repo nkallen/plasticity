@@ -145,26 +145,13 @@ describe("snap()", () => {
         expect(position).toEqual(new THREE.Vector3());
     })
 
-    test("priority sorting of snap targets", async () => {
-        const planeSnap = new PlaneSnap();
-        {
-            const [{ snap, position },] = snaps.snap(raycaster, [planeSnap]);
-            expect(snap).toBe(originSnap);
-            expect(position).toEqual(new THREE.Vector3());
-        } {
-            planeSnap.priority = 0;
-            const [{ snap, position },] = snaps.snap(raycaster, [planeSnap]);
-            expect(snap).toBe(planeSnap);
-            expect(position).toEqual(point);
-        }
-    })
-
     describe("restrictions", () => {
         const pointSnap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
 
         test("when no restrictions we match whatever", async () => {
-            const [{ snap, position },] = snaps.snap(raycaster, [pointSnap], [], []);
-            expect(snap).toBe(originSnap);
+            const [{ snap: snap1 }, { snap: snap2 }] = snaps.snap(raycaster, [pointSnap], [], []);
+            expect(snap1).toBe(pointSnap);
+            expect(snap2).toBe(originSnap);
         });
 
         test("when restricted, only match restricted items", async () => {

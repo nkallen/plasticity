@@ -3,9 +3,9 @@ Current:
 Release:
 . Intersection of curves snap points
 . Intersection of newly activated axis (on hover) snaps
+. Intersection axis indicators should be two lines and a little dot indicating where the axis originated
 
 THIS WEEK:
-. cross point dot should be part of helper
 . cross point for edges?
 . Tangent axis activated at endpoint hover
 . Perpendicular snap, Perp-perp snap
