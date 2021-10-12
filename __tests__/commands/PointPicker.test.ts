@@ -6,7 +6,7 @@ import { Model, Presentation } from '../../src/commands/PointPicker';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap } from '../../src/editor/snaps/Snap';
+import { AxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
 import * as visual from '../../src/editor/VisualModel';
@@ -301,7 +301,7 @@ describe('addAxesAt', () => {
                 model2 = item.Cast<c3d.Curve3D>(item.IsA());
             });
 
-            test("activateNearby adds tan/tan", () => {
+            test("activateSnapped adds tan/tan", () => {
                 let snaps;
                 snaps = pointPicker.snapsFor(constructionPlane, false);
                 expect(snaps.length).toBe(4);
@@ -320,9 +320,13 @@ describe('addAxesAt', () => {
 
                 snaps = pointPicker.snapsFor(constructionPlane, false)
                 expect(snaps.length).toBe(13);
+                expect(snaps[8]).toBeInstanceOf(TanTanSnap);
+                expect(snaps[9]).toBeInstanceOf(TanTanSnap);
+                expect(snaps[10]).toBeInstanceOf(TanTanSnap);
+                expect(snaps[11]).toBeInstanceOf(TanTanSnap);
             });
 
-            test("activateNearby adds tangents, and deduplicates, respects undo", () => {
+            test("activateSnapped adds tangents, and deduplicates, respects undo", () => {
                 let snaps;
                 snaps = pointPicker.snapsFor(constructionPlane, false);
                 expect(snaps.length).toBe(4);
@@ -343,7 +347,10 @@ describe('addAxesAt', () => {
                 pointPicker.activateSnapped(snapResults);
                 snaps = pointPicker.snapsFor(constructionPlane, false)
                 expect(snaps.length).toBe(9);
+                expect(snaps[6].name).toBe("Tangent");
+                expect(snaps[7].name).toBe("Tangent");
 
+                // idempotent
                 pointPicker.activateSnapped(snapResults);
                 snaps = pointPicker.snapsFor(constructionPlane, false)
                 expect(snaps.length).toBe(9);
