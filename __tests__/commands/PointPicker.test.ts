@@ -201,6 +201,42 @@ describe('restrictToLine', () => {
     })
 });
 
+describe('addPickedPoint', () => {
+    const constructionPlane = new PlaneSnap();
+    let circle1: visual.SpaceInstance<visual.Curve3D>;
+    let model1: c3d.Curve3D;
+
+    beforeEach(async () => {
+        const makeCircle = new CenterCircleFactory(db, materials, signals);
+        makeCircle.center = new THREE.Vector3();
+        makeCircle.radius = 1;
+        circle1 = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const inst = db.lookup(circle1);
+        const item = inst.GetSpaceItem()!;
+        model1 = item.Cast<c3d.Curve3D>(item.IsA());
+    });
+
+    test("adds normal/binormal/tangent", () => {
+        let snaps;
+        snaps = pointPicker.snapsFor(constructionPlane, false);
+        expect(snaps.length).toBe(1);
+
+        pointPicker.addPickedPoint({
+            point: new THREE.Vector3(5, 1, 0),
+            info: { snap: new CurveSnap(circle1, model1), constructionPlane }
+        });
+        snaps = pointPicker.snapsFor(constructionPlane, false)
+        expect(snaps.length).toBe(7);
+        expect(snaps[0].name).toBe("x");
+        expect(snaps[1].name).toBe("y");
+        expect(snaps[2].name).toBe("z");
+        expect(snaps[3].name).toBe("Normal");
+        expect(snaps[4].name).toBe("Binormal");
+        expect(snaps[5].name).toBe("Tangent");
+        expect(snaps[6]).toBe(constructionPlane);
+    });
+})
+
 const Y = new THREE.Vector3(0, 1, 0);
 
 describe('addAxesAt', () => {
@@ -311,7 +347,7 @@ describe('addAxesAt', () => {
                     info: { snap: new CurveSnap(circle2, model2), constructionPlane }
                 });
                 snaps = pointPicker.snapsFor(constructionPlane, false)
-                expect(snaps.length).toBe(7);
+                expect(snaps.length).toBe(10);
 
                 const orientation = new THREE.Quaternion();
                 const snap = new CurveSnap(circle1, model1);
@@ -319,11 +355,11 @@ describe('addAxesAt', () => {
                 pointPicker.activateSnapped(snapResults);
 
                 snaps = pointPicker.snapsFor(constructionPlane, false)
-                expect(snaps.length).toBe(13);
-                expect(snaps[8]).toBeInstanceOf(TanTanSnap);
-                expect(snaps[9]).toBeInstanceOf(TanTanSnap);
-                expect(snaps[10]).toBeInstanceOf(TanTanSnap);
+                expect(snaps.length).toBe(16);
                 expect(snaps[11]).toBeInstanceOf(TanTanSnap);
+                expect(snaps[12]).toBeInstanceOf(TanTanSnap);
+                expect(snaps[13]).toBeInstanceOf(TanTanSnap);
+                expect(snaps[14]).toBeInstanceOf(TanTanSnap);
             });
 
             test("activateSnapped adds tangents, and deduplicates, respects undo", () => {

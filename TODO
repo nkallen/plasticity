@@ -1,13 +1,13 @@
 Current:
 
 Release:
+. Perpendicular snap when picking point on curve or face
 . Intersection of curves snap points
 . Intersection of newly activated axis (on hover) snaps
 . Intersection axis indicators should be two lines and a little dot indicating where the axis originated
+. Tangent axis activated at endpoint hover
 
 THIS WEEK:
-. Tangent axis activated at endpoint hover
-. Perpendicular snap, Perp-perp snap
 . Turn on off individual snap kinds
 . xray snaps
 . snapping projected to restrictions (either construction plane or axis)

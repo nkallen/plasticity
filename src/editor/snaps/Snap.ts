@@ -235,9 +235,9 @@ export class CurveSnap extends Snap {
             binormal.normalize();
         }
 
-        const normalSnap = new AxisSnap("Normal", normal, point);
-        const binormalSnap = new AxisSnap("Binormal", binormal, point);
-        const tangentSnap = new AxisSnap("Tangent", tangent, point);
+        const normalSnap = new PointAxisSnap("Normal", normal, point);
+        const binormalSnap = new PointAxisSnap("Binormal", binormal, point);
+        const tangentSnap = new PointAxisSnap("Tangent", tangent, point);
         return [normalSnap, binormalSnap, tangentSnap];
     }
 

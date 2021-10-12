@@ -31,7 +31,7 @@ export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
 export class Model {
-    private readonly pickedPointSnaps = new Array<PointSnap>(); // Snaps inferred from points the user actually picked
+    private readonly pickedPointSnaps = new Array<PointResult>(); // Snaps inferred from points the user actually picked
     straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]); // Snaps going straight off the last picked point
     private readonly otherAddedSnaps = new Array<Snap>();
 
@@ -81,7 +81,7 @@ export class Model {
             constructionPlane = constructionPlane.move(restrictionPoint);
         } else if (isOrtho && pickedPointSnaps.length > 0) {
             const last = pickedPointSnaps[pickedPointSnaps.length - 1];
-            constructionPlane = constructionPlane.move(last.position);
+            constructionPlane = constructionPlane.move(last.point);
         }
         return constructionPlane;
     }
@@ -91,7 +91,8 @@ export class Model {
         let result: Snap[] = [];
         if (pickedPointSnaps.length > 0) {
             const last = pickedPointSnaps[pickedPointSnaps.length - 1];
-            result = result.concat(last.axes(straightSnaps));
+            result = result.concat(new PointSnap(undefined, last.point).axes(straightSnaps));
+            result = result.concat(last.info.snap.additionalSnapsFor(last.point));
         }
         return result;
     }
@@ -170,12 +171,9 @@ export class Model {
         return restriction;
     }
 
-    private lastPickedSnap?: Snap;
     addPickedPoint(pointResult: PointResult) {
-        const { point, info: { snap } } = pointResult;
-        this.pickedPointSnaps.push(new PointSnap(undefined, point));
+        this.pickedPointSnaps.push(pointResult);
         this.pointActivatedSnaps.clear();
-        this.lastPickedSnap = snap;
     }
 
     undo() {
@@ -202,16 +200,19 @@ export class Model {
     // current nearby snaps match certain conditions.
     private readonly pointActivatedSnaps = new Set<Snap>();
     private activatePointActivatedSnaps(nearby: SnapResult[]) {
-        const { pointActivatedSnaps, pickedPointSnaps, lastPickedSnap } = this;
-        if (pickedPointSnaps.length === 0 || lastPickedSnap === undefined) return;
+        const { pointActivatedSnaps, pickedPointSnaps } = this;
+        if (pickedPointSnaps.length === 0) return;
 
         const last = pickedPointSnaps[pickedPointSnaps.length - 1];
+        const lastPickedSnap = last.info.snap;
+        if (lastPickedSnap === undefined) return;
+
         for (const { snap } of nearby) {
             if (pointActivatedSnaps.has(snap)) continue;
             pointActivatedSnaps.add(snap); // idempotent
 
             if (snap instanceof CurveSnap) {
-                const additional = snap.additionalSnapsForLast(last.position, lastPickedSnap);
+                const additional = snap.additionalSnapsForLast(last.point, lastPickedSnap);
                 this.addSnap(...additional);
             }
         }
