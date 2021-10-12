@@ -67,7 +67,6 @@ export class SnapMemento {
         readonly faces: Set<FaceSnap>,
         readonly edges: Set<CurveEdgeSnap>,
         readonly curves: Set<CurveSnap>,
-        readonly begPoints: Set<PointSnap>,
         readonly midPoints: Set<PointSnap>,
         readonly endPoints: Set<PointSnap>,
         readonly centerPoints: Set<PointSnap>,

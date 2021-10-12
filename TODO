@@ -2,8 +2,8 @@ Current:
 . remove "beginning" snaps
 
 Release:
-. Intersection snap points
-. Intersection of newly created axis snaps
+. Intersection of curves snap points
+. Intersection of newly activated axis (on hover) snaps
 
 Video todo:
 . Tangent axis activated at endpoint hover

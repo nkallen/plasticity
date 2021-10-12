@@ -124,6 +124,8 @@ export class CurvePointSnap extends PointSnap {
     get model() { return this.curveSnap.model }
 }
 
+export class EdgePointSnap extends PointSnap { }
+
 export class FacePointSnap extends PointSnap {
     constructor(readonly name: string, position: THREE.Vector3, normal: THREE.Vector3, readonly faceSnap: FaceSnap) {
         super(name, position, normal);

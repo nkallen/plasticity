@@ -7,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap, EdgePointSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -21,7 +21,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private readonly basicSnaps = new Set<Snap>();
 
-    private readonly begPoints = new Set<PointSnap>();
     private readonly midPoints = new Set<PointSnap>();
     private readonly endPoints = new Set<PointSnap>();
     private readonly centerPoints = new Set<PointSnap>();
@@ -114,7 +113,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private update() {
         performance.mark('begin-snap-update');
-        const all = [...this.basicSnaps, ...this.begPoints, ...this.midPoints, ...this.centerPoints, ...this.endPoints, ...this.faces, ...this.edges, ...this.curves, ...this.crossSnaps];
+        const all = [...this.basicSnaps, ...this.midPoints, ...this.centerPoints, ...this.endPoints, ...this.faces, ...this.edges, ...this.curves, ...this.crossSnaps];
         for (const a of all) {
             a.snapper.userData.snapper = a;
             if (a.nearby !== undefined) a.nearby.userData.snapper = a;
@@ -171,16 +170,16 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private addEdge(edge: visual.CurveEdge, model: c3d.CurveEdge): Redisposable {
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
-        const begSnap = new PointSnap("Beginning", point2point(begPt));
-        const midSnap = new PointSnap("Middle", point2point(midPt));
+        const begSnap = new EdgePointSnap("Beginning", point2point(begPt));
+        const midSnap = new EdgePointSnap("Middle", point2point(midPt));
 
         const edgeSnap = new CurveEdgeSnap(edge, model);
         this.edges.add(edgeSnap);
 
-        this.begPoints.add(begSnap);
+        this.endPoints.add(begSnap);
         this.midPoints.add(midSnap);
         return new Redisposable(() => {
-            this.begPoints.delete(begSnap);
+            this.endPoints.delete(begSnap);
             this.midPoints.delete(midSnap);
             this.edges.delete(edgeSnap);
         });
@@ -239,12 +238,12 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const begSnap = new CurvePointSnap("Beginning", point2point(min), curveSnap, curve.GetTMin());
             const midSnap = new CurvePointSnap("Middle", point2point(mid), curveSnap, 0.5 * (curve.GetTMin() + curve.GetTMax()));
             const endSnap = new CurvePointSnap("End", point2point(max), curveSnap, curve.GetTMax());
-            this.begPoints.add(begSnap);
+            this.endPoints.add(begSnap);
             this.midPoints.add(midSnap);
             this.endPoints.add(endSnap);
 
             return new Redisposable(() => {
-                this.begPoints.delete(begSnap);
+                this.endPoints.delete(begSnap);
                 this.midPoints.delete(midSnap);
                 this.endPoints.delete(endSnap);
                 this.curves.delete(curveSnap);
@@ -273,7 +272,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             new Set(this.faces),
             new Set(this.edges),
             new Set(this.curves),
-            new Set(this.begPoints),
             new Set(this.midPoints),
             new Set(this.endPoints),
             new Set(this.centerPoints));
@@ -284,7 +282,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         (this.edges as SnapManager['edges']) = m.edges;
         (this.curves as SnapManager['curves']) = m.curves;
         (this.garbageDisposal as SnapManager['garbageDisposal']) = m.garbageDisposal;
-        (this.begPoints as SnapManager['begPoints']) = m.begPoints;
         (this.midPoints as SnapManager['midPoints']) = m.midPoints;
         (this.endPoints as SnapManager['endPoints']) = m.endPoints;
         (this.centerPoints as SnapManager['centerPoints']) = m.centerPoints;
