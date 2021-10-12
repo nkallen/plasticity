@@ -88,7 +88,7 @@ export class PointSnap extends Snap {
         const o = this.position.clone();
         const result = [];
         for (const snap of axisSnaps) {
-            result.push(snap.move(this));
+            result.push(snap.move(o));
         }
 
         return result;
@@ -124,6 +124,14 @@ export class CurvePointSnap extends PointSnap {
 
     get view() { return this.curveSnap.view }
     get model() { return this.curveSnap.model }
+}
+
+export class CurveEndPointSnap extends CurvePointSnap {
+    get tangentSnap(): PointAxisSnap {
+        const { t, curveSnap: { model } } = this;
+        const tangent = vec2vec(model.Tangent(t), 1);
+        return new PointAxisSnap("Tangent", tangent, this.position);
+    }
 }
 
 export class EdgePointSnap extends PointSnap { }
@@ -398,9 +406,9 @@ export class AxisSnap extends Snap {
         return this.valid.copy(pt).sub(o).cross(n).lengthSq() < 10e-6;
     }
 
-    move(pointSnap: PointSnap) {
+    move(delta: THREE.Vector3) {
         const { n } = this;
-        return new PointAxisSnap(this.name?.toLowerCase(), this.n, pointSnap);
+        return new PointAxisSnap(this.name?.toLowerCase(), this.n, this.o.clone().add(delta));
     }
 
     rotate(quat: THREE.Quaternion) {
@@ -417,11 +425,11 @@ const dotMaterial = new THREE.PointsMaterial({ size: 5, sizeAttenuation: false }
 export class PointAxisSnap extends AxisSnap {
     readonly helper = new THREE.Group();
 
-    constructor(readonly name: string | undefined, n: THREE.Vector3, pointSnap: PointSnap) {
-        super(name, n, pointSnap.position);
+    constructor(readonly name: string | undefined, n: THREE.Vector3, position: THREE.Vector3) {
+        super(name, n, position);
         this.helper.add(this.snapper.clone());
         const sourcePointIndicator = new THREE.Points(dotGeometry, dotMaterial);
-        sourcePointIndicator.position.copy(pointSnap.position);
+        sourcePointIndicator.position.copy(position);
         this.helper.add(sourcePointIndicator);
         this.init();
     }

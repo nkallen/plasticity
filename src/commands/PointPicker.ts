@@ -7,7 +7,7 @@ import { CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import { VisibleLayers } from '../editor/LayerManager';
-import { AxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FacePointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import * as visual from "../editor/VisualModel";
@@ -106,20 +106,22 @@ export class Model {
 
     private counter = -1; // counter descends from -1 to avoid conflicting with objects in the geometry database
     private readonly cross2axis = new Map<c3d.SimpleName, AxisSnap>();
+    addAxis(axis: PointAxisSnap) {
+        this.otherAddedSnaps.push(axis);
+        const counter = this.counter--;
+        const crosses = this.crosses.add(counter, new c3d.Line3D(point2point(axis.o), point2point(axis.o.clone().add(axis.n))));
+        this.cross2axis.set(counter, axis);
+        for (const cross of crosses) {
+            if (cross.position.manhattanDistanceTo(axis.o) < 10e-3) continue;
+            this.otherAddedSnaps.push(new AxisCrossPointSnap(cross, axis, this.cross2axis.get(cross.on2.id)));
+        }
+    }
+
     addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion()) {
         const rotated = [];
         for (const snap of this.straightSnaps) rotated.push(snap.rotate(orientation));
         const axes = new PointSnap(undefined, point).axes(rotated);
-        for (const axis of axes) {
-            this.otherAddedSnaps.push(axis);
-            const counter = this.counter--;
-            const crosses = this.crosses.add(counter, new c3d.Line3D(point2point(axis.o), point2point(axis.o.clone().add(axis.n))));
-            this.cross2axis.set(counter, axis);
-            for (const cross of crosses) {
-                if (cross.position.manhattanDistanceTo(point) < 10e-3) continue;
-                this.otherAddedSnaps.push(new AxisCrossPointSnap(cross, axis, this.cross2axis.get(cross.on2.id)));
-            }
-        }
+        for (const axis of axes) this.addAxis(axis);
     }
 
     get snaps() {
@@ -188,6 +190,9 @@ export class Model {
             this.snapActivatedSnaps.add(snap); // idempotent
             if (snap instanceof CurvePointSnap || snap instanceof FacePointSnap) {
                 this.addAxesAt(snap.position);
+            }
+            if (snap instanceof CurveEndPointSnap) {
+                this.addAxis(snap.tangentSnap)
             }
         }
         this.activatePointActivatedSnaps(snaps);

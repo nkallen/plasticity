@@ -7,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap, EdgePointSnap, LineSnap, PointAxisSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap, EdgePointSnap, LineSnap, PointAxisSnap, CurveEndPointSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -205,9 +205,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const min = curve.PointOn(curve.GetTMin());
             const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
             const max = curve.PointOn(curve.GetTMax());
-            const begSnap = new CurvePointSnap("Beginning", point2point(min), curveSnap, curve.GetTMin());
-            const midSnap = new CurvePointSnap("Middle", point2point(mid), curveSnap, 0.5 * (curve.GetTMin() + curve.GetTMax()));
-            const endSnap = new CurvePointSnap("End", point2point(max), curveSnap, curve.GetTMax());
+            const begSnap = new CurveEndPointSnap("Beginning", point2point(min), curveSnap, curve.GetTMin());
+            const midSnap = new CurveEndPointSnap("Middle", point2point(mid), curveSnap, 0.5 * (curve.GetTMin() + curve.GetTMax()));
+            const endSnap = new CurveEndPointSnap("End", point2point(max), curveSnap, curve.GetTMax());
             into.add(begSnap);
             into.add(midSnap);
             into.add(endSnap);
@@ -263,6 +263,7 @@ priorities.set(AxisCrossPointSnap, 1);
 priorities.set(TanTanSnap, 1);
 priorities.set(PointSnap, 1);
 priorities.set(CurvePointSnap, 1);
+priorities.set(CurveEndPointSnap, 1);
 priorities.set(EdgePointSnap, 1);
 priorities.set(CurveEdgeSnap, 2);
 priorities.set(CurveSnap, 2);

@@ -6,7 +6,7 @@ import { Model, Presentation } from '../../src/commands/PointPicker';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
+import { AxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
 import * as visual from '../../src/editor/VisualModel';
@@ -225,9 +225,9 @@ describe('addAxesAt', () => {
     test("snapsFor", () => {
         const snaps = pointPicker.snapsFor(constructionPlane, false);
         expect(snaps.length).toBe(4);
-        expect(snaps[0]).toBeInstanceOf(AxisSnap);
-        expect(snaps[1]).toBeInstanceOf(AxisSnap);
-        expect(snaps[2]).toBeInstanceOf(AxisSnap);
+        expect(snaps[0]).toBeInstanceOf(PointAxisSnap);
+        expect(snaps[1]).toBeInstanceOf(PointAxisSnap);
+        expect(snaps[2]).toBeInstanceOf(PointAxisSnap);
         expect(snaps[3]).toBe(constructionPlane);
 
         let axisSnap;
