@@ -1,17 +1,19 @@
 Current:
-. remove "beginning" snaps
 
 Release:
 . Intersection of curves snap points
 . Intersection of newly activated axis (on hover) snaps
 
-Video todo:
+THIS WEEK:
+. cross point dot should be part of helper
+. cross point for edges?
 . Tangent axis activated at endpoint hover
 . Perpendicular snap, Perp-perp snap
 . Turn on off individual snap kinds
 . xray snaps
 . snapping projected to restrictions (either construction plane or axis)
 . shift to lock snaps
+. snaps hidden for object hidden on factory hide
 
 Todo:
 ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909

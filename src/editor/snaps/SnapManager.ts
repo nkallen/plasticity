@@ -7,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap, EdgePointSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap, EdgePointSnap, LineSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -21,13 +21,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private readonly basicSnaps = new Set<Snap>();
 
-    private readonly midPoints = new Set<PointSnap>();
-    private readonly endPoints = new Set<PointSnap>();
-    private readonly centerPoints = new Set<PointSnap>();
-    private readonly faces = new Set<FaceSnap>();
-    private readonly edges = new Set<CurveEdgeSnap>();
-    private readonly curves = new Set<CurveSnap>();
-    private readonly garbageDisposal = new RefCounter<c3d.SimpleName>();
+    private readonly id2snaps = new Map<c3d.SimpleName, Set<Snap>>();
 
     private nearbys: THREE.Object3D[] = []; // visual objects indicating nearby snap points
     private snappers: THREE.Object3D[] = []; // actual snap points
@@ -113,11 +107,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private update() {
         performance.mark('begin-snap-update');
-        const all = [...this.basicSnaps, ...this.midPoints, ...this.centerPoints, ...this.endPoints, ...this.faces, ...this.edges, ...this.curves, ...this.crossSnaps];
-        for (const a of all) {
-            a.snapper.userData.snapper = a;
-            if (a.nearby !== undefined) a.nearby.userData.snapper = a;
-        }
+        let all = [...this.basicSnaps, ...this.crossSnaps];
+        for (const snaps of this.id2snaps.values()) all = all.concat([...snaps]);
         this.nearbys = all.map((s) => s.nearby).filter(x => !!x) as THREE.Object3D[];
         this.snappers = all.map((s) => s.snapper);
         performance.measure('snap-update', 'begin-snap-update');
@@ -130,62 +121,47 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private add(item: visual.Item) {
         performance.mark('begin-snap-add');
         const fns: Redisposable[] = [];
+        const snapsForItem = new Set<Snap>();
+        this.id2snaps.set(item.simpleName, snapsForItem);
         if (item instanceof visual.Solid) {
             const model = this.db.lookup(item);
             const edges = model.GetEdges();
             const faces = model.GetFaces();
             for (const edge of item.edges) {
-                const d = this.addEdge(edge, edges[edge.index]);
-                fns.push(d);
+                this.addEdge(edge, edges[edge.index], snapsForItem);
             }
             for (const [i, face] of [...item.faces].entries()) {
-                const d = this.addFace(face, faces[i]);
-                fns.push(d);
+                this.addFace(face, faces[i], snapsForItem);
             }
         } else if (item instanceof visual.SpaceInstance) {
-            const d = this.addCurve(item);
-            fns.push(d);
+            this.addCurve(item, snapsForItem);
         }
 
-        this.garbageDisposal.incr(item.simpleName, new Redisposable(() => {
-            for (const fn of fns) fn.dispose()
-        }));
         performance.measure('snap-add', 'begin-snap-add');
         this.update();
     }
 
-    private addFace(face: visual.Face, model: c3d.Face): Redisposable {
+    private addFace(face: visual.Face, model: c3d.Face, into: Set<Snap>) {
         const faceSnap = new FaceSnap(face, model);
-        this.faces.add(faceSnap);
+        into.add(faceSnap);
 
         const centerSnap = new FacePointSnap("Center", point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
-        this.centerPoints.add(centerSnap);
-
-        return new Redisposable(() => {
-            this.faces.delete(faceSnap);
-            this.centerPoints.delete(centerSnap);
-        });
+        into.add(centerSnap);
     }
 
-    private addEdge(edge: visual.CurveEdge, model: c3d.CurveEdge): Redisposable {
+    private addEdge(edge: visual.CurveEdge, model: c3d.CurveEdge, into: Set<Snap>) {
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
         const begSnap = new EdgePointSnap("Beginning", point2point(begPt));
         const midSnap = new EdgePointSnap("Middle", point2point(midPt));
 
         const edgeSnap = new CurveEdgeSnap(edge, model);
-        this.edges.add(edgeSnap);
-
-        this.endPoints.add(begSnap);
-        this.midPoints.add(midSnap);
-        return new Redisposable(() => {
-            this.endPoints.delete(begSnap);
-            this.midPoints.delete(midSnap);
-            this.edges.delete(edgeSnap);
-        });
+        into.add(edgeSnap);
+        into.add(begSnap);
+        into.add(midSnap);
     }
 
-    private addCurve(view: visual.SpaceInstance<visual.Curve3D>): Redisposable {
+    private addCurve(view: visual.SpaceInstance<visual.Curve3D>, into: Set<Snap>) {
         const inst = this.db.lookup(view);
         const item_ = inst.GetSpaceItem()!;
         this.crosses.add(view.simpleName, item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
@@ -194,13 +170,13 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const polyline = item_.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
 
             const curveSnap = new CurveSnap(view, polyline);
-            this.curves.add(curveSnap);
+            into.add(curveSnap);
 
             const points = polyline.GetPoints();
             const endSnaps = points.map(point =>
                 new CurvePointSnap("End", point2point(point), curveSnap, polyline.NearPointProjection(point, false).t)
             );
-            for (const endSnap of endSnaps) this.endPoints.add(endSnap);
+            for (const endSnap of endSnaps) into.add(endSnap);
 
             const first = point2point(points.shift()!);
             let prev = first;
@@ -219,18 +195,12 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
                 const midSnap = new CurvePointSnap("Mid", mid, curveSnap, polyline.NearPointProjection(point2point(mid), false).t);
                 midSnaps.push(midSnap);
             }
-            for (const midSnap of midSnaps) this.midPoints.add(midSnap);
-
-            return new Redisposable(() => {
-                for (const endSnap of endSnaps) this.endPoints.delete(endSnap);
-                for (const midSnap of midSnaps) this.midPoints.delete(midSnap);
-                this.curves.delete(curveSnap);
-            });
+            for (const midSnap of midSnaps) into.add(midSnap);
         } else {
             const curve = item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
 
             const curveSnap = new CurveSnap(view, curve);
-            this.curves.add(curveSnap);
+            into.add(curveSnap);
 
             const min = curve.PointOn(curve.GetTMin());
             const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
@@ -238,21 +208,14 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const begSnap = new CurvePointSnap("Beginning", point2point(min), curveSnap, curve.GetTMin());
             const midSnap = new CurvePointSnap("Middle", point2point(mid), curveSnap, 0.5 * (curve.GetTMin() + curve.GetTMax()));
             const endSnap = new CurvePointSnap("End", point2point(max), curveSnap, curve.GetTMax());
-            this.endPoints.add(begSnap);
-            this.midPoints.add(midSnap);
-            this.endPoints.add(endSnap);
-
-            return new Redisposable(() => {
-                this.endPoints.delete(begSnap);
-                this.midPoints.delete(midSnap);
-                this.endPoints.delete(endSnap);
-                this.curves.delete(curveSnap);
-            });
+            into.add(begSnap);
+            into.add(midSnap);
+            into.add(endSnap);
         }
     }
 
     private delete(item: visual.Item): void {
-        this.garbageDisposal.delete(item.simpleName);
+        this.id2snaps.delete(item.simpleName);
         if (item instanceof visual.SpaceInstance) this.crosses.remove(item.simpleName);
         this.update();
     }
@@ -267,24 +230,11 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     saveToMemento(): SnapMemento {
-        return new SnapMemento(
-            new RefCounter(this.garbageDisposal),
-            new Set(this.faces),
-            new Set(this.edges),
-            new Set(this.curves),
-            new Set(this.midPoints),
-            new Set(this.endPoints),
-            new Set(this.centerPoints));
+        return new SnapMemento(new Map(this.id2snaps));
     }
 
     restoreFromMemento(m: SnapMemento) {
-        (this.faces as SnapManager['faces']) = m.faces;
-        (this.edges as SnapManager['edges']) = m.edges;
-        (this.curves as SnapManager['curves']) = m.curves;
-        (this.garbageDisposal as SnapManager['garbageDisposal']) = m.garbageDisposal;
-        (this.midPoints as SnapManager['midPoints']) = m.midPoints;
-        (this.endPoints as SnapManager['endPoints']) = m.endPoints;
-        (this.centerPoints as SnapManager['centerPoints']) = m.centerPoints;
+        (this.id2snaps as SnapManager['id2snaps']) = m.id2snaps;
         this.update();
     }
 
@@ -313,12 +263,14 @@ priorities.set(AxisCrossPointSnap, 1);
 priorities.set(TanTanSnap, 1);
 priorities.set(PointSnap, 1);
 priorities.set(CurvePointSnap, 1);
+priorities.set(EdgePointSnap, 1);
 priorities.set(CurveEdgeSnap, 2);
 priorities.set(CurveSnap, 2);
 priorities.set(FaceSnap, 3);
 priorities.set(FacePointSnap, 3);
 priorities.set(AxisSnap, 4);
 priorities.set(PlaneSnap, 5);
+priorities.set(LineSnap, 5);
 priorities.set(ConstructionPlaneSnap, 6);
 
 function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
@@ -327,7 +279,7 @@ function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
     if (x === undefined || y === undefined) {
         console.error(i1);
         console.error(i2);
-        throw new Error("invalid precondition: " + `${i1.object.userData.snap.constructor}, ${i2.object.userData.snap.constructor.name}`);
+        throw new Error("invalid precondition: missing priority for " + `${i1.object.userData.snap.constructor.name}, ${i2.object.userData.snap.constructor.name}`);
     }
     return x - y;
 }

@@ -6,7 +6,7 @@ import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
 import MaterialDatabase from './MaterialDatabase';
 import ModifierManager, { ModifierStack } from './ModifierManager';
 import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
-import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap } from "./snaps/Snap";
+import { CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap, Snap } from "./snaps/Snap";
 import * as visual from "./VisualModel";
 import ContourManager from './curves/ContourManager';
 import { CrossPoint, CrossPointDatabase } from './curves/CrossPointDatabase';
@@ -63,13 +63,7 @@ export class SelectionMemento {
 
 export class SnapMemento {
     constructor(
-        readonly garbageDisposal: RefCounter<c3d.SimpleName>,
-        readonly faces: Set<FaceSnap>,
-        readonly edges: Set<CurveEdgeSnap>,
-        readonly curves: Set<CurveSnap>,
-        readonly midPoints: Set<PointSnap>,
-        readonly endPoints: Set<PointSnap>,
-        readonly centerPoints: Set<PointSnap>,
+        readonly id2snaps: Map<c3d.SimpleName, Set<Snap>>
     ) { }
 }
 
