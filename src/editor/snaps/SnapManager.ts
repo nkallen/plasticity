@@ -174,7 +174,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
             const points = polyline.GetPoints();
             const endSnaps = points.map(point =>
-                new CurvePointSnap("End", point2point(point), curveSnap, polyline.NearPointProjection(point, false).t)
+                new CurveEndPointSnap("End", point2point(point), curveSnap, polyline.NearPointProjection(point, false).t)
             );
             for (const endSnap of endSnaps) into.add(endSnap);
 
