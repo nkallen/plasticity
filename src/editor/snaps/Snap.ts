@@ -235,7 +235,6 @@ export class CurveSnap extends Snap {
     }
 
     additionalSnapsFor(point: THREE.Vector3) {
-        console.log(this);
         const { model } = this;
         const { t } = this.model.NearPointProjection(point2point(point), false);
         let normal = vec2vec(model.Normal(t), 1);

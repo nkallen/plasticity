@@ -100,8 +100,8 @@ test("adding & removing curve", async () => {
     makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps['snappers'].length).toBe(8);
-    expect(snaps['nearbys'].length).toBe(4);
+    expect(snaps['snappers'].length).toBe(7);
+    expect(snaps['nearbys'].length).toBe(3);
 
     db.removeItem(line);
 

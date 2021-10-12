@@ -1,19 +1,20 @@
 import * as THREE from "three";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
+import CurveFactory from "../../src/commands/curve/CurveFactory";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { Model, Presentation } from '../../src/commands/PointPicker';
+import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisAxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
+import { AxisAxisCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import '../matchers';
 import c3d from '../build/Release/c3d.node';
-import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
+import '../matchers';
 
 let pointPicker: Model;
 let db: GeometryDatabase;
@@ -216,7 +217,7 @@ describe('addPickedPoint', () => {
         model1 = item.Cast<c3d.Curve3D>(item.IsA());
     });
 
-    test("adds normal/binormal/tangent", () => {
+    test("when curvesnap, adds normal/binormal/tangent", () => {
         let snaps;
         snaps = pointPicker.snapsFor(constructionPlane, false);
         expect(snaps.length).toBe(1);
@@ -296,7 +297,7 @@ describe('addAxesAt', () => {
             model1 = item.Cast<c3d.Curve3D>(item.IsA());
         });
 
-        test("for points on curves, activateSnapped adds axes, and deduplicates", () => {
+        test("for points on closed curves, activateSnapped adds axes, and deduplicates", () => {
             let snaps;
             snaps = pointPicker.snapsFor(constructionPlane, false);
             expect(snaps.length).toBe(4);
@@ -308,19 +309,52 @@ describe('addAxesAt', () => {
             pointPicker.activateSnapped(snapResults);
 
             snaps = pointPicker.snapsFor(constructionPlane, false)
-            expect(snaps.length).toBe(8);
+            expect(snaps.length).toBe(4);
             expect(snaps[0]).toBeInstanceOf(AxisSnap);
             expect(snaps[1]).toBeInstanceOf(AxisSnap);
-            expect(snaps[2]).toBeInstanceOf(AxisAxisCrossPointSnap);
-            expect(snaps[3]).toBeInstanceOf(AxisSnap);
-            expect(snaps[4]).toBeInstanceOf(AxisSnap);
-            expect(snaps[5]).toBeInstanceOf(AxisSnap);
-            expect(snaps[6]).toBeInstanceOf(AxisSnap);
-            expect(snaps[7]).toBe(constructionPlane);
+            expect(snaps[2]).toBeInstanceOf(PointAxisSnap);
+            expect(snaps[3]).toBe(constructionPlane);
 
+            // idempotent
             pointPicker.activateSnapped(snapResults);
             snaps = pointPicker.snapsFor(constructionPlane, false)
-            expect(snaps.length).toBe(8);
+            expect(snaps.length).toBe(4);
+        });
+
+        test("for endpoints on polycurves, activateSnapped adds axes as well as tangent/etc", async () => {
+            const makeCurve = new CurveFactory(db, materials, signals);
+            makeCurve.points.push(new THREE.Vector3(2, 2, 0));
+            makeCurve.points.push(new THREE.Vector3(3, 3, 0));
+            const curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            let snaps;
+            snaps = pointPicker.snapsFor(constructionPlane, false);
+            expect(snaps.length).toBe(4);
+
+            const inst = db.lookup(curve) as c3d.SpaceInstance;
+            const item = inst.GetSpaceItem()!;
+            const model = item.Cast<c3d.Curve3D>(item.IsA());
+            const curveSnap = new CurveSnap(curve, model);
+            const snap = new CurveEndPointSnap(undefined, new THREE.Vector3(2, 2, 0), curveSnap, model.GetTMin());
+
+            const position = new THREE.Vector3(2, 2, 0);
+            const orientation = new THREE.Quaternion();
+            const snapResults = [{ snap, position, orientation }];
+            pointPicker.activateSnapped(snapResults);
+
+            snaps = pointPicker.snapsFor(constructionPlane, false)
+            expect(snaps.length).toBe(11);
+            expect(snaps[0]).toBeInstanceOf(PointAxisSnap);
+            expect(snaps[1]).toBeInstanceOf(PointAxisSnap);
+            expect(snaps[2]).toBeInstanceOf(PointAxisSnap);
+            expect(snaps[3]).toBeInstanceOf(PointAxisSnap);
+            expect(snaps[4]).toBeInstanceOf(AxisAxisCrossPointSnap);
+            expect(snaps[5]).toBeInstanceOf(AxisAxisCrossPointSnap);
+            expect(snaps[6]).toBeInstanceOf(AxisAxisCrossPointSnap);
+            expect(snaps[7]).toBeInstanceOf(PointAxisSnap);
+            expect(snaps[8]).toBeInstanceOf(PointAxisSnap);
+            expect(snaps[9]).toBeInstanceOf(PointAxisSnap);
+            expect(snaps[10]).toBe(constructionPlane);
         });
 
         describe('for curves', () => {

@@ -101,7 +101,7 @@ export class Model {
             results = results.concat(new PointSnap(undefined, last.point).axes(straightSnaps));
             results = results.concat(last.info.snap.additionalSnapsFor(last.point));
             for (const result of results) {
-                if (result instanceof PointAxisSnap) {
+                if (result instanceof PointAxisSnap) { // Such as normal/binormal/tangent
                     this.addAxis(result, this.snapsForLastPickedPoint);
                 }
             }
