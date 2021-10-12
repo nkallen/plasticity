@@ -76,6 +76,14 @@ export function mat2mat(mat: THREE.Matrix4 | c3d.Matrix3D, into?: THREE.Matrix4 
     }
 }
 
+export function inst2curve(instance: c3d.Item): c3d.Curve3D | undefined {
+    if (!(instance instanceof c3d.SpaceInstance)) return;
+    const item = instance.GetSpaceItem()!;
+    const curve = item.Cast<c3d.Curve3D>(item.IsA());
+    if (!(curve instanceof c3d.Curve3D)) return;
+    return curve;
+}
+
 export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D }
 
 export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): ContourAndPlacement | undefined {

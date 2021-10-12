@@ -1,13 +1,13 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { point2point, vec2vec } from "../../util/Conversion";
+import { inst2curve, point2point, vec2vec } from "../../util/Conversion";
 import { Redisposable, RefCounter } from "../../util/Util";
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisCrossPointSnap, EdgePointSnap, LineSnap, PointAxisSnap, CurveEndPointSnap } from "./Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisAxisCrossPointSnap, EdgePointSnap, LineSnap, PointAxisSnap, CurveEndPointSnap, AxisCurveCrossPointSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -117,10 +117,10 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     get crossSnaps(): CrossPointSnap[] {
         return [...this.crosses.crosses].map(cross => {
             const { view: view1, model: model1 } = this.db.lookupItemById(cross.on1.id);
-            const curve1 = (model1 as c3d.SpaceInstance).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            const curve1 = inst2curve(model1)!;
             const curveSnap1 = new CurveSnap(view1 as visual.SpaceInstance<visual.Curve3D>, curve1);
             const { view: view2, model: model2 } = this.db.lookupItemById(cross.on2.id);
-            const curve2 = (model2 as c3d.SpaceInstance).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            const curve2 = inst2curve(model2)!;
             const curveSnap2 = new CurveSnap(view2 as visual.SpaceInstance<visual.Curve3D>, curve2);
 
             return new CrossPointSnap(cross, curveSnap1, curveSnap2);
@@ -270,7 +270,8 @@ export const originSnap = new PointSnap("Origin");
 
 const priorities = new Map<any, number>();
 priorities.set(CrossPointSnap, 1);
-priorities.set(AxisCrossPointSnap, 1);
+priorities.set(AxisAxisCrossPointSnap, 1);
+priorities.set(AxisCurveCrossPointSnap, 1);
 priorities.set(TanTanSnap, 1);
 priorities.set(PointSnap, 1);
 priorities.set(CurvePointSnap, 1);

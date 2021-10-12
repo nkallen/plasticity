@@ -7,12 +7,12 @@ import { CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import { VisibleLayers } from '../editor/LayerManager';
-import { AxisCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FacePointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FacePointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import * as visual from "../editor/VisualModel";
 import { CancellablePromise } from '../util/Cancellable';
-import { point2point } from '../util/Conversion';
+import { inst2curve, point2point } from '../util/Conversion';
 import { Helper, Helpers } from '../util/Helpers';
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
@@ -128,7 +128,15 @@ export class Model {
         this.cross2axis.set(counter, axis);
         for (const cross of crosses) {
             if (cross.position.manhattanDistanceTo(axis.o) < 10e-3) continue;
-            into.push(new AxisCrossPointSnap(cross, axis, this.cross2axis.get(cross.on2.id)));
+            const antecedentAxis = this.cross2axis.get(cross.on2.id);
+            if (antecedentAxis !== undefined) {
+                into.push(new AxisAxisCrossPointSnap(cross, axis, antecedentAxis));
+            } else {
+                const { view, model } = this.db.lookupItemById(cross.on2.id);
+                const curve = inst2curve(model)!;
+                const curveSnap = new CurveSnap(view as visual.SpaceInstance<visual.Curve3D>, curve);
+                into.push(new AxisCurveCrossPointSnap(cross, axis, curveSnap));
+            }
         }
     }
 
