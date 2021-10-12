@@ -1,8 +1,8 @@
 {
     "name": "plasticity",
     "productName": "plasticity",
-    "version": "0.1.4",
-    "description": "My Electron application description",
+    "version": "0.1.5",
+    "description": "Plasticity",
     "main": ".webpack/main",
     "scripts": {
         "electron-rebuild": "electron-rebuild",
