@@ -7,7 +7,7 @@ import { CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import { VisibleLayers } from '../editor/LayerManager';
-import { AxisCrossPointSnap, AxisSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FacePointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FacePointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import * as visual from "../editor/VisualModel";
@@ -202,10 +202,13 @@ export class Model {
             if (this.activatedSnaps.has(snap)) continue;
             this.activatedSnaps.add(snap); // idempotent
 
-            if (snap instanceof CurvePointSnap || snap instanceof FacePointSnap) {
+            if (snap instanceof CurvePointSnap && !snap.model.IsClosed()) {
                 this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
             }
-            if (snap instanceof CurveEndPointSnap) {
+            if (snap instanceof FacePointSnap) {
+                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
+            }
+            if (snap instanceof CurveEndPointSnap && !snap.model.IsClosed()) {
                 this.addAxis(snap.tangentSnap, this.snapsForLastPickedPoint)
             }
         }

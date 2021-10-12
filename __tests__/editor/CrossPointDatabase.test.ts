@@ -54,6 +54,48 @@ test("two intersecting circles, add & remove", async () => {
     expect(curves.crosses.size).toBe(0);
 });
 
+test("two intersecting circles, add & remove in reverse order", async () => {
+    makeCircle1.center = new THREE.Vector3(0, -0.1, 0);
+    makeCircle1.radius = 1;
+    const circle1 = (await makeCircle1.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+    curves.add(0, circle1);
+    expect(curves.crosses.size).toBe(0)
+
+    makeCircle2.center = new THREE.Vector3(0, 0.1, 0);
+    makeCircle2.radius = 1;
+    const circle2 = (await makeCircle2.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+
+    curves.add(1, circle2);
+    expect(curves.crosses.size).toBe(2);
+
+    curves.remove(0);
+    expect(curves.crosses.size).toBe(0);
+
+    curves.remove(1);
+    expect(curves.crosses.size).toBe(0);
+});
+
+test("two intersecting circles, add & remove in reverse order but with heirarchical dbs", async () => {
+    makeCircle1.center = new THREE.Vector3(0, -0.1, 0);
+    makeCircle1.radius = 1;
+    const circle1 = (await makeCircle1.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+    curves.add(0, circle1);
+    expect(curves.crosses.size).toBe(0)
+
+    makeCircle2.center = new THREE.Vector3(0, 0.1, 0);
+    makeCircle2.radius = 1;
+    const circle2 = (await makeCircle2.calculate()).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+
+    const curves_wrapped = new CrossPointDatabase(curves);
+
+    curves_wrapped.add(1, circle2);
+    expect(curves.crosses.size).toBe(0);
+    expect(curves_wrapped.crosses.size).toBe(2);
+
+    curves.remove(0);
+    expect(curves.crosses.size).toBe(0);
+});
+
 test('two non-intersecting circles', async () => {
     makeCircle1.center = new THREE.Vector3(0, 0, 0);
     makeCircle1.radius = 1;

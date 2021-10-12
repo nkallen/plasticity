@@ -202,6 +202,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const curveSnap = new CurveSnap(view, curve);
             into.add(curveSnap);
 
+            if (curve.IsClosed()) return;
+
             const min = curve.PointOn(curve.GetTMin());
             const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
             const max = curve.PointOn(curve.GetTMax());
@@ -209,7 +211,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             const midSnap = new CurveEndPointSnap("Middle", point2point(mid), curveSnap, 0.5 * (curve.GetTMin() + curve.GetTMax()));
             const endSnap = new CurveEndPointSnap("End", point2point(max), curveSnap, curve.GetTMax());
             into.add(begSnap);
-            into.add(midSnap);
+            if (curve.IsStraight()) into.add(midSnap);
             into.add(endSnap);
         }
     }
