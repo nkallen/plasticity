@@ -100,16 +100,23 @@ export class PointSnap extends Snap {
 }
 
 export class CrossPointSnap extends PointSnap {
-    constructor(readonly cross: CrossPoint) {
+    constructor(readonly cross: CrossPoint, readonly curve1: CurveSnap, readonly curve2: CurveSnap) {
         super("Intersection", cross.position);
+    }
+
+    additionalSnapsFor(point: THREE.Vector3) {
+        let result: Snap[] = [];
+        result = result.concat(this.curve1.additionalSnapsFor(point));
+        result = result.concat(this.curve2.additionalSnapsFor(point));
+        return result;
     }
 }
 
-export class AxisCrossPointSnap extends CrossPointSnap {
+export class AxisCrossPointSnap extends PointSnap {
     readonly helper = new THREE.Group();
 
     constructor(readonly cross: CrossPoint, axis1: AxisSnap, axis2?: AxisSnap) {
-        super(cross);
+        super("Intersection", cross.position);
         this.helper.add(axis1.helper.clone());
         if (axis2 !== undefined) {
             this.helper.add(axis2.helper.clone());
@@ -118,7 +125,7 @@ export class AxisCrossPointSnap extends CrossPointSnap {
 }
 
 export class CurvePointSnap extends PointSnap {
-    constructor(readonly name: string, position: THREE.Vector3, readonly curveSnap: CurveSnap, readonly t: number) {
+    constructor(readonly name: string | undefined, position: THREE.Vector3, readonly curveSnap: CurveSnap, readonly t: number) {
         super(name, position);
     }
 
@@ -217,6 +224,7 @@ export class CurveSnap extends Snap {
     }
 
     additionalSnapsFor(point: THREE.Vector3) {
+        console.log(this);
         const { model } = this;
         const { t } = this.model.NearPointProjection(point2point(point), false);
         let normal = vec2vec(model.Normal(t), 1);

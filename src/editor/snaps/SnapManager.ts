@@ -115,7 +115,16 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     get crossSnaps(): CrossPointSnap[] {
-        return [...this.crosses.crosses].map(cross => new CrossPointSnap(cross));
+        return [...this.crosses.crosses].map(cross => {
+            const { view: view1, model: model1 } = this.db.lookupItemById(cross.on1.id);
+            const curve1 = (model1 as c3d.SpaceInstance).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            const curveSnap1 = new CurveSnap(view1 as visual.SpaceInstance<visual.Curve3D>, curve1);
+            const { view: view2, model: model2 } = this.db.lookupItemById(cross.on2.id);
+            const curve2 = (model2 as c3d.SpaceInstance).GetSpaceItem()!.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            const curveSnap2 = new CurveSnap(view2 as visual.SpaceInstance<visual.Curve3D>, curve2);
+
+            return new CrossPointSnap(cross, curveSnap1, curveSnap2);
+        });
     }
 
     private add(item: visual.Item) {
