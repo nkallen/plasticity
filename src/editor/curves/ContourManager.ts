@@ -27,7 +27,7 @@ export class CurveInfo {
 
 export type Curve2dId = bigint;
 export type Trim = { trimmed: c3d.Curve, start: number, stop: number };
-export type Transaction = { dirty: CurveSet, added: CurveSet, removed: CurveSet }
+export type Transaction = { dirty: CurveSet, added: CurveSet, deleted: CurveSet }
 type CurveSet = Set<c3d.SimpleName>;
 type State = { tag: 'none' } | { tag: 'transaction', transaction: Transaction }
 
@@ -131,16 +131,16 @@ export default class ContourManager extends DatabaseProxy {
     async transaction(f: () => Promise<void>) {
         switch (this.state.tag) {
             case 'none': {
-                const transaction: Transaction = { dirty: new Set(), added: new Set(), removed: new Set() };
+                const transaction: Transaction = { dirty: new Set(), added: new Set(), deleted: new Set() };
                 this.state = { tag: 'transaction', transaction: transaction };
                 try {
                     await f();
                     const placements = new Set<c3d.Placement3D>();
                     this.placementsAffectedByTransaction(transaction.dirty, placements);
-                    this.placementsAffectedByTransaction(transaction.removed, placements);
+                    this.placementsAffectedByTransaction(transaction.deleted, placements);
                     await this.curves.commit(transaction);
                     this.placementsAffectedByTransaction(transaction.added, placements);
-                    if (transaction.dirty.size > 0 || transaction.added.size > 0 || transaction.removed.size > 0) {
+                    if (transaction.dirty.size > 0 || transaction.added.size > 0 || transaction.deleted.size > 0) {
                         for (const p of placements) await this.regions.updatePlacement(p);
                     }
                 } finally {

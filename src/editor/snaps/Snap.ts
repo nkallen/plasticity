@@ -251,14 +251,18 @@ export class CurveSnap extends Snap {
         const location = placement.PointRelative(point);
         if (location !== c3d.ItemLocation.OnItem) return [];
         placement.GetPointInto(point);
-        const point2d = new c3d.CartPoint(point.x, point.y);
+        const lastPoint2d = new c3d.CartPoint(point.x, point.y);
 
-        const lines = c3d.CurveTangent.LinePointTangentCurve(point2d, curve, true);
+        const lines = c3d.CurveTangent.LinePointTangentCurve(lastPoint2d, curve, true);
         const result = [];
         for (const line of lines) {
             const { result1: intersections } = c3d.ActionPoint.CurveCurveIntersection2D(curve, line, 10e-6, 10e-6, true);
             for (const t of intersections) {
                 const point2d = curve.PointOn(t);
+                const lineDirection = point2point(point2d).sub(point2point(lastPoint2d)).normalize();
+                const collinear = Math.abs(Math.abs(vec2vec(curve.Tangent(t), 1).dot(lineDirection)) - 1) < 10e-4;
+                if (!collinear) continue;
+
                 const point = point2point(placement.GetPointFrom(point2d.x, point2d.y, 0));
                 const snap = new PointSnap("Tangent", point);
                 result.push(snap);

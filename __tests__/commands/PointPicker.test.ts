@@ -222,7 +222,7 @@ describe('addPickedPoint', () => {
         expect(snaps.length).toBe(1);
 
         pointPicker.addPickedPoint({
-            point: new THREE.Vector3(5, 1, 0),
+            point: new THREE.Vector3(0, 1, 0),
             info: { snap: new CurveSnap(circle1, model1), constructionPlane }
         });
         snaps = pointPicker.snapsFor(constructionPlane, false)
@@ -311,10 +311,10 @@ describe('addAxesAt', () => {
             expect(snaps.length).toBe(8);
             expect(snaps[0]).toBeInstanceOf(AxisSnap);
             expect(snaps[1]).toBeInstanceOf(AxisSnap);
-            expect(snaps[2]).toBeInstanceOf(AxisSnap);
+            expect(snaps[2]).toBeInstanceOf(AxisCrossPointSnap);
             expect(snaps[3]).toBeInstanceOf(AxisSnap);
             expect(snaps[4]).toBeInstanceOf(AxisSnap);
-            expect(snaps[5]).toBeInstanceOf(AxisCrossPointSnap);
+            expect(snaps[5]).toBeInstanceOf(AxisSnap);
             expect(snaps[6]).toBeInstanceOf(AxisSnap);
             expect(snaps[7]).toBe(constructionPlane);
 
@@ -392,9 +392,9 @@ describe('addAxesAt', () => {
                 expect(snaps.length).toBe(9);
 
                 pointPicker.undo();
-                pointPicker.activateSnapped(snapResults);
                 snaps = pointPicker.snapsFor(constructionPlane, false)
                 expect(snaps.length).toBe(6);
+
             });
         });
     });

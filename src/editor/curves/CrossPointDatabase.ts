@@ -42,7 +42,7 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         return newCrosses;
     }
 
-    private calculate(name: c3d.SimpleName, curve: c3d.Curve3D): { crosses: Set<CrossPoint>, touched: Set<c3d.SimpleName> } {
+    calculate(name: c3d.SimpleName, curve: c3d.Curve3D): { crosses: Set<CrossPoint>, touched: Set<c3d.SimpleName> } {
         const { allCurves } = this;
         const touched = new Set<c3d.SimpleName>();
 
@@ -76,21 +76,21 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
             this.removeInfo(touchee);
         }
 
-        for (const touchee of data.removed) {
+        for (const touchee of data.deleted) {
             if (data.dirty.has(touchee)) continue;
 
             this.removeInfo(touchee);
         }
         for (const touchee of data.dirty) {
-            if (data.removed.has(touchee)) continue;
+            if (data.deleted.has(touchee)) continue;
 
             this.add(touchee, readd.get(touchee)!);
         }
     }
 
-    private cascade(id: c3d.SimpleName, transaction: Transaction = { dirty: new Set(), removed: new Set(), added: new Set() }) {
+    private cascade(id: c3d.SimpleName, transaction: Transaction = { dirty: new Set(), deleted: new Set(), added: new Set() }) {
         const { curve2touched } = this;
-        const { dirty, removed: deleted, added } = transaction;
+        const { dirty, deleted, added } = transaction;
 
         deleted.add(id);
 

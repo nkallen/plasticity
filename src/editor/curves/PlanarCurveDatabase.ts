@@ -180,8 +180,8 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         return info;
     }
 
-    cascade(curve: visual.SpaceInstance<visual.Curve3D>, transaction: Transaction = { dirty: new Set(), removed: new Set(), added: new Set() }) {
-        const { dirty, removed: deleted, added } = transaction;
+    cascade(curve: visual.SpaceInstance<visual.Curve3D>, transaction: Transaction = { dirty: new Set(), deleted: new Set(), added: new Set() }) {
+        const { dirty, deleted: deleted, added } = transaction;
 
         deleted.add(curve.simpleName);
 
@@ -210,19 +210,19 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         for (const touchee of data.dirty) {
             this.removeInfo(touchee);
         }
-        for (const touchee of data.removed) {
+        for (const touchee of data.deleted) {
             if (data.dirty.has(touchee)) continue;
 
             this.removeInfo(touchee);
         }
         for (const touchee of data.dirty) {
-            if (data.removed.has(touchee)) continue;
+            if (data.deleted.has(touchee)) continue;
 
             const inst = this.db.lookupItemById(touchee).view as visual.SpaceInstance<visual.Curve3D>;
             promises.push(this.add(inst));
         }
         for (const touchee of data.added) {
-            if (data.removed.has(touchee)) continue;
+            if (data.deleted.has(touchee)) continue;
             if (data.dirty.has(touchee)) continue;
 
             const inst = this.db.lookupItemById(touchee).view as visual.SpaceInstance<visual.Curve3D>;

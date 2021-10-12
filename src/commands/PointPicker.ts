@@ -41,11 +41,15 @@ export class Model {
     private restrictionPoint?: THREE.Vector3;
     restrictionPlane?: PlaneSnap;
 
+    private crosses: CrossPointDatabase;
+
     constructor(
         private readonly db: DatabaseLike,
         private readonly manager: SnapManager,
-        private readonly crosses: CrossPointDatabase,
-    ) { }
+        private readonly originalCrosses: CrossPointDatabase,
+    ) {
+        this.crosses = new CrossPointDatabase(originalCrosses);
+    }
 
     snapsFor(constructionPlane: PlaneSnap, isOrtho: boolean): Snap[] {
         const result = [...this.snaps];
@@ -86,15 +90,25 @@ export class Model {
         return constructionPlane;
     }
 
-    private get axesOfLastPickedPoint(): Snap[] {
+    private snapsForLastPickedPoint: Snap[] = [];
+    private makeSnapsForLastPickedPoint(): void {
         const { pickedPointSnaps, straightSnaps } = this;
-        let result: Snap[] = [];
+        this.crosses = new CrossPointDatabase(this.originalCrosses);
+
+        let results: Snap[] = [];
         if (pickedPointSnaps.length > 0) {
             const last = pickedPointSnaps[pickedPointSnaps.length - 1];
-            result = result.concat(new PointSnap(undefined, last.point).axes(straightSnaps));
-            result = result.concat(last.info.snap.additionalSnapsFor(last.point));
+            results = results.concat(new PointSnap(undefined, last.point).axes(straightSnaps));
+            results = results.concat(last.info.snap.additionalSnapsFor(last.point));
+            for (const result of results) {
+                if (result instanceof PointAxisSnap) {
+                    this.addAxis(result, this.snapsForLastPickedPoint);
+                }
+            }
         }
-        return result;
+        this.snapsForLastPickedPoint = results;
+        this.activatedSnaps.clear();
+        this.mutualSnaps.clear();
     }
 
     addSnap(...snap: Snap[]) {
@@ -107,26 +121,26 @@ export class Model {
 
     private counter = -1; // counter descends from -1 to avoid conflicting with objects in the geometry database
     private readonly cross2axis = new Map<c3d.SimpleName, AxisSnap>();
-    addAxis(axis: PointAxisSnap) {
-        this.otherAddedSnaps.push(axis);
+    private addAxis(axis: PointAxisSnap, into: Snap[]) {
+        into.push(axis);
         const counter = this.counter--;
         const crosses = this.crosses.add(counter, new c3d.Line3D(point2point(axis.o), point2point(axis.o.clone().add(axis.n))));
         this.cross2axis.set(counter, axis);
         for (const cross of crosses) {
             if (cross.position.manhattanDistanceTo(axis.o) < 10e-3) continue;
-            this.otherAddedSnaps.push(new AxisCrossPointSnap(cross, axis, this.cross2axis.get(cross.on2.id)));
+            into.push(new AxisCrossPointSnap(cross, axis, this.cross2axis.get(cross.on2.id)));
         }
     }
 
-    addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion()) {
+    addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion(), into: Snap[] = this.otherAddedSnaps) {
         const rotated = [];
         for (const snap of this.straightSnaps) rotated.push(snap.rotate(orientation));
         const axes = new PointSnap(undefined, point).axes(rotated);
-        for (const axis of axes) this.addAxis(axis);
+        for (const axis of axes) this.addAxis(axis, into);
     }
 
     get snaps() {
-        return this.axesOfLastPickedPoint.concat(this.otherAddedSnaps);
+        return this.snapsForLastPickedPoint.concat(this.otherAddedSnaps);
     }
 
     restrictToPlaneThroughPoint(point: THREE.Vector3) {
@@ -173,34 +187,36 @@ export class Model {
 
     addPickedPoint(pointResult: PointResult) {
         this.pickedPointSnaps.push(pointResult);
-        this.pointActivatedSnaps.clear();
+        this.makeSnapsForLastPickedPoint();
     }
 
     undo() {
         this.pickedPointSnaps.pop();
-        this.pointActivatedSnaps.clear();
+        this.makeSnapsForLastPickedPoint();
     }
 
-    private readonly snapActivatedSnaps = new Set<Snap>();
+    // Sometimes additional snaps are "activated" when the user mouses over an existing snap
+    private readonly activatedSnaps = new Set<Snap>();
     activateSnapped(snaps: SnapResult[]) {
         for (const { snap } of snaps) {
-            if (this.snapActivatedSnaps.has(snap)) continue;
-            this.snapActivatedSnaps.add(snap); // idempotent
+            if (this.activatedSnaps.has(snap)) continue;
+            this.activatedSnaps.add(snap); // idempotent
+
             if (snap instanceof CurvePointSnap || snap instanceof FacePointSnap) {
-                this.addAxesAt(snap.position);
+                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
             }
             if (snap instanceof CurveEndPointSnap) {
-                this.addAxis(snap.tangentSnap)
+                this.addAxis(snap.tangentSnap, this.snapsForLastPickedPoint)
             }
         }
-        this.activatePointActivatedSnaps(snaps);
+        this.activateMutualSnaps(snaps);
     }
 
     // Activate snaps like tan/tan and perp/perp which only make sense when the previously selected point and the
     // current nearby snaps match certain conditions.
-    private readonly pointActivatedSnaps = new Set<Snap>();
-    private activatePointActivatedSnaps(nearby: SnapResult[]) {
-        const { pointActivatedSnaps, pickedPointSnaps } = this;
+    private readonly mutualSnaps = new Set<Snap>();
+    private activateMutualSnaps(nearby: SnapResult[]) {
+        const { mutualSnaps: pointActivatedSnaps, pickedPointSnaps } = this;
         if (pickedPointSnaps.length === 0) return;
 
         const last = pickedPointSnaps[pickedPointSnaps.length - 1];
@@ -291,7 +307,7 @@ export class PointTarget extends Helper {
 }
 
 export class PointPicker {
-    private readonly model = new Model(this.editor.db, this.editor.snaps, new CrossPointDatabase(this.editor.crosses));
+    private readonly model = new Model(this.editor.db, this.editor.snaps, this.editor.crosses);
     private readonly helper = new PointTarget();
 
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
