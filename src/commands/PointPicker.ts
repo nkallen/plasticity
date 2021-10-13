@@ -261,7 +261,7 @@ export class Presentation {
 
         const restrictions = model.restrictionsFor(constructionPlane, isOrtho);
         const nearby = snaps.nearby(raycaster, model.snaps, restrictions);
-        const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions);
+        const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions, viewport.isXRay);
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
         const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho, presenter);
@@ -274,7 +274,7 @@ export class Presentation {
     readonly nearby: Helper[];
 
     constructor(nearby: SnapResult[], snaps: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapPresenter) {
-        this.nearby = nearby.map(n => presenter.hoverIndicatorFor(n));
+        this.nearby = nearby.map(n => presenter.nearbyIndicatorFor(n));
 
         if (snaps.length === 0) {
             this.names = [];
@@ -344,12 +344,10 @@ export class PointPicker {
             editor.helpers.add(pointTarget);
             disposables.add(new Disposable(() => editor.helpers.remove(pointTarget)));
             disposables.add(new Disposable(() => editor.signals.snapped.dispatch(undefined)));
-
             const helpers = new THREE.Scene();
-            this.editor.helpers.add(helpers);
-            disposables.add(new Disposable(() => this.editor.helpers.remove(helpers)));
 
             let info: SnapInfo | undefined = undefined;
+
             for (const viewport of this.editor.viewports) {
                 viewport.selector.enabled = false;
                 disposables.add(new Disposable(() => viewport.enableControls()))
@@ -360,6 +358,9 @@ export class PointPicker {
                     () => isNavigating = false));
 
                 const { camera, renderer: { domElement } } = viewport;
+
+                viewport.additionalHelpers.add(helpers);
+                disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));
 
                 let lastMoveEvent: PointerEvent | undefined = undefined
                 const onPointerMove = (e: PointerEvent) => {
@@ -420,6 +421,7 @@ export class PointPicker {
                     editor.snaps.toggle();
                     if (lastMoveEvent !== undefined) onPointerMove(lastMoveEvent);
                 }
+
                 const onKeyUp = (e: KeyboardEvent) => {
                     if (!ctrlKey) return;
                     editor.snaps.toggle();

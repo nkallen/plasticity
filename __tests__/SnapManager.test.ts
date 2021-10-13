@@ -7,16 +7,16 @@ import { CrossPointDatabase } from "../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { PlaneSnap, PointSnap } from "../src/editor/snaps/Snap";
+import { CurvePointSnap, CurveSnap, FaceSnap, PlaneSnap, PointSnap } from "../src/editor/snaps/Snap";
 import { originSnap, SnapManager } from "../src/editor/snaps/SnapManager";
 import * as visual from '../src/editor/VisualModel';
+import { inst2curve } from "../src/util/Conversion";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
 let db: GeometryDatabase;
 let snaps: SnapManager;
 let materials: MaterialDatabase;
-let gizmos: GizmoMaterialDatabase;
 let signals: EditorSignals;
 let intersect: jest.Mock<any, any>;
 let raycaster: THREE.Raycaster;
@@ -26,7 +26,6 @@ let bbox: THREE.Box3;
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
-    gizmos = new GizmoMaterialDatabase(signals);
     db = new GeometryDatabase(materials, signals);
     snaps = new SnapManager(db, new CrossPointDatabase(), signals);
     camera = new THREE.PerspectiveCamera();
@@ -131,11 +130,8 @@ describe("snap()", () => {
     beforeEach(() => {
         point = new THREE.Vector3(1, 0, 0);
         // Basically, say you intersect with everything
-        intersect.mockImplementation(as => as.map((a: THREE.Object3D) => {
-            return {
-                object: a,
-                point: point
-            }
+        intersect.mockImplementation(as => as.map((a: THREE.Object3D, i: number) => {
+            return { object: a, point, distance: -i }
         }));
     })
 
@@ -143,7 +139,45 @@ describe("snap()", () => {
         const [{ snap, position }] = snaps.snap(raycaster);
         expect(snap).toBe(originSnap);
         expect(position).toEqual(new THREE.Vector3());
-    })
+    });
+
+    test("xray vs non-xray", async () => {
+        const makeLine = new CurveFactory(db, materials, signals);
+        makeLine.type = c3d.SpaceType.Hermit3D;
+        makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
+        const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        const box = await makeBox.commit() as visual.Solid;
+
+        const curveSnap = new CurveSnap(line, inst2curve(db.lookup(line))!);
+        const highPriority = new CurvePointSnap(undefined, point, curveSnap, 0);
+        const face = box.faces.get(0);
+        const lowPriority = new FaceSnap(face, db.lookupTopologyItem(face));
+
+        intersect.mockImplementation(() => {
+            return [
+                { object: highPriority.snapper, point, distance: 1 },
+                { object: lowPriority.snapper, point, distance: 0 },
+            ]
+        });
+
+        XRayOn: {
+            const [{ snap: snap1 }, { snap: snap2 }] = snaps.snap(raycaster, [], [], [], true);
+            expect(snap1).toBe(highPriority);
+            expect(snap2).toBe(lowPriority);
+        }
+
+        XRayOff: {
+            const [{ snap: snap1 }, { snap: snap2 }] = snaps.snap(raycaster, [], [], [], false);
+            expect(snap1).toBe(lowPriority);
+            expect(snap2).toBe(highPriority);
+        }
+    });
 
     describe("restrictions", () => {
         const pointSnap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));

@@ -182,9 +182,11 @@ export class CurveEdgeSnap extends Snap {
     project(intersection: THREE.Intersection) {
         const pt = intersection.point;
         const t = this.model.PointProjection(point2point(pt));
-        const on = this.model.Point(t);
-        const tan = this.model.GetSpaceCurve()!.Tangent(t);
         this.t = t;
+        const on = this.model.Point(t);
+        const curve = this.model.GetSpaceCurve()!;
+        const t2 = curve.NearPointProjection(point2point(pt), false).t;
+        const tan = curve.Tangent(t2);
         const position = point2point(on);
         const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(tan, 1));
         return { position, orientation };

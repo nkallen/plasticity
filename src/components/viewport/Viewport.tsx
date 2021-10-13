@@ -11,7 +11,6 @@ import { EditorOriginator } from "../../editor/History";
 import { xray } from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { PlaneSnap } from "../../editor/snaps/Snap";
-import * as visual from "../../editor/VisualModel";
 import { HighlightManager } from "../../selection/HighlightManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
@@ -54,6 +53,8 @@ export class Viewport {
     private readonly scene = new THREE.Scene();
     private readonly phantomsScene = new THREE.Scene();
     private readonly helpersScene = new THREE.Scene();
+
+    readonly additionalHelpers = new Set<THREE.Object3D>();
 
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
 
@@ -236,6 +237,13 @@ export class Viewport {
 
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
+
+                const additional = [...this.additionalHelpers];
+                if (additional.length > 0) {
+                    if (this.isXRay) helpersScene.add(...additional);
+                    else this.scene.add(...additional)
+                }
+
                 phantomsPass.enabled = db.phantomObjects.children.length > 0;
                 helpersPass.enabled = helpers.scene.children.length > 0;
             }
