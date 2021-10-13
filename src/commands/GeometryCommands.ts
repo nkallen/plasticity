@@ -468,7 +468,7 @@ export class CurveCommand extends Command {
         while (true) {
             if (makeCurve.canBeClosed) {
                 pointPicker.clearAddedSnaps();
-                pointPicker.addSnap(new PointSnap("closed", makeCurve.startPoint));
+                pointPicker.addSnap(new PointSnap("Closed", makeCurve.startPoint));
             }
             try {
                 const { point, info: { snap } } = await pointPicker.execute(async ({ point, info: { snap } }) => {
@@ -1312,9 +1312,9 @@ export class BridgeCurvesCommand extends Command {
 
         const mask = this.editor.snaps.layers.mask;
         this.editor.snaps.layers.disableAll();
-        this.editor.snaps.layers.enable(Layers.CurveSnap);
-        this.editor.snaps.layers.enable(Layers.PlaneSnap);
-        this.editor.snaps.layers.enable(Layers.PointSnap);
+        this.editor.snaps.layers.enable(Layers.Curve);
+        this.editor.snaps.layers.enable(Layers.Plane);
+        this.editor.snaps.layers.enable(Layers.CurvePoint);
         this.ensure(() => this.editor.snaps.layers.mask = mask);
 
         const dialog = new BridgeCurvesDialog(factory, this.editor.signals);

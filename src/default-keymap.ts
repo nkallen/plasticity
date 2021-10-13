@@ -190,5 +190,14 @@ export default {
     "orbit-controls": {
         "mouse1": "orbit:rotate",
         "mouse2": "orbit:pan",
-    }
+    },
+
+    "body[gizmo=point-picker]": {
+        "n": "snap:set-normal",
+        "b": "snap:set-binormal",
+        "t": "snap:set-tangent",
+        "x": "snap:set-x",
+        "y": "snap:set-y",
+        "z": "snap:set-z",
+    },
 }

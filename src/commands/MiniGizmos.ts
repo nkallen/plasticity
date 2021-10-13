@@ -124,10 +124,6 @@ export class AngleGizmo extends CircularGizmo<number> {
     }
 }
 
-const localY = new THREE.Vector3();
-const dir = new THREE.Vector3();
-const align = new THREE.Vector3();
-
 export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => void>  {
     abstract readonly tip: THREE.Mesh;
     protected abstract readonly knob: THREE.Mesh;
@@ -182,7 +178,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         if (planeIntersect === undefined) return;
 
         this.startMousePosition.copy(planeIntersect.point);
-        this.sign = Math.sign(planeIntersect.point.dot(localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion)));
+        this.sign = Math.sign(planeIntersect.point.dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion)));
         if (this.sign === 0) this.sign = 1;
 
         if (this.originalPosition === undefined) this.originalPosition = this.position.clone();
@@ -192,7 +188,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         const planeIntersect = intersect(this.plane, true);
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
-        const dist = planeIntersect.point.sub(this.startMousePosition).dot(localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion));
+        const dist = planeIntersect.point.sub(this.startMousePosition).dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion));
         let length = this.accumulate(this.state.original, this.sign, dist);
         this.state.current = length;
         this.render(this.state.current);
@@ -213,10 +209,13 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         this.knob.position.copy(this.tip.position);
     }
 
+    private localY = new THREE.Vector3();
+    private dir = new THREE.Vector3();
+    private align = new THREE.Vector3();
     update(camera: THREE.Camera) {
         super.update(camera);
 
-        const { eye, worldPosition, worldQuaternion } = this;
+        const { eye, worldPosition, worldQuaternion, plane, localY, align, dir } = this;
 
         eye.copy(camera.position).sub(worldPosition).normalize();
 
@@ -226,9 +225,9 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
         const matrix = new THREE.Matrix4();
         matrix.lookAt(origin, dir, align);
-        this.plane.quaternion.setFromRotationMatrix(matrix);
-        this.plane.updateMatrixWorld();
-        this.plane.position.copy(worldPosition);
+        plane.quaternion.setFromRotationMatrix(matrix);
+        plane.updateMatrixWorld();
+        plane.position.copy(worldPosition);
     }
 }
 

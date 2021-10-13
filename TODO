@@ -1,9 +1,12 @@
 Release:
 . Bug fix: label and grid in orthographic view disappear when panning
+. xray snaps
 
 THIS WEEK:
-. xray snaps
 . Turn on off individual snap kinds
+. pan in perspective broken
+. ortho keybinding broken
+. check to see if navigator can cancel/prevent default for mousedown so as to simplify the pointpicker on pointerdown guard clauses
 . shift to lock snaps
 . snapping projected to restrictions (either construction plane or axis)
 . snaps hidden for object hidden on factory hide
