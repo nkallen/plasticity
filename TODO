@@ -1,15 +1,11 @@
 Release:
-. Perpendicular snap when picking point on curve or face
-. Intersection of curves snap points
-. Intersection of newly activated axis (on hover) snaps
-. Intersection axis indicators should be two lines and a little dot indicating where the axis originated
-. Tangent axis activated at endpoint hover
+. Bug fix: label and grid in orthographic view disappear when panning
 
 THIS WEEK:
-. Turn on off individual snap kinds
 . xray snaps
-. snapping projected to restrictions (either construction plane or axis)
+. Turn on off individual snap kinds
 . shift to lock snaps
+. snapping projected to restrictions (either construction plane or axis)
 . snaps hidden for object hidden on factory hide
 
 Todo:

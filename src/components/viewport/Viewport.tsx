@@ -305,7 +305,8 @@ export class Viewport {
     private navigationChange() {
         switch (this.navigationState.tag) {
             case 'navigating':
-                if (!this.navigationState.quaternion.equals(this.camera.quaternion)) {
+                const dot = this.navigationState.quaternion.dot(this.camera.quaternion);
+                if (Math.abs(dot - 1) > 10e-3) {
                     if (this._isOrtho) {
                         this._isOrtho = false;
                         this.constructionPlane = new PlaneSnap(Z);
