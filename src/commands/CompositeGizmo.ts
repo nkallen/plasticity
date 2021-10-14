@@ -45,7 +45,7 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
     }
 
     private deactivateGizmosExcept<T>(except: AbstractGizmo<(t: T) => void>) {
-        for (const [gizmo,] of this.gizmos) {
+        for (const [gizmo] of this.gizmos) {
             if (gizmo === except) {
                 gizmo.stateMachine!.isActive = true;
             } else {
@@ -56,7 +56,7 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
     }
 
     private activateGizmos() {
-        for (const [gizmo,] of this.gizmos) {
+        for (const [gizmo] of this.gizmos) {
             gizmo.stateMachine!.isActive = true;
         }
     }
