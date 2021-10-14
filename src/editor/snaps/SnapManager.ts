@@ -7,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ConstructionPlaneSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FacePointSnap, FaceSnap, LineSnap, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ConstructionPlaneSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, LineSnap, NormalAxisSnap, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -130,7 +130,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private add(item: visual.Item) {
         performance.mark('begin-snap-add');
-        const fns: Redisposable[] = [];
         const snapsForItem = new Set<Snap>();
         this.id2snaps.set(item.simpleName, snapsForItem);
         if (item instanceof visual.Solid) {
@@ -155,14 +154,14 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const faceSnap = new FaceSnap(face, model);
         into.add(faceSnap);
 
-        const centerSnap = new FacePointSnap("Center", point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
+        const centerSnap = new FaceCenterPointSnap(point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
         into.add(centerSnap);
     }
 
     private addEdge(edge: visual.CurveEdge, model: c3d.CurveEdge, into: Set<Snap>) {
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
-        const begSnap = new EdgePointSnap("Beginning", point2point(begPt));
+        const begSnap = new EdgeEndPointSnap("Beginning", point2point(begPt));
         const midSnap = new EdgePointSnap("Middle", point2point(midPt));
 
         const edgeSnap = new CurveEdgeSnap(edge, model);
@@ -278,11 +277,13 @@ priorities.set(PointSnap, 1);
 priorities.set(CurvePointSnap, 1);
 priorities.set(CurveEndPointSnap, 1);
 priorities.set(EdgePointSnap, 1);
+priorities.set(EdgeEndPointSnap, 1);
 priorities.set(CurveEdgeSnap, 2);
 priorities.set(CurveSnap, 2);
+priorities.set(FaceCenterPointSnap, 2);
 priorities.set(FaceSnap, 3);
-priorities.set(FacePointSnap, 3);
 priorities.set(AxisSnap, 4);
+priorities.set(NormalAxisSnap, 4);
 priorities.set(PointAxisSnap, 4);
 priorities.set(PlaneSnap, 5);
 priorities.set(LineSnap, 5);

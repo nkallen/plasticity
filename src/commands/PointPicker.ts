@@ -1,13 +1,14 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import CommandRegistry from '../components/atom/CommandRegistry';
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import { VisibleLayers } from '../editor/LayerManager';
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FacePointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, Layers, LineSnap, NormalAxisSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import * as visual from "../editor/VisualModel";
@@ -25,10 +26,13 @@ export interface EditorLike {
     helpers: Helpers,
     snapPresenter: SnapPresenter,
     crosses: CrossPointDatabase,
+    registry: CommandRegistry,
 }
 
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
+
+type Choices = 'Normal' | 'Binormal' | 'Tangent' | 'x' | 'y' | 'z';
 
 export class Model {
     private readonly pickedPointSnaps = new Array<PointResult>(); // Snaps inferred from points the user actually picked
@@ -45,8 +49,9 @@ export class Model {
 
     constructor(
         private readonly db: DatabaseLike,
-        private readonly manager: SnapManager,
         private readonly originalCrosses: CrossPointDatabase,
+        private readonly registry: CommandRegistry,
+        private readonly signals: EditorSignals,
     ) {
         this.crosses = new CrossPointDatabase(originalCrosses);
     }
@@ -93,6 +98,7 @@ export class Model {
     private snapsForLastPickedPoint: Snap[] = [];
     private makeSnapsForLastPickedPoint(): void {
         const { pickedPointSnaps, straightSnaps } = this;
+
         this.crosses = new CrossPointDatabase(this.originalCrosses);
 
         let results: Snap[] = [];
@@ -108,15 +114,53 @@ export class Model {
         }
         this.snapsForLastPickedPoint = results;
         this.activatedSnaps.clear();
+        this.choice = undefined;
         this.mutualSnaps.clear();
     }
 
-    addSnap(...snap: Snap[]) {
-        this.otherAddedSnaps.push(...snap);
+    start() {
+        this.registerKeybindingFor(...this.otherAddedSnaps, ...this.snapsForLastPickedPoint);
+        return new Disposable(() => this.clearKeybindingFor(...this.otherAddedSnaps, ...this.snapsForLastPickedPoint));
+    }
+
+    register(domElement: HTMLElement, fn: () => void) {
+        const choose = (which: Choices) => {
+            this.choose(which);
+            fn();
+        }
+
+        const disposable = new CompositeDisposable();
+        for (const snap of [...this.otherAddedSnaps, ...this.snapsForLastPickedPoint]) {
+            if (snap instanceof PointAxisSnap) {
+                const d = this.registry.addOne(domElement, snap.commandName, _ => choose(snap.name as Choices));
+                disposable.add(d);
+            }
+        }
+        return disposable;
+    }
+
+    private registerKeybindingFor(...snaps: Snap[]) {
+        for (const snap of snaps) {
+            if (snap instanceof PointAxisSnap) {
+                this.signals.keybindingsRegistered.dispatch([snap.commandName]);
+            }
+        }
+    }
+
+    private clearKeybindingFor(...snaps: Snap[]) {
+        for (const snap of snaps) {
+            if (snap instanceof PointAxisSnap) {
+                this.signals.keybindingsCleared.dispatch([snap.commandName]);
+            }
+        }
     }
 
     clearAddedSnaps() {
         this.otherAddedSnaps.length = 0;
+    }
+
+    addSnap(...snaps: Snap[]) {
+        this.otherAddedSnaps.push(...snaps);
     }
 
     private counter = -1; // counter descends from -1 to avoid conflicting with objects in the geometry database
@@ -198,6 +242,17 @@ export class Model {
         this.makeSnapsForLastPickedPoint();
     }
 
+    choice?: AxisSnap;
+    choose(which: Choices | Snap | undefined) {
+        if (which instanceof Snap) {
+            if (which instanceof AxisSnap) this.choice = which;
+        } else {
+            let chosen = this.snapsForLastPickedPoint.filter(s => s.name == which)[0] as AxisSnap | undefined;
+            chosen ??= this.otherAddedSnaps.filter(s => s.name == which)[0] as AxisSnap | undefined;
+            if (chosen !== undefined) this.choice = chosen;
+        }
+    }
+
     undo() {
         this.pickedPointSnaps.pop();
         this.makeSnapsForLastPickedPoint();
@@ -213,7 +268,7 @@ export class Model {
             if (snap instanceof CurvePointSnap && !snap.model.IsClosed()) {
                 this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
             }
-            if (snap instanceof FacePointSnap) {
+            if (snap instanceof FaceCenterPointSnap) {
                 this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
             }
             if (snap instanceof CurveEndPointSnap && !snap.model.IsClosed()) {
@@ -251,17 +306,26 @@ interface SnapInfo extends PointInfo {
 }
 
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
-// There are icons, indicators, textual names explanations, etc.
+// There are icons, indicators, textual name explanations, etc.
 export class Presentation {
     static make(raycaster: THREE.Raycaster, viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
-        if (isOrtho) snaps.layers.disable(Layers.FaceSnap);
-        else snaps.layers.enable(Layers.FaceSnap);
+        if (isOrtho) snaps.layers.disable(Layers.Face);
+        else snaps.layers.enable(Layers.Face);
 
-        const restrictions = model.restrictionsFor(constructionPlane, isOrtho);
-        const nearby = snaps.nearby(raycaster, model.snaps, restrictions);
-        const snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions, viewport.isXRay);
+        let nearby: SnapResult[], snappers: SnapResult[];
+        const choice = model.choice;
+        if (choice !== undefined) {
+            const position = choice.intersect(raycaster);
+            if (position !== undefined) snappers = [{ snap: choice, orientation: choice.orientation, position }];
+            else snappers = [];
+            nearby = []
+        } else {
+            const restrictions = model.restrictionsFor(constructionPlane, isOrtho);
+            nearby = snaps.nearby(raycaster, model.snaps, restrictions);
+            snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions, viewport.isXRay);
+        }
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
         const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho, presenter);
@@ -318,7 +382,7 @@ export class PointTarget extends Helper {
 }
 
 export class PointPicker {
-    private readonly model = new Model(this.editor.db, this.editor.snaps, this.editor.crosses);
+    private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
     private readonly helper = new PointTarget();
 
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
@@ -333,6 +397,8 @@ export class PointPicker {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
             const { helper: pointTarget, editor, model } = this;
+
+            disposables.add(model.start());
 
             document.body.setAttribute("gizmo", "point-picker");
             disposables.add(new Disposable(() => document.body.removeAttribute('gizmo')));
@@ -350,7 +416,7 @@ export class PointPicker {
 
             for (const viewport of this.editor.viewports) {
                 viewport.selector.enabled = false;
-                disposables.add(new Disposable(() => viewport.enableControls()))
+                disposables.add(new Disposable(() => viewport.enableControls()));
 
                 let isNavigating = false;
                 disposables.add(this.disablePickingDuringNavigation(viewport.navigationControls,
@@ -362,8 +428,11 @@ export class PointPicker {
                 viewport.additionalHelpers.add(helpers);
                 disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));
 
-                let lastMoveEvent: PointerEvent | undefined = undefined
-                const onPointerMove = (e: PointerEvent) => {
+                let lastMoveEvent: PointerEvent | undefined = undefined;
+                let lastSnap: Snap | undefined = undefined;
+
+                const onPointerMove = (e: PointerEvent | undefined) => {
+                    if (e === undefined) return;
                     if (isNavigating) return;
 
                     lastMoveEvent = e;
@@ -381,6 +450,7 @@ export class PointPicker {
                     info = presentation.info;
                     if (info === undefined) return;
 
+                    lastSnap = info.snap;
                     const { position } = info;
 
                     helpers.add(...newHelpers);
@@ -389,7 +459,7 @@ export class PointPicker {
 
                     editor.signals.snapped.dispatch(
                         names.length > 0 ?
-                            { position: position.clone().project(camera), names: names }
+                            { position: position.clone().project(camera), names }
                             : undefined);
 
                     editor.signals.pointPickerChanged.dispatch();
@@ -408,25 +478,33 @@ export class PointPicker {
 
                 const onPointerDown = (e: PointerEvent) => {
                     if (e.button != 0) return;
-                    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+                    if (e.altKey) return; // this is a temporary fix to allow maya-style keybindings to not interfere with point picking
                     dispose();
                     finish();
                     info = undefined;
                 }
 
-                let ctrlKey = false;
                 const onKeyDown = (e: KeyboardEvent) => {
-                    if (!e.ctrlKey) return;
-                    ctrlKey = true;
-                    editor.snaps.toggle();
-                    if (lastMoveEvent !== undefined) onPointerMove(lastMoveEvent);
+                    if (e.key == "Control") {
+                        editor.snaps.toggle();
+                        onPointerMove(lastMoveEvent);
+                    } else if (e.key == "Shift") {
+                        this.model.choose(lastSnap);
+                    }
                 }
 
                 const onKeyUp = (e: KeyboardEvent) => {
-                    if (!ctrlKey) return;
-                    editor.snaps.toggle();
-                    if (lastMoveEvent !== undefined) onPointerMove(lastMoveEvent);
+                    if (e.key == "Control") {
+                        editor.snaps.toggle();
+                        onPointerMove(lastMoveEvent);
+                    } else if (e.key == "Shift") {
+                        this.model.choice = undefined;
+                        onPointerMove(lastMoveEvent);
+                    }
                 }
+
+                const d = model.register(viewport.domElement, () => onPointerMove(lastMoveEvent));
+                disposables.add(d);
 
                 domElement.addEventListener('pointermove', onPointerMove);
                 domElement.addEventListener('pointerdown', onPointerDown);

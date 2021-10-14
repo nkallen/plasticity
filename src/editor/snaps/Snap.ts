@@ -1,19 +1,27 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
-import { PointPicker, PointTarget } from "../../commands/PointPicker";
+import { PointPicker } from "../../commands/PointPicker";
 import { curve3d2curve2d, deunit, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
 import { CrossPoint } from "../curves/CrossPointDatabase";
 import * as visual from '../VisualModel';
 
 export enum Layers {
-    PointSnap,
-    CurveEdgeSnap,
-    CurveSnap,
-    AxisSnap,
-    PlaneSnap,
-    ConstructionPlaneSnap,
-    FaceSnap
+    Origin,
+    CurvePoint,
+    EdgePoint,
+    FacePoint,
+    Intersection,
+    Curve,
+    CurveEdge,
+    Face,
+    Tangent,
+    Normal,
+    Binormal,
+    Axis,
+
+    Plane,
+    Line,
 }
 
 export interface Restriction {
@@ -67,7 +75,7 @@ export class PointSnap extends Snap {
     readonly position: THREE.Vector3;
     static snapperGeometry = new THREE.SphereGeometry(0.1);
     static nearbyGeometry = new THREE.SphereGeometry(0.2);
-    protected layer = Layers.PointSnap;
+    protected readonly layer: Layers = Layers.Origin;
 
     constructor(readonly name?: string, position = new THREE.Vector3(), private readonly normal = Z) {
         super();
@@ -100,6 +108,8 @@ export class PointSnap extends Snap {
 }
 
 export class CrossPointSnap extends PointSnap {
+    protected readonly layer = Layers.Intersection;
+
     constructor(readonly cross: CrossPoint, readonly curve1: CurveSnap, readonly curve2: CurveSnap) {
         super("Intersection", cross.position);
     }
@@ -113,6 +123,7 @@ export class CrossPointSnap extends PointSnap {
 }
 
 export class AxisAxisCrossPointSnap extends PointSnap {
+    protected readonly layer = Layers.Intersection;
     readonly helper = new THREE.Group();
 
     constructor(readonly cross: CrossPoint, axis1: AxisSnap, axis2: AxisSnap) {
@@ -123,6 +134,7 @@ export class AxisAxisCrossPointSnap extends PointSnap {
 }
 
 export class AxisCurveCrossPointSnap extends PointSnap {
+    protected readonly layer = Layers.Intersection;
     readonly helper = new THREE.Group();
 
     constructor(readonly cross: CrossPoint, axis: AxisSnap, readonly curve: CurveSnap) {
@@ -136,6 +148,8 @@ export class AxisCurveCrossPointSnap extends PointSnap {
 }
 
 export class CurvePointSnap extends PointSnap {
+    protected readonly layer: Layers = Layers.CurvePoint;
+
     constructor(readonly name: string | undefined, position: THREE.Vector3, readonly curveSnap: CurveSnap, readonly t: number) {
         super(name, position);
     }
@@ -145,6 +159,8 @@ export class CurvePointSnap extends PointSnap {
 }
 
 export class CurveEndPointSnap extends CurvePointSnap {
+    protected readonly layer = Layers.CurvePoint;
+
     get tangentSnap(): PointAxisSnap {
         const { t, curveSnap: { model } } = this;
         const tangent = vec2vec(model.Tangent(t), 1);
@@ -152,11 +168,18 @@ export class CurveEndPointSnap extends CurvePointSnap {
     }
 }
 
-export class EdgePointSnap extends PointSnap { }
+export class EdgePointSnap extends PointSnap {
+    protected readonly layer = Layers.EdgePoint;
+}
+export class EdgeEndPointSnap extends PointSnap {
+    protected readonly layer = Layers.EdgePoint;
+}
 
-export class FacePointSnap extends PointSnap {
-    constructor(readonly name: string, position: THREE.Vector3, normal: THREE.Vector3, readonly faceSnap: FaceSnap) {
-        super(name, position, normal);
+export class FaceCenterPointSnap extends PointSnap {
+    protected readonly layer = Layers.FacePoint;
+
+    constructor(position: THREE.Vector3, normal: THREE.Vector3, readonly faceSnap: FaceSnap) {
+        super("Center", position, normal);
     }
 
     get view() { return this.faceSnap.view }
@@ -165,13 +188,17 @@ export class FacePointSnap extends PointSnap {
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {
         this.faceSnap.addAdditionalRestrictionsTo(pointPicker, point);
     }
+
+    additionalSnapsFor(point: THREE.Vector3) {
+        return this.faceSnap.additionalSnapsFor(point);
+    }
 }
 
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
     t!: number;
     readonly snapper = new Line2(this.view.child.geometry, this.view.child.material);
-    protected readonly layer = Layers.CurveEdgeSnap;
+    protected readonly layer = Layers.CurveEdge;
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
         super();
@@ -206,7 +233,7 @@ export class CurveSnap extends Snap {
     readonly name = "Curve";
     t!: number;
     readonly snapper = new THREE.Group();
-    protected readonly layer = Layers.CurveSnap;
+    protected readonly layer = Layers.Curve;
 
     constructor(readonly view: visual.SpaceInstance<visual.Curve3D>, readonly model: c3d.Curve3D) {
         super();
@@ -317,6 +344,8 @@ export class CurveSnap extends Snap {
 }
 
 export class TanTanSnap extends PointSnap {
+    protected readonly layer = Layers.Tangent;
+
     constructor(readonly point1: THREE.Vector3, readonly point2: THREE.Vector3) {
         super("Tan/Tan", point2);
     }
@@ -325,7 +354,7 @@ export class TanTanSnap extends PointSnap {
 export class FaceSnap extends Snap {
     readonly name = "Face";
     readonly snapper = this.view.child.clone();
-    protected readonly layer = Layers.FaceSnap;
+    protected readonly layer = Layers.Face;
 
     constructor(readonly view: visual.Face, readonly model: c3d.Face) {
         super();
@@ -344,7 +373,7 @@ export class FaceSnap extends Snap {
 
     isValid(point: THREE.Vector3): boolean {
         const { model } = this;
-        const { u, v, normal } = model.NearPointProjection(point2point(point));
+        const { u, v } = model.NearPointProjection(point2point(point));
         const { faceU, faceV } = model.GetFaceParam(u, v);
         const projected = point2point(model.Point(faceU, faceV));
         const result = point.manhattanDistanceTo(projected) < 10e-4;
@@ -360,7 +389,7 @@ export class FaceSnap extends Snap {
     additionalSnapsFor(point: THREE.Vector3) {
         const { model } = this;
         const { normal } = model.NearPointProjection(point2point(point));
-        const normalSnap = new AxisSnap("Normal", vec2vec(normal, 1), point);
+        const normalSnap = new NormalAxisSnap(vec2vec(normal, 1), point);
         return [normalSnap];
     }
 }
@@ -387,6 +416,8 @@ axisGeometry.setFromPoints(points);
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
+const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
+const origin = new THREE.Vector3();
 
 export class AxisSnap extends Snap {
     readonly snapper = new THREE.Line(axisGeometry, new THREE.LineBasicMaterial());
@@ -398,8 +429,9 @@ export class AxisSnap extends Snap {
 
     readonly n = new THREE.Vector3();
     readonly o = new THREE.Vector3();
+    readonly orientation = new THREE.Quaternion();
 
-    protected readonly layer = Layers.AxisSnap;
+    protected readonly layer: Layers = Layers.Axis;
 
     constructor(readonly name: string | undefined, n: THREE.Vector3, o = new THREE.Vector3()) {
         super();
@@ -410,6 +442,7 @@ export class AxisSnap extends Snap {
 
         this.n.copy(n).normalize();
         this.o.copy(o);
+        this.orientation.setFromUnitVectors(Z, n)
 
         if (this.constructor === AxisSnap) this.init();
     }
@@ -417,10 +450,9 @@ export class AxisSnap extends Snap {
     private readonly projection = new THREE.Vector3();
     private readonly intersectionPoint = new THREE.Vector3();
     project(intersection: THREE.Intersection) {
-        const { n, o } = this;
+        const { n, o, orientation } = this;
         const { projection, intersectionPoint } = this;
         const position = projection.copy(n).multiplyScalar(n.dot(intersectionPoint.copy(intersection.point).sub(o))).add(o);
-        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, n);
         return { position, orientation };
     }
 
@@ -432,12 +464,38 @@ export class AxisSnap extends Snap {
 
     move(delta: THREE.Vector3) {
         const { n } = this;
-        return new PointAxisSnap(this.name?.toLowerCase(), this.n, this.o.clone().add(delta));
+        return new PointAxisSnap(this.name!.toLowerCase(), this.n, this.o.clone().add(delta));
     }
 
     rotate(quat: THREE.Quaternion) {
         const { n, o } = this;
         return new AxisSnap(this.name?.toLowerCase(), this.n.clone().applyQuaternion(quat), o);
+    }
+
+    private readonly plane = new THREE.Mesh(planeGeometry, new THREE.MeshBasicMaterial({ color: 0x11111, side: THREE.DoubleSide }));
+    private readonly eye = new THREE.Vector3();
+    private readonly dir = new THREE.Vector3();
+    private readonly align = new THREE.Vector3();
+    private readonly matrix = new THREE.Matrix4();
+    private readonly intersection = new THREE.Vector3();
+    intersect(raycaster: THREE.Raycaster) {
+        const { eye, plane, align, dir, o, n, matrix, intersection } = this;
+
+        eye.copy(raycaster.camera.position).sub(o).normalize();
+
+        align.copy(eye).cross(n);
+        dir.copy(n).cross(align);
+
+        matrix.lookAt(origin, dir, align);
+        plane.quaternion.setFromRotationMatrix(matrix);
+        plane.position.copy(o);
+        plane.updateMatrixWorld();
+
+        const intersections = raycaster.intersectObject(plane);
+        if (intersections.length === 0) return;
+
+        const dist = intersections[0].point.sub(o).dot(n);
+        return intersection.copy(n).multiplyScalar(dist).add(o);
     }
 }
 
@@ -448,14 +506,27 @@ const dotMaterial = new THREE.PointsMaterial({ size: 5, sizeAttenuation: false }
 
 export class PointAxisSnap extends AxisSnap {
     readonly helper = new THREE.Group();
+    protected readonly layer: Layers = Layers.Intersection;
 
-    constructor(readonly name: string | undefined, n: THREE.Vector3, position: THREE.Vector3) {
+    constructor(readonly name: string, n: THREE.Vector3, position: THREE.Vector3) {
         super(name, n, position);
         this.helper.add(this.snapper.clone());
         const sourcePointIndicator = new THREE.Points(dotGeometry, dotMaterial);
         sourcePointIndicator.position.copy(position);
         this.helper.add(sourcePointIndicator);
         this.init();
+    }
+
+    get commandName(): string {
+        return `snaps:set-${this.name.toLowerCase()}`;
+    }
+}
+
+export class NormalAxisSnap extends PointAxisSnap {
+    layer = Layers.Normal;
+
+    constructor(n: THREE.Vector3, o: THREE.Vector3) {
+        super("Normal", n, o);
     }
 }
 
@@ -466,7 +537,7 @@ export class PointAxisSnap extends AxisSnap {
 export class LineSnap extends Snap {
     readonly snapper = new THREE.Group().add(this.plane1.snapper, this.plane2.snapper);
     readonly helper = this.axis.helper.clone();
-    protected readonly layer: Layers = Layers.AxisSnap;
+    protected readonly layer = Layers.Line;
 
     static make(name: string | undefined, direction: THREE.Vector3, origin: THREE.Vector3) {
         const p = new THREE.Vector3(1, 0, 0);
@@ -504,7 +575,7 @@ mat.side = THREE.DoubleSide;
 
 export class PlaneSnap extends Snap {
     readonly snapper = new THREE.Mesh(planeGeo, mat);
-    protected readonly layer: Layers = Layers.PlaneSnap;
+    protected readonly layer: Layers = Layers.Plane;
 
     static X = new PlaneSnap(new THREE.Vector3(1, 0, 0));
     static Y = new PlaneSnap(new THREE.Vector3(0, 1, 0));
@@ -541,7 +612,7 @@ export class PlaneSnap extends Snap {
     private readonly valid = new THREE.Vector3();
     isValid(pt: THREE.Vector3): boolean {
         const { n, p } = this;
-        return Math.abs(pt.clone().sub(p).dot(n)) < 10e-4;
+        return Math.abs(this.valid.copy(pt).sub(p).dot(n)) < 10e-4;
     }
 
     update(camera: THREE.Camera) { }
@@ -550,13 +621,12 @@ export class PlaneSnap extends Snap {
         return new c3d.Placement3D(point2point(this.p), vec2vec(this.n, 1), false);
     }
 }
-// The main purpose of this class is to have a lower priority in raycasting than other, explicitly added snaps.
 
+// The main purpose of this class is to have a lower priority in raycasting than other, explicitly added snaps.
 export class ConstructionPlaneSnap extends PlaneSnap {
-    protected readonly layer = Layers.ConstructionPlaneSnap;
+    protected readonly layer = Layers.Plane;
 
     move(pt: THREE.Vector3): PlaneSnap {
         return new ConstructionPlaneSnap(this.n, pt);
     }
 }
-

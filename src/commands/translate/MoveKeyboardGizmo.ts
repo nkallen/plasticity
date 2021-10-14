@@ -1,17 +1,14 @@
-import { DatabaseLike } from "../../editor/GeometryDatabase";
 import MaterialDatabase from "../../editor/MaterialDatabase";
-import { SnapManager } from "../../editor/snaps/SnapManager";
-import { SnapPresenter } from "../../editor/snaps/SnapPresenter";
 import { CancellablePromise } from "../../util/Cancellable";
 import * as cmd from "../CommandKeyboardInput";
 import { CommandKeyboardInput } from "../CommandKeyboardInput";
 import { MoveCommand } from "../GeometryCommands";
 import LineFactory from "../line/LineFactory";
+import * as pp from "../PointPicker";
 import { PointPicker } from "../PointPicker";
 import { MoveDialog } from "./MoveDialog";
 import { MoveGizmo } from "./MoveGizmo";
 import { MoveFactory } from "./TranslateFactory";
-import * as pp from "../PointPicker";
 
 interface EditorLike extends cmd.EditorLike, pp.EditorLike {
     materials: MaterialDatabase,

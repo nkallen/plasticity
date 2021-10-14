@@ -4,6 +4,8 @@ import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { Model, Presentation } from '../../src/commands/PointPicker';
+import CommandRegistry from "../../src/components/atom/CommandRegistry";
+import { Viewport } from "../../src/components/viewport/Viewport";
 import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -13,6 +15,7 @@ import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import { MakeViewport } from "../../__mocks__/FakeViewport";
 import c3d from '../build/Release/c3d.node';
 import '../matchers';
 
@@ -31,7 +34,8 @@ beforeEach(() => {
     presenter = new SnapPresenter(gizmos);
     const crosses = new CrossPointDatabase();
     snaps = new SnapManager(db, crosses, signals);
-    pointPicker = new Model(db, crosses, signals);
+    const registry = new CommandRegistry();
+    pointPicker = new Model(db, crosses, registry, signals);
 });
 
 describe('restrictToPlaneThroughPoint', () => {
@@ -96,6 +100,20 @@ describe('addSnap', () => {
         expect(snaps.length).toBe(2);
         expect(snaps[0]).toBe(pointSnap);
         expect(snaps[1]).toBe(constructionPlane);
+    });
+});
+
+describe('choose', () => {
+    it('works when empty', () => {
+        pointPicker.choose('Normal');
+        expect(pointPicker.choice).toBeUndefined();
+    });
+
+    it('works when given an axis snap', () => {
+        pointPicker.addAxesAt(new THREE.Vector3(1, 1, 1));
+        pointPicker.choose("x");
+        expect(pointPicker.choice).toBeInstanceOf(PointAxisSnap);
+        expect(pointPicker.choice!.name).toBe("x");
     })
 });
 
@@ -450,5 +468,28 @@ describe(Presentation, () => {
         expect(presentation.names).toEqual(["endpoint", "startpoint"]);
         expect(presentation.info!.position).toBe(hitPosition);
         expect(presentation.info!.snap).toBe(endPoint);
+    });
+
+    describe('Presentation.make', () => {
+        test("when given an explicitly chosen choice, the snap is fixed to that choice", () => {
+            const raycaster = new THREE.Raycaster();
+            const spy = jest.spyOn(raycaster, 'intersectObject');
+            const point = new THREE.Vector3();
+            spy.mockImplementation(object => [{ object, point }] as THREE.Intersection[]);
+            const camera = new THREE.PerspectiveCamera();
+            raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+            const viewport = jest.fn() as any;
+
+            pointPicker.addAxesAt(new THREE.Vector3(1, 1, 1));
+            pointPicker.choose("x");
+            expect(pointPicker.choice).not.toBeUndefined();
+
+            const { presentation, snappers, nearby } = Presentation.make(raycaster, viewport, pointPicker, snaps, presenter);
+            expect(nearby.length).toBe(0);
+            expect(snappers.length).toBe(1);
+            const { snap, position, orientation } = snappers[0];
+            expect(snap).toBe(pointPicker.choice);
+            expect(position).toEqual(new THREE.Vector3(0, 1, 1));
+        })
     })
 });

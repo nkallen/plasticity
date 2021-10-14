@@ -233,7 +233,7 @@ describe(CurveSnap, () => {
         camera.lookAt(center);
         raycaster.setFromCamera({ x: 0, y: 0 }, camera);
 
-        snaps.layers.set(Layers.CurveSnap);
+        snaps.layers.set(Layers.Curve);
 
         const [{ snap: match, position }] = snaps.snap(raycaster, [], [snap]);
 

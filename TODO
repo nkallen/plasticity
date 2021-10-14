@@ -3,10 +3,12 @@ Release:
 . xray snaps
 
 THIS WEEK:
+. move ispace-keybindings to its own file
 . create cylinder and undo -- errors
 . Turn on off individual snap kinds
 . pan in perspective broken
 . ortho keybinding broken
+. move to freestyle command -- looks like once in freestyle, going back to x/y/z doesn't interrupt correctly
 . check to see if navigator can cancel/prevent default for mousedown so as to simplify the pointpicker on pointerdown guard clauses
 . shift to lock snaps
 . snapping projected to restrictions (either construction plane or axis)
