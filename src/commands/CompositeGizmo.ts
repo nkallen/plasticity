@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { Cancel, CancellablePromise } from "../util/Cancellable";
+import { CancellablePromise } from "../util/Cancellable";
 import { Helper } from "../util/Helpers";
 import { AbstractGizmo, EditorLike, GizmoLike, Mode } from "./AbstractGizmo";
 
@@ -11,8 +11,7 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
         super();
     }
 
-    protected prepare(mode: Mode) {
-    }
+    protected prepare(mode: Mode) { }
 
     execute(compositeCallback: (params: P) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         this.prepare(mode);

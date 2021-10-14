@@ -10,9 +10,9 @@ Release:
 . PointPicker: x/y/z/n/t/b keybindings to lock axis snaps
 
 THIS WEEK:
+. snaps hidden for object hidden on factory hide
 . check to see if navigator can cancel/prevent default for mousedown so as to simplify the pointpicker on pointerdown guard clauses
 . snapping projected to restrictions (either construction plane or axis)
-. snaps hidden for object hidden on factory hide
 
 BUG: can enter freestyle mode twice with move/rotate/scale
 BUG: pp: restrictions are ignored when using choosing
