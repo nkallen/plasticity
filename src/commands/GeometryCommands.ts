@@ -883,7 +883,7 @@ export class RotateCommand extends Command {
                 case 'free':
                     g.finish();
                     const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
-                    const pointPicker = new PointPicker(editor);
+                    let pointPicker = new PointPicker(editor);
                     const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
                     referenceLine.p1 = p1;
                     rotate.pivot = p1;
@@ -893,7 +893,7 @@ export class RotateCommand extends Command {
 
                     const quat = new THREE.Quaternion().setFromUnitVectors(constructionPlane.n, Z);
 
-                    const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
+                    const { point: p2, info: { constructionPlane: constructionPlane2 } } = await pointPicker.execute(({ point: p2 }) => {
                         referenceLine.p2 = p2;
                         referenceLine.update();
                     }).resource(this);
@@ -902,7 +902,8 @@ export class RotateCommand extends Command {
                     const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
                     transformationLine.p1 = p1;
 
-                    pointPicker.restrictToLine(p1, reference);
+                    pointPicker = new PointPicker(this.editor);
+                    pointPicker.restrictToPlane(constructionPlane2.move(p2));
                     const transformation = new THREE.Vector3();
                     await pointPicker.execute(({ point: p3 }) => {
                         transformationLine.p2 = p3;

@@ -4,15 +4,19 @@ Release:
 . Bug fix: ortho/perspective keybinding (numpad 5) broken
 . Bug fix: slightly better focus logic (still nowhere near perfect)
 . Bug fix: pan in perspective mode reversed on x axis
+. Bug fix: move/rotate/scale in freestyle mode -- keybindings get screwed up
 . PointPicker: xray snaps
 . PointPicker: shift to lock axis snaps
 . PointPicker: x/y/z/n/t/b keybindings to lock axis snaps
 
 THIS WEEK:
-. move to freestyle command -- looks like once in freestyle, going back to x/y/z doesn't interrupt correctly
 . check to see if navigator can cancel/prevent default for mousedown so as to simplify the pointpicker on pointerdown guard clauses
 . snapping projected to restrictions (either construction plane or axis)
 . snaps hidden for object hidden on factory hide
+
+BUG: can enter freestyle mode twice with move/rotate/scale
+BUG: pp: restrictions are ignored when using choosing
+. Audit freestyle scale. DisableVerticalStraightSnap should disable normal
 
 Todo:
 ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909
