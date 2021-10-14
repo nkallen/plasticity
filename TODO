@@ -3,6 +3,7 @@ Release:
 . xray snaps
 
 THIS WEEK:
+. create cylinder and undo -- errors
 . Turn on off individual snap kinds
 . pan in perspective broken
 . ortho keybinding broken

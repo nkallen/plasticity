@@ -226,8 +226,8 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         const matrix = new THREE.Matrix4();
         matrix.lookAt(origin, dir, align);
         plane.quaternion.setFromRotationMatrix(matrix);
-        plane.updateMatrixWorld();
         plane.position.copy(worldPosition);
+        plane.updateMatrixWorld();
     }
 }
 

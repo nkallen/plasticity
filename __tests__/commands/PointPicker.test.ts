@@ -31,7 +31,7 @@ beforeEach(() => {
     presenter = new SnapPresenter(gizmos);
     const crosses = new CrossPointDatabase();
     snaps = new SnapManager(db, crosses, signals);
-    pointPicker = new Model(db, snaps, crosses);
+    pointPicker = new Model(db, crosses, signals);
 });
 
 describe('restrictToPlaneThroughPoint', () => {

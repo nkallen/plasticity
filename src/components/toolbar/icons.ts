@@ -230,6 +230,12 @@ keybindings.set("gizmo:fillet-curve:radius", "Fillet radius");
 keybindings.set("gizmo:revolution:angle", "Revolution angle");
 keybindings.set("gizmo:revolution:thickness", "Revolution thickness");
 keybindings.set("gizmo:offset-curve:distance", "Offset distance");
+keybindings.set("snaps:set-x", "X axis");
+keybindings.set("snaps:set-y", "Y axis");
+keybindings.set("snaps:set-z", "Z axis");
+keybindings.set("snaps:set-normal", "Normal");
+keybindings.set("snaps:set-binormal", "Binormal");
+keybindings.set("snaps:set-tangent", "Tangent");
 
 export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {

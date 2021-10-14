@@ -187,7 +187,7 @@ describe(CurveEdgeSnap, () => {
         camera.lookAt(center);
         raycaster.setFromCamera({ x: 0, y: 0 }, camera);
 
-        snaps.layers.set(Layers.CurveEdgeSnap);
+        snaps.layers.set(Layers.CurveEdge);
 
         const [{ snap: match, position }] = snaps.snap(raycaster, [], [snap]);
 
@@ -435,7 +435,7 @@ describe(FaceSnap, () => {
         camera.lookAt(center);
         raycaster.setFromCamera({ x: 0, y: 0 }, camera);
 
-        snaps.layers.set(Layers.FaceSnap);
+        snaps.layers.set(Layers.Face);
 
         // NOTE: the face is automatically added to the snapman via signals
         const [{ snap: match, position }] = snaps.snap(raycaster, [], []);

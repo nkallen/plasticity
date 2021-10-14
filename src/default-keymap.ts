@@ -193,11 +193,11 @@ export default {
     },
 
     "body[gizmo=point-picker]": {
-        "n": "snap:set-normal",
-        "b": "snap:set-binormal",
-        "t": "snap:set-tangent",
-        "x": "snap:set-x",
-        "y": "snap:set-y",
-        "z": "snap:set-z",
+        "n": "snaps:set-normal",
+        "b": "snaps:set-binormal",
+        "t": "snaps:set-tangent",
+        "x": "snaps:set-x",
+        "y": "snaps:set-y",
+        "z": "snaps:set-z",
     },
 }

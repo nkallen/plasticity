@@ -157,7 +157,7 @@ export default (editor: Editor) => {
             const keymaps = editor.keymaps;
             const result = <ul>
                 {[...commands].map(command => {
-                    const bindings = keymaps.findKeyBindings({ command: command });
+                    const bindings = keymaps.findKeyBindings({ command });
                     if (bindings.length == 0) {
                         console.warn("Command missing from keymap (default-keymap.ts):", command);
                         return;
