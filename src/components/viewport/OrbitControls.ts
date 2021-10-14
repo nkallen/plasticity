@@ -115,6 +115,7 @@ export class OrbitControls extends THREE.EventDispatcher {
     }
 
     private readonly box = new THREE.Box3();
+    private readonly sphere = new THREE.Sphere();
     private readonly size = new THREE.Vector3();
     private lastFingerprint = "";
     focus(targets: THREE.Object3D[], everything: THREE.Object3D[]) {
@@ -126,7 +127,7 @@ export class OrbitControls extends THREE.EventDispatcher {
     }
 
     private _focus(targets: THREE.Object3D[]) {
-        const { box, object, target, size, spherical, minZoom, maxZoom } = this;
+        const { box, object, target, spherical, minZoom, maxZoom, sphere } = this;
         box.makeEmpty();
         for (const target of targets) box.expandByObject(target);
         if (box.isEmpty()) {
@@ -134,16 +135,16 @@ export class OrbitControls extends THREE.EventDispatcher {
             return "";
         }
         box.getCenter(target);
-        box.getSize(size);
-        const maxSize = Math.max(size.x, size.y, size.z);
-        const fitHeightDistance = maxSize / (Math.atan(Math.PI * object.getEffectiveFOV() / 360));
-        const fitWidthDistance = fitHeightDistance / object.aspect;
-        const distance = 0.5 * Math.max(fitHeightDistance, fitWidthDistance);
+        box.getBoundingSphere(sphere);
+
+        const fitHeightDistance = sphere.radius / Math.sin((object.getEffectiveFOV() / 2) * Math.PI / 180);
+        const fitWidthDistance = sphere.radius / Math.sin((object.getEffectiveFOV() * object.aspect / 2) * Math.PI / 180);
+        const distance = Math.max(fitHeightDistance, fitWidthDistance);
         this.scale = distance / spherical.radius;
 
-        const fitWidthZoom = (object.right - object.left) / fitWidthDistance;
-        const fitHeightZoom = (object.top - object.bottom) / fitHeightDistance;
-        const zoom = Math.max(fitHeightZoom, fitWidthZoom);
+        const fitWidthZoom = (object.right - object.left) / sphere.radius / 2;
+        const fitHeightZoom = (object.top - object.bottom) / sphere.radius / 2;
+        const zoom = Math.min(fitHeightZoom, fitWidthZoom);
         object.zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
         object.updateProjectionMatrix();
         this.zoomChanged = true;
