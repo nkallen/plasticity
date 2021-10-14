@@ -223,6 +223,16 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.parentsWithSelectedChildren.clear();
     }
 
+    clearSilently() {
+        this.edgeIds.clear();
+        this.faceIds.clear();
+        this.solidIds.clear();
+        this.curveIds.clear();
+        this.regionIds.clear();
+        this.controlPointIds.clear();
+        this.parentsWithSelectedChildren.clear();
+    }
+
     delete(item: visual.Item) {
         if (item instanceof visual.Solid) {
             this.solidIds.delete(item.simpleName);
@@ -324,7 +334,17 @@ export class SelectionManager implements HasSelectedAndHovered {
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
         readonly mode = new ToggleableSet<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint], signals)
-    ) { }
+    ) {
+        this.clearHovered = this.clearHovered.bind(this);
+        signals.historyChanged.add(this.clearHovered);
+    }
+
+    // Hover state is not preserved in undo history. So when the user performs undo/redo
+    // the data could potentially be invalid. Hover state is volatile. Just clear it without
+    // any notifications.
+    private clearHovered() {
+        this.hovered.clearSilently();
+    }
 
     dispose() {
         this.disposable.dispose();
