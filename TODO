@@ -1,13 +1,13 @@
 Release:
 . Bug fix: label and grid in orthographic view disappear when panning
+. Bug fix: undo/redo not updating hover state
+. Bug fix: ortho/perspective keybinding (numpad 5) broken
 . PointPicker: xray snaps
 . PointPicker: shift to lock axis snaps
 . PointPicker: x/y/z/n/t/b keybindings to lock axis snaps
 
 THIS WEEK:
-. create cylinder and undo -- errors
 . pan in perspective broken
-. ortho keybinding broken
 . move to freestyle command -- looks like once in freestyle, going back to x/y/z doesn't interrupt correctly
 . check to see if navigator can cancel/prevent default for mousedown so as to simplify the pointpicker on pointerdown guard clauses
 . snapping projected to restrictions (either construction plane or axis)

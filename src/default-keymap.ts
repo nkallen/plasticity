@@ -152,7 +152,7 @@ export default {
         "alt-z": "viewport:toggle-x-ray",
         "shift-alt-z": "viewport:toggle-overlays",
 
-        "num5": "viewport:toggle-orthographic",
+        "numpad5": "viewport:toggle-orthographic",
     },
 
     "body:not([gizmo]) ispace-workspace": {
