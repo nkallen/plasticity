@@ -256,7 +256,8 @@ export class OrbitControls extends THREE.EventDispatcher {
 
             // we use only clientHeight here so aspect ratio does not distort speed
             const factor = 2 * targetDistance / domElement.clientHeight;
-            delta.multiplyScalar(factor);
+            delta.x *= -factor;
+            delta.y *= factor;
         } else if (this.object.isOrthographicCamera) {
             delta.x *= -(object.right - object.left) / object.zoom / domElement.clientWidth;
             delta.y *= (object.top - object.bottom) / object.zoom / domElement.clientWidth;
