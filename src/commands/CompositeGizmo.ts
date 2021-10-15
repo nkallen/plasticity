@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { Cancel, CancellablePromise } from "../util/Cancellable";
+import { CancellablePromise } from "../util/Cancellable";
 import { Helper } from "../util/Helpers";
 import { AbstractGizmo, EditorLike, GizmoLike, Mode } from "./AbstractGizmo";
 
@@ -11,8 +11,7 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
         super();
     }
 
-    protected prepare(mode: Mode) {
-    }
+    protected prepare(mode: Mode) { }
 
     execute(compositeCallback: (params: P) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         this.prepare(mode);
@@ -45,7 +44,7 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
     }
 
     private deactivateGizmosExcept<T>(except: AbstractGizmo<(t: T) => void>) {
-        for (const [gizmo,] of this.gizmos) {
+        for (const [gizmo] of this.gizmos) {
             if (gizmo === except) {
                 gizmo.stateMachine!.isActive = true;
             } else {
@@ -56,7 +55,7 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
     }
 
     private activateGizmos() {
-        for (const [gizmo,] of this.gizmos) {
+        for (const [gizmo] of this.gizmos) {
             gizmo.stateMachine!.isActive = true;
         }
     }

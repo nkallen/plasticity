@@ -16,6 +16,7 @@ import './components/pane/Pane';
 import registerDefaultCommands from './components/toolbar/icons';
 import Palette from './components/toolbar/Palette';
 import Toolbar from './components/toolbar/Toolbar';
+import Keybindings from './components/viewport/Keybindings';
 import SnapOverlay from './components/viewport/SnapOverlay';
 import Viewport from './components/viewport/Viewport';
 import ViewportHeader from './components/viewport/ViewportHeader';
@@ -62,6 +63,7 @@ requestAnimationFrame(function loop() {
 
 Header(editor);
 Toolbar(editor);
+Keybindings(editor);
 Palette(editor);
 Viewport(editor);
 Creators(editor);

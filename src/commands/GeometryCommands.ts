@@ -46,7 +46,7 @@ import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
-import { ExtrudeLikeGizmo, OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
+import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import { MultilineDialog } from "./multiline/MultilineDialog";
 import MultilineFactory from "./multiline/MultilineFactory";
 import { ObjectPicker } from "./ObjectPicker";
@@ -70,7 +70,9 @@ import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
 import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
 
+const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
 
 export class SphereCommand extends Command {
     async execute(): Promise<void> {
@@ -468,7 +470,7 @@ export class CurveCommand extends Command {
         while (true) {
             if (makeCurve.canBeClosed) {
                 pointPicker.clearAddedSnaps();
-                pointPicker.addSnap(new PointSnap("closed", makeCurve.startPoint));
+                pointPicker.addSnap(new PointSnap("Closed", makeCurve.startPoint));
             }
             try {
                 const { point, info: { snap } } = await pointPicker.execute(async ({ point, info: { snap } }) => {
@@ -715,20 +717,21 @@ export class CenterBoxCommand extends Command {
 
 export class MoveCommand extends Command {
     async execute(): Promise<void> {
-        const objects = [...this.editor.selection.selected.solids, ...this.editor.selection.selected.curves];
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);
         move.pivot = centroid;
         move.items = objects;
 
-        const dialog = new MoveDialog(move, this.editor.signals);
-        const gizmo = new MoveGizmo(move, this.editor);
-        const keyboard = new MoveKeyboardGizmo(this.editor);
+        const dialog = new MoveDialog(move, editor.signals);
+        const gizmo = new MoveGizmo(move, editor);
+        const keyboard = new MoveKeyboardGizmo(editor);
 
         dialog.execute(async params => {
             await move.update();
@@ -741,7 +744,13 @@ export class MoveCommand extends Command {
             dialog.render();
         }).resource(this);
 
-        keyboard.prepare(gizmo, move, dialog, this).resource(this);
+        keyboard.execute(async s => {
+            switch (s) {
+                case 'free':
+                    this.finish();
+                    this.editor.enqueue(new FreestyleMoveCommand(this.editor), false);
+            }
+        }).resource(this);
 
         await this.finished;
 
@@ -750,22 +759,65 @@ export class MoveCommand extends Command {
     }
 }
 
-export class ScaleCommand extends Command {
+export class FreestyleMoveCommand extends Command {
     async execute(): Promise<void> {
-        const objects = [...this.editor.selection.selected.solids, ...this.editor.selection.selected.curves];
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const scale = new ScaleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);
+        move.pivot = centroid;
+        move.items = objects;
+        move.showPhantoms();
+
+        const dialog = new MoveDialog(move, editor.signals);
+
+        dialog.execute(async params => {
+            await move.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        const line = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const pointPicker = new PointPicker(editor);
+        const { point: p1 } = await pointPicker.execute().resource(this);
+        line.p1 = p1;
+        await pointPicker.execute(({ point: p2 }) => {
+            line.p2 = p2;
+            move.move = p2.clone().sub(p1);
+            move.update();
+            line.update();
+            dialog.render();
+        }).resource(this);
+        line.cancel();
+        dialog.finish();
+
+        const selection = await move.commit();
+        this.editor.selection.selected.add(selection);
+
+        this.editor.enqueue(new MoveCommand(this.editor), false);
+    }
+}
+
+export class ScaleCommand extends Command {
+    async execute(): Promise<void> {
+        const { editor } = this
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const scale = new ScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
         scale.items = objects;
         scale.pivot = centroid;
 
-        const gizmo = new ScaleGizmo(scale, this.editor);
-        const dialog = new ScaleDialog(scale, this.editor.signals);
-        const keyboard = new ScaleKeyboardGizmo(this.editor);
+        const gizmo = new ScaleGizmo(scale, editor);
+        const dialog = new ScaleDialog(scale, editor.signals);
+        const keyboard = new ScaleKeyboardGizmo(editor);
 
         dialog.execute(async params => {
             await scale.update();
@@ -778,7 +830,13 @@ export class ScaleCommand extends Command {
             dialog.render();
         }).resource(this);
 
-        keyboard.prepare(gizmo, scale, dialog, this).resource(this);
+        keyboard.execute(async s => {
+            switch (s) {
+                case 'free':
+                    this.finish();
+                    this.editor.enqueue(new FreestyleScaleCommand(this.editor), false);
+            }
+        }).resource(this);
 
         await this.finished;
 
@@ -787,9 +845,67 @@ export class ScaleCommand extends Command {
     }
 }
 
+export class FreestyleScaleCommand extends Command {
+    async execute(): Promise<void> {
+        const { editor } = this
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const scale = new ScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
+        scale.items = objects;
+        scale.pivot = centroid;
+        scale.showPhantoms();
+
+        const dialog = new ScaleDialog(scale, editor.signals);
+        dialog.execute(async params => {
+            await scale.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const pointPicker = new PointPicker(editor);
+        const { point: p1 } = await pointPicker.execute().resource(this);
+        referenceLine.p1 = p1;
+        scale.pivot = p1;
+        pointPicker.restrictToPlaneThroughPoint(p1);
+
+        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
+            referenceLine.p2 = p2;
+            referenceLine.update();
+        }).resource(this);
+        scale.from(p1, p2);
+
+        const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        transformationLine.p1 = p1;
+
+        pointPicker.restrictToLine(p1, scale.ref);
+        await pointPicker.execute(({ point: p3 }) => {
+            transformationLine.p2 = p3;
+            transformationLine.update();
+
+            scale.to(p1, p3);
+            scale.update();
+            dialog.render();
+        }).resource(this);
+
+        transformationLine.cancel();
+        referenceLine.cancel();
+        dialog.finish();
+
+        const selection = await scale.commit();
+        this.editor.selection.selected.add(selection);
+
+        this.editor.enqueue(new ScaleCommand(this.editor), false);
+    }
+}
+
 export class RotateCommand extends Command {
     async execute(): Promise<void> {
-        const objects = [...this.editor.selection.selected.solids, ...this.editor.selection.selected.curves];
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
         if (objects.length === 0) throw new ValidationError("Select something first");
 
@@ -798,30 +914,106 @@ export class RotateCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const rotate = new RotateFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const rotate = new RotateFactory(editor.db, editor.materials, editor.signals).resource(this);
         rotate.items = objects;
         rotate.pivot = centroid;
 
-        const gizmo = new RotateGizmo(rotate, this.editor);
-        const dialog = new RotateDialog(rotate, this.editor.signals);
-        const keyboard = new RotateKeyboardGizmo(this.editor);
+        const gizmo = new RotateGizmo(rotate, editor);
+        const dialog = new RotateDialog(rotate, editor.signals);
+        const keyboard = new RotateKeyboardGizmo(editor);
 
         dialog.execute(async params => {
             await rotate.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.position.copy(centroid);
-        gizmo.execute(params => {
+        gizmo.execute(s => {
             rotate.update();
             dialog.render();
         }).resource(this);
 
-        keyboard.prepare(gizmo, rotate, dialog, this).resource(this);
+        keyboard.execute(async s => {
+            switch (s) {
+                case 'free':
+                    this.finish();
+                    this.editor.enqueue(new FreestyleRotateCommand(this.editor), false);
+            }
+        }).resource(this);
 
         await this.finished;
 
         const selection = await rotate.commit();
         this.editor.selection.selected.add(selection);
+    }
+}
+
+export class FreestyleRotateCommand extends Command {
+    async execute(): Promise<void> {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+
+        if (objects.length === 0) throw new ValidationError("Select something first");
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const rotate = new RotateFactory(editor.db, editor.materials, editor.signals).resource(this);
+        rotate.items = objects;
+        rotate.pivot = centroid;
+        rotate.showPhantoms();
+
+        const gizmo = new RotateGizmo(rotate, editor);
+        const dialog = new RotateDialog(rotate, editor.signals);
+
+        dialog.execute(async params => {
+            await rotate.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        let pointPicker = new PointPicker(editor);
+        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
+        referenceLine.p1 = p1;
+        rotate.pivot = p1;
+        rotate.axis = constructionPlane.n;
+        pointPicker.restrictToPlaneThroughPoint(p1);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
+
+        const quat = new THREE.Quaternion().setFromUnitVectors(constructionPlane.n, Z);
+
+        const { point: p2, info: { constructionPlane: constructionPlane2 } } = await pointPicker.execute(({ point: p2 }) => {
+            referenceLine.p2 = p2;
+            referenceLine.update();
+        }).resource(this);
+        const reference = p2.clone().sub(p1).applyQuaternion(quat);
+
+        const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        transformationLine.p1 = p1;
+
+        pointPicker = new PointPicker(this.editor);
+        pointPicker.restrictToPlane(constructionPlane2.move(p2));
+        const transformation = new THREE.Vector3();
+        await pointPicker.execute(({ point: p3 }) => {
+            transformationLine.p2 = p3;
+            transformationLine.update();
+            transformation.copy(p3).sub(p1).applyQuaternion(quat);
+
+            const angle = Math.atan2(transformation.y, transformation.x) - Math.atan2(reference.y, reference.x);
+            rotate.angle = angle;
+            rotate.update();
+            dialog.render();
+            gizmo.render(rotate);
+        }).resource(this);
+
+        transformationLine.cancel();
+        referenceLine.cancel();
+        dialog.finish();
+
+        const selection = await rotate.commit();
+        this.editor.selection.selected.add(selection);
+
+        this.editor.enqueue(new RotateCommand(this.editor), false);
     }
 }
 
@@ -1312,9 +1504,9 @@ export class BridgeCurvesCommand extends Command {
 
         const mask = this.editor.snaps.layers.mask;
         this.editor.snaps.layers.disableAll();
-        this.editor.snaps.layers.enable(Layers.CurveSnap);
-        this.editor.snaps.layers.enable(Layers.PlaneSnap);
-        this.editor.snaps.layers.enable(Layers.PointSnap);
+        this.editor.snaps.layers.enable(Layers.Curve);
+        this.editor.snaps.layers.enable(Layers.Plane);
+        this.editor.snaps.layers.enable(Layers.CurvePoint);
         this.ensure(() => this.editor.snaps.layers.mask = mask);
 
         const dialog = new BridgeCurvesDialog(factory, this.editor.signals);

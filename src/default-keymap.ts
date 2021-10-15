@@ -152,7 +152,7 @@ export default {
         "alt-z": "viewport:toggle-x-ray",
         "shift-alt-z": "viewport:toggle-overlays",
 
-        "num5": "viewport:toggle-orthographic",
+        "numpad5": "viewport:toggle-orthographic",
     },
 
     "body:not([gizmo]) ispace-workspace": {
@@ -190,5 +190,14 @@ export default {
     "orbit-controls": {
         "mouse1": "orbit:rotate",
         "mouse2": "orbit:pan",
-    }
+    },
+
+    "body[gizmo=point-picker]": {
+        "n": "snaps:set-normal",
+        "b": "snaps:set-binormal",
+        "t": "snaps:set-tangent",
+        "x": "snaps:set-x",
+        "y": "snaps:set-y",
+        "z": "snaps:set-z",
+    },
 }

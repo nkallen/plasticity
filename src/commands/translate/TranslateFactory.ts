@@ -42,16 +42,12 @@ abstract class TranslateFactory extends GeometryFactory {
                 item.matrix.copy(matrix);
                 item.matrix.decompose(item.position, item.quaternion, item.scale);
 
-                return [{
-                    underlying: item,
-                    show() { },
-                    cancel() { },
-                }] as TemporaryObject[];
+                return [{ underlying: item, show() { }, cancel() { } }];
             }, () => this.doOriginalUpdate(item));
             const temp = temps.then(t => t[0]);
             result.push(temp);
         }
-        return Promise.all(result);
+        return await Promise.all(result);
     }
 
     protected doOriginalUpdate(item?: visual.Item) {
@@ -93,6 +89,9 @@ abstract class TranslateFactory extends GeometryFactory {
             item.quaternion.identity();
             item.scale.set(1, 1, 1);
         }
+        for (const phantom of this._phantoms) {
+            phantom.cancel();
+        }
     }
 
     doCancel() {
@@ -103,6 +102,20 @@ abstract class TranslateFactory extends GeometryFactory {
     protected abstract get transform(): c3d.TransformValues
 
     get originalItem() { return this.items }
+
+    private _phantoms: TemporaryObject[] = [];
+    async showPhantoms() {
+        const phantoms = [];
+        for (const model of this.models) {
+            const phant = this.db.addPhantom(model, { mesh: mesh_blue, line: this.materials.lineDashed() });
+            phantoms.push(phant);
+        }
+        const finished = await Promise.all(phantoms);
+        for (const phantom of finished) {
+            phantom.show();
+            this._phantoms.push(phantom);
+        }
+    }
 }
 
 export interface MoveParams {
@@ -153,7 +166,7 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
                 if (angle === 0) {
                     item.position.set(0, 0, 0);
                     item.quaternion.set(0, 0, 0, 1);
-                    return [];
+                    return [{ underlying: item, show() { }, cancel() { } }];
                 }
 
                 item.position.set(0, 0, 0);
@@ -162,11 +175,7 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
                 item.position.add(point);
                 item.quaternion.setFromAxisAngle(axis, angle);
 
-                return [{
-                    underlying: item,
-                    show() { },
-                    cancel() { },
-                }] as TemporaryObject[]
+                return [{ underlying: item, show() { }, cancel() { } }];
             }, () => this.doOriginalUpdate(item));
             const temp = temps.then(t => t[0]);
             result.push(temp);
@@ -284,3 +293,12 @@ export class FreestyleScaleFactory extends TranslateFactory {
         throw new Error("Method not implemented.");
     }
 }
+
+const mesh_blue = new THREE.MeshBasicMaterial();
+mesh_blue.color.setHex(0xff00ff);
+mesh_blue.opacity = 0.01;
+mesh_blue.transparent = true;
+mesh_blue.fog = false;
+mesh_blue.polygonOffset = true;
+mesh_blue.polygonOffsetFactor = 0.1;
+mesh_blue.polygonOffsetUnits = 1;

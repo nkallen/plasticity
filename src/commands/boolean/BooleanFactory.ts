@@ -286,7 +286,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         } else {
             const { isIntersection, intData } = c3d.Action.IsSolidsIntersection(this.model!, new c3d.Matrix3D(), phantom, new c3d.Matrix3D(), true, false, false);
             this.isOverlapping = isIntersection;
-            if (intData.length === 0)  {
+            if (intData.length === 0) {
                 this.isSurface = false;
             } else {
                 this.isSurface = intData[0].IsSurface() && !intData[0].IsSolid();

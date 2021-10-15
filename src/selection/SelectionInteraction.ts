@@ -8,7 +8,7 @@ import { HoverStrategy } from './Hover';
 import { HasSelectedAndHovered } from './SelectionManager';
 
 export enum SelectionMode {
-    Edge, Face, Solid, Curve, ControlPoint
+    CurveEdge, Face, Solid, Curve, ControlPoint
 }
 
 export interface SelectionStrategy {

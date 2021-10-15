@@ -1,16 +1,25 @@
 Release:
-. Perpendicular snap when picking point on curve or face
-. Intersection of curves snap points
-. Intersection of newly activated axis (on hover) snaps
-. Intersection axis indicators should be two lines and a little dot indicating where the axis originated
-. Tangent axis activated at endpoint hover
+. Bug fix: label and grid in orthographic view disappear when panning
+. Bug fix: undo/redo not updating hover state
+. Bug fix: ortho/perspective keybinding (numpad 5) broken
+. Bug fix: slightly better focus logic (still nowhere near perfect)
+. Bug fix: pan in perspective mode reversed on x axis
+. Bug fix: move/rotate/scale in freestyle mode -- keybindings get screwed up
+. PointPicker: xray snaps
+. PointPicker: shift to lock axis snaps
+. PointPicker: x/y/z/n/t/b keybindings to lock axis snaps
+. Move/Rotate/Scale Freestyle commands now show "phantom"
+. Box select: now respects whether edge/face/curve select is turned on
 
 THIS WEEK:
-. Turn on off individual snap kinds
-. xray snaps
 . snapping projected to restrictions (either construction plane or axis)
-. shift to lock snaps
-. snaps hidden for object hidden on factory hide
+. box select needs filtering
+
+BUG: box select during active command allows selecting faces of objects that are going to be deleted
+BUG: move command still allowing selection of faces -- weird
+. Disable selection not really working on commands/gizmos
+BUG: pp: restrictions are ignored when using choice/choosing
+. Audit freestyle scale. DisableVerticalStraightSnap should disable normal
 
 Todo:
 ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909

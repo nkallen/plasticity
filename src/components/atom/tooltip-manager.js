@@ -132,9 +132,9 @@ export default class TooltipManager {
             });
             const keystroke = getKeystroke(bindings);
             if (options.title != null && keystroke != null) {
-                options.title += ` ${getKeystroke(bindings)}`;
+                options.title += ` ${keystroke}`;
             } else if (keystroke != null) {
-                options.title = getKeystroke(bindings);
+                options.title = keystroke;
             }
         }
 

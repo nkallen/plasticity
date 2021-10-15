@@ -1,13 +1,13 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { inst2curve, point2point, vec2vec } from "../../util/Conversion";
-import { Redisposable, RefCounter } from "../../util/Util";
+import { Redisposable } from "../../util/Util";
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurvePointSnap, CurveSnap, FacePointSnap, FaceSnap, CrossPointSnap, PlaneSnap, PointSnap, Restriction, Snap, TanTanSnap, AxisAxisCrossPointSnap, EdgePointSnap, LineSnap, PointAxisSnap, CurveEndPointSnap, AxisCurveCrossPointSnap } from "./Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ConstructionPlaneSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, LineSnap, NormalAxisSnap, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -74,7 +74,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         return result;
     }
 
-    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictionSnaps: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
+    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictionSnaps: Snap[] = [], restrictions: Restriction[] = [], isXRay: boolean = true): SnapResult[] {
         performance.mark('begin-snap');
         // NOTE: restriction snaps, including the construction plane, are always snappable
         let snappers = restrictionSnaps.map(a => a.snapper);
@@ -85,7 +85,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
         raycaster.layers = this.layers;
         const snapperIntersections = raycaster.intersectObjects(snappers, true);
-        snapperIntersections.sort(sortIntersections);
+        const sortFn = isXRay ? sortIntersectionsXRay : sortIntersectionsNotXRay;
+        snapperIntersections.sort(sortFn);
         const result: SnapResult[] = [];
 
         for (const intersection of snapperIntersections) {
@@ -129,7 +130,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private add(item: visual.Item) {
         performance.mark('begin-snap-add');
-        const fns: Redisposable[] = [];
         const snapsForItem = new Set<Snap>();
         this.id2snaps.set(item.simpleName, snapsForItem);
         if (item instanceof visual.Solid) {
@@ -154,14 +154,14 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const faceSnap = new FaceSnap(face, model);
         into.add(faceSnap);
 
-        const centerSnap = new FacePointSnap("Center", point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
+        const centerSnap = new FaceCenterPointSnap(point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
         into.add(centerSnap);
     }
 
     private addEdge(edge: visual.CurveEdge, model: c3d.CurveEdge, into: Set<Snap>) {
         const begPt = model.GetBegPoint();
         const midPt = model.Point(0.5);
-        const begSnap = new EdgePointSnap("Beginning", point2point(begPt));
+        const begSnap = new EdgeEndPointSnap("Beginning", point2point(begPt));
         const midSnap = new EdgePointSnap("Middle", point2point(midPt));
 
         const edgeSnap = new CurveEdgeSnap(edge, model);
@@ -277,17 +277,19 @@ priorities.set(PointSnap, 1);
 priorities.set(CurvePointSnap, 1);
 priorities.set(CurveEndPointSnap, 1);
 priorities.set(EdgePointSnap, 1);
+priorities.set(EdgeEndPointSnap, 1);
 priorities.set(CurveEdgeSnap, 2);
 priorities.set(CurveSnap, 2);
+priorities.set(FaceCenterPointSnap, 2);
 priorities.set(FaceSnap, 3);
-priorities.set(FacePointSnap, 3);
 priorities.set(AxisSnap, 4);
+priorities.set(NormalAxisSnap, 4);
 priorities.set(PointAxisSnap, 4);
 priorities.set(PlaneSnap, 5);
 priorities.set(LineSnap, 5);
 priorities.set(ConstructionPlaneSnap, 6);
 
-function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
+function sortIntersectionsXRay(i1: THREE.Intersection, i2: THREE.Intersection): number {
     const snap1 = i1.object.userData.snap as Snap;
     const snap2 = i2.object.userData.snap as Snap;
     const x = priorities.get(snap1.constructor);
@@ -299,5 +301,18 @@ function sortIntersections(i1: THREE.Intersection, i2: THREE.Intersection) {
     }
     const delta = x - y;
     if (delta != 0) return delta;
-    else return snap2.counter - snap1.counter; // ensure deterministic order to avoid flickering
+    else {
+        const delta = i1.distance - i2.distance;
+        if (delta != 0) return delta
+        else return snap2.counter - snap1.counter; // ensure deterministic order to avoid flickering
+    }
+}
+
+function sortIntersectionsNotXRay(i1: THREE.Intersection, i2: THREE.Intersection): number {
+    const delta = i1.distance - i2.distance;
+    if (Math.abs(delta) < 10e-3) {
+        return sortIntersectionsXRay(i1, i2);
+    } else {
+        return delta;
+    }
 }
