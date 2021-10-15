@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
-import { EditorLike, GizmoLike, Mode } from "../AbstractGizmo";
+import { Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { MagnitudeGizmo } from "../fillet/FilletGizmo";
-import { AngleGizmo, LengthGizmo } from "../MiniGizmos";
+import { AngleGizmo } from "../MiniGizmos";
 import { SpiralParams } from "./SpiralFactory";
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -19,7 +19,7 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
         const { p2, p1, angle, radius } = params;
 
         const axis = new THREE.Vector3().copy(p2).sub(p1);
-        
+
         lengthGizmo.position.copy(p1);
         const quat = new THREE.Quaternion();
         lengthGizmo.value = 1;
