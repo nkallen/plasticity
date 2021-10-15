@@ -1,9 +1,10 @@
 import * as THREE from "three";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import c3d from '../../../build/Release/c3d.node';
-import { TemporaryObject } from "../../editor/GeometryDatabase";
+import { MaterialOverride, TemporaryObject } from "../../editor/GeometryDatabase";
 import * as visual from '../../editor/VisualModel';
 import { deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
-import { GeometryFactory, NoOpError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, PhantomInfo } from '../GeometryFactory';
 
 abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
@@ -42,16 +43,17 @@ abstract class TranslateFactory extends GeometryFactory {
                 item.matrix.copy(matrix);
                 item.matrix.decompose(item.position, item.quaternion, item.scale);
 
-                return [{
-                    underlying: item,
-                    show() { },
-                    cancel() { },
-                }] as TemporaryObject[];
+                return [{ underlying: item, show() { }, cancel() { } }];
             }, () => this.doOriginalUpdate(item));
             const temp = temps.then(t => t[0]);
             result.push(temp);
         }
-        return Promise.all(result);
+        for (const { phantom, material } of this.phantoms) {
+            result.push(this.db.addPhantom(phantom, material));
+        }
+        const finished = await Promise.all(result);
+        for (const temp of this.temps) temp.cancel();
+        return this.showTemps(finished);
     }
 
     protected doOriginalUpdate(item?: visual.Item) {
@@ -103,6 +105,20 @@ abstract class TranslateFactory extends GeometryFactory {
     protected abstract get transform(): c3d.TransformValues
 
     get originalItem() { return this.items }
+
+    showPhantom = false;
+    protected get phantoms(): PhantomInfo[] {
+        if (!this.showPhantom) return [];
+
+        return this.models.map(item => ({
+            phantom: item,
+            material: {
+                mesh: mesh_blue,
+                line: this.materials.lineDashed()
+            }
+        }));
+    }
+
 }
 
 export interface MoveParams {
@@ -153,7 +169,7 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
                 if (angle === 0) {
                     item.position.set(0, 0, 0);
                     item.quaternion.set(0, 0, 0, 1);
-                    return [];
+                    return [{ underlying: item, show() { }, cancel() { } }];
                 }
 
                 item.position.set(0, 0, 0);
@@ -162,16 +178,17 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
                 item.position.add(point);
                 item.quaternion.setFromAxisAngle(axis, angle);
 
-                return [{
-                    underlying: item,
-                    show() { },
-                    cancel() { },
-                }] as TemporaryObject[]
+                return [{ underlying: item, show() { }, cancel() { } }];
             }, () => this.doOriginalUpdate(item));
             const temp = temps.then(t => t[0]);
             result.push(temp);
         }
-        return Promise.all(result);
+        for (const { phantom, material } of this.phantoms) {
+            result.push(this.db.addPhantom(phantom, material));
+        }
+        const finished = await Promise.all(result);
+        for (const temp of this.temps) temp.cancel();
+        return this.showTemps(finished);
     }
 
     protected get transform(): c3d.TransformValues {
@@ -284,3 +301,12 @@ export class FreestyleScaleFactory extends TranslateFactory {
         throw new Error("Method not implemented.");
     }
 }
+
+const mesh_blue = new THREE.MeshBasicMaterial();
+mesh_blue.color.setHex(0xff00ff);
+mesh_blue.opacity = 0.01;
+mesh_blue.transparent = true;
+mesh_blue.fog = false;
+mesh_blue.polygonOffset = true;
+mesh_blue.polygonOffsetFactor = 0.1;
+mesh_blue.polygonOffsetUnits = 1;

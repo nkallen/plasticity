@@ -35,7 +35,7 @@ export class MoveGizmo extends CompositeGizmo<MoveParams> {
 
     protected prepare(mode: Mode) {
         const { x, y, z, xy, yz, xz, screen } = this;
-        
+
         for (const o of [x, y, z, xy, yz, xz]) o.relativeScale.setScalar(0.8);
         screen.relativeScale.setScalar(0.25);
         this.add(x, y, z, xy, yz, xz, screen);

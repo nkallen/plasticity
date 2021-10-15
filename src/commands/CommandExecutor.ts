@@ -7,7 +7,7 @@ import { EditorOriginator, History } from "../editor/History";
 import { HasSelectedAndHovered } from "../selection/SelectionManager";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import Command from "./Command";
-import { ValidationError } from "./GeometryFactory";
+import { NoOpError, ValidationError } from "./GeometryFactory";
 import { SelectionCommandManager } from "./SelectionCommandManager";
 
 export interface EditorLike {
@@ -53,7 +53,7 @@ export class CommandExecutor {
                     if (command !== undefined) await this.enqueue(command);
                 }
             } catch (e) {
-                if (e !== Cancel && e !== Finish && e !== Interrupt) {
+                if (e !== Cancel && e !== Finish && e !== Interrupt && !(e instanceof NoOpError)) {
                     if (e instanceof ValidationError) console.warn(`${next.title}: ${e.message}`);
                     else console.warn(e);
                 }

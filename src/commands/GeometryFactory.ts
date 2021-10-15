@@ -269,18 +269,21 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
         switch (this.state.tag) {
             case 'failed':
                 const e = this.state.error;
-                if (e instanceof ValidationError || e.isC3dError) {
-                    console.warn(`${this.constructor.name}: ${e.message}`);
+                if (!(e instanceof NoOpError)) {
+                    if (e instanceof ValidationError || e.isC3dError) {
+                        console.warn(`${this.constructor.name}: ${e.message}`);
+                    }
                 }
 
                 if (this.state.last !== undefined) {
                     this.restoreSavedState(this.state.last);
                     await this.update();
                 } else {
-                    if (e instanceof ValidationError || e.isC3dError) {
-                        this.signals.factoryUpdateFailed.dispatch(e);
+                    if (!(e instanceof NoOpError)) {
+                        if (e instanceof ValidationError || e.isC3dError) {
+                            this.signals.factoryUpdateFailed.dispatch(e);
+                        } else throw e;
                     }
-                    else throw e;
                 }
                 break;
             case 'updating': break;

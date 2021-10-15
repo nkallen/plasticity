@@ -94,6 +94,7 @@ export interface MaterialOverride {
     mesh?: THREE.Material;
     surface?: THREE.Material;
 }
+
 export class GeometryDatabase implements DatabaseLike, MementoOriginator<GeometryMemento> {
     readonly temporaryObjects = new THREE.Scene();
     readonly phantomObjects = new THREE.Scene();

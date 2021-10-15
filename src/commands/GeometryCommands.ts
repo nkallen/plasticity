@@ -739,30 +739,16 @@ export class MoveCommand extends Command {
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.position.copy(centroid);
-        const execGizmo = () => gizmo.execute(s => {
+        gizmo.execute(s => {
             move.update();
             dialog.render();
         }).resource(this);
-        let g = execGizmo();
 
         keyboard.execute(async s => {
             switch (s) {
                 case 'free':
-                    g.finish();
-                    const line = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
-                    const pointPicker = new PointPicker(editor);
-                    const { point: p1 } = await pointPicker.execute().resource(this);
-                    line.p1 = p1;
-                    await pointPicker.execute(({ point: p2 }) => {
-                        line.p2 = p2;
-                        move.move = p2.clone().sub(p1);
-                        move.update();
-                        line.update();
-                        dialog.render();
-                        gizmo.render(move);
-                    }).resource(this);
-                    line.cancel();
-                    g = execGizmo();
+                    this.finish();
+                    this.editor.enqueue(new FreestyleMoveCommand(this.editor), false);
             }
         }).resource(this);
 
@@ -770,6 +756,48 @@ export class MoveCommand extends Command {
 
         const selection = await move.commit();
         this.editor.selection.selected.add(selection);
+    }
+}
+
+export class FreestyleMoveCommand extends Command {
+    async execute(): Promise<void> {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);
+        move.pivot = centroid;
+        move.items = objects;
+        move.showPhantom = true;
+
+        const dialog = new MoveDialog(move, editor.signals);
+
+        dialog.execute(async params => {
+            await move.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        const line = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const pointPicker = new PointPicker(editor);
+        const { point: p1 } = await pointPicker.execute().resource(this);
+        line.p1 = p1;
+        await pointPicker.execute(({ point: p2 }) => {
+            line.p2 = p2;
+            move.move = p2.clone().sub(p1);
+            move.update();
+            line.update();
+            dialog.render();
+        }).resource(this);
+        line.cancel();
+        dialog.finish();
+
+        const selection = await move.commit();
+        this.editor.selection.selected.add(selection);
+
+        this.editor.enqueue(new MoveCommand(this.editor), false);
     }
 }
 
@@ -797,46 +825,16 @@ export class ScaleCommand extends Command {
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.position.copy(centroid);
-        const execGizmo = () => gizmo.execute(s => {
+        gizmo.execute(s => {
             scale.update();
             dialog.render();
         }).resource(this);
-        let g = execGizmo();
 
         keyboard.execute(async s => {
             switch (s) {
                 case 'free':
-                    g.finish();
-                    const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
-                    const pointPicker = new PointPicker(editor);
-                    const { point: p1 } = await pointPicker.execute().resource(this);
-                    referenceLine.p1 = p1;
-                    scale.pivot = p1;
-                    pointPicker.restrictToPlaneThroughPoint(p1);
-
-                    const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
-                        referenceLine.p2 = p2;
-                        referenceLine.update();
-                    }).resource(this);
-                    scale.from(p1, p2);
-
-                    const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
-                    transformationLine.p1 = p1;
-
-                    pointPicker.restrictToLine(p1, scale.ref);
-                    await pointPicker.execute(({ point: p3 }) => {
-                        transformationLine.p2 = p3;
-                        transformationLine.update();
-
-                        scale.to(p1, p3);
-                        scale.update();
-                        dialog.render();
-                        gizmo.render(scale);
-                    }).resource(this);
-
-                    transformationLine.cancel();
-                    referenceLine.cancel();
-                    g = execGizmo();
+                    this.finish();
+                    this.editor.enqueue(new FreestyleScaleCommand(this.editor), false);
             }
         }).resource(this);
 
@@ -844,6 +842,63 @@ export class ScaleCommand extends Command {
 
         const selection = await scale.commit();
         this.editor.selection.selected.add(selection);
+    }
+}
+
+export class FreestyleScaleCommand extends Command {
+    async execute(): Promise<void> {
+        const { editor } = this
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const scale = new ScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
+        scale.items = objects;
+        scale.pivot = centroid;
+        scale.showPhantom = true;
+
+        const dialog = new ScaleDialog(scale, editor.signals);
+        dialog.execute(async params => {
+            await scale.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const pointPicker = new PointPicker(editor);
+        const { point: p1 } = await pointPicker.execute().resource(this);
+        referenceLine.p1 = p1;
+        scale.pivot = p1;
+        pointPicker.restrictToPlaneThroughPoint(p1);
+
+        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
+            referenceLine.p2 = p2;
+            referenceLine.update();
+        }).resource(this);
+        scale.from(p1, p2);
+
+        const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        transformationLine.p1 = p1;
+
+        pointPicker.restrictToLine(p1, scale.ref);
+        await pointPicker.execute(({ point: p3 }) => {
+            transformationLine.p2 = p3;
+            transformationLine.update();
+
+            scale.to(p1, p3);
+            scale.update();
+            dialog.render();
+        }).resource(this);
+
+        transformationLine.cancel();
+        referenceLine.cancel();
+        dialog.finish();
+
+        const selection = await scale.commit();
+        this.editor.selection.selected.add(selection);
+
+        this.editor.enqueue(new ScaleCommand(this.editor), false);
     }
 }
 
@@ -872,54 +927,16 @@ export class RotateCommand extends Command {
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.position.copy(centroid);
-        const execGizmo = () => gizmo.execute(s => {
+        gizmo.execute(s => {
             rotate.update();
             dialog.render();
         }).resource(this);
-        let g = execGizmo();
 
         keyboard.execute(async s => {
             switch (s) {
                 case 'free':
-                    g.finish();
-                    const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
-                    let pointPicker = new PointPicker(editor);
-                    const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
-                    referenceLine.p1 = p1;
-                    rotate.pivot = p1;
-                    rotate.axis = constructionPlane.n;
-                    pointPicker.restrictToPlaneThroughPoint(p1);
-                    pointPicker.straightSnaps.delete(AxisSnap.Z);
-
-                    const quat = new THREE.Quaternion().setFromUnitVectors(constructionPlane.n, Z);
-
-                    const { point: p2, info: { constructionPlane: constructionPlane2 } } = await pointPicker.execute(({ point: p2 }) => {
-                        referenceLine.p2 = p2;
-                        referenceLine.update();
-                    }).resource(this);
-                    const reference = p2.clone().sub(p1).applyQuaternion(quat);
-
-                    const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
-                    transformationLine.p1 = p1;
-
-                    pointPicker = new PointPicker(this.editor);
-                    pointPicker.restrictToPlane(constructionPlane2.move(p2));
-                    const transformation = new THREE.Vector3();
-                    await pointPicker.execute(({ point: p3 }) => {
-                        transformationLine.p2 = p3;
-                        transformationLine.update();
-                        transformation.copy(p3).sub(p1).applyQuaternion(quat);
-
-                        const angle = Math.atan2(transformation.y, transformation.x) - Math.atan2(reference.y, reference.x);
-                        rotate.angle = angle;
-                        rotate.update();
-                        dialog.render();
-                        gizmo.render(rotate);
-                    }).resource(this);
-
-                    transformationLine.cancel();
-                    referenceLine.cancel();
-                    g = execGizmo();
+                    this.finish();
+                    this.editor.enqueue(new FreestyleRotateCommand(this.editor), false);
             }
         }).resource(this);
 
@@ -927,6 +944,76 @@ export class RotateCommand extends Command {
 
         const selection = await rotate.commit();
         this.editor.selection.selected.add(selection);
+    }
+}
+
+export class FreestyleRotateCommand extends Command {
+    async execute(): Promise<void> {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+
+        if (objects.length === 0) throw new ValidationError("Select something first");
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const rotate = new RotateFactory(editor.db, editor.materials, editor.signals).resource(this);
+        rotate.showPhantom = true;
+        rotate.items = objects;
+        rotate.pivot = centroid;
+
+        const gizmo = new RotateGizmo(rotate, editor);
+        const dialog = new RotateDialog(rotate, editor.signals);
+
+        dialog.execute(async params => {
+            await rotate.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        let pointPicker = new PointPicker(editor);
+        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
+        referenceLine.p1 = p1;
+        rotate.pivot = p1;
+        rotate.axis = constructionPlane.n;
+        pointPicker.restrictToPlaneThroughPoint(p1);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
+
+        const quat = new THREE.Quaternion().setFromUnitVectors(constructionPlane.n, Z);
+
+        const { point: p2, info: { constructionPlane: constructionPlane2 } } = await pointPicker.execute(({ point: p2 }) => {
+            referenceLine.p2 = p2;
+            referenceLine.update();
+        }).resource(this);
+        const reference = p2.clone().sub(p1).applyQuaternion(quat);
+
+        const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        transformationLine.p1 = p1;
+
+        pointPicker = new PointPicker(this.editor);
+        pointPicker.restrictToPlane(constructionPlane2.move(p2));
+        const transformation = new THREE.Vector3();
+        await pointPicker.execute(({ point: p3 }) => {
+            transformationLine.p2 = p3;
+            transformationLine.update();
+            transformation.copy(p3).sub(p1).applyQuaternion(quat);
+
+            const angle = Math.atan2(transformation.y, transformation.x) - Math.atan2(reference.y, reference.x);
+            rotate.angle = angle;
+            rotate.update();
+            dialog.render();
+            gizmo.render(rotate);
+        }).resource(this);
+
+        transformationLine.cancel();
+        referenceLine.cancel();
+        dialog.finish();
+
+        const selection = await rotate.commit();
+        this.editor.selection.selected.add(selection);
+
+        this.editor.enqueue(new RotateCommand(this.editor), false);
     }
 }
 
