@@ -69,7 +69,7 @@ export default (editor: Editor) => {
                             <ispace-tooltip placement="bottom" command="selection:toggle-control-point">Control-Point select</ispace-tooltip>
                         </label>
                         <input type="checkbox" class="btn" id="edge" checked={editor.selection.mode.has(SelectionMode.CurveEdge)}
-                            onClick={e => editor.selection.mode.toggle(SelectionMode.CurveEdge)}
+                            onClick={e => editor.selection.mode.toggle(SelectionMode.CurveEdge, SelectionMode.Curve)}
                         />
                         <label class="btn" for="edge">
                             <img src={perspective}></img>
