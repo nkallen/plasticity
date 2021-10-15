@@ -11,7 +11,7 @@ Release:
 . Move/Rotate/Scale Freestyle commands now show "phantom"
 
 THIS WEEK:
-. check to see if navigator can cancel/prevent default for mousedown so as to simplify the pointpicker on pointerdown guard clauses
+. check to see if
 . snapping projected to restrictions (either construction plane or axis)
 . box select needs filtering
 

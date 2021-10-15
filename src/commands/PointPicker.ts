@@ -478,7 +478,6 @@ export class PointPicker {
 
                 const onPointerDown = (e: PointerEvent) => {
                     if (e.button != 0) return;
-                    if (e.altKey) return; // this is a temporary fix to allow maya-style keybindings to not interfere with point picking
                     dispose();
                     finish();
                     info = undefined;

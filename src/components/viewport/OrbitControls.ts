@@ -372,7 +372,11 @@ export class OrbitControls extends THREE.EventDispatcher {
                 this.state = 'none';
         }
 
-        if (this.state !== 'none') this.dispatchEvent(startEvent);
+        if (this.state !== 'none') {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            this.dispatchEvent(startEvent);
+        }
     }
 
     onMouseMove(event: PointerEvent) {
