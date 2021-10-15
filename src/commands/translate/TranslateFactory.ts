@@ -1,10 +1,9 @@
 import * as THREE from "three";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import c3d from '../../../build/Release/c3d.node';
-import { MaterialOverride, TemporaryObject } from "../../editor/GeometryDatabase";
+import { TemporaryObject } from "../../editor/GeometryDatabase";
 import * as visual from '../../editor/VisualModel';
 import { deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
-import { GeometryFactory, NoOpError, PhantomInfo } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../GeometryFactory';
 
 abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
@@ -48,12 +47,7 @@ abstract class TranslateFactory extends GeometryFactory {
             const temp = temps.then(t => t[0]);
             result.push(temp);
         }
-        for (const { phantom, material } of this.phantoms) {
-            result.push(this.db.addPhantom(phantom, material));
-        }
-        const finished = await Promise.all(result);
-        for (const temp of this.temps) temp.cancel();
-        return this.showTemps(finished);
+        return await Promise.all(result);
     }
 
     protected doOriginalUpdate(item?: visual.Item) {
@@ -95,6 +89,9 @@ abstract class TranslateFactory extends GeometryFactory {
             item.quaternion.identity();
             item.scale.set(1, 1, 1);
         }
+        for (const phantom of this._phantoms) {
+            phantom.cancel();
+        }
     }
 
     doCancel() {
@@ -106,19 +103,19 @@ abstract class TranslateFactory extends GeometryFactory {
 
     get originalItem() { return this.items }
 
-    showPhantom = false;
-    protected get phantoms(): PhantomInfo[] {
-        if (!this.showPhantom) return [];
-
-        return this.models.map(item => ({
-            phantom: item,
-            material: {
-                mesh: mesh_blue,
-                line: this.materials.lineDashed()
-            }
-        }));
+    private _phantoms: TemporaryObject[] = [];
+    async showPhantoms() {
+        const phantoms = [];
+        for (const model of this.models) {
+            const phant = this.db.addPhantom(model, { mesh: mesh_blue, line: this.materials.lineDashed() });
+            phantoms.push(phant);
+        }
+        const finished = await Promise.all(phantoms);
+        for (const phantom of finished) {
+            phantom.show();
+            this._phantoms.push(phantom);
+        }
     }
-
 }
 
 export interface MoveParams {
@@ -183,12 +180,7 @@ export class RotateFactory extends TranslateFactory implements RotateParams {
             const temp = temps.then(t => t[0]);
             result.push(temp);
         }
-        for (const { phantom, material } of this.phantoms) {
-            result.push(this.db.addPhantom(phantom, material));
-        }
-        const finished = await Promise.all(result);
-        for (const temp of this.temps) temp.cancel();
-        return this.showTemps(finished);
+        return Promise.all(result);
     }
 
     protected get transform(): c3d.TransformValues {

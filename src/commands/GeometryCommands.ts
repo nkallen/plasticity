@@ -772,7 +772,7 @@ export class FreestyleMoveCommand extends Command {
         const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);
         move.pivot = centroid;
         move.items = objects;
-        move.showPhantom = true;
+        move.showPhantoms();
 
         const dialog = new MoveDialog(move, editor.signals);
 
@@ -858,7 +858,7 @@ export class FreestyleScaleCommand extends Command {
         const scale = new ScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
         scale.items = objects;
         scale.pivot = centroid;
-        scale.showPhantom = true;
+        scale.showPhantoms();
 
         const dialog = new ScaleDialog(scale, editor.signals);
         dialog.execute(async params => {
@@ -960,9 +960,9 @@ export class FreestyleRotateCommand extends Command {
         bbox.getCenter(centroid);
 
         const rotate = new RotateFactory(editor.db, editor.materials, editor.signals).resource(this);
-        rotate.showPhantom = true;
         rotate.items = objects;
         rotate.pivot = centroid;
+        rotate.showPhantoms();
 
         const gizmo = new RotateGizmo(rotate, editor);
         const dialog = new RotateDialog(rotate, editor.signals);
