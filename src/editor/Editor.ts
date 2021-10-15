@@ -94,7 +94,7 @@ export class Editor {
             'undo': () => this.undo(),
             'redo': () => this.redo(),
             'selection:toggle-control-point': () => this.selection.mode.toggle(SelectionMode.ControlPoint),
-            'selection:toggle-edge': () => this.selection.mode.toggle(SelectionMode.Edge),
+            'selection:toggle-edge': () => this.selection.mode.toggle(SelectionMode.CurveEdge),
             'selection:toggle-face': () => this.selection.mode.toggle(SelectionMode.Face),
             'selection:toggle-solid': () => this.selection.mode.toggle(SelectionMode.Solid)
         });

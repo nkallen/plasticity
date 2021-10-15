@@ -43,7 +43,7 @@ export class HoverStrategy implements SelectionStrategy {
                 this.hovered.addFace(object, parentItem);
             }
             return true;
-        } else if (this.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
+        } else if (this.mode.has(SelectionMode.CurveEdge) && object instanceof CurveEdge) {
             if (!this.hovered.edges.has(object)) {
                 this.hovered.removeAll();
                 this.hovered.addEdge(object, parentItem);
@@ -82,20 +82,23 @@ export class HoverStrategy implements SelectionStrategy {
         for (const object of set) {
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
-                if (!selected.hasSelectedChildren(parentItem)) {
+                if (this.mode.has(SelectionMode.Solid) && !selected.hasSelectedChildren(parentItem)) {
                     hovered.addSolid(parentItem);
-                    return;
-                }
-                if (object instanceof Face) {
+                } else if (object instanceof Face) {
+                    if (!this.mode.has(SelectionMode.Face)) continue;
                     hovered.addFace(object, object.parentItem);
                 } else if (object instanceof CurveEdge) {
+                    if (!this.mode.has(SelectionMode.CurveEdge)) continue;
                     hovered.addEdge(object, object.parentItem);
                 }
             } else if (object instanceof Curve3D) {
+                if (!this.mode.has(SelectionMode.Curve)) continue;
                 hovered.addCurve(object.parentItem);
             } else if (object instanceof ControlPoint) {
+                if (!this.mode.has(SelectionMode.ControlPoint)) continue;
                 hovered.addControlPoint(object, object.parentItem);
             } else if (object instanceof Region) {
+                if (!this.mode.has(SelectionMode.Face)) continue;
                 hovered.addRegion(object.parentItem);
             }
         }

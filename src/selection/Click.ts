@@ -56,7 +56,7 @@ export class ClickStrategy implements SelectionStrategy {
             }
             this.hovered.removeAll();
             return true;
-        } else if (this.mode.has(SelectionMode.Edge) && object instanceof CurveEdge) {
+        } else if (this.mode.has(SelectionMode.CurveEdge) && object instanceof CurveEdge) {
             if (this.selected.edges.has(object)) {
                 this.selected.removeEdge(object, parentItem);
             } else {
@@ -103,20 +103,23 @@ export class ClickStrategy implements SelectionStrategy {
         for (const object of set) {
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
-                if (!selected.hasSelectedChildren(parentItem)) {
+                if (this.mode.has(SelectionMode.Solid) && !selected.hasSelectedChildren(parentItem)) {
                     selected.addSolid(parentItem);
-                    continue;
-                }
-                if (object instanceof Face) {
+                } else if (object instanceof Face) {
+                    if (!this.mode.has(SelectionMode.Face)) continue;
                     selected.addFace(object, object.parentItem);
                 } else if (object instanceof CurveEdge) {
+                    if (!this.mode.has(SelectionMode.CurveEdge)) continue;
                     selected.addEdge(object, object.parentItem);
                 }
             } else if (object instanceof Curve3D) {
+                if (!this.mode.has(SelectionMode.Curve)) continue;
                 selected.addCurve(object.parentItem);
             } else if (object instanceof ControlPoint) {
+                if (!this.mode.has(SelectionMode.ControlPoint)) continue;
                 selected.addControlPoint(object, object.parentItem);
             } else if (object instanceof Region) {
+                if (!this.mode.has(SelectionMode.Face)) continue;
                 selected.addRegion(object.parentItem);
             }
         }

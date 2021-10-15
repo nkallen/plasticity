@@ -333,7 +333,7 @@ export class SelectionManager implements HasSelectedAndHovered {
         readonly db: DatabaseLike,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
-        readonly mode = new ToggleableSet<SelectionMode>([SelectionMode.Solid, SelectionMode.Edge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint], signals)
+        readonly mode = new ToggleableSet<SelectionMode>([SelectionMode.Solid, SelectionMode.CurveEdge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint], signals)
     ) {
         this.clearHovered = this.clearHovered.bind(this);
         signals.historyChanged.add(this.clearHovered);

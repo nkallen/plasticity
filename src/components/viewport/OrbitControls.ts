@@ -289,7 +289,7 @@ export class OrbitControls extends THREE.EventDispatcher {
     }
 
     private onPointerMove(event: PointerEvent) {
-        const { enabled, domElement } = this;
+        const { enabled } = this;
         if (enabled === false) return;
 
         if (event.pointerType === 'touch') {
@@ -373,7 +373,6 @@ export class OrbitControls extends THREE.EventDispatcher {
         }
 
         if (this.state !== 'none') {
-            event.stopImmediatePropagation();
             event.preventDefault();
             this.dispatchEvent(startEvent);
         }

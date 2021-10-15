@@ -9,9 +9,9 @@ Release:
 . PointPicker: shift to lock axis snaps
 . PointPicker: x/y/z/n/t/b keybindings to lock axis snaps
 . Move/Rotate/Scale Freestyle commands now show "phantom"
+. Box select: now respects whether edge/face/curve select is turned on
 
 THIS WEEK:
-. check to see if
 . snapping projected to restrictions (either construction plane or axis)
 . box select needs filtering
 

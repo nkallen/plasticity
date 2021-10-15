@@ -478,12 +478,16 @@ export class PointPicker {
 
                 const onPointerDown = (e: PointerEvent) => {
                     if (e.button != 0) return;
+                    if (isNavigating) return;
+
                     dispose();
                     finish();
                     info = undefined;
                 }
 
                 const onKeyDown = (e: KeyboardEvent) => {
+                    if (isNavigating) return;
+
                     if (e.key == "Control") {
                         editor.snaps.toggle();
                         onPointerMove(lastMoveEvent);
@@ -493,6 +497,8 @@ export class PointPicker {
                 }
 
                 const onKeyUp = (e: KeyboardEvent) => {
+                    if (isNavigating) return;
+
                     if (e.key == "Control") {
                         editor.snaps.toggle();
                         onPointerMove(lastMoveEvent);
