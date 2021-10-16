@@ -1,15 +1,15 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
-import ContourManager from '../src/editor/curves/ContourManager';
 import { ContourFilletFactory } from "../src/commands/curve/ContourFilletFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";
 import LineFactory from "../src/commands/line/LineFactory";
+import ContourManager from '../src/editor/curves/ContourManager';
+import { PlanarCurveDatabase } from "../src/editor/curves/PlanarCurveDatabase";
+import { RegionManager } from "../src/editor/curves/RegionManager";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { PlanarCurveDatabase } from "../src/editor/curves/PlanarCurveDatabase";
-import { RegionManager } from "../src/editor/curves/RegionManager";
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
@@ -38,7 +38,7 @@ beforeEach(() => {
     _db = new GeometryDatabase(materials, signals);
     curves = new PlanarCurveDatabase(_db, materials, signals);
     regions = new RegionManager(_db, curves);
-    contours = new ContourManager(_db, curves, regions, signals);
+    contours = new ContourManager(_db, curves, regions);
 });
 
 beforeEach(() => {
@@ -81,41 +81,6 @@ test("transactions batch add and removes", async () => {
     expect(_db.find(visual.PlaneInstance).length).toBe(0);
     expect(added).toBe(7);
     expect(removed).toBe(3);
-});
-
-test("when not using aggregated transactions, you get a lot more adds/deletes", async () => {
-    let added = 0, removed = 0;
-    signals.objectAdded.add(() => added++);
-    signals.objectRemoved.add(() => removed++);
-
-    let line1: visual.SpaceInstance<visual.Curve3D>, line2: visual.SpaceInstance<visual.Curve3D>, contour: visual.SpaceInstance<visual.Curve3D>;
-    makeLine1.p1 = new THREE.Vector3();
-    makeLine1.p2 = new THREE.Vector3(1, 1, 0);
-    line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-    // expect(curves.lookup(line1)).not.toBe(undefined);
-
-    // makeLine2.p1 = new THREE.Vector3(1, 1, 0);
-    // makeLine2.p2 = new THREE.Vector3(0, 1, 0);
-    // line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-    // expect(curves.lookup(line2)).not.toBe(undefined);
-
-    // await contours.transaction(async () => {
-    //     makeContour.push(line1);
-    //     makeContour.push(line2);
-    //     const contourz = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
-    //     contour = contourz[0] as visual.SpaceInstance<visual.Curve3D>;
-    // })
-
-    // makeFillet.contour = contour;
-    // makeFillet.radiuses[0] = 0.1;
-    // await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-    // expect(_db.find(visual.SpaceInstance).length).toBe(2);
-    // expect(_db.find(visual.PlaneInstance).length).toBe(0);
-    // expect(added).toBe(9);
-    // expect(removed).toBe(7);
 });
 
 test("two overlapping coplanar circles, adding and removing creates the right regions", async () => {

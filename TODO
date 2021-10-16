@@ -1,16 +1,3 @@
-Release:
-. Bug fix: label and grid in orthographic view disappear when panning
-. Bug fix: undo/redo not updating hover state
-. Bug fix: ortho/perspective keybinding (numpad 5) broken
-. Bug fix: slightly better focus logic (still nowhere near perfect)
-. Bug fix: pan in perspective mode reversed on x axis
-. Bug fix: move/rotate/scale in freestyle mode -- keybindings get screwed up
-. PointPicker: xray snaps
-. PointPicker: shift to lock axis snaps
-. PointPicker: x/y/z/n/t/b keybindings to lock axis snaps
-. Move/Rotate/Scale Freestyle commands now show "phantom"
-. Box select: now respects whether edge/face/curve select is turned on
-
 THIS WEEK:
 . snapping projected to restrictions (either construction plane or axis)
 . box select needs filtering

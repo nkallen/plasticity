@@ -19,7 +19,7 @@ import Command from "./Command";
 import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
 import { BridgeCurvesDialog } from "./curve/BridgeCurvesDialog";
 import BridgeCurvesFactory from "./curve/BridgeCurvesFactory";
-import { JointOrPolylineOrContourFilletFactory } from "./curve/ContourFilletFactory";
+import { ContourFilletFactory } from "./curve/ContourFilletFactory";
 import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
@@ -1468,32 +1468,35 @@ export class TrimCommand extends Command {
 export class FilletCurveCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
-        const controlPoints = [...selected.controlPoints];
-        const curve = selected.curves.first;
+        const curves = [...selected.curves];
 
-        const factory = new JointOrPolylineOrContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        factory.curves = this.editor.curves; // FIXME need to DI this in constructor of all factories
-        if (curve !== undefined) await factory.setCurve(curve);
-        await factory.setControlPoints(controlPoints);
+        const factory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const contour = await factory.prepare(curves);
+        factory.originalItem = curves;
+        factory.contour = contour;
 
-        const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
-        gizmo.relativeScale.setScalar(0.8);
+        const gizmos: [number, MagnitudeGizmo][] = [];
+        for (const corner of factory.cornerAngles) {
+            const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
+            gizmo.relativeScale.setScalar(0.8);
+            const quat = new THREE.Quaternion();
+            quat.setFromUnitVectors(Y, corner.tau.cross(corner.axis));
+            gizmo.quaternion.copy(quat);
+            gizmo.position.copy(corner.origin);
+            gizmos.push([corner.index, gizmo]);
+        }
 
-        const cornerAngle = factory.cornerAngle;
-        if (cornerAngle === undefined) return;
+        for (const [i, gizmo] of gizmos) {
+            gizmo.execute(d => {
+                factory.radiuses[i] = d;
+                factory.update();
+            }, Mode.Persistent).resource(this);
+        }
 
-        const quat = new THREE.Quaternion();
-        quat.setFromUnitVectors(Y, cornerAngle.tau.cross(cornerAngle.axis));
-        gizmo.quaternion.copy(quat);
-        gizmo.position.copy(cornerAngle.origin);
+        await this.finished;
 
-        await gizmo.execute(d => {
-            factory.radius = d;
-            factory.update();
-        }, Mode.Persistent).resource(this);
-
-        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>[];
-        selected.addCurve(result[0]);
+        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        selected.addCurve(result);
     }
 }
 
