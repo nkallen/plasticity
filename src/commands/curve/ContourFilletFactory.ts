@@ -11,6 +11,11 @@ import JoinCurvesFactory from './JoinCurvesFactory';
  * has to be converted to a contour first. Polyline and Contours can be treated somewhat uniformly.
  */
 
+export interface FilletCurveParams {
+    cornerAngles: CornerAngle[];
+    radiuses: number[];
+}
+
 interface CornerAngle {
     index: number;
     origin: THREE.Vector3;
@@ -21,7 +26,6 @@ interface CornerAngle {
 
 export class ContourFilletFactory extends GeometryFactory {
     async prepare(curve: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
-        const result: Promise<c3d.SpaceInstance>[] = [];
         const { db } = this;
         const inst = db.lookup(curve);
         const item = inst.GetSpaceItem()!;
@@ -57,19 +61,40 @@ export class ContourFilletFactory extends GeometryFactory {
         this.radiuses.fill(0);
     }
 
+    private _controlPoints: visual.ControlPoint[] = [];
+    set controlPoints(controlPoints: visual.ControlPoint[]) {
+        this._controlPoints = controlPoints;
+    }
+
     get cornerAngles(): CornerAngle[] {
-        const result = [];
+        const controlPoints = this._controlPoints;
+
+        const allCorners = [];
         const contour = this._contour;
         const segmentCount = contour.GetSegmentsCount();
         for (let i = 0, l = segmentCount - 1; i < l; i++) {
             try {
                 const info = contour.GetCornerAngle(i + 1);
-                result.push(this.info2info(i, info));
+                allCorners.push(this.info2info(i, info));
             } catch (e) { }
         }
-        const start = this.info2info(segmentCount - 1, contour.GetCornerAngle(segmentCount));
-        if (contour.IsClosed()) result.unshift(start);
-        return result;
+        if (contour.IsClosed()) {
+            try {
+                const start = this.info2info(segmentCount - 1, contour.GetCornerAngle(segmentCount));
+                allCorners.unshift(start);
+            } catch (e) { }
+        }
+
+        OnlyCornersForSelectedControlPoints: {
+            const result = [];
+            let indices = new Set<number>();
+            if (controlPoints.length > 0) indices = new Set(controlPoints.map(c => c.index));
+            for (const [i, corner] of allCorners.entries()) {
+                if (controlPoints.length > 0 && !(indices.has(i))) continue;
+                result.push(corner);
+            }
+            return result;
+        }
     }
 
     private info2info(index: number, info: ReturnType<c3d.Contour3D["GetCornerAngle"]>) {

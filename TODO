@@ -1,7 +1,9 @@
-THIS WEEK:
-. snapping projected to restrictions (either construction plane or axis)
-. box select needs filtering
+. unit test for cornerAngles:
 
+- with/without selected control points
+- with corners and smooths
+
+. snapping projected to restrictions (either construction plane or axis)
 BUG: box selecting control point should unselect curve
 BUG: box select during active command allows selecting faces of objects that are going to be deleted
 BUG: move command still allowing selection of faces -- weird

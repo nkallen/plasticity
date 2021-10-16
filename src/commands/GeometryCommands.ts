@@ -22,6 +22,7 @@ import BridgeCurvesFactory from "./curve/BridgeCurvesFactory";
 import { ContourFilletFactory } from "./curve/ContourFilletFactory";
 import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
+import { FilletCurveGizmo } from "./curve/FilletCurveGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
 import OffsetCurveFactory from "./curve/OffsetContourFactory";
 import { OffsetCurveGizmo } from "./curve/OffsetCurveGizmo";
@@ -1471,36 +1472,38 @@ export class FilletCurveCommand extends Command {
         let curve = selected.curves.first;
 
         const controlPoints = [...selected.controlPoints];
-        let indices = new Set<number>();
-        if (controlPoints.length > 0) {
-            curve = controlPoints[0].parentItem;
-            indices = new Set(controlPoints.map(c => c.index));
-        }
+        if (controlPoints.length > 0) curve = controlPoints[0].parentItem;
 
         const factory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const contour = await factory.prepare(curve);
         factory.originalItem = curve;
         factory.contour = contour;
+        factory.controlPoints = controlPoints;
 
-        const gizmos: [number, MagnitudeGizmo][] = [];
-        const angles = factory.cornerAngles;
-        for (const [i, corner] of angles.entries()) {
-            if (controlPoints.length > 0 && !(indices.has(i))) continue;
-            const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
-            gizmo.relativeScale.setScalar(0.8);
-            const quat = new THREE.Quaternion();
-            quat.setFromUnitVectors(Y, corner.tau.cross(corner.axis));
-            gizmo.quaternion.copy(quat);
-            gizmo.position.copy(corner.origin);
-            gizmos.push([corner.index, gizmo]);
-        }
+        const gizmo = new FilletCurveGizmo(factory, this.editor);
+        gizmo.execute(params => {
+            factory.update();
+        }).resource(this);
 
-        for (const [i, gizmo] of gizmos) {
-            gizmo.execute(d => {
-                factory.radiuses[i] = d;
-                factory.update();
-            }, Mode.Persistent).resource(this);
-        }
+        // const gizmos: [number, MagnitudeGizmo][] = [];
+        // const angles = factory.cornerAngles;
+        // for (const [i, corner] of angles.entries()) {
+        //     if (controlPoints.length > 0 && !(indices.has(i))) continue;
+        //     const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
+        //     gizmo.relativeScale.setScalar(0.8);
+        //     const quat = new THREE.Quaternion();
+        //     quat.setFromUnitVectors(Y, corner.tau.cross(corner.axis));
+        //     gizmo.quaternion.copy(quat);
+        //     gizmo.position.copy(corner.origin);
+        //     gizmos.push([corner.index, gizmo]);
+        // }
+
+        // for (const [i, gizmo] of gizmos) {
+        //     gizmo.execute(d => {
+        //         factory.radiuses[i] = d;
+        //         factory.update();
+        //     }, Mode.Persistent).resource(this);
+        // }
 
         await this.finished;
 
