@@ -95,8 +95,8 @@ test('raycast SpaceInstance<Curve3D>', async () => {
     intersections = raycaster.intersectObject(item, true);
     intersections = filterIntersections(intersections);
     expect(intersections.length).toBe(2);
-    expect(intersections[0].object).toBeInstanceOf(visual.Curve3D);
-    expect(intersections[1].object).toBeInstanceOf(visual.ControlPoint);
+    expect(intersections[0].object).toBeInstanceOf(visual.ControlPoint);
+    expect(intersections[1].object).toBeInstanceOf(visual.Curve3D);
 });
 
 test('raycast PlaneInstance<Region>', async () => {

@@ -89,18 +89,19 @@ function sortIntersections(ii1: [THREE.Intersection, Intersectable], ii2: [THREE
     const [i1, intersectable1] = ii1;
     const [i2, intersectable2] = ii2;
 
-    if (i1.object.layers.test(xray)) return -1;
-    if (i2.object.layers.test(xray)) return 1;
+    const x = priorities.get(intersectable1.constructor);
+    const y = priorities.get(intersectable2.constructor);
+    if (x === undefined || y === undefined) {
+        console.error(intersectable1.constructor.name);
+        console.error(intersectable2.constructor.name);
+        throw new Error("invalid precondition");
+    }
+
+    if (i1.object.layers.test(xray) && x <= y) return -1;
+    if (i2.object.layers.test(xray) && y <= x) return 1;
 
     const delta = i1.distance - i2.distance;
     if (Math.abs(delta) < 10e-3) {
-        const x = priorities.get(intersectable1.constructor);
-        const y = priorities.get(intersectable2.constructor);
-        if (x === undefined || y === undefined) {
-            console.error(i1.object.constructor.name);
-            console.error(i2.object.constructor.name);
-            throw new Error("invalid precondition");
-        }
         return x - y;
     } else {
         return delta;
