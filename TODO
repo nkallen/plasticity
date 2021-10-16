@@ -2,6 +2,7 @@ THIS WEEK:
 . snapping projected to restrictions (either construction plane or axis)
 . box select needs filtering
 
+BUG: box selecting control point should unselect curve
 BUG: box select during active command allows selecting faces of objects that are going to be deleted
 BUG: move command still allowing selection of faces -- weird
 . Disable selection not really working on commands/gizmos

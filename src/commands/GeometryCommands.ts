@@ -1468,15 +1468,24 @@ export class TrimCommand extends Command {
 export class FilletCurveCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
-        const curves = [...selected.curves];
+        let curve = selected.curves.first;
+
+        const controlPoints = [...selected.controlPoints];
+        let indices = new Set<number>();
+        if (controlPoints.length > 0) {
+            curve = controlPoints[0].parentItem;
+            indices = new Set(controlPoints.map(c => c.index));
+        }
 
         const factory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const contour = await factory.prepare(curves);
-        factory.originalItem = curves;
+        const contour = await factory.prepare(curve);
+        factory.originalItem = curve;
         factory.contour = contour;
 
         const gizmos: [number, MagnitudeGizmo][] = [];
-        for (const corner of factory.cornerAngles) {
+        const angles = factory.cornerAngles;
+        for (const [i, corner] of angles.entries()) {
+            if (controlPoints.length > 0 && !(indices.has(i))) continue;
             const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
             gizmo.relativeScale.setScalar(0.8);
             const quat = new THREE.Quaternion();

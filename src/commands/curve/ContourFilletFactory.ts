@@ -20,25 +20,20 @@ interface CornerAngle {
 }
 
 export class ContourFilletFactory extends GeometryFactory {
-    async prepare(curves: visual.SpaceInstance<visual.Curve3D>[]): Promise<c3d.SpaceInstance> {
+    async prepare(curve: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
         const result: Promise<c3d.SpaceInstance>[] = [];
-        for (const curve of curves) {
-            const { db } = this;
-            const inst = db.lookup(curve);
-            const item = inst.GetSpaceItem()!;
-            switch (item.IsA()) {
-                case c3d.SpaceType.Polyline3D:
-                    const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
-                    polyline2contour.polyline = curve;
-                    result.push(polyline2contour.calculate());
-                    break;
-                case c3d.SpaceType.Contour3D:
-                    result.push(Promise.resolve(inst));
-                    break;
-                default: throw new Error("invalid precondition: " + c3d.SpaceType[item.Type()]);
-            }
+        const { db } = this;
+        const inst = db.lookup(curve);
+        const item = inst.GetSpaceItem()!;
+        switch (item.IsA()) {
+            case c3d.SpaceType.Polyline3D:
+                const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
+                polyline2contour.polyline = curve;
+                return polyline2contour.calculate();
+            case c3d.SpaceType.Contour3D:
+                return Promise.resolve(inst);
+            default: throw new Error("invalid precondition: " + c3d.SpaceType[item.Type()]);
         }
-        return result[0];
     }
 
     readonly radiuses!: number[];
@@ -51,7 +46,7 @@ export class ContourFilletFactory extends GeometryFactory {
             if (!(curve instanceof c3d.Contour3D)) throw new ValidationError();
             this._contour = curve;
         } else if (inst instanceof visual.SpaceInstance) {
-            this.originalItem = [inst];
+            this.originalItem = inst;
             this.contour = this.db.lookup(inst);
             return;
         } else this._contour = inst;
@@ -65,12 +60,15 @@ export class ContourFilletFactory extends GeometryFactory {
     get cornerAngles(): CornerAngle[] {
         const result = [];
         const contour = this._contour;
-        for (let i = 0, l = contour.GetSegmentsCount(); i < l; i++) {
+        const segmentCount = contour.GetSegmentsCount();
+        for (let i = 0, l = segmentCount - 1; i < l; i++) {
             try {
                 const info = contour.GetCornerAngle(i + 1);
                 result.push(this.info2info(i, info));
             } catch (e) { }
         }
+        const start = this.info2info(segmentCount - 1, contour.GetCornerAngle(segmentCount));
+        if (contour.IsClosed()) result.unshift(start);
         return result;
     }
 
@@ -91,9 +89,9 @@ export class ContourFilletFactory extends GeometryFactory {
         return new c3d.SpaceInstance(result);
     }
 
-    private _originals!: visual.SpaceInstance<visual.Curve3D>[];
-    set originalItem(originals: visual.SpaceInstance<visual.Curve3D>[]) { this._originals = originals }
-    get originalItem() { return this._originals }
+    private _original!: visual.SpaceInstance<visual.Curve3D>;
+    set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
+    get originalItem() { return this._original }
 }
 
 export class Polyline2ContourFactory extends GeometryFactory {
