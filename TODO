@@ -3,6 +3,8 @@
 - with/without selected control points
 - with corners and smooths
 
+. unit test for CancellablePromise.all
+
 . snapping projected to restrictions (either construction plane or axis)
 BUG: box selecting control point should unselect curve
 BUG: box select during active command allows selecting faces of objects that are going to be deleted
@@ -10,6 +12,7 @@ BUG: move command still allowing selection of faces -- weird
 . Disable selection not really working on commands/gizmos
 BUG: pp: restrictions are ignored when using choice/choosing
 . Audit freestyle scale. DisableVerticalStraightSnap should disable normal
+. nearpointprojection needs to be errorbool
 
 Todo:
 ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909

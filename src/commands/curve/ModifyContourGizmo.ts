@@ -37,12 +37,13 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         for (const corner of segments) this.add(corner);
     }
 
-    execute(cb: (params: ModifyContourParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
-        const { segments: segments, params } = this;
+    execute(cb: (params: ModifyContourParams) => void, mode: Mode = Mode.None): CancellablePromise<void> {
+        const { segments, params } = this;
 
         for (const [i, segment] of segments.entries()) {
             this.addGizmo(segment, d => {
-                params.distances[i] = d;
+                params.segments.add(i);
+                params.distance = d;
             });
         }
 

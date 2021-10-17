@@ -61,7 +61,8 @@ describe('A triangle', () => {
 
     it('allows offsetting a middle line', async () => {
         modifyContour.contour = contour;
-        modifyContour.distances = [0, 1, 0];
+        modifyContour.distance = 1;
+        modifyContour.segments = [1];
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         bbox.setFromObject(result);
@@ -73,7 +74,8 @@ describe('A triangle', () => {
 
     it('offsetting the first line works', async () => {
         modifyContour.contour = contour;
-        modifyContour.distances = [1, 0, 0];
+        modifyContour.distance = 1;
+        modifyContour.segments = [0];
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         bbox.setFromObject(result);
@@ -85,7 +87,8 @@ describe('A triangle', () => {
 
     it('offsetting the last line works', async () => {
         modifyContour.contour = contour;
-        modifyContour.distances = [0, 0, 1];
+        modifyContour.distance = 1;
+        modifyContour.segments = [2];
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         bbox.setFromObject(result);

@@ -110,7 +110,7 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
     private state: State = 'None';
 
     static all(ps: CancellablePromise<any>[]) {
-        return new CancellablePromise<void>((resolve, reject) => {
+        const result = new CancellablePromise<void>((resolve, reject) => {
             const dispose = () => {
                 for (const p of ps) {
                     p.promise.catch(err => {
@@ -119,8 +119,14 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
                     p.cancel();
                 }
             }
+            for (const p of ps) {
+                p.onFinish(() => result.finish());
+                p.onInterrupt(() => result.interrupt());
+                p.then(undefined, r => reject(r));
+            }
             return { dispose, finish: resolve };
         });
+        return result;
     }
 
     static resolve() {

@@ -1501,6 +1501,7 @@ export class ModifyCurveCommand extends Command {
 
         const factory = new ModifyContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const contour = await factory.prepare(curve);
+        factory.originalItem = curve;
         factory.contour = contour;
 
         const gizmo = new ModifyContourGizmo(factory, this.editor);

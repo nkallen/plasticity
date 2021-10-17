@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { inst2curve, point2point, vec2vec } from '../../util/Conversion';
-import { ValidationError } from '../GeometryFactory';
+import { NoOpError, ValidationError } from '../GeometryFactory';
 import { ContourFactory } from "./ContourFilletFactory";
 
 export interface SegmentAngle {
@@ -11,7 +11,8 @@ export interface SegmentAngle {
 }
 
 export interface ModifyContourParams {
-    distances: number[];
+    distance: number;
+    segments: Set<number>;
     segmentAngles: SegmentAngle[];
 }
 
@@ -29,19 +30,24 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         } else this._contour = inst;
 
         let fillNumber = this.contour.GetSegmentsCount();
-        this.distances = new Array<number>(fillNumber);
-        this.distances.fill(0);
     }
 
-    distances!: number[];
+    distance!: number;
+    private _segments = new Set<number>();
+    get segments(): Set<number> { return this._segments }
+    set segments(segments: number[] | Set<number>) {
+        if (segments instanceof Set) this._segments = segments;
+        else this._segments = new Set(segments);
+    }
 
     async calculate() {
-        const { contour, distances } = this;
+        const { contour, segments: segmentIndices, distance } = this;
+
+        if (distance === 0) throw new NoOpError();
+
         const segments = contour.GetSegments();
 
-        for (const [i, distance] of distances.entries()) {
-            if (distance === 0) continue;
-
+        for (const i of segmentIndices) {
             const active = segments[i];
             const before = segments[(i - 1 + segments.length) % segments.length];
             const after = segments[(i + 1) % segments.length];
@@ -85,7 +91,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
             return new c3d.SpaceInstance(outContour);
         }
-        return new c3d.SpaceInstance(new c3d.Contour3D());
+        throw new NoOpError();
     }
 
     get segmentAngles(): SegmentAngle[] {

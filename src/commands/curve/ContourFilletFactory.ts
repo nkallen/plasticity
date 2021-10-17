@@ -39,6 +39,10 @@ export abstract class ContourFactory extends GeometryFactory {
             default: throw new Error("invalid precondition: " + c3d.SpaceType[item.Type()]);
         }
     }
+
+    private _original!: visual.SpaceInstance<visual.Curve3D>;
+    set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
+    get originalItem() { return this._original }
 }
 
 export class ContourFilletFactory extends ContourFactory {
@@ -115,10 +119,6 @@ export class ContourFilletFactory extends ContourFactory {
         const result = c3d.ActionSurfaceCurve.CreateContourFillets(_contour, radiuses.map(unit), c3d.ConnectingType.Fillet);
         return new c3d.SpaceInstance(result);
     }
-
-    private _original!: visual.SpaceInstance<visual.Curve3D>;
-    set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
-    get originalItem() { return this._original }
 }
 
 export class Polyline2ContourFactory extends GeometryFactory {
