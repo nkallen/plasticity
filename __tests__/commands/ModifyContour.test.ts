@@ -65,7 +65,7 @@ describe('A triangle', () => {
     it('allows offsetting a middle line', async () => {
         modifyContour.contour = contour;
         modifyContour.distance = 1;
-        modifyContour.segments = [1];
+        modifyContour.segment = 1;
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         bbox.setFromObject(result);
@@ -78,7 +78,7 @@ describe('A triangle', () => {
     it('offsetting the first line works', async () => {
         modifyContour.contour = contour;
         modifyContour.distance = 1;
-        modifyContour.segments = [0];
+        modifyContour.segment = 0;
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         bbox.setFromObject(result);
@@ -91,7 +91,7 @@ describe('A triangle', () => {
     it('offsetting the last line works', async () => {
         modifyContour.contour = contour;
         modifyContour.distance = 1;
-        modifyContour.segments = [2];
+        modifyContour.segment = 2;
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
         bbox.setFromObject(result);
@@ -125,7 +125,7 @@ describe('A triangle', () => {
         it('allows offsetting a line NOT adjacent to the fillet, preserving everything else', async () => {
             modifyContour.contour = filleted;
             modifyContour.distance = 1;
-            modifyContour.segments = [1];
+            modifyContour.segment = 1;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
             const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
@@ -138,10 +138,10 @@ describe('A triangle', () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
         });
 
-        it.skip('allows offsetting a line adjacent to the fillet, modifying the fillet appropriately', async () => {
+        it('allows offsetting a line adjacent to the fillet, modifying the fillet appropriately', async () => {
             modifyContour.contour = filleted;
             modifyContour.distance = 1;
-            modifyContour.segments = [0];
+            modifyContour.segment = 0;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
             const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
@@ -149,9 +149,9 @@ describe('A triangle', () => {
 
             bbox.setFromObject(result);
             bbox.getCenter(center);
-            expect(center).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+            expect(center).toApproximatelyEqual(new THREE.Vector3(1.207, -0.136, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1.272, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2.414, 1, 0));
         });
 
     })

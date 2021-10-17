@@ -341,6 +341,7 @@ export default {
                 { signature: "void GetCentre(MbCartPoint3D & c)", c: isReturn },
                 { signature: "void GetLimitPoint(ptrdiff_t number, MbCartPoint3D & point)", point: isReturn },
                 { signature: "void PointOn(double & t, MbCartPoint3D & p)", p: isReturn },
+                { signature: "void _PointOn(double & t, MbCartPoint3D & p)", p: isReturn },
                 { signature: "bool NearPointProjection(const MbCartPoint3D & pnt, double & t, bool ext, MbRect1D * tRange = NULL)", tRange: isNullable, t: isReturn, return: { name: "success" } },
                 { signature: "bool GetSurfaceCurve(MbCurve *& curve2d, MbSurface *& surface, VERSION version = Math::DefaultMathVersion())", return: isErrorBool },
                 { signature: "void GetWeightCentre(MbCartPoint3D & point)", point: isReturn },

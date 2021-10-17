@@ -42,7 +42,7 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
 
         for (const [i, segment] of segments.entries()) {
             this.addGizmo(segment, d => {
-                params.segments.add(i);
+                params.segment = i;
                 params.distance = d;
             });
         }
