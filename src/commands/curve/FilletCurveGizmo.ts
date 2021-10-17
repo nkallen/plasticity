@@ -67,7 +67,7 @@ export class FilletCurveGizmo extends CompositeGizmo<FilletCurveParams> {
 }
 
 export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
-    // handleLength = 0;
+    handleLength = 0;
     readonly state = new MagnitudeStateMachine(0);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
@@ -76,6 +76,7 @@ export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
     constructor(name: string, editor: EditorLike) {
         super(name, editor, editor.gizmos.default);
         this.setup();
+        this.shaft.visible = false;
     }
 
     get shouldRescaleOnZoom() { return true }

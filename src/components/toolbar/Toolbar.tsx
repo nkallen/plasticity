@@ -40,8 +40,6 @@ export class Model {
             result.push(cmd.DraftSolidCommand);
             result.push(cmd.OffsetCurveCommand);
             result.push(cmd.ExtrudeCommand);
-            const face = selection.faces.first;
-            const parent = face.parentItem as visual.Solid;
             result.push(cmd.PurifyFaceCommand);
             result.push(cmd.RefilletFaceCommand);
             result.push(cmd.RemoveFaceCommand);
@@ -58,6 +56,7 @@ export class Model {
             result.push(cmd.FilletCurveCommand);
             result.push(cmd.MultilineCommand);
             result.push(cmd.OffsetCurveCommand);
+            result.push(cmd.ModifyCurveCommand);
         }
         if (selection.curves.size > 1) {
             result.push(cmd.LoftCommand);

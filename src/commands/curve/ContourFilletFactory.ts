@@ -24,7 +24,7 @@ interface CornerAngle {
     angle: number;
 }
 
-export class ContourFilletFactory extends GeometryFactory {
+export abstract class ContourFactory extends GeometryFactory {
     async prepare(curve: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
         const { db } = this;
         const inst = db.lookup(curve);
@@ -39,8 +39,10 @@ export class ContourFilletFactory extends GeometryFactory {
             default: throw new Error("invalid precondition: " + c3d.SpaceType[item.Type()]);
         }
     }
+}
 
-    readonly radiuses!: number[];
+export class ContourFilletFactory extends ContourFactory {
+    radiuses!: number[];
 
     private _contour!: c3d.Contour3D;
     get contour(): c3d.Contour3D { return this._contour }
@@ -57,7 +59,7 @@ export class ContourFilletFactory extends GeometryFactory {
 
         let fillNumber = this.contour.GetSegmentsCount();
         fillNumber -= this.contour.IsClosed() ? 0 : 1;
-        (this.radiuses as ContourFilletFactory['radiuses']) = new Array<number>(fillNumber);
+        this.radiuses = new Array<number>(fillNumber);
         this.radiuses.fill(0);
     }
 

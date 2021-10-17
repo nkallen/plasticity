@@ -24,6 +24,8 @@ import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
 import { FilletCurveGizmo } from "./curve/FilletCurveGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
+import { ModifyContourFactory } from "./curve/ModifyContourFactory";
+import { ModifyContourGizmo } from "./curve/ModifyContourGizmo";
 import OffsetCurveFactory from "./curve/OffsetContourFactory";
 import { OffsetCurveGizmo } from "./curve/OffsetCurveGizmo";
 import TrimFactory from "./curve/TrimFactory";
@@ -1485,25 +1487,26 @@ export class FilletCurveCommand extends Command {
             factory.update();
         }).resource(this);
 
-        // const gizmos: [number, MagnitudeGizmo][] = [];
-        // const angles = factory.cornerAngles;
-        // for (const [i, corner] of angles.entries()) {
-        //     if (controlPoints.length > 0 && !(indices.has(i))) continue;
-        //     const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
-        //     gizmo.relativeScale.setScalar(0.8);
-        //     const quat = new THREE.Quaternion();
-        //     quat.setFromUnitVectors(Y, corner.tau.cross(corner.axis));
-        //     gizmo.quaternion.copy(quat);
-        //     gizmo.position.copy(corner.origin);
-        //     gizmos.push([corner.index, gizmo]);
-        // }
+        await this.finished;
 
-        // for (const [i, gizmo] of gizmos) {
-        //     gizmo.execute(d => {
-        //         factory.radiuses[i] = d;
-        //         factory.update();
-        //     }, Mode.Persistent).resource(this);
-        // }
+        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        selected.addCurve(result);
+    }
+}
+
+export class ModifyCurveCommand extends Command {
+    async execute(): Promise<void> {
+        const selected = this.editor.selection.selected;
+        let curve = selected.curves.first;
+
+        const factory = new ModifyContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const contour = await factory.prepare(curve);
+        factory.contour = contour;
+
+        const gizmo = new ModifyContourGizmo(factory, this.editor);
+        gizmo.execute(params => {
+            factory.update();
+        }).resource(this);
 
         await this.finished;
 
@@ -1511,6 +1514,7 @@ export class FilletCurveCommand extends Command {
         selected.addCurve(result);
     }
 }
+
 
 export class BridgeCurvesCommand extends Command {
     async execute(): Promise<void> {

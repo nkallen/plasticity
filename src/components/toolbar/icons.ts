@@ -89,6 +89,7 @@ icons.set(cmd.BridgeCurvesCommand, mirror);
 icons.set(cmd.MultilineCommand, line);
 icons.set(cmd.ThinSolidCommand, line);
 icons.set(cmd.RevolutionCommand, line);
+icons.set(cmd.ModifyCurveCommand, changePoint);
 
 icons.set(c3d.ElementarySolid, box);
 icons.set(c3d.FilletSolid, fillet);
@@ -152,6 +153,7 @@ tooltips.set(cmd.BridgeCurvesCommand, "Bridge two curves");
 tooltips.set(cmd.MultilineCommand, "Add stroke to curve");
 tooltips.set(cmd.ThinSolidCommand, "Thin Solid");
 tooltips.set(cmd.RevolutionCommand, "Revolve");
+tooltips.set(cmd.ModifyCurveCommand, "ModifyCurve");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
