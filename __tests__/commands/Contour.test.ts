@@ -129,7 +129,7 @@ describe(ContourFilletFactory, () => {
         expect(db.visibleObjects.length).toBe(1);
     });
 
-    test.only("fillet of 0th control point of triangle", async () => {
+    test("fillet of 0th control point of triangle", async () => {
         const makeLine1 = new LineFactory(db, materials, signals);
         makeLine1.p1 = new THREE.Vector3();
         makeLine1.p2 = new THREE.Vector3(1, 1, 0);

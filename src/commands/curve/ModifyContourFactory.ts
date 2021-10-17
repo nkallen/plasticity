@@ -32,7 +32,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         let fillNumber = this.contour.GetSegmentsCount();
     }
 
-    distance!: number;
+    distance = 0;
     private _segments = new Set<number>();
     get segments(): Set<number> { return this._segments }
     set segments(segments: number[] | Set<number>) {
@@ -47,10 +47,16 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
         const segments = contour.GetSegments();
 
+        const outContour = new c3d.Contour3D();
+        const processed = new Set<c3d.Curve3D>();
         for (const i of segmentIndices) {
             const active = segments[i];
             const before = segments[(i - 1 + segments.length) % segments.length];
             const after = segments[(i + 1) % segments.length];
+
+            processed.add(active);
+            processed.add(before);
+            processed.add(after);
 
             const before_tmax = before.GetTMax();
             const before_tmin = before.GetTMin();
@@ -84,14 +90,17 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
             const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
 
-            const outContour = new c3d.Contour3D();
             outContour.AddCurveWithRuledCheck(before_extended, 1e-6);
             outContour.AddCurveWithRuledCheck(active_new, 1e-6);
             outContour.AddCurveWithRuledCheck(after_extended, 1e-6);
-
-            return new c3d.SpaceInstance(outContour);
         }
-        throw new NoOpError();
+
+        for (const segment of segments) {
+            if (processed.has(segment)) continue;
+            outContour.AddCurveWithRuledCheck(segment, 1e-6, false, true);
+        }
+
+        return new c3d.SpaceInstance(outContour);
     }
 
     get segmentAngles(): SegmentAngle[] {
