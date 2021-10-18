@@ -51,7 +51,7 @@ describe(CornerRectangleFactory, () => {
         test('invokes the appropriate c3d commands', async () => {
             makeRectangle.p1 = new THREE.Vector3(-1, -1, -1);
             makeRectangle.p2 = new THREE.Vector3(1, 1, 1);
-            const item = await makeRectangle.commit() as visual.SpaceItem;
+            const item = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
             const bbox = new THREE.Box3().setFromObject(item);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
@@ -74,7 +74,7 @@ describe(CenterRectangleFactory, () => {
         test('invokes the appropriate c3d commands', async () => {
             makeRectangle.p1 = new THREE.Vector3(0, 0, 0);
             makeRectangle.p2 = new THREE.Vector3(1, 1, 1);
-            const item = await makeRectangle.commit() as visual.SpaceItem;
+            const item = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
             const bbox = new THREE.Box3().setFromObject(item);
             const center = new THREE.Vector3();
             bbox.getCenter(center);

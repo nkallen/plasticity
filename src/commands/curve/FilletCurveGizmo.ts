@@ -35,7 +35,6 @@ export class FilletCurveGizmo extends CompositeGizmo<FilletCurveParams> {
             quat.setFromUnitVectors(Y, corner.tau.cross(corner.axis));
             gizmo.quaternion.copy(quat);
             gizmo.position.copy(corner.origin);
-            gizmo.userData.index = corner.index;
         }
 
         this.add(main);
@@ -54,6 +53,7 @@ export class FilletCurveGizmo extends CompositeGizmo<FilletCurveParams> {
 
         for (const corner of corners) {
             this.addGizmo(corner, d => {
+                console.log(corner.userData.index);
                 params.radiuses[corner.userData.index] = d;
             });
         }

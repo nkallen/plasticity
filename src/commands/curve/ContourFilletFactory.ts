@@ -75,31 +75,32 @@ export class ContourFilletFactory extends ContourFactory {
     get cornerAngles(): CornerAngle[] {
         const controlPoints = this._controlPoints;
 
-        const allCorners = [];
+        const allCorners = new Map<number, CornerAngle>();
         const contour = this._contour;
         const segmentCount = contour.GetSegmentsCount();
-        for (let i = 0, l = segmentCount - 1; i < l; i++) {
+        for (let i = 1, l = segmentCount; i < l; i++) {
             try {
-                const info = contour.GetCornerAngle(i + 1);
-                allCorners.push(this.info2info(i, info));
+                const info = contour.GetCornerAngle(i);
+                allCorners.set(i, this.info2info(i - 1, info));
             } catch (e) { }
         }
         if (contour.IsClosed()) {
             try {
                 const start = this.info2info(segmentCount - 1, contour.GetCornerAngle(segmentCount));
-                allCorners.unshift(start);
+                allCorners.set(0, start);
             } catch (e) { }
         }
 
         OnlyCornersForSelectedControlPoints: {
-            const result = [];
-            let indices = new Set<number>();
-            if (controlPoints.length > 0) indices = new Set(controlPoints.map(c => c.index));
-            for (const [i, corner] of allCorners.entries()) {
-                if (controlPoints.length > 0 && !(indices.has(i))) continue;
-                result.push(corner);
+            if (controlPoints.length > 0) {
+                const result = [];
+                for (const point of controlPoints) {
+                    result.push(allCorners.get(point.index)!);
+                }
+                return result;
+            } else {
+                return [...allCorners.values()];
             }
-            return result;
         }
     }
 
