@@ -29,6 +29,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
     set enabled(enabled: boolean) {
         this._enabled = enabled;
         if (!enabled) {
+            this.processHover([]);
             switch (this.state.tag) {
                 case 'none': break;
                 case 'down':

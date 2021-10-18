@@ -92,7 +92,7 @@ class ExtrudeLikeGizmo extends AbstractAxisGizmo {
         this.add(this.helper);
     }
 
-    // render(length: number) { super.render(0) }
+    // render(length: number) { super.render(-length - 0.35) }
 
     protected accumulate(original: number, sign: number, dist: number): number {
         return original + dist

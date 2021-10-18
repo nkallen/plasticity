@@ -206,7 +206,7 @@ describe('A triangle', () => {
 
         it('allows offsetting the fillet', async () => {
             modifyContour.contour = filleted;
-            modifyContour.distance = 0.05;
+            modifyContour.distance = -0.1;
             modifyContour.segment = 3;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 

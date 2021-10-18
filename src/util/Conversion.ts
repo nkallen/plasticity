@@ -87,7 +87,7 @@ export function inst2curve(instance: c3d.Item): c3d.Curve3D | undefined {
 
 export type ContourAndPlacement = { curve: c3d.Curve, placement: c3d.Placement3D }
 
-export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D): ContourAndPlacement | undefined {
+export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D = new c3d.Placement3D()): ContourAndPlacement | undefined {
     if (curve3d.IsStraight(true)) {
         hint = new c3d.Placement3D(hint);
         const points2d = [];

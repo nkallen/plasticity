@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { deunit, point2point, unit, vec2vec } from '../../util/Conversion';
+import { curve3d2curve2d, deunit, point2point, unit, vec2vec } from '../../util/Conversion';
 import { NoOpError, ValidationError } from '../GeometryFactory';
 import { ContourFactory, CornerAngle, SegmentAngle } from "./ContourFilletFactory";
 
@@ -55,7 +55,36 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
     set segment(segment: number) {
         this._segment = segment;
         this.precompute()
+    }
 
+    get segmentAngles(): SegmentAngle[] {
+        const result: SegmentAngle[] = [];
+        const contour = this.contour;
+        const segments = contour.GetSegments();
+
+        for (const [i, segment] of segments.entries()) {
+            const center = segment.GetWeightCentre();
+            const { t } = contour.NearPointProjection(center, false);
+            let normal = vec2vec(contour.Normal(t), 1);
+            if (normal.manhattanLength() === 0) {
+                const active_tangent_end = vec2vec(segment.Tangent(segment.GetTMax()), 1);
+                const after = segments[(i + 1) % segments.length];
+                const after_tmin = after.GetTMin();
+                const after_tmax = after.GetTMax();
+                const after_tangent_begin = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
+                const after_tangent_end = vec2vec(after.Tangent(after_tmax), 1).multiplyScalar(-1);
+                normal.crossVectors(active_tangent_end, after_tangent_begin);
+                if (normal.manhattanLength() < 10e-5) normal.crossVectors(active_tangent_end, after_tangent_end);
+
+                normal.cross(active_tangent_end).normalize();
+            }
+
+            result.push({
+                origin: point2point(center),
+                normal,
+            });
+        }
+        return result;
     }
 
     private info!: Info;
@@ -257,7 +286,13 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
     }
 
     private process(info: Info): Offset {
-        const { before, active, after, before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_pmax, after_pmin, before_tmin, after_tmax } = info;
+        const { before, active, after, active_tangent_begin, active_tangent_end, before_tmin, after_tmax } = info;
+
+        const before_tangent_end = info.before_tangent_end.clone();
+        const after_tangent_begin = info.after_tangent_begin.clone();
+        const before_pmax = info.before_pmax.clone();
+        const after_pmin = info.after_pmin.clone();
+
         const { distance } = this;
         const pattern = `${c3d.SpaceType[before.GetBasisCurve().IsA()]}:${c3d.SpaceType[active.GetBasisCurve().IsA()]}:${c3d.SpaceType[after.GetBasisCurve().IsA()]}`;
 
@@ -282,7 +317,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
             case 'Polyline3D:Arc3D:Polyline3D': {
                 const existingRadius = (active as c3d.Arc3D).GetRadius();
-                const radius = deunit(existingRadius) - distance;
+                const radius = deunit(existingRadius) + distance / 2;
                 const before_line = new c3d.Line3D(point2point(before_pmax), point2point(before_pmax.clone().add(before_tangent_end)));
                 const after_line = new c3d.Line3D(point2point(after_pmin), point2point(after_pmin.clone().add(after_tangent_begin)));
                 const { result1, count } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, after_line, 1e-6);
