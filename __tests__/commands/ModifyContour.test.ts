@@ -522,3 +522,71 @@ describe('Two intersecting lines', () => {
 
     });
 });
+
+describe('A trapezoid', () => {
+    /**
+     * A trapezoid of this form, with segments anticlockwise (as labeled):
+     * 
+     *    2
+     *   +--+
+     * 3 |   \ 1
+     *   |____\
+     *      0
+     */
+
+    beforeEach(async () => {
+        const makeLine1 = new LineFactory(db, materials, signals);
+        makeLine1.p1 = new THREE.Vector3();
+        makeLine1.p2 = new THREE.Vector3(2, 0, 0);
+        const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeLine2 = new LineFactory(db, materials, signals);
+        makeLine2.p1 = new THREE.Vector3(2, 0, 0);
+        makeLine2.p2 = new THREE.Vector3(1, 1, 0);
+        const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeLine3 = new LineFactory(db, materials, signals);
+        makeLine3.p1 = new THREE.Vector3(1, 1, 0);
+        makeLine3.p2 = new THREE.Vector3(0, 1, 0);
+        const line3 = await makeLine3.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeLine4 = new LineFactory(db, materials, signals);
+        makeLine4.p1 = new THREE.Vector3(0, 1, 0);
+        makeLine4.p2 = new THREE.Vector3();
+        const line4 = await makeLine4.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeContour = new JoinCurvesFactory(db, materials, signals);
+        makeContour.push(line1);
+        makeContour.push(line2);
+        makeContour.push(line3);
+        makeContour.push(line4);
+        const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
+        contour = contours[0];
+
+        bbox.setFromObject(contour);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+
+        const model = inst2curve(db.lookup(contour)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(4);
+    });
+
+    it('allows offsetting the top', async () => {
+        modifyContour.contour = contour;
+        modifyContour.distance = 1;
+        modifyContour.segment = 2;
+        const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(4);
+        expect(model.IsClosed()).toBe(true);
+
+        bbox.setFromObject(result);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+    });
+});

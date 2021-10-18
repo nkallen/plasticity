@@ -160,15 +160,11 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             after_pmin = point2point(after.GetLimitPoint(1));
         }
 
-        const alpha = before_tangent_end.angleTo(after_tangent_begin);
         const beta = active_tangent_end.angleTo(after_tangent_begin);
         const gamma = active_tangent_begin.angleTo(before_tangent_end.multiplyScalar(-1));
 
-        const x = alpha + gamma - Math.PI / 2;
-        const y = alpha + beta - Math.PI / 2;
-
-        const before_distance = distance / Math.cos(y);
-        const after_distance = distance / Math.cos(x);
+        const before_distance = distance / Math.sin(gamma);
+        const after_distance = distance / Math.sin(beta);
 
         const before_ext_p = point2point(before_pmax.add(before_tangent_end.multiplyScalar(-before_distance)));
         const after_ext_p = point2point(after_pmin.add(after_tangent_begin.multiplyScalar(after_distance)));
@@ -232,7 +228,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         const contour = this._contour;
         const segments = contour.GetSegments();
         for (const [i, segment] of segments.entries()) {
-            const center = segment.GetCentre();
+            const center = segment.GetWeightCentre();
             const active_tangent_end = vec2vec(segment.Tangent(segment.GetTMax()), 1);
             const after = segments[(i + 1) % segments.length];
             const after_tmin = after.GetTMin();
