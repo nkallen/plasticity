@@ -7,6 +7,7 @@ import c3d from '../build/Release/c3d.node';
 import '../lib/c3d/enums';
 import license from '../license-key.json';
 import * as cmd from './commands/GeometryCommands';
+import LineFactory from './commands/line/LineFactory';
 import Creators from './components/creators/Creators';
 import Dialog from './components/dialog/Dialog';
 import NumberScrubber from './components/dialog/NumberScrubber';

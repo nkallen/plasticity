@@ -53,7 +53,6 @@ export class FilletCurveGizmo extends CompositeGizmo<FilletCurveParams> {
 
         for (const corner of corners) {
             this.addGizmo(corner, d => {
-                console.log(corner.userData.index);
                 params.radiuses[corner.userData.index] = d;
             });
         }

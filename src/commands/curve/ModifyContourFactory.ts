@@ -63,28 +63,6 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         const active_tangent_begin = vec2vec(active.Tangent(active.GetTMin()), 1);
         const active_tangent_end = vec2vec(active.Tangent(active.GetTMax()), 1);
 
-        if (index === 0 && !contour.IsClosed()) {
-            const start = active.GetLimitPoint(1);
-            const normal = active_tangent_end.clone().cross(after_tangent_begin).cross(active_tangent_end).normalize();
-            const offset = point2point(start).sub(normal);
-            before = new c3d.Polyline3D([point2point(offset), start], false);
-            before_tmin = before.GetTMin();
-            before_tmax = before.GetTMax();
-            before_tangent_begin = vec2vec(before.Tangent(before_tmin), 1);
-            before_tangent_end = vec2vec(before.Tangent(before_tmax), 1);
-        }
-
-        if (index === segments.length - 1 && !contour.IsClosed()) {
-            const end = active.GetLimitPoint(2);
-            const normal = active_tangent_begin.clone().cross(before_tangent_end).cross(active_tangent_begin);
-            const offset = point2point(end).sub(normal);
-            after = new c3d.Polyline3D([end, point2point(offset)], false);
-            after_tmin = after.GetTMin();
-            after_tmax = after.GetTMax();
-            after_tangent_begin = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
-            after_tangent_end = vec2vec(after.Tangent(after_tmax), 1).multiplyScalar(-1);
-        }
-
         let before_pmax = point2point(before.GetLimitPoint(2));
         let after_pmin = point2point(after.GetLimitPoint(1));
         let radiusBefore = 0;
@@ -157,6 +135,31 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
         }
 
+        if (index === 0 && !contour.IsClosed()) {
+            const start = active.GetLimitPoint(1);
+            const normal = active_tangent_end.clone().cross(after_tangent_begin).cross(active_tangent_end).normalize();
+            const offset = point2point(start).sub(normal);
+            before = new c3d.Polyline3D([point2point(offset), start], false);
+            before_tmin = before.GetTMin();
+            before_tmax = before.GetTMax();
+            before_tangent_begin = vec2vec(before.Tangent(before_tmin), 1);
+            before_tangent_end = vec2vec(before.Tangent(before_tmax), 1);
+
+            before_pmax = point2point(before.GetLimitPoint(2));
+        }
+
+        if (index === segments.length - 1 && !contour.IsClosed()) {
+            const end = active.GetLimitPoint(2);
+            const normal = active_tangent_begin.clone().cross(before_tangent_end).cross(active_tangent_begin);
+            const offset = point2point(end).sub(normal);
+            after = new c3d.Polyline3D([end, point2point(offset)], false);
+            after_tmin = after.GetTMin();
+            after_tmax = after.GetTMax();
+            after_tangent_begin = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
+            after_tangent_end = vec2vec(after.Tangent(after_tmax), 1).multiplyScalar(-1);
+            after_pmin = point2point(after.GetLimitPoint(1));
+        }
+
         const alpha = before_tangent_end.angleTo(after_tangent_begin);
         const beta = active_tangent_end.angleTo(after_tangent_begin);
         const gamma = active_tangent_begin.angleTo(before_tangent_end.multiplyScalar(-1));
@@ -185,7 +188,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
             if (index > 0) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
             outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
-            outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+            if (index < segments.length - 1 || contour.IsClosed()) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
             let start = index + 2;
             if (radiusAfter > 0) start++;
