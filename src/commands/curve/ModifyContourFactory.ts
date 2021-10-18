@@ -182,13 +182,16 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
         const outContour = new c3d.Contour3D();
         RebuildContour: {
-            for (let i = 0; i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
+            const isAtEndOfClosedContour = index === segments.length - 1 && contour.IsClosed();
+            if (isAtEndOfClosedContour) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+
+            for (let i = 0 + (isAtEndOfClosedContour ? 1 : 0); i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
                 outContour.AddCurveWithRuledCheck(segments[i], 1e-6, true);
             }
 
             if (index > 0) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
             outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
-            if (index < segments.length - 1 || contour.IsClosed()) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+            if (index < segments.length - 1) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
             let start = index + 2;
             if (radiusAfter > 0) start++;

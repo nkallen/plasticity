@@ -1,17 +1,17 @@
 import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
 import { ContourFilletFactory, Polyline2ContourFactory } from "../../src/commands/curve/ContourFilletFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import { ModifyContourFactory } from '../../src/commands/curve/ModifyContourFactory';
 import LineFactory from '../../src/commands/line/LineFactory';
+import { CornerRectangleFactory } from "../../src/commands/rect/RectangleFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
 import { inst2curve } from "../../src/util/Conversion";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import c3d from '../../build/Release/c3d.node';
 import '../matchers';
-import { CornerRectangleFactory } from "../../src/commands/rect/RectangleFactory";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
@@ -70,6 +70,9 @@ describe('A triangle', () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+
+        const model = inst2curve(db.lookup(contour)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(3);
     });
 
     it('allows offsetting a middle line', async () => {
@@ -77,6 +80,10 @@ describe('A triangle', () => {
         modifyContour.distance = 1;
         modifyContour.segment = 1;
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(3);
+        expect(model.IsClosed()).toBe(true);
 
         bbox.setFromObject(result);
         bbox.getCenter(center);
@@ -91,6 +98,10 @@ describe('A triangle', () => {
         modifyContour.segment = 0;
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
+        const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(3);
+        expect(model.IsClosed()).toBe(true);
+
         bbox.setFromObject(result);
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(1.207, -0.207, 0));
@@ -103,6 +114,10 @@ describe('A triangle', () => {
         modifyContour.distance = 1;
         modifyContour.segment = 2;
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(3);
+        expect(model.IsClosed()).toBe(true);
 
         bbox.setFromObject(result);
         bbox.getCenter(center);

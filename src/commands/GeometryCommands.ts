@@ -1481,7 +1481,6 @@ export class FilletCurveCommand extends Command {
         factory.originalItem = curve;
         factory.contour = contour;
         factory.controlPoints = controlPoints;
-        console.log(controlPoints);
 
         const gizmo = new FilletCurveGizmo(factory, this.editor);
         gizmo.execute(params => {

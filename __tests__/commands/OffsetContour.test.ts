@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import c3d from '../../build/Release/c3d.node';
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import OffsetCurveFactory, { OffsetFaceFactory, OffsetSpaceCurveFactory } from "../../src/commands/curve/OffsetContourFactory";
@@ -8,7 +9,6 @@ import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
-import c3d from '../../build/Release/c3d.node';
 import '../matchers';
 
 let db: GeometryDatabase;
