@@ -111,9 +111,9 @@ export abstract class ContourFactory extends GeometryFactory {
             const active_tangent_end = vec2vec(segment.Tangent(segment.GetTMax()), 1);
             const after = segments[(i + 1) % segments.length];
             const after_tmin = after.GetTMin();
-            const after_tangent = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
+            const after_tangent_begin = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
             const normal = new THREE.Vector3();
-            normal.crossVectors(active_tangent_end, after_tangent).cross(active_tangent_end).normalize();
+            normal.crossVectors(active_tangent_end, after_tangent_begin).cross(active_tangent_end).normalize();
 
             const { t } = segment.NearPointProjection(center, false);
             result.push({

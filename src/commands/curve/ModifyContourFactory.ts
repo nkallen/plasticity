@@ -15,6 +15,9 @@ export interface ModifyContourParams {
 }
 
 interface Info {
+    before: c3d.Curve3D,
+    active: c3d.Curve3D,
+    after: c3d.Curve3D,
     before_tangent_end: THREE.Vector3,
     active_tangent_begin: THREE.Vector3,
     active_tangent_end: THREE.Vector3,
@@ -22,7 +25,9 @@ interface Info {
     before_pmax: THREE.Vector3,
     after_pmin: THREE.Vector3,
     before_tmin: number,
-    after_tmax: number
+    after_tmax: number,
+    radiusBefore: number,
+    radiusAfter: number,
 }
 
 interface Offset {
@@ -35,7 +40,6 @@ interface Offset {
 export class ModifyContourFactory extends ContourFactory implements ModifyContourParams {
     mode: Mode = 'offset';
     distance = 0;
-    segment!: number;
 
     async calculate() {
         switch (this.mode) {
@@ -46,10 +50,17 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         }
     }
 
-    async calculateOffset() {
-        const { contour, segment: index, distance } = this;
+    private _segment!: number;
+    get segment() { return this._segment }
+    set segment(segment: number) {
+        this._segment = segment;
+        this.precompute()
 
-        if (distance === 0) throw new NoOpError();
+    }
+
+    private info!: Info;
+    protected precompute() {
+        const { contour, segment: index, distance } = this;
 
         const segments = contour.GetSegments();
 
@@ -173,8 +184,18 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
         }
 
-        const info: Info = { before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_pmax, after_pmin, before_tmin, after_tmax };
-        const { before_extended, active_new, after_extended, radius } = this.process(before, active, after, info);
+        this.info = { before, active, after, before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_pmax, after_pmin, before_tmin, after_tmax, radiusBefore, radiusAfter };
+    }
+
+    async calculateOffset() {
+        const { contour, segment: index, distance, info } = this;
+
+        if (distance === 0) throw new NoOpError();
+
+        const segments = contour.GetSegments();
+
+        const { radiusBefore, radiusAfter } = info;
+        const { before_extended, active_new, after_extended, radius } = this.process(info);
 
         const outContour = new c3d.Contour3D();
         RebuildContour: {
@@ -235,8 +256,8 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         return new c3d.SpaceInstance(result);
     }
 
-    private process(before: c3d.Curve3D, active: c3d.Curve3D, after: c3d.Curve3D, info: Info): Offset {
-        const { before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_pmax, after_pmin, before_tmin, after_tmax } = info;
+    private process(info: Info): Offset {
+        const { before, active, after, before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_pmax, after_pmin, before_tmin, after_tmax } = info;
         const { distance } = this;
         const pattern = `${c3d.SpaceType[before.GetBasisCurve().IsA()]}:${c3d.SpaceType[active.GetBasisCurve().IsA()]}:${c3d.SpaceType[after.GetBasisCurve().IsA()]}`;
 
