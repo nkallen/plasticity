@@ -108,6 +108,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
             const after_after_tmin = after_after.GetTMin();
             const after_after_tmax = after_after.GetTMax();
+
             const after_after_tangent_begin = vec2vec(after_after.Tangent(after_after_tmin), 1).multiplyScalar(-1);
             const after_after_tangent_end = vec2vec(after_after.Tangent(after_after_tmax), 1).multiplyScalar(-1);
             const smooth1 = Math.abs(1 - Math.abs(after_after_tangent_begin.dot(after_tangent_end))) < 10e-5;
@@ -155,16 +156,24 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
 
         const outContour = new c3d.Contour3D();
-        for (let i = 0; i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
-            outContour.AddCurveWithRuledCheck(segments[i], 1e-6, true);
-        }
+        RebuildContour: {
+            for (let i = 0; i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
+                outContour.AddCurveWithRuledCheck(segments[i], 1e-6, true);
+            }
 
-        outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
-        outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
-        outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+            outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
+            outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
+            outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
-        for (let i = index + 2 + (radiusBefore > 0 ? 1 : 0); i < segments.length - (index === 0 ? 1 : 0); i++) {
-            outContour.AddCurveWithRuledCheck(segments[i], 1e-6, true);
+            let start = index + 2;
+            if (radiusBefore > 0) start++;
+            let end = segments.length;
+            if (index === 0) end--;
+            if (index === 0 && radiusBefore > 0) end--;
+            if (radiusAfter > 0) end--;
+            for (let i = start; i < end; i++) {
+                outContour.AddCurveWithRuledCheck(segments[i].Duplicate().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D), 1e-6, true);
+            }
         }
 
         if (radiusBefore === 0 && radiusAfter === 0) return new c3d.SpaceInstance(outContour);

@@ -28,6 +28,14 @@ beforeEach(() => {
 });
 
 describe('A triangle', () => {
+    /**
+     * A triangle of this form, with segments anticlockwise (as labeled):
+     * 
+     *    1
+     *   +--+
+     * 2 | / 0
+     *   |/
+     */
     let contour: visual.SpaceInstance<visual.Curve3D>;
     const bbox = new THREE.Box3();
     const center = new THREE.Vector3();
@@ -102,6 +110,7 @@ describe('A triangle', () => {
     });
 
     describe('a triangle with a fillet', () => {
+        // Bottom vertex is filletted
         let filleted: visual.SpaceInstance<visual.Curve3D>;
 
         beforeEach(async () => {
@@ -170,5 +179,63 @@ describe('A triangle', () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
         });
 
-    })
+    });
+
+
+    describe('a triangle with two fillet', () => {
+        // Bottom and top left are filletted
+        let filleted: visual.SpaceInstance<visual.Curve3D>;
+
+        beforeEach(async () => {
+            const makeFillet = new ContourFilletFactory(db, materials, signals);
+            makeFillet.contour = contour;
+            makeFillet.radiuses[1] = 0.1;
+            makeFillet.radiuses[2] = 0.1;
+            expect(makeFillet.cornerAngles.length).toBe(3);
+            filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const bbox = new THREE.Box3().setFromObject(filleted);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.57, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(5);
+        })
+
+        it('allows offsetting a line adjacent to one fillet, preserving everything else', async () => {
+            modifyContour.contour = filleted;
+            modifyContour.distance = 1;
+            modifyContour.segment = 1;
+            const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(5);
+
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(1, 1.085, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.17, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+        });
+
+        it('allows offsetting the first segment (which, because closed, is after the last segment)', async () => {
+            modifyContour.contour = filleted;
+            modifyContour.distance = 1;
+            modifyContour.segment = 0;
+            const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(5);
+
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(1.2, -0.136, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1.27, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2.41, 1, 0));
+        });
+
+    });
 })
