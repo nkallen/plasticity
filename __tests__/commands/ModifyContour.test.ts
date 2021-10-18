@@ -204,6 +204,22 @@ describe('A triangle', () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
         });
 
+        it.only('allows offsetting the fillet', async () => {
+            modifyContour.contour = filleted;
+            modifyContour.distance = 1;
+            modifyContour.segment = 3;
+            const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(4);
+
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.0707, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -0.858, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+        });
+
     });
 
 

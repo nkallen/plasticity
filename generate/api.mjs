@@ -345,6 +345,7 @@ export default {
                 { signature: "bool NearPointProjection(const MbCartPoint3D & pnt, double & t, bool ext, MbRect1D * tRange = NULL)", tRange: isNullable, t: isReturn, return: { name: "success" } },
                 { signature: "bool GetSurfaceCurve(MbCurve *& curve2d, MbSurface *& surface, VERSION version = Math::DefaultMathVersion())", return: isErrorBool },
                 { signature: "void GetWeightCentre(MbCartPoint3D & point)", point: isReturn },
+                { signature: "const MbCurve3D & GetBasisCurve()", return: isOnHeap },
             ]
         },
         TrimmedCurve3D: {
