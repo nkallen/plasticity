@@ -178,7 +178,7 @@ describe('A triangle', () => {
             modifyContour.segment = 0;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
             expect(model.GetSegmentsCount()).toBe(4);
 
             bbox.setFromObject(result);
@@ -194,7 +194,7 @@ describe('A triangle', () => {
             modifyContour.segment = 2;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
             expect(model.GetSegmentsCount()).toBe(4);
 
             bbox.setFromObject(result);
@@ -204,19 +204,19 @@ describe('A triangle', () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
         });
 
-        it.only('allows offsetting the fillet', async () => {
+        it('allows offsetting the fillet', async () => {
             modifyContour.contour = filleted;
-            modifyContour.distance = 1;
+            modifyContour.distance = 0.05;
             modifyContour.segment = 3;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
             expect(model.GetSegmentsCount()).toBe(4);
 
             bbox.setFromObject(result);
             bbox.getCenter(center);
-            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.0707, 0));
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -0.858, 0));
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.535, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.07, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
         });
 
@@ -252,7 +252,7 @@ describe('A triangle', () => {
             modifyContour.segment = 1;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
             expect(model.GetSegmentsCount()).toBe(5);
 
             bbox.setFromObject(result);
@@ -268,7 +268,7 @@ describe('A triangle', () => {
             modifyContour.segment = 0;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
             expect(model.GetSegmentsCount()).toBe(5);
 
             bbox.setFromObject(result);
@@ -276,6 +276,22 @@ describe('A triangle', () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(1.2, -0.136, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1.27, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2.41, 1, 0));
+        });
+
+        it('allows offsetting the third segment', async () => {
+            modifyContour.contour = filleted;
+            modifyContour.distance = 1;
+            modifyContour.segment = 3;
+            const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(5);
+
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.070, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -0.858, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
         });
 
     });
@@ -349,7 +365,7 @@ describe('A rectangle', () => {
             modifyContour.segment = 0;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
             expect(model.GetSegmentsCount()).toBe(5);
 
             bbox.setFromObject(result);
@@ -365,7 +381,7 @@ describe('A rectangle', () => {
             modifyContour.segment = 3;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
             expect(model.GetSegmentsCount()).toBe(5);
 
             bbox.setFromObject(result);
@@ -412,7 +428,7 @@ describe('A rectangle', () => {
             modifyContour.segment = 0;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
             expect(model.GetSegmentsCount()).toBe(6);
 
             bbox.setFromObject(result);

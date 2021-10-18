@@ -16,7 +16,7 @@ export interface FilletCurveParams {
     radiuses: number[];
 }
 
-interface CornerAngle {
+export interface CornerAngle {
     index: number;
     origin: THREE.Vector3;
     tau: THREE.Vector3;
@@ -24,7 +24,14 @@ interface CornerAngle {
     angle: number;
 }
 
+export interface SegmentAngle {
+    origin: THREE.Vector3;
+    normal: THREE.Vector3;
+}
+
 export abstract class ContourFactory extends GeometryFactory {
+    radiuses!: number[];
+
     async prepare(curve: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
         const { db } = this;
         const inst = db.lookup(curve);
@@ -40,23 +47,14 @@ export abstract class ContourFactory extends GeometryFactory {
         }
     }
 
-    private _original!: visual.SpaceInstance<visual.Curve3D>;
-    set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
-    get originalItem() { return this._original }
-}
-
-export class ContourFilletFactory extends ContourFactory {
-    radiuses!: number[];
-
     private _contour!: c3d.Contour3D;
     get contour(): c3d.Contour3D { return this._contour }
     set contour(inst: c3d.Contour3D | c3d.SpaceInstance | visual.SpaceInstance<visual.Curve3D>) {
         if (inst instanceof c3d.SpaceInstance) {
             const curve = inst2curve(inst);
-            if (!(curve instanceof c3d.Contour3D)) throw new ValidationError();
+            if (!(curve instanceof c3d.Contour3D)) throw new ValidationError("Contour expected");
             this._contour = curve;
         } else if (inst instanceof visual.SpaceInstance) {
-            this.originalItem = inst;
             this.contour = this.db.lookup(inst);
             return;
         } else this._contour = inst;
@@ -104,6 +102,28 @@ export class ContourFilletFactory extends ContourFactory {
         }
     }
 
+    get segmentAngles(): SegmentAngle[] {
+        const result: SegmentAngle[] = [];
+        const contour = this.contour;
+        const segments = contour.GetSegments();
+        for (const [i, segment] of segments.entries()) {
+            const center = segment.GetWeightCentre();
+            const active_tangent_end = vec2vec(segment.Tangent(segment.GetTMax()), 1);
+            const after = segments[(i + 1) % segments.length];
+            const after_tmin = after.GetTMin();
+            const after_tangent = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
+            const normal = new THREE.Vector3();
+            normal.crossVectors(active_tangent_end, after_tangent).cross(active_tangent_end).normalize();
+
+            const { t } = segment.NearPointProjection(center, false);
+            result.push({
+                origin: point2point(center),
+                normal,
+            });
+        }
+        return result;
+    }
+
     private info2info(index: number, info: ReturnType<c3d.Contour3D["GetCornerAngle"]>) {
         return {
             index,
@@ -114,10 +134,18 @@ export class ContourFilletFactory extends ContourFactory {
         }
     }
 
-    async calculate() {
-        const { _contour, radiuses } = this;
+    private _original!: visual.SpaceInstance<visual.Curve3D>;
+    set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
+    get originalItem() { return this._original }
+}
 
-        const result = c3d.ActionSurfaceCurve.CreateContourFillets(_contour, radiuses.map(unit), c3d.ConnectingType.Fillet);
+export class ContourFilletFactory extends ContourFactory {
+    radiuses!: number[];
+
+    async calculate() {
+        const { contour, radiuses } = this;
+
+        const result = c3d.ActionSurfaceCurve.CreateContourFillets(contour, radiuses.map(unit), c3d.ConnectingType.Fillet);
         return new c3d.SpaceInstance(result);
     }
 }

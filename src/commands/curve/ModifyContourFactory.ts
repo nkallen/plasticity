@@ -1,19 +1,17 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../editor/VisualModel';
-import { inst2curve, point2point, unit, vec2vec } from '../../util/Conversion';
+import { deunit, point2point, unit, vec2vec } from '../../util/Conversion';
 import { NoOpError, ValidationError } from '../GeometryFactory';
-import { ContourFactory } from "./ContourFilletFactory";
+import { ContourFactory, CornerAngle, SegmentAngle } from "./ContourFilletFactory";
 
-export interface SegmentAngle {
-    origin: THREE.Vector3;
-    normal: THREE.Vector3;
-}
-
+type Mode = 'fillet' | 'offset';
 export interface ModifyContourParams {
+    mode: 'fillet' | 'offset';
     distance: number;
     segment: number;
     segmentAngles: SegmentAngle[];
+    cornerAngles: CornerAngle[];
+    radiuses: number[];
 }
 
 interface Info {
@@ -35,25 +33,20 @@ interface Offset {
 }
 
 export class ModifyContourFactory extends ContourFactory implements ModifyContourParams {
-    private _contour!: c3d.Contour3D;
-    get contour(): c3d.Contour3D { return this._contour }
-    set contour(inst: c3d.Contour3D | c3d.SpaceInstance | visual.SpaceInstance<visual.Curve3D>) {
-        if (inst instanceof c3d.SpaceInstance) {
-            const curve = inst2curve(inst);
-            if (!(curve instanceof c3d.Contour3D)) throw new ValidationError("Contour expected");
-            this._contour = curve;
-        } else if (inst instanceof visual.SpaceInstance) {
-            this.contour = this.db.lookup(inst);
-            return;
-        } else this._contour = inst;
-
-        let fillNumber = this.contour.GetSegmentsCount();
-    }
-
+    mode: Mode = 'offset';
     distance = 0;
     segment!: number;
 
     async calculate() {
+        switch (this.mode) {
+            case 'fillet':
+                return this.calculateFillet();
+            case 'offset':
+                return this.calculateOffset();
+        }
+    }
+
+    async calculateOffset() {
         const { contour, segment: index, distance } = this;
 
         if (distance === 0) throw new NoOpError();
@@ -87,7 +80,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         let radiusAfter = 0;
 
         if (before instanceof c3d.Arc3D) {
-            radiusBefore = before.GetRadius();
+            radiusBefore = deunit(before.GetRadius());
 
             const before_before = segments[(index - 2 + segments.length) % segments.length];
 
@@ -120,7 +113,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         }
 
         if (after instanceof c3d.Arc3D) {
-            radiusAfter = after.GetRadius();
+            radiusAfter = deunit(after.GetRadius());
 
             const after_after = segments[(index + 2) % segments.length];
 
@@ -185,7 +178,8 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
         const outContour = new c3d.Contour3D();
         RebuildContour: {
-            const isAtEndOfClosedContour = index === segments.length - 1 && contour.IsClosed();
+            let isAtEndOfClosedContour = index === segments.length - 1 && contour.IsClosed();
+            isAtEndOfClosedContour ||= index === segments.length - 2 && radiusAfter > 0 && contour.IsClosed();
             if (isAtEndOfClosedContour) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
             for (let i = 0 + (isAtEndOfClosedContour ? 1 : 0); i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
@@ -194,7 +188,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
             if (index > 0) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
             if (active_new) outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
-            if (index < segments.length - 1) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+            if (!isAtEndOfClosedContour) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
             let start = index + 2;
             if (radiusAfter > 0) start++;
@@ -206,7 +200,8 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 outContour.AddCurveWithRuledCheck(segments[i].Duplicate().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D), 1e-6, true);
             }
 
-            if (index === 0 && contour.IsClosed()) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
+            const isAtBeginningOfClosedContour = index === 0 && contour.IsClosed();
+            if (isAtBeginningOfClosedContour) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
         }
 
         if (radiusBefore === 0 && radius === 0 && radiusAfter === 0) return new c3d.SpaceInstance(outContour);
@@ -215,23 +210,29 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             if (radiusBefore > 0) numFillets++;
             if (radiusAfter > 0) numFillets++;
             if (radius > 0) numFillets++;
+            const numSegmentsWithoutFillets = segments.length - numFillets;
 
-            let fillNumber = segments.length - numFillets;
-            fillNumber -= this.contour.IsClosed() ? 0 : 1;
+            let newPosition = index;
+            if (radiusBefore && index > 0) newPosition--;
+
+            const fillNumber = numSegmentsWithoutFillets - (this.contour.IsClosed() ? 0 : 1);
             const radiuses = new Array<number>(fillNumber);
             radiuses.fill(0);
-            if (numFillets < 2) {
-                if (radiusBefore > 0 && index > 0) radiuses[(index - 2 + fillNumber) % fillNumber] = radiusBefore;
-                else if (radiusBefore > 0) radiuses[fillNumber - 1] = radiusBefore;
-                if (radiusAfter > 0) radiuses[index] = radiusAfter;
-            } else {
-                radiuses[index - 2] = radiusBefore;
-                radiuses[index - 1] = radiusAfter;
-            }
-            radiuses[index - 1] = radius;
-            const result = c3d.ActionSurfaceCurve.CreateContourFillets(outContour, radiuses, c3d.ConnectingType.Fillet);
+
+            radiuses[(newPosition - 1 + fillNumber) % fillNumber] = radiusBefore;
+            if (radius !== 0) radiuses[newPosition - 1] = radius;
+            else if (radiusAfter !== 0) radiuses[newPosition] = radiusAfter;
+
+            const result = c3d.ActionSurfaceCurve.CreateContourFillets(outContour, radiuses.map(unit), c3d.ConnectingType.Fillet);
             return new c3d.SpaceInstance(result);
         }
+    }
+
+    async calculateFillet() {
+        const { contour, radiuses } = this;
+
+        const result = c3d.ActionSurfaceCurve.CreateContourFillets(contour, radiuses.map(unit), c3d.ConnectingType.Fillet);
+        return new c3d.SpaceInstance(result);
     }
 
     private process(before: c3d.Curve3D, active: c3d.Curve3D, after: c3d.Curve3D, info: Info): Offset {
@@ -260,7 +261,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
             case 'Polyline3D:Arc3D:Polyline3D': {
                 const existingRadius = (active as c3d.Arc3D).GetRadius();
-                const radius = existingRadius - unit(distance);
+                const radius = deunit(existingRadius) - distance;
                 const before_line = new c3d.Line3D(point2point(before_pmax), point2point(before_pmax.clone().add(before_tangent_end)));
                 const after_line = new c3d.Line3D(point2point(after_pmin), point2point(after_pmin.clone().add(after_tangent_begin)));
                 const { result1, count } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, after_line, 1e-6);
@@ -277,28 +278,5 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             default: throw new Error(pattern);
 
         }
-    }
-
-
-    get segmentAngles(): SegmentAngle[] {
-        const result: SegmentAngle[] = [];
-        const contour = this._contour;
-        const segments = contour.GetSegments();
-        for (const [i, segment] of segments.entries()) {
-            const center = segment.GetWeightCentre();
-            const active_tangent_end = vec2vec(segment.Tangent(segment.GetTMax()), 1);
-            const after = segments[(i + 1) % segments.length];
-            const after_tmin = after.GetTMin();
-            const after_tangent = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
-            const normal = new THREE.Vector3();
-            normal.crossVectors(active_tangent_end, after_tangent).cross(active_tangent_end).normalize();
-
-            const { t } = segment.NearPointProjection(center, false);
-            result.push({
-                origin: point2point(center),
-                normal,
-            });
-        }
-        return result;
     }
 }
