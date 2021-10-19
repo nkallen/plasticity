@@ -317,7 +317,7 @@ export default {
         Curve3D: {
             rawHeader: "curve3d.h",
             extends: "SpaceItem",
-            dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h", "_PlanarCheckParams.h", "Rect1D.h"],
+            dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h", "_PlanarCheckParams.h", "Rect1D.h", "ControlData3D.h"],
             functions: [
                 { signature: "MbCurve3D * Cast()", isManual: true },
                 {
@@ -346,6 +346,8 @@ export default {
                 { signature: "bool GetSurfaceCurve(MbCurve *& curve2d, MbSurface *& surface, VERSION version = Math::DefaultMathVersion())", return: isErrorBool },
                 { signature: "void GetWeightCentre(MbCartPoint3D & point)", point: isReturn },
                 { signature: "const MbCurve3D & GetBasisCurve()", return: isOnHeap },
+                { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
+                "void SetBasisPoints(const MbControlData3D & cd)",
             ]
         },
         TrimmedCurve3D: {
@@ -1550,6 +1552,11 @@ export default {
                     signature: "ptrdiff_t CurveCurveIntersection(const MbCurve3D & curve1, const MbCurve3D & curve2, SArray<double> & result1, SArray<double> & result2, double mEps)",
                     result1: isReturn, result2: isReturn,
                     jsName: "CurveCurveIntersection3D",
+                    return: { name: "count" },
+                },
+                {
+                    signature: "ptrdiff_t CurveCurveCrossing(const MbCurve3D & curve1, const MbCurve3D & curve2, SArray<double> & result1, SArray<double> & result2, double mEps = Math::metricRegion)",
+                    result1: isReturn, result2: isReturn,
                     return: { name: "count" },
                 },
             ]

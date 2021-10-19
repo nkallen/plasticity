@@ -400,7 +400,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 if (intersect !== undefined) {
                     this.gizmo.onPointerEnter(this.intersector);
                     this.state = { tag: 'hover' }
-                    this.viewport.disableControls();
+                    // this.viewport.disableControls();
                     this.signals.gizmoChanged.dispatch();
                 }
                 break;
@@ -410,7 +410,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 if (intersect === undefined) {
                     this.gizmo.onPointerLeave(this.intersector);
                     this.state = { tag: 'none' }
-                    this.viewport.enableControls();
+                    // this.viewport.enableControls();
                     this.signals.gizmoChanged.dispatch();
                 }
                 break;

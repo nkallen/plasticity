@@ -115,6 +115,8 @@ describe(ContourFilletFactory, () => {
         makeContour.push(line2);
         const contour = (await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[])[0] as visual.SpaceInstance<visual.Curve3D>;
 
+        expect(db.visibleObjects.length).toBe(1);
+
         const makeFillet = new ContourFilletFactory(db, materials, signals);
         makeFillet.contour = contour;
         makeFillet.radiuses[0] = 0.1;

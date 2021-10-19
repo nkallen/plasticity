@@ -11,6 +11,7 @@ import { EditorLike, Viewport } from "../src/components/viewport/Viewport";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
+import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { Helpers } from "../src/util/Helpers";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
@@ -51,11 +52,12 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
     const keymaps = new KeymapManager();
+    const selectionInteraction = new SelectionInteractionManager(selection, materials, signals);
     editor = {
         viewports: [],
         helpers: new Helpers(signals),
         registry: new CommandRegistry(),
-        signals, gizmos, db, keymaps
+        signals, gizmos, db, keymaps, selectionInteraction,
     } as unknown as EditorLike;
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);

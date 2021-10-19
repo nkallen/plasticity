@@ -162,7 +162,7 @@ describe('A triangle', () => {
             modifyContour.segment = 1;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
             expect(model.GetSegmentsCount()).toBe(4);
 
             bbox.setFromObject(result);

@@ -56,6 +56,7 @@ export abstract class ContourFactory extends GeometryFactory {
             this._contour = curve;
         } else if (inst instanceof visual.SpaceInstance) {
             this.contour = this.db.lookup(inst);
+            this.originalItem = inst;
             return;
         } else this._contour = inst;
 
