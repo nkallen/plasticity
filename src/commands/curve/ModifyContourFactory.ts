@@ -228,30 +228,36 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
         const outContour = new c3d.Contour3D();
         RebuildContour: {
-            let isAtEndOfClosedContour = index === segments.length - 1 && contour.IsClosed();
-            isAtEndOfClosedContour ||= index === segments.length - 2 && radiusAfter > 0 && contour.IsClosed();
-            if (isAtEndOfClosedContour && segments.length > 2) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+            try {
+                let isAtEndOfClosedContour = index === segments.length - 1 && contour.IsClosed();
+                isAtEndOfClosedContour ||= index === segments.length - 2 && radiusAfter > 0 && contour.IsClosed();
+                if (isAtEndOfClosedContour && segments.length > 2) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
-            for (let i = 0 + (isAtEndOfClosedContour ? 1 : 0); i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
-                outContour.AddCurveWithRuledCheck(segments[i], 1e-6, true);
+                for (let i = 0 + (isAtEndOfClosedContour ? 1 : 0); i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
+                    outContour.AddCurveWithRuledCheck(segments[i], 1e-6, true);
+                }
+
+                if (index > 0) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
+                if (active_new) outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
+                if (!isAtEndOfClosedContour && !beforeIsAfter) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+
+                let start = index + 2;
+                if (radiusAfter > 0) start++;
+                let end = segments.length;
+                if (index === 0) end--;
+                if (index === 0 && radiusBefore > 0) end--;
+                for (let i = start; i < end; i++) {
+                    // AddCurveWithRuledCheck sometimes modifies the original curve, so duplicate:
+                    outContour.AddCurveWithRuledCheck(segments[i].Duplicate().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D), 1e-6, true);
+                }
+
+                const isAtBeginningOfClosedContour = index === 0 && contour.IsClosed();
+                if (isAtBeginningOfClosedContour) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
+            } catch (e) {
+                console.warn(e);
+                return [before_extended, active_new, after_extended].map(c => c && new c3d.SpaceInstance(c)).filter(x => !!x) as c3d.SpaceInstance[];
+                throw e;
             }
-
-            if (index > 0) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
-            if (active_new) outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
-            if (!isAtEndOfClosedContour && !beforeIsAfter) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
-
-            let start = index + 2;
-            if (radiusAfter > 0) start++;
-            let end = segments.length;
-            if (index === 0) end--;
-            if (index === 0 && radiusBefore > 0) end--;
-            for (let i = start; i < end; i++) {
-                // AddCurveWithRuledCheck sometimes modifies the original curve, so duplicate:
-                outContour.AddCurveWithRuledCheck(segments[i].Duplicate().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D), 1e-6, true);
-            }
-
-            const isAtBeginningOfClosedContour = index === 0 && contour.IsClosed();
-            if (isAtBeginningOfClosedContour) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
         }
 
         if (radiusBefore === 0 && radius === 0 && radiusAfter === 0) return new c3d.SpaceInstance(outContour);
@@ -316,8 +322,9 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
             case 'Polyline3D:Arc3D:Polyline3D': {
+                const arc = active as c3d.Arc3D;
+                const existingRadius = arc.GetRadius();
                 if (isSmoothlyConnected(before, active, after)) {
-                    const existingRadius = (active as c3d.Arc3D).GetRadius();
                     const radius = deunit(existingRadius) + distance / 2;
                     const before_line = new c3d.Line3D(point2point(before_pmax), point2point(before_pmax.clone().add(before_tangent_end)));
                     const after_line = new c3d.Line3D(point2point(after_pmin), point2point(after_pmin.clone().add(after_tangent_begin)));
@@ -332,8 +339,44 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                     const after_extended = after.Trimmed(after_ext_t, after_tmax, 1)!;
                     return { before_extended, active_new: undefined, after_extended, radius };
                 } else {
-                    // FIXME
-                    throw new Error("Not implemented");
+                    const radius = deunit(existingRadius) - distance;
+                    const active_new = arc.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
+                    active_new.MakeTrimmed(0, 2 * Math.PI);
+                    active_new.SetRadius(unit(radius));
+
+                    const before_line = new c3d.Line3D(point2point(before_pmax), before.GetLimitPoint(1));
+                    const after_line = new c3d.Line3D(point2point(after_pmin), after.GetLimitPoint(2));
+
+                    const { result1: before_extended_result, result2: active_new_before_result, count: count1 } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, active_new, 1e-6);
+                    if (count1 < 1) throw new ValidationError();
+                    const before_line_t = Math.max(...before_extended_result);
+                    const before_ext_p = before_line.PointOn(before_line_t);
+                    const { t: before_ext_t } = before.NearPointProjection(before_ext_p, true)!;
+
+                    const { result1: after_extended_result, result2: active_new_after_result, count: count2 } = c3d.ActionPoint.CurveCurveIntersection3D(after_line, active_new, 1e-6);
+                    if (count2 < 1) throw new ValidationError();
+                    const after_line_t = Math.max(...after_extended_result);
+                    const after_ext_p = after_line.PointOn(after_line_t);
+                    const { t: after_ext_t } = after.NearPointProjection(after_ext_p, true)!;
+
+                    const index1 = before_extended_result.findIndex(v => v === before_line_t);
+                    const index2 = after_extended_result.findIndex(v => v === after_line_t);
+                    const active_new_tmin = active_new_before_result[index1];
+                    const active_new_tmax = active_new_after_result[index2];
+
+                    let before_extended, after_extended;
+                    if (beforeIsAfter) {
+                        active_new.MakeTrimmed(active_new_tmax, active_new_tmin);
+                        before_extended = before.Trimmed(after_ext_t, before_ext_t, 1)!;
+                        after_extended = before_extended;
+                    } else {
+                        active_new.MakeTrimmed(active_new_tmin, active_new_tmax);
+                        before_extended = before.Trimmed(before_tmin, before_ext_t, 1)!;
+                        after_extended = after.Trimmed(after_ext_t, after_tmax, 1)!;
+                    }
+
+                    return { before_extended, active_new, after_extended, radius: 0 }
+
                 }
             }
             case 'Arc3D:Polyline3D:Arc3D': {

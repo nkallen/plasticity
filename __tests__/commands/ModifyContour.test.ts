@@ -675,7 +675,60 @@ describe('Arc:Line:Arc', () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.25, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.5, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 1, 0));
+    })
+})
 
+describe('Line:Arc:Line', () => {
+    beforeEach(async () => {
+        const makeLine1 = new LineFactory(db, materials, signals);
+        makeLine1.p1 = new THREE.Vector3(-2, 0, 0);
+        makeLine1.p2 = new THREE.Vector3(-1, 0, 0);
+        const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeArc1 = new CenterPointArcFactory(db, materials, signals);
+        makeArc1.center = new THREE.Vector3(0, 0, 0);
+        makeArc1.p2 = new THREE.Vector3(-1, 0, 0);
+        makeArc1.p3 = new THREE.Vector3(1, 0, 0);
+        const arc1 = await makeArc1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeLine2 = new LineFactory(db, materials, signals);
+        makeLine2.p1 = new THREE.Vector3(1, 0, 0);
+        makeLine2.p2 = new THREE.Vector3(2, 0, 0);
+        const line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+
+        const makeContour = new JoinCurvesFactory(db, materials, signals);
+        makeContour.push(line1);
+        makeContour.push(arc1);
+        makeContour.push(line2);
+        const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
+        contour = contours[0];
+
+        bbox.setFromObject(contour);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+
+        const model = inst2curve(db.lookup(contour)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(3);
+    });
+
+    it('allows offsetting the arc', async () => {
+        modifyContour.contour = contour;
+        modifyContour.distance = 0.5;
+        modifyContour.segment = 1;
+        const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(3);
+        expect(model.IsClosed()).toBe(false);
+
+        bbox.setFromObject(result);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.25, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 0.5, 0));
     })
 })
 
@@ -723,7 +776,23 @@ describe('A half moon (Arc:Line[closed])', () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.25, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -0.5, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+    })
 
+    it('allows offsetting the arc', async () => {
+        modifyContour.contour = contour;
+        modifyContour.distance = 0.5;
+        modifyContour.segment = 0;
+        const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(2);
+        expect(model.IsClosed()).toBe(true);
+
+        bbox.setFromObject(result);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.25, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
     })
 })
 
@@ -771,6 +840,5 @@ describe('A half moon in the other direction (Line:Arc[closed])', () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.25, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -0.5, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
-
     })
 })
