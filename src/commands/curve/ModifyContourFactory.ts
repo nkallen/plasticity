@@ -436,6 +436,39 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
+            case 'Line3D:Polyline3D:Arc3D': {
+                const normal = active_tangent_end.clone().cross(after_tangent_begin).cross(active_tangent_end).normalize();
+                normal.multiplyScalar(distance);
+
+                const active_line = new c3d.Line3D(active.GetLimitPoint(1), active.GetLimitPoint(2));
+                active_line.Move(vec2vec(normal));
+
+                const before_line = new c3d.Line3D(point2point(before_pmax), before.GetLimitPoint(1));
+
+                let after_extended = after.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
+                after_extended.MakeTrimmed(0, 2 * Math.PI);
+
+                const { result1: before_extended_result, result2: active_new_before_result, count: count1 } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, active_line, 1e-6);
+                if (count1 < 1) throw new ValidationError();
+                const before_line_t = Math.max(...before_extended_result);
+                const before_ext_p = before_line.PointOn(before_line_t);
+                const { t: before_ext_t } = before.NearPointProjection(before_ext_p, true)!;
+
+                const { count: count2, result1: after_extended_result, result2: active_line_after_result } = c3d.ActionPoint.CurveCurveIntersection3D(after_extended, active_line, 10e-5);
+                if (count2 < 1) throw new Error();
+
+                const active_line_tmax = Math.min(...active_line_after_result);
+                const index2 = active_line_after_result.findIndex((value) => value === active_line_tmax);
+                const after_ext_t = after_extended_result[index2];
+
+                after_extended.MakeTrimmed(after_ext_t, after_tmax);
+
+                const after_ext_p = after_extended.GetLimitPoint(1);
+
+                const before_extended = before.Trimmed(before_tmin, before_ext_t, 1)!;
+                const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
+                return { before_extended, active_new, after_extended, radius: 0 };
+            }
             default: throw new Error(pattern);
         }
     }
