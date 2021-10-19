@@ -348,6 +348,7 @@ export default {
                 { signature: "const MbCurve3D & GetBasisCurve()", return: isOnHeap },
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
                 "void SetBasisPoints(const MbControlData3D & cd)",
+                "void Inverse()",
             ]
         },
         TrimmedCurve3D: {
@@ -765,6 +766,7 @@ export default {
                 { signature: "void GetBegPoint(MbCartPoint3D & p)", p: isReturn },
                 { signature: "void GetEndPoint(MbCartPoint3D & p)", p: isReturn },
                 "double PointProjection(const MbCartPoint3D & p)",
+                "void Reverse()",
             ]
         },
         SurfaceIntersectionCurve: {

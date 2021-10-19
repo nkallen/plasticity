@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
+import * as visual from '../../editor/VisualModel';
 import { deunit, isSmoothlyConnected, point2point, unit, vec2vec } from '../../util/Conversion';
 import { NoOpError, ValidationError } from '../GeometryFactory';
 import { ContourFactory, CornerAngle, SegmentAngle } from "./ContourFilletFactory";
@@ -53,6 +54,12 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         }
     }
 
+    get contour(): c3d.Contour3D { return super.contour }
+    set contour(inst: c3d.Contour3D | c3d.SpaceInstance | visual.SpaceInstance<visual.Curve3D>) {
+        super.contour = inst;
+        this._segmentAngles = this.computeSegmentAngles();
+    }
+
     private _segment!: number;
     get segment() { return this._segment }
     set segment(segment: number) {
@@ -60,11 +67,14 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         this.precompute()
     }
 
-    get segmentAngles(): SegmentAngle[] {
+    private _segmentAngles!: SegmentAngle[];
+    get segmentAngles() { return this._segmentAngles }
+    private computeSegmentAngles(): SegmentAngle[] {
         const result: SegmentAngle[] = [];
         const contour = this.contour;
         const segments = contour.GetSegments();
 
+        // NOTE: when this code was written there was a bug in normal computation SD#7281936 ... The manhattanLength() checks are a workaround
         for (const [i, segment] of segments.entries()) {
             const center = segment.GetWeightCentre();
             const { t } = contour.NearPointProjection(center, false);
@@ -72,16 +82,19 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             if (normal.manhattanLength() === 0) {
                 const active_tangent_end = vec2vec(segment.Tangent(segment.GetTMax()), 1);
                 const after = segments[(i + 1) % segments.length];
-                const after_tmin = after.GetTMin();
-                const after_tmax = after.GetTMax();
-                const after_tangent_begin = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
-                const after_tangent_end = vec2vec(after.Tangent(after_tmax), 1).multiplyScalar(-1);
+                const after_tangent_begin = vec2vec(after.Tangent(after.GetTMin()), 1).multiplyScalar(-1);
+                const after_tangent_end = vec2vec(after.Tangent(after.GetTMax()), 1).multiplyScalar(-1);
                 if (i + 1 >= segments.length) {
                     after_tangent_begin.multiplyScalar(-1);
                     after_tangent_end.multiplyScalar(-1);
                 }
                 normal.crossVectors(active_tangent_end, after_tangent_begin);
-                if (normal.manhattanLength() < 10e-5) normal.crossVectors(active_tangent_end, after_tangent_end);
+                if (normal.manhattanLength() < 10e-5) {
+                    const before = segments[(i - 1 + segments.length) % segments.length];
+                    const before_tangent_end = vec2vec(before.Tangent(before.GetTMax()), 1).multiplyScalar(-1);
+                    const active_tangent_begin = vec2vec(segment.Tangent(segment.GetTMin()), 1);
+                    normal.crossVectors(before_tangent_end, active_tangent_begin);
+                }
 
                 normal.cross(active_tangent_end).normalize();
             }
@@ -313,7 +326,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
         switch (pattern) {
             case 'Line3D:Polyline3D:Polyline3D':
-            case 'Polyline3D:Polyline3D:Line3D': //
+            case 'Polyline3D:Polyline3D:Line3D':
             case 'Polyline3D:Polyline3D:Polyline3D': {
                 const beta = active_tangent_end.angleTo(after_tangent_begin);
                 const gamma = active_tangent_begin.angleTo(before_tangent_end.multiplyScalar(-1));
@@ -332,6 +345,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
+            case 'Line3D:Arc3D:Line3D':
             case 'Line3D:Arc3D:Polyline3D':
             case 'Polyline3D:Arc3D:Line3D':
             case 'Polyline3D:Arc3D:Polyline3D': {
@@ -357,18 +371,19 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                     active_new.MakeTrimmed(0, 2 * Math.PI);
                     active_new.SetRadius(unit(radius));
 
-                    const before_line = new c3d.Line3D(point2point(before_pmax), before.GetLimitPoint(1));
+                    const before_line = new c3d.Line3D(before.GetLimitPoint(1), point2point(before_pmax));
                     const after_line = new c3d.Line3D(point2point(after_pmin), after.GetLimitPoint(2));
 
                     const { result1: before_extended_result, result2: active_new_before_result, count: count1 } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, active_new, 1e-6);
                     if (count1 < 1) throw new ValidationError();
-                    const before_line_t = Math.max(...before_extended_result);
+                    const before_line_t = Math.min(...before_extended_result.filter(t => t > 0));
                     const before_ext_p = before_line.PointOn(before_line_t);
                     const { t: before_ext_t } = before.NearPointProjection(before_ext_p, true)!;
 
                     const { result1: after_extended_result, result2: active_new_after_result, count: count2 } = c3d.ActionPoint.CurveCurveIntersection3D(after_line, active_new, 1e-6);
                     if (count2 < 1) throw new ValidationError();
-                    const after_line_t = Math.max(...after_extended_result);
+                    const after_line_tmax = after_line.NearPointProjection(after.GetLimitPoint(2), false).t;
+                    const after_line_t = Math.max(...after_extended_result.filter(t => t < after_line_tmax));
                     const after_ext_p = after_line.PointOn(after_line_t);
                     const { t: after_ext_t } = after.NearPointProjection(after_ext_p, true)!;
 
@@ -393,38 +408,37 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 }
             }
             case 'Arc3D:Polyline3D:Arc3D': {
-                const normal = active_tangent_begin.clone().cross(before_tangent_end).cross(active_tangent_begin).normalize();
+                const normal = this.segmentAngles[this.segment].normal.clone();
                 normal.multiplyScalar(distance);
 
                 const active_line = new c3d.Line3D(point2point(before_pmax), point2point(after_pmin));
                 active_line.Move(vec2vec(normal));
 
-                const before_extended = before.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
+                let before_extended = before.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
                 before_extended.MakeTrimmed(0, 2 * Math.PI);
 
                 let after_extended = after.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
                 after_extended.MakeTrimmed(0, 2 * Math.PI);
 
-                const { count: count1, result1: before_extended_result, result2: active_line_before_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_extended, active_line, 10e-5);
-                if (count1 < 1) throw new Error();
-
-                const active_line_tmin = Math.max(...active_line_before_result);
-                const index1 = active_line_before_result.findIndex((value) => value === active_line_tmin);
-                const before_ext_t = before_extended_result[index1];
-                if (before_ext_t === undefined) throw new Error();
-
                 const { count: count2, result1: after_extended_result, result2: active_line_after_result } = c3d.ActionPoint.CurveCurveIntersection3D(after_extended, active_line, 10e-5);
                 if (count2 < 1) throw new Error();
-
-                const active_line_tmax = Math.min(...active_line_after_result);
-                const index2 = active_line_after_result.findIndex((value) => value === active_line_tmax);
+                const active_line_tmax = Math.min(...active_line_after_result.filter(t => t > 0));
+                const index2 = active_line_after_result.findIndex(value => value === active_line_tmax);
                 const after_ext_t = after_extended_result[index2];
                 if (after_ext_t === undefined) throw new Error();
 
                 if (beforeIsAfter) {
-                    before_extended.MakeTrimmed(before_ext_t, after_ext_t);
+                    if (count2 !== 2) throw new Error();
+                    before_extended.MakeTrimmed(after_extended_result[(index2 + 1) % 2], after_ext_t);
                     after_extended = before_extended;
                 } else {
+                    const { count: count1, result1: before_extended_result, result2: active_line_before_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_extended, active_line, 10e-5);
+                    if (count1 < 1) throw new Error();
+                    const active_line_tmin = Math.max(...active_line_before_result.filter(t => t < active_line_tmax));
+                    const index1 = active_line_before_result.findIndex((value) => value === active_line_tmin);
+                    const before_ext_t = before_extended_result[index1];
+                    if (before_ext_t === undefined) throw new Error();
+
                     before_extended.MakeTrimmed(before_tmin, before_ext_t);
                     after_extended.MakeTrimmed(after_ext_t, after_tmax);
                 }
@@ -437,7 +451,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
             case 'Polyline3D:Polyline3D:Arc3D':
             case 'Line3D:Polyline3D:Arc3D': {
-                const normal = active_tangent_end.clone().cross(after_tangent_begin).cross(active_tangent_end).normalize();
+                const normal = this.segmentAngles[this.segment].normal.clone();
                 normal.multiplyScalar(distance);
 
                 const active_line = new c3d.Line3D(active.GetLimitPoint(1), active.GetLimitPoint(2));
@@ -448,7 +462,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 let after_extended = after.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
                 after_extended.MakeTrimmed(0, 2 * Math.PI);
 
-                const { result1: before_extended_result, result2: active_new_before_result, count: count1 } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, active_line, 1e-6);
+                const { result1: before_extended_result, count: count1 } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, active_line, 1e-6);
                 if (count1 < 1) throw new ValidationError();
                 const before_line_t = Math.max(...before_extended_result);
                 const before_ext_p = before_line.PointOn(before_line_t);
@@ -471,7 +485,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
             case 'Arc3D:Polyline3D:Polyline3D':
             case 'Arc3D:Polyline3D:Line3D': {
-                const normal = active_tangent_begin.clone().cross(before_tangent_end).cross(active_tangent_begin).normalize();
+                const normal = this.segmentAngles[this.segment].normal.clone();
                 normal.multiplyScalar(distance);
 
                 const active_line = new c3d.Line3D(point2point(before_pmax), point2point(after_pmin));

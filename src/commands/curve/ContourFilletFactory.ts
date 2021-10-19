@@ -42,8 +42,12 @@ export abstract class ContourFactory extends GeometryFactory {
                 polyline2contour.polyline = curve;
                 return polyline2contour.calculate();
             case c3d.SpaceType.Contour3D:
-                return Promise.resolve(inst);
-            default: throw new Error("invalid precondition: " + c3d.SpaceType[item.Type()]);
+                return inst;
+            case c3d.SpaceType.Arc3D:
+                const contour = new c3d.Contour3D();
+                contour.AddCurveWithRuledCheck(item.Cast<c3d.Arc3D>(item.IsA()));
+                return new c3d.SpaceInstance(contour);
+            default: throw new Error("invalid precondition: " + c3d.SpaceType[item.IsA()]);
         }
     }
 
