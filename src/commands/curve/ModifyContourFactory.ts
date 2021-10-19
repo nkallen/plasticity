@@ -411,6 +411,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const active_line_tmin = Math.max(...active_line_before_result);
                 const index1 = active_line_before_result.findIndex((value) => value === active_line_tmin);
                 const before_ext_t = before_extended_result[index1];
+                if (before_ext_t === undefined) throw new Error();
 
                 const { count: count2, result1: after_extended_result, result2: active_line_after_result } = c3d.ActionPoint.CurveCurveIntersection3D(after_extended, active_line, 10e-5);
                 if (count2 < 1) throw new Error();
@@ -418,8 +419,6 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const active_line_tmax = Math.min(...active_line_after_result);
                 const index2 = active_line_after_result.findIndex((value) => value === active_line_tmax);
                 const after_ext_t = after_extended_result[index2];
-
-                if (before_ext_t === undefined) throw new Error();
                 if (after_ext_t === undefined) throw new Error();
 
                 if (beforeIsAfter) {
@@ -466,6 +465,38 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const after_ext_p = after_extended.GetLimitPoint(1);
 
                 const before_extended = before.Trimmed(before_tmin, before_ext_t, 1)!;
+                const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
+                return { before_extended, active_new, after_extended, radius: 0 };
+            }
+            case 'Arc3D:Polyline3D:Line3D': {
+                const normal = active_tangent_begin.clone().cross(before_tangent_end).cross(active_tangent_begin).normalize();
+                normal.multiplyScalar(distance);
+
+                const active_line = new c3d.Line3D(point2point(before_pmax), point2point(after_pmin));
+                active_line.Move(vec2vec(normal));
+
+                const before_extended = before.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
+                before_extended.MakeTrimmed(0, 2 * Math.PI);
+
+                const after_line = new c3d.Line3D(point2point(after_pmin), after.GetLimitPoint(2));
+
+                const { count: count1, result1: before_extended_result, result2: active_line_before_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_extended, active_line, 10e-5);
+                if (count1 < 1) throw new Error();
+                const active_line_tmin = Math.max(...active_line_before_result);
+                const index1 = active_line_before_result.findIndex((value) => value === active_line_tmin);
+                const before_ext_t = before_extended_result[index1];
+                if (before_ext_t === undefined) throw new Error();
+                before_extended.MakeTrimmed(before_tmin, before_ext_t);
+
+                const { result1: after_extended_result, count: count2 } = c3d.ActionPoint.CurveCurveIntersection3D(after_line, active_line, 1e-6);
+                if (count2 < 1) throw new ValidationError();
+                const after_line_t = Math.max(...after_extended_result);
+                const after_ext_p = after_line.PointOn(after_line_t);
+                const { t: after_ext_t } = after.NearPointProjection(after_ext_p, true)!;
+                const after_extended = after.Trimmed(after_ext_t, after_tmax, 1)!;
+
+                const before_ext_p = before_extended.GetLimitPoint(2);
+
                 const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
                 return { before_extended, active_new, after_extended, radius: 0 };
             }

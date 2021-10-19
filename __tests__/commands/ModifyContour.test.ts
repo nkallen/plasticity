@@ -794,8 +794,25 @@ describe('Line:Arc:Line', () => {
         bbox.setFromObject(result);
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.25, 0));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.5, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+    })
+
+    it('allows offsetting the second line', async () => {
+        modifyContour.contour = contour;
+        modifyContour.distance = 0.5;
+        modifyContour.segment = 2;
+        const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(3);
+        expect(model.IsClosed()).toBe(false);
+
+        bbox.setFromObject(result);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.25, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.5, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
     })
 })
 
