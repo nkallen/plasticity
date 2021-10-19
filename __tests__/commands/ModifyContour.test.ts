@@ -726,3 +726,51 @@ describe('A half moon (Arc:Line[closed])', () => {
 
     })
 })
+
+describe('A half moon in the other direction (Line:Arc[closed])', () => {
+    beforeEach(async () => {
+        const makeLine1 = new LineFactory(db, materials, signals);
+        makeLine1.p1 = new THREE.Vector3(1, 0, 0);
+        makeLine1.p2 = new THREE.Vector3(-1, 0, 0);
+        const line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeArc1 = new CenterPointArcFactory(db, materials, signals);
+        makeArc1.center = new THREE.Vector3();
+        makeArc1.p2 = new THREE.Vector3(-1, 0, 0);
+        makeArc1.p3 = new THREE.Vector3(1, 0, 0);
+        const arc1 = await makeArc1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeContour = new JoinCurvesFactory(db, materials, signals);
+        makeContour.push(line1);
+        makeContour.push(arc1);
+        const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
+        contour = contours[0];
+
+        bbox.setFromObject(contour);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+
+        const model = inst2curve(db.lookup(contour)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(2);
+    });
+
+    it('allows offsetting the line', async () => {
+        modifyContour.contour = contour;
+        modifyContour.distance = 0.5;
+        modifyContour.segment = 0;
+        const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+        expect(model.GetSegmentsCount()).toBe(2);
+        expect(model.IsClosed()).toBe(true);
+
+        bbox.setFromObject(result);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.25, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -0.5, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+
+    })
+})

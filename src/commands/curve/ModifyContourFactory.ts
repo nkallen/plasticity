@@ -223,7 +223,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
         const segments = contour.GetSegments();
 
-        const { radiusBefore, radiusAfter } = info;
+        const { radiusBefore, radiusAfter, beforeIsAfter } = info;
         const { before_extended, active_new, after_extended, radius } = this.process(info);
 
         const outContour = new c3d.Contour3D();
@@ -238,7 +238,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
             if (index > 0) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
             if (active_new) outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
-            if (!isAtEndOfClosedContour) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+            if (!isAtEndOfClosedContour && !beforeIsAfter) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
             let start = index + 2;
             if (radiusAfter > 0) start++;
