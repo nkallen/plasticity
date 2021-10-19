@@ -435,6 +435,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
+            case 'Polyline3D:Polyline3D:Arc3D':
             case 'Line3D:Polyline3D:Arc3D': {
                 const normal = active_tangent_end.clone().cross(after_tangent_begin).cross(active_tangent_end).normalize();
                 normal.multiplyScalar(distance);
@@ -468,6 +469,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
+            case 'Arc3D:Polyline3D:Polyline3D':
             case 'Arc3D:Polyline3D:Line3D': {
                 const normal = active_tangent_begin.clone().cross(before_tangent_end).cross(active_tangent_begin).normalize();
                 normal.multiplyScalar(distance);
