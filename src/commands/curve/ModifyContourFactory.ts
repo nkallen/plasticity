@@ -30,6 +30,7 @@ interface Info {
     after_tmin: number,
     radiusBefore: number,
     radiusAfter: number,
+    beforeIsAfter: boolean;
 }
 
 interface Offset {
@@ -211,7 +212,8 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
         }
 
-        this.info = { before, active, after, before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_tmax, after_tmin, before_pmax, after_pmin, before_tmin, after_tmax, radiusBefore, radiusAfter };
+        const beforeIsAfter = segments.length === 2 && contour.IsClosed();
+        this.info = { before, active, after, before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_tmax, after_tmin, before_pmax, after_pmin, before_tmin, after_tmax, radiusBefore, radiusAfter, beforeIsAfter };
     }
 
     async calculateOffset() {
@@ -228,7 +230,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         RebuildContour: {
             let isAtEndOfClosedContour = index === segments.length - 1 && contour.IsClosed();
             isAtEndOfClosedContour ||= index === segments.length - 2 && radiusAfter > 0 && contour.IsClosed();
-            if (isAtEndOfClosedContour) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+            if (isAtEndOfClosedContour && segments.length > 2) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
             for (let i = 0 + (isAtEndOfClosedContour ? 1 : 0); i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
                 outContour.AddCurveWithRuledCheck(segments[i], 1e-6, true);
@@ -284,7 +286,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
     }
 
     private process(info: Info): Offset {
-        const { before, active, after, active_tangent_begin, active_tangent_end, before_tmin, after_tmax, after_tmin, before_tmax } = info;
+        const { before, active, after, active_tangent_begin, active_tangent_end, before_tmin, after_tmax, beforeIsAfter } = info;
 
         const before_tangent_end = info.before_tangent_end.clone();
         const after_tangent_begin = info.after_tangent_begin.clone();
@@ -344,7 +346,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const before_extended = before.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
                 before_extended.MakeTrimmed(0, 2 * Math.PI);
 
-                const after_extended = after.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
+                let after_extended = after.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
                 after_extended.MakeTrimmed(0, 2 * Math.PI);
 
                 const { count: count1, result1: before_extended_result, result2: active_line_before_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_extended, active_line, 10e-5);
@@ -364,8 +366,13 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 if (before_ext_t === undefined) throw new Error();
                 if (after_ext_t === undefined) throw new Error();
 
-                before_extended.MakeTrimmed(before_tmin, before_ext_t);
-                after_extended.MakeTrimmed(after_ext_t, after_tmax);
+                if (beforeIsAfter) {
+                    before_extended.MakeTrimmed(before_ext_t, after_ext_t);
+                    after_extended = before_extended;
+                } else {
+                    before_extended.MakeTrimmed(before_tmin, before_ext_t);
+                    after_extended.MakeTrimmed(after_ext_t, after_tmax);
+                }
 
                 const before_ext_p = before_extended.GetLimitPoint(2);
                 const after_ext_p = after_extended.GetLimitPoint(1);
