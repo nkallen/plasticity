@@ -76,6 +76,10 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const after_tmax = after.GetTMax();
                 const after_tangent_begin = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
                 const after_tangent_end = vec2vec(after.Tangent(after_tmax), 1).multiplyScalar(-1);
+                if (i + 1 >= segments.length) {
+                    after_tangent_begin.multiplyScalar(-1);
+                    after_tangent_end.multiplyScalar(-1);
+                }
                 normal.crossVectors(active_tangent_end, after_tangent_begin);
                 if (normal.manhattanLength() < 10e-5) normal.crossVectors(active_tangent_end, after_tangent_end);
 
@@ -190,25 +194,25 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const start = active.GetLimitPoint(1);
                 const normal = active_tangent_end.clone().cross(after_tangent_begin).cross(active_tangent_end).normalize();
                 const offset = point2point(start).sub(normal);
-                before = new c3d.Polyline3D([point2point(offset), start], false);
+                before = new c3d.Line3D(point2point(offset), start);
                 before_tmin = before.GetTMin();
-                before_tmax = before.GetTMax();
+                before_tmax = before.NearPointProjection(start, false).t;
                 before_tangent_begin = vec2vec(before.Tangent(before_tmin), 1);
-                before_tangent_end = vec2vec(before.Tangent(before_tmax), 1);
+                before_tangent_end = before_tangent_begin;
 
-                before_pmax = point2point(before.GetLimitPoint(2));
+                before_pmax = point2point(start);
             }
 
             if (index === segments.length - 1 && !contour.IsClosed()) {
                 const end = active.GetLimitPoint(2);
                 const normal = active_tangent_begin.clone().cross(before_tangent_end).cross(active_tangent_begin);
                 const offset = point2point(end).sub(normal);
-                after = new c3d.Polyline3D([end, point2point(offset)], false);
-                after_tmin = after.GetTMin();
+                after = new c3d.Line3D(end, point2point(offset));
+                after_tmin = after.NearPointProjection(end, false).t;
                 after_tmax = after.GetTMax();
                 after_tangent_begin = vec2vec(after.Tangent(after_tmin), 1).multiplyScalar(-1);
-                after_tangent_end = vec2vec(after.Tangent(after_tmax), 1).multiplyScalar(-1);
-                after_pmin = point2point(after.GetLimitPoint(1));
+                after_tangent_end = after_tangent_begin;
+                after_pmin = point2point(end);
             }
         }
 
@@ -229,8 +233,12 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         const outContour = new c3d.Contour3D();
         RebuildContour: {
             try {
-                let isAtEndOfClosedContour = index === segments.length - 1 && contour.IsClosed();
-                isAtEndOfClosedContour ||= index === segments.length - 2 && radiusAfter > 0 && contour.IsClosed();
+                const isAtEnd = index === segments.length - 1;
+                let isAtEndOfClosedContour = isAtEnd;
+                isAtEndOfClosedContour ||= index === segments.length - 2 && radiusAfter > 0;
+                isAtEndOfClosedContour &&= contour.IsClosed();
+                const isAtEndOfOpenContour = isAtEnd && !contour.IsClosed();
+
                 if (isAtEndOfClosedContour && segments.length > 2) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
                 for (let i = 0 + (isAtEndOfClosedContour ? 1 : 0); i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
@@ -239,12 +247,12 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
                 if (index > 0) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
                 if (active_new) outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
-                if (!isAtEndOfClosedContour && !beforeIsAfter) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
+                if (!isAtEndOfClosedContour && !isAtEndOfOpenContour && !beforeIsAfter) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
 
                 let start = index + 2;
                 if (radiusAfter > 0) start++;
                 let end = segments.length;
-                if (index === 0) end--;
+                if (index === 0 && contour.IsClosed()) end--;
                 if (index === 0 && radiusBefore > 0) end--;
                 for (let i = start; i < end; i++) {
                     // AddCurveWithRuledCheck sometimes modifies the original curve, so duplicate:
@@ -254,9 +262,10 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const isAtBeginningOfClosedContour = index === 0 && contour.IsClosed();
                 if (isAtBeginningOfClosedContour) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
             } catch (e) {
+                // In tests, fail fast. In production, show the intermediate results so I can debug.
+                if (process.env.JEST_WORKER_ID) throw e;
                 console.warn(e);
                 return [before_extended, active_new, after_extended].map(c => c && new c3d.SpaceInstance(c)).filter(x => !!x) as c3d.SpaceInstance[];
-                throw e;
             }
         }
 
@@ -303,6 +312,8 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         const pattern = `${c3d.SpaceType[before.GetBasisCurve().IsA()]}:${c3d.SpaceType[active.GetBasisCurve().IsA()]}:${c3d.SpaceType[after.GetBasisCurve().IsA()]}`;
 
         switch (pattern) {
+            case 'Line3D:Polyline3D:Polyline3D':
+            case 'Polyline3D:Polyline3D:Line3D': //
             case 'Polyline3D:Polyline3D:Polyline3D': {
                 const beta = active_tangent_end.angleTo(after_tangent_begin);
                 const gamma = active_tangent_begin.angleTo(before_tangent_end.multiplyScalar(-1));
@@ -321,6 +332,8 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
+            case 'Line3D:Arc3D:Polyline3D':
+            case 'Polyline3D:Arc3D:Line3D':
             case 'Polyline3D:Arc3D:Polyline3D': {
                 const arc = active as c3d.Arc3D;
                 const existingRadius = arc.GetRadius();
@@ -361,8 +374,8 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
                     const index1 = before_extended_result.findIndex(v => v === before_line_t);
                     const index2 = after_extended_result.findIndex(v => v === after_line_t);
-                    const active_new_tmin = active_new_before_result[index1];
-                    const active_new_tmax = active_new_after_result[index2];
+                    const active_new_tmin = before.IsA() === c3d.SpaceType.Line3D ? arc.GetTrim1() : active_new_before_result[index1];
+                    const active_new_tmax = after.IsA() === c3d.SpaceType.Line3D ? arc.GetTrim2() : active_new_after_result[index2];
 
                     let before_extended, after_extended;
                     if (beforeIsAfter) {

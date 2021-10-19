@@ -151,10 +151,12 @@ export function isSmoothlyConnected(before: c3d.Curve3D, active: c3d.Curve3D, af
     const active_tangent_begin = vec2vec(active.Tangent(active.GetTMin()), 1);
     const before_tangent_end = vec2vec(before.Tangent(before.GetTMax()), 1);
     const active_tangent_end = vec2vec(active.Tangent(active.GetTMax()), 1);
-    const smooth1 = Math.abs(1 - Math.abs(before_tangent_end.dot(active_tangent_begin))) < 10e-5;
+    let smooth1 = Math.abs(1 - Math.abs(before_tangent_end.dot(active_tangent_begin))) < 10e-5;
+    smooth1 &&= point2point(before.GetLimitPoint(2)).manhattanDistanceTo(point2point(active.GetLimitPoint(1))) < 10e-3;
     if (after === undefined) return smooth1;
 
     const after_tangent_begin = vec2vec(after.Tangent(after.GetTMin()), 1);
-    const smooth2 = Math.abs(1 - Math.abs(active_tangent_end.dot(after_tangent_begin))) < 10e-5;
+    let smooth2 = Math.abs(1 - Math.abs(active_tangent_end.dot(after_tangent_begin))) < 10e-5;
+    smooth2 &&= point2point(active.GetLimitPoint(2)).manhattanDistanceTo(point2point(after.GetLimitPoint(1))) < 10e-3;
     return smooth1 && smooth2;
 }

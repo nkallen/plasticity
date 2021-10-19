@@ -999,6 +999,8 @@ export default {
                 "double GetAngle()",
                 "void SetAngle(double ang)",
                 "bool MakeTrimmed(double t1, double t2)",
+                "double GetTrim1()",
+                "double GetTrim2()",
             ]
         },
         PolyCurve3D: {
