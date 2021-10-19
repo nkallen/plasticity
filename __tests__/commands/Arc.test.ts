@@ -28,7 +28,7 @@ describe(CenterPointArcFactory, () => {
         makeArc.center = new THREE.Vector3();
         makeArc.p2 = new THREE.Vector3(-1, 0, 0);
         makeArc.p3 = new THREE.Vector3(0, 1, 0);
-        const item = await makeArc.commit() as visual.Item;
+        const item = await makeArc.commit() as visual.SpaceInstance<visual.Curve3D>;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);

@@ -146,3 +146,15 @@ export function isSamePlacement(placement1: c3d.Placement3D, placement2: c3d.Pla
 
     return Z.Colinear(placement2.GetAxisZ()) && ZdotOffset < 10e-4;
 }
+
+export function isSmoothlyConnected(before: c3d.Curve3D, active: c3d.Curve3D, after?: c3d.Curve3D): boolean {
+    const active_tangent_begin = vec2vec(active.Tangent(active.GetTMin()), 1);
+    const before_tangent_end = vec2vec(before.Tangent(before.GetTMax()), 1);
+    const active_tangent_end = vec2vec(active.Tangent(active.GetTMax()), 1);
+    const smooth1 = Math.abs(1 - Math.abs(before_tangent_end.dot(active_tangent_begin))) < 10e-5;
+    if (after === undefined) return smooth1;
+
+    const after_tangent_begin = vec2vec(after.Tangent(after.GetTMin()), 1);
+    const smooth2 = Math.abs(1 - Math.abs(active_tangent_end.dot(after_tangent_begin))) < 10e-5;
+    return smooth1 && smooth2;
+}

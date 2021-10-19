@@ -29,7 +29,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
     set enabled(enabled: boolean) {
         this._enabled = enabled;
         if (!enabled) {
-            this.processHover([]);
+            this.clearHoverState();
             switch (this.state.tag) {
                 case 'none': break;
                 case 'down':
@@ -175,6 +175,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
 
     protected abstract processClick(intersects: intersectable.Intersection[]): void;
     protected abstract processHover(intersects: intersectable.Intersection[]): void;
+    clearHoverState() { this.processHover([]) }
 
     private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
         screen2normalized(screenPoint, this.normalizedMousePosition);

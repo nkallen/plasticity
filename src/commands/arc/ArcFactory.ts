@@ -2,7 +2,7 @@ import { point2point, vec2vec } from "../../util/Conversion";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from "../../editor/snaps/Snap";
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export class CenterPointArcFactory extends GeometryFactory {
     center!: THREE.Vector3;
@@ -43,7 +43,7 @@ export class CenterPointArcFactory extends GeometryFactory {
         }
         this.lastQuadrant = quadrant;
 
-        if (cross.manhattanLength() < 10e-6) throw new Error("invalid");
+        // if (cross.manhattanLength() < 10e-6) throw new ValidationError();
 
         const Z = vec2vec(n, 1);
         const circle = new c3d.Arc3D(point2point(center), point2point(p2), point2point(p3), Z, this.sense ? 1 : -1);

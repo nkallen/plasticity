@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { curve3d2curve2d, deunit, point2point, unit, vec2vec } from '../../util/Conversion';
+import { deunit, isSmoothlyConnected, point2point, unit, vec2vec } from '../../util/Conversion';
 import { NoOpError, ValidationError } from '../GeometryFactory';
 import { ContourFactory, CornerAngle, SegmentAngle } from "./ContourFilletFactory";
 
@@ -25,7 +25,9 @@ interface Info {
     before_pmax: THREE.Vector3,
     after_pmin: THREE.Vector3,
     before_tmin: number,
+    before_tmax: number,
     after_tmax: number,
+    after_tmin: number,
     radiusBefore: number,
     radiusAfter: number,
 }
@@ -119,7 +121,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         let radiusBefore = 0;
         let radiusAfter = 0;
 
-        if (before instanceof c3d.Arc3D) {
+        if (before instanceof c3d.Arc3D && isSmoothlyConnected(before, active)) {
             radiusBefore = deunit(before.GetRadius());
 
             const before_before = segments[(index - 2 + segments.length) % segments.length];
@@ -128,9 +130,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             const before_before_tmax = before_before.GetTMax();
             const before_before_tangent_begin = vec2vec(before_before.Tangent(before_before_tmin), 1);
             const before_before_tangent_end = vec2vec(before_before.Tangent(before_before_tmax), 1);
-            const smooth1 = Math.abs(1 - before_before_tangent_begin.dot(before_tangent_begin)) < 10e-5;
-            const smooth2 = Math.abs(1 - before_tangent_end.dot(active_tangent_begin)) < 10e-5;
-            if (smooth1 && smooth2) {
+            if (isSmoothlyConnected(before_before, before, active)) {
                 before = before_before.Cast<c3d.Curve3D>(before_before.IsA());
                 before_tmin = before_before_tmin;
                 const before_before_pmax = before.GetLimitPoint(2);
@@ -152,7 +152,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
         }
 
-        if (after instanceof c3d.Arc3D) {
+        if (after instanceof c3d.Arc3D && isSmoothlyConnected(active, after)) {
             radiusAfter = deunit(after.GetRadius());
 
             const after_after = segments[(index + 2) % segments.length];
@@ -162,9 +162,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
 
             const after_after_tangent_begin = vec2vec(after_after.Tangent(after_after_tmin), 1).multiplyScalar(-1);
             const after_after_tangent_end = vec2vec(after_after.Tangent(after_after_tmax), 1).multiplyScalar(-1);
-            const smooth1 = Math.abs(1 - Math.abs(after_after_tangent_begin.dot(after_tangent_end))) < 10e-5;
-            const smooth2 = Math.abs(1 - Math.abs(after_tangent_begin.dot(active_tangent_end))) < 10e-5;
-            if (smooth1 && smooth2) {
+            if (isSmoothlyConnected(active, after, after_after)) {
                 after = after_after.Cast<c3d.Curve3D>(after_after.IsA());
                 after_tmax = after_after_tmax;
                 const after_after_pmin = after.GetLimitPoint(1);
@@ -213,7 +211,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
         }
 
-        this.info = { before, active, after, before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_pmax, after_pmin, before_tmin, after_tmax, radiusBefore, radiusAfter };
+        this.info = { before, active, after, before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_tmax, after_tmin, before_pmax, after_pmin, before_tmin, after_tmax, radiusBefore, radiusAfter };
     }
 
     async calculateOffset() {
@@ -286,7 +284,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
     }
 
     private process(info: Info): Offset {
-        const { before, active, after, active_tangent_begin, active_tangent_end, before_tmin, after_tmax } = info;
+        const { before, active, after, active_tangent_begin, active_tangent_end, before_tmin, after_tmax, after_tmin, before_tmax } = info;
 
         const before_tangent_end = info.before_tangent_end.clone();
         const after_tangent_begin = info.after_tangent_begin.clone();
@@ -316,23 +314,66 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
             case 'Polyline3D:Arc3D:Polyline3D': {
-                const existingRadius = (active as c3d.Arc3D).GetRadius();
-                const radius = deunit(existingRadius) + distance / 2;
-                const before_line = new c3d.Line3D(point2point(before_pmax), point2point(before_pmax.clone().add(before_tangent_end)));
-                const after_line = new c3d.Line3D(point2point(after_pmin), point2point(after_pmin.clone().add(after_tangent_begin)));
-                const { result1, count } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, after_line, 1e-6);
-                if (count !== 1) throw new ValidationError();
+                if (isSmoothlyConnected(before, active, after)) {
+                    const existingRadius = (active as c3d.Arc3D).GetRadius();
+                    const radius = deunit(existingRadius) + distance / 2;
+                    const before_line = new c3d.Line3D(point2point(before_pmax), point2point(before_pmax.clone().add(before_tangent_end)));
+                    const after_line = new c3d.Line3D(point2point(after_pmin), point2point(after_pmin.clone().add(after_tangent_begin)));
+                    const { result1, count } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, after_line, 1e-6);
+                    if (count !== 1) throw new ValidationError();
 
-                const intersection = before_line.PointOn(result1[0]);
-                const { t: before_ext_t } = before.NearPointProjection(intersection, true);
-                const { t: after_ext_t } = after.NearPointProjection(intersection, true);
+                    const intersection = before_line.PointOn(result1[0]);
+                    const { t: before_ext_t } = before.NearPointProjection(intersection, true);
+                    const { t: after_ext_t } = after.NearPointProjection(intersection, true);
 
-                const before_extended = before.Trimmed(before_tmin, before_ext_t, 1)!;
-                const after_extended = after.Trimmed(after_ext_t, after_tmax, 1)!;
-                return { before_extended, active_new: undefined, after_extended, radius };
+                    const before_extended = before.Trimmed(before_tmin, before_ext_t, 1)!;
+                    const after_extended = after.Trimmed(after_ext_t, after_tmax, 1)!;
+                    return { before_extended, active_new: undefined, after_extended, radius };
+                } else {
+                    // FIXME
+                    throw new Error("Not implemented");
+                }
+            }
+            case 'Arc3D:Polyline3D:Arc3D': {
+                const normal = active_tangent_begin.clone().cross(before_tangent_end).cross(active_tangent_begin).normalize();
+                normal.multiplyScalar(distance);
+
+                const active_line = new c3d.Line3D(point2point(before_pmax), point2point(after_pmin));
+                active_line.Move(vec2vec(normal));
+
+                const before_extended = before.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
+                before_extended.MakeTrimmed(0, 2 * Math.PI);
+
+                const after_extended = after.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
+                after_extended.MakeTrimmed(0, 2 * Math.PI);
+
+                const { count: count1, result1: before_extended_result, result2: active_line_before_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_extended, active_line, 10e-5);
+                if (count1 < 1) throw new Error();
+
+                const active_line_tmin = Math.max(...active_line_before_result);
+                const index1 = active_line_before_result.findIndex((value) => value === active_line_tmin);
+                const before_ext_t = before_extended_result[index1];
+
+                const { count: count2, result1: after_extended_result, result2: active_line_after_result } = c3d.ActionPoint.CurveCurveIntersection3D(after_extended, active_line, 10e-5);
+                if (count2 < 1) throw new Error();
+
+                const active_line_tmax = Math.min(...active_line_after_result);
+                const index2 = active_line_after_result.findIndex((value) => value === active_line_tmax);
+                const after_ext_t = after_extended_result[index2];
+
+                if (before_ext_t === undefined) throw new Error();
+                if (after_ext_t === undefined) throw new Error();
+
+                before_extended.MakeTrimmed(before_tmin, before_ext_t);
+                after_extended.MakeTrimmed(after_ext_t, after_tmax);
+
+                const before_ext_p = before_extended.GetLimitPoint(2);
+                const after_ext_p = after_extended.GetLimitPoint(1);
+
+                const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
+                return { before_extended, active_new, after_extended, radius: 0 };
             }
             default: throw new Error(pattern);
-
         }
     }
 }
