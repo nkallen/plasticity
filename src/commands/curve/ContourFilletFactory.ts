@@ -29,6 +29,11 @@ export interface SegmentAngle {
     normal: THREE.Vector3;
 }
 
+export interface ControlPointInfo {
+    index: number;
+    origin: THREE.Vector3;
+}
+
 export abstract class ContourFactory extends GeometryFactory {
     radiuses!: number[];
 
@@ -83,6 +88,7 @@ export abstract class ContourFactory extends GeometryFactory {
     }
 
     private _controlPoints: visual.ControlPoint[] = [];
+    get controlPoints() { return this._controlPoints }
     set controlPoints(controlPoints: visual.ControlPoint[]) {
         this._controlPoints = controlPoints;
     }
@@ -96,12 +102,12 @@ export abstract class ContourFactory extends GeometryFactory {
         for (let i = 1, l = segmentCount; i < l; i++) {
             try {
                 const info = contour.GetCornerAngle(i);
-                allCorners.set(i, this.info2info(i - 1, info));
+                allCorners.set(i, this.convertCornerAngleInfo(i - 1, info));
             } catch (e) { }
         }
         if (contour.IsClosed()) {
             try {
-                const start = this.info2info(segmentCount - 1, contour.GetCornerAngle(segmentCount));
+                const start = this.convertCornerAngleInfo(segmentCount - 1, contour.GetCornerAngle(segmentCount));
                 allCorners.set(0, start);
             } catch (e) { }
         }
@@ -119,7 +125,7 @@ export abstract class ContourFactory extends GeometryFactory {
         }
     }
 
-    private info2info(index: number, info: ReturnType<c3d.Contour3D["GetCornerAngle"]>) {
+    private convertCornerAngleInfo(index: number, info: ReturnType<c3d.Contour3D["GetCornerAngle"]>) {
         return {
             index,
             origin: point2point(info.origin),

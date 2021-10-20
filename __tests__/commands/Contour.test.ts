@@ -227,8 +227,6 @@ describe(Polyline2ContourFactory, () => {
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
-
-            expect(db.visibleObjects.length).toBe(1);
         })
     });
 
@@ -253,8 +251,6 @@ describe(Polyline2ContourFactory, () => {
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
-
-            expect(db.visibleObjects.length).toBe(1);
         })
     });
 });

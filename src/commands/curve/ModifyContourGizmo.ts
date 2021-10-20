@@ -4,26 +4,34 @@ import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
+import { CircleMoveGizmo } from "../translate/MoveGizmo";
 import { ModifyContourParams } from "./ModifyContourFactory";
 
 const Y = new THREE.Vector3(0, 1, 0);
 
 export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
-    private readonly segments: ExtrudeLikeGizmo[] = [];
-    private readonly corners: MagnitudeGizmo[] = [];
+    private readonly segments: PushCurveGizmo[] = [];
+    private readonly corners: FilletCornerGizmo[] = [];
+    private readonly controlPoints: ControlPointGizmo[] = [];
 
     constructor(params: ModifyContourParams, editor: EditorLike) {
         super(params, editor);
 
         for (const segment of params.segmentAngles) {
-            const gizmo = new ExtrudeLikeGizmo("fillet-curve:radius", this.editor);
+            const gizmo = new PushCurveGizmo("fillet-curve:radius", this.editor);
             this.segments.push(gizmo);
         }
 
         for (const corner of params.cornerAngles) {
-            const gizmo = new MagnitudeGizmo("fillet-curve:radius", this.editor);
+            const gizmo = new FilletCornerGizmo("fillet-curve:radius", this.editor);
             gizmo.userData.index = corner.index;
             this.corners.push(gizmo);
+        }
+
+        for (const point of params.foo) {
+            const gizmo = new ControlPointGizmo("fillet-curve:radius", this.editor);
+            gizmo.userData.index = point.index;
+            this.controlPoints.push(gizmo);
         }
     }
 
@@ -49,13 +57,19 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             gizmo.position.copy(corner.origin);
         }
 
+        for (const [i, controlPoint] of params.foo.entries()) {
+            const gizmo = this.controlPoints[i];
+            gizmo.relativeScale.setScalar(0.2);
+            gizmo.position.copy(controlPoint.origin);
+        }
+
         for (const segment of segments) this.add(segment);
         for (const corner of corners) this.add(corner);
-
+        for (const cp of this.controlPoints) this.add(cp);
     }
 
     execute(cb: (params: ModifyContourParams) => void, mode: Mode = Mode.None): CancellablePromise<void> {
-        const { segments, params, corners } = this;
+        const { segments, params, corners, controlPoints } = this;
 
         for (const [i, segment] of segments.entries()) {
             this.addGizmo(segment, d => {
@@ -72,13 +86,22 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             });
         }
 
+        for (const controlPoint of controlPoints) {
+            this.addGizmo(controlPoint, d => {
+                params.mode = 'change-point';
+                params.controlPoint = controlPoint.userData.index;
+                params.move = d;
+                console.log(d);
+            });
+        }
+
         return super.execute(cb, mode);
     }
 
     get shouldRescaleOnZoom() { return false }
 }
 
-class ExtrudeLikeGizmo extends AbstractAxisGizmo {
+class PushCurveGizmo extends AbstractAxisGizmo {
     readonly state = new MagnitudeStateMachine(0, false);
     protected material = this.editor.gizmos.default;
     readonly helper = new AxisHelper(this.material.line);
@@ -101,7 +124,7 @@ class ExtrudeLikeGizmo extends AbstractAxisGizmo {
     get shouldRescaleOnZoom() { return true }
 }
 
-export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
+export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
     handleLength = -0.35;
     readonly state = new MagnitudeStateMachine(0);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);
@@ -117,6 +140,12 @@ export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
         if (original === 0) return Math.max(0, dist - denom);
         else return (original + ((dist - denom) * original) / denom);
     }
+
+    get shouldRescaleOnZoom() { return true }
+}
+
+export class ControlPointGizmo extends CircleMoveGizmo {
+
 
     get shouldRescaleOnZoom() { return true }
 }
