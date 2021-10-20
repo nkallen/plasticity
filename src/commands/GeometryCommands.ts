@@ -1467,7 +1467,7 @@ export class FilletCurveCommand extends Command {
     }
 }
 
-export class ModifyCurveCommand extends Command {
+export class ModifyContourCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
         let curve = selected.curves.first;

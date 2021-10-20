@@ -10,6 +10,7 @@ import { ModifyContourParams } from "./ModifyContourFactory";
 const Y = new THREE.Vector3(0, 1, 0);
 
 export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
+    private readonly filletAll = new FilletCornerGizmo("modify-contour:fillet-all", this.editor);
     private readonly segments: PushCurveGizmo[] = [];
     private readonly corners: FilletCornerGizmo[] = [];
     private readonly controlPoints: ControlPointGizmo[] = [];
@@ -18,12 +19,12 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         super(params, editor);
 
         for (const segment of params.segmentAngles) {
-            const gizmo = new PushCurveGizmo("fillet-curve:radius", this.editor);
+            const gizmo = new PushCurveGizmo("modify-contour:segment", this.editor);
             this.segments.push(gizmo);
         }
 
         for (const corner of params.cornerAngles) {
-            const gizmo = new FilletCornerGizmo("fillet-curve:radius", this.editor);
+            const gizmo = new FilletCornerGizmo("modify-contour:fillet", this.editor);
             gizmo.userData.index = corner.index;
             this.corners.push(gizmo);
         }
@@ -36,7 +37,9 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
     }
 
     prepare() {
-        const { segments, corners, params } = this;
+        const { filletAll, segments, corners, params } = this;
+
+        filletAll.visible = false;
 
         for (const segment of segments) segment.relativeScale.setScalar(0.8);
 
@@ -63,25 +66,38 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         //     gizmo.position.copy(controlPoint.origin);
         // }
 
+        this.add(filletAll);
         for (const segment of segments) this.add(segment);
         for (const corner of corners) this.add(corner);
         // for (const cp of this.controlPoints) this.add(cp);
     }
 
-    execute(cb: (params: ModifyContourParams) => void, mode: Mode = Mode.None): CancellablePromise<void> {
-        const { segments, params, corners, controlPoints } = this;
+    execute(cb: (params: ModifyContourParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
+        const { filletAll, segments, params, corners, controlPoints } = this;
 
         for (const [i, segment] of segments.entries()) {
             this.addGizmo(segment, d => {
+                this.disableCorners();
+                this.disableSegments(segment);
                 params.mode = 'offset';
                 params.segment = i;
                 params.distance = d;
             });
         }
 
+        this.addGizmo(filletAll, d => {
+            params.mode = 'fillet';
+            this.disableSegments();
+            for (const [i, corner] of params.cornerAngles.entries()) {
+                params.radiuses[corner.index] = d;
+                corners[i].value = d;
+            }
+        });
+
         for (const corner of corners) {
             this.addGizmo(corner, d => {
                 params.mode = 'fillet';
+                this.disableSegments();
                 params.radiuses[corner.userData.index] = d;
             });
         }
@@ -96,6 +112,22 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         // }
 
         return super.execute(cb, mode);
+    }
+
+    private disableSegments(except?: PushCurveGizmo) {
+        for (const segment of this.segments) {
+            if (segment === except) continue;
+            segment.stateMachine!.isEnabled = false;
+            segment.visible = false;
+        }
+    }
+
+    private disableCorners() {
+        this.filletAll.stateMachine!.isEnabled = false;
+        for (const corners of this.corners) {
+            corners.stateMachine!.isEnabled = false;
+            corners.visible = false;
+        }
     }
 
     get shouldRescaleOnZoom() { return false }
@@ -137,8 +169,7 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
     }
 
     protected accumulate(original: number, dist: number, denom: number, sign: number = 1): number {
-        if (original === 0) return Math.max(0, dist - denom);
-        else return (original + ((dist - denom) * original) / denom);
+        return Math.max(0, sign*(original + dist - denom))
     }
 
     get shouldRescaleOnZoom() { return true }

@@ -56,7 +56,7 @@ export class Model {
             result.push(cmd.FilletCurveCommand);
             result.push(cmd.MultilineCommand);
             result.push(cmd.OffsetCurveCommand);
-            result.push(cmd.ModifyCurveCommand);
+            result.push(cmd.ModifyContourCommand);
         }
         if (selection.curves.size > 1) {
             result.push(cmd.LoftCommand);

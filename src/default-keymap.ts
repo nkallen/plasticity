@@ -96,8 +96,8 @@ export default {
         "a": "gizmo:fillet-solid:angle",
     },
 
-    "[command='fillet-curve'] ispace-viewport": {
-        "d": "gizmo:fillet-curve:radius",
+    "[command='modify-contour'] ispace-viewport": {
+        "d": "gizmo:modify-contour:fillet-all",
     },
 
     "[command='rotate'] ispace-viewport, [command='draft-solid'] ispace-viewport": {

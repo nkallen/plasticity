@@ -88,7 +88,7 @@ icons.set(cmd.BridgeCurvesCommand, mirror);
 icons.set(cmd.MultilineCommand, line);
 icons.set(cmd.ThinSolidCommand, line);
 icons.set(cmd.RevolutionCommand, line);
-icons.set(cmd.ModifyCurveCommand, changePoint);
+icons.set(cmd.ModifyContourCommand, changePoint);
 
 icons.set(c3d.ElementarySolid, box);
 icons.set(c3d.FilletSolid, fillet);
@@ -151,7 +151,7 @@ tooltips.set(cmd.BridgeCurvesCommand, "Bridge two curves");
 tooltips.set(cmd.MultilineCommand, "Add stroke to curve");
 tooltips.set(cmd.ThinSolidCommand, "Thin Solid");
 tooltips.set(cmd.RevolutionCommand, "Revolve");
-tooltips.set(cmd.ModifyCurveCommand, "ModifyCurve");
+tooltips.set(cmd.ModifyContourCommand, "ModifyCurve");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
@@ -226,7 +226,7 @@ keybindings.set("gizmo:symmetry:-y", "Negative Y");
 keybindings.set("gizmo:symmetry:-z", "Negative Z");
 keybindings.set("gizmo:rebuild:forward", "Go forward in history");
 keybindings.set("gizmo:rebuild:backward", "Go backward in history");
-keybindings.set("gizmo:fillet-curve:radius", "Fillet radius");
+keybindings.set("gizmo:modify-contour:fillet-all", "Fillet all");
 keybindings.set("gizmo:revolution:angle", "Revolution angle");
 keybindings.set("gizmo:revolution:thickness", "Revolution thickness");
 keybindings.set("gizmo:offset-curve:distance", "Offset distance");
