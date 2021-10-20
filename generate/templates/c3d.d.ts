@@ -15,7 +15,7 @@ declare module "*c3d.node" {
             <%_ } %>
             <%_ for (const func of c.nonInheritedFunctions.concat(c.implements)) { _%>
                 <%_ if (func.name == 'Cast') { _%>
-                    Cast<T extends this>(t: <%- c.enum %>): T;
+                    Cast<T extends PlaneItem | SpaceItem | MbCreator | TopologyItem>(t: number): T;
                 <%_ } else { _%>
                     <%- include('sync_function.d.ts', { func: func }) %>
                 <%_ } _%>

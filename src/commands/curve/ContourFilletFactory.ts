@@ -35,20 +35,32 @@ export abstract class ContourFactory extends GeometryFactory {
     async prepare(curve: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
         const { db } = this;
         const inst = db.lookup(curve);
-        const item = inst.GetSpaceItem()!;
-        switch (item.IsA()) {
-            case c3d.SpaceType.Polyline3D:
-                const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
-                polyline2contour.polyline = curve;
-                return polyline2contour.calculate();
-            case c3d.SpaceType.Contour3D:
-                return inst;
-            case c3d.SpaceType.Arc3D:
-                const contour = new c3d.Contour3D();
-                contour.AddCurveWithRuledCheck(item.Cast<c3d.Arc3D>(item.IsA()));
-                return new c3d.SpaceInstance(contour);
-            default: throw new Error("invalid precondition: " + c3d.SpaceType[item.IsA()]);
+        const item = inst.GetSpaceItem()! as c3d.Curve3D;
+        const result = new c3d.Contour3D();
+        const process: c3d.Curve3D[] = [item.Duplicate() as c3d.Curve3D];
+        while (process.length > 0) {
+            const item = process.pop()!;
+            switch (item.IsA()) {
+                case c3d.SpaceType.Polyline3D:
+                    const polyline = item.Cast<c3d.Polyline3D>(item.IsA()); // This should work but doesn't
+                    if (polyline.GetCount() === 1) result.AddCurveWithRuledCheck(polyline as c3d.Curve3D, 10e-5)
+                    else {
+                        const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
+                        polyline2contour.polyline = polyline;
+                        const inst = await polyline2contour.calculate();
+                        process.push(inst2curve(inst)!);
+                    }
+                    break;
+                case c3d.SpaceType.Contour3D:
+                    const decompose = (item instanceof c3d.Contour3D) ? item : item.Cast<c3d.Contour3D>(item.IsA());
+                    // const decompose = item.Cast<c3d.Contour3D>(item.IsA()); // This should work but doesn't // FIXME when there's time
+                    for (const segment of decompose.GetSegments()) process.push(segment);
+                    break;
+                default:
+                    result.AddCurveWithRuledCheck(item.Cast<c3d.Curve3D>(item.IsA()), 10e-5);
+            }
         }
+        return new c3d.SpaceInstance(result);
     }
 
     private _contour!: c3d.Contour3D;
@@ -134,14 +146,23 @@ export class ContourFilletFactory extends ContourFactory {
 }
 
 export class Polyline2ContourFactory extends GeometryFactory {
-    polyline!: visual.SpaceInstance<visual.Curve3D>;
+    private _polyline!: c3d.Polyline3D;
+    get polyline(): c3d.Polyline3D { return this._polyline }
+    set polyline(polyline: visual.SpaceInstance<visual.Curve3D> | c3d.Curve3D | c3d.Polyline3D) {
+        if (polyline instanceof visual.SpaceInstance) {
+            const inst = this.db.lookup(polyline);
+            const curve = inst2curve(inst);
+            this._polyline = curve as c3d.Polyline3D;
+        } else if (polyline instanceof c3d.Polyline3D) {
+            this._polyline = polyline
+        } else {
+            this._polyline = polyline.Cast<c3d.Polyline3D>(polyline.IsA());
+        }
+    }
 
     async calculate() {
         const { db, polyline } = this;
-        const inst = db.lookup(polyline);
-        const item = inst.GetSpaceItem()!;
-        const model = item.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
-        const points = model.GetPoints();
+        const points = polyline.GetPoints();
         if (points.length < 2) throw new Error("invalid precondition");
         let prev = points.shift()!;
         const start = prev;
@@ -154,7 +175,7 @@ export class Polyline2ContourFactory extends GeometryFactory {
             segments.push(segment);
             prev = curr;
         }
-        if (model.IsClosed()) {
+        if (polyline.IsClosed()) {
             const factory = new LineFactory(this.db, this.materials, this.signals);
             factory.p1 = point2point(prev);
             factory.p2 = point2point(start);
@@ -169,6 +190,4 @@ export class Polyline2ContourFactory extends GeometryFactory {
         const result = await makeContour.calculate();
         return result[0];
     }
-
-    get originalItem() { return this.polyline }
 }

@@ -39,7 +39,6 @@ export default {
         SpaceItem: {
             rawHeader: "space_item.h",
             extends: "RefItem",
-            enum: 'SpaceType',
             dependencies: ["RefItem.h", "RegDuplicate.h", "RegTransform.h", "Matrix3D.h", "Vector3D.h", "Axis3D.h", "Cube.h"],
             functions: [
                 "MbeSpaceType IsA()",
@@ -71,7 +70,6 @@ export default {
             rawHeader: "creator.h",
             extends: "RefItem",
             dependencies: ["RefItem.h", "ControlData3D.h", "SpaceItem.h", "SNameMaker.h", "FaceShell.h"],
-            enum: 'CreatorType',
             functions: [
                 "MbeCreatorType IsA()",
                 "MbeCreatorType Type()",
@@ -119,7 +117,6 @@ export default {
         },
         Item: {
             rawHeader: "model_item.h",
-            enum: "SpaceType",
             dependencies: ["ProgressIndicator.h", "Mesh.h", "StepData.h", "FormNote.h", "RegDuplicate.h", "AttributeContainer.h", "SpaceItem.h", "Transactions.h", "Creator.h", "ControlData3D.h"],
             extends: ["SpaceItem", "AttributeContainer", "Transactions"],
             functions: [
@@ -235,7 +232,6 @@ export default {
         },
         PlaneItem: {
             rawHeader: "plane_item.h",
-            enum: 'PlaneType',
             extends: "RefItem",
             dependencies: ["RefItem.h", "RegTransform.h", "Vector.h", "Surface.h", "Matrix.h"],
             functions: [
@@ -319,7 +315,7 @@ export default {
             extends: "SpaceItem",
             dependencies: ["SpaceItem.h", "Placement3D.h", "Curve.h", "_PlanarCheckParams.h", "Rect1D.h", "ControlData3D.h"],
             functions: [
-                { signature: "MbCurve3D * Cast()", isManual: true },
+                { signature: "MbItem * Cast()", isManual: true },
                 {
                     signature: "bool GetPlaneCurve(MbCurve *& curve2d, MbPlacement3D & placement, bool saveParams, PlanarCheckParams params = PlanarCheckParams())",
                     placement: isReturn,
@@ -395,7 +391,8 @@ export default {
                 { signature: "void GetSegments(RPArray<MbCurve3D> & segments)", segments: isReturn },
                 { signature: "void FindCorner(size_t index, MbCartPoint3D &t)", t: isReturn },
                 { signature: "bool GetCornerAngle(size_t index, MbCartPoint3D & origin, MbVector3D & axis, MbVector3D & tau, double & angle, double angleEps = (double)Math::AngleEps)", origin: isReturn, axis: isReturn, tau: isReturn, angle: isReturn, return: isErrorBool },
-                "bool Init(const SArray<MbCartPoint3D> & points)"
+                "bool Init(const SArray<MbCartPoint3D> & points)",
+                { signature: "MbItem * Cast()", isManual: true },
             ]
         },
         Plane: {
@@ -1014,6 +1011,8 @@ export default {
                 "void ChangePoint(ptrdiff_t index, const MbCartPoint3D & pnt)",
                 "void RemovePoint(ptrdiff_t index)",
                 "void Rebuild()",
+                "size_t GetCount()",
+                { signature: "MbItem * Cast()", isManual: true },
             ]
         },
         Polyline3D: {
@@ -1022,6 +1021,9 @@ export default {
             dependencies: ["PolyCurve3D.h", "CartPoint3D.h"],
             initializers: [
                 "const SArray<MbCartPoint3D> & initList, bool closed"
+            ],
+            functions: [
+                { signature: "MbItem * Cast()", isManual: true },
             ]
         },
         Bezier3D: {

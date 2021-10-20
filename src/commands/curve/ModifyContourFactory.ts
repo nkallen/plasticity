@@ -446,7 +446,8 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
                 const before_ext_p = before_extended.GetLimitPoint(2);
                 const after_ext_p = after_extended.GetLimitPoint(1);
 
-                const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
+                const active_new: c3d.PolyCurve3D = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
+                const foo: c3d.Curve3D = active_new;
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
             case 'Polyline3D:Polyline3D:Arc3D':
