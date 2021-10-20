@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { CenterPointArcFactory, ThreePointArcFactory } from "../../src/commands/arc/ArcFactory";
 import { ContourFilletFactory, Polyline2ContourFactory } from "../../src/commands/modify_contour/ContourFilletFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
-import { ModifyContourSegmentFactory } from "../../src/commands/modify_contour/ModifyContourSegmentFactory";
+import { ContourRebuilder, ModifyContourSegmentFactory, OffsetPrecomputeRadiusInfo, OffsetResult } from "../../src/commands/modify_contour/ModifyContourSegmentFactory";
 import LineFactory from '../../src/commands/line/LineFactory';
 import { CornerRectangleFactory } from "../../src/commands/rect/RectangleFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -109,6 +109,20 @@ describe('A triangle', () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1.414, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2.414, 1, 0));
     });
+
+    it('ContourRebuilder first line', () => {
+        const model = inst2curve(db.lookup(contour)) as c3d.Contour3D;
+        const before_extended = model.GetSegments()[2];
+        const active_new = model.GetSegments()[0];
+        const after_extended = model.GetSegments()[1];
+        const result = { before_extended, active_new, after_extended, } as unknown as OffsetResult;
+        const info = { radiusBefore: 0, radiusAfter: 0 };
+        const segments = ContourRebuilder.calculate(0, model, result, info);
+        expect(segments.length).toBe(3);
+        expect(segments[0]).toBe(active_new);
+        expect(segments[1]).toBe(after_extended);
+        expect(segments[2]).toBe(before_extended);
+    })
 
     it('offsetting the last line works', async () => {
         modifyContour.contour = contour;
@@ -296,6 +310,50 @@ describe('A triangle', () => {
         });
 
     });
+
+
+    // describe('a triangle with three fillets', () => {
+    //     // Bottom and top left are filletted
+    //     let filleted: visual.SpaceInstance<visual.Curve3D>;
+
+    //     beforeEach(async () => {
+    //         const makeFillet = new ContourFilletFactory(db, materials, signals);
+    //         makeFillet.contour = contour;
+    //         makeFillet.radiuses[0] = 0.1;
+    //         makeFillet.radiuses[1] = 0.1;
+    //         makeFillet.radiuses[2] = 0.1;
+    //         expect(makeFillet.cornerAngles.length).toBe(3);
+    //         filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+    //         const bbox = new THREE.Box3().setFromObject(filleted);
+    //         const center = new THREE.Vector3();
+    //         bbox.getCenter(center);
+    //         expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.57, 0));
+    //         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
+    //         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.858, 1, 0));
+
+    //         const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+    //         expect(model.GetSegmentsCount()).toBe(6);
+    //     })
+
+    //     it('allows offsetting the second line', async () => {
+    //         modifyContour.contour = filleted;
+    //         modifyContour.distance = 1;
+    //         modifyContour.segment = 0;
+    //         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+    //         const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+    //         expect(model.GetSegmentsCount()).toBe(6);
+
+    //         bbox.setFromObject(result);
+    //         bbox.getCenter(center);
+    //         expect(center).toApproximatelyEqual(new THREE.Vector3(0.929, 1.07, 0));
+    //         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
+    //         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.858, 2, 0));
+    //     });
+
+    // });
+
 });
 
 describe('A rectangle', () => {
@@ -518,6 +576,18 @@ describe('Two intersecting lines', () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
     });
+
+    it('ContourRebuilder second line', () => {
+        const model = inst2curve(db.lookup(contour)) as c3d.Contour3D;
+        const before_extended = model.GetSegments()[0];
+        const active_new = model.GetSegments()[1];
+        const result = { before_extended, active_new, after_extended: undefined, } as unknown as OffsetResult;
+        const info = { radiusBefore: 0, radiusAfter: 0 };
+        const segments = ContourRebuilder.calculate(1, model, result, info);
+        expect(segments.length).toBe(2);
+        expect(segments[0]).toBe(before_extended);
+        expect(segments[1]).toBe(active_new);
+    })
 
     describe('with fillet on the right', () => {
         /**
@@ -995,6 +1065,19 @@ describe('A half moon (Arc:Line[closed])', () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
     })
+
+    it('ContourRebuilder the arc', () => {
+        const model = inst2curve(db.lookup(contour)) as c3d.Contour3D;
+        const before_extended = model.GetSegments()[1];
+        const active_new = model.GetSegments()[0];
+        const after_extended = model.GetSegments()[1];
+        const result = { before_extended, active_new, after_extended, } as unknown as OffsetResult;
+        const info = { radiusBefore: 0, radiusAfter: 0 };
+        const segments = ContourRebuilder.calculate(0, model, result, info);
+        expect(segments.length).toBe(2);
+        expect(segments[0]).toBe(active_new);
+        expect(segments[1]).toBe(after_extended);
+    })
 })
 
 describe('A half moon in the other direction (Line:Arc[closed])', () => {
@@ -1156,4 +1239,4 @@ describe('prepare', () => {
         expect(curve.IsClosed()).toBe(false);
         expect(curve.GetSegmentsCount()).toBe(3);
     })
-})
+});

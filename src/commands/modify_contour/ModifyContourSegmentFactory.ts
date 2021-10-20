@@ -29,7 +29,7 @@ interface OffsetPrecomputeInfo {
     beforeIsAfter: boolean;
 }
 
-interface OffsetResult {
+export interface OffsetResult {
     before_extended: c3d.Curve3D;
     active_new: c3d.Curve3D | undefined;
     after_extended: c3d.Curve3D;
@@ -229,39 +229,14 @@ export class ModifyContourSegmentFactory extends ContourFactory {
         const segments = contour.GetSegments();
 
         const { radiusBefore, radiusAfter, beforeIsAfter } = info;
-        const { before_extended, active_new, after_extended, radius } = this.process(info);
+        const result = this.process(info);
+        const { before_extended, active_new, after_extended, radius } = result;
 
         const outContour = new c3d.Contour3D();
         RebuildContour: {
             try {
-                const isAtEnd = index === segments.length - 1;
-                let isAtEndOfClosedContour = isAtEnd;
-                isAtEndOfClosedContour ||= index === segments.length - 2 && radiusAfter > 0;
-                isAtEndOfClosedContour &&= contour.IsClosed();
-                const isAtEndOfOpenContour = isAtEnd && !contour.IsClosed();
-
-                if (isAtEndOfClosedContour && segments.length > 2) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
-
-                for (let i = 0 + (isAtEndOfClosedContour ? 1 : 0); i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
-                    outContour.AddCurveWithRuledCheck(segments[i], 1e-6, true);
-                }
-
-                if (index > 0) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
-                if (active_new) outContour.AddCurveWithRuledCheck(active_new, 1e-6, true);
-                if (!isAtEndOfClosedContour && !isAtEndOfOpenContour && !beforeIsAfter) outContour.AddCurveWithRuledCheck(after_extended, 1e-6, true);
-
-                let start = index + 2;
-                if (radiusAfter > 0) start++;
-                let end = segments.length;
-                if (index === 0 && contour.IsClosed()) end--;
-                if (index === 0 && radiusBefore > 0) end--;
-                for (let i = start; i < end; i++) {
-                    // AddCurveWithRuledCheck sometimes modifies the original curve, so duplicate:
-                    outContour.AddCurveWithRuledCheck(segments[i].Duplicate().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D), 1e-6, true);
-                }
-
-                const isAtBeginningOfClosedContour = index === 0 && contour.IsClosed();
-                if (isAtBeginningOfClosedContour) outContour.AddCurveWithRuledCheck(before_extended, 1e-6, true);
+                const segments = ContourRebuilder.calculate(index, contour, result, info);
+                for (const segment of segments) outContour.AddCurveWithRuledCheck(segment, 1e-6, true);
             } catch (e) {
                 // In tests, fail fast. In production, show the intermediate results so I can debug.
                 if (process.env.JEST_WORKER_ID) throw e;
@@ -282,12 +257,14 @@ export class ModifyContourSegmentFactory extends ContourFactory {
             if (radiusBefore && index > 0) newPosition--;
 
             const fillNumber = numSegmentsWithoutFillets - (this.contour.IsClosed() ? 0 : 1);
-            const radiuses = new Array<number>(fillNumber);
+            let radiuses = new Array<number>(fillNumber);
             radiuses.fill(0);
 
             radiuses[(newPosition - 1 + fillNumber) % fillNumber] = radiusBefore;
             if (radius !== 0) radiuses[newPosition - 1] = radius;
             else if (radiusAfter !== 0) radiuses[newPosition] = radiusAfter;
+
+            // console.log(index, newPosition, radiuses);
 
             const result = c3d.ActionSurfaceCurve.CreateContourFillets(outContour, radiuses.map(unit), c3d.ConnectingType.Fillet);
             return new c3d.SpaceInstance(result);
@@ -510,5 +487,64 @@ export class ModifyContourSegmentFactory extends ContourFactory {
             }
             default: throw new Error(pattern);
         }
+    }
+}
+
+export interface OffsetPrecomputeRadiusInfo {
+    radiusBefore: number, radiusAfter: number;
+}
+
+export class ContourRebuilder {
+    static calculate(
+        index: number,
+        contour: c3d.Contour3D,
+        result: OffsetResult,
+        info: OffsetPrecomputeRadiusInfo
+    ) {
+        const segments = contour.GetSegments();
+        const { radiusBefore, radiusAfter } = info;
+        const { before_extended, active_new, after_extended, radius } = result;
+
+        const isClosed = contour.IsClosed();
+
+        const beforeIsAfter = segments.length === 2 && isClosed;
+
+        let numFillets = 0;
+        if (radiusBefore > 0) numFillets++;
+        if (radiusAfter > 0) numFillets++;
+        if (radius > 0) numFillets++;
+        const numSegmentsWithoutFillets = segments.length - numFillets;
+
+        const isAtEnd = index === segments.length - 1 || index === segments.length - 2 && radiusAfter > 0;
+        const isAtEndOfClosedContour = isAtEnd && isClosed;
+
+        const isAtBeginning = index === 0 || index === 1 && radiusBefore > 0;
+        const isAtBeginningOfClosedContour = isAtBeginning && isClosed;
+
+        const ordered = [];
+
+        const afterIsFirstSegment = isAtEndOfClosedContour && !beforeIsAfter;
+        if (afterIsFirstSegment) ordered.push(after_extended);
+
+        for (let i = (afterIsFirstSegment ? 1 : 0); i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
+            ordered.push(segments[i]);
+        }
+
+        if (!isAtBeginning) ordered.push(before_extended);
+        if (active_new !== undefined) ordered.push(active_new);
+        if (!isAtEnd) ordered.push(after_extended);
+        
+        let start = index + 2;
+        if (radiusAfter > 0) start++;
+        let end = start + numSegmentsWithoutFillets - ordered.length;
+        if (isAtBeginningOfClosedContour) end--;
+        for (let i = start; i < end; i++) {
+            // AddCurveWithRuledCheck sometimes modifies the original curve, so duplicate:
+            ordered.push(segments[i].Duplicate().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
+        }
+
+        if (isAtBeginningOfClosedContour && !beforeIsAfter) ordered.push(before_extended);
+
+        return ordered;
     }
 }
