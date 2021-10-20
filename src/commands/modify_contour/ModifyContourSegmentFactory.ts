@@ -233,10 +233,10 @@ export class ModifyContourSegmentFactory extends ContourFactory {
         const { before_extended, active_new, after_extended, radius } = result;
 
         const outContour = new c3d.Contour3D();
+        const { ordered, radiuses } = ContourRebuilder.calculate(index, contour.GetSegments(), contour.IsClosed(), result, info);
         RebuildContour: {
             try {
-                const segments = ContourRebuilder.calculate(index, contour.GetSegments(), contour.IsClosed(), result, info);
-                for (let segment of segments) {
+                for (let segment of ordered) {
                     // AddCurveWithRuledCheck sometimes modifies the original curve, so duplicate:
                     segment = segment.Duplicate().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
                     outContour.AddCurveWithRuledCheck(segment, 1e-6, true);
@@ -249,25 +249,8 @@ export class ModifyContourSegmentFactory extends ContourFactory {
             }
         }
 
-        if (radiusBefore === 0 && radius === 0 && radiusAfter === 0) return new c3d.SpaceInstance(outContour);
+        if (radiuses === undefined) return new c3d.SpaceInstance(outContour);
         else {
-            let numFillets = 0;
-            if (radiusBefore > 0) numFillets++;
-            if (radiusAfter > 0) numFillets++;
-            if (radius > 0) numFillets++;
-            const numSegmentsWithoutFillets = segments.length - numFillets;
-
-            let newPosition = index;
-            if (radiusBefore && index > 0) newPosition--;
-
-            const fillNumber = numSegmentsWithoutFillets - (this.contour.IsClosed() ? 0 : 1);
-            let radiuses = new Array<number>(fillNumber);
-            radiuses.fill(0);
-
-            radiuses[(newPosition - 1 + fillNumber) % fillNumber] = radiusBefore;
-            if (radius !== 0) radiuses[newPosition - 1] = radius;
-            else if (radiusAfter !== 0) radiuses[newPosition] = radiusAfter;
-
             const result = c3d.ActionSurfaceCurve.CreateContourFillets(outContour, radiuses.map(unit), c3d.ConnectingType.Fillet);
             return new c3d.SpaceInstance(result);
         }
@@ -521,34 +504,53 @@ export class ContourRebuilder {
         const isAtBeginning = index === 0 || index === 1 && radiusBefore > 0;
         const isAtBeginningOfClosedContour = isAtBeginning && isClosed;
 
-        const ordered = [];
-
         const afterIsFirstSegment = isAtEndOfClosedContour && !beforeIsAfter;
-        if (afterIsFirstSegment) ordered.push(after_extended);
+        const filletInZerothPosition = index === segments.length - 1 && radiusAfter > 0;
 
-        const filletInZerothPosition = afterIsFirstSegment && radiusAfter > 0;
+        const ordered = [];
+        ComputeSegmentOrder: {
+            if (afterIsFirstSegment) ordered.push(after_extended);
 
-        let start = 0;
-        if (afterIsFirstSegment) start++;
-        if (filletInZerothPosition) start++;
-        for (let i = start; i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
-            ordered.push(segments[i]);
+
+            let start = 0;
+            if (afterIsFirstSegment) start++;
+            if (filletInZerothPosition) start++;
+            for (let i = start; i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
+                ordered.push(segments[i]);
+            }
+
+            if (!isAtBeginning) ordered.push(before_extended);
+            if (active_new !== undefined) ordered.push(active_new);
+            if (!isAtEnd) ordered.push(after_extended);
+
+            start = index + 2;
+            if (radiusAfter > 0) start++;
+            let end = start + numSegmentsWithoutFillets - ordered.length;
+            if (isAtBeginningOfClosedContour) end--;
+            for (let i = start; i < end; i++) {
+                ordered.push(segments[i]);
+            }
+
+            if (isAtBeginningOfClosedContour && !beforeIsAfter) ordered.push(before_extended);
         }
 
-        if (!isAtBeginning) ordered.push(before_extended);
-        if (active_new !== undefined) ordered.push(active_new);
-        if (!isAtEnd) ordered.push(after_extended);
+        let radiuses: number[] | undefined = undefined;
+        ComputeRadiuses: {
+            if (radiusBefore > 0 || radius > 0 || radiusAfter > 0) {
+                let newPosition = index;
+                if (radiusBefore && index > 0) newPosition--;
+                if (filletInZerothPosition) newPosition--;
 
-        start = index + 2;
-        if (radiusAfter > 0) start++;
-        let end = start + numSegmentsWithoutFillets - ordered.length;
-        if (isAtBeginningOfClosedContour) end--;
-        for (let i = start; i < end; i++) {
-            ordered.push(segments[i]);
+                const fillNumber = numSegmentsWithoutFillets - (isClosed ? 0 : 1);
+                radiuses = new Array<number>(fillNumber);
+                radiuses.fill(0);
+
+                radiuses[(newPosition - 1 + fillNumber) % fillNumber] = radiusBefore;
+                if (radius !== 0) radiuses[newPosition - 1] = radius;
+                else if (radiusAfter !== 0) radiuses[newPosition] = radiusAfter;
+            }
         }
 
-        if (isAtBeginningOfClosedContour && !beforeIsAfter) ordered.push(before_extended);
-
-        return ordered;
+        return { ordered, radiuses };
     }
 }

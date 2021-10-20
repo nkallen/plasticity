@@ -115,13 +115,13 @@ describe('A triangle', () => {
         const before_extended = model.GetSegments()[2];
         const active_new = model.GetSegments()[0];
         const after_extended = model.GetSegments()[1];
-        const result = { before_extended, active_new, after_extended, } as unknown as OffsetResult;
+        const result = { before_extended, active_new, after_extended, radius: 0} as unknown as OffsetResult;
         const info = { radiusBefore: 0, radiusAfter: 0 };
-        const segments = ContourRebuilder.calculate(0, model.GetSegments(), true, result, info);
-        expect(segments.length).toBe(3);
-        expect(segments[0]).toBe(active_new);
-        expect(segments[1]).toBe(after_extended);
-        expect(segments[2]).toBe(before_extended);
+        const { ordered } = ContourRebuilder.calculate(0, model.GetSegments(), true, result, info);
+        expect(ordered.length).toBe(3);
+        expect(ordered[0]).toBe(active_new);
+        expect(ordered[1]).toBe(after_extended);
+        expect(ordered[2]).toBe(before_extended);
     })
 
     it('offsetting the last line works', async () => {
@@ -218,6 +218,23 @@ describe('A triangle', () => {
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -0.858, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
         });
+
+        it('ContourRebuilder index=2', () => {
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const segments = model.GetSegments();
+            const before_extended = segments[1];
+            const active_new = segments[2];
+            const after_extended = segments[0];
+            const result = { before_extended, active_new, after_extended, radius: 0 } as OffsetResult;
+            const info = { radiusBefore: 0, radiusAfter: 0.1 };
+            const { ordered, radiuses } = ContourRebuilder.calculate(2, segments, true, result, info);
+            expect(ordered.length).toBe(3);
+            expect(ordered[0]).toBe(segments[0]);
+            expect(ordered[1]).toBe(segments[1]);
+            expect(ordered[2]).toBe(segments[2]);
+
+            expect(radiuses).toEqual([0, 0, 0.1]);
+        })
 
         it('allows offsetting the fillet', async () => {
             modifyContour.contour = filleted;
@@ -341,9 +358,9 @@ describe('A triangle', () => {
             const before_extended = segments[0];
             const active_new = segments[2];
             const after_extended = segments[4];
-            const result = { before_extended, active_new, after_extended, } as OffsetResult;
+            const result = { before_extended, active_new, after_extended, radius: 0 } as OffsetResult;
             const info = { radiusBefore: 0.1, radiusAfter: 0.1 };
-            const ordered = ContourRebuilder.calculate(0, [
+            const { ordered } = ContourRebuilder.calculate(0, [
                 active_new, segments[3], after_extended, segments[5], before_extended, segments[1]
             ], true, result, info);
             expect(ordered.length).toBe(4);
@@ -359,16 +376,18 @@ describe('A triangle', () => {
             const before_extended = segments[0];
             const active_new = segments[2];
             const after_extended = segments[4];
-            const result = { before_extended, active_new, after_extended, } as OffsetResult;
+            const result = { before_extended, active_new, after_extended, radius: 0 } as OffsetResult;
             const info = { radiusBefore: 0.1, radiusAfter: 0.1 };
-            const ordered = ContourRebuilder.calculate(5, [
+            const { ordered, radiuses } = ContourRebuilder.calculate(5, [
                 segments[3], after_extended, segments[5], before_extended, segments[1], active_new,
             ], true, result, info);
-            // expect(ordered.length).toBe(4);
+            expect(ordered.length).toBe(4);
             expect(ordered[0]).toBe(after_extended);
             expect(ordered[1]).toBe(segments[5]);
             expect(ordered[2]).toBe(before_extended);
             expect(ordered[3]).toBe(active_new);
+
+            expect(radiuses).toEqual([0, 0, 0.1, 0.1]);
         })
     });
 
@@ -599,12 +618,12 @@ describe('Two intersecting lines', () => {
         const model = inst2curve(db.lookup(contour)) as c3d.Contour3D;
         const before_extended = model.GetSegments()[0];
         const active_new = model.GetSegments()[1];
-        const result = { before_extended, active_new, after_extended: undefined, } as unknown as OffsetResult;
+        const result = { before_extended, active_new, after_extended: undefined, radius: 0 } as unknown as OffsetResult;
         const info = { radiusBefore: 0, radiusAfter: 0 };
-        const segments = ContourRebuilder.calculate(1, model.GetSegments(), false, result, info);
-        expect(segments.length).toBe(2);
-        expect(segments[0]).toBe(before_extended);
-        expect(segments[1]).toBe(active_new);
+        const { ordered } = ContourRebuilder.calculate(1, model.GetSegments(), false, result, info);
+        expect(ordered.length).toBe(2);
+        expect(ordered[0]).toBe(before_extended);
+        expect(ordered[1]).toBe(active_new);
     })
 
     describe('with fillet on the right', () => {
@@ -1089,12 +1108,12 @@ describe('A half moon (Arc:Line[closed])', () => {
         const before_extended = model.GetSegments()[1];
         const active_new = model.GetSegments()[0];
         const after_extended = model.GetSegments()[1];
-        const result = { before_extended, active_new, after_extended, } as unknown as OffsetResult;
+        const result = { before_extended, active_new, after_extended, radius: 0 } as OffsetResult;
         const info = { radiusBefore: 0, radiusAfter: 0 };
-        const segments = ContourRebuilder.calculate(0, model.GetSegments(), true, result, info);
-        expect(segments.length).toBe(2);
-        expect(segments[0]).toBe(active_new);
-        expect(segments[1]).toBe(after_extended);
+        const { ordered } = ContourRebuilder.calculate(0, model.GetSegments(), true, result, info);
+        expect(ordered.length).toBe(2);
+        expect(ordered[0]).toBe(active_new);
+        expect(ordered[1]).toBe(after_extended);
     })
 })
 
