@@ -117,7 +117,7 @@ describe('A triangle', () => {
         const after_extended = model.GetSegments()[1];
         const result = { before_extended, active_new, after_extended, } as unknown as OffsetResult;
         const info = { radiusBefore: 0, radiusAfter: 0 };
-        const segments = ContourRebuilder.calculate(0, model, result, info);
+        const segments = ContourRebuilder.calculate(0, model.GetSegments(), true, result, info);
         expect(segments.length).toBe(3);
         expect(segments[0]).toBe(active_new);
         expect(segments[1]).toBe(after_extended);
@@ -312,47 +312,65 @@ describe('A triangle', () => {
     });
 
 
-    // describe('a triangle with three fillets', () => {
-    //     // Bottom and top left are filletted
-    //     let filleted: visual.SpaceInstance<visual.Curve3D>;
+    describe('a triangle with three fillets', () => {
+        let filleted: visual.SpaceInstance<visual.Curve3D>;
 
-    //     beforeEach(async () => {
-    //         const makeFillet = new ContourFilletFactory(db, materials, signals);
-    //         makeFillet.contour = contour;
-    //         makeFillet.radiuses[0] = 0.1;
-    //         makeFillet.radiuses[1] = 0.1;
-    //         makeFillet.radiuses[2] = 0.1;
-    //         expect(makeFillet.cornerAngles.length).toBe(3);
-    //         filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+        beforeEach(async () => {
+            const makeFillet = new ContourFilletFactory(db, materials, signals);
+            makeFillet.contour = contour;
+            makeFillet.radiuses[0] = 0.1;
+            makeFillet.radiuses[1] = 0.1;
+            makeFillet.radiuses[2] = 0.1;
+            expect(makeFillet.cornerAngles.length).toBe(3);
+            filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    //         const bbox = new THREE.Box3().setFromObject(filleted);
-    //         const center = new THREE.Vector3();
-    //         bbox.getCenter(center);
-    //         expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.57, 0));
-    //         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
-    //         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.858, 1, 0));
+            const bbox = new THREE.Box3().setFromObject(filleted);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.429, 0.57, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.858, 1, 0));
 
-    //         const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
-    //         expect(model.GetSegmentsCount()).toBe(6);
-    //     })
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(6);
+        })
 
-    //     it('allows offsetting the second line', async () => {
-    //         modifyContour.contour = filleted;
-    //         modifyContour.distance = 1;
-    //         modifyContour.segment = 0;
-    //         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+        it('ContourRebuilder index=0', () => {
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const segments = model.GetSegments();
+            const before_extended = segments[0];
+            const active_new = segments[2];
+            const after_extended = segments[4];
+            const result = { before_extended, active_new, after_extended, } as OffsetResult;
+            const info = { radiusBefore: 0.1, radiusAfter: 0.1 };
+            const ordered = ContourRebuilder.calculate(0, [
+                active_new, segments[3], after_extended, segments[5], before_extended, segments[1]
+            ], true, result, info);
+            expect(ordered.length).toBe(4);
+            expect(ordered[0]).toBe(active_new);
+            expect(ordered[1]).toBe(after_extended);
+            expect(ordered[2]).toBe(segments[5]);
+            expect(ordered[3]).toBe(before_extended);
+        })
 
-    //         const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
-    //         expect(model.GetSegmentsCount()).toBe(6);
-
-    //         bbox.setFromObject(result);
-    //         bbox.getCenter(center);
-    //         expect(center).toApproximatelyEqual(new THREE.Vector3(0.929, 1.07, 0));
-    //         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.14, 0));
-    //         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.858, 2, 0));
-    //     });
-
-    // });
+        it('ContourRebuilder index=5', () => {
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            const segments = model.GetSegments();
+            const before_extended = segments[0];
+            const active_new = segments[2];
+            const after_extended = segments[4];
+            const result = { before_extended, active_new, after_extended, } as OffsetResult;
+            const info = { radiusBefore: 0.1, radiusAfter: 0.1 };
+            const ordered = ContourRebuilder.calculate(5, [
+                segments[3], after_extended, segments[5], before_extended, segments[1], active_new,
+            ], true, result, info);
+            // expect(ordered.length).toBe(4);
+            expect(ordered[0]).toBe(after_extended);
+            expect(ordered[1]).toBe(segments[5]);
+            expect(ordered[2]).toBe(before_extended);
+            expect(ordered[3]).toBe(active_new);
+        })
+    });
 
 });
 
@@ -583,7 +601,7 @@ describe('Two intersecting lines', () => {
         const active_new = model.GetSegments()[1];
         const result = { before_extended, active_new, after_extended: undefined, } as unknown as OffsetResult;
         const info = { radiusBefore: 0, radiusAfter: 0 };
-        const segments = ContourRebuilder.calculate(1, model, result, info);
+        const segments = ContourRebuilder.calculate(1, model.GetSegments(), false, result, info);
         expect(segments.length).toBe(2);
         expect(segments[0]).toBe(before_extended);
         expect(segments[1]).toBe(active_new);
@@ -1073,7 +1091,7 @@ describe('A half moon (Arc:Line[closed])', () => {
         const after_extended = model.GetSegments()[1];
         const result = { before_extended, active_new, after_extended, } as unknown as OffsetResult;
         const info = { radiusBefore: 0, radiusAfter: 0 };
-        const segments = ContourRebuilder.calculate(0, model, result, info);
+        const segments = ContourRebuilder.calculate(0, model.GetSegments(), true, result, info);
         expect(segments.length).toBe(2);
         expect(segments[0]).toBe(active_new);
         expect(segments[1]).toBe(after_extended);

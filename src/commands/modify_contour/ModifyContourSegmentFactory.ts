@@ -235,8 +235,12 @@ export class ModifyContourSegmentFactory extends ContourFactory {
         const outContour = new c3d.Contour3D();
         RebuildContour: {
             try {
-                const segments = ContourRebuilder.calculate(index, contour, result, info);
-                for (const segment of segments) outContour.AddCurveWithRuledCheck(segment, 1e-6, true);
+                const segments = ContourRebuilder.calculate(index, contour.GetSegments(), contour.IsClosed(), result, info);
+                for (let segment of segments) {
+                    // AddCurveWithRuledCheck sometimes modifies the original curve, so duplicate:
+                    segment = segment.Duplicate().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+                    outContour.AddCurveWithRuledCheck(segment, 1e-6, true);
+                }
             } catch (e) {
                 // In tests, fail fast. In production, show the intermediate results so I can debug.
                 if (process.env.JEST_WORKER_ID) throw e;
@@ -263,8 +267,6 @@ export class ModifyContourSegmentFactory extends ContourFactory {
             radiuses[(newPosition - 1 + fillNumber) % fillNumber] = radiusBefore;
             if (radius !== 0) radiuses[newPosition - 1] = radius;
             else if (radiusAfter !== 0) radiuses[newPosition] = radiusAfter;
-
-            // console.log(index, newPosition, radiuses);
 
             const result = c3d.ActionSurfaceCurve.CreateContourFillets(outContour, radiuses.map(unit), c3d.ConnectingType.Fillet);
             return new c3d.SpaceInstance(result);
@@ -497,15 +499,13 @@ export interface OffsetPrecomputeRadiusInfo {
 export class ContourRebuilder {
     static calculate(
         index: number,
-        contour: c3d.Contour3D,
+        segments: c3d.Curve3D[],
+        isClosed: boolean,
         result: OffsetResult,
         info: OffsetPrecomputeRadiusInfo
     ) {
-        const segments = contour.GetSegments();
         const { radiusBefore, radiusAfter } = info;
         const { before_extended, active_new, after_extended, radius } = result;
-
-        const isClosed = contour.IsClosed();
 
         const beforeIsAfter = segments.length === 2 && isClosed;
 
@@ -526,21 +526,25 @@ export class ContourRebuilder {
         const afterIsFirstSegment = isAtEndOfClosedContour && !beforeIsAfter;
         if (afterIsFirstSegment) ordered.push(after_extended);
 
-        for (let i = (afterIsFirstSegment ? 1 : 0); i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
+        const filletInZerothPosition = afterIsFirstSegment && radiusAfter > 0;
+
+        let start = 0;
+        if (afterIsFirstSegment) start++;
+        if (filletInZerothPosition) start++;
+        for (let i = start; i < index - 1 - (radiusBefore > 0 ? 1 : 0); i++) {
             ordered.push(segments[i]);
         }
 
         if (!isAtBeginning) ordered.push(before_extended);
         if (active_new !== undefined) ordered.push(active_new);
         if (!isAtEnd) ordered.push(after_extended);
-        
-        let start = index + 2;
+
+        start = index + 2;
         if (radiusAfter > 0) start++;
         let end = start + numSegmentsWithoutFillets - ordered.length;
         if (isAtBeginningOfClosedContour) end--;
         for (let i = start; i < end; i++) {
-            // AddCurveWithRuledCheck sometimes modifies the original curve, so duplicate:
-            ordered.push(segments[i].Duplicate().Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
+            ordered.push(segments[i]);
         }
 
         if (isAtBeginningOfClosedContour && !beforeIsAfter) ordered.push(before_extended);
