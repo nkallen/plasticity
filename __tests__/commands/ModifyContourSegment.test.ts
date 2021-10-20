@@ -112,7 +112,7 @@ describe('A triangle', () => {
 
     it('offsetting the last line works', async () => {
         modifyContour.contour = contour;
-        modifyContour.distance = 1;
+        modifyContour.distance = -1;
         modifyContour.segment = 2;
         const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
@@ -474,6 +474,17 @@ describe('Two intersecting lines', () => {
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
     });
 
+    it('segmentAngles', () => {
+        modifyContour.contour = contour;
+        modifyContour.distance = 1;
+        modifyContour.segment = 0;
+        const segmentAngles = modifyContour.segmentAngles;
+        expect(segmentAngles[0].origin).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
+        expect(segmentAngles[0].normal).toApproximatelyEqual(new THREE.Vector3(Math.SQRT1_2, -Math.SQRT1_2, 0));
+        expect(segmentAngles[1].origin).toApproximatelyEqual(new THREE.Vector3(0.5, 1, 0));
+        expect(segmentAngles[1].normal).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+    })
+
     it('allows offsetting a first line', async () => {
         modifyContour.contour = contour;
         modifyContour.distance = 1;
@@ -537,7 +548,7 @@ describe('Two intersecting lines', () => {
 
         it('allows offsetting a first line', async () => {
             modifyContour.contour = filleted;
-            modifyContour.distance = 1;
+            modifyContour.distance = -1;
             modifyContour.segment = 0;
             const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
 
