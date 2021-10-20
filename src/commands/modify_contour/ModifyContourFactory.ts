@@ -1,20 +1,18 @@
+import { Vector3 } from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { inst2curve } from '../../util/Conversion';
 import { GeometryFactory } from "../GeometryFactory";
 import { ContourFilletFactory, CornerAngle, Polyline2ContourFactory, SegmentAngle } from "./ContourFilletFactory";
-import { ModifyContourPointFactory } from "./ModifyContourPointFactory";
+import { ControlPointInfo, ModifyContourPointFactory, ModifyContourPointParams } from "./ModifyContourPointFactory";
 import { ModifyContourSegmentFactory, ModifyContourSegmentParams } from "./ModifyContourSegmentFactory";
 
 type Mode = 'fillet' | 'offset' | 'change-point';
 
-export interface ModifyContourParams extends ModifyContourSegmentParams {
+export interface ModifyContourParams extends ModifyContourSegmentParams, ModifyContourPointParams {
     mode: Mode;
     segmentAngles: SegmentAngle[];
     cornerAngles: CornerAngle[];
-    // foo: ControlPointInfo[];
-    // controlPoint: number;
-    // move: THREE.Vector3;
     radiuses: number[];
 }
 
@@ -64,10 +62,15 @@ export class ModifyContourFactory extends GeometryFactory implements ModifyConto
     set distance(distance: number) { this.segments.distance = distance }
     get segment() { return this.segments.segment }
     set segment(segment: number) { this.segments.segment = segment }
+    get controlPointInfo() { return this.points.controlPointInfo }
+    set controlPoint(controlPoint: number) { this.points.controlPoint = controlPoint }
+    set move(move: THREE.Vector3) { this.points.move = move }
+    get move() { return this.points.move }
 
-    set contour(contour: c3d.SpaceInstance){
+
+    set contour(contour: c3d.SpaceInstance) {
         this.segments.contour = contour;
-        this.fillets.contour =  contour;
+        this.fillets.contour = contour;
         this.points.contour = contour;
     }
 

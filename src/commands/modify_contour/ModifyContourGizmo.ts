@@ -29,11 +29,11 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             this.corners.push(gizmo);
         }
 
-        // for (const point of params.foo) {
-        //     const gizmo = new ControlPointGizmo("fillet-curve:radius", this.editor);
-        //     gizmo.userData.index = point.index;
-        //     this.controlPoints.push(gizmo);
-        // }
+        for (const point of params.controlPointInfo) {
+            const gizmo = new ControlPointGizmo("fillet-curve:radius", this.editor);
+            gizmo.userData.index = point.index;
+            this.controlPoints.push(gizmo);
+        }
     }
 
     prepare() {
@@ -65,16 +65,16 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         centroid.divideScalar(params.cornerAngles.length);
         filletAll.position.copy(centroid);
 
-        // for (const [i, controlPoint] of params.foo.entries()) {
-        //     const gizmo = this.controlPoints[i];
-        //     gizmo.relativeScale.setScalar(0.2);
-        //     gizmo.position.copy(controlPoint.origin);
-        // }
+        for (const [i, controlPoint] of params.controlPointInfo.entries()) {
+            const gizmo = this.controlPoints[i];
+            gizmo.relativeScale.setScalar(0.2);
+            gizmo.position.copy(controlPoint.origin);
+        }
 
         this.add(filletAll);
         for (const segment of segments) this.add(segment);
         for (const corner of corners) this.add(corner);
-        // for (const cp of this.controlPoints) this.add(cp);
+        for (const cp of this.controlPoints) this.add(cp);
     }
 
     execute(cb: (params: ModifyContourParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
@@ -107,14 +107,13 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             });
         }
 
-        // for (const controlPoint of controlPoints) {
-        //     this.addGizmo(controlPoint, d => {
-        //         params.mode = 'change-point';
-        //         params.controlPoint = controlPoint.userData.index;
-        //         params.move = d;
-        //         console.log(d);
-        //     });
-        // }
+        for (const controlPoint of controlPoints) {
+            this.addGizmo(controlPoint, d => {
+                params.mode = 'change-point';
+                params.controlPoint = controlPoint.userData.index;
+                params.move = d;
+            });
+        }
 
         return super.execute(cb, mode);
     }
@@ -181,7 +180,5 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
 }
 
 export class ControlPointGizmo extends CircleMoveGizmo {
-
-
     get shouldRescaleOnZoom() { return true }
 }
