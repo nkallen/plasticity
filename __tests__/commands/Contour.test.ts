@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import ContourFactory from '../../src/commands/curve/ContourFactory';
-import { ContourFilletFactory, Polyline2ContourFactory } from "../../src/commands/curve/ContourFilletFactory";
+import { ContourFilletFactory, Polyline2ContourFactory } from "../../src/commands/modify_contour/ContourFilletFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import LineFactory from '../../src/commands/line/LineFactory';

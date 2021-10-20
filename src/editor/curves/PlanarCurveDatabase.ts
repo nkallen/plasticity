@@ -1,5 +1,5 @@
 import c3d from '../../../build/Release/c3d.node';
-import { Polyline2ContourFactory } from '../../commands/curve/ContourFilletFactory';
+import { Polyline2ContourFactory } from '../../commands/modify_contour/ContourFilletFactory';
 import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../../util/Conversion';
 import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
 import { EditorSignals } from '../EditorSignals';

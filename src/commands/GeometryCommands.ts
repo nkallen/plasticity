@@ -16,16 +16,16 @@ import { EditCircleDialog } from "./circle/CircleDialog";
 import { CenterCircleFactory, EditCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
-import { ChangePointFactory, RemovePointFactory } from "./control_point/ControlPointFactory";
+import { RemovePointFactory } from "./control_point/ControlPointFactory";
 import { BridgeCurvesDialog } from "./curve/BridgeCurvesDialog";
 import BridgeCurvesFactory from "./curve/BridgeCurvesFactory";
-import { ContourFilletFactory } from "./curve/ContourFilletFactory";
+import { ContourFilletFactory } from "./modify_contour/ContourFilletFactory";
 import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
 import { CurveKeyboardEvent, CurveKeyboardGizmo, LineKeyboardGizmo } from "./curve/CurveKeyboardGizmo";
-import { FilletCurveGizmo } from "./curve/FilletCurveGizmo";
+import { FilletCurveGizmo } from "./modify_contour/FilletCurveGizmo";
 import JoinCurvesFactory from "./curve/JoinCurvesFactory";
-import { ModifyContourFactory } from "./curve/ModifyContourFactory";
-import { ModifyContourGizmo } from "./curve/ModifyContourGizmo";
+import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
+import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
 import OffsetCurveFactory from "./curve/OffsetContourFactory";
 import { OffsetCurveGizmo } from "./curve/OffsetCurveGizmo";
 import TrimFactory from "./curve/TrimFactory";
@@ -1406,33 +1406,6 @@ export class DeleteCommand extends Command {
         const items = [...this.editor.selection.selected.curves, ...this.editor.selection.selected.solids];
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
-    }
-}
-
-export class ChangePointCommand extends Command {
-    async execute(): Promise<void> {
-        const controlPoints = [...this.editor.selection.selected.controlPoints];
-
-        const changePoint = new ChangePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        changePoint.controlPoints = controlPoints;
-
-        const dialog = new MoveDialog(changePoint, this.editor.signals);
-        const gizmo = new MoveGizmo(changePoint, this.editor);
-
-        dialog.execute(async params => {
-            await changePoint.update();
-            gizmo.render(params);
-        }).resource(this).then(() => this.finish(), () => this.cancel());
-
-        gizmo.position.copy(changePoint.originalPosition);
-        await gizmo.execute(delta => {
-            changePoint.update();
-            dialog.render();
-        }).resource(this);
-
-        const newInstance = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        this.editor.selection.selected.addCurve(newInstance);
     }
 }
 

@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { CenterPointArcFactory, ThreePointArcFactory } from "../../src/commands/arc/ArcFactory";
-import { ContourFilletFactory, Polyline2ContourFactory } from "../../src/commands/curve/ContourFilletFactory";
+import { ContourFilletFactory, Polyline2ContourFactory } from "../../src/commands/modify_contour/ContourFilletFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
-import { ModifyContourFactory } from '../../src/commands/curve/ModifyContourFactory';
+import { ModifyContourSegmentFactory } from "../../src/commands/modify_contour/ModifyContourSegmentFactory";
 import LineFactory from '../../src/commands/line/LineFactory';
 import { CornerRectangleFactory } from "../../src/commands/rect/RectangleFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -24,9 +24,9 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
 })
 
-let modifyContour: ModifyContourFactory;
+let modifyContour: ModifyContourSegmentFactory;
 beforeEach(() => {
-    modifyContour = new ModifyContourFactory(db, materials, signals);
+    modifyContour = new ModifyContourSegmentFactory(db, materials, signals);
 });
 
 let contour: visual.SpaceInstance<visual.Curve3D>;

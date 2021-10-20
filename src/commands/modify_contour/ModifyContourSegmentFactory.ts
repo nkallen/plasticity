@@ -3,20 +3,11 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { deunit, isSmoothlyConnected, point2point, unit, vec2vec } from '../../util/Conversion';
 import { NoOpError, ValidationError } from '../GeometryFactory';
-import { ContourFactory, ControlPointInfo, CornerAngle, SegmentAngle } from "./ContourFilletFactory";
+import { ContourFactory, CornerAngle, SegmentAngle } from "./ContourFilletFactory";
 
-type Mode = 'fillet' | 'offset' | 'change-point';
-
-export interface ModifyContourParams {
-    mode: Mode;
+export interface ModifyContourSegmentParams {
     distance: number;
     segment: number;
-    segmentAngles: SegmentAngle[];
-    cornerAngles: CornerAngle[];
-    foo: ControlPointInfo[];
-    controlPoint: number;
-    move: THREE.Vector3;
-    radiuses: number[];
 }
 
 interface OffsetPrecomputeInfo {
@@ -45,28 +36,13 @@ interface OffsetResult {
     radius: number;
 }
 
-export class ModifyContourFactory extends ContourFactory implements ModifyContourParams {
-    mode: Mode = 'offset';
+export class ModifyContourSegmentFactory extends ContourFactory {
     distance = 0;
-    move!: THREE.Vector3;
-    controlPoint!: number;
-
-    async calculate() {
-        switch (this.mode) {
-            case 'fillet':
-                return this.calculateFillet();
-            case 'offset':
-                return this.calculateOffset();
-            case 'change-point':
-                return this.calculateChangePoint();
-        }
-    }
 
     get contour(): c3d.Contour3D { return super.contour }
     set contour(inst: c3d.Contour3D | c3d.SpaceInstance | visual.SpaceInstance<visual.Curve3D>) {
         super.contour = inst;
         this._segmentAngles = this.computeSegmentAngles();
-        this._foo = this.computeControlPoints();
     }
 
     private _segment!: number;
@@ -74,41 +50,6 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
     set segment(segment: number) {
         this._segment = segment;
         this.precompute()
-    }
-
-    private _foo!: ControlPointInfo[];
-    get foo() { return this._foo }
-    private computeControlPoints(): ControlPointInfo[] {
-        const { contour } = this;
-        const segments = contour.GetSegments();
-        const allControlPoints = new Map<number, THREE.Vector3>();
-        let i = 0;
-        for (const segment of segments) {
-            if (segment.Type() === c3d.SpaceType.PolyCurve3D) {
-                const polycurve = segment.Cast<c3d.PolyCurve3D>(segment.IsA());
-                for (const point of polycurve.GetPoints()) {
-                    allControlPoints.set(i++, point2point(point));
-                }
-            } else {
-                allControlPoints.set(i++, point2point(segment.GetLimitPoint(1)));
-            }
-        }
-        if (!contour.IsClosed()) allControlPoints.set(i++, point2point(contour.GetLimitPoint(2)));
-
-        OnlySelected: {
-            const { controlPoints } = this;
-            if (controlPoints.length > 0) {
-                const result = [];
-                for (const i of controlPoints) {
-                    const index = i.index;
-                    const origin = allControlPoints.get(i.index)!;
-                    result.push({ index, origin });
-                }
-                return result;
-            } else {
-                return [...allControlPoints.entries()].map(([index, origin]) => ({ index, origin }))
-            }
-        }
     }
 
     private _segmentAngles!: SegmentAngle[];
@@ -277,7 +218,7 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
         this.info = { before, active, after, before_tangent_end, active_tangent_begin, active_tangent_end, after_tangent_begin, before_tmax, after_tmin, before_pmax, after_pmin, before_tmin, after_tmax, radiusBefore, radiusAfter, beforeIsAfter };
     }
 
-    async calculateOffset() {
+    async calculate() {
         const { contour, segment: index, distance, info } = this;
 
         if (distance === 0) throw new NoOpError();
@@ -348,13 +289,6 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             const result = c3d.ActionSurfaceCurve.CreateContourFillets(outContour, radiuses.map(unit), c3d.ConnectingType.Fillet);
             return new c3d.SpaceInstance(result);
         }
-    }
-
-    async calculateFillet() {
-        const { contour, radiuses } = this;
-
-        const result = c3d.ActionSurfaceCurve.CreateContourFillets(contour, radiuses.map(unit), c3d.ConnectingType.Fillet);
-        return new c3d.SpaceInstance(result);
     }
 
     private process(info: OffsetPrecomputeInfo): OffsetResult {
@@ -563,10 +497,5 @@ export class ModifyContourFactory extends ContourFactory implements ModifyContou
             }
             default: throw new Error(pattern);
         }
-    }
-
-    private async calculateChangePoint() {
-        // @ts-ignore
-        return new c3d.SpaceInstance();
     }
 }

@@ -4,7 +4,7 @@ import * as visual from '../../editor/VisualModel';
 import { inst2curve, point2point, unit, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import LineFactory from '../line/LineFactory';
-import JoinCurvesFactory from './JoinCurvesFactory';
+import JoinCurvesFactory from '../curve/JoinCurvesFactory';
 
 /**
  * Filleting curves is idiosyncratic. The underlying c3d method uses Contours only. Thus, to fillet a polyline, it
@@ -27,11 +27,6 @@ export interface CornerAngle {
 export interface SegmentAngle {
     origin: THREE.Vector3;
     normal: THREE.Vector3;
-}
-
-export interface ControlPointInfo {
-    index: number;
-    origin: THREE.Vector3;
 }
 
 export abstract class ContourFactory extends GeometryFactory {
