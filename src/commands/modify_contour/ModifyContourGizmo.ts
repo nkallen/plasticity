@@ -52,13 +52,18 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             gizmo.position.copy(segment.origin);
         }
 
+        const centroid = new THREE.Vector3();
         for (const [i, corner] of params.cornerAngles.entries()) {
             const gizmo = this.corners[i];
             gizmo.relativeScale.setScalar(0.8);
             quat.setFromUnitVectors(Y, corner.tau.cross(corner.axis));
             gizmo.quaternion.copy(quat);
             gizmo.position.copy(corner.origin);
+            centroid.add(corner.origin);
         }
+
+        centroid.divideScalar(params.cornerAngles.length);
+        filletAll.position.copy(centroid);
 
         // for (const [i, controlPoint] of params.foo.entries()) {
         //     const gizmo = this.controlPoints[i];
@@ -169,7 +174,7 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
     }
 
     protected accumulate(original: number, dist: number, denom: number, sign: number = 1): number {
-        return Math.max(0, sign*(original + dist - denom))
+        return Math.max(0, sign * (original + dist - denom))
     }
 
     get shouldRescaleOnZoom() { return true }
