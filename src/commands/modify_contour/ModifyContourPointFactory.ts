@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { inst2curve, point2point, unit } from '../../util/Conversion';
-import { NoOpError, ValidationError } from '../GeometryFactory';
-import { ContourFactory } from "./ContourFilletFactory";
 import * as visual from '../../editor/VisualModel';
+import { point2point } from '../../util/Conversion';
+import { NoOpError } from '../GeometryFactory';
+import { ContourFactory } from "./ContourFilletFactory";
 
 export interface ModifyContourPointParams {
     get controlPointInfo(): ControlPointInfo[];
@@ -35,25 +35,26 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
     private computeControlPointInfo(): ControlPointInfo[] {
         const { contour } = this;
         const segments = contour.GetSegments();
-        const allControlPoints = new Map<number, ControlPointInfo>();
-        let i = 0;
+        const allControlPoints = [];
         for (const [segmentIndex, segment] of segments.entries()) {
             if (segment.Type() === c3d.SpaceType.PolyCurve3D && segment.IsA() !== c3d.SpaceType.Polyline3D) {
                 const polycurve = segment.Cast<c3d.PolyCurve3D>(segment.IsA());
                 const points = polycurve.GetPoints();
-                for (const [j, point] of points.entries()) {
-                    const limit = j === 0 ? 1 : j === points.length - 1 ? 2 : -1;
+                for (const [i, point] of points.entries()) {
+                    const limit = i === 0 ? 1 : i === points.length - 1 ? 2 : -1;
                     const info: ControlPointInfo = { origin: point2point(point), segmentIndex, limit, index: i }
-                    allControlPoints.set(i++, info);
+                    allControlPoints.push(info);
                 }
             } else {
-                const info: ControlPointInfo = { origin: point2point(segment.GetLimitPoint(1)), segmentIndex, limit: 1, index: i }
-                allControlPoints.set(i++, info);
+                const info: ControlPointInfo = { origin: point2point(segment.GetLimitPoint(1)), segmentIndex, limit: 1, index: -1 }
+                allControlPoints.push(info);
             }
         }
-        const segmentIndex = segments.length - 1;
-        const info: ControlPointInfo = { origin: point2point(contour.GetLimitPoint(2)), segmentIndex, limit: 2, index: i }
-        if (!contour.IsClosed()) allControlPoints.set(i++, info);
+        const lastSegmentIndex = segments.length - 1;
+        const info: ControlPointInfo = { origin: point2point(contour.GetLimitPoint(2)), segmentIndex: lastSegmentIndex, limit: 2, index: -1 }
+        const lastSegment = segments[lastSegmentIndex];
+        const lastSegmentIsPolyCurve = lastSegment.Type() === c3d.SpaceType.PolyCurve3D && lastSegment.IsA() !== c3d.SpaceType.Polyline3D;
+        if (!contour.IsClosed() && !lastSegmentIsPolyCurve) allControlPoints.push(info);
 
         const result = [];
         for (const info of allControlPoints.values()) {
@@ -63,7 +64,7 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
     }
 
     async calculate() {
-        const { originalPosition, contour, move, controlPoint, controlPointInfo } = this;
+        const { contour, move, controlPoint, controlPointInfo } = this;
         if (move.manhattanLength() < 10e-5) throw new NoOpError();
 
         const info = controlPointInfo[controlPoint];
@@ -71,9 +72,9 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
         let before = segments[info.segmentIndex - 1];
         if (before === undefined && contour.IsClosed()) before = segments[segments.length - 1];
         const active = segments[info.segmentIndex];
-        const after = segments[info.segmentIndex + 1];
         switch (info.limit) {
             case -1:
+                this.changePoint(active, info);
                 break;
             case 1:
                 this.moveLimitPoint(1, active, info);
@@ -81,10 +82,9 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
                 break;
             case 2:
                 this.moveLimitPoint(2, active, info);
-                this.moveLimitPoint(2, active, info);
                 break;
         }
-        
+
         const result = new c3d.Contour3D();
         for (const segment of segments) {
             result.AddCurveWithRuledCheck(segment, 1e-5, true);
@@ -93,15 +93,29 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
         return new c3d.SpaceInstance(result);
     }
 
+    private readonly to = new THREE.Vector3();
     private moveLimitPoint(point: 1 | 2, curve: c3d.Curve3D, info: ControlPointInfo) {
         const cast = curve.Cast<c3d.Curve3D>(curve.IsA());
-        const { move } = this;
-        const newPosition = info.origin.clone().add(move); // FIXME remove clone
+        const { move, to } = this;
+        const newPosition = to.copy(info.origin).add(move);
         if (cast instanceof c3d.PolyCurve3D) {
-            cast.ChangePoint(point - 1, point2point(newPosition));
+            if (cast instanceof c3d.Polyline3D) {
+                cast.ChangePoint(point - 1, point2point(newPosition));
+            } else {
+                cast.ChangePoint(info.index, point2point(newPosition));                
+            }
             cast.Rebuild();
         } else if (cast instanceof c3d.Arc3D) {
             cast.SetLimitPoint(point, point2point(newPosition));
         }
+    }
+
+    private changePoint(curve: c3d.Curve3D, info: ControlPointInfo) {
+        const cast = curve.Cast<c3d.Curve3D>(curve.IsA());
+        const { move, to } = this;
+        const newPosition = to.copy(info.origin).add(move);
+        if (!(cast instanceof c3d.PolyCurve3D)) throw new Error();
+        cast.ChangePoint(info.index, point2point(newPosition));
+        cast.Rebuild();
     }
 }

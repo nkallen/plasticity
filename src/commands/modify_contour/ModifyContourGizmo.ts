@@ -31,7 +31,6 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
 
         for (const point of params.controlPointInfo) {
             const gizmo = new ControlPointGizmo("fillet-curve:radius", this.editor);
-            gizmo.userData.index = point.index;
             this.controlPoints.push(gizmo);
         }
     }
@@ -107,10 +106,10 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             });
         }
 
-        for (const controlPoint of controlPoints) {
+        for (const [i, controlPoint] of controlPoints.entries()) {
             this.addGizmo(controlPoint, d => {
                 params.mode = 'change-point';
-                params.controlPoint = controlPoint.userData.index;
+                params.controlPoint = i;
                 params.move = d;
             });
         }

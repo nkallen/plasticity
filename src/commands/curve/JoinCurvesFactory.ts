@@ -16,7 +16,7 @@ export default class JoinCurvesFactory extends GeometryFactory {
         }
     }
 
-    async calculate() {
+    async calculate(): Promise<c3d.SpaceInstance[]> {
         const { models } = this;
         if (models.length < 2) throw new Error("not enough curves");
 

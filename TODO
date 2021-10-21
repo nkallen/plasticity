@@ -1,8 +1,5 @@
 . unit test for cornerAngles:
 
-- with/without selected control points
-- with corners and smooths
-
 . unit test for CancellablePromise.all
 
 . snapping projected to restrictions (either construction plane or axis)
