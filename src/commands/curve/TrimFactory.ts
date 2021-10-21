@@ -17,7 +17,7 @@ export default class TrimFactory extends GeometryFactory {
     }
 
     async calculate() {
-        const { curve, info: { start, stop } } = this;
+        const { curve } = this;
 
         if (curve.IsA() === c3d.SpaceType.Polyline3D) {
             return this.trimPolyline();

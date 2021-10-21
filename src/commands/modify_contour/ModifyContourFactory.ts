@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { inst2curve } from '../../util/Conversion';
+import { inst2curve, point2point } from '../../util/Conversion';
 import { GeometryFactory } from "../GeometryFactory";
 import { ContourFilletFactory, CornerAngle, Polyline2ContourFactory, SegmentAngle } from "./ContourFilletFactory";
 import { ControlPointInfo, ModifyContourPointFactory, ModifyContourPointParams } from "./ModifyContourPointFactory";
@@ -33,7 +33,7 @@ export class ModifyContourFactory extends GeometryFactory implements ModifyConto
             const item = process.pop()!;
             switch (item.IsA()) {
                 case c3d.SpaceType.Polyline3D:
-                    const polyline = item.Cast<c3d.Polyline3D>(item.IsA()); // This should work but doesn't
+                    const polyline = item.Cast<c3d.Polyline3D>(item.IsA());
                     if (polyline.GetCount() === 1) result.AddCurveWithRuledCheck(polyline as c3d.Curve3D, 10e-5)
                     else {
                         const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
@@ -43,10 +43,23 @@ export class ModifyContourFactory extends GeometryFactory implements ModifyConto
                     }
                     break;
                 case c3d.SpaceType.Contour3D:
-                    const decompose = (item instanceof c3d.Contour3D) ? item : item.Cast<c3d.Contour3D>(item.IsA());
-                    // const decompose = item.Cast<c3d.Contour3D>(item.IsA()); // This should work but doesn't // FIXME when there's time
+                    const decompose = item.Cast<c3d.Contour3D>(item.IsA());
                     for (const segment of decompose.GetSegments()) process.push(segment);
                     break;
+                case c3d.SpaceType.TrimmedCurve3D:
+                    const trimmed = item.Cast<c3d.TrimmedCurve3D>(item.IsA());
+                    const basis = trimmed.GetBasisCurve();
+                    const cast = basis.Cast<c3d.Curve3D>(basis.IsA());
+                    if (cast instanceof c3d.Polyline3D) {
+                        const originalPoints = cast.GetPoints();
+                        const ts = [...Array(originalPoints.length).keys()];
+                        const tmin = trimmed.GetTMin();
+                        const tmax = trimmed.GetTMax();
+                        const keep = ts.filter(t => t > tmin && t < tmax);
+                        const points = [trimmed.GetLimitPoint(1), ...keep.map(t => cast._PointOn(t)), trimmed.GetLimitPoint(2)];
+                        process.push(new c3d.Polyline3D(points, false));
+                        break;
+                    } else throw new Error();
                 default:
                     result.AddCurveWithRuledCheck(item.Cast<c3d.Curve3D>(item.IsA()), 10e-5);
             }

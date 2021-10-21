@@ -150,6 +150,23 @@ Napi::Value Curve3D::Cast(const Napi::CallbackInfo &info)
     return cast(this->_underlying, info);
 }
 
+Napi::Value Polyline3D::Cast(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+Napi::Value PolyCurve3D::Cast(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+Napi::Value Contour3D::Cast(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+// THESE ARE FAKE ASYNC IMPLEMENTATIONS TO GET THE COMPILER TO STOP COMPLAINING
+
 Napi::Value SpaceItem::Cast_async(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
