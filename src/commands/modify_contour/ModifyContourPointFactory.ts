@@ -41,8 +41,9 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
                 const polycurve = segment.Cast<c3d.PolyCurve3D>(segment.IsA());
                 const points = polycurve.GetPoints();
                 for (const [i, point] of points.entries()) {
-                    const limit = i === 0 ? 1 : i === points.length - 1 ? 2 : -1;
+                    const limit = i === 0 ? 1 : -1;
                     const info: ControlPointInfo = { origin: point2point(point), segmentIndex, limit, index: i }
+                    if (i === points.length - 1 && segmentIndex < segments.length - 1) break;
                     allControlPoints.push(info);
                 }
             } else {
@@ -69,9 +70,9 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
 
         const info = controlPointInfo[controlPoint];
         const segments = contour.GetSegments();
+        const active = segments[info.segmentIndex];
         let before = segments[info.segmentIndex - 1];
         if (before === undefined && contour.IsClosed()) before = segments[segments.length - 1];
-        const active = segments[info.segmentIndex];
         switch (info.limit) {
             case -1:
                 this.changePoint(active, info);
@@ -102,7 +103,8 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
             if (cast instanceof c3d.Polyline3D) {
                 cast.ChangePoint(point - 1, point2point(newPosition));
             } else {
-                cast.ChangePoint(info.index, point2point(newPosition));                
+                if (point === 1) cast.ChangePoint(0, point2point(newPosition));
+                else cast.ChangePoint(cast.GetPoints().length - 1, point2point(newPosition));
             }
             cast.Rebuild();
         } else if (cast instanceof c3d.Arc3D) {
