@@ -24,7 +24,7 @@ export class ScaleDialog extends AbstractDialog<ScaleParams> {
                         <ispace-number-scrubber name="scale.y" value={scale.y} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
-                        <label for="scale.z">Y</label>
+                        <label for="scale.z">Z</label>
                         <ispace-number-scrubber name="scale.z" value={scale.z} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                 </ul>

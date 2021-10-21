@@ -25,7 +25,7 @@ export class MoveDialog extends AbstractDialog<MoveParams> {
                         <ispace-number-scrubber name="move.y" value={move.y} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                     <li>
-                        <label for="move.z">Y</label>
+                        <label for="move.z">Z</label>
                         <ispace-number-scrubber name="move.z" value={move.z} onchange={this.onChange} onscrub={this.onChange} onfinish={this.onChange}></ispace-number-scrubber>
                     </li>
                 </ul>
