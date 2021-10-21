@@ -33,7 +33,8 @@ export class ModifyContourFactory extends GeometryFactory implements ModifyConto
             switch (item.IsA()) {
                 case c3d.SpaceType.Polyline3D:
                     const polyline = item.Cast<c3d.Polyline3D>(item.IsA());
-                    if (polyline.GetCount() === 1) result.AddCurveWithRuledCheck(polyline as c3d.Curve3D, 10e-5)
+                    const points = polyline.GetPoints();
+                    if (points.length === 2) result.AddCurveWithRuledCheck(polyline as c3d.Curve3D, 10e-5)
                     else {
                         const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
                         polyline2contour.polyline = polyline;

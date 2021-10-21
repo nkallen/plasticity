@@ -9,7 +9,7 @@ export default class LineFactory extends GeometryFactory {
 
     async calculate() {
         const { p1, p2 } = this;
-        const line = c3d.ActionCurve3D.SplineCurve([point2point(p1), point2point(p2)], false, c3d.SpaceType.Polyline3D);
+        const line = new c3d.Polyline3D([point2point(p1), point2point(p2)], false);
         return new c3d.SpaceInstance(line);
     }
 }

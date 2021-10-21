@@ -44,7 +44,7 @@ export interface GizmoLike<CB> {
 }
 
 export enum Mode {
-    None = 0,
+    None = 0 << 0,
     Persistent = 1 << 0,
     DisableSelection = 1 << 1,
 };
@@ -152,7 +152,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                     stateMachine.update(viewport, pointer);
                     stateMachine.pointerUp(() => {
                         if ((mode & Mode.Persistent) !== Mode.Persistent) {
-                            disposables.dispose();
+                            dispose();
                             resolve();
                         }
                         domElement.ownerDocument.body.removeAttribute('gizmo');
@@ -185,6 +185,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 this.editor.signals.gizmoChanged.dispatch();
             }
             const dispose = () => {
+                console.log("in this dispose");
                 stateMachine.finish();
                 disposables.dispose();
                 this.editor.signals.gizmoChanged.dispatch();
@@ -382,6 +383,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.state = { tag: 'none' };
                 this.gizmo.dispatchEvent({ type: 'end' });
                 this.gizmo.onPointerUp(this.cb, this.intersector, this);
+                console.log("here before on end");
                 this.gizmo.helper?.onEnd();
 
                 finish();

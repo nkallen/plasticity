@@ -75,7 +75,7 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         for (const cp of this.controlPoints) this.add(cp);
     }
 
-    execute(cb: (params: ModifyContourParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: ModifyContourParams) => void, mode: Mode = Mode.None): CancellablePromise<void> {
         const { filletAll, segments, params, corners, controlPoints } = this;
 
         for (const [i, segment] of segments.entries()) {

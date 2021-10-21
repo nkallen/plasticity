@@ -40,7 +40,7 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
         this.add(lengthGizmo, radiusGizmo);
     }
 
-    execute(cb: (params: SpiralParams) => void, finishFast: Mode = Mode.None): CancellablePromise<void> {
+    execute(cb: (params: SpiralParams) => void): CancellablePromise<void> {
         const { angleGizmo, lengthGizmo, radiusGizmo, params } = this;
         const { p2, p1 } = params;
 
@@ -60,7 +60,7 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
             cb(params);
         });
 
-        return super.execute(cb, finishFast);
+        return super.execute(cb, Mode.Persistent);
     }
 
     get shouldRescaleOnZoom() { return false }

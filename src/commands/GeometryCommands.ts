@@ -392,7 +392,7 @@ export class SpiralCommand extends Command {
         const spiralGizmo = new SpiralGizmo(spiral, this.editor);
         spiralGizmo.execute(params => {
             spiral.update();
-        }, Mode.Persistent).resource(this);
+        }).resource(this);
 
         await this.finished;
 
