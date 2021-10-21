@@ -13,10 +13,11 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
 
     protected prepare(mode: Mode) { }
 
-    execute(compositeCallback: (params: P) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
+    execute(compositeCallback: (params: P) => void, mode: Mode = Mode.Persistent, disposable = new Disposable()): CancellablePromise<void> {
         this.prepare(mode);
 
         const disposables = new CompositeDisposable();
+        disposables.add(disposable);
 
         this.editor.helpers.add(this);
         disposables.add(new Disposable(() => this.editor.helpers.remove(this)));

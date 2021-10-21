@@ -51,15 +51,16 @@ export enum Mode {
 
 export abstract class AbstractGizmo<CB> extends Helper {
     stateMachine?: GizmoStateMachine<CB>;
+    trigger: GizmoTriggerStrategy<CB> = new BasicGizmoTriggerStrategy(this.title, this.editor);
 
     protected handle = new THREE.Group();
-    picker = new THREE.Group();
-    helper?: GizmoHelper;
+    readonly picker = new THREE.Group();
+    readonly helper?: GizmoHelper;
 
     constructor(protected readonly title: string, protected readonly editor: EditorLike) {
         super();
 
-        this.picker.visible = false; // Not sure why this is necessary, but invisible pickers seem to be occluding handles
+        this.picker.visible = false; // The picker is only a mouse target; should never be rendered
         this.add(this.handle, this.picker);
     }
 
@@ -103,17 +104,8 @@ export abstract class AbstractGizmo<CB> extends Helper {
                     viewport.selector.enabled = false;
                 }
 
-                const addEventHandlers = () => {
-                    domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
-                    domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
-                    return new Disposable(() => {
-                        domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
-                        domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
-                    });
-                }
-
                 // First, register any keyboard commands for each viewport, like 'x' for :move:x
-                for (const [name, fn] of commands) { // FIXME I'm skeptical this belongs in a loop
+                for (const [name, fn] of commands) {
                     const disp = registry.addOne(domElement, name, () => {
                         // If a keyboard command is invoked immediately after the gizmo appears, we will
                         // not have received any pointer info from pointermove/hover. Since we need a "start"
@@ -130,14 +122,13 @@ export abstract class AbstractGizmo<CB> extends Helper {
                     disposables.add(disp);
                 }
 
-                // Next, the basic workflow for pointer events
-                const onPointerDown = (event: PointerEvent) => {
-                    const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.update(viewport, pointer);
-                    stateMachine.pointerDown(() => {
-                        domElement.ownerDocument.body.setAttribute("gizmo", this.title);
-                        viewport.disableControls();
-                        return addEventHandlers();
+                // Add handlers when triggered, for example, on pointerdown
+                const addEventHandlers = () => {
+                    domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
+                    domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
+                    return new Disposable(() => {
+                        domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
+                        domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
                     });
                 }
 
@@ -160,27 +151,12 @@ export abstract class AbstractGizmo<CB> extends Helper {
                     });
                 }
 
-                const onKeyPress = (event: KeyboardEvent) => {
-                    stateMachine.keyPress(event.key);
-                }
-
-                const onPointerHover = (event: PointerEvent) => {
-                    const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.update(viewport, pointer);
-                    stateMachine.pointerHover();
-                }
-
-                domElement.addEventListener('pointerdown', onPointerDown);
-                domElement.addEventListener('pointermove', onPointerHover);
-                domElement.ownerDocument.addEventListener('keypress', onKeyPress);
+                const trigger = this.trigger.register(this, viewport, addEventHandlers);
                 disposables.add(new Disposable(() => {
                     viewport.enableControls();
-                    domElement.removeEventListener('pointerdown', onPointerDown);
-                    domElement.removeEventListener('pointermove', onPointerHover);
-                    domElement.ownerDocument.removeEventListener('keypress', onKeyPress);
+                    trigger.dispose();
                     domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
                     domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
-                    domElement.ownerDocument.body.removeAttribute('gizmo');
                 }));
                 this.editor.signals.gizmoChanged.dispatch();
             }
@@ -193,7 +169,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
         });
     }
 
-    protected static getPointer(domElement: HTMLElement, event: PointerEvent): Pointer {
+    static getPointer(domElement: HTMLElement, event: PointerEvent): Pointer {
         const rect = domElement.getBoundingClientRect();
         const pointer = event;
 
@@ -202,6 +178,49 @@ export abstract class AbstractGizmo<CB> extends Helper {
             y: - (pointer.clientY - rect.top) / rect.height * 2 + 1,
             button: event.button
         };
+    }
+}
+
+export interface GizmoTriggerStrategy<T> {
+    register(gizmo: AbstractGizmo<T>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable;
+}
+
+export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
+    constructor(private readonly title: string, private readonly editor: EditorLike) { }
+
+    register(gizmo: AbstractGizmo<T>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
+        const stateMachine = gizmo.stateMachine!;
+        const { renderer: { domElement } } = viewport;
+
+        const onPointerDown = (event: PointerEvent) => {
+            const pointer = AbstractGizmo.getPointer(domElement, event);
+            stateMachine.update(viewport, pointer);
+            stateMachine.pointerDown(() => {
+                domElement.ownerDocument.body.setAttribute("gizmo", this.title);
+                viewport.disableControls();
+                return addEventHandlers();
+            });
+        }
+
+        const onKeyPress = (event: KeyboardEvent) => {
+            stateMachine.keyPress(event.key);
+        }
+
+        const onPointerHover = (event: PointerEvent) => {
+            const pointer = AbstractGizmo.getPointer(domElement, event);
+            stateMachine.update(viewport, pointer);
+            stateMachine.pointerHover();
+        }
+
+        domElement.addEventListener('pointerdown', onPointerDown);
+        domElement.addEventListener('pointermove', onPointerHover);
+        domElement.ownerDocument.addEventListener('keypress', onKeyPress);
+        return new Disposable(() => {
+            domElement.removeEventListener('pointerdown', onPointerDown);
+            domElement.removeEventListener('pointermove', onPointerHover);
+            domElement.ownerDocument.removeEventListener('keypress', onKeyPress);
+            domElement.ownerDocument.body.removeAttribute('gizmo');
+        });
     }
 }
 
@@ -254,7 +273,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     endRadius = new THREE.Vector2();
     angle = 0;
 
-    private raycaster = new THREE.Raycaster();
+    private readonly raycaster = new THREE.Raycaster();
     // FIXME set layer
 
     constructor(
