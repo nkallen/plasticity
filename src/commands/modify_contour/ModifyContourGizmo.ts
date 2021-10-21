@@ -83,6 +83,8 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             this.addGizmo(segment, d => {
                 this.disableCorners();
                 this.disableSegments(segment);
+                this.disableControlPoints();
+
                 params.mode = 'offset';
                 params.segment = i;
                 params.distance = d;
@@ -90,8 +92,10 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         }
 
         this.addGizmo(filletAll, d => {
-            params.mode = 'fillet';
             this.disableSegments();
+            this.disableControlPoints();
+
+            params.mode = 'fillet';
             for (const [i, corner] of params.cornerAngles.entries()) {
                 params.radiuses[corner.index] = d;
                 corners[i].value = d;
@@ -100,14 +104,21 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
 
         for (const corner of corners) {
             this.addGizmo(corner, d => {
-                params.mode = 'fillet';
                 this.disableSegments();
+                this.disableControlPoints();
+
+                params.mode = 'fillet';
                 params.radiuses[corner.userData.index] = d;
             });
         }
 
         for (const [i, controlPoint] of controlPoints.entries()) {
             this.addGizmo(controlPoint, d => {
+                this.disableSegments();
+                this.disableControlPoints(controlPoint);
+                this.disableCorners();
+
+                controlPoint.position.copy(params.controlPointInfo[i].origin).add(d);
                 params.mode = 'change-point';
                 params.controlPoint = i;
                 params.move = d;
@@ -130,6 +141,14 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         for (const corners of this.corners) {
             corners.stateMachine!.isEnabled = false;
             corners.visible = false;
+        }
+    }
+
+    private disableControlPoints(except?: ControlPointGizmo) {
+        for (const cp of this.controlPoints) {
+            if (cp === except) continue;
+            cp.stateMachine!.isEnabled = false;
+            cp.visible = false;
         }
     }
 
