@@ -56,6 +56,7 @@ const circleGeometry = new LineGeometry();
 circleGeometry.setPositions(CircleGeometry(radius, 64));
 
 export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void> {
+    protected readonly hasCommand: boolean = true;
     get value() { return this.state.current }
     set value(m: T) { this.state.original = m }
 
@@ -66,7 +67,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     constructor(name: string, editor: EditorLike, private readonly material: GizmoMaterial, readonly state: AbstractValueStateMachine<T>) {
         super(name.split(':')[0], editor);
 
-        this.torus.userData.command = [`gizmo:${name}`, () => { }];
+        if (this.hasCommand) this.torus.userData.command = [`gizmo:${name}`, () => { }];
         this.handle.add(this.circle);
         this.picker.add(this.torus);
     }
@@ -130,6 +131,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     protected abstract readonly shaft: THREE.Mesh;
     protected abstract readonly material: GizmoMaterial;
     protected abstract readonly state: MagnitudeStateMachine;
+    protected readonly hasCommand: boolean = true;
 
     private readonly plane = new THREE.Mesh(planeGeometry, this.editor.gizmos.invisible);
 
@@ -145,7 +147,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     }
 
     protected setup() {
-        this.knob.userData.command = [`gizmo:${this.longName}`, () => { }];
+        if (this.hasCommand) this.knob.userData.command = [`gizmo:${this.longName}`, () => { }];
         this.tip.position.set(0, 1, 0);
         this.knob.position.copy(this.tip.position);
         this.render(this.state.current);

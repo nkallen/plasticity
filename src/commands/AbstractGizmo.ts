@@ -185,7 +185,6 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 this.editor.signals.gizmoChanged.dispatch();
             }
             const dispose = () => {
-                console.log("in this dispose");
                 stateMachine.finish();
                 disposables.dispose();
                 this.editor.signals.gizmoChanged.dispatch();
@@ -383,7 +382,6 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.state = { tag: 'none' };
                 this.gizmo.dispatchEvent({ type: 'end' });
                 this.gizmo.onPointerUp(this.cb, this.intersector, this);
-                console.log("here before on end");
                 this.gizmo.helper?.onEnd();
 
                 finish();

@@ -9,7 +9,7 @@ import { ModifyContourParams } from "./ModifyContourFactory";
 const Y = new THREE.Vector3(0, 1, 0);
 
 export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
-    private readonly filletAll = new FilletCornerGizmo("modify-contour:fillet-all", this.editor);
+    private readonly filletAll = new FilletCornerGizmo("modify-contour:fillet-all", this.editor, true);
     private readonly segments: PushCurveGizmo[] = [];
     private readonly corners: FilletCornerGizmo[] = [];
     private readonly controlPoints: ControlPointGizmo[] = [];
@@ -161,6 +161,7 @@ class PushCurveGizmo extends AbstractAxisGizmo {
     readonly tip = new THREE.Mesh(arrowGeometry, this.editor.gizmos.default.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.editor.gizmos.default.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
+    protected readonly hasCommand = false;
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor);
@@ -184,7 +185,7 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
 
-    constructor(name: string, editor: EditorLike) {
+    constructor(name: string, editor: EditorLike, protected readonly hasCommand = false) {
         super(name, editor, editor.gizmos.default);
         this.setup();
     }
@@ -197,6 +198,7 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
 }
 
 export class ControlPointGizmo extends CircularGizmo<THREE.Vector3> {
+    protected readonly hasCommand = false;
     private readonly delta = new THREE.Vector3();
 
     constructor(name: string, editor: EditorLike) {
@@ -207,7 +209,7 @@ export class ControlPointGizmo extends CircularGizmo<THREE.Vector3> {
         this.delta.copy(info.pointEnd3d).sub(info.pointStart3d).add(this.state.original);
         const { position } = info.constructionPlane.move(this.state.original).project(this.delta);
         this.delta.copy(position);
-        
+
         this.state.current = this.delta.clone();
         cb(this.state.current);
     }
