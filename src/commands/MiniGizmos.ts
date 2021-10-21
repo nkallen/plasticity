@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { CircleGeometry } from "../util/Util";
-import { AbstractGizmo, EditorLike, GizmoHelper, GizmoView, Intersector, MovementInfo } from "./AbstractGizmo";
+import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 import { GizmoMaterial } from "./GizmoMaterials";
 
 /**
