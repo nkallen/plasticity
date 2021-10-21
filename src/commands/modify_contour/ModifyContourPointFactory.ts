@@ -68,7 +68,8 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
 
         const info = controlPointInfo[controlPoint];
         const segments = contour.GetSegments();
-        const before = segments[info.segmentIndex - 1];
+        let before = segments[info.segmentIndex - 1];
+        if (before === undefined && contour.IsClosed()) before = segments[segments.length - 1];
         const active = segments[info.segmentIndex];
         const after = segments[info.segmentIndex + 1];
         switch (info.limit) {
@@ -80,27 +81,10 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
                 break;
             case 2:
                 this.moveLimitPoint(2, active, info);
+                this.moveLimitPoint(2, active, info);
                 break;
         }
-
-        // for (const [i, point] of controlPoints.entries()) {
-        //     const originalPosition = originalPositions[i];
-        //     newPosition.copy(originalPosition).add(move);
-        //     const index = point.index;
-
-        //     if (curve instanceof c3d.PolyCurve3D) {
-        //         curve.ChangePoint(index, point2point(newPosition));
-        //         curve.Rebuild();
-        //     } else if (curve instanceof c3d.Arc3D) {
-        //         if (curve.IsClosed()) {
-        //             const center = point2point(curve.GetCentre());
-        //             curve.SetRadius(unit(center.distanceTo(newPosition)));
-        //         } else {
-        //             curve.SetLimitPoint(index + 1, point2point(newPosition));
-        //         }
-        //     }
-        // }
-
+        
         const result = new c3d.Contour3D();
         for (const segment of segments) {
             result.AddCurveWithRuledCheck(segment, 1e-5, true);
@@ -116,6 +100,8 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
         if (cast instanceof c3d.PolyCurve3D) {
             cast.ChangePoint(point - 1, point2point(newPosition));
             cast.Rebuild();
+        } else if (cast instanceof c3d.Arc3D) {
+            cast.SetLimitPoint(point, point2point(newPosition));
         }
     }
 }

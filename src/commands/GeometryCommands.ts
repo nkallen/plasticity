@@ -183,6 +183,7 @@ export class TwoPointCircleCommand extends Command {
         }).resource(this);
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -203,6 +204,7 @@ export class ThreePointCircleCommand extends Command {
         }).resource(this);
 
         const result = await circle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -234,6 +236,7 @@ export class CenterPointArcCommand extends Command {
         }).resource(this);
 
         const result = await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -263,6 +266,7 @@ export class CenterEllipseCommand extends Command {
         }).resource(this);
 
         const result = await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -289,6 +293,7 @@ export class ThreePointEllipseCommand extends Command {
         }).resource(this);
 
         const result = await ellipse.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -315,6 +320,7 @@ export class ThreePointArcCommand extends Command {
         }).resource(this);
 
         const result = await arc.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -352,7 +358,8 @@ export class PolygonCommand extends Command {
             polygon.update();
         }).resource(this);
 
-        await polygon.commit();
+        const result = await polygon.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -389,15 +396,8 @@ export class SpiralCommand extends Command {
 
         await this.finished;
 
-        await spiral.commit();
-    }
-}
-
-export class RegionCommand extends Command {
-    async execute(): Promise<void> {
-        const region = new RegionFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        region.contours = [...this.editor.selection.selected.curves];
-        await region.commit();
+        const result = await spiral.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -509,7 +509,8 @@ export class JoinCurvesCommand extends Command {
     async execute(): Promise<void> {
         const contour = new JoinCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         for (const curve of this.editor.selection.selected.curves) contour.push(curve);
-        await contour.commit();
+        const result = await contour.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 
@@ -534,7 +535,8 @@ export class ThreePointRectangleCommand extends Command {
             rect.update();
         }).resource(this);
 
-        await rect.commit();
+        const result = await rect.commit() as visual.SpaceInstance<visual.Curve3D>;
+        this.editor.selection.selected.addCurve(result);
     }
 }
 

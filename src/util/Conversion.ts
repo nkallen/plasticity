@@ -109,7 +109,7 @@ export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D = ne
         const curve2d = c3d.ActionCurve.SplineCurve(points2d, false, c3d.PlaneType.Polyline);
         return { curve: curve2d, placement: hint };
     } else if (curve3d.IsPlanar()) {
-        const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.01));
+        const { curve2d, placement } = curve3d.GetPlaneCurve(false, new c3d.PlanarCheckParams(0.1));
 
         const dup = curve2d.Duplicate().Cast<c3d.Curve>(c3d.PlaneType.Curve);
         return { curve: dup, placement };

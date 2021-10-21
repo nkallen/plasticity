@@ -137,7 +137,6 @@ tooltips.set(cmd.CenterBoxCommand, "Center box");
 tooltips.set(cmd.LoftCommand, "Loft");
 tooltips.set(cmd.MirrorCommand, "Mirror");
 tooltips.set(cmd.JoinCurvesCommand, "Join curves");
-tooltips.set(cmd.RegionCommand, "Region");
 tooltips.set(cmd.ExtrudeCommand, "Extrude");
 tooltips.set(cmd.SpiralCommand, "Spiral");
 tooltips.set(cmd.CharacterCurveCommand, "Custom Function");
