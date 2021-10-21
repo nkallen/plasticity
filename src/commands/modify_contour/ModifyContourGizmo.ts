@@ -1,10 +1,9 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/Cancellable";
-import { EditorLike, Mode } from "../AbstractGizmo";
+import { EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
-import { CircleMoveGizmo } from "../translate/MoveGizmo";
+import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry, VectorStateMachine } from "../MiniGizmos";
 import { ModifyContourParams } from "./ModifyContourFactory";
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -66,7 +65,7 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
 
         for (const [i, controlPoint] of params.controlPointInfo.entries()) {
             const gizmo = this.controlPoints[i];
-            gizmo.relativeScale.setScalar(0.2);
+            gizmo.relativeScale.setScalar(0.1);
             gizmo.position.copy(controlPoint.origin);
         }
 
@@ -197,6 +196,21 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
     get shouldRescaleOnZoom() { return true }
 }
 
-export class ControlPointGizmo extends CircleMoveGizmo {
+export class ControlPointGizmo extends CircularGizmo<THREE.Vector3> {
+    private readonly delta = new THREE.Vector3();
+
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor, editor.gizmos.white, new VectorStateMachine(new THREE.Vector3()));
+    }
+
+    onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
+        this.delta.copy(info.pointEnd3d).sub(info.pointStart3d).add(this.state.original);
+        const { position } = info.constructionPlane.move(this.state.original).project(this.delta);
+        this.delta.copy(position);
+        
+        this.state.current = this.delta.clone();
+        cb(this.state.current);
+    }
+
     get shouldRescaleOnZoom() { return true }
 }

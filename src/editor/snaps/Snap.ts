@@ -583,6 +583,7 @@ export class PlaneSnap extends Snap {
 
     readonly n: THREE.Vector3;
     readonly p: THREE.Vector3;
+    private readonly orientation = new THREE.Quaternion();
 
     constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3()) {
         super();
@@ -593,15 +594,16 @@ export class PlaneSnap extends Snap {
         this.snapper.position.copy(p);
         this.n = n;
         this.p = p;
+        this.orientation.setFromUnitVectors(Z, this.n);
 
         this.init();
     }
-
-    project(intersection: THREE.Intersection) {
-        const { n, p } = this;
+    
+    project(intersection: THREE.Vector3 | THREE.Intersection) {
+        const point = intersection instanceof THREE.Vector3 ? intersection : intersection.point;
+        const { n, p, orientation } = this;
         const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, p);
-        const position = plane.projectPoint(intersection.point, new THREE.Vector3());
-        const orientation = new THREE.Quaternion().setFromUnitVectors(Z, n);
+        const position = plane.projectPoint(point, new THREE.Vector3());
         return { position, orientation };
     }
 
