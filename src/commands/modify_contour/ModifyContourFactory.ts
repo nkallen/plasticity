@@ -1,10 +1,9 @@
-import { Vector3 } from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { inst2curve, point2point } from '../../util/Conversion';
+import { inst2curve } from '../../util/Conversion';
 import { GeometryFactory } from "../GeometryFactory";
 import { ContourFilletFactory, CornerAngle, Polyline2ContourFactory, SegmentAngle } from "./ContourFilletFactory";
-import { ControlPointInfo, ModifyContourPointFactory, ModifyContourPointParams } from "./ModifyContourPointFactory";
+import { ModifyContourPointFactory, ModifyContourPointParams } from "./ModifyContourPointFactory";
 import { ModifyContourSegmentFactory, ModifyContourSegmentParams } from "./ModifyContourSegmentFactory";
 
 type Mode = 'fillet' | 'offset' | 'change-point';

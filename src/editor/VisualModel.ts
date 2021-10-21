@@ -4,7 +4,7 @@ import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import c3d from '../../build/Release/c3d.node';
 import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
-import { deunit } from "../util/Conversion";
+import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 
 /**
  * This class hierarchy mirrors the c3d hierarchy into the THREE.js Object3D hierarchy.
@@ -425,11 +425,8 @@ export class ControlPointGroup extends THREE.Group {
             }
             case c3d.SpaceType.Contour3D: {
                 const contour = item.Cast<c3d.Contour3D>(c3d.SpaceType.Contour3D);
-                const segs = contour.GetSegmentsCount();
-                if (!contour.IsClosed()) points.push(contour.GetLimitPoint(1));
-                const start = contour.IsClosed() ? 0 : 1;
-                for (let i = start; i < segs; i++) points.push(contour.FindCorner(i));
-                if (!contour.IsClosed()) points.push(contour.GetLimitPoint(2));
+                const infos = computeControlPointInfo(contour);
+                for (const info of infos) points.push(point2point(info.origin));
                 break;
             }
             default: {
