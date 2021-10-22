@@ -49,14 +49,6 @@ test('executes a command', async () => {
     await expect(command.finished).rejects.toBe(Cancel);
 });
 
-test('remembers last command', async () => {
-    const command = new CenterCircleCommand(editor);
-    editor.enqueue(command);
-    command.cancel();
-    await expect(command.finished).rejects.toBe(Cancel);
-    editor.repeatLastCommand();
-});
-
 test("simple integration test", async () => {
     const makeSphere = new SphereFactory(editor.db, editor.materials, editor.signals);
     makeSphere.center = new THREE.Vector3();

@@ -1,3 +1,4 @@
+import { CompositeDisposable } from "event-kit";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import ContourManager from "../editor/curves/ContourManager";
@@ -6,6 +7,7 @@ import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator, History } from "../editor/History";
 import { HasSelectedAndHovered } from "../selection/SelectionManager";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
+import { GConstructor } from "../util/Util";
 import Command from "./Command";
 import { NoOpError, ValidationError } from "./GeometryFactory";
 import { SelectionCommandManager } from "./SelectionCommandManager";
@@ -27,17 +29,25 @@ export class CommandExecutor {
 
     private active?: Command;
     private next?: Command;
+    private lastCommand?: GConstructor<Command>;
 
     // (Optionally) interrupt any active commands and "enqueue" another.
     // Ensure commands are executed ATOMICALLY.
     // That is, do not start a new command until the previous is fully completed,
     // including any cancelation cleanup. (await this.execute(next))
-    async enqueue(command: Command, interrupt = true) {
+    async enqueue(command: Command, interrupt = true, remember = true) {
+        if (remember && command.remember) this.lastCommand = command.constructor as GConstructor<Command>;
+
         this.next = command;
         const isActive = !!this.active;
         if (interrupt) this.active?.interrupt();
 
         if (!isActive) await this.dequeue();
+    }
+
+    repeatLastCommand(): Promise<void> {
+        if (this.lastCommand === undefined) return Promise.resolve();
+        return this.enqueue(new this.lastCommand(this.editor), true, false);
     }
 
     private async dequeue() {
@@ -50,7 +60,7 @@ export class CommandExecutor {
                 await this.execute(next);
                 if (this.next === undefined) {
                     const command = this.editor.selectionGizmo.commandFor(next);
-                    if (command !== undefined) await this.enqueue(command);
+                    if (command !== undefined) await this.enqueue(command, false, false);
                 }
             } catch (e) {
                 if (e !== Cancel && e !== Finish && e !== Interrupt && !(e instanceof NoOpError)) {
@@ -106,7 +116,7 @@ export class CommandExecutor {
 
     async enqueueDefaultCommand() {
         const command = this.editor.selectionGizmo.commandFor();
-        if (command) await this.enqueue(command);
+        if (command) await this.enqueue(command, false, false);
     }
 
     debug() {

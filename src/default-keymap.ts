@@ -178,7 +178,7 @@ export default {
 
         "shift-d": "command:duplicate",
 
-        "mouse2": "repeat-last-command",
+        "shift-r": "repeat-last-command",
         "cmd-z": "undo",
         "cmd-shift-z": "redo",
         "ctrl-z": "undo",
