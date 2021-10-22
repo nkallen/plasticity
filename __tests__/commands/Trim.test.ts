@@ -11,6 +11,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
+import { inst2curve, point2point } from "../../src/util/Conversion";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
@@ -20,6 +21,10 @@ let signals: EditorSignals;
 let curves: PlanarCurveDatabase;
 let regions: RegionManager;
 let contours: ContourManager;
+
+const bbox = new THREE.Box3();
+const center = new THREE.Vector3();
+
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -72,47 +77,196 @@ describe(TrimFactory, () => {
     });
 
     describe("polyline", () => {
-        test("open polyline at beginning", async () => {
-            const makeLine = new CurveFactory(db, materials, signals);
-            makeLine.type = c3d.SpaceType.Polyline3D;
-            makeLine.points.push(new THREE.Vector3());
-            makeLine.points.push(new THREE.Vector3(-2, 4, 0));
-            makeLine.points.push(new THREE.Vector3(-4, -4, 0));
-            const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
-            await curves.add(line);
-            const { fragments } = curves.lookup(line);
-            const fragment = await fragments[0];
-            trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
-            const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
-            expect(trimmed.length).toBe(1);
+        describe('open polyline', () => {
+            let line: visual.SpaceInstance<visual.Curve3D>;
+
+            beforeEach(async () => {
+                const makeLine = new CurveFactory(db, materials, signals);
+                makeLine.type = c3d.SpaceType.Polyline3D;
+                makeLine.points.push(new THREE.Vector3());
+                makeLine.points.push(new THREE.Vector3(0, 1, 0));
+                makeLine.points.push(new THREE.Vector3(1, 1, 0));
+                makeLine.points.push(new THREE.Vector3(1, 0, 0));
+                line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+                await curves.add(line);
+
+                const model = db.lookup(line);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.GetPoints().length).toBe(4);
+                expect(curve.IsClosed()).toBe(false);
+            })
+
+            test("fragment=0", async () => {
+                const { fragments } = curves.lookup(line);
+                const fragment = await fragments[0];
+                trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(1);
+
+                const model = db.lookup(trimmed[0]);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.IsClosed()).toBe(false);
+                const points = curve.GetPoints().map(p => point2point(p));
+                expect(points.length).toBe(3);
+                expect(points[0]).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+                expect(points[1]).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+                expect(points[2]).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            });
+
+            test("fragment=1", async () => {
+                const { fragments } = curves.lookup(line);
+                const fragment = await fragments[1];
+                trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(2);
+
+                {
+                    const model = db.lookup(trimmed[0]);
+                    const curve = inst2curve(model) as c3d.Polyline3D;
+                    expect(curve.IsClosed()).toBe(false);
+                    const points = curve.GetPoints().map(p => point2point(p));
+                    expect(points.length).toBe(2);
+                    expect(points[0]).toApproximatelyEqual(new THREE.Vector3());
+                    expect(points[1]).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+                }
+                {
+                    const model = db.lookup(trimmed[1]);
+                    const curve = inst2curve(model) as c3d.Polyline3D;
+                    expect(curve.IsClosed()).toBe(false);
+                    const points = curve.GetPoints().map(p => point2point(p));
+                    expect(points.length).toBe(2);
+                    expect(points[0]).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+                    expect(points[1]).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+                }
+            });
+
+            test("fragment=2", async () => {
+                const { fragments } = curves.lookup(line);
+                const fragment = await fragments[2];
+                trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(1);
+
+                const model = db.lookup(trimmed[0]);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.IsClosed()).toBe(false);
+                const points = curve.GetPoints().map(p => point2point(p));
+                expect(points.length).toBe(3);
+                expect(points[0]).toApproximatelyEqual(new THREE.Vector3());
+                expect(points[1]).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+                expect(points[2]).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+            });
+
         });
 
-        test("open polyline at end", async () => {
-            const makeLine = new CurveFactory(db, materials, signals);
-            makeLine.type = c3d.SpaceType.Polyline3D;
-            makeLine.points.push(new THREE.Vector3());
-            makeLine.points.push(new THREE.Vector3(-2, 4, 0));
-            makeLine.points.push(new THREE.Vector3(-4, -4, 0));
-            const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
-            await curves.add(line);
-            const { fragments } = curves.lookup(line);
-            const fragment = await fragments[1];
-            trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
-            const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
-            expect(trimmed.length).toBe(1);
-        });
+        describe('closed polyline', () => {
+            let rectangle: visual.SpaceInstance<visual.Curve3D>;
 
-        test("closed polyline", async () => {
-            const makeRectangle = new CornerRectangleFactory(db, materials, signals);
-            makeRectangle.p1 = new THREE.Vector3(-1, -1, -1);
-            makeRectangle.p2 = new THREE.Vector3(1, 1, 1);
-            const rectangle = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
-            await curves.add(rectangle);
-            const { fragments } = curves.lookup(rectangle);
-            const fragment = await fragments[1];
-            trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
-            const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
-            expect(trimmed.length).toBe(1);
-        });
+            beforeEach(async () => {
+                const makeRectangle = new CornerRectangleFactory(db, materials, signals);
+                makeRectangle.p1 = new THREE.Vector3(-1, -1, 0);
+                makeRectangle.p2 = new THREE.Vector3(1, 1, 0);
+                rectangle = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
+                await curves.add(rectangle);
+
+                bbox.setFromObject(rectangle);
+                bbox.getCenter(center);
+                expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+                expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, 0));
+                expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 0));
+            })
+
+            test("fragment=0", async () => {
+                const { fragments } = curves.lookup(rectangle);
+                const fragment = await fragments[0];
+                trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(1);
+
+                const model = db.lookup(trimmed[0]);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.GetPoints().length).toBe(4);
+                expect(curve.IsClosed()).toBe(false);
+            });
+
+            test("fragment=1", async () => {
+                const { fragments } = curves.lookup(rectangle);
+                const fragment = await fragments[1];
+                trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(1);
+
+                const model = db.lookup(trimmed[0]);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.GetPoints().length).toBe(4);
+                expect(curve.IsClosed()).toBe(false);
+            });
+
+            test("fragment=2", async () => {
+                const { fragments } = curves.lookup(rectangle);
+                const fragment = await fragments[2];
+                trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(1);
+
+                const model = db.lookup(trimmed[0]);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.GetPoints().length).toBe(4);
+                expect(curve.IsClosed()).toBe(false);
+            });
+
+            test("fragment=3", async () => {
+                const { fragments } = curves.lookup(rectangle);
+                const fragment = await fragments[3];
+                trim.fragment = db.lookupItemById(fragment).view as visual.SpaceInstance<visual.Curve3D>;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(1);
+
+                const model = db.lookup(trimmed[0]);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.GetPoints().length).toBe(4);
+                expect(curve.IsClosed()).toBe(false);
+            });
+
+            test('fractional on both sides', async () => {
+                trim.curve = rectangle;
+                trim.start = 2.3;
+                trim.stop = 2.7;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(1);
+
+                const model = db.lookup(trimmed[0]);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.GetPoints().length).toBe(6);
+                expect(curve.IsClosed()).toBe(false);
+            })
+
+            test('fractional on first side', async () => {
+                trim.curve = rectangle;
+                trim.start = 2.3;
+                trim.stop = 3;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(1);
+
+                const model = db.lookup(trimmed[0]);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.GetPoints().length).toBe(5);
+                expect(curve.IsClosed()).toBe(false);
+            })
+
+            test('fractional on second side', async () => {
+                trim.curve = rectangle;
+                trim.start = 2;
+                trim.stop = 2.7;
+                const trimmed = await trim.commit() as visual.SpaceInstance<visual.Curve3D>[];
+                expect(trimmed.length).toBe(1);
+
+                const model = db.lookup(trimmed[0]);
+                const curve = inst2curve(model) as c3d.Polyline3D;
+                expect(curve.GetPoints().length).toBe(5);
+                expect(curve.IsClosed()).toBe(false);
+            })
+
+        })
     })
 });

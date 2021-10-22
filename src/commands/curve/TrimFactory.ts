@@ -1,25 +1,34 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { inst2curve } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 
 export default class TrimFactory extends GeometryFactory {
-    private curve!: c3d.Curve3D;
-    private info!: visual.FragmentInfo;
+    start!: number;
+    stop!: number;
+
+    private _curve!: c3d.Curve3D;
+    get curve(): c3d.Curve3D { return this._curve }
+    set curve(curve: c3d.Curve3D | visual.SpaceInstance<visual.Curve3D>){
+        if (curve instanceof c3d.Curve3D) this._curve = curve;
+        else {
+            const model = this.db.lookup(curve);
+            this._curve = inst2curve(model)!;
+        }
+    }
 
     set fragment(fragment: visual.SpaceInstance<visual.Curve3D>) {
         const info = fragment.underlying.fragmentInfo;
         if (info === undefined) throw new Error("invalid precondition");
-        this.info = info;
-
+        this.start = info.start;
+        this.stop = info.stop;
+        this._original = info.untrimmedAncestor;
         const model = this.db.lookup(info.untrimmedAncestor);
-        const item = model.GetSpaceItem()!;
-        this.curve = item.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+        this._curve = inst2curve(model)!;
     }
 
     async calculate() {
-        const { curve } = this;
-
-        if (curve.IsA() === c3d.SpaceType.Polyline3D) {
+        if (this.curve.IsA() === c3d.SpaceType.Polyline3D) {
             return this.trimPolyline();
         } else {
             return this.trimGeneral();
@@ -27,7 +36,7 @@ export default class TrimFactory extends GeometryFactory {
     }
 
     private async trimPolyline() {
-        const { curve, info: { start, stop } } = this;
+        const { curve, start, stop } = this;
         const polyline = curve.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
         const allPoints = polyline.GetPoints();
         const startPoint = polyline.PointOn(start);
@@ -37,21 +46,16 @@ export default class TrimFactory extends GeometryFactory {
 
         const result = [];
         if (polyline.IsClosed()) {
-            const first = ts.filter(p => p > stop)[0];
-            const last = ts.filter(p => p < start)[0];
-            const index = ts.indexOf(first);
             const vertices = [];
-            for (let i = index; i < index + ts.length; i++) {
-                const mod = i % ts.length;
-                const t = ts[mod];
-                vertices.push(t);
-                if (mod === last) break;
+            if (start === stop) throw new Error("invalid precondition");
+            for (let i = Math.ceil(stop); i != Math.floor(start); i = (i + 1) % ts.length) {
+                vertices.push(i);
             }
-            const points = vertices.map(t => allPoints[t]);
-            points.unshift(stopPoint);
-            points.push(startPoint);
-            
-            const line = c3d.ActionCurve3D.SplineCurve(points, false, c3d.SpaceType.Polyline3D);
+            if (stop !== Math.ceil(stop)) vertices.unshift(stop);
+            vertices.push(Math.floor(start));
+            if (start !== Math.floor(start)) vertices.push(start);
+            const points = vertices.map(t => curve.PointOn(t));
+            const line = new c3d.Polyline3D(points, false);
             result.push(new c3d.SpaceInstance(line));
         } else {
             const first = ts.filter(p => p < start);
@@ -74,7 +78,7 @@ export default class TrimFactory extends GeometryFactory {
     }
 
     private async trimGeneral() {
-        const { curve, info: { start, stop } } = this;
+        const { curve,  start, stop } = this;
 
         const result = [];
         if (!curve.IsClosed()) {
@@ -97,5 +101,6 @@ export default class TrimFactory extends GeometryFactory {
         return result;
     }
 
-    get originalItem() { return this.info.untrimmedAncestor }
+    private _original!: visual.SpaceInstance<visual.Curve3D>;
+    get originalItem() { return this._original }
 }
