@@ -223,6 +223,7 @@ export class ControlPointGizmo extends CircularGizmo<THREE.Vector3> {
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor, editor.gizmos.white, new VectorStateMachine(new THREE.Vector3()));
+        this.setup();
     }
 
     onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {

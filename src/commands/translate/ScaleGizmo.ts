@@ -82,6 +82,7 @@ export class CircleScaleGizmo extends CircularGizmo<number> {
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor, editor.gizmos.white, new MagnitudeStateMachine(1));
+        this.setup();
         this.render(this.state.current);
     }
 

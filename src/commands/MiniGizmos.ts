@@ -64,10 +64,12 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     protected readonly torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.35, 4, 24), this.editor.gizmos.invisible);
     helper?: GizmoHelper = new DashedLineMagnitudeHelper();
 
-    constructor(name: string, editor: EditorLike, private readonly material: GizmoMaterial, readonly state: AbstractValueStateMachine<T>) {
-        super(name.split(':')[0], editor);
+    constructor(private readonly longName: string, editor: EditorLike, private readonly material: GizmoMaterial, readonly state: AbstractValueStateMachine<T>) {
+        super(longName.split(':')[0], editor);
+    }
 
-        if (this.hasCommand) this.torus.userData.command = [`gizmo:${name}`, () => { }];
+    protected setup() {
+        if (this.hasCommand) this.torus.userData.command = [`gizmo:${this.longName}`, () => { }];
         this.handle.add(this.circle);
         this.picker.add(this.torus);
     }
@@ -107,6 +109,7 @@ export class AngleGizmo extends CircularGizmo<number> {
 
     constructor(name: string, editor: EditorLike, material?: GizmoMaterial) {
         super(name, editor, material ?? editor.gizmos.white, new MagnitudeStateMachine(0));
+        this.setup();
     }
 
     onPointerDown(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) { }
