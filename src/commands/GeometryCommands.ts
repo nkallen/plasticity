@@ -60,7 +60,7 @@ import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFact
 import { PossiblyBooleanSphereFactory } from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
-import { ThinSolidFactory } from "./thin-solid/ThinSolidFactory";
+import { ThickFaceFactory, ThinSolidFactory } from "./thin-solid/ThinSolidFactory";
 import { MoveDialog } from "./translate/MoveDialog";
 import { MoveGizmo } from './translate/MoveGizmo';
 import { MoveKeyboardGizmo } from "./translate/MoveKeyboardGizmo";
@@ -1608,8 +1608,8 @@ export class ThinSolidCommand extends Command {
         const solid = faces[0].parentItem;
         const thin = new ThinSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
-        thin.faces = faces;
         thin.solid = solid;
+        thin.faces = faces;
 
         const gizmo = new MagnitudeGizmo("thin-solid:thickness", this.editor);
         const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(faces[0]));

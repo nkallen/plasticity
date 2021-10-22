@@ -17,18 +17,20 @@ export class ThinSolidFactory extends GeometryFactory implements ThinSolidParams
         this.solidModel = this.db.lookup(this.solid);
     }
 
-    private _faces = new Array<visual.Face>();
     protected facesModel!: c3d.Face[];
-    get faces() { return this._faces }
-    set faces(faces: visual.Face[]) {
-        this._faces = faces;
-
-        const facesModel = [];
-        for (const face of faces) {
-            const model = this.db.lookupTopologyItem(face);
-            facesModel.push(model);
+    set faces(faces: visual.Face[] | c3d.Face[]) {
+        if (faces.length === 0) {
+            this.facesModel = [];
+        } else if (faces[0] instanceof visual.Face) {
+            const facesModel = [];
+            for (const face of faces as visual.Face[]) {
+                const model = this.db.lookupTopologyItem(face);
+                facesModel.push(model);
+            }
+            this.facesModel = facesModel;
+        } else {
+            this.facesModel = faces as c3d.Face[];
         }
-        this.facesModel = facesModel;
     }
 
     thickness1 = 0;
@@ -49,4 +51,29 @@ export class ThinSolidFactory extends GeometryFactory implements ThinSolidParams
     get originalItem() {
         return this.solid;
     }
+}
+
+export class ThickFaceFactory extends GeometryFactory implements ThinSolidParams {
+    private readonly thinSolid = new ThinSolidFactory(this.db, this.materials, this.signals);
+    set solid(solid: visual.Solid) {
+        this.thinSolid.solid = solid;
+    }
+
+    set thickness1(thickness1: number) { this.thinSolid.thickness1 = thickness1 }
+    set thickness2(thickness2: number) { this.thinSolid.thickness2 = thickness2 }
+
+    set faces(faces: visual.Face[]) {
+        const solid = this.db.lookup(this.thinSolid.solid);
+        const models = solid.GetFaces();
+        const map = new Map<number, c3d.Face>(models.entries());
+        for (const face of faces) {
+            map.delete(face.index);
+        }
+        this.thinSolid.faces = [...map.values()];
+    }
+
+    calculate() {
+        return this.thinSolid.calculate();
+    }
+
 }
