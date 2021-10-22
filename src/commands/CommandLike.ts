@@ -17,7 +17,11 @@ import { MoveFactory } from './translate/TranslateFactory';
  * But these represent actions/state-changes that are meant to be atomic (for the purpose of UNDO).
  */
 
-export class ClickChangeSelectionCommand extends Command {
+abstract class CommandLike extends Command {
+    remember = false;
+}
+
+export class ClickChangeSelectionCommand extends CommandLike {
     constructor(
         editor: cmd.EditorLike,
         private readonly intersections: Intersection[]
@@ -37,7 +41,7 @@ export class ClickChangeSelectionCommand extends Command {
     }
 }
 
-export class BoxChangeSelectionCommand extends Command {
+export class BoxChangeSelectionCommand extends CommandLike {
     constructor(
         editor: cmd.EditorLike,
         private readonly intersected: Set<Intersectable>
@@ -52,7 +56,7 @@ export class BoxChangeSelectionCommand extends Command {
     }
 }
 
-export class DeselectAllCommand extends Command {
+export class DeselectAllCommand extends CommandLike {
     async execute(): Promise<void> {
         this.editor.selection.selected.removeAll();
     }
@@ -62,7 +66,7 @@ export class DeselectAllCommand extends Command {
     }
 }
 
-export class CreatorChangeSelectionCommand extends Command {
+export class CreatorChangeSelectionCommand extends CommandLike {
     constructor(
         editor: cmd.EditorLike,
         private readonly topologyItems: visual.TopologyItem[]
@@ -76,7 +80,7 @@ export class CreatorChangeSelectionCommand extends Command {
     }
 }
 
-export class RebuildCommand extends Command {
+export class RebuildCommand extends CommandLike {
     index?: number;
 
     constructor(
@@ -110,7 +114,7 @@ export class RebuildCommand extends Command {
     }
 }
 
-export class HideSelectedCommand extends Command {
+export class HideSelectedCommand extends CommandLike {
     async execute(): Promise<void> {
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = [...solids, ...curves, ...regions];
@@ -119,7 +123,7 @@ export class HideSelectedCommand extends Command {
     }
 }
 
-export class HideUnselectedCommand extends Command {
+export class HideUnselectedCommand extends CommandLike {
     async execute(): Promise<void> {
         const db = this.editor.db;
         const { solids, curves, regions } = this.editor.selection.selected;
@@ -130,50 +134,13 @@ export class HideUnselectedCommand extends Command {
     }
 }
 
-export class UnhideAllCommand extends Command {
+export class UnhideAllCommand extends CommandLike {
     async execute(): Promise<void> {
         this.editor.db.unhideAll();
     }
 }
 
-export class DuplicateCommand extends Command {
-    async execute(): Promise<void> {
-        const { editor: { selection: { selected: { solids, curves, edges }, selected } } } = this;
-        const db = this.editor.db;
-
-        const promises: Promise<visual.Item>[] = [];
-        for (const solid of solids) promises.push(db.duplicate(solid));
-        for (const curve of curves) promises.push(db.duplicate(curve));
-        for (const edge of edges) promises.push(db.duplicate(edge));
-
-        const objects = await Promise.all(promises);
-
-        const bbox = new THREE.Box3();
-        for (const object of objects) bbox.expandByObject(object);
-        const centroid = new THREE.Vector3();
-        bbox.getCenter(centroid);
-
-        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        move.pivot = centroid;
-        move.items = objects;
-
-        const gizmo = new MoveGizmo(move, this.editor);
-        gizmo.position.copy(centroid);
-        await gizmo.execute(s => {
-            move.update();
-        }).resource(this);
-
-        const selection = await move.commit();
-
-        for (const solid of solids) selected.removeSolid(solid);
-        for (const curve of curves) selected.removeCurve(curve);
-        for (const edge of edges) selected.removeEdge(edge, edge.parentItem);
-
-        this.editor.selection.selected.add(selection);
-    }
-}
-
-export class AddModifierCommand extends Command {
+export class AddModifierCommand extends CommandLike {
     async execute(): Promise<void> {
         const { modifiers, selection } = this.editor;
         const solid = selection.selected.solids.first;
@@ -201,7 +168,7 @@ export class AddModifierCommand extends Command {
     }
 }
 
-export class ApplyModifierCommand extends Command {
+export class ApplyModifierCommand extends CommandLike {
     constructor(
         editor: cmd.EditorLike,
         private readonly stack: ModifierStack,
@@ -215,7 +182,7 @@ export class ApplyModifierCommand extends Command {
     }
 }
 
-export class RemoveModifierCommand extends Command {
+export class RemoveModifierCommand extends CommandLike {
     constructor(
         editor: cmd.EditorLike,
         private readonly stack: ModifierStack,
@@ -229,7 +196,7 @@ export class RemoveModifierCommand extends Command {
     }
 }
 
-export class ExportCommand extends Command {
+export class ExportCommand extends CommandLike {
     filePath!: string;
 
     async execute(): Promise<void> {

@@ -139,7 +139,8 @@ export class CenterCircleCommand extends Command {
 }
 
 class EditCircleCommand extends Command {
-    circle!: visual.SpaceInstance<visual.Curve3D>
+    circle!: visual.SpaceInstance<visual.Curve3D>;
+    remember = false;
 
     async execute(): Promise<void> {
         const edit = new EditCircleFactory(this.editor.db, this.editor.materials, this.editor.signals);
@@ -1472,7 +1473,7 @@ export class FilletCurveCommand extends Command {
 export class ModifyContourCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
-        let curve = selected.curves.first;
+        let curve = selected.curves.last!;
 
         const factory = new ModifyContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const contour = await factory.prepare(curve);
@@ -1661,5 +1662,41 @@ export class RevolutionCommand extends Command {
     }
 }
 
+export class DuplicateCommand extends Command {
+    async execute(): Promise<void> {
+        const { editor: { selection: { selected: { solids, curves, edges }, selected } } } = this;
+        const db = this.editor.db;
+
+        const promises: Promise<visual.Item>[] = [];
+        for (const solid of solids) promises.push(db.duplicate(solid));
+        for (const curve of curves) promises.push(db.duplicate(curve));
+        for (const edge of edges) promises.push(db.duplicate(edge));
+
+        const objects = await Promise.all(promises);
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const move = new MoveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        move.pivot = centroid;
+        move.items = objects;
+
+        const gizmo = new MoveGizmo(move, this.editor);
+        gizmo.position.copy(centroid);
+        await gizmo.execute(s => {
+            move.update();
+        }).resource(this);
+
+        const selection = await move.commit();
+
+        for (const solid of solids) selected.removeSolid(solid);
+        for (const curve of curves) selected.removeCurve(curve);
+        for (const edge of edges) selected.removeEdge(edge, edge.parentItem);
+
+        this.editor.selection.selected.add(selection);
+    }
+}
 
 module.hot?.accept();

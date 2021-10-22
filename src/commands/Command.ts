@@ -63,6 +63,7 @@ export default abstract class Command extends CancellableRegistor {
     static get identifier() { return _.dasherize(this.title) }
     get title() { return this.constructor.name.replace(/Command/, '') }
     get identifier() { return _.dasherize(this.title) }
+    remember: boolean = true;
 
     constructor(protected readonly editor: EditorLike) {
         super();

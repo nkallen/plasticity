@@ -8,6 +8,8 @@ import { MakeViewport } from '../__mocks__/FakeViewport';
 import * as THREE from "three";
 import * as visual from '../src/editor/VisualModel';
 import './matchers';
+import { CenterCircleCommand } from '../src/commands/GeometryCommands';
+import { Cancel } from '../src/util/Cancellable';
 
 let editor: Editor;
 
@@ -38,6 +40,21 @@ test('keeps track of active viewport', () => {
 
     viewport1.dispose();
     viewport2.dispose();
+});
+
+test('executes a command', async () => {
+    const command = new CenterCircleCommand(editor);
+    editor.enqueue(command);
+    command.cancel();
+    await expect(command.finished).rejects.toBe(Cancel);
+});
+
+test('remembers last command', async () => {
+    const command = new CenterCircleCommand(editor);
+    editor.enqueue(command);
+    command.cancel();
+    await expect(command.finished).rejects.toBe(Cancel);
+    editor.repeatLastCommand();
 });
 
 test("simple integration test", async () => {

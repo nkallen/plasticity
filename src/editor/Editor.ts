@@ -14,7 +14,7 @@ import { ModifierHighlightManager } from "../selection/HighlightManager";
 import { SelectionInteractionManager, SelectionMode } from "../selection/SelectionInteraction";
 import { SelectionManager } from "../selection/SelectionManager";
 import { Helpers } from "../util/Helpers";
-import { CreateMutable } from "../util/Util";
+import { CreateMutable, GConstructor } from "../util/Util";
 import { Backup } from "./Backup";
 import ContourManager from "./curves/ContourManager";
 import { CrossPointDatabase } from "./curves/CrossPointDatabase";
@@ -93,6 +93,7 @@ export class Editor {
         const d = this.registry.add("ispace-workspace", {
             'undo': () => this.undo(),
             'redo': () => this.redo(),
+            'repeat-last-command': () => this.repeatLastCommand(),
             'selection:toggle-control-point': () => this.selection.mode.toggle(SelectionMode.ControlPoint),
             'selection:toggle-edge': () => this.selection.mode.toggle(SelectionMode.CurveEdge, SelectionMode.Curve),
             'selection:toggle-face': () => this.selection.mode.toggle(SelectionMode.Face),
@@ -101,8 +102,15 @@ export class Editor {
         this.disposable.add(d);
     }
 
+    private lastCommand?: GConstructor<Command>;
     async enqueue(command: Command, interrupt?: boolean) {
+        if (command.remember) this.lastCommand = command.constructor as GConstructor<Command>;
         await this.executor.enqueue(command, interrupt);
+    }
+
+    repeatLastCommand(): Promise<void> {
+        if (this.lastCommand === undefined) return Promise.resolve();
+        return this.enqueue(new this.lastCommand(this));
     }
 
     onWindowResize() {

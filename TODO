@@ -1,7 +1,3 @@
-. fix bug where fillet all twice on a curve leads to lots of errors
-. unit test for cornerAngles:
-. unit test for CancellablePromise.all
-
 . snapping projected to restrictions (either construction plane or axis)
 BUG: box selecting control point should unselect curve
 BUG: box select during active command allows selecting faces of objects that are going to be deleted

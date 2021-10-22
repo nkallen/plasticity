@@ -10,6 +10,7 @@ export class Backup {
         private readonly signals: EditorSignals
     ) {
         signals.commandFinishedSuccessfully.add(() => this.save());
+        signals.historyChanged.add(() => this.save());
     }
 
     private dir = path.join(os.tmpdir(), 'plasticity');

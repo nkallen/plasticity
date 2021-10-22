@@ -1,7 +1,8 @@
 import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
+import c3d from '../../../build/Release/c3d.node';
 import Command from '../../commands/Command';
-import { HideSelectedCommand, HideUnselectedCommand, UnhideAllCommand, DuplicateCommand, RebuildCommand, DeselectAllCommand } from '../../commands/CommandLike';
+import { DeselectAllCommand, HideSelectedCommand, HideUnselectedCommand, RebuildCommand, UnhideAllCommand } from '../../commands/CommandLike';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import centerCircle from './img/center-circle.svg';
@@ -35,7 +36,6 @@ import threePointRectangle from './img/three-point-rectangle.svg';
 import trim from './img/trim.svg';
 import twoPointCircle from './img/two-point-circle.svg';
 import { default as changePoint, default as union } from './img/union.svg';
-import c3d from '../../../build/Release/c3d.node';
 
 export const icons = new Map<any, string>();
 icons.set(cmd.MoveCommand, move);
@@ -261,7 +261,7 @@ export default (editor: Editor): void => {
         'command:unhide-all': () => editor.enqueue(new UnhideAllCommand(editor)),
         'command:hide-selected': () => editor.enqueue(new HideSelectedCommand(editor)),
         'command:hide-unselected': () => editor.enqueue(new HideUnselectedCommand(editor)),
-        'command:duplicate': () => editor.enqueue(new DuplicateCommand(editor)),
+        'command:duplicate': () => editor.enqueue(new cmd.DuplicateCommand(editor)),
         'command:symmetry': () => editor.enqueue(new cmd.SymmetryCommand(editor)),
         'command:rebuild': () => editor.enqueue(new RebuildCommand(editor)),
         'command:deselect-all': () => editor.enqueue(new DeselectAllCommand(editor)),
