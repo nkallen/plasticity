@@ -315,8 +315,10 @@ export class ModifyContourSegmentFactory extends ContourFactory {
                     const { t: before_ext_t } = before.NearPointProjection(intersection, true);
                     const { t: after_ext_t } = after.NearPointProjection(intersection, true);
 
-                    const before_extended = before.Trimmed(before_tmin, before_ext_t, 1)!;
-                    const after_extended = after.Trimmed(after_ext_t, after_tmax, 1)!;
+                    let before_extended = before.Trimmed(before_tmin, before_ext_t, 1)!;
+                    before_extended = new c3d.Polyline3D([before_extended.GetLimitPoint(1), before_extended.GetLimitPoint(2)], false);
+                    let after_extended = after.Trimmed(after_ext_t, after_tmax, 1)!;
+                    after_extended = new c3d.Polyline3D([after_extended.GetLimitPoint(1), after_extended.GetLimitPoint(2)], false);
                     return { before_extended, active_new: undefined, after_extended, radius };
                 } else {
                     const radius = deunit(existingRadius) - distance;
@@ -420,7 +422,6 @@ export class ModifyContourSegmentFactory extends ContourFactory {
                 if (count1 < 1) throw new ValidationError();
                 const before_line_t = Math.max(...before_extended_result);
                 const before_ext_p = before_line.PointOn(before_line_t);
-                const { t: before_ext_t } = before.NearPointProjection(before_ext_p, true)!;
 
                 const { count: count2, result1: after_extended_result, result2: active_line_after_result } = c3d.ActionPoint.CurveCurveIntersection3D(after_extended, active_line, 10e-5);
                 if (count2 < 1) throw new Error();
@@ -433,7 +434,7 @@ export class ModifyContourSegmentFactory extends ContourFactory {
 
                 const after_ext_p = after_extended.GetLimitPoint(1);
 
-                const before_extended = before.Trimmed(before_tmin, before_ext_t, 1)!;
+                const before_extended = new c3d.Polyline3D([before.PointOn(before_tmin), before_ext_p], false)!;
                 const active_new = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
@@ -463,7 +464,8 @@ export class ModifyContourSegmentFactory extends ContourFactory {
                 const after_line_t = Math.max(...after_extended_result);
                 const after_ext_p = after_line.PointOn(after_line_t);
                 const { t: after_ext_t } = after.NearPointProjection(after_ext_p, true)!;
-                const after_extended = after.Trimmed(after_ext_t, after_tmax, 1)!;
+                let after_extended = after.Trimmed(after_ext_t, after_tmax, 1)!;
+                after_extended = new c3d.Polyline3D([after_extended.GetLimitPoint(1), after_extended.GetLimitPoint(2)], false);
 
                 const before_ext_p = before_extended.GetLimitPoint(2);
 
