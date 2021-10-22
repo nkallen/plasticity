@@ -291,7 +291,6 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
             domElement.addEventListener('pointerdown', onPointerDown);
             domElement.addEventListener('pointermove', onPointerHover);
             disposable.add(new Disposable(() => {
-                console.log("removing bigger trigger");
                 domElement.removeEventListener('pointerdown', onPointerDown);
                 domElement.removeEventListener('pointermove', onPointerHover);
             }));

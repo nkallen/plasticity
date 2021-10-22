@@ -155,7 +155,6 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 disposables.add(new Disposable(() => {
                     viewport.enableControls();
                     trigger.dispose();
-                    console.log("removing execute", this);
                     domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
                     domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
                 }));
@@ -217,7 +216,6 @@ export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
         domElement.addEventListener('pointermove', onPointerHover);
         domElement.ownerDocument.addEventListener('keypress', onKeyPress);
         return new Disposable(() => {
-            console.log("removing trigger");
             domElement.removeEventListener('pointerdown', onPointerDown);
             domElement.removeEventListener('pointermove', onPointerHover);
             domElement.ownerDocument.removeEventListener('keypress', onKeyPress);

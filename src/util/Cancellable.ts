@@ -111,7 +111,10 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
 
     static all(ps: CancellablePromise<any>[]) {
         const result = new CancellablePromise<void>((resolve, reject) => {
+            let runOnce = false;
             const dispose = () => {
+                if (runOnce) return;
+                runOnce = true;
                 for (const p of ps) {
                     p.promise.catch(err => {
                         if (err !== Cancel) reject(err);
@@ -120,7 +123,7 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
                 }
             }
             for (const p of ps) {
-                p.then(resolve, reject);
+                p.then(r => { dispose(); resolve(r) }, r => { dispose(); reject(r) });
             }
             return { dispose, finish: resolve };
         });
