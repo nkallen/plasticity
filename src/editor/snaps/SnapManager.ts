@@ -216,7 +216,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
                 const cast = segment.Cast<c3d.Curve3D>(segment.IsA());
                 if (cast instanceof c3d.Polyline3D) {
                     const points = cast.GetPoints();
-                    points.shift(); points.pop(); // First and (potentially) last would be a joint
+                    points.shift(); // First and (potentially) last would be a joint
+                    points.pop(); // FIXME check not last segment
                     const endSnaps = points.map(point =>
                         new CurveEndPointSnap("End", point2point(point), curveSnap, item.NearPointProjection(point, false).t)
                     );
