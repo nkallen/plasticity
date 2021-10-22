@@ -235,6 +235,7 @@ keybindings.set("snaps:set-z", "Z axis");
 keybindings.set("snaps:set-normal", "Normal");
 keybindings.set("snaps:set-binormal", "Binormal");
 keybindings.set("snaps:set-tangent", "Tangent");
+keybindings.set("gizmo:thin-solid", "Thickness");
 
 export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {

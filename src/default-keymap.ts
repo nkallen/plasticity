@@ -131,6 +131,10 @@ export default {
         "shift-z": "gizmo:symmetry:-z",
     },
 
+    "[command='thin-solid'] ispace-viewport": {
+        "d": "gizmo:thin-solid:thickness",
+    },
+
     "body[command] ispace-viewport": {
         "escape": "command:abort",
         "enter": "command:finish",

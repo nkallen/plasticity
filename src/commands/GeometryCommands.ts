@@ -1611,7 +1611,7 @@ export class ThinSolidCommand extends Command {
         thin.faces = faces;
         thin.solid = solid;
 
-        const gizmo = new MagnitudeGizmo("thin-solid", this.editor);
+        const gizmo = new MagnitudeGizmo("thin-solid:thickness", this.editor);
         const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(faces[0]));
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         gizmo.position.copy(point);
