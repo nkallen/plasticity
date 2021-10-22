@@ -1,5 +1,5 @@
+. fix bug where fillet all twice on a curve leads to lots of errors
 . unit test for cornerAngles:
-
 . unit test for CancellablePromise.all
 
 . snapping projected to restrictions (either construction plane or axis)

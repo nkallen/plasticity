@@ -69,8 +69,10 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             centroid.add(corner.origin);
         }
 
-        centroid.divideScalar(params.cornerAngles.length);
-        filletAll.position.copy(centroid);
+        if (params.cornerAngles.length > 0) {
+            centroid.divideScalar(params.cornerAngles.length);
+            filletAll.position.copy(centroid);
+        }
 
         for (const [i, controlPoint] of params.controlPointInfo.entries()) {
             const gizmo = this.controlPoints[i];
@@ -105,16 +107,19 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             });
         }
 
-        this.addGizmo(filletAll, d => {
-            this.disableSegments();
-            this.disableControlPoints();
 
-            params.mode = 'fillet';
-            for (const [i, corner] of params.cornerAngles.entries()) {
-                params.radiuses[corner.index] = d;
-                corners[i].value = d;
-            }
-        });
+        if (params.cornerAngles.length > 0) {
+            this.addGizmo(filletAll, d => {
+                this.disableSegments();
+                this.disableControlPoints();
+
+                params.mode = 'fillet';
+                for (const [i, corner] of params.cornerAngles.entries()) {
+                    params.radiuses[corner.index] = d;
+                    corners[i].value = d;
+                }
+            });
+        }
 
         for (const corner of corners) {
             this.addGizmo(corner, d => {
@@ -151,7 +156,7 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
     }
 
     private disableCorners() {
-        this.filletAll.stateMachine!.isEnabled = false;
+        if (this.corners.length > 0) this.filletAll.stateMachine!.isEnabled = false;
         for (const corners of this.corners) {
             corners.stateMachine!.isEnabled = false;
             corners.visible = false;
@@ -286,6 +291,7 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
             domElement.addEventListener('pointerdown', onPointerDown);
             domElement.addEventListener('pointermove', onPointerHover);
             disposable.add(new Disposable(() => {
+                console.log("removing bigger trigger");
                 domElement.removeEventListener('pointerdown', onPointerDown);
                 domElement.removeEventListener('pointermove', onPointerHover);
             }));

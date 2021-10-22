@@ -120,7 +120,7 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
                 }
             }
             for (const p of ps) {
-                p.then(resolve, r => reject(r));
+                p.then(resolve, reject);
             }
             return { dispose, finish: resolve };
         });
