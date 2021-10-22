@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { deunit, isSmoothlyConnected, point2point, unit, vec2vec } from '../../util/Conversion';
 import { NoOpError, ValidationError } from '../GeometryFactory';
-import { ContourFactory, CornerAngle, SegmentAngle } from "./ContourFilletFactory";
+import { ContourFactory, SegmentAngle } from "./ContourFilletFactory";
 
 export interface ModifyContourSegmentParams {
     distance: number;

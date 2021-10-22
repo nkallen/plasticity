@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { inst2curve, point2point, vec2vec } from "../../util/Conversion";
+import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
 import { Redisposable } from "../../util/Util";
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
@@ -172,18 +172,16 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private addCurve(view: visual.SpaceInstance<visual.Curve3D>, into: Set<Snap>) {
         const inst = this.db.lookup(view);
-        const item_ = inst.GetSpaceItem()!;
-        this.crosses.add(view.simpleName, item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D));
+        const item = inst2curve(inst)!;
+        this.crosses.add(view.simpleName, item);
 
-        if (item_.IsA() === c3d.SpaceType.Polyline3D) {
-            const polyline = item_.Cast<c3d.Polyline3D>(c3d.SpaceType.Polyline3D);
+        const curveSnap = new CurveSnap(view, item);
+        into.add(curveSnap);
+        if (item instanceof c3d.Polyline3D) {
 
-            const curveSnap = new CurveSnap(view, polyline);
-            into.add(curveSnap);
-
-            const points = polyline.GetPoints();
+            const points = item.GetPoints();
             const endSnaps = points.map(point =>
-                new CurveEndPointSnap("End", point2point(point), curveSnap, polyline.NearPointProjection(point, false).t)
+                new CurveEndPointSnap("End", point2point(point), curveSnap, item.NearPointProjection(point, false).t)
             );
             for (const endSnap of endSnaps) into.add(endSnap);
 
@@ -194,33 +192,48 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             for (const point of points) {
                 const current = point2point(point);
                 mid.copy(prev).add(current).multiplyScalar(0.5);
-                const midSnap = new CurvePointSnap("Mid", mid, curveSnap, polyline.NearPointProjection(point2point(mid), false).t);
+                const midSnap = new CurvePointSnap("Mid", mid, curveSnap, item.NearPointProjection(point2point(mid), false).t);
                 midSnaps.push(midSnap);
                 prev = current;
             }
-            if (polyline.IsClosed()) {
+            if (item.IsClosed()) {
                 const current = first;
                 mid.copy(prev).add(current).multiplyScalar(0.5);
-                const midSnap = new CurvePointSnap("Mid", mid, curveSnap, polyline.NearPointProjection(point2point(mid), false).t);
+                const midSnap = new CurvePointSnap("Mid", mid, curveSnap, item.NearPointProjection(point2point(mid), false).t);
                 midSnaps.push(midSnap);
             }
             for (const midSnap of midSnaps) into.add(midSnap);
+        } else if (item instanceof c3d.Contour3D) {
+            const corners = cornerInfo(item);
+            const joints = [];
+            for (const [, info] of corners) {
+                const point = info.origin;
+                const snap = new CurveEndPointSnap("End", point, curveSnap, item.NearPointProjection(point2point(point), false).t)
+                joints.push(snap);
+            }
+            for (const endSnap of joints) into.add(endSnap);
+            for (const segment of item.GetSegments()) {
+                const cast = segment.Cast<c3d.Curve3D>(segment.IsA());
+                if (cast instanceof c3d.Polyline3D) {
+                    const points = cast.GetPoints();
+                    points.shift(); points.pop(); // First and (potentially) last would be a joint
+                    const endSnaps = points.map(point =>
+                        new CurveEndPointSnap("End", point2point(point), curveSnap, item.NearPointProjection(point, false).t)
+                    );
+                    for (const endSnap of endSnaps) into.add(endSnap);
+                }
+            }
         } else {
-            const curve = item_.Cast<c3d.Curve3D>(c3d.SpaceType.Curve3D);
+            if (item.IsClosed()) return;
 
-            const curveSnap = new CurveSnap(view, curve);
-            into.add(curveSnap);
-
-            if (curve.IsClosed()) return;
-
-            const min = curve.PointOn(curve.GetTMin());
-            const mid = curve.PointOn(0.5 * (curve.GetTMin() + curve.GetTMax()));
-            const max = curve.PointOn(curve.GetTMax());
-            const begSnap = new CurveEndPointSnap("Beginning", point2point(min), curveSnap, curve.GetTMin());
-            const midSnap = new CurveEndPointSnap("Middle", point2point(mid), curveSnap, 0.5 * (curve.GetTMin() + curve.GetTMax()));
-            const endSnap = new CurveEndPointSnap("End", point2point(max), curveSnap, curve.GetTMax());
+            const min = item.PointOn(item.GetTMin());
+            const mid = item.PointOn(0.5 * (item.GetTMin() + item.GetTMax()));
+            const max = item.PointOn(item.GetTMax());
+            const begSnap = new CurveEndPointSnap("Beginning", point2point(min), curveSnap, item.GetTMin());
+            const midSnap = new CurveEndPointSnap("Middle", point2point(mid), curveSnap, 0.5 * (item.GetTMin() + item.GetTMax()));
+            const endSnap = new CurveEndPointSnap("End", point2point(max), curveSnap, item.GetTMax());
             into.add(begSnap);
-            if (curve.IsStraight()) into.add(midSnap);
+            if (item.IsStraight()) into.add(midSnap);
             into.add(endSnap);
         }
     }

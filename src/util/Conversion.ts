@@ -198,3 +198,39 @@ export function computeControlPointInfo(contour: c3d.Contour3D): ControlPointInf
     }
     return result;
 }
+
+export interface CornerAngle {
+    index: number;
+    origin: THREE.Vector3;
+    tau: THREE.Vector3;
+    axis: THREE.Vector3;
+    angle: number;
+}
+
+export function cornerInfo(contour: c3d.Contour3D): Map<number, CornerAngle> {
+    const allCorners = new Map<number, CornerAngle>();
+    const segmentCount = contour.GetSegmentsCount();
+    for (let i = 1, l = segmentCount; i < l; i++) {
+        try {
+            const info = contour.GetCornerAngle(i);
+            allCorners.set(i, convertCornerAngleInfo(i - 1, info));
+        } catch (e) { }
+    }
+    if (contour.IsClosed()) {
+        try {
+            const start = convertCornerAngleInfo(segmentCount - 1, contour.GetCornerAngle(segmentCount));
+            allCorners.set(0, start);
+        } catch (e) { }
+    }
+    return allCorners;
+}
+
+function convertCornerAngleInfo(index: number, info: ReturnType<c3d.Contour3D["GetCornerAngle"]>) {
+    return {
+        index,
+        origin: point2point(info.origin),
+        tau: vec2vec(info.tau, 1),
+        axis: vec2vec(info.axis, 1),
+        angle: info.angle,
+    }
+}

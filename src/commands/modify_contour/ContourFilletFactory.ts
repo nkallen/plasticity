@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { inst2curve, point2point, unit, vec2vec } from '../../util/Conversion';
+import { CornerAngle, cornerInfo, inst2curve, point2point, unit, vec2vec } from '../../util/Conversion';
+import JoinCurvesFactory from '../curve/JoinCurvesFactory';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import LineFactory from '../line/LineFactory';
-import JoinCurvesFactory from '../curve/JoinCurvesFactory';
 
 /**
  * Filleting curves is idiosyncratic. The underlying c3d method uses Contours only. Thus, to fillet a polyline, it
@@ -14,14 +14,6 @@ import JoinCurvesFactory from '../curve/JoinCurvesFactory';
 export interface FilletCurveParams {
     cornerAngles: CornerAngle[];
     radiuses: number[];
-}
-
-export interface CornerAngle {
-    index: number;
-    origin: THREE.Vector3;
-    tau: THREE.Vector3;
-    axis: THREE.Vector3;
-    angle: number;
 }
 
 export interface SegmentAngle {
@@ -91,21 +83,8 @@ export abstract class ContourFactory extends GeometryFactory {
     get cornerAngles(): CornerAngle[] {
         const controlPoints = this._controlPoints;
 
-        const allCorners = new Map<number, CornerAngle>();
         const contour = this._contour;
-        const segmentCount = contour.GetSegmentsCount();
-        for (let i = 1, l = segmentCount; i < l; i++) {
-            try {
-                const info = contour.GetCornerAngle(i);
-                allCorners.set(i, this.convertCornerAngleInfo(i - 1, info));
-            } catch (e) { }
-        }
-        if (contour.IsClosed()) {
-            try {
-                const start = this.convertCornerAngleInfo(segmentCount - 1, contour.GetCornerAngle(segmentCount));
-                allCorners.set(0, start);
-            } catch (e) { }
-        }
+        const allCorners = cornerInfo(contour);
 
         OnlyCornersForSelectedControlPoints: {
             if (controlPoints.length > 0) {
