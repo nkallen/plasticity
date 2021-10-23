@@ -17,7 +17,7 @@ export class ThinSolidFactory extends GeometryFactory implements ThinSolidParams
         this.solidModel = this.db.lookup(this.solid);
     }
 
-    protected facesModel!: c3d.Face[];
+    protected facesModel: c3d.Face[] = [];
     set faces(faces: visual.Face[] | c3d.Face[]) {
         if (faces.length === 0) {
             this.facesModel = [];

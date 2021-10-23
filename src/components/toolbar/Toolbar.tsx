@@ -19,6 +19,10 @@ export class Model {
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0 || selection.controlPoints.size > 0) {
             result.push(cmd.DeleteCommand);
         }
+        if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0) {
+            result.push(cmd.ShellCommand);
+        }
+
         if (selection.regions.size > 0) {
             result.push(cmd.ExtrudeCommand);
         }
@@ -27,24 +31,19 @@ export class Model {
             result.push(cmd.RotateCommand);
             result.push(cmd.ScaleCommand);
             if (selection.faces.size === 0 && selection.edges.size === 0 && selection.curves.size === 0)
-                result.push(cmd.SymmetryCommand);
+                result.push(cmd.SymmetryCommand); // mirror
         }
         if (selection.solids.size > 1) {
             result.push(cmd.UnionCommand);
             result.push(cmd.IntersectionCommand);
             result.push(cmd.DifferenceCommand);
         }
-        if (selection.edges.size > 0) {
-            result.push(cmd.FilletSolidCommand);
-        }
         if (selection.faces.size > 0) {
-            result.push(cmd.OffsetFaceCommand);
-            result.push(cmd.ThinSolidCommand);
-            result.push(cmd.DraftSolidCommand);
+            result.push(cmd.DraftSolidCommand); // this becomes rotate
             result.push(cmd.OffsetCurveCommand);
             result.push(cmd.ExtrudeCommand);
-            result.push(cmd.ActionFaceCommand);
-            result.push(cmd.CreateFaceCommand);
+            result.push(cmd.ActionFaceCommand); // this becomes move
+            result.push(cmd.CreateFaceCommand); // This becomes duplicate
         }
         if ((selection.faces.size > 0 || selection.solids.size > 0) && selection.curves.size > 0) {
             result.push(cmd.CutCommand);
@@ -54,16 +53,11 @@ export class Model {
             result.push(cmd.RevolutionCommand);
             result.push(cmd.MirrorCommand);
             result.push(cmd.FilletCurveCommand);
-            result.push(cmd.MultilineCommand);
             result.push(cmd.OffsetCurveCommand);
-            result.push(cmd.ModifyContourCommand);
         }
         if (selection.curves.size > 1) {
             result.push(cmd.LoftCommand);
             result.push(cmd.JoinCurvesCommand);
-        }
-        if (selection.curves.size === 2) {
-            result.push(cmd.BridgeCurvesCommand);
         }
         if (selection.controlPoints.size > 0) {
             result.push(cmd.FilletCurveCommand);

@@ -82,10 +82,9 @@ icons.set(cmd.SelectFilletsCommand, fillet);
 icons.set(cmd.OffsetCurveCommand, line);
 icons.set(cmd.SymmetryCommand, mirror);
 icons.set(cmd.BridgeCurvesCommand, mirror);
-icons.set(cmd.MultilineCommand, line);
-icons.set(cmd.ThinSolidCommand, line);
 icons.set(cmd.RevolutionCommand, line);
 icons.set(cmd.ModifyContourCommand, changePoint);
+icons.set(cmd.ShellCommand, changePoint);
 
 icons.set(c3d.ElementarySolid, box);
 icons.set(c3d.FilletSolid, fillet);
@@ -141,10 +140,9 @@ tooltips.set(cmd.SelectFilletsCommand, "Select removable faces");
 tooltips.set(cmd.OffsetCurveCommand, "Offset Loop");
 tooltips.set(cmd.SymmetryCommand, "Mirror solid");
 tooltips.set(cmd.BridgeCurvesCommand, "Bridge two curves");
-tooltips.set(cmd.MultilineCommand, "Add stroke to curve");
-tooltips.set(cmd.ThinSolidCommand, "Thin Solid");
 tooltips.set(cmd.RevolutionCommand, "Revolve");
 tooltips.set(cmd.ModifyContourCommand, "ModifyCurve");
+tooltips.set(cmd.ShellCommand, "Shell (thicken) solid or stroke (thicken) curve");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
@@ -229,7 +227,7 @@ keybindings.set("snaps:set-z", "Z axis");
 keybindings.set("snaps:set-normal", "Normal");
 keybindings.set("snaps:set-binormal", "Binormal");
 keybindings.set("snaps:set-tangent", "Tangent");
-keybindings.set("gizmo:thin-solid", "Thickness");
+keybindings.set("gizmo:shell", "Thickness");
 
 export default (editor: Editor): void => {
     editor.registry.add('ispace-viewport', {

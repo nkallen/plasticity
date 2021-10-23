@@ -1630,17 +1630,37 @@ export class MultilineCommand extends Command {
     }
 }
 
+export class ShellCommand extends Command {
+    async execute(): Promise<void> {
+        const selected = this.editor.selection.selected;
+        if (selected.solids.size > 0 || selected.faces.size > 0) {
+            const command = new ThinSolidCommand(this.editor);
+            this.editor.enqueue(command, false)
+        } else if (selected.curves.size > 0) {
+            const command = new MultilineCommand(this.editor);
+            this.editor.enqueue(command, false)
+        }
+    }
+}
+
 export class ThinSolidCommand extends Command {
     async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selected.faces];
-        const solid = faces[0].parentItem;
         const thin = new ThinSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-
-        thin.solid = solid;
-        thin.faces = faces;
+        let face;
+        if (this.editor.selection.selected.faces.size > 0) {
+            const faces = [...this.editor.selection.selected.faces];
+            face = faces[0];
+            const solid = face.parentItem;
+            thin.solid = solid;
+            thin.faces = faces;
+        } else {
+            const solid = this.editor.selection.selected.solids.first;
+            thin.solid = solid;
+            face = solid.faces.get(0);
+        }
 
         const gizmo = new MagnitudeGizmo("thin-solid:thickness", this.editor);
-        const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(faces[0]));
+        const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(face));
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         gizmo.position.copy(point);
 
