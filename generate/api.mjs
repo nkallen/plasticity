@@ -1475,13 +1475,20 @@ export default {
         },
         Action: {
             rawHeader: "action.h",
-            dependencies: ["Solid.h", "Matrix3D.h", "ShellsIntersectionData.h"],
+            dependencies: ["Solid.h", "Matrix3D.h", "ShellsIntersectionData.h", "Face.h"],
             functions: [
-                // "bool IsSolidsIntersection(const MbSolid & solid1, const MbSolid & solid2, const MbSNameMaker & snMaker)",
                 {
                     signature: "bool IsSolidsIntersection(const MbSolid & solid1, const MbMatrix3D & matr1, const MbSolid & solid2, const MbMatrix3D & matr2, bool checkTangent, bool getIntersectionSolids, bool checkTouchPoints, RPArray<MbShellsIntersectionData> & intData)",
                     intData: isReturn,
                     return: { name: "isIntersection" },
+                },
+                // {
+                //     signature: "bool FindTouchedFaces(const MbSolid & solid1, const MbSolid & solid2, double precision, c3d::IndicesPairsVector & facesNumbers)",
+                //     facesNumbers: isReturn,
+                // }
+                {
+                    signature: "void FindFilletFaces(const RPArray<MbFace> & faces, double accuracy, RPArray<MbFace> & filletFaces)",
+                    filletFaces: isReturn,
                 }
             ],
         },

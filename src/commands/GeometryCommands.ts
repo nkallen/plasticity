@@ -44,7 +44,7 @@ import { MirrorFactory, SymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
-import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
+import { FooFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import { ContourFilletFactory } from "./modify_contour/ContourFilletFactory";
 import { FilletCurveGizmo } from "./modify_contour/FilletCurveGizmo";

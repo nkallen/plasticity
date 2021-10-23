@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import { vec2vec } from '../../util/Conversion';
-import { NoOpError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
+import { ThickFaceFactory } from '../thin-solid/ThinSolidFactory';
 import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
+import * as visual from "../../editor/VisualModel";
 
 export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFaceParams {
     angle = 0;
@@ -15,7 +17,7 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
         let solid = solidModel;
 
         let transformed = false;
-        if (direction.lengthSq() > 0) {
+        if (direction.manhattanLength() > 0) {
             const params = new c3d.ModifyValues();
             params.way = c3d.ModifyingType.Offset;
             params.direction = vec2vec(direction);
@@ -62,6 +64,48 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
         if (transformed) return solid;
         else throw new NoOpError();
     }
+}
+
+export class FooFactory extends GeometryFactory implements OffsetFaceParams {
+    private readonly offset = new OffsetFaceFactory(this.db, this.materials, this.signals);
+    private readonly thicken = new ThickFaceFactory(this.db, this.materials, this.signals);
+
+    get solid() { return this.offset.solid }
+    set solid(solid: visual.Solid) {
+        this.offset.solid = solid;
+        this.thicken.solid = solid;
+    }
+
+    get faces() { return this.offset.faces }
+    set faces(faces: visual.Face[]) {
+        this.offset.faces = faces;
+        this.thicken.faces = faces;
+    }
+
+    get distance() { return this.offset.distance }
+    set distance(distance: number) {
+        this.offset.distance = distance;
+        this.thicken.thickness1 = distance;
+    }
+
+    get angle() { return this.offset.angle }
+    set angle(angle: number) {
+        this.offset.angle = angle;
+    }
+
+    async calculate() {
+        try {
+            const result = await this.offset.calculate();
+            return result;
+        } catch (e) {
+            const error = e as any;
+            if (error.isC3dError) {
+                return this.thicken.calculate();
+            } else throw new ValidationError();
+        }
+    }
+
+    get originalItem() { return this.offset.originalItem }
 }
 
 export class FaceCollector {
