@@ -22,14 +22,13 @@ abstract class CommandLike extends Command {
 }
 
 export class ClickChangeSelectionCommand extends CommandLike {
+    intersection?: THREE.Intersection;
+
     constructor(
         editor: cmd.EditorLike,
         private readonly intersections: Intersection[]
-    ) {
-        super(editor);
-    }
+    ) { super(editor) }
 
-    intersection?: THREE.Intersection;
 
     async execute(): Promise<void> {
         const intersection = this.editor.selectionInteraction.onClick(this.intersections);

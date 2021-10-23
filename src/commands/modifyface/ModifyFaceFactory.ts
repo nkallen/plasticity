@@ -103,3 +103,43 @@ export class MergerFaceFactory extends ModifyFaceFactory {
 export class UnitedFaceFactory extends ModifyFaceFactory {
     operationType = c3d.ModifyingType.United;
 }
+
+export class ModifyEdgeFactory extends GeometryFactory {
+    direction = new THREE.Vector3();
+
+    protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.FaceModifiedSolid, this.db.version), c3d.ESides.SideNone, 0);
+
+    private _solid!: visual.Solid;
+    protected solidModel!: c3d.Solid;
+    get solid() { return this._solid }
+    set solid(obj: visual.Solid) {
+        this._solid = obj;
+        this.solidModel = this.db.lookup(this.solid);
+    }
+
+    private _edges = new Array<visual.CurveEdge>();
+    protected edgesModel!: c3d.CurveEdge[];
+    get edges() { return this._edges }
+    set edges(edges: visual.CurveEdge[]) {
+        this._edges = edges;
+
+        const edgesModel = [];
+        for (const edge of edges) {
+            const model = this.db.lookupTopologyItem(edge);
+            edgesModel.push(model);
+        }
+        this.edgesModel = edgesModel;
+    }
+
+    async calculate() {
+        const { solidModel, edgesModel, direction } = this;
+
+        const params = new c3d.ModifyValues();
+        params.way = c3d.ModifyingType.Merger;
+        params.direction = new c3d.Vector3D(1, 0, 0);
+        const result = await c3d.ActionDirect.EdgeModifiedSolid_async(solidModel, c3d.CopyMode.Copy, params, edgesModel, this.names);
+        return result;
+    }
+
+    get originalItem() { return this.solid }
+}

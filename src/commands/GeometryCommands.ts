@@ -39,11 +39,10 @@ import { ChamferAndFilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
-import { DistanceGizmo } from "./MiniGizmos";
 import { MirrorFactory, SymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
-import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
+import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo, RefilletGizmo } from "./modifyface/OffsetFaceGizmo";
 import { ContourFilletFactory } from "./modify_contour/ContourFilletFactory";
@@ -1226,19 +1225,6 @@ export class DraftSolidCommand extends Command {
     }
 }
 
-export class RemoveFaceCommand extends Command {
-    async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selected.faces];
-        const parent = faces[0].parentItem as visual.Solid
-
-        const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        removeFace.solid = parent;
-        removeFace.faces = faces;
-
-        await removeFace.commit();
-    }
-}
-
 export class PurifyFaceCommand extends Command {
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selected.faces];
@@ -1391,6 +1377,35 @@ export class SymmetryCommand extends Command {
 
 export class DeleteCommand extends Command {
     async execute(): Promise<void> {
+        const selected = this.editor.selection.selected;
+        if (selected.faces.size > 0) {
+            const faces = [...selected.faces];
+            const fillet = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            if (fillet.areFilletFaces(faces)) {
+                const command = new PurifyFaceCommand(this.editor);
+                await command.execute();
+            } else {
+                const command = new RemoveFaceCommand(this.editor);
+                await command.execute();
+            }
+        }
+        if (selected.edges.size > 0) {
+            const command = new RemoveEdgeCommand(this.editor);
+            await command.execute();
+        }
+        if (selected.solids.size > 0 || selected.curves.size > 0) {
+            const command = new RemoveItemCommand(this.editor);
+            await command.execute();
+        }
+        if (selected.controlPoints.size > 0) {
+            const command = new RemovePointCommand(this.editor);
+            await command.execute();
+        }
+    }
+}
+
+export class RemoveItemCommand extends Command {
+    async execute(): Promise<void> {
         const items = [...this.editor.selection.selected.curves, ...this.editor.selection.selected.solids];
         const ps = items.map(i => this.editor.db.removeItem(i));
         await Promise.all(ps);
@@ -1406,6 +1421,33 @@ export class RemovePointCommand extends Command {
 
         const newInstance = await removePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
         this.editor.selection.selected.addCurve(newInstance);
+    }
+}
+
+
+export class RemoveFaceCommand extends Command {
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selected.faces];
+        const parent = faces[0].parentItem as visual.Solid
+
+        const removeFace = new RemoveFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        removeFace.solid = parent;
+        removeFace.faces = faces;
+
+        await removeFace.commit();
+    }
+}
+
+export class RemoveEdgeCommand extends Command {
+    async execute(): Promise<void> {
+        const edges = [...this.editor.selection.selected.edges];
+        const parent = edges[0].parentItem as visual.Solid
+
+        const removeFace = new ModifyEdgeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        removeFace.solid = parent;
+        removeFace.edges = edges;
+
+        await removeFace.commit();
     }
 }
 

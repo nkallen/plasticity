@@ -1577,7 +1577,7 @@ export default {
         },
         ActionDirect: {
             rawHeader: "action_direct.h",
-            dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h", "_TransformValues.h"],
+            dependencies: ["Solid.h", "_ModifyValues.h", "SNameMaker.h", "_TransformValues.h", "CurveEdge.h"],
             functions: [
                 {
                     signature: "MbResultType CollectFacesForModification(MbFaceShell * shell, MbeModifyingType way, double radius, RPArray<MbFace> & faces)",
@@ -1585,6 +1585,7 @@ export default {
                 },
                 "MbResultType FaceModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbFace> & faces, const MbSNameMaker & names, MbSolid *& result)",
                 "MbResultType TransformedSolid(MbSolid & solid, MbeCopyMode sameShell, const TransformValues & params, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType EdgeModifiedSolid(MbSolid & solid, MbeCopyMode sameShell, const ModifyValues & params, const RPArray<MbCurveEdge> & edges, const MbSNameMaker & names, MbSolid *& result)",
             ]
         },
         ActionPhantom: {

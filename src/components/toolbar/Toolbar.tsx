@@ -3,6 +3,7 @@ import { render } from 'preact';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
+import { SelectionMode } from '../../selection/SelectionInteraction';
 import { HasSelection } from '../../selection/SelectionManager';
 import { icons, tooltips } from './icons';
 
@@ -15,6 +16,9 @@ export class Model {
     get commands() {
         const result = [];
         const { db, selection } = this;
+        if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0 || selection.controlPoints.size > 0) {
+            result.push(cmd.DeleteCommand);
+        }
         if (selection.regions.size > 0) {
             result.push(cmd.ExtrudeCommand);
         }
@@ -39,8 +43,6 @@ export class Model {
             result.push(cmd.DraftSolidCommand);
             result.push(cmd.OffsetCurveCommand);
             result.push(cmd.ExtrudeCommand);
-            result.push(cmd.PurifyFaceCommand);
-            result.push(cmd.RemoveFaceCommand);
             result.push(cmd.ActionFaceCommand);
             result.push(cmd.CreateFaceCommand);
         }
@@ -64,7 +66,6 @@ export class Model {
             result.push(cmd.BridgeCurvesCommand);
         }
         if (selection.controlPoints.size > 0) {
-            result.push(cmd.RemovePointCommand);
             result.push(cmd.FilletCurveCommand);
         }
         return result;
