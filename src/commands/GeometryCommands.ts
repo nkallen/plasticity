@@ -44,7 +44,7 @@ import { MirrorFactory, SymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
-import { FooFactory } from "./modifyface/OffsetFaceFactory";
+import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import { ContourFilletFactory } from "./modify_contour/ContourFilletFactory";
 import { FilletCurveGizmo } from "./modify_contour/FilletCurveGizmo";
@@ -60,7 +60,7 @@ import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFact
 import { PossiblyBooleanSphereFactory } from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
-import { ThickFaceFactory, ThinSolidFactory } from "./thin-solid/ThinSolidFactory";
+import { ThinSolidFactory } from "./thin-solid/ThinSolidFactory";
 import { MoveDialog } from "./translate/MoveDialog";
 import { MoveGizmo } from './translate/MoveGizmo';
 import { MoveKeyboardGizmo } from "./translate/MoveKeyboardGizmo";
@@ -1168,7 +1168,7 @@ export class OffsetFaceCommand extends Command {
 
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selected.faces];
-        const parent = faces[0].parentItem as visual.Solid
+        const parent = faces[0].parentItem as visual.Solid;
 
         const offsetFace = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         offsetFace.solid = parent;
