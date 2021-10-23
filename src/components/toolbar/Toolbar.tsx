@@ -3,7 +3,6 @@ import { render } from 'preact';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
-import * as visual from "../../editor/VisualModel";
 import { HasSelection } from '../../selection/SelectionManager';
 import { icons, tooltips } from './icons';
 
@@ -41,7 +40,6 @@ export class Model {
             result.push(cmd.OffsetCurveCommand);
             result.push(cmd.ExtrudeCommand);
             result.push(cmd.PurifyFaceCommand);
-            result.push(cmd.RefilletFaceCommand);
             result.push(cmd.RemoveFaceCommand);
             result.push(cmd.ActionFaceCommand);
             result.push(cmd.CreateFaceCommand);

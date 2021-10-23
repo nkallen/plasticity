@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, CurvePointSnap, CurveSnap, Layers, PointSnap } from "../editor/snaps/Snap";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { point2point } from "../util/Conversion";
+import { decomposeMainName, point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
@@ -45,7 +45,7 @@ import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
-import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
+import { OffsetFaceGizmo, RefilletGizmo } from "./modifyface/OffsetFaceGizmo";
 import { ContourFilletFactory } from "./modify_contour/ContourFilletFactory";
 import { FilletCurveGizmo } from "./modify_contour/FilletCurveGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
@@ -1170,17 +1170,28 @@ export class OffsetFaceCommand extends Command {
         const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid;
 
-        const offsetFace = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        offsetFace.solid = parent;
-        offsetFace.faces = faces;
+        const fillet = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const offset = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
-        const gizmo = new OffsetFaceGizmo(offsetFace, this.editor, this.point);
+        const shouldRefillet = fillet.areFilletFaces(faces);
+
+        const factory = shouldRefillet ? fillet : offset;
+        factory.solid = parent;
+        factory.faces = faces;
+
+        for (const face of faces) {
+            const model = this.editor.db.lookupTopologyItem(face);
+            const [type] = decomposeMainName(model.GetMainName());
+            console.log(c3d.CreatorType[type]);
+        }
+
+        const gizmo = shouldRefillet ? new RefilletGizmo(fillet, this.editor, this.point) : new OffsetFaceGizmo(offset, this.editor, this.point);
 
         await gizmo.execute(async params => {
-            await offsetFace.update();
+            await factory.update();
         }).resource(this);
 
-        const result = await offsetFace.commit() as visual.Solid;
+        const result = await factory.commit() as visual.Solid;
         this.editor.selection.selected.addSolid(result);
     }
 }
@@ -1274,31 +1285,6 @@ export class ActionFaceCommand extends Command {
         }).resource(this);
 
         await actionFace.commit();
-    }
-}
-
-export class RefilletFaceCommand extends Command {
-    async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selected.faces];
-        const parent = faces[0].parentItem as visual.Solid
-
-        const refillet = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        refillet.solid = parent;
-        refillet.faces = faces;
-
-        const gizmo = new DistanceGizmo("refillet-face:distance", this.editor);
-        const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(faces[0]));
-        gizmo.quaternion.setFromUnitVectors(Y, normal);
-        gizmo.position.copy(point);
-
-        gizmo.state.min = Number.NEGATIVE_INFINITY;
-
-        await gizmo.execute(async distance => {
-            refillet.distance = distance;
-            await refillet.update();
-        }).resource(this);
-
-        await refillet.commit();
     }
 }
 

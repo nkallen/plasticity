@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { composeMainName, vec2vec } from '../../util/Conversion';
+import { composeMainName, decomposeMainName, vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 import { MoveParams } from '../translate/TranslateFactory';
 
@@ -75,6 +75,15 @@ export class ActionFaceFactory extends ModifyFaceFactory implements MoveParams {
 }
 
 export class FilletFaceFactory extends ModifyFaceFactory implements FilletFaceParams {
+    areFilletFaces(faces: visual.Face[]): boolean {
+        for (const face of faces) {
+            const model = this.db.lookupTopologyItem(face);
+            const [type] = decomposeMainName(model.GetMainName());
+            if (type != c3d.CreatorType.FilletSolid) return false;
+        }
+        return true;
+    }
+
     operationType = c3d.ModifyingType.Fillet;
     set distance(d: number) { this.direction = new THREE.Vector3(d, 0, 0) }
 }
