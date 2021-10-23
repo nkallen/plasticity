@@ -3,7 +3,7 @@ import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import * as visual from '../../editor/VisualModel';
-import { deunit, unit } from '../../util/Conversion';
+import { composeMainName, deunit, unit } from '../../util/Conversion';
 import { GeometryFactory, NoOpError } from '../GeometryFactory';
 
 export interface FilletParams {
@@ -114,7 +114,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
     get equable() { return this.params.equable }
     set equable(d: boolean) { this.params.equable = d }
 
-    private readonly names = new c3d.SNameMaker(this.db.version, c3d.ESides.SideNone, 0);
+    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.FilletSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     get mode(): Mode {
         return this.params.distance1 < 0 ? c3d.CreatorType.ChamferSolid : c3d.CreatorType.FilletSolid;

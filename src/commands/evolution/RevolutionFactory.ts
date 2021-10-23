@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { point2point, unit, vec2vec } from '../../util/Conversion';
+import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 
 export interface RevolutionParams {
@@ -83,7 +83,7 @@ export default class RevolutionFactory extends GeometryFactory implements Revolu
         }
     }
 
-    private readonly names = new c3d.SNameMaker(c3d.CreatorType.CurveRevolutionSolid, c3d.ESides.SideNone, 0);
+    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveRevolutionSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
         const { origin, axis: direction, contours2d, curves3d, names, thickness1, thickness2, surface, side1: scalarValue1, side2: scalarValue2 } = this;

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { point2point } from '../../util/Conversion';
+import { composeMainName, point2point } from '../../util/Conversion';
 import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory } from '../GeometryFactory';
 
@@ -19,7 +19,7 @@ export default class CylinderFactory extends GeometryFactory implements Cylinder
     radius!: THREE.Vector3;
     height!: THREE.Vector3;
 
-    private names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
+    private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ElementarySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     private readonly Z = new THREE.Vector3();
     private readonly _radius = new THREE.Vector3();

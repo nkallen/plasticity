@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from "../../editor/GeometryDatabase";
 import * as visual from '../../editor/VisualModel';
-import { deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
+import { composeMainName, deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
 import { GeometryFactory, NoOpError } from '../GeometryFactory';
 
 abstract class TranslateFactory extends GeometryFactory {
@@ -19,7 +19,7 @@ abstract class TranslateFactory extends GeometryFactory {
         this.models = models;
     }
 
-    private readonly names = new c3d.SNameMaker(c3d.CreatorType.TransformedSolid, c3d.ESides.SideNone, 0);
+    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.TransformedSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     protected readonly _matrix = new THREE.Matrix4();
     get matrix(): THREE.Matrix4 {

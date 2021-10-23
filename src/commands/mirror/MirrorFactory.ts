@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from '../../editor/GeometryDatabase';
 import * as visual from '../../editor/VisualModel';
-import { point2point, vec2vec } from '../../util/Conversion';
+import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 
 export class MirrorFactory extends GeometryFactory {
@@ -50,7 +50,7 @@ export class SymmetryFactory extends GeometryFactory {
     private readonly Y = new THREE.Vector3(0, 1, 0);
     private readonly Z = new THREE.Vector3(0, 0, 1);
 
-    private readonly names = new c3d.SNameMaker(c3d.CreatorType.SymmetrySolid, c3d.ESides.SideNone, 0);
+    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.SymmetrySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
         const { model, origin, orientation, names } = this;

@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { point2point, curve3d2curve2d, vec2vec } from '../../util/Conversion';
+import { point2point, curve3d2curve2d, vec2vec, composeMainName } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export default class LoftFactory extends GeometryFactory {
@@ -8,7 +8,7 @@ export default class LoftFactory extends GeometryFactory {
     private models!: { contour: c3d.Contour, placement: c3d.Placement3D }[];
     thickness = 0;
 
-    private readonly names = new c3d.SNameMaker(c3d.CreatorType.CurveLoftedSolid, c3d.ESides.SideNone, 0);
+    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveLoftedSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
         this._curves = curves;

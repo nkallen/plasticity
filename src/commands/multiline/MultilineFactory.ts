@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { curve3d2curve2d, unit } from '../../util/Conversion';
+import { composeMainName, curve3d2curve2d, unit } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export interface MultilineParams {
@@ -24,7 +24,7 @@ export default class MultilineFactory extends GeometryFactory implements Multili
         this.placement = placement;
     }
 
-    private readonly names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0);
+    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.Curve3DCreator, this.db.version), c3d.ESides.SideNone, 0);
 
     begTipType = c3d.MLTipType.ArcTip;
     endTipType = c3d.MLTipType.ArcTip;

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
-import { vec2vec } from '../../util/Conversion';
+import { composeMainName, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 import { ThickFaceFactory } from '../thin-solid/ThinSolidFactory';
 import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
@@ -40,11 +40,11 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
             if (smoothlyJoinedFaces.length > 0) {
                 const params = new c3d.ModifyValues();
                 params.way = c3d.ModifyingType.Purify;
-                const names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
+                const names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.FaceModifiedSolid, this.db.version), c3d.ESides.SideNone, 0);
                 solid = c3d.ActionDirect.FaceModifiedSolid(solid, c3d.CopyMode.Copy, params, smoothlyJoinedFaces, names);
             }
 
-            const names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
+            const names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.DraftSolid, this.db.version), c3d.ESides.SideNone, 0);
             solid = await c3d.ActionSolid.DraftSolid_async(solid, c3d.CopyMode.Copy, placement, angle, slopes, c3d.FacePropagation.All, false, names);
             transformed = true;
 

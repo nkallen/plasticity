@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride } from "../../editor/GeometryDatabase";
 import { PlaneSnap } from "../../editor/snaps/Snap";
 import * as visual from '../../editor/VisualModel';
-import { curve3d2curve2d, point2point, vec2vec } from '../../util/Conversion';
+import { composeMainName, curve3d2curve2d, point2point, vec2vec } from '../../util/Conversion';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, PhantomInfo, ValidationError } from '../GeometryFactory';
 
@@ -46,7 +46,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         this.toolModels = tools.map(t => this.db.lookup(t));
     }
 
-    private readonly names = new c3d.SNameMaker(c3d.CreatorType.BooleanSolid, c3d.ESides.SideNone, 0);
+    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.BooleanSolid, this.db.version), c3d.ESides.SideNone, 0);
     protected _isOverlapping = false;
 
     async calculate() {
@@ -160,7 +160,7 @@ abstract class AbstractCutFactory extends GeometryFactory implements CutParams {
 }
 
 export class CutFactory extends AbstractCutFactory {
-    protected names = new c3d.SNameMaker(c3d.CreatorType.CuttingSolid, c3d.ESides.SideNone, 0);
+    protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CuttingSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
         const { db, contour, placement, names } = this;
@@ -192,7 +192,7 @@ export class SplitFactory extends AbstractCutFactory {
         this.solid = faces[0].parentItem;
     }
 
-    protected names = new c3d.SNameMaker(c3d.CreatorType.DraftSolid, c3d.ESides.SideNone, 0);
+    protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CuttingSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
         const { db, contour, placement, names, models } = this;

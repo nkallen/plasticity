@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { vec2vec } from '../../util/Conversion';
+import { composeMainName, vec2vec } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 import { MoveParams } from '../translate/TranslateFactory';
 
@@ -20,7 +20,7 @@ export abstract class ModifyFaceFactory extends GeometryFactory {
     protected abstract operationType: c3d.ModifyingType;
     direction = new THREE.Vector3();
 
-    protected names = new c3d.SNameMaker(c3d.CreatorType.FaceModifiedSolid, c3d.ESides.SideNone, 0);
+    protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.FaceModifiedSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     private _solid!: visual.Solid;
     protected solidModel!: c3d.Solid;

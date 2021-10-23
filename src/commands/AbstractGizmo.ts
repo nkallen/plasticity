@@ -176,6 +176,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
         return {
             x: (pointer.clientX - rect.left) / rect.width * 2 - 1,
             y: - (pointer.clientY - rect.top) / rect.height * 2 + 1,
+            button: event.button,
             event
         };
     }
@@ -225,7 +226,7 @@ export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
 }
 
 export interface Pointer {
-    x: number; y: number, event: PointerEvent
+    x: number; y: number, button: number, event: PointerEvent
 }
 
 export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) => THREE.Intersection | undefined
@@ -351,7 +352,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
         switch (this.state.tag) {
             case 'hover':
-                if (this.pointer.event.button !== 0) return;
+                if (this.pointer.button !== 0) return;
 
                 this.begin();
                 const clearEventHandlers = start();
@@ -368,7 +369,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
         switch (this.state.tag) {
             case 'dragging':
-                if (this.pointer.event.button !== -1) return;
+                if (this.pointer.button !== -1) return;
             case 'command':
                 this.pointEnd2d.set(this.pointer.x, this.pointer.y);
                 const intersection = this.intersector(this.cameraPlane, true);
@@ -394,7 +395,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         switch (this.state.tag) {
             case 'dragging':
             case 'command':
-                if (this.pointer.event.button !== 0) return;
+                if (this.pointer.button !== 0) return;
 
                 this.state.clearEventHandlers.dispose();
                 this.signals.gizmoChanged.dispatch();

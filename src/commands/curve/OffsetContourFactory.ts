@@ -1,5 +1,5 @@
 import * as visual from '../../editor/VisualModel';
-import { point2point, unit, vec2vec } from '../../util/Conversion';
+import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import * as THREE from "three";
@@ -80,7 +80,7 @@ export class OffsetFaceFactory extends GeometryFactory {
         this.curve = contour;
     }
 
-    private names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0)
+    private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.Curve3DCreator, this.db.version), c3d.ESides.SideNone, 0)
 
     async calculate() {
         const { curve, model, direction, distance, names } = this;
@@ -116,7 +116,7 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
         }
     }
 
-    private names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0)
+    private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.Curve3DCreator, this.db.version), c3d.ESides.SideNone, 0)
 
     async calculate() {
         const { _curve: curve, distance, names } = this;

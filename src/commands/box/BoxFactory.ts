@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from "../../editor/snaps/Snap";
-import { point2point } from "../../util/Conversion";
+import { composeMainName, point2point } from "../../util/Conversion";
 import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import { CenterRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../rect/RectangleFactory";
@@ -20,7 +20,7 @@ abstract class BoxFactory extends GeometryFactory implements BoxParams {
     p2!: THREE.Vector3;
     p3!: THREE.Vector3;
 
-    private names = new c3d.SNameMaker(c3d.CreatorType.ElementarySolid, c3d.ESides.SideNone, 0);
+    private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ElementarySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
         const { p1, p2, p3, p4 } = this.orthogonal();

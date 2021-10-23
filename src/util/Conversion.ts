@@ -1,6 +1,7 @@
 import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
 import * as visual from '../editor/VisualModel';
+import { functionExpression } from '@babel/types';
 
 export function point2point(from: THREE.Vector3): c3d.CartPoint3D;
 export function point2point(from: c3d.CartPoint3D): THREE.Vector3;
@@ -233,4 +234,21 @@ function convertCornerAngleInfo(index: number, info: ReturnType<c3d.Contour3D["G
         axis: vec2vec(info.axis, 1),
         angle: info.angle,
     }
+}
+
+export function composeMainName(type: c3d.CreatorType, clock: number): number {
+    type &= 0b1111111111;
+    type <<= 32-10;
+    type |= clock;
+    return type;
+}
+
+export function decomposeMainName(mainName: number): [number, number] {
+    let type = mainName;
+    let clock = mainName;
+    type >>= 32-10;
+    type &= 0b1111111111;
+    clock <<= 10;
+    clock >>= 10;
+    return [type, clock];
 }

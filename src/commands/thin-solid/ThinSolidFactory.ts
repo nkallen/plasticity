@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { unit } from '../../util/Conversion';
+import { composeMainName, unit } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 
 export interface ThinSolidParams {
@@ -36,7 +36,7 @@ export class ThinSolidFactory extends GeometryFactory implements ThinSolidParams
     thickness1 = 0;
     thickness2 = 0;
 
-    protected names = new c3d.SNameMaker(c3d.CreatorType.ThinShellCreator, c3d.ESides.SideNone, 0);
+    protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ThinShellCreator, this.db.version), c3d.ESides.SideNone, 0);
 
     calculate() {
         const { solidModel, facesModel, names, thickness1, thickness2 } = this;

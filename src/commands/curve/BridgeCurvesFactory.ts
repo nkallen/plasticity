@@ -1,5 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { composeMainName } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export interface BridgeCurvesParams {
@@ -38,7 +39,7 @@ abstract class AbstractBridgeCurvesFactory extends GeometryFactory {
     t1 = 0;
     t2 = 0;
 
-    protected readonly names = new c3d.SNameMaker(c3d.CreatorType.Curve3DCreator, c3d.ESides.SideNone, 0);
+    protected readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.Curve3DCreator, this.db.version), c3d.ESides.SideNone, 0);
 }
 
 export class BridgeCurvesFactory extends AbstractBridgeCurvesFactory {

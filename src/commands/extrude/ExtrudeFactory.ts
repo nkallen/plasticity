@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { point2point, unit, vec2vec } from "../../util/Conversion";
+import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
 import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 
@@ -27,7 +27,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
 
     abstract direction: THREE.Vector3;
 
-    protected names = new c3d.SNameMaker(c3d.CreatorType.CurveExtrusionSolid, c3d.ESides.SideNone, 0);
+    protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveExtrusionSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     protected abstract contours2d: c3d.Contour[];
     protected abstract curves3d: c3d.Curve3D[];
