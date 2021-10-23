@@ -49,6 +49,7 @@ import { ContourFilletFactory } from "./modify_contour/ContourFilletFactory";
 import { FilletCurveGizmo } from "./modify_contour/FilletCurveGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
+import { ModifyContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
 import { MultilineDialog } from "./multiline/MultilineDialog";
 import MultilineFactory from "./multiline/MultilineFactory";
 import { ObjectPicker } from "./ObjectPicker";
@@ -721,6 +722,23 @@ export class CenterBoxCommand extends Command {
 
 export class MoveCommand extends Command {
     async execute(): Promise<void> {
+        const selected = this.editor.selection.selected;
+
+        if (selected.faces.size > 0) {
+            const command = new ActionFaceCommand(this.editor);
+            this.editor.enqueue(command, false)
+        } else if (selected.solids.size > 0 || selected.curves.size > 0) {
+            const command = new MoveItemCommand(this.editor);
+            this.editor.enqueue(command, false)
+        } else if (selected.controlPoints.size > 0) {
+            const command = new ModifyContourPointCommand(this.editor);
+            this.editor.enqueue(command, false)
+        }
+    }
+}
+
+export class MoveItemCommand extends Command {
+    async execute(): Promise<void> {
         const { editor } = this;
         const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
@@ -801,7 +819,7 @@ export class FreestyleMoveCommand extends Command {
         const selection = await move.commit();
         this.editor.selection.selected.add(selection);
 
-        this.editor.enqueue(new MoveCommand(this.editor), false);
+        this.editor.enqueue(new MoveItemCommand(this.editor), false);
     }
 }
 
@@ -1181,7 +1199,6 @@ export class OffsetFaceCommand extends Command {
         for (const face of faces) {
             const model = this.editor.db.lookupTopologyItem(face);
             const [type] = decomposeMainName(model.GetMainName());
-            console.log(c3d.CreatorType[type]);
         }
 
         const gizmo = shouldRefillet ? new RefilletGizmo(fillet, this.editor, this.point) : new OffsetFaceGizmo(offset, this.editor, this.point);
@@ -1519,6 +1536,27 @@ export class ModifyContourCommand extends Command {
     }
 }
 
+export class ModifyContourPointCommand extends Command {
+    async execute(): Promise<void> {
+        const selected = this.editor.selection.selected;
+        let curve = selected.curves.last!;
+
+        const factory = new ModifyContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const contour = await factory.prepare(curve);
+        factory.originalItem = curve;
+        factory.contour = contour;
+
+        const gizmo = new MoveGizmo(factory, this.editor);
+        gizmo.execute(params => {
+            factory.update();
+        }).resource(this);
+
+        await this.finished;
+
+        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        selected.addCurve(result);
+    }
+}
 
 export class BridgeCurvesCommand extends Command {
     async execute(): Promise<void> {
@@ -1567,22 +1605,6 @@ export class BridgeCurvesCommand extends Command {
 
         const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
         selected.addCurve(result);
-    }
-}
-
-export class SelectFilletsCommand extends Command {
-    async execute(): Promise<void> {
-        const solid = this.editor.selection.selected.solids.first;
-        const model = this.editor.db.lookup(solid);
-        const shell = model.GetShell()!;
-        const removableFaces = c3d.ActionDirect.CollectFacesForModification(shell, c3d.ModifyingType.Purify, 1);
-
-        const ids = removableFaces.map(f => visual.Face.simpleName(solid.simpleName, model.GetFaceIndex(f)));
-        for (const id of ids) {
-            const { views } = this.editor.db.lookupTopologyItemById(id);
-            const view = views.values().next().value;
-            this.editor.selection.selected.addFace(view, solid);
-        }
     }
 }
 

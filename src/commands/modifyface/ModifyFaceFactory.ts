@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { composeMainName, decomposeMainName, vec2vec } from '../../util/Conversion';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../GeometryFactory';
 import { MoveParams } from '../translate/TranslateFactory';
 
 export interface OffsetFaceParams {
@@ -46,6 +46,13 @@ export abstract class ModifyFaceFactory extends GeometryFactory {
 
     async calculate() {
         const { solidModel, facesModel, direction } = this;
+        if (direction.manhattanLength() < 10e-4) {
+            if (this.operationType === c3d.ModifyingType.Action ||
+                this.operationType === c3d.ModifyingType.Offset ||
+                this.operationType === c3d.ModifyingType.Fillet) {
+                throw new NoOpError();
+            }
+        }
 
         const params = new c3d.ModifyValues();
         params.way = this.operationType;

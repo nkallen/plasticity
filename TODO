@@ -1,3 +1,7 @@
+
+. report fillet crash
+. report inability to move sphere or remove fillet
+
 . snapping projected to restrictions (either construction plane or axis)
 BUG: box selecting control point should unselect curve
 BUG: box select during active command allows selecting faces of objects that are going to be deleted

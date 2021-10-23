@@ -68,7 +68,7 @@ export default {
         "d": "gizmo:offset-curve:distance",
     },
 
-    "[command='move'] ispace-viewport, [command='duplicate'] ispace-viewport, [command='change-point'] ispace-viewport, [command='action-face'] ispace-viewport": {
+    "[command='move'] ispace-viewport, [command='move-item'] ispace-viewport, [command='duplicate'] ispace-viewport, [command='change-point'] ispace-viewport, [command='action-face'] ispace-viewport": {
         "x": "gizmo:move:x",
         "y": "gizmo:move:y",
         "z": "gizmo:move:z",
