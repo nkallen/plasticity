@@ -32,7 +32,7 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     private readonly xyz = new CircleScaleGizmo("scale:xyz", this.editor);
 
     prepare() {
-        const { x, y, z, xyz, xy, yz, xz, editor: { viewports }  } = this;
+        const { x, y, z, xyz, xy, yz, xz, editor: { viewports } } = this;
         for (const o of [x, y, z]) o.relativeScale.setScalar(0.8);
         for (const o of [xy, yz, xz]) o.relativeScale.setScalar(0.8);
         xyz.relativeScale.setScalar(0.85);
@@ -50,7 +50,7 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
     private readonly _scale = new THREE.Vector3();
 
     execute(cb: (params: ScaleParams) => void, mode: Mode = Mode.Persistent | Mode.DisableSelection): CancellablePromise<void> {
-        const { x, y, z, xy, yz, xz, xyz, params, _scale} = this;
+        const { x, y, z, xy, yz, xz, xyz, params, _scale } = this;
 
         const set = () => {
             params.scale.set(
@@ -123,6 +123,12 @@ export class ScaleAxisGizmo extends AbstractAxialScaleGizmo {
 
     protected accumulate(original: number, dist: number, denom: number): number {
         return original * dist / denom;
+    }
+
+    onKeyPress(cb: (value: number) => void, text: string) {
+        const value = Number(text);
+        this.state.current = value;
+        cb(value);
     }
 }
 

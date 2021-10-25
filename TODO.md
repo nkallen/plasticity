@@ -18,14 +18,17 @@
 - [ ] Make control points work with rotate  
 - [ ] Consolidate rotate command  
 - [ ] Deleting points in a contour should work  
+- [ ] Freestyle move control point  
+- [ ] Freestyle scale control point  
+- [ ] Freestyle rotate control point  
 
 ### In Progress
 
-- [ ] Scale control points  
 - [ ] Scale to flatten curve  
 
 ### Done ✓
 
+- [x] Scale control points  
 - [x] Selecting control point should unselect curve #bug  
 - [x] Make control points work with move  
 

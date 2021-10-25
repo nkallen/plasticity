@@ -280,7 +280,6 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
     const process: c3d.Curve3D[] = [curve];
     while (process.length > 0) {
         const item = process.shift()!;
-        // console.log(c3d.SpaceType[item.IsA()]);
         switch (item.IsA()) {
         case c3d.SpaceType.Polyline3D:
                 const polyline = item.Cast<c3d.Polyline3D>(item.IsA());

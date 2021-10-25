@@ -79,7 +79,7 @@ export default {
         "f": "gizmo:move:free",
     },
 
-    "[command='scale'] ispace-viewport, [command='scale-item'] ispace-viewport, [command='scale-contour-point'] ispace-viewport": {
+    "[command='scale'] ispace-viewport, [command='scale-item'] ispace-viewport, [command='scale-control-point'] ispace-viewport": {
         "x": "gizmo:scale:x",
         "y": "gizmo:scale:y",
         "z": "gizmo:scale:z",

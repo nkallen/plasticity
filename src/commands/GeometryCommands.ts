@@ -828,7 +828,7 @@ export class ScaleCommand extends Command {
             const command = new ScaleItemCommand(this.editor);
             this.editor.enqueue(command, false)
         } else if (selected.controlPoints.size > 0) {
-            const command = new ScaleContourPointCommand(this.editor);
+            const command = new ScaleControlPointCommand(this.editor);
             this.editor.enqueue(command, false)
         }
     }
@@ -1536,34 +1536,37 @@ export class MoveContourPointCommand extends Command {
     }
 }
 
-export class ScaleContourPointCommand extends Command {
+export class ScaleControlPointCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
         const points = [...selected.controlPoints];
         const curve = points[0].parentItem;
 
-        console.log(points.length)
-
-        const factory = new ScaleContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        factory.controlPoints = points;
-        factory.originalItem = curve;
-        factory.contour = await factory.prepare(curve);
+        const scale = new ScaleContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        scale.controlPoints = points;
+        scale.originalItem = curve;
+        scale.contour = await scale.prepare(curve);
 
         const centroid = new THREE.Vector3();
         for (const point of points) centroid.add(point.position);
         centroid.divideScalar(points.length);
 
-        const gizmo = new ScaleGizmo(factory, this.editor);
-        const dialog = new ScaleDialog(factory, this.editor.signals);
+        const gizmo = new ScaleGizmo(scale, this.editor);
+        const dialog = new ScaleDialog(scale, this.editor.signals);
+
+        dialog.execute(async params => {
+            await scale.update();
+            gizmo.render(params);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
 
         gizmo.position.copy(centroid);
         gizmo.execute(params => {
-            factory.update();
+            scale.update();
         }).resource(this);
 
         await this.finished;
 
-        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await scale.commit() as visual.SpaceInstance<visual.Curve3D>;
         selected.addCurve(result);
     }
 }
