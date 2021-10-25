@@ -16,6 +16,7 @@ import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import * as visual from '../../src/editor/VisualModel';
 import { Cancel, CancellablePromise } from "../../src/util/Cancellable";
+import { inst2curve, normalizeCurve } from "../../src/util/Conversion";
 import { Helpers } from "../../src/util/Helpers";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -53,8 +54,9 @@ describe(ModifyContourGizmo, () => {
             makeLine.points.push(new THREE.Vector3(3, 3, 0));
             makeLine.points.push(new THREE.Vector3(-3, 0, 0));
             line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
-    
-            const contour = await modify.prepare(line);
+            const inst = db.lookup(line);
+
+            const contour = await normalizeCurve(inst2curve(inst)!);
             modify.contour = contour;
         });
 
@@ -83,8 +85,9 @@ describe(ModifyContourGizmo, () => {
             makeLine.points.push(new THREE.Vector3(3, 3, 0));
             makeLine.points.push(new THREE.Vector3(-3, 0, 0));
             line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
-    
-            const contour = await modify.prepare(line);
+            const inst = db.lookup(line);
+
+            const contour = await normalizeCurve(inst2curve(inst)!);
             modify.contour = contour;
         });
 

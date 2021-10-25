@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, CurvePointSnap, CurveSnap, Layers, PointSnap } from "../editor/snaps/Snap";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { decomposeMainName, point2point } from "../util/Conversion";
+import { decomposeMainName, normalizeCurve, point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
@@ -16,7 +16,7 @@ import { EditCircleDialog } from "./circle/CircleDialog";
 import { CenterCircleFactory, EditCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
-import { RemovePointFactory } from "./control_point/ControlPointFactory";
+import { RemovePointFactory } from "./control_point/RemovePointFactory";
 import { BridgeCurvesDialog } from "./curve/BridgeCurvesDialog";
 import BridgeCurvesFactory from "./curve/BridgeCurvesFactory";
 import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
@@ -45,8 +45,6 @@ import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo, RefilletGizmo } from "./modifyface/OffsetFaceGizmo";
-import { ContourFilletFactory } from "./modify_contour/ContourFilletFactory";
-import { FilletCurveGizmo } from "./modify_contour/FilletCurveGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
 import { ModifyContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
@@ -1482,9 +1480,8 @@ export class ModifyContourCommand extends Command {
         let curve = selected.curves.last!;
 
         const factory = new ModifyContourFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const contour = await factory.prepare(curve);
         factory.originalItem = curve;
-        factory.contour = contour;
+        factory.contour = await factory.prepare(curve);
 
         const gizmo = new ModifyContourGizmo(factory, this.editor);
         gizmo.execute(params => {
@@ -1501,14 +1498,20 @@ export class ModifyContourCommand extends Command {
 export class ModifyContourPointCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
-        let curve = selected.curves.last!;
+        const points = [...selected.controlPoints];
+        const curve = points[0].parentItem;
 
         const factory = new ModifyContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const contour = await factory.prepare(curve);
+        factory.controlPoints = points;
         factory.originalItem = curve;
-        factory.contour = contour;
+        factory.contour = await factory.prepare(curve);
 
+        const centroid = new THREE.Vector3();
+        for (const point of points) centroid.add(point.position);
+        centroid.divideScalar(points.length);
+        
         const gizmo = new MoveGizmo(factory, this.editor);
+        gizmo.position.copy(centroid);
         gizmo.execute(params => {
             factory.update();
         }).resource(this);

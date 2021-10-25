@@ -40,11 +40,6 @@ export interface OffsetResult {
 export class ModifyContourSegmentFactory extends GeometryFactory {
     distance = 0;
 
-    prepare(inst: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
-        const factory = new ModifyContourFactory(this.db, this.materials, this.signals)    ;
-        return factory.prepare(inst);
-    }
-
     private _segment!: number;
     get segment() { return this._segment }
     set segment(segment: number) {

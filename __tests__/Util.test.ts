@@ -1,11 +1,14 @@
 import * as THREE from "three";
 import c3d from '../build/Release/c3d.node';
+import { CenterPointArcFactory } from "../src/commands/arc/ArcFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
+import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";
+import LineFactory from "../src/commands/line/LineFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import * as visual from '../src/editor/VisualModel';
-import { composeMainName, curve3d2curve2d, decomposeMainName, mat2mat, normalizePlacement, unit } from "../src/util/Conversion";
+import { composeMainName, curve3d2curve2d, decomposeMainName, inst2curve, mat2mat, normalizeCurve, normalizePlacement, point2point, polyline2contour, unit, vec2vec } from "../src/util/Conversion";
 import { Redisposable, RefCounter, WeakValueMap } from "../src/util/Util";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
@@ -255,3 +258,181 @@ test('compose & decompose main name', () => {
     expect(type).toBe(c3d.CreatorType.FilletSolid);
     expect(clock).toBe(1);
 })
+
+describe('normalizeCurve', () => {
+    let db: GeometryDatabase;
+    let materials: MaterialDatabase;
+    let signals: EditorSignals;
+    const center = new THREE.Vector3();
+    const bbox = new THREE.Box3();
+
+    beforeEach(async () => {
+        materials = new FakeMaterials();
+        signals = new EditorSignals();
+        db = new GeometryDatabase(materials, signals);
+    })
+
+    describe('A simple polyline', () => {
+        let curve: visual.SpaceInstance<visual.Curve3D>;
+
+        beforeEach(async () => {
+            const makeCurve = new CurveFactory(db, materials, signals);
+            makeCurve.type = c3d.SpaceType.Polyline3D;
+
+            makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+            makeCurve.points.push(new THREE.Vector3(1, 0, 0));
+            makeCurve.points.push(new THREE.Vector3(2, 2, 0));
+            curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(curve))!;
+            expect(model.IsClosed()).toBe(false);
+
+            bbox.setFromObject(curve);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+        });
+
+        test('it makes segments', async () => {
+            const model = inst2curve(db.lookup(curve))!;
+            const inst = await normalizeCurve(model);
+            expect(inst.GetSegmentsCount()).toBe(2);
+        });
+
+        test.only('order is preserved', async () => {
+            const model = inst2curve(db.lookup(curve))!;
+            const contour = await normalizeCurve(model);
+            const first = point2point(contour.GetLimitPoint(1));
+            expect(first).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
+            const last = point2point(contour.GetLimitPoint(2));
+            expect(last).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+        });
+    });
+
+    describe('A trimmed polyline', () => {
+        let polyline: visual.SpaceInstance<visual.Curve3D>;
+
+        beforeEach(async () => {
+            const makeCurve = new CurveFactory(db, materials, signals);
+            makeCurve.type = c3d.SpaceType.Polyline3D;
+
+            makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+            makeCurve.points.push(new THREE.Vector3(1, 0, 0));
+            makeCurve.points.push(new THREE.Vector3(2, 2, 0));
+            polyline = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+        });
+
+        test('it works', async () => {
+            const model = inst2curve(db.lookup(polyline)) as c3d.Polyline3D;
+            const contour = await normalizeCurve(model.Trimmed(0.1, 10, 1)!);
+            expect(contour.GetSegmentsCount()).toBe(2);
+        });
+    })
+
+    describe('prepare', () => {
+        let line1, arc1, line2, contour: visual.SpaceInstance<visual.Curve3D>;
+
+        beforeEach(async () => {
+            const makeLine1 = new LineFactory(db, materials, signals);
+            makeLine1.p1 = new THREE.Vector3(-2, 0, 0);
+            makeLine1.p2 = new THREE.Vector3(-1, 0, 0);
+            line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const makeArc1 = new CenterPointArcFactory(db, materials, signals);
+            makeArc1.center = new THREE.Vector3(0, 0, 0);
+            makeArc1.p2 = new THREE.Vector3(-1, 0, 0);
+            makeArc1.p3 = new THREE.Vector3(1, 0, 0);
+            arc1 = await makeArc1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const makeLine2 = new LineFactory(db, materials, signals);
+            makeLine2.p1 = new THREE.Vector3(1, 0, 0);
+            makeLine2.p2 = new THREE.Vector3(2, 0, 0);
+            line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const makeContour = new JoinCurvesFactory(db, materials, signals);
+            makeContour.push(line1);
+            makeContour.push(arc1);
+            makeContour.push(line2);
+            const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
+            contour = contours[0];
+        });
+
+        it('works', async () => {
+            const model = inst2curve(db.lookup(contour)) as c3d.Polyline3D;
+            const normalized = await normalizeCurve(model);
+            expect(normalized.IsClosed()).toBe(false);
+            expect(normalized.GetSegmentsCount()).toBe(3);
+        })
+    });
+})
+
+
+describe('polyline2contour', () => {
+    let db: GeometryDatabase;
+    let materials: MaterialDatabase;
+    let signals: EditorSignals;
+
+    beforeEach(async () => {
+        materials = new FakeMaterials();
+        signals = new EditorSignals();
+        db = new GeometryDatabase(materials, signals);
+    })
+
+    let polyline: c3d.Polyline3D;
+
+    describe("open", () => {
+        beforeEach(async () => {
+            const makePolyline = new CurveFactory(db, materials, signals);
+            makePolyline.type = c3d.SpaceType.Polyline3D;
+            makePolyline.points.push(new THREE.Vector3());
+            makePolyline.points.push(new THREE.Vector3(1, 1, 0));
+            makePolyline.points.push(new THREE.Vector3(2, -1, 0));
+            makePolyline.points.push(new THREE.Vector3(3, 1, 0));
+            makePolyline.points.push(new THREE.Vector3(4, -1, 0));
+            polyline = inst2curve(await makePolyline.calculate() as c3d.SpaceInstance) as c3d.Polyline3D;
+        })
+
+        test("converts", async () => {
+            const contour = await polyline2contour(polyline);
+            const view = await db.addItem(new c3d.SpaceInstance(contour));
+
+            const bbox = new THREE.Box3().setFromObject(view);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
+        });
+
+        test('order is preserved', async () => {
+            const contour = await polyline2contour(polyline);
+            const first = point2point(contour.GetLimitPoint(1));
+            expect(first).toApproximatelyEqual(new THREE.Vector3());
+            const last = point2point(contour.GetLimitPoint(2));
+            expect(last).toApproximatelyEqual(new THREE.Vector3(4, -1, 0));
+        });
+    });
+
+    describe("closed", () => {
+        beforeEach(async () => {
+            const makePolyline = new CurveFactory(db, materials, signals);
+            makePolyline.type = c3d.SpaceType.Polyline3D;
+            makePolyline.points.push(new THREE.Vector3());
+            makePolyline.points.push(new THREE.Vector3(1, 1, 0));
+            makePolyline.points.push(new THREE.Vector3(2, -1, 0));
+            makePolyline.points.push(new THREE.Vector3(3, 1, 0));
+            makePolyline.points.push(new THREE.Vector3(4, -1, 0));
+            makePolyline.closed = true;
+            polyline = inst2curve(await makePolyline.calculate() as c3d.SpaceInstance) as c3d.Polyline3D;
+        })
+
+        test("converts", async () => {
+            const contour = await polyline2contour(polyline);
+            const view = await db.addItem(new c3d.SpaceInstance(contour));
+
+            const bbox = new THREE.Box3().setFromObject(view);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(2, 0, 0));
+        })
+    });
+});

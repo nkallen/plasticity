@@ -1,5 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
+import { normalizeCurve } from '../../util/Conversion';
 import { GeometryFactory } from '../GeometryFactory';
 
 export default class JoinCurvesFactory extends GeometryFactory {
@@ -21,8 +22,13 @@ export default class JoinCurvesFactory extends GeometryFactory {
         if (models.length < 2) throw new Error("not enough curves");
 
         const contours = c3d.ActionCurve3D.CreateContours(models, 10);
-        const result = [];
+        const promises = [];
         for (const contour of contours) {
+            promises.push(normalizeCurve(contour));
+        }
+        const normalized = await Promise.all(promises);
+        const result = [];
+        for (const contour of normalized) {
             result.push(new c3d.SpaceInstance(contour));
         }
         return result;

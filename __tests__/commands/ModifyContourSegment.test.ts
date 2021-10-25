@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { CenterPointArcFactory, ThreePointArcFactory } from "../../src/commands/arc/ArcFactory";
-import { ContourFilletFactory, Polyline2ContourFactory } from "../../src/commands/modify_contour/ContourFilletFactory";
+import { ContourFilletFactory } from "../../src/commands/modify_contour/ContourFilletFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import { ContourRebuilder, ModifyContourSegmentFactory, OffsetPrecomputeRadiusInfo, OffsetResult } from "../../src/commands/modify_contour/ModifyContourSegmentFactory";
 import LineFactory from '../../src/commands/line/LineFactory';
@@ -10,7 +10,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from '../../src/editor/VisualModel';
-import { inst2curve } from "../../src/util/Conversion";
+import { inst2curve, polyline2contour } from "../../src/util/Conversion";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
@@ -407,10 +407,9 @@ describe('A rectangle', () => {
         makeRectangle.p1 = new THREE.Vector3(-1, -1, 0);
         makeRectangle.p2 = new THREE.Vector3(1, 1, 0);
         contour = await makeRectangle.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        const polyline2contour = new Polyline2ContourFactory(db, materials, signals);
-        polyline2contour.polyline = contour;
-        contour = await polyline2contour.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const model = db.lookup(contour);
+        const polyline = inst2curve(model) as c3d.Polyline3D;
+        contour = await db.addItem(new c3d.SpaceInstance(await polyline2contour(polyline)));
 
         const bbox = new THREE.Box3().setFromObject(contour);
         const center = new THREE.Vector3();
@@ -1239,41 +1238,5 @@ describe('Line:Arc:Line:Arc[closed]', () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, -0.25, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.5, -1.5, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 0));
-    })
-});
-
-describe('prepare', () => {
-    let line1, arc1, line2;
-
-    beforeEach(async () => {
-        const makeLine1 = new LineFactory(db, materials, signals);
-        makeLine1.p1 = new THREE.Vector3(-2, 0, 0);
-        makeLine1.p2 = new THREE.Vector3(-1, 0, 0);
-        line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        const makeArc1 = new CenterPointArcFactory(db, materials, signals);
-        makeArc1.center = new THREE.Vector3(0, 0, 0);
-        makeArc1.p2 = new THREE.Vector3(-1, 0, 0);
-        makeArc1.p3 = new THREE.Vector3(1, 0, 0);
-        arc1 = await makeArc1.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        const makeLine2 = new LineFactory(db, materials, signals);
-        makeLine2.p1 = new THREE.Vector3(1, 0, 0);
-        makeLine2.p2 = new THREE.Vector3(2, 0, 0);
-        line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        const makeContour = new JoinCurvesFactory(db, materials, signals);
-        makeContour.push(line1);
-        makeContour.push(arc1);
-        makeContour.push(line2);
-        const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
-        contour = contours[0];
-    });
-
-    it('works', async () => {
-        const prepared = await modifyContour.prepare(contour);
-        const curve = inst2curve(prepared) as c3d.Contour3D;
-        expect(curve.IsClosed()).toBe(false);
-        expect(curve.GetSegmentsCount()).toBe(3);
     })
 });

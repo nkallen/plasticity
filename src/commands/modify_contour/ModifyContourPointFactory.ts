@@ -1,29 +1,36 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { computeControlPointInfo, ControlPointInfo, inst2curve, point2point } from '../../util/Conversion';
+import { computeControlPointInfo, ControlPointInfo, inst2curve, normalizeCurve, point2point } from '../../util/Conversion';
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 import { ModifyContourFactory } from "./ModifyContourFactory";
 
 export interface ModifyContourPointParams {
     get controlPointInfo(): ControlPointInfo[];
-    set controlPoints(cps: visual.ControlPoint[] | number[]);
+    set controlPoints(cps: number[] | visual.ControlPoint[]);
     move: THREE.Vector3;
 }
 
 export class ModifyContourPointFactory extends GeometryFactory implements ModifyContourPointParams {
     pivot = new THREE.Vector3();
     move = new THREE.Vector3();
-
-    prepare(inst: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
-        const factory = new ModifyContourFactory(this.db, this.materials, this.signals)    ;
-        return factory.prepare(inst);
+    
+    private _controlPoints: number[] = [];
+    get controlPoints(): number[] { return this._controlPoints }
+    set controlPoints(controlPoints: visual.ControlPoint[] | number[]) {
+        const result = [];
+        for (const cp of controlPoints) {
+            if (cp instanceof visual.ControlPoint) result.push(cp.index);
+            else result.push(cp);
+        }
+        this._controlPoints = result;
     }
 
-    private _controlPoints: visual.ControlPoint[] = [];
-    get controlPoints() { return this._controlPoints }
-    set controlPoints(controlPoints: visual.ControlPoint[]) {
-        this._controlPoints = controlPoints;
+    async prepare(view: visual.SpaceInstance<visual.Curve3D>) {
+        const inst = this.db.lookup(view);
+        const curve = inst2curve(inst)!;
+        const result = await normalizeCurve(curve);
+        return result;
     }
 
     private _contour!: c3d.Contour3D;
@@ -37,7 +44,9 @@ export class ModifyContourPointFactory extends GeometryFactory implements Modify
             this.contour = this.db.lookup(inst);
             this.originalItem = inst;
             return;
-        } else this._contour = inst;
+        } else if (inst instanceof c3d.Contour3D) {
+            this._contour = inst;
+        } else throw new ValidationError("normalize the curve first: " + normalizeCurve.name);
 
         this._controlPointInfo = computeControlPointInfo(this.contour);
     }
@@ -49,22 +58,24 @@ export class ModifyContourPointFactory extends GeometryFactory implements Modify
         const { contour, move, controlPoints, controlPointInfo } = this;
         if (move.manhattanLength() < 10e-5) throw new NoOpError();
 
-        const info = controlPointInfo[controlPoints[0].index];
         const segments = contour.GetSegments();
-        const active = segments[info.segmentIndex];
-        let before = segments[info.segmentIndex - 1];
-        if (before === undefined && contour.IsClosed()) before = segments[segments.length - 1];
-        switch (info.limit) {
-            case -1:
-                this.changePoint(active, info);
-                break;
-            case 1:
-                this.moveLimitPoint(1, active, info);
-                if (before !== undefined) this.moveLimitPoint(2, before, info);
-                break;
-            case 2:
-                this.moveLimitPoint(2, active, info);
-                break;
+        for (const controlPoint of controlPoints) {
+            const info = controlPointInfo[controlPoint];
+            const active = segments[info.segmentIndex];
+            let before = segments[info.segmentIndex - 1];
+            if (before === undefined && contour.IsClosed()) before = segments[segments.length - 1];
+            switch (info.limit) {
+                case -1:
+                    this.changePoint(active, info);
+                    break;
+                case 1:
+                    this.moveLimitPoint(1, active, info);
+                    if (before !== undefined) this.moveLimitPoint(2, before, info);
+                    break;
+                case 2:
+                    this.moveLimitPoint(2, active, info);
+                    break;
+            }
         }
 
         const result = new c3d.Contour3D();

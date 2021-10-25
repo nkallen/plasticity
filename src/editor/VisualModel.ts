@@ -477,11 +477,15 @@ export class ControlPointGroup extends THREE.Group {
 
     findByIndex(i: number): ControlPoint {
         if (i >= this.length) throw new Error("invalid precondition");
-        return new ControlPoint(
+        const result = new ControlPoint(
             this.parentItem,
             this,
             i,
-            `${this.parentId},${i}`);
+            `${this.parentId},${i}`
+        );
+        const position = this.geometry!.getAttribute('position') as THREE.BufferAttribute;
+        result.position.set(position.getX(i), position.getY(i), position.getZ(i));
+        return result;
     }
 
     *[Symbol.iterator]() {

@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] Can't remove fillet using modify contour command #bug  
 - [ ] Trim command should allow splitting segments  
 - [ ] Trim command should allow points  
 - [ ] Move/Translate allows face selection #bug  

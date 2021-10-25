@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { RemovePointFactory } from "../../src/commands/control_point/ControlPointFactory";
+import { RemovePointFactory } from "../../src/commands/control_point/RemovePointFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import { ModifyContourPointFactory } from "../../src/commands/modify_contour/ModifyContourPointFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';

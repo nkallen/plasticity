@@ -15,7 +15,7 @@ export class RemovePointFactory extends GeometryFactory {
         const original = points[0].parentItem;
         const inst = this.db.lookup(points[0].parentItem);
         const curve = inst2curve(inst)!;
-        this.curve = curve;
+        this.curve = curve.Duplicate().Cast<c3d.Curve3D>(curve.IsA());
         this.instance = original;
     }
     

@@ -1,6 +1,5 @@
 import c3d from '../../../build/Release/c3d.node';
-import { Polyline2ContourFactory } from '../../commands/modify_contour/ContourFilletFactory';
-import { curve3d2curve2d, isSamePlacement, normalizePlacement } from '../../util/Conversion';
+import { curve3d2curve2d, isSamePlacement, normalizePlacement, polyline2contour } from '../../util/Conversion';
 import { Curve2dId, CurveInfo, Joint, PointOnCurve, Transaction, Trim } from './ContourManager';
 import { EditorSignals } from '../EditorSignals';
 import { DatabaseLike } from '../GeometryDatabase';
@@ -43,13 +42,8 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         const item = inst.GetSpaceItem()!;
         let curve3d = item.Cast<c3d.Curve3D>(item.IsA());
 
-        // If the curve is a Polyline, convert to Contour
-        if (curve3d.IsA() === c3d.SpaceType.Polyline3D) {
-            const factory = new Polyline2ContourFactory(db, this.materials, this.signals);
-            factory.polyline = newCurve;
-            const inst = await factory.calculate();
-            const item = inst.GetSpaceItem()!;
-            curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+        if (curve3d instanceof c3d.Polyline3D) {
+            curve3d = await polyline2contour(curve3d);
         }
 
         // Planarize the new curve

@@ -1,7 +1,5 @@
-import c3d from '../../build/Release/c3d.node';
 import * as THREE from "three";
-import * as visual from '../editor/VisualModel';
-import { functionExpression } from '@babel/types';
+import c3d from '../../build/Release/c3d.node';
 
 export function point2point(from: THREE.Vector3): c3d.CartPoint3D;
 export function point2point(from: c3d.CartPoint3D): THREE.Vector3;
@@ -238,7 +236,7 @@ function convertCornerAngleInfo(index: number, info: ReturnType<c3d.Contour3D["G
 
 export function composeMainName(type: c3d.CreatorType, clock: number): number {
     type &= 0b1111111111;
-    type <<= 32-10;
+    type <<= 32 - 10;
     type |= clock;
     return type;
 }
@@ -246,9 +244,70 @@ export function composeMainName(type: c3d.CreatorType, clock: number): number {
 export function decomposeMainName(mainName: number): [number, number] {
     let type = mainName;
     let clock = mainName;
-    type >>= 32-10;
+    type >>= 32 - 10;
     type &= 0b1111111111;
     clock <<= 10;
     clock >>= 10;
     return [type, clock];
+}
+
+function polyline2segments(polyline: c3d.Polyline3D): c3d.Polyline3D[] {
+    const points = polyline.GetPoints();
+    if (points.length < 2) throw new Error("invalid precondition");
+    let prev = points.shift()!;
+    const start = prev;
+    const segments: c3d.Polyline3D[] = [];
+    for (const curr of points) {
+        const segment = new c3d.Polyline3D([prev, curr], false);
+        segments.push(segment);
+        prev = curr;
+    }
+    if (polyline.IsClosed()) {
+        const segment = new c3d.Polyline3D([prev, start], false);
+        segments.push(segment);
+    }
+    return segments;
+}
+
+export async function polyline2contour(polyline: c3d.Polyline3D): Promise<c3d.Contour3D> {
+    const segments = polyline2segments(polyline);
+    const contours = await c3d.ActionCurve3D.CreateContours_async(segments, 1e-3);
+    return contours[0];
+}
+
+export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D> {
+    const result = new c3d.Contour3D();
+    const process: c3d.Curve3D[] = [curve];
+    while (process.length > 0) {
+        const item = process.shift()!;
+        // console.log(c3d.SpaceType[item.IsA()]);
+        switch (item.IsA()) {
+        case c3d.SpaceType.Polyline3D:
+                const polyline = item.Cast<c3d.Polyline3D>(item.IsA());
+                const segments = polyline2segments(polyline);
+                for (const seg of segments) result.AddCurveWithRuledCheck(seg, 10e-5, true);
+                break;
+            case c3d.SpaceType.Contour3D:
+                const decompose = item.Cast<c3d.Contour3D>(item.IsA());
+                for (const segment of decompose.GetSegments()) process.push(segment);
+                break;
+            case c3d.SpaceType.TrimmedCurve3D:
+                const trimmed = item.Cast<c3d.TrimmedCurve3D>(item.IsA());
+                const basis = trimmed.GetBasisCurve();
+                const cast = basis.Cast<c3d.Curve3D>(basis.IsA());
+                if (cast instanceof c3d.Polyline3D) {
+                    const originalPoints = cast.GetPoints();
+                    const ts = [...Array(originalPoints.length).keys()];
+                    const tmin = trimmed.GetTMin();
+                    const tmax = trimmed.GetTMax();
+                    const keep = ts.filter(t => t > tmin && t < tmax);
+                    const points = [trimmed.GetLimitPoint(1), ...keep.map(t => cast._PointOn(t)), trimmed.GetLimitPoint(2)];
+                    process.push(new c3d.Polyline3D(points, false));
+                    break;
+                } else throw new Error();
+            default:
+                result.AddCurveWithRuledCheck(item, 10e-5, true);
+        }
+    }
+    return result;
 }

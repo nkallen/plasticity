@@ -43,7 +43,7 @@ describe(ModifyContourPointFactory, () => {
             makeCurve.points.push(new THREE.Vector3(2, 2, 0));
             curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-            const model = inst2curve(db.lookup(curve)) as c3d.Polyline3D;
+            const model = inst2curve(db.lookup(curve))!;
             expect(model.IsClosed()).toBe(false);
 
             bbox.setFromObject(curve);
@@ -54,26 +54,26 @@ describe(ModifyContourPointFactory, () => {
         });
 
         test('controlPointInfo', async () => {
-            const contour = await changePoint.prepare(curve);
             changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
+            const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
             const info = changePoint.controlPointInfo;
             expect(info.length).toBe(3);
-            expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(info[0].segmentIndex).toBe(0)
-            expect(info[0].limit).toBe(1)
+            expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
+            expect(info[0].segmentIndex).toBe(0);
+            expect(info[0].limit).toBe(1);
             expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-            expect(info[1].segmentIndex).toBe(1)
-            expect(info[1].limit).toBe(1)
-            expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
-            expect(info[2].segmentIndex).toBe(1)
-            expect(info[2].limit).toBe(2)
+            expect(info[1].segmentIndex).toBe(1);
+            expect(info[1].limit).toBe(1);
+            expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+            expect(info[2].segmentIndex).toBe(1);
+            expect(info[2].limit).toBe(2);
         })
 
-        test('moving first point', async () => {
+        test('moving last point', async () => {
+            changePoint.controlPoints = [curve.underlying.points.findByIndex(2)];
             const contour = await changePoint.prepare(curve);
-            changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
             changePoint.contour = contour;
             changePoint.originalItem = curve;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
@@ -87,9 +87,9 @@ describe(ModifyContourPointFactory, () => {
             expect(db.visibleObjects.length).toBe(1);
         });
 
-        test('moving last point', async () => {
+        test('moving first point', async () => {
+            changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
             const contour = await changePoint.prepare(curve);
-            changePoint.controlPoints = [curve.underlying.points.findByIndex(2)];
             changePoint.contour = contour;
             changePoint.originalItem = curve;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
@@ -104,9 +104,9 @@ describe(ModifyContourPointFactory, () => {
         });
 
         test('moving middle point', async () => {
-            const contour = await changePoint.prepare(curve);
             changePoint.originalItem = curve;
             changePoint.controlPoints = [curve.underlying.points.findByIndex(1)];
+            const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, 0, 0);
             const result = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
@@ -119,6 +119,21 @@ describe(ModifyContourPointFactory, () => {
             expect(db.visibleObjects.length).toBe(1);
         })
 
+        test('moving two points', async () => {
+            changePoint.originalItem = curve;
+            changePoint.controlPoints = [curve.underlying.points.findByIndex(0), curve.underlying.points.findByIndex(1)];
+            const contour = await changePoint.prepare(curve);
+            changePoint.contour = contour;
+            changePoint.move = new THREE.Vector3(-2, 0, 0);
+            const result = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(-1, 1, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-4, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+            expect(db.visibleObjects.length).toBe(1);
+        })
     })
 
     describe('triangle', () => {
@@ -143,9 +158,9 @@ describe(ModifyContourPointFactory, () => {
         })
 
         it('changes first/last point', async () => {
-            const contour = await changePoint.prepare(curve);
             changePoint.originalItem = curve;
             changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
+            const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-1, -1, 0);
             const result = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
@@ -193,11 +208,11 @@ describe(ModifyContourPointFactory, () => {
         });
 
         it('changes the line/arc junction', async () => {
-            const contour = await changePoint.prepare(curve);
             changePoint.originalItem = curve;
-            changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
+            changePoint.controlPoints = [curve.underlying.points.findByIndex(1)];
+            const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
-            changePoint.move = new THREE.Vector3(-1, -1, 0);
+            changePoint.move = new THREE.Vector3(-1, 0, 0);
             const result = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
 
             const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
@@ -206,9 +221,9 @@ describe(ModifyContourPointFactory, () => {
 
             bbox.setFromObject(result);
             bbox.getCenter(center);
-            expect(center).toApproximatelyEqual(new THREE.Vector3(-1, 0, 0));
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -1, 0));
-            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            expect(center).toApproximatelyEqual(new THREE.Vector3(-0.5, 0.25, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 0.5, 0));
             expect(db.visibleObjects.length).toBe(1);
         })
     });
@@ -234,8 +249,8 @@ describe(ModifyContourPointFactory, () => {
         });
 
         test('moving a middle point', async () => {
-            const contour = await changePoint.prepare(curve);
             changePoint.controlPoints = [curve.underlying.points.findByIndex(1)];
+            const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
@@ -250,8 +265,8 @@ describe(ModifyContourPointFactory, () => {
         })
 
         test('controlPointInfo', async () => {
-            const contour = await changePoint.prepare(curve);
             changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
+            const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
             const info = changePoint.controlPointInfo;
@@ -300,8 +315,8 @@ describe(ModifyContourPointFactory, () => {
         });
 
         test('moving a junction point', async () => {
-            const contour = await changePoint.prepare(curve);
             changePoint.controlPoints = [curve.underlying.points.findByIndex(1)];
+            const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
@@ -312,31 +327,31 @@ describe(ModifyContourPointFactory, () => {
 
             bbox.setFromObject(result);
             bbox.getCenter(center);
-            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 1.33, 0));
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.33, 0));
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5,0.48, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -2.03, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
             expect(db.visibleObjects.length).toBe(1);
         })
 
         test('controlPointInfo', async () => {
-            const contour = await changePoint.prepare(curve);
             changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
+            const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
             const info = changePoint.controlPointInfo;
             expect(info.length).toBe(4);
-            expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
+            expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
             expect(info[0].segmentIndex).toBe(0);
             expect(info[0].limit).toBe(1);
-            expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
-            expect(info[1].segmentIndex).toBe(1);
-            expect(info[1].limit).toBe(1);
-            expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+            expect(info[1].segmentIndex).toBe(0);
+            expect(info[1].limit).toBe(-1);
+            expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
             expect(info[2].segmentIndex).toBe(1);
-            expect(info[2].limit).toBe(-1);
-            expect(info[3].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
+            expect(info[2].limit).toBe(1);
+            expect(info[3].origin).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
             expect(info[3].segmentIndex).toBe(1);
-            expect(info[3].limit).toBe(-1);
+            expect(info[3].limit).toBe(2);
         })
     })
 
@@ -372,8 +387,8 @@ describe(ModifyContourPointFactory, () => {
         });
 
         test('moving a junction point', async () => {
+            changePoint.controlPoints = [curve.underlying.points.findByIndex(1)];
             const contour = await changePoint.prepare(curve);
-            changePoint.controlPoints = [curve.underlying.points.findByIndex(2)];
             changePoint.contour = contour;
             changePoint.originalItem = curve;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
@@ -391,24 +406,24 @@ describe(ModifyContourPointFactory, () => {
         })
 
         test('controlPointInfo', async () => {
-            const contour = await changePoint.prepare(curve);
             changePoint.controlPoints = [curve.underlying.points.findByIndex(0)];
+            const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
             const info = changePoint.controlPointInfo;
             expect(info.length).toBe(4);
-            expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
+            expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(3,3, 0));
             expect(info[0].segmentIndex).toBe(0);
             expect(info[0].limit).toBe(1);
-            expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
-            expect(info[1].segmentIndex).toBe(0);
-            expect(info[1].limit).toBe(-1);
-            expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+            expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+            expect(info[1].segmentIndex).toBe(1);
+            expect(info[1].limit).toBe(1);
+            expect(info[2].origin).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
             expect(info[2].segmentIndex).toBe(1);
-            expect(info[2].limit).toBe(1);
-            expect(info[3].origin).toApproximatelyEqual(new THREE.Vector3(3,3, 0));
+            expect(info[2].limit).toBe(-1);
+            expect(info[3].origin).toApproximatelyEqual(new THREE.Vector3(-2, 2, 0));
             expect(info[3].segmentIndex).toBe(1);
-            expect(info[3].limit).toBe(2);
+            expect(info[3].limit).toBe(-1);
         })
     })
 });
