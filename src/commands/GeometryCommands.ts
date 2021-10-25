@@ -1091,18 +1091,6 @@ export class CutCommand extends Command {
     }
 }
 
-export class FilletCommand extends Command {
-    async execute(): Promise<void> {
-        const selected = this.editor.selection.selected;
-        const editor = this.editor;
-        if (selected.edges.size > 0) {
-            editor.enqueue(new FilletSolidCommand(editor), false);
-        } else {
-            editor.enqueue(new FilletCurveCommand(editor), false);
-        }
-    }
-}
-
 export class FilletSolidCommand extends Command {
     point?: THREE.Vector3
 
@@ -1485,32 +1473,6 @@ export class TrimCommand extends Command {
         await factory.commit();
 
         this.editor.enqueue(new TrimCommand(this.editor), false);
-    }
-}
-
-export class FilletCurveCommand extends Command {
-    async execute(): Promise<void> {
-        const selected = this.editor.selection.selected;
-        let curve = selected.curves.first;
-
-        const controlPoints = [...selected.controlPoints];
-        if (controlPoints.length > 0) curve = controlPoints[0].parentItem;
-
-        const factory = new ContourFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const contour = await factory.prepare(curve);
-        factory.originalItem = curve;
-        factory.contour = contour;
-        factory.controlPoints = controlPoints;
-
-        const gizmo = new FilletCurveGizmo(factory, this.editor);
-        gizmo.execute(params => {
-            factory.update();
-        }).resource(this);
-
-        await this.finished;
-
-        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
-        selected.addCurve(result);
     }
 }
 

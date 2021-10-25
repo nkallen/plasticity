@@ -77,7 +77,6 @@ icons.set(cmd.SpiralCommand, spiral);
 icons.set(cmd.CharacterCurveCommand, characterCurve);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 icons.set(cmd.TrimCommand, trim);
-icons.set(cmd.FilletCurveCommand, fillet);
 icons.set(cmd.OffsetCurveCommand, line);
 icons.set(cmd.SymmetryCommand, mirror);
 icons.set(cmd.BridgeCurvesCommand, mirror);
@@ -134,7 +133,6 @@ tooltips.set(cmd.ExtrudeCommand, "Extrude");
 tooltips.set(cmd.SpiralCommand, "Spiral");
 tooltips.set(cmd.CharacterCurveCommand, "Custom Function");
 tooltips.set(cmd.TrimCommand, "Cut off line segments at intersections of curves");
-tooltips.set(cmd.FilletCurveCommand, "Fillet curve");
 tooltips.set(cmd.OffsetCurveCommand, "Offset Loop");
 tooltips.set(cmd.SymmetryCommand, "Mirror solid");
 tooltips.set(cmd.BridgeCurvesCommand, "Bridge two curves");
@@ -244,7 +242,6 @@ export default (editor: Editor): void => {
         'command:difference': () => editor.enqueue(new cmd.DifferenceCommand(editor)),
         'command:offset': () => editor.enqueue(new cmd.OffsetCurveCommand(editor)),
         'command:cut': () => editor.enqueue(new cmd.CutCommand(editor)),
-        'command:fillet': () => editor.enqueue(new cmd.FilletCommand(editor)),
         'command:modify-face': () => editor.enqueue(new cmd.OffsetFaceCommand(editor)),
         'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),
         'command:extrude': () => editor.enqueue(new cmd.ExtrudeCommand(editor)),

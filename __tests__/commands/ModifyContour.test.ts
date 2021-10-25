@@ -78,7 +78,7 @@ describe('prepare', () => {
         test('it works', async () => {
             const inst = await modifyContour.prepare(trimmed);
             const contour = inst2curve(inst) as c3d.Contour3D;
-            expect(contour.GetSegmentsCount()).toBe(3);
+            expect(contour.GetSegmentsCount()).toBe(2);
         })
     })
 })

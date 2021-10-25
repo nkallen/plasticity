@@ -139,7 +139,7 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
 
                 controlPoint.position.copy(params.controlPointInfo[i].origin).add(d);
                 params.mode = 'change-point';
-                params.controlPoint = i;
+                params.controlPoints = [i];
                 params.move = d;
             });
         }

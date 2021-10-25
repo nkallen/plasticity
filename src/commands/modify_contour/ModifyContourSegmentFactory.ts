@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { deunit, isSmoothlyConnected, point2point, unit, vec2vec } from '../../util/Conversion';
-import { NoOpError, ValidationError } from '../GeometryFactory';
-import { ContourFactory, SegmentAngle } from "./ContourFilletFactory";
+import { deunit, inst2curve, isSmoothlyConnected, point2point, unit, vec2vec } from '../../util/Conversion';
+import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
+import { SegmentAngle } from "./ContourFilletFactory";
+import { ModifyContourFactory } from "./ModifyContourFactory";
 
 export interface ModifyContourSegmentParams {
     distance: number;
@@ -36,13 +37,12 @@ export interface OffsetResult {
     radius: number;
 }
 
-export class ModifyContourSegmentFactory extends ContourFactory {
+export class ModifyContourSegmentFactory extends GeometryFactory {
     distance = 0;
 
-    get contour(): c3d.Contour3D { return super.contour }
-    set contour(inst: c3d.Contour3D | c3d.SpaceInstance | visual.SpaceInstance<visual.Curve3D>) {
-        super.contour = inst;
-        this._segmentAngles = this.computeSegmentAngles();
+    prepare(inst: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
+        const factory = new ModifyContourFactory(this.db, this.materials, this.signals)    ;
+        return factory.prepare(inst);
     }
 
     private _segment!: number;
@@ -50,6 +50,21 @@ export class ModifyContourSegmentFactory extends ContourFactory {
     set segment(segment: number) {
         this._segment = segment;
         this.precompute()
+    }
+
+    private _contour!: c3d.Contour3D;
+    get contour(): c3d.Contour3D { return this._contour }
+    set contour(inst: c3d.Contour3D | c3d.SpaceInstance | visual.SpaceInstance<visual.Curve3D>) {
+        if (inst instanceof c3d.SpaceInstance) {
+            const curve = inst2curve(inst);
+            if (!(curve instanceof c3d.Contour3D)) throw new ValidationError("Contour expected");
+            this._contour = curve;
+        } else if (inst instanceof visual.SpaceInstance) {
+            this.contour = this.db.lookup(inst);
+            this.originalItem = inst;
+            return;
+        } else this._contour = inst;
+        this._segmentAngles = this.computeSegmentAngles();
     }
 
     private _segmentAngles!: SegmentAngle[];
@@ -475,6 +490,10 @@ export class ModifyContourSegmentFactory extends ContourFactory {
             default: throw new Error(pattern);
         }
     }
+
+    private _original!: visual.SpaceInstance<visual.Curve3D>;
+    set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
+    get originalItem() { return this._original }
 }
 
 export interface OffsetPrecomputeRadiusInfo {

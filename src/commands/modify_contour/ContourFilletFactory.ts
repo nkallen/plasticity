@@ -21,37 +21,13 @@ export interface SegmentAngle {
     normal: THREE.Vector3;
 }
 
-export abstract class ContourFactory extends GeometryFactory {
+export class ContourFilletFactory extends GeometryFactory {
     radiuses!: number[];
 
-    async prepare(curve: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
-        const { db } = this;
-        const inst = db.lookup(curve);
-        const item = inst.GetSpaceItem()! as c3d.Curve3D;
-        const result = new c3d.Contour3D();
-        const process: c3d.Curve3D[] = [item.Duplicate() as c3d.Curve3D];
-        while (process.length > 0) {
-            const item = process.pop()!;
-            switch (item.IsA()) {
-                case c3d.SpaceType.Polyline3D:
-                    const polyline = item.Cast<c3d.Polyline3D>(item.IsA()); // This should work but doesn't
-                    if (polyline.GetCount() === 1) result.AddCurveWithRuledCheck(polyline as c3d.Curve3D, 10e-5)
-                    else {
-                        const polyline2contour = new Polyline2ContourFactory(this.db, this.materials, this.signals);
-                        polyline2contour.polyline = polyline;
-                        const inst = await polyline2contour.calculate();
-                        process.push(inst2curve(inst)!);
-                    }
-                    break;
-                case c3d.SpaceType.Contour3D:
-                    const decompose = (item instanceof c3d.Contour3D) ? item : item.Cast<c3d.Contour3D>(item.IsA());
-                    // const decompose = item.Cast<c3d.Contour3D>(item.IsA()); // This should work but doesn't // FIXME when there's time
-                    for (const segment of decompose.GetSegments()) process.push(segment);
-                    break;
-                default:
-                    result.AddCurveWithRuledCheck(item.Cast<c3d.Curve3D>(item.IsA()), 10e-5);
-            }
-        }
+    async calculate() {
+        const { contour, radiuses } = this;
+
+        const result = c3d.ActionSurfaceCurve.CreateContourFillets(contour, radiuses.map(unit), c3d.ConnectingType.Fillet);
         return new c3d.SpaceInstance(result);
     }
 
@@ -99,30 +75,9 @@ export abstract class ContourFactory extends GeometryFactory {
         }
     }
 
-    private convertCornerAngleInfo(index: number, info: ReturnType<c3d.Contour3D["GetCornerAngle"]>) {
-        return {
-            index,
-            origin: point2point(info.origin),
-            tau: vec2vec(info.tau, 1),
-            axis: vec2vec(info.axis, 1),
-            angle: info.angle,
-        }
-    }
-
     private _original!: visual.SpaceInstance<visual.Curve3D>;
     set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
     get originalItem() { return this._original }
-}
-
-export class ContourFilletFactory extends ContourFactory {
-    radiuses!: number[];
-
-    async calculate() {
-        const { contour, radiuses } = this;
-
-        const result = c3d.ActionSurfaceCurve.CreateContourFillets(contour, radiuses.map(unit), c3d.ConnectingType.Fillet);
-        return new c3d.SpaceInstance(result);
-    }
 }
 
 export class Polyline2ContourFactory extends GeometryFactory {

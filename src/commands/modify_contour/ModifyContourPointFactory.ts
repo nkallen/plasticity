@@ -1,25 +1,44 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
-import { computeControlPointInfo, ControlPointInfo, point2point } from '../../util/Conversion';
-import { NoOpError } from '../GeometryFactory';
-import { ContourFactory } from "./ContourFilletFactory";
+import { computeControlPointInfo, ControlPointInfo, inst2curve, point2point } from '../../util/Conversion';
+import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
+import { ModifyContourFactory } from "./ModifyContourFactory";
 
 export interface ModifyContourPointParams {
     get controlPointInfo(): ControlPointInfo[];
-    controlPoint: number;
+    set controlPoints(cps: visual.ControlPoint[] | number[]);
     move: THREE.Vector3;
 }
 
-export class ModifyContourPointFactory extends ContourFactory implements ModifyContourPointParams {
+export class ModifyContourPointFactory extends GeometryFactory implements ModifyContourPointParams {
     pivot = new THREE.Vector3();
     move = new THREE.Vector3();
-    controlPoint!: number;
-    private readonly originalPosition = new THREE.Vector3();
 
-    get contour(): c3d.Contour3D { return super.contour }
+    prepare(inst: visual.SpaceInstance<visual.Curve3D>): Promise<c3d.SpaceInstance> {
+        const factory = new ModifyContourFactory(this.db, this.materials, this.signals)    ;
+        return factory.prepare(inst);
+    }
+
+    private _controlPoints: visual.ControlPoint[] = [];
+    get controlPoints() { return this._controlPoints }
+    set controlPoints(controlPoints: visual.ControlPoint[]) {
+        this._controlPoints = controlPoints;
+    }
+
+    private _contour!: c3d.Contour3D;
+    get contour(): c3d.Contour3D { return this._contour }
     set contour(inst: c3d.Contour3D | c3d.SpaceInstance | visual.SpaceInstance<visual.Curve3D>) {
-        super.contour = inst;
+        if (inst instanceof c3d.SpaceInstance) {
+            const curve = inst2curve(inst);
+            if (!(curve instanceof c3d.Contour3D)) throw new ValidationError("Contour expected");
+            this._contour = curve;
+        } else if (inst instanceof visual.SpaceInstance) {
+            this.contour = this.db.lookup(inst);
+            this.originalItem = inst;
+            return;
+        } else this._contour = inst;
+
         this._controlPointInfo = computeControlPointInfo(this.contour);
     }
 
@@ -27,10 +46,10 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
     get controlPointInfo() { return this._controlPointInfo }
 
     async calculate() {
-        const { contour, move, controlPoint, controlPointInfo } = this;
+        const { contour, move, controlPoints, controlPointInfo } = this;
         if (move.manhattanLength() < 10e-5) throw new NoOpError();
 
-        const info = controlPointInfo[controlPoint];
+        const info = controlPointInfo[controlPoints[0].index];
         const segments = contour.GetSegments();
         const active = segments[info.segmentIndex];
         let before = segments[info.segmentIndex - 1];
@@ -82,4 +101,8 @@ export class ModifyContourPointFactory extends ContourFactory implements ModifyC
         cast.ChangePoint(info.index, point2point(newPosition));
         cast.Rebuild();
     }
+
+    private _original!: visual.SpaceInstance<visual.Curve3D>;
+    set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
+    get originalItem() { return this._original }
 }

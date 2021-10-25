@@ -76,7 +76,7 @@ export class ModifyContourFactory extends GeometryFactory implements ModifyConto
     get segment() { return this.segments.segment }
     set segment(segment: number) { this.segments.segment = segment }
     get controlPointInfo() { return this.points.controlPointInfo }
-    set controlPoint(controlPoint: number) { this.points.controlPoint = controlPoint }
+    set controlPoints(controlPoints: visual.ControlPoint[]) { this.points.controlPoints = controlPoints }
     set move(move: THREE.Vector3) { this.points.move = move }
     get move() { return this.points.move }
 
