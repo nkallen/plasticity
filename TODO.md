@@ -15,19 +15,22 @@
 
 ### Todo
 
-- [ ] Make control points work with rotate  
-- [ ] Consolidate rotate command  
 - [ ] Deleting points in a contour should work  
 - [ ] Freestyle move control point  
 - [ ] Freestyle scale control point  
 - [ ] Freestyle rotate control point  
+- [ ] Scale to flatten curve  
+- [ ] Make control points themselves d&d able (no circle)  
+- [ ] Review if the high performance control point implementation is the best way to do it  
+- [ ] Remove consolidate freestyle/basic factories and let the commands use direct guys  
 
 ### In Progress
 
-- [ ] Scale to flatten curve  
 
 ### Done ✓
 
+- [x] Make control points work with rotate  
+- [x] Consolidate rotate command  
 - [x] Scale control points  
 - [x] Selecting control point should unselect curve #bug  
 - [x] Make control points work with move  

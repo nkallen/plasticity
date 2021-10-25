@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { computeControlPointInfo, ControlPointInfo, inst2curve, normalizeCurve, point2point } from '../../util/Conversion';
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
-import { MoveParams, ScaleParams } from "../translate/TranslateFactory";
+import { MoveParams, RotateParams, ScaleParams } from "../translate/TranslateFactory";
 
 export interface ModifyContourPointParams {
     get controlPointInfo(): ControlPointInfo[];
@@ -148,5 +148,27 @@ export class ScaleContourPointFactory extends ModifyContourPointFactory implemen
 
     validate() {
         if (this.scale.manhattanDistanceTo(identity) < 10e-5) throw new NoOpError();
+    }
+}
+
+export class RotateContourPointFactory extends ModifyContourPointFactory implements RotateParams {
+    pivot = new THREE.Vector3();
+    axis = new THREE.Vector3(1, 0, 0);
+    angle = 0;
+
+    get degrees() { return THREE.MathUtils.radToDeg(this.angle) }
+    set degrees(degrees: number) {
+        this.angle = THREE.MathUtils.degToRad(degrees);
+    }
+
+    private readonly to = new THREE.Vector3();
+
+    protected computeDestination(info: ControlPointInfo) {
+        const { to, pivot, axis, angle } = this;
+        return to.copy(info.origin).sub(pivot).applyAxisAngle(axis, angle).add(pivot);
+    }
+
+    validate() {
+        if (Math.abs(this.angle) < 10e-5) throw new NoOpError();
     }
 }

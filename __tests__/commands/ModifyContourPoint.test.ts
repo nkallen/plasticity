@@ -4,7 +4,7 @@ import { CenterPointArcFactory } from "../../src/commands/arc/ArcFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
 import LineFactory from "../../src/commands/line/LineFactory";
-import { MoveContourPointFactory, ScaleContourPointFactory } from "../../src/commands/modify_contour/ModifyContourPointFactory";
+import { MoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "../../src/commands/modify_contour/ModifyContourPointFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -305,7 +305,7 @@ describe(MoveContourPointFactory, () => {
             makeContour.push(line);
             const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
             curve = contours[0];
-    
+
             const model = inst2curve(db.lookup(curve)) as c3d.Polyline3D;
             expect(model.IsClosed()).toBe(false);
 
@@ -329,7 +329,7 @@ describe(MoveContourPointFactory, () => {
 
             bbox.setFromObject(result);
             bbox.getCenter(center);
-            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5,0.48, 0));
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.48, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -2.03, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
             expect(db.visibleObjects.length).toBe(1);
@@ -377,7 +377,7 @@ describe(MoveContourPointFactory, () => {
             makeContour.push(hermit);
             const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
             curve = contours[0];
-    
+
             const model = inst2curve(db.lookup(curve)) as c3d.Polyline3D;
             expect(model.IsClosed()).toBe(false);
 
@@ -414,7 +414,7 @@ describe(MoveContourPointFactory, () => {
             changePoint.move = new THREE.Vector3(-2, -2, 0);
             const info = changePoint.controlPointInfo;
             expect(info.length).toBe(4);
-            expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(3,3, 0));
+            expect(info[0].origin).toApproximatelyEqual(new THREE.Vector3(3, 3, 0));
             expect(info[0].segmentIndex).toBe(0);
             expect(info[0].limit).toBe(1);
             expect(info[1].origin).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
@@ -487,6 +487,70 @@ describe(ScaleContourPointFactory, () => {
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+            expect(db.visibleObjects.length).toBe(1);
+        });
+    })
+})
+
+describe(RotateContourPointFactory, () => {
+    let changePoint: RotateContourPointFactory;
+
+    beforeEach(() => {
+        changePoint = new RotateContourPointFactory(db, materials, signals);
+    })
+
+    describe('Polyline3D', () => {
+        beforeEach(async () => {
+            const makeCurve = new CurveFactory(db, materials, signals);
+            makeCurve.type = c3d.SpaceType.Polyline3D;
+
+            makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+            makeCurve.points.push(new THREE.Vector3(1, 0, 1));
+            makeCurve.points.push(new THREE.Vector3(2, 2, -1));
+            curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(curve))!;
+            expect(model.IsClosed()).toBe(false);
+
+            bbox.setFromObject(curve);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, -1));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 1));
+        });
+
+
+        test('rotate second point', async () => {
+            changePoint.controlPoints = [curve.underlying.points.findByIndex(1)];
+            const contour = await changePoint.prepare(curve);
+            changePoint.contour = contour;
+            changePoint.originalItem = curve;
+            changePoint.axis = new THREE.Vector3(1, 1, 0);
+            changePoint.angle = Math.PI / 2;
+            const newCurve = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            bbox.setFromObject(newCurve);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, -0.75));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, -1.5));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+            expect(db.visibleObjects.length).toBe(1);
+        });
+
+        test('rotate all points', async () => {
+            changePoint.controlPoints = [curve.underlying.points.findByIndex(0), curve.underlying.points.findByIndex(1), curve.underlying.points.findByIndex(2)];
+            const contour = await changePoint.prepare(curve);
+            changePoint.contour = contour;
+            changePoint.originalItem = curve;
+            changePoint.axis = new THREE.Vector3(1, 1, 0);
+            changePoint.angle = Math.PI / 2;
+            const newCurve = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            bbox.setFromObject(newCurve);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(1.5, 1.5, 1.25));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(1, -1, -1.5));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 4, 4));
             expect(db.visibleObjects.length).toBe(1);
         });
     })

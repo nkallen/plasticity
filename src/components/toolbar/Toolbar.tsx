@@ -18,6 +18,7 @@ export class Model {
         const { db, selection } = this;
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0 || selection.controlPoints.size > 0) {
             result.push(cmd.DeleteCommand);
+            result.push(cmd.RotateCommand);
         }
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0) {
             result.push(cmd.ShellCommand);
@@ -32,7 +33,6 @@ export class Model {
             result.push(cmd.ExtrudeCommand);
         }
         if (selection.solids.size > 0) {
-            result.push(cmd.RotateCommand);
             if (selection.faces.size === 0 && selection.edges.size === 0 && selection.curves.size === 0)
                 result.push(cmd.SymmetryCommand); // mirror
         }
@@ -42,7 +42,6 @@ export class Model {
             result.push(cmd.DifferenceCommand);
         }
         if (selection.faces.size > 0) {
-            result.push(cmd.DraftSolidCommand); // this becomes rotate
             result.push(cmd.OffsetCurveCommand);
             result.push(cmd.ExtrudeCommand);
             result.push(cmd.CreateFaceCommand); // This becomes duplicate

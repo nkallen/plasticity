@@ -35,6 +35,6 @@ test('when a solid is selected you get move/rotate/scale', () => {
 
     selected.addSolid(solid);
     expect(toolbar.commands).toEqual([
-        DeleteCommand, ShellCommand, MoveCommand, ScaleCommand, RotateCommand, SymmetryCommand
+        DeleteCommand, RotateCommand, ShellCommand, MoveCommand, ScaleCommand, SymmetryCommand
     ])
 })
