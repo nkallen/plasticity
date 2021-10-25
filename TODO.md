@@ -8,7 +8,6 @@
 - [ ] Trim command should allow points  
 - [ ] Move/Translate allows face selection #bug  
 - [ ] Box select during active command allows selecting faces that will be deleted #bug  
-- [ ] Selecting control point should unselect curve #bug  
 - [ ] Some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)  
 - [ ] Viewport: save state  
 - [ ] PointPicker: Restrictions are ignored with choice - e.g., freestyle scale. DisableVerticalStraightSnap should disable normal; nearpointprojection needs to be errorbool  
@@ -26,4 +25,5 @@
 
 ### Done ✓
 
+- [x] Selecting control point should unselect curve #bug  
 

@@ -100,6 +100,27 @@ describe('onClick', () => {
         expect(selectionManager.selected.controlPoints.size).toBe(0);
     });
 
+    test('clicking on a curve then box selecting a control point selects the control point', () => {
+        let intersections = [{
+            distance: 1,
+            point: new THREE.Vector3(),
+            object: curve.underlying
+        }] as Intersection[];
+
+        interactionManager.onClick(intersections);
+        expect(selectionManager.selected.curves.size).toBe(1);
+
+        const boxed = new Set([curve.underlying.points.findByIndex(0)]);
+
+        interactionManager.onBoxSelect(boxed);
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.selected.controlPoints.size).toBe(1);
+
+        interactionManager.onClick([]);
+        expect(selectionManager.selected.curves.size).toBe(0);
+        expect(selectionManager.selected.controlPoints.size).toBe(0);
+    });
+
     test("delete curve removes the selection", () => {
         let intersections = [{
             distance: 1,

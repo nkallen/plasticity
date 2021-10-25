@@ -118,6 +118,7 @@ export class ClickStrategy implements SelectionStrategy {
             } else if (object instanceof ControlPoint) {
                 if (!this.mode.has(SelectionMode.ControlPoint)) continue;
                 selected.addControlPoint(object, object.parentItem);
+                selected.removeCurve(object.parentItem);
             } else if (object instanceof Region) {
                 if (!this.mode.has(SelectionMode.Face)) continue;
                 selected.addRegion(object.parentItem);
