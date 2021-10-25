@@ -15,17 +15,17 @@
 
 ### Todo
 
-- [ ] Make control points work with scale  
-- [ ] Consolidate scale command  
 - [ ] Make control points work with rotate  
 - [ ] Consolidate rotate command  
 - [ ] Deleting points in a contour should work  
 
 ### In Progress
 
-- [ ] Make control points work with move  
+- [ ] Scale control points  
+- [ ] Scale to flatten curve  
 
 ### Done ✓
 
 - [x] Selecting control point should unselect curve #bug  
+- [x] Make control points work with move  
 

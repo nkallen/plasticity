@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { RemovePointFactory } from "../../src/commands/control_point/RemovePointFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
-import { ModifyContourPointFactory } from "../../src/commands/modify_contour/ModifyContourPointFactory";
+import { MoveContourPointFactory } from "../../src/commands/modify_contour/ModifyContourPointFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -10,7 +10,7 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 let db: GeometryDatabase;
-let changePoint: ModifyContourPointFactory;
+let changePoint: MoveContourPointFactory;
 let removePoint: RemovePointFactory;
 let materials: MaterialDatabase;
 let signals: EditorSignals;

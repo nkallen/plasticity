@@ -3,7 +3,7 @@ import * as visual from '../../editor/VisualModel';
 import { CornerAngle, inst2curve, normalizeCurve } from '../../util/Conversion';
 import { GeometryFactory } from "../GeometryFactory";
 import { ContourFilletFactory, SegmentAngle } from "./ContourFilletFactory";
-import { ModifyContourPointFactory, ModifyContourPointParams } from "./ModifyContourPointFactory";
+import { ModifyContourPointParams, MoveContourPointFactory } from "./ModifyContourPointFactory";
 import { ModifyContourSegmentFactory, ModifyContourSegmentParams } from "./ModifyContourSegmentFactory";
 
 type Mode = 'fillet' | 'offset' | 'change-point';
@@ -13,6 +13,7 @@ export interface ModifyContourParams extends ModifyContourSegmentParams, ModifyC
     segmentAngles: SegmentAngle[];
     cornerAngles: CornerAngle[];
     radiuses: number[];
+    move: THREE.Vector3;
 }
 
 export class ModifyContourFactory extends GeometryFactory implements ModifyContourParams {
@@ -20,7 +21,7 @@ export class ModifyContourFactory extends GeometryFactory implements ModifyConto
 
     private readonly segments = new ModifyContourSegmentFactory(this.db, this.materials, this.signals);
     private readonly fillets = new ContourFilletFactory(this.db, this.materials, this.signals);
-    private readonly points = new ModifyContourPointFactory(this.db, this.materials, this.signals);
+    private readonly points = new MoveContourPointFactory(this.db, this.materials, this.signals);
 
     get radiuses() { return this.fillets.radiuses }
     set radiuses(radiuses: number[]) { this.fillets.radiuses = radiuses }

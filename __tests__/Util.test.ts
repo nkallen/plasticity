@@ -300,7 +300,7 @@ describe('normalizeCurve', () => {
             expect(inst.GetSegmentsCount()).toBe(2);
         });
 
-        test.only('order is preserved', async () => {
+        test('order is preserved', async () => {
             const model = inst2curve(db.lookup(curve))!;
             const contour = await normalizeCurve(model);
             const first = point2point(contour.GetLimitPoint(1));

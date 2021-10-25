@@ -25,12 +25,14 @@ export class Model {
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0 || selection.controlPoints.size > 0) {
             result.push(cmd.MoveCommand);
         }
+        if (selection.curves.size > 0 || selection.solids.size > 0 || selection.controlPoints.size > 0) {
+            result.push(cmd.ScaleCommand);
+        }
         if (selection.regions.size > 0) {
             result.push(cmd.ExtrudeCommand);
         }
         if (selection.solids.size > 0) {
             result.push(cmd.RotateCommand);
-            result.push(cmd.ScaleCommand);
             if (selection.faces.size === 0 && selection.edges.size === 0 && selection.curves.size === 0)
                 result.push(cmd.SymmetryCommand); // mirror
         }

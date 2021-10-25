@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, CurvePointSnap, CurveSnap, Layers, PointSnap } from "../editor/snaps/Snap";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
-import { decomposeMainName, normalizeCurve, point2point } from "../util/Conversion";
+import { decomposeMainName, point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
@@ -47,7 +47,7 @@ import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo, RefilletGizmo } from "./modifyface/OffsetFaceGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
-import { ModifyContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
+import { MoveContourPointFactory, ScaleContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
 import { MultilineDialog } from "./multiline/MultilineDialog";
 import MultilineFactory from "./multiline/MultilineFactory";
 import { ObjectPicker } from "./ObjectPicker";
@@ -729,7 +729,7 @@ export class MoveCommand extends Command {
             const command = new MoveItemCommand(this.editor);
             this.editor.enqueue(command, false)
         } else if (selected.controlPoints.size > 0) {
-            const command = new ModifyContourPointCommand(this.editor);
+            const command = new MoveContourPointCommand(this.editor);
             this.editor.enqueue(command, false)
         }
     }
@@ -822,6 +822,19 @@ export class FreestyleMoveCommand extends Command {
 }
 
 export class ScaleCommand extends Command {
+    async execute(): Promise<void> {
+        const selected = this.editor.selection.selected;
+        if (selected.solids.size > 0 || selected.curves.size > 0) {
+            const command = new ScaleItemCommand(this.editor);
+            this.editor.enqueue(command, false)
+        } else if (selected.controlPoints.size > 0) {
+            const command = new ScaleContourPointCommand(this.editor);
+            this.editor.enqueue(command, false)
+        }
+    }
+}
+
+export class ScaleItemCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this
         const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
@@ -1495,13 +1508,13 @@ export class ModifyContourCommand extends Command {
     }
 }
 
-export class ModifyContourPointCommand extends Command {
+export class MoveContourPointCommand extends Command {
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
         const points = [...selected.controlPoints];
         const curve = points[0].parentItem;
 
-        const factory = new ModifyContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const factory = new MoveContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         factory.controlPoints = points;
         factory.originalItem = curve;
         factory.contour = await factory.prepare(curve);
@@ -1509,8 +1522,40 @@ export class ModifyContourPointCommand extends Command {
         const centroid = new THREE.Vector3();
         for (const point of points) centroid.add(point.position);
         centroid.divideScalar(points.length);
-        
+
         const gizmo = new MoveGizmo(factory, this.editor);
+        gizmo.position.copy(centroid);
+        gizmo.execute(params => {
+            factory.update();
+        }).resource(this);
+
+        await this.finished;
+
+        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        selected.addCurve(result);
+    }
+}
+
+export class ScaleContourPointCommand extends Command {
+    async execute(): Promise<void> {
+        const selected = this.editor.selection.selected;
+        const points = [...selected.controlPoints];
+        const curve = points[0].parentItem;
+
+        console.log(points.length)
+
+        const factory = new ScaleContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        factory.controlPoints = points;
+        factory.originalItem = curve;
+        factory.contour = await factory.prepare(curve);
+
+        const centroid = new THREE.Vector3();
+        for (const point of points) centroid.add(point.position);
+        centroid.divideScalar(points.length);
+
+        const gizmo = new ScaleGizmo(factory, this.editor);
+        const dialog = new ScaleDialog(factory, this.editor.signals);
+
         gizmo.position.copy(centroid);
         gizmo.execute(params => {
             factory.update();
