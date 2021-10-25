@@ -1,19 +1,7 @@
+## BUGS
 
-. report fillet crash
-. report inability to move sphere or remove fillet
-
-. snapping projected to restrictions (either construction plane or axis)
-BUG: box selecting control point should unselect curve
-BUG: box select during active command allows selecting faces of objects that are going to be deleted
-BUG: move command still allowing selection of faces -- weird
-. Disable selection not really working on commands/gizmos
-BUG: pp: restrictions are ignored when using choice/choosing
-. Audit freestyle scale. DisableVerticalStraightSnap should disable normal
-. nearpointprojection needs to be errorbool
-
-Todo:
 ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909
-some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)
+
 camera near plane sucks with ortho now
 crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196
 shift drag on offset face is thin solid
@@ -21,7 +9,7 @@ shift drag on offset face is thin solid
 circle on corner box top or side face
 better mirror influenced by moi
 scale snap point on diagonal
-viewport state saved
+
 
 prolong on and off keybinding
 don't display fillet curve button at non-joint endpoint
@@ -43,8 +31,6 @@ currently FINISH is always available, even at step 1 of 3 points box.
 - this disables subsequent cancel for example
 - registry.add(command:finish) should maybe not happen in command executor but in await this.finished
 - if so, each command needs to be slightly rewritten
-
-stress test undo & redo
 
 add dialogs for everything
 
@@ -101,4 +87,4 @@ BUGS for c3d
 
 Viewport week:
 
-- keybindings to create/remove viewports
+- keybindings to create/remove viewports --> -->

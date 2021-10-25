@@ -1,12 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { CenterPointArcFactory } from "../../src/commands/arc/ArcFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
-import JoinCurvesFactory from "../../src/commands/curve/JoinCurvesFactory";
-import TrimFactory from "../../src/commands/curve/TrimFactory";
-import LineFactory from "../../src/commands/line/LineFactory";
 import { ModifyContourFactory } from "../../src/commands/modify_contour/ModifyContourFactory";
-import { ModifyContourPointFactory } from "../../src/commands/modify_contour/ModifyContourPointFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
