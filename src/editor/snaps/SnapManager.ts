@@ -212,18 +212,22 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
                 joints.push(snap);
             }
             for (const endSnap of joints) into.add(endSnap);
-            for (const segment of item.GetSegments()) {
+            const segments = item.GetSegments();
+            for (const [i, segment] of segments.entries()) {
                 const cast = segment.Cast<c3d.Curve3D>(segment.IsA());
                 if (cast instanceof c3d.Polyline3D) {
                     const points = cast.GetPoints();
-                    points.shift(); // First and (potentially) last would be a joint
-                    points.pop(); // FIXME check not last segment
+                    if (i > 0) points.shift(); // First and (potentially) last would be a joint
+                    if (i < segments.length - 1) points.pop();
                     const endSnaps = points.map(point =>
                         new CurveEndPointSnap("End", point2point(point), curveSnap, item.NearPointProjection(point, false).t)
                     );
                     for (const endSnap of endSnaps) into.add(endSnap);
                 }
             }
+            const point = item.GetLimitPoint(2);
+            const final = new CurveEndPointSnap("End", point2point(point), curveSnap, item.NearPointProjection(point, false).t)
+            into.add(final);
         } else {
             if (item.IsClosed()) return;
 

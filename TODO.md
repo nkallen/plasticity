@@ -19,6 +19,7 @@
 - [ ] Consolidate scale command  
 - [ ] Make control points work with rotate  
 - [ ] Consolidate rotate command  
+- [ ] Deleting points in a contour should work  
 
 ### In Progress
 
