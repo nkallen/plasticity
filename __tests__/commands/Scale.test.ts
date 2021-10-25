@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CenterBoxFactory } from "../../src/commands/box/BoxFactory";
-import { BasicScaleFactory, FreestyleScaleFactory, ScaleFactory } from '../../src/commands/translate/TranslateFactory';
+import { BasicScaleFactory, FreestyleScaleFactory } from '../../src/commands/translate/TranslateFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -118,23 +118,3 @@ describe(FreestyleScaleFactory, () => {
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 1, 1));
     });
 });
-
-describe(ScaleFactory, () => {
-    let scale: ScaleFactory;
-    beforeEach(() => {
-        scale = new ScaleFactory(db, materials, signals);
-    })
-
-    describe("when no values given it doesn't fail", () => {
-        test('update', async () => {
-            scale.items = [box];
-            await scale.update();
-            expect(box.scale).toEqual(new THREE.Vector3(1, 1, 1));
-        });
-
-        test('commit', async () => {
-            scale.items = [box];
-            await expect(scale.commit()).rejects.toThrowError(/no effect/);
-        });
-    });
-})

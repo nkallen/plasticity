@@ -4,7 +4,6 @@
 
 ### Backlog
 
-- [ ] Can't remove fillet using modify contour command #bug  
 - [ ] Trim command should allow splitting segments  
 - [ ] Trim command should allow points  
 - [ ] Move/Translate allows face selection #bug  
@@ -22,10 +21,11 @@
 - [ ] Scale to flatten curve  
 - [ ] Make control points themselves d&d able (no circle)  
 - [ ] Review if the high performance control point implementation is the best way to do it  
-- [ ] Remove consolidate freestyle/basic factories and let the commands use direct guys  
+- [ ] Can't remove fillet using modify contour command #bug  
 
 ### In Progress
 
+- [ ] Remove consolidate freestyle/basic factories and let the commands use direct guys  
 
 ### Done ✓
 

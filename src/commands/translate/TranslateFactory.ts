@@ -206,35 +206,6 @@ export interface ScaleParams {
 const identityMatrix = new THREE.Matrix4();
 const X = new THREE.Vector3(1, 0, 0);
 
-export class ScaleFactory extends TranslateFactory {
-    private readonly basic = new BasicScaleFactory(this.db, this.materials, this.signals);
-    private readonly freestyle = new FreestyleScaleFactory(this.db, this.materials, this.signals);
-
-    get scale() { return this.basic.scale }
-    get pivot() { return this.basic.pivot }
-    set pivot(pivot: THREE.Vector3) { this.basic.pivot = pivot; this.freestyle.pivot = pivot }
-
-    get ref() { return this.freestyle.ref }
-
-    from(p1: THREE.Vector3, p2: THREE.Vector3) {
-        this.freestyle.from(p1, p2);
-    }
-
-    to(p1: THREE.Vector3, p3: THREE.Vector3) {
-        this.freestyle.to(p1, p3);
-    }
-
-    protected get transform(): c3d.TransformValues {
-        throw new Error("Method not implemented.");
-    }
-
-    get matrix() {
-        this._matrix.copy(this.basic.matrix).multiply(this.freestyle.matrix);
-        if (this._matrix.equals(identityMatrix)) throw new NoOpError();
-        return this._matrix;
-    }
-}
-
 export class BasicScaleFactory extends TranslateFactory implements ScaleParams {
     pivot = new THREE.Vector3();
     scale = new THREE.Vector3(1, 1, 1);
@@ -244,7 +215,7 @@ export class BasicScaleFactory extends TranslateFactory implements ScaleParams {
     }
 }
 
-export class FreestyleScaleFactory extends TranslateFactory {
+export class FreestyleScaleFactory extends TranslateFactory implements ScaleParams {
     set pivot(pivot: THREE.Vector3) {
         const { translateFrom, translateTo } = this;
         translateFrom.makeTranslation(-unit(pivot.x), -unit(pivot.y), -unit(pivot.z));
@@ -252,6 +223,9 @@ export class FreestyleScaleFactory extends TranslateFactory {
     }
 
     get matrix() { return this._matrix }
+    get scale() {
+        return new THREE.Vector3(1, 1, 1);
+    }
 
     ref = new THREE.Vector3();
     private refMagnitude = 1;
@@ -260,7 +234,7 @@ export class FreestyleScaleFactory extends TranslateFactory {
     private rotateTo = new THREE.Matrix4();
     private translateFrom = new THREE.Matrix4();
     private translateTo = new THREE.Matrix4();
-    private scale = new THREE.Matrix4();
+    private mat = new THREE.Matrix4();
 
     from(p1: THREE.Vector3, p2: THREE.Vector3) {
         const { ref, quat, rotateFrom, rotateTo } = this;
@@ -275,7 +249,7 @@ export class FreestyleScaleFactory extends TranslateFactory {
     }
 
     to(p1: THREE.Vector3, p3: THREE.Vector3) {
-        const { _matrix, refMagnitude, rotateFrom, rotateTo, scale, translateFrom, translateTo } = this;
+        const { _matrix, refMagnitude, rotateFrom, rotateTo, mat: scale, translateFrom, translateTo } = this;
         const transMagnitude = p3.distanceTo(p1);
 
         const scaleRatio = transMagnitude / refMagnitude;

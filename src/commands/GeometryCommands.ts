@@ -68,7 +68,7 @@ import { RotateKeyboardGizmo } from "./translate/RotateKeyboardGizmo";
 import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
-import { MoveFactory, RotateFactory, ScaleFactory } from './translate/TranslateFactory';
+import { MoveFactory, RotateFactory, BasicScaleFactory, FreestyleScaleFactory } from './translate/TranslateFactory';
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -844,7 +844,7 @@ export class ScaleItemCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const scale = new ScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const scale = new BasicScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
         scale.items = objects;
         scale.pivot = centroid;
 
@@ -888,7 +888,7 @@ export class FreestyleScaleCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const scale = new ScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const scale = new FreestyleScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
         scale.items = objects;
         scale.pivot = centroid;
         scale.showPhantoms();
