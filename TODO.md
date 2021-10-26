@@ -13,6 +13,8 @@
 - [ ] Some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)  
 - [ ] Viewport: save state  
 - [ ] PointPicker: Restrictions are ignored with choice -  
+- [ ] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
+- [ ] If there is a solid and two curves. Select solid and SHIFT-H. Get an error like: "touched is not iterable" #bug  
 
 ### Todo
 
@@ -25,7 +27,6 @@
 
 ### In Progress
 
-- [ ] Freestyle rotate control point  
 - [ ] once you do a freestyle scale, left clicking doesn't exit for some reason #bug  
 
 ### Done ✓
@@ -38,4 +39,5 @@
 - [x] Scale control points  
 - [x] Selecting control point should unselect curve #bug  
 - [x] Make control points work with move  
+- [x] Freestyle rotate control point  
 

@@ -158,7 +158,11 @@ export interface RotateParams {
     degrees: number;
 }
 
-export class RotateFactory extends TranslateFactory implements RotateParams {
+export interface RotateFactoryLike extends GeometryFactory, RotateParams {
+    showPhantoms(): Promise<void>;
+}
+
+export class RotateFactory extends TranslateFactory implements RotateFactoryLike {
     pivot!: THREE.Vector3
     axis = new THREE.Vector3(1, 0, 0);
     angle = 0;

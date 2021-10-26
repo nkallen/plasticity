@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { computeControlPointInfo, ControlPointInfo, inst2curve, normalizeCurve, point2point } from '../../util/Conversion';
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
-import { FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactoryLike, MoveParams, RotateParams, ScaleParams } from "../translate/TranslateFactory";
+import { FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactoryLike, MoveParams, RotateFactoryLike, RotateParams, ScaleParams } from "../translate/TranslateFactory";
 
 export interface ModifyContourPointParams {
     get controlPointInfo(): ControlPointInfo[];
@@ -172,7 +172,7 @@ export class FreestyleScaleContourPointFactory extends ModifyContourPointFactory
     async showPhantoms() { }
 }
 
-export class RotateContourPointFactory extends ModifyContourPointFactory implements RotateParams {
+export class RotateContourPointFactory extends ModifyContourPointFactory implements RotateFactoryLike {
     pivot = new THREE.Vector3();
     axis = new THREE.Vector3(1, 0, 0);
     angle = 0;
@@ -192,4 +192,6 @@ export class RotateContourPointFactory extends ModifyContourPointFactory impleme
     validate() {
         if (Math.abs(this.angle) < 10e-5) throw new NoOpError();
     }
+
+    async showPhantoms() {}
 }

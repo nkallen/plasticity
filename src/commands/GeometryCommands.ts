@@ -68,7 +68,7 @@ import { RotateKeyboardGizmo } from "./translate/RotateKeyboardGizmo";
 import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
-import { BasicScaleFactory, FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory } from './translate/TranslateFactory';
+import { BasicScaleFactory, FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './translate/TranslateFactory';
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -892,7 +892,7 @@ export class ScaleItemCommand extends Command {
 abstract class AbstractFreestyleScaleCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this
-        
+
         const scale = await this.makeFactory();
         await scale.showPhantoms();
 
@@ -1003,7 +1003,7 @@ export class RotateItemCommand extends Command {
             switch (s) {
                 case 'free':
                     this.finish();
-                    this.editor.enqueue(new FreestyleRotateCommand(this.editor), false);
+                    this.editor.enqueue(new FreestyleRotateItemCommand(this.editor), false);
             }
         }).resource(this);
 
@@ -1014,22 +1014,12 @@ export class RotateItemCommand extends Command {
     }
 }
 
-export class FreestyleRotateCommand extends Command {
+abstract class AbstractFreestyleRotateCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this;
-        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
-        if (objects.length === 0) throw new ValidationError("Select something first");
-
-        const bbox = new THREE.Box3();
-        for (const object of objects) bbox.expandByObject(object);
-        const centroid = new THREE.Vector3();
-        bbox.getCenter(centroid);
-
-        const rotate = new RotateFactory(editor.db, editor.materials, editor.signals).resource(this);
-        rotate.items = objects;
-        rotate.pivot = centroid;
-        rotate.showPhantoms();
+        const rotate = await this.makeFactory();
+        await rotate.showPhantoms();
 
         const gizmo = new RotateGizmo(rotate, editor);
         const dialog = new RotateDialog(rotate, editor.signals);
@@ -1081,6 +1071,27 @@ export class FreestyleRotateCommand extends Command {
         this.editor.selection.selected.add(selection);
 
         this.editor.enqueue(new RotateCommand(this.editor), false);
+    }
+
+    protected abstract makeFactory(): Promise<RotateFactoryLike>;
+}
+
+export class FreestyleRotateItemCommand extends AbstractFreestyleRotateCommand {
+    protected async makeFactory(): Promise<RotateFactory> {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+
+        if (objects.length === 0) throw new ValidationError("Select something first");
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const rotate = new RotateFactory(editor.db, editor.materials, editor.signals).resource(this);
+        rotate.items = objects;
+        rotate.pivot = centroid;
+        return rotate;
     }
 }
 
@@ -1606,7 +1617,8 @@ export class FreestyleMoveControlPointCommand extends AbstractFreestyleMoveComma
 
 export class RotateControlPointCommand extends Command {
     async execute(): Promise<void> {
-        const selected = this.editor.selection.selected;
+        const { editor } = this;
+        const selected = editor.selection.selected;
         const points = [...selected.controlPoints];
         const curve = points[0].parentItem;
 
@@ -1614,28 +1626,57 @@ export class RotateControlPointCommand extends Command {
         for (const point of points) centroid.add(point.position);
         centroid.divideScalar(points.length);
 
-        const factory = new RotateContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        factory.controlPoints = points;
-        factory.originalItem = curve;
-        factory.contour = await factory.prepare(curve);
-        factory.pivot = centroid;
+        const rotate = new RotateContourPointFactory(editor.db, editor.materials, editor.signals).resource(this);
+        rotate.controlPoints = points;
+        rotate.originalItem = curve;
+        rotate.contour = await rotate.prepare(curve);
+        rotate.pivot = centroid;
 
-        const dialog = new RotateDialog(factory, this.editor.signals);
-
+        const gizmo = new RotateGizmo(rotate, editor);
+        const dialog = new RotateDialog(rotate, editor.signals);
+        const keyboard = new RotateKeyboardGizmo(editor);
         dialog.execute(async params => {
-            await factory.update();
+            await rotate.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        const gizmo = new RotateGizmo(factory, this.editor);
         gizmo.position.copy(centroid);
         gizmo.execute(params => {
-            factory.update();
+            rotate.update();
+        }).resource(this);
+
+        keyboard.execute(async s => {
+            switch (s) {
+                case 'free':
+                    this.finish();
+                    this.editor.enqueue(new FreestyleRotateControlPointCommand(this.editor), false);
+            }
         }).resource(this);
 
         await this.finished;
 
-        const result = await factory.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const result = await rotate.commit() as visual.SpaceInstance<visual.Curve3D>;
         selected.addCurve(result);
+    }
+}
+
+export class FreestyleRotateControlPointCommand extends AbstractFreestyleRotateCommand {
+    protected async makeFactory(): Promise<RotateFactoryLike> {
+        const { editor } = this;
+        const selected = editor.selection.selected;
+        const points = [...selected.controlPoints];
+        const curve = points[0].parentItem;
+
+        const centroid = new THREE.Vector3();
+        for (const point of points) centroid.add(point.position);
+        centroid.divideScalar(points.length);
+
+        const rotate = new RotateContourPointFactory(editor.db, editor.materials, editor.signals).resource(this);
+        rotate.controlPoints = points;
+        rotate.originalItem = curve;
+        rotate.contour = await rotate.prepare(curve);
+        rotate.pivot = centroid;
+
+        return rotate;
     }
 }
 
