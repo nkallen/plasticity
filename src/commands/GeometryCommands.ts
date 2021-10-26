@@ -68,7 +68,7 @@ import { RotateKeyboardGizmo } from "./translate/RotateKeyboardGizmo";
 import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
-import { BasicScaleFactory, FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactory, RotateFactory } from './translate/TranslateFactory';
+import { BasicScaleFactory, FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory } from './translate/TranslateFactory';
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -768,7 +768,7 @@ export class MoveItemCommand extends Command {
             switch (s) {
                 case 'free':
                     this.finish();
-                    this.editor.enqueue(new FreestyleMoveCommand(this.editor), false);
+                    this.editor.enqueue(new FreestyleMoveItemCommand(this.editor), false);
             }
         }).resource(this);
 
@@ -779,20 +779,12 @@ export class MoveItemCommand extends Command {
     }
 }
 
-export class FreestyleMoveCommand extends Command {
+abstract class AbstractFreestyleMoveCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this;
-        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
-        const bbox = new THREE.Box3();
-        for (const object of objects) bbox.expandByObject(object);
-        const centroid = new THREE.Vector3();
-        bbox.getCenter(centroid);
-
-        const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);
-        move.pivot = centroid;
-        move.items = objects;
-        move.showPhantoms();
+        const move = await this.makeFactory();
+        await move.showPhantoms();
 
         const dialog = new MoveDialog(move, editor.signals);
 
@@ -818,6 +810,25 @@ export class FreestyleMoveCommand extends Command {
         this.editor.selection.selected.add(selection);
 
         this.editor.enqueue(new MoveItemCommand(this.editor), false);
+    }
+
+    protected abstract makeFactory(): Promise<MoveFactoryLike>;
+}
+
+export class FreestyleMoveItemCommand extends AbstractFreestyleMoveCommand {
+    protected async makeFactory(): Promise<MoveFactory> {
+        const { editor } = this;
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);
+        move.pivot = centroid;
+        move.items = objects;
+        return move;
     }
 }
 
@@ -1533,11 +1544,12 @@ export class ModifyContourCommand extends Command {
 
 export class MoveControlPointCommand extends Command {
     async execute(): Promise<void> {
-        const selected = this.editor.selection.selected;
+        const { editor } = this;
+        const selected = editor.selection.selected;
         const points = [...selected.controlPoints];
         const curve = points[0].parentItem;
 
-        const factory = new MoveContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const factory = new MoveContourPointFactory(editor.db, editor.materials, editor.signals).resource(this);
         factory.controlPoints = points;
         factory.originalItem = curve;
         factory.contour = await factory.prepare(curve);
@@ -1546,10 +1558,26 @@ export class MoveControlPointCommand extends Command {
         for (const point of points) centroid.add(point.position);
         centroid.divideScalar(points.length);
 
-        const gizmo = new MoveGizmo(factory, this.editor);
+        const dialog = new MoveDialog(factory, editor.signals);
+        const gizmo = new MoveGizmo(factory, editor);
+        const keyboard = new MoveKeyboardGizmo(editor);
+
+        dialog.execute(async params => {
+            await factory.update();
+            gizmo.render(params);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
         gizmo.position.copy(centroid);
         gizmo.execute(params => {
             factory.update();
+        }).resource(this);
+
+        keyboard.execute(async s => {
+            switch (s) {
+                case 'free':
+                    this.finish();
+                    this.editor.enqueue(new FreestyleMoveControlPointCommand(this.editor), false);
+            }
         }).resource(this);
 
         await this.finished;
@@ -1558,6 +1586,23 @@ export class MoveControlPointCommand extends Command {
         selected.addCurve(result);
     }
 }
+
+export class FreestyleMoveControlPointCommand extends AbstractFreestyleMoveCommand {
+    protected async makeFactory(): Promise<MoveFactoryLike> {
+        const { editor } = this;
+        const selected = editor.selection.selected;
+        const points = [...selected.controlPoints];
+        const curve = points[0].parentItem;
+
+        const move = new MoveContourPointFactory(editor.db, editor.materials, editor.signals).resource(this);
+        move.controlPoints = points;
+        move.originalItem = curve;
+        move.contour = await move.prepare(curve);
+
+        return move;
+    }
+}
+
 
 export class RotateControlPointCommand extends Command {
     async execute(): Promise<void> {

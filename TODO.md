@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] showPhantoms() in ModifyContourPointFactory needs implementation  
 - [ ] Nearpointprojection needs to be errorbool  
 - [ ] Trim command should allow splitting segments  
 - [ ] Trim command should allow points  
@@ -19,17 +20,17 @@
 - [ ] Scale to flatten curve  
 - [ ] Make control points themselves d&d able (no circle)  
 - [ ] Review if the high performance control point implementation is the best way to do it  
-- [ ] Can't remove fillet using modify contour command #bug  
 - [ ] Point picker restrict to line not working great with scale freestyle command (xyz axes seem available) #bug  
+- [ ] Can't remove fillet using modify contour command #bug  
 
 ### In Progress
 
 - [ ] Freestyle rotate control point  
-- [ ] Freestyle move control point  
 - [ ] once you do a freestyle scale, left clicking doesn't exit for some reason #bug  
 
 ### Done ✓
 
+- [x] Freestyle move control point  
 - [x] Freestyle scale control point  
 - [x] Remove consolidate freestyle/basic factories and let the commands use direct guys  
 - [x] Make control points work with rotate  

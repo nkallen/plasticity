@@ -132,7 +132,11 @@ export interface MoveParams {
     pivot: THREE.Vector3;
 }
 
-export class MoveFactory extends TranslateFactory implements MoveParams {
+export interface MoveFactoryLike extends GeometryFactory, MoveParams {
+    showPhantoms(): Promise<void>;
+}
+
+export class MoveFactory extends TranslateFactory implements MoveFactoryLike {
     move = new THREE.Vector3();
     pivot!: THREE.Vector3;
 
