@@ -342,7 +342,7 @@ export class ProjectingBasicScaleFactory extends BasicScaleFactory {
         const y = scale.y === 0;
         const z = scale.z === 0;
         if (x || y || z) {
-            project.origin = this.pivot;
+            project.origin = pivot;
             if (x) project.normal = X;
             if (y) project.normal = Y;
             if (z) project.normal = Z;
