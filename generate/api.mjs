@@ -345,6 +345,7 @@ export default {
                 { signature: "void GetBasisPoints(MbControlData3D & cd)", cd: isReturn },
                 "void SetBasisPoints(const MbControlData3D & cd)",
                 "void Inverse()",
+                "MbCurve * GetProjection(const MbPlacement3D &place, VERSION version = Math::DefaultMathVersion())",
             ]
         },
         TrimmedCurve3D: {

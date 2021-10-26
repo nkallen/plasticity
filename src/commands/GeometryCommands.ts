@@ -67,7 +67,7 @@ import { RotateKeyboardGizmo } from "./translate/RotateKeyboardGizmo";
 import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
-import { BasicScaleFactory, FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './translate/TranslateFactory';
+import { BasicScaleFactory, FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, ProjectingBasicScaleFactory, RotateFactory, RotateFactoryLike } from './translate/TranslateFactory';
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -854,7 +854,7 @@ export class ScaleItemCommand extends Command {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const scale = new BasicScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const scale = new ProjectingBasicScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
         scale.items = objects;
         scale.pivot = centroid;
 
