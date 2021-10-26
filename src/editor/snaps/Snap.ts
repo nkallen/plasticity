@@ -566,7 +566,7 @@ export class LineSnap extends Snap {
     }
 
     isValid(pt: THREE.Vector3): boolean {
-        return this.plane1.isValid(pt) || this.plane2.isValid(pt);
+        return this.axis.isValid(pt);
     }
 }
 const planeGeo = new THREE.PlaneGeometry(10000, 10000, 2, 2);

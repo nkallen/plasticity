@@ -21,15 +21,15 @@
 - [ ] Scale to flatten curve  
 - [ ] Make control points themselves d&d able (no circle)  
 - [ ] Review if the high performance control point implementation is the best way to do it  
-- [ ] Point picker restrict to line not working great with scale freestyle command (xyz axes seem available) #bug  
 - [ ] Can't remove fillet using modify contour command #bug  
 
 ### In Progress
 
-- [ ] Deleting points in a contour should work  
 
 ### Done ✓
 
+- [x] Point picker restrict to line not working great with scale freestyle command (xyz axes seem available) #bug  
+- [x] Deleting points in a contour should work  
 - [x] Freestyle move control point  
 - [x] Freestyle scale control point  
 - [x] Remove consolidate freestyle/basic factories and let the commands use direct guys  
