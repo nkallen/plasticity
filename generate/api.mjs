@@ -393,6 +393,7 @@ export default {
                 { signature: "bool GetCornerAngle(size_t index, MbCartPoint3D & origin, MbVector3D & axis, MbVector3D & tau, double & angle, double angleEps = (double)Math::AngleEps)", origin: isReturn, axis: isReturn, tau: isReturn, angle: isReturn, return: isErrorBool },
                 "bool Init(const SArray<MbCartPoint3D> & points)",
                 { signature: "MbItem * Cast()", isManual: true },
+                "void DeleteSegment(size_t index)",
             ]
         },
         Plane: {

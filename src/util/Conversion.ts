@@ -305,7 +305,7 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
                     break;
                 } else throw new Error();
             default:
-                result.AddCurveWithRuledCheck(item, 10e-5, true);
+                result.AddCurveWithRuledCheck(item.Duplicate().Cast<c3d.Curve3D>(item.IsA()), 10e-5, true);
         }
     }
     return result;

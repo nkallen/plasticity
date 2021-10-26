@@ -3,14 +3,14 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { computeControlPointInfo, ControlPointInfo, inst2curve, normalizeCurve, point2point } from '../../util/Conversion';
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
-import { FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactoryLike, MoveParams, RotateFactoryLike, RotateParams, ScaleParams } from "../translate/TranslateFactory";
+import { FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactoryLike, MoveParams, RotateFactoryLike, ScaleParams } from "../translate/TranslateFactory";
 
 export interface ModifyContourPointParams {
     get controlPointInfo(): ControlPointInfo[];
     set controlPoints(cps: number[] | visual.ControlPoint[]);
 }
 
-abstract class ModifyContourPointFactory extends GeometryFactory implements ModifyContourPointParams {
+abstract class ContourPointFactory extends GeometryFactory {
     private _controlPoints: number[] = [];
     get controlPoints(): number[] { return this._controlPoints }
     set controlPoints(controlPoints: visual.ControlPoint[] | number[]) {
@@ -51,6 +51,7 @@ abstract class ModifyContourPointFactory extends GeometryFactory implements Modi
         const cast = curve.Cast<c3d.Curve3D>(curve.IsA());
         if (cast instanceof c3d.PolyCurve3D) {
             if (cast instanceof c3d.Polyline3D) {
+                if (cast.GetPoints().length !== 2) throw new ValidationError();
                 cast.ChangePoint(point - 1, point2point(to));
             } else {
                 if (point === 1) cast.ChangePoint(0, point2point(to));
@@ -62,6 +63,15 @@ abstract class ModifyContourPointFactory extends GeometryFactory implements Modi
         }
     }
 
+    private _controlPointInfo!: ControlPointInfo[];
+    get controlPointInfo() { return this._controlPointInfo }
+
+    private _original!: visual.SpaceInstance<visual.Curve3D>;
+    set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
+    get originalItem() { return this._original }
+}
+
+abstract class ModifyContourPointFactory extends ContourPointFactory implements ModifyContourPointParams {
     protected changePoint(curve: c3d.Curve3D, info: ControlPointInfo, to: THREE.Vector3) {
         const cast = curve.Cast<c3d.Curve3D>(curve.IsA());
         if (!(cast instanceof c3d.PolyCurve3D)) throw new Error();
@@ -105,13 +115,6 @@ abstract class ModifyContourPointFactory extends GeometryFactory implements Modi
 
     protected abstract computeDestination(info: ControlPointInfo): THREE.Vector3;
     protected abstract validate(): void;
-
-    private _controlPointInfo!: ControlPointInfo[];
-    get controlPointInfo() { return this._controlPointInfo }
-
-    private _original!: visual.SpaceInstance<visual.Curve3D>;
-    set originalItem(original: visual.SpaceInstance<visual.Curve3D>) { this._original = original }
-    get originalItem() { return this._original }
 }
 
 export interface MoveContourPointParams extends ModifyContourPointParams, MoveParams {
@@ -193,5 +196,85 @@ export class RotateContourPointFactory extends ModifyContourPointFactory impleme
         if (Math.abs(this.angle) < 10e-5) throw new NoOpError();
     }
 
-    async showPhantoms() {}
+    async showPhantoms() { }
+}
+
+export class RemoveContourPointFactory extends ContourPointFactory {
+    async calculate(): Promise<c3d.SpaceInstance[]> {
+        const { contour, controlPoints } = this;
+
+        controlPoints.sort();
+        let offset = 0;
+        for (const controlPoint of controlPoints) {
+            const controlPointInfo = computeControlPointInfo(contour);
+            const segments = contour.GetSegments();
+            const info = controlPointInfo[controlPoint - offset];
+            const active = segments[info.segmentIndex];
+            let before = segments[info.segmentIndex - 1];
+            if (before === undefined && contour.IsClosed()) before = segments[segments.length - 1];
+            let after = segments[info.segmentIndex + 1];
+            if (after === undefined && contour.IsClosed()) after = segments[0];
+            switch (info.limit) {
+                case -1:
+                    this.removePoint(active, info);
+                    break;
+                case 1:
+                    this.removeLimitPoint(1, active, info, before, after);
+                    break;
+                case 2:
+                    this.removeLimitPoint(2, active, info, before, after);
+                    break;
+            }
+            offset++;
+        }
+
+        if (contour.GetSegmentsCount() === 0) return [];
+        else return [new c3d.SpaceInstance(contour)];
+    }
+
+    protected removeLimitPoint(point: 1 | 2, curve: c3d.Curve3D, info: ControlPointInfo, before: c3d.Curve3D, after: c3d.Curve3D) {
+        const { contour } = this;
+        const cast = curve.Cast<c3d.Curve3D>(curve.IsA());
+        if (cast instanceof c3d.PolyCurve3D) {
+            const points = cast.GetPoints();
+            const polyCurveWithOnly2Points = points.length === 2;
+            if (cast instanceof c3d.Polyline3D || polyCurveWithOnly2Points) {
+                if (points.length !== 2) throw new ValidationError();
+                contour.DeleteSegment(info.segmentIndex);
+                if (point === 1) {
+                    const to = point2point(points[1]);
+                    if (before !== undefined) this.moveLimitPoint(2, before, info, to);
+                } else {
+                    const to = point2point(points[0]);
+                    if (after !== undefined) this.moveLimitPoint(1, after, info, to);
+                }
+            } else {
+                cast.RemovePoint(info.index);
+                if (point === 1) {
+                    const to = point2point(points[points.length - 1]);
+                    if (before !== undefined) this.moveLimitPoint(2, before, info, to);
+                } else {
+                    const to = point2point(points[0]);
+                    if (after !== undefined) this.moveLimitPoint(1, after, info, to);
+                }
+            }
+            cast.Rebuild();
+        } else if (cast instanceof c3d.Arc3D){
+            contour.DeleteSegment(info.segmentIndex);
+            if (point === 1) {
+                const to = point2point(cast.GetLimitPoint(2));
+                if (before !== undefined) this.moveLimitPoint(2, before, info, to);
+            } else {
+                const to = point2point(cast.GetLimitPoint(1));
+                if (after !== undefined) this.moveLimitPoint(1, after, info, to);
+            }
+        }
+    }
+
+    protected removePoint(curve: c3d.Curve3D, info: ControlPointInfo) {
+        const cast = curve.Cast<c3d.Curve3D>(curve.IsA());
+        if (!(cast instanceof c3d.PolyCurve3D)) throw new Error();
+        cast.RemovePoint(info.index);
+        cast.Rebuild();
+    }
 }

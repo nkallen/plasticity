@@ -16,7 +16,6 @@ import { EditCircleDialog } from "./circle/CircleDialog";
 import { CenterCircleFactory, EditCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
 import Command from "./Command";
-import { RemovePointFactory } from "./control_point/RemovePointFactory";
 import { BridgeCurvesDialog } from "./curve/BridgeCurvesDialog";
 import BridgeCurvesFactory from "./curve/BridgeCurvesFactory";
 import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
@@ -47,7 +46,7 @@ import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo, RefilletGizmo } from "./modifyface/OffsetFaceGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
-import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
+import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RemoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
 import { MultilineDialog } from "./multiline/MultilineDialog";
 import MultilineFactory from "./multiline/MultilineFactory";
 import { ObjectPicker } from "./ObjectPicker";
@@ -1459,7 +1458,7 @@ export class DeleteCommand extends Command {
             await command.execute();
         }
         if (selected.controlPoints.size > 0) {
-            const command = new RemovePointCommand(this.editor);
+            const command = new RemoveControlPointCommand(this.editor);
             await command.execute();
         }
     }
@@ -1473,15 +1472,18 @@ export class RemoveItemCommand extends Command {
     }
 }
 
-export class RemovePointCommand extends Command {
+export class RemoveControlPointCommand extends Command {
     async execute(): Promise<void> {
-        const controlPoint = [...this.editor.selection.selected.controlPoints];
+        const points = [...this.editor.selection.selected.controlPoints];
+        const curve = points[0].parentItem;
 
-        const removePoint = new RemovePointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        removePoint.controlPoints = controlPoint;
+        const removePoint = new RemoveContourPointFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        removePoint.controlPoints = points;
+        removePoint.originalItem = curve;
+        removePoint.contour = await removePoint.prepare(curve);
 
-        const newInstance = await removePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
-        this.editor.selection.selected.addCurve(newInstance);
+        const newInstances = await removePoint.commit() as visual.SpaceInstance<visual.Curve3D>[];
+        for (const inst of newInstances) this.editor.selection.selected.addCurve(inst);
     }
 }
 
