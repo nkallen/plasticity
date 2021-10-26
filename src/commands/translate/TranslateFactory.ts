@@ -29,17 +29,26 @@ abstract class TranslateFactory extends GeometryFactory {
         return _matrix;
     }
 
-    async doUpdate() {
-        const { matrix, db, items } = this;
+    // This is confusing. But view units are meters and model units are centimeters, as per usual.
+    // this.matrix pivot is in model units. So any view level transforms (e.g., update) need to deunit just that part.
+    private readonly tmp = new THREE.Matrix4();
+    get deunitMatrix() {
+        const { tmp } = this;
         const de = deunit(1);
-        matrix.elements[12] *= de;
-        matrix.elements[13] *= de;
-        matrix.elements[14] *= de;
+        tmp.copy(this.matrix);
+        tmp.elements[12] *= de;
+        tmp.elements[13] *= de;
+        tmp.elements[14] *= de;
+        return tmp
+    }
+
+    async doUpdate() {
+        const { db, items, deunitMatrix: mat } = this;
         let result: Promise<TemporaryObject>[] = [];
         for (const item of items) {
             const temps = db.optimization(item, async () => {
                 item.matrixAutoUpdate = false;
-                item.matrix.copy(matrix);
+                item.matrix.copy(mat);
                 item.matrix.decompose(item.position, item.quaternion, item.scale);
 
                 return [{ underlying: item, show() { }, cancel() { } }];
@@ -215,7 +224,14 @@ export class BasicScaleFactory extends TranslateFactory implements ScaleParams {
     }
 }
 
-export class FreestyleScaleFactory extends TranslateFactory implements ScaleParams {
+export interface FreestyleScaleFactoryLike extends ScaleParams, GeometryFactory {
+    from(p1: THREE.Vector3, p2: THREE.Vector3): void;
+    to(p1: THREE.Vector3, p2: THREE.Vector3): void;
+    get ref(): THREE.Vector3;
+    showPhantoms(): Promise<void>;
+}
+
+export class FreestyleScaleFactory extends TranslateFactory implements FreestyleScaleFactoryLike {
     set pivot(pivot: THREE.Vector3) {
         const { translateFrom, translateTo } = this;
         translateFrom.makeTranslation(-unit(pivot.x), -unit(pivot.y), -unit(pivot.z));
@@ -223,11 +239,9 @@ export class FreestyleScaleFactory extends TranslateFactory implements ScalePara
     }
 
     get matrix() { return this._matrix }
-    get scale() {
-        return new THREE.Vector3(1, 1, 1);
-    }
+    get scale() { return new THREE.Vector3(1, 1, 1) }
 
-    ref = new THREE.Vector3();
+    readonly ref = new THREE.Vector3();
     private refMagnitude = 1;
     private quat = new THREE.Quaternion();
     private rotateFrom = new THREE.Matrix4();
@@ -238,6 +252,8 @@ export class FreestyleScaleFactory extends TranslateFactory implements ScalePara
 
     from(p1: THREE.Vector3, p2: THREE.Vector3) {
         const { ref, quat, rotateFrom, rotateTo } = this;
+        this.pivot = p1;
+
         ref.copy(p2).sub(p1);
         this.refMagnitude = ref.length();
         ref.divideScalar(this.refMagnitude);

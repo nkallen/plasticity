@@ -47,7 +47,7 @@ import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo, RefilletGizmo } from "./modifyface/OffsetFaceGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
-import { MoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
+import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
 import { MultilineDialog } from "./multiline/MultilineDialog";
 import MultilineFactory from "./multiline/MultilineFactory";
 import { ObjectPicker } from "./ObjectPicker";
@@ -68,7 +68,7 @@ import { RotateKeyboardGizmo } from "./translate/RotateKeyboardGizmo";
 import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
-import { MoveFactory, RotateFactory, BasicScaleFactory, FreestyleScaleFactory } from './translate/TranslateFactory';
+import { BasicScaleFactory, FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactory, RotateFactory } from './translate/TranslateFactory';
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -878,20 +878,12 @@ export class ScaleItemCommand extends Command {
     }
 }
 
-export class FreestyleScaleCommand extends Command {
+abstract class AbstractFreestyleScaleCommand extends Command {
     async execute(): Promise<void> {
         const { editor } = this
-        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
-
-        const bbox = new THREE.Box3();
-        for (const object of objects) bbox.expandByObject(object);
-        const centroid = new THREE.Vector3();
-        bbox.getCenter(centroid);
-
-        const scale = new FreestyleScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
-        scale.items = objects;
-        scale.pivot = centroid;
-        scale.showPhantoms();
+        
+        const scale = await this.makeFactory();
+        await scale.showPhantoms();
 
         const dialog = new ScaleDialog(scale, editor.signals);
         dialog.execute(async params => {
@@ -903,7 +895,6 @@ export class FreestyleScaleCommand extends Command {
         const { point: p1 } = await pointPicker.execute().resource(this);
         referenceLine.p1 = p1;
         scale.pivot = p1;
-        pointPicker.restrictToPlaneThroughPoint(p1);
 
         const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
             referenceLine.p2 = p2;
@@ -932,6 +923,24 @@ export class FreestyleScaleCommand extends Command {
         this.editor.selection.selected.add(selection);
 
         this.editor.enqueue(new ScaleCommand(this.editor), false);
+    }
+
+    protected abstract makeFactory(): Promise<FreestyleScaleFactoryLike>;
+}
+export class FreestyleScaleCommand extends AbstractFreestyleScaleCommand {
+    protected async makeFactory() {
+        const { editor } = this
+        const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
+
+        const bbox = new THREE.Box3();
+        for (const object of objects) bbox.expandByObject(object);
+        const centroid = new THREE.Vector3();
+        bbox.getCenter(centroid);
+
+        const scale = new FreestyleScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
+        scale.items = objects;
+
+        return scale;
     }
 }
 
@@ -1603,6 +1612,7 @@ export class ScaleControlPointCommand extends Command {
 
         const gizmo = new ScaleGizmo(scale, this.editor);
         const dialog = new ScaleDialog(scale, this.editor.signals);
+        const keyboard = new ScaleKeyboardGizmo(this.editor);
 
         dialog.execute(async params => {
             await scale.update();
@@ -1614,10 +1624,36 @@ export class ScaleControlPointCommand extends Command {
             scale.update();
         }).resource(this);
 
+        keyboard.execute(async s => {
+            switch (s) {
+                case 'free':
+                    this.finish();
+                    this.editor.enqueue(new FreestyleScaleControlPointCommand(this.editor), false);
+            }
+        }).resource(this);
+
         await this.finished;
 
         const result = await scale.commit() as visual.SpaceInstance<visual.Curve3D>;
         selected.addCurve(result);
+    }
+}
+
+export class FreestyleScaleControlPointCommand extends AbstractFreestyleScaleCommand {
+    protected async makeFactory() {
+        const { editor, editor: { selection: { selected } } } = this
+        const points = [...selected.controlPoints];
+        const curve = points[0].parentItem;
+
+        const centroid = new THREE.Vector3();
+        for (const point of points) centroid.add(point.position);
+        centroid.divideScalar(points.length);
+
+        const scale = new FreestyleScaleContourPointFactory(editor.db, editor.materials, editor.signals).resource(this);
+        scale.controlPoints = points;
+        scale.originalItem = curve;
+        scale.contour = await scale.prepare(curve);
+        return scale;
     }
 }
 

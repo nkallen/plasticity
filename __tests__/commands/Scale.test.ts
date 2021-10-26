@@ -100,21 +100,4 @@ describe(FreestyleScaleFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -1, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 1));
     });
-
-    test('with pivot', async () => {
-        scale.items = [box];
-        scale.pivot = new THREE.Vector3(-1, 0, 0);
-        scale.from(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
-        scale.to(new THREE.Vector3(), new THREE.Vector3(2, 0, 0));
-
-        expect(box.scale).toEqual(new THREE.Vector3(1, 1, 1));
-        const scaleds = await scale.commit() as visual.Solid[];
-        const bbox = new THREE.Box3();
-        bbox.setFromObject(scaleds[0]);
-        const center = new THREE.Vector3();
-        bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0.5));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 1, 1));
-    });
 });

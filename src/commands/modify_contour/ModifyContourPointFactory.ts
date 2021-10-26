@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../editor/VisualModel';
 import { computeControlPointInfo, ControlPointInfo, inst2curve, normalizeCurve, point2point } from '../../util/Conversion';
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
-import { MoveParams, RotateParams, ScaleParams } from "../translate/TranslateFactory";
+import { FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveParams, RotateParams, ScaleParams } from "../translate/TranslateFactory";
 
 export interface ModifyContourPointParams {
     get controlPointInfo(): ControlPointInfo[];
@@ -149,6 +149,25 @@ export class ScaleContourPointFactory extends ModifyContourPointFactory implemen
     validate() {
         if (this.scale.manhattanDistanceTo(identity) < 10e-5) throw new NoOpError();
     }
+}
+
+export class FreestyleScaleContourPointFactory extends ModifyContourPointFactory implements FreestyleScaleFactoryLike {
+    private readonly freestyle = new FreestyleScaleFactory(this.db, this.materials, this.signals);
+
+    scale = new THREE.Vector3(1, 1, 1);
+
+    private readonly dest = new THREE.Vector3();
+    protected computeDestination(info: ControlPointInfo) {
+        return this.dest.copy(info.origin).applyMatrix4(this.freestyle.deunitMatrix);
+    }
+
+    validate() { }
+
+    set pivot(pivot: THREE.Vector3) { this.freestyle.pivot = pivot }
+    from(p1: THREE.Vector3, p2: THREE.Vector3) { this.freestyle.from(p1, p2) }
+    to(p1: THREE.Vector3, p2: THREE.Vector3) { this.freestyle.to(p1, p2) }
+    get ref() { return this.freestyle.ref }
+    async showPhantoms() { }
 }
 
 export class RotateContourPointFactory extends ModifyContourPointFactory implements RotateParams {
