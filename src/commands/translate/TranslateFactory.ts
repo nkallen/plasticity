@@ -66,10 +66,12 @@ abstract class TranslateFactory extends GeometryFactory {
     async calculate(only?: visual.Item) {
         const { matrix, names } = this;
         let { models } = this;
+
+        if (matrix.equals(identityMatrix)) throw new NoOpError();
         if (only !== undefined) models = [this.db.lookup(only)];
 
         const mat = mat2mat(matrix);
-
+        
         const result = [];
         for (const model of models) {
             let transformed;

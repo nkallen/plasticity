@@ -195,6 +195,7 @@ function getMousePosition(dom: HTMLElement, x: number, y: number, to: THREE.Vect
     const rect = dom.getBoundingClientRect();
     to.set((x - rect.left) / rect.width, (y - rect.top) / rect.height);
 }
+
 export class ViewportSelector extends AbstractViewportSelector {
     constructor(
         camera: THREE.Camera,

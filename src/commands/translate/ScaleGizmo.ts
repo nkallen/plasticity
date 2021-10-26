@@ -49,7 +49,7 @@ export class ScaleGizmo extends CompositeGizmo<ScaleParams> {
 
     private readonly _scale = new THREE.Vector3();
 
-    execute(cb: (params: ScaleParams) => void, mode: Mode = Mode.Persistent | Mode.DisableSelection): CancellablePromise<void> {
+    execute(cb: (params: ScaleParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const { x, y, z, xy, yz, xz, xyz, params, _scale } = this;
 
         const set = () => {

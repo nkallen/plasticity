@@ -18,7 +18,6 @@
 
 ### Todo
 
-- [ ] Deleting points in a contour should work  
 - [ ] Scale to flatten curve  
 - [ ] Make control points themselves d&d able (no circle)  
 - [ ] Review if the high performance control point implementation is the best way to do it  
@@ -27,7 +26,7 @@
 
 ### In Progress
 
-- [ ] once you do a freestyle scale, left clicking doesn't exit for some reason #bug  
+- [ ] Deleting points in a contour should work  
 
 ### Done ✓
 
@@ -40,4 +39,5 @@
 - [x] Selecting control point should unselect curve #bug  
 - [x] Make control points work with move  
 - [x] Freestyle rotate control point  
+- [x] once you do a freestyle scale, left clicking doesn't exit for some reason #bug  
 
