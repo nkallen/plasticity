@@ -62,7 +62,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
 
     protected readonly circle = new Line2(circleGeometry, this.material.line2);
     protected readonly torus = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.35, 4, 24), this.editor.gizmos.invisible);
-    helper?: GizmoHelper = new DashedLineMagnitudeHelper();
+    readonly helper? = new DashedLineMagnitudeHelper();
 
     constructor(private readonly longName: string, editor: EditorLike, private readonly material: GizmoMaterial, readonly state: AbstractValueStateMachine<T>) {
         super(longName.split(':')[0], editor);

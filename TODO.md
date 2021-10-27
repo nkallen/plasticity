@@ -5,6 +5,7 @@
 ### Backlog
 
 - [ ] currently FINISH is always available, even at step 1 of 3 points box. #bug - registry.add(command:finish) should maybe not happen in command executor but in await this.finished  
+- [ ] making circle on corner box top or side face (needs to stick)  
 - [ ] camera near plane sucks with ortho now  
 - [ ] crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196  
 - [ ] line2 raycasting bad in ortho camera  
@@ -36,16 +37,17 @@
 
 ### Todo
 
-- [ ] Make control points themselves d&d able (no circle)  
-- [ ] Review if the high performance control point implementation is the best way to do it  
 - [ ] Can't remove fillet using modify contour command #bug  
-- [ ] making circle on corner box top or side face (needs to stick)  
+- [ ] Need to be able to drag and drop point when point selected & fillet I suppose  
+- [ ] only show points of selected object  
 
 ### In Progress
 
+- [ ] click on control point to select  
 
 ### Done ✓
 
+- [x] Make control points themselves d&d able (no circle)  
 - [x] Normalize curve should convert planar curves to space curves  
 - [x] Scale to flatten freestyle  
 - [x] Point picker restrict to line not working great with scale freestyle command (xyz axes seem available) #bug  

@@ -5,7 +5,7 @@ import { Viewport } from "../../components/viewport/Viewport";
 import { CancellablePromise } from "../../util/Cancellable";
 import { AbstractGizmo, EditorLike, GizmoStateMachine, GizmoTriggerStrategy, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry, VectorStateMachine } from "../MiniGizmos";
+import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry, VectorStateMachine } from "../MiniGizmos";
 import { ModifyContourParams } from "./ModifyContourFactory";
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -217,22 +217,29 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
     get shouldRescaleOnZoom() { return true }
 }
 
-export class ControlPointGizmo extends CircularGizmo<THREE.Vector3> {
+export class ControlPointGizmo extends AbstractGizmo<(value: THREE.Vector3) => void> {
     protected readonly hasCommand = false;
     private readonly delta = new THREE.Vector3();
+    protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(1.5), this.editor.gizmos.black.mesh);
+    readonly helper = new DashedLineMagnitudeHelper();
 
     constructor(name: string, editor: EditorLike) {
-        super(name, editor, editor.gizmos.white, new VectorStateMachine(new THREE.Vector3()));
-        this.setup();
+        super(name.split(':')[0], editor);
+        this.picker.add(this.knob);
+    }
+
+    onPointerDown(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void { }
+    onPointerUp(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void { }
+    onInterrupt(cb: (value: THREE.Vector3) => void): void {
+        cb(this.delta);
     }
 
     onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
-        this.delta.copy(info.pointEnd3d).sub(info.pointStart3d).add(this.state.original);
-        const { position } = info.constructionPlane.move(this.state.original).project(this.delta);
+        this.delta.copy(info.pointEnd3d).sub(info.pointStart3d);
+        const { position } = info.constructionPlane.project(this.delta);
         this.delta.copy(position);
 
-        this.state.current = this.delta.clone();
-        cb(this.state.current);
+        cb(this.delta.clone());
     }
 
     get shouldRescaleOnZoom() { return true }
