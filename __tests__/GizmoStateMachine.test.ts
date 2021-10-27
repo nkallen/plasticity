@@ -78,13 +78,13 @@ beforeEach(() => {
 });
 
 test("basic drag interaction", () => {
-    sm.update(viewport, { x: 0, y: 0, button: 0 });
+    sm.update(viewport, new MouseEvent('hover', { clientX: 50, clientY: 50}));
     sm.pointerHover();
     expect(sm.state.tag).toBe('hover');
     expect(start).toBe(0);
     expect(end).toBe(0);
 
-    sm.update(viewport, { x: 0, y: 0, button: 0 });
+    sm.update(viewport, new MouseEvent('down', { clientX: 50, clientY: 50}));
     const onPointerDown = jest.spyOn(gizmo, 'onPointerDown');
     expect(onPointerDown).toHaveBeenCalledTimes(0);
     const clearEventHandlers = jest.fn();
@@ -94,7 +94,7 @@ test("basic drag interaction", () => {
     expect(start).toBe(1);
     expect(end).toBe(0);
 
-    sm.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+    sm.update(viewport, new MouseEvent('move', { clientX: 80, clientY: 20, button: -1}));
     const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
     expect(onPointerMove).toHaveBeenCalledTimes(0);
     sm.pointerMove();
@@ -104,7 +104,7 @@ test("basic drag interaction", () => {
     expect(end).toBe(0);
 
     expect(clearEventHandlers).toHaveBeenCalledTimes(0);
-    sm.update(viewport, { x: 0.6, y: 0.6, button: 0 });
+    sm.update(viewport, new MouseEvent('move', { clientX: 80, clientY: 20, button: 0}));
     sm.pointerUp(() => { });
     expect(clearEventHandlers).toHaveBeenCalledTimes(1);
     expect(sm.state.tag).toBe('none');
@@ -117,7 +117,7 @@ test("basic command interaction", () => {
     expect(start).toBe(0);
     expect(end).toBe(0);
 
-    sm.update(viewport, { x: 0, y: 0, button: 0 });
+    sm.update(viewport, new MouseEvent('hover', { clientX: 50, clientY: 50}));
     const clearEventHandlers = jest.fn();
     sm.command(() => { }, () => new Disposable(clearEventHandlers));
 
@@ -125,7 +125,7 @@ test("basic command interaction", () => {
     expect(start).toBe(1);
     expect(end).toBe(0);
 
-    sm.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+    sm.update(viewport, new MouseEvent('move', { clientX: 80, clientY: 20, button: -1}));
     const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
     expect(onPointerMove).toHaveBeenCalledTimes(0);
     sm.pointerMove();
@@ -135,7 +135,7 @@ test("basic command interaction", () => {
     expect(end).toBe(0);
 
     expect(clearEventHandlers).toHaveBeenCalledTimes(0);
-    sm.update(viewport, { x: 0.6, y: 0.6, button: 0 });
+    sm.update(viewport, new MouseEvent('move', { clientX: 80, clientY: 20, button: 0}));
     sm.pointerUp(() => { });
     expect(clearEventHandlers).toHaveBeenCalledTimes(1);
     expect(sm.state.tag).toBe('none');
@@ -148,7 +148,7 @@ test("interrupt", () => {
     expect(start).toBe(0);
     expect(end).toBe(0);
 
-    sm.update(viewport, { x: 0, y: 0, button: 0 });
+    sm.update(viewport, new MouseEvent('hover', { clientX: 50, clientY: 50}));
     const clearEventHandlers = jest.fn();
     sm.command(() => { }, () => new Disposable(clearEventHandlers));
 
@@ -156,7 +156,7 @@ test("interrupt", () => {
     expect(start).toBe(1);
     expect(end).toBe(0);
 
-    sm.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+    sm.update(viewport, new MouseEvent('move', { clientX: 80, clientY: 20, button: -1}));
     const onPointerMove = jest.spyOn(gizmo, 'onPointerMove');
     expect(onPointerMove).toHaveBeenCalledTimes(0);
     sm.pointerMove();
@@ -189,3 +189,5 @@ test("commands are registered", done => {
 
     expect(gizmo.fakeCommand).toHaveBeenCalledTimes(1);
 });
+
+const PointerEvent = MouseEvent;

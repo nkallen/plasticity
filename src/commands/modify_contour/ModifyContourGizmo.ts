@@ -231,7 +231,7 @@ export class ControlPointGizmo extends AbstractGizmo<(value: THREE.Vector3) => v
 
     onPointerDown(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void { }
     onPointerUp(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
-        if (!this.didMove) info.viewport.selector.forceUpEvent(info.lastPointerEvent);
+        if (!this.didMove) info.viewport.selector.forceUpEvent(info.pointer.event);
     }
 
     onInterrupt(cb: (value: THREE.Vector3) => void): void {

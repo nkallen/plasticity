@@ -38,11 +38,11 @@
 ### Todo
 
 - [ ] Can't remove fillet using modify contour command #bug  
-- [ ] only show points of selected object  
 - [ ] move point twice without moving the mouse inbetween and it doesn't work #bug  
 
 ### In Progress
 
+- [ ] only show points of selected object  
 - [ ] Need to be able to drag and drop point when point selected & fillet I suppose  
 
 ### Done ✓

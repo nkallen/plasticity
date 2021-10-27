@@ -1,16 +1,24 @@
+/**
+ * @jest-environment jsdom
+ */
+import KeymapManager from "atom-keymap-plasticity";
+import { Disposable } from "event-kit";
 import * as THREE from "three";
-import { AbstractGizmo, EditorLike, GizmoStateMachine, Intersector, Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
-import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
+import { AbstractGizmo, EditorLike, Intersector, Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { CompositeGizmo } from "../../src/commands/CompositeGizmo";
+import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
+import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { Cancel, CancellablePromise } from "../../src/util/Cancellable";
+import { SelectionInteractionManager } from "../../src/selection/SelectionInteraction";
+import { SelectionManager } from "../../src/selection/SelectionManager";
+import { CancellablePromise } from "../../src/util/Cancellable";
 import { Helpers } from "../../src/util/Helpers";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
-import { Disposable } from "event-kit";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -18,6 +26,8 @@ let gizmos: GizmoMaterialDatabase;
 let signals: EditorSignals;
 let helpers: Helpers;
 let editor: EditorLike;
+let viewport: Viewport;
+let selection: SelectionManager;
 
 beforeEach(() => {
     signals = new EditorSignals();
@@ -25,9 +35,15 @@ beforeEach(() => {
     gizmos = new GizmoMaterialDatabase(signals);
     db = new GeometryDatabase(materials, signals);
     helpers = new Helpers(signals);
+    selection = new SelectionManager(db, materials, signals);
+    const keymaps = new KeymapManager();
+    const selectionInteraction = new SelectionInteractionManager(selection, materials, signals);
+    const registry = new CommandRegistry();
     editor = {
-        gizmos, helpers, signals, viewports: [],
+        selectionInteraction, keymaps, gizmos, helpers, signals, db, registry, viewports: [],
     } as unknown as EditorLike;
+    viewport = MakeViewport(editor);
+    editor.viewports.push(viewport);
 })
 
 class Params {
@@ -93,11 +109,9 @@ export class MockGizmo extends AbstractGizmo<(n: number) => void> {
 describe(CompositeGizmo, () => {
     let params: Params;
     let gizmo: MyCompositeGizmo;
-    let viewport: Viewport;
 
     beforeEach(() => {
         params = new Params();
-        viewport = { camera: new THREE.PerspectiveCamera() } as unknown as Viewport;
         gizmo = new MyCompositeGizmo(params, editor);
     })
 
@@ -116,16 +130,16 @@ describe(CompositeGizmo, () => {
         const stateMachine = gizmo.angle.stateMachine!;
         expect(called).toBe(0);
 
-        stateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        stateMachine.update(viewport, new MouseEvent('hover', { clientx: 50, clienty: 50}));
         stateMachine.command(() => { }, () => new Disposable(jest.fn()));
         expect(stateMachine.state.tag).toBe('command');
         expect(called).toBe(0);
 
-        stateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        stateMachine.update(viewport, new MouseEvent('move', { clientx: 80, clienty: 20, button: -1}));
         stateMachine.pointerMove();
         expect(called).toBe(1);
 
-        stateMachine.update(viewport, { x: 0.6, y: 0.6, button: 0 });
+        stateMachine.update(viewport, new MouseEvent('move', { clientX: 80, clientY: 20, button: 0}));
         stateMachine.pointerUp(() => { });
 
         cancellable.finish();
@@ -139,32 +153,32 @@ describe(CompositeGizmo, () => {
         const angleStateMachine = gizmo.angle.stateMachine!;
         const distanceStateMachine = gizmo.distance.stateMachine!;
 
-        angleStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        angleStateMachine.update(viewport, new MouseEvent('hover', { clientx: 50, clienty: 50}));
         angleStateMachine.command(() => { }, () => new Disposable(jest.fn()));
-        angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        angleStateMachine.update(viewport, new MouseEvent('move', { clientx: 80, clienty: 20, button: -1}));
         angleStateMachine.pointerMove();
 
         expect(called).toBe(1);
 
         // Nothing happens for pointerDown/pointerMove events while the other state machine is active:
-        distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        distanceStateMachine.update(viewport, new MouseEvent('hover', { clientx: 50, clienty: 50}));
         distanceStateMachine.pointerDown(() => new Disposable(jest.fn()));
-        distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        distanceStateMachine.update(viewport, new MouseEvent('move', { clientx: 80, clienty: 20, button: -1}));
         distanceStateMachine.pointerMove();
 
         expect(called).toBe(1);
 
-        angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: 0 });
+        angleStateMachine.update(viewport, new MouseEvent('move', { clientX: 80, clientY: 20, button: 0}));
         angleStateMachine.pointerUp(() => { });
 
-        distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        distanceStateMachine.update(viewport, new MouseEvent('hover', { clientx: 50, clienty: 50}));
         distanceStateMachine.command(() => { }, () => new Disposable(jest.fn()));
-        distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        distanceStateMachine.update(viewport, new MouseEvent('move', { clientx: 80, clienty: 20, button: -1}));
         distanceStateMachine.pointerMove();
 
         expect(called).toBe(2);
 
-        distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: 0 });
+        distanceStateMachine.update(viewport, new MouseEvent('move', { clientX: 80, clientY: 20, button: 0}));
         distanceStateMachine.pointerUp(() => { });
 
         expect(called).toBe(2);
@@ -180,18 +194,18 @@ describe(CompositeGizmo, () => {
         const angleStateMachine = gizmo.angle.stateMachine!;
         const distanceStateMachine = gizmo.distance.stateMachine!;
 
-        angleStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        angleStateMachine.update(viewport, new MouseEvent('hover', { clientx: 50, clienty: 50}));
         const angleClearEvents = jest.fn();
         angleStateMachine.command(() => { }, () => new Disposable(angleClearEvents));
-        angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        angleStateMachine.update(viewport, new MouseEvent('move', { clientx: 80, clienty: 20, button: -1}));
         angleStateMachine.pointerMove();
 
         expect(execute).toHaveBeenCalledTimes(1);
 
         // Nothing happens for pointerDown/pointerMove events while the other state machine is active:
-        distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        distanceStateMachine.update(viewport, new MouseEvent('hover', { clientx: 50, clienty: 50}));
         distanceStateMachine.pointerDown(() => new Disposable(jest.fn()));
-        distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        distanceStateMachine.update(viewport, new MouseEvent('move', { clientx: 80, clienty: 20, button: -1}));
         distanceStateMachine.pointerMove();
 
         expect(execute).toHaveBeenCalledTimes(1);
@@ -199,13 +213,13 @@ describe(CompositeGizmo, () => {
         // But invoking a command will steal focus
         expect(gizmo.angle.interrupt).toHaveBeenCalledTimes(0);
         expect(angleClearEvents).toHaveBeenCalledTimes(0);
-        distanceStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        distanceStateMachine.update(viewport, new MouseEvent('hover', { clientx: 50, clienty: 50}));
         const distanceClearEvents = jest.fn();
         distanceStateMachine.command(() => { }, () => new Disposable(distanceClearEvents));
         expect(gizmo.angle.interrupt).toHaveBeenCalledTimes(1);
         expect(angleClearEvents).toHaveBeenCalledTimes(1);
 
-        distanceStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        distanceStateMachine.update(viewport, new MouseEvent('hover', { clientX: 50, clientY: 50}));
         distanceStateMachine.pointerMove();
 
         expect(execute).toHaveBeenCalledTimes(2);
@@ -213,17 +227,17 @@ describe(CompositeGizmo, () => {
         // And we can steal it back
         expect(gizmo.distance.interrupt).toHaveBeenCalledTimes(0);
         expect(distanceClearEvents).toHaveBeenCalledTimes(0);
-        angleStateMachine.update(viewport, { x: 0, y: 0, button: 0 });
+        angleStateMachine.update(viewport, new MouseEvent('hover', { clientx: 50, clienty: 50}));
         angleStateMachine.command(() => { }, () => new Disposable(angleClearEvents));
         expect(gizmo.distance.interrupt).toHaveBeenCalledTimes(1);
         expect(distanceClearEvents).toHaveBeenCalledTimes(1);
 
-        angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: -1 });
+        angleStateMachine.update(viewport, new MouseEvent('move', { clientx: 80, clienty: 20, button: -1}));
         angleStateMachine.pointerMove();
 
         expect(execute).toHaveBeenCalledTimes(3);
 
-        angleStateMachine.update(viewport, { x: 0.6, y: 0.6, button: 0 });
+        angleStateMachine.update(viewport, new MouseEvent('move', { clientX: 80, clientY: 20, button: 0}));
         angleStateMachine.pointerUp(() => { });
 
         cancellable.finish();

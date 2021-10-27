@@ -37,6 +37,8 @@ export function MakeViewport(editor: EditorLike) {
     camera.position.set(0, 0, 1);
     camera.lookAt(0, 0, 0);
     const domElement = document.createElement('ispace-viewport');
+    // @ts-expect-error('Cannot mock DomRect')
+    domElement.getBoundingClientRect = () => { return { left: 0, top: 0, width: 100, height: 100 } };
     const viewport = new Viewport(
         editor,
         new FakeWebGLRenderer(canvas) as unknown as THREE.WebGLRenderer,

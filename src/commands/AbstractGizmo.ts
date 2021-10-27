@@ -168,11 +168,10 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
     static getPointer(domElement: HTMLElement, event: PointerEvent): Pointer {
         const rect = domElement.getBoundingClientRect();
-        const pointer = event;
 
         return {
-            x: (pointer.clientX - rect.left) / rect.width * 2 - 1,
-            y: - (pointer.clientY - rect.top) / rect.height * 2 + 1,
+            x: (event.clientX - rect.left) / rect.width * 2 - 1,
+            y: - (event.clientY - rect.top) / rect.height * 2 + 1,
             button: event.button,
             event
         };
@@ -227,8 +226,6 @@ export interface Pointer {
 export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) => THREE.Intersection | undefined
 
 export interface MovementInfo {
-    lastPointerEvent: PointerEvent;
-
     // These are the mouse down and mouse move positions in screenspace
     pointStart2d: THREE.Vector2;
     pointEnd2d: THREE.Vector2;
@@ -248,6 +245,8 @@ export interface MovementInfo {
     eye: THREE.Vector3;
 
     viewport: Viewport;
+
+    pointer: Pointer;
 }
 
 // This class handles computing some useful data (like click start and click end) of the
@@ -258,7 +257,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     isActive = true;
     isEnabled = true;
     state: State = { tag: 'none' };
-    private pointer!: Pointer;
+    pointer!: Pointer;
 
     private readonly cameraPlane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
     constructionPlane!: PlaneSnap;
@@ -270,7 +269,6 @@ export class GizmoStateMachine<T> implements MovementInfo {
     center2d = new THREE.Vector2()
     endRadius = new THREE.Vector2();
     angle = 0;
-    lastPointerEvent!: PointerEvent;
 
     private readonly raycaster = new THREE.Raycaster();
     // FIXME set layer
@@ -288,7 +286,6 @@ export class GizmoStateMachine<T> implements MovementInfo {
     update(viewport: Viewport, event: PointerEvent) {
         const pointer = AbstractGizmo.getPointer(viewport.domElement, event);
         const camera = viewport.camera;
-        this.lastPointerEvent = event;
         this._viewport = viewport;
         this.camera = camera;
         this.eye.copy(camera.position).sub(this.gizmo.position).normalize();
@@ -301,7 +298,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.pointer = pointer;
     }
 
-    private intersector: Intersector = (obj, hid) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hid);
+    private intersector: Intersector = (obj, hidden) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hidden);
 
     private worldPosition = new THREE.Vector3();
     private begin() {
