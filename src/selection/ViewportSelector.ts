@@ -89,6 +89,7 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 document.addEventListener('pointermove', this.onPointerMove);
                 disposable.add(new Disposable(() => document.removeEventListener('pointermove', this.onPointerMove)));
                 disposable.add(new Disposable(() => document.removeEventListener('pointerup', this.onPointerUp)));
+                disposable.add(new Disposable(() => this.dispatchEvent({ type: 'end' })));
 
                 this.state = { tag: 'down', disposable, downEvent }
 
@@ -137,6 +138,14 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
         }
     }
 
+    forceUpEvent(upEvent: PointerEvent) {
+        if (upEvent.button !== 0) return;
+
+        getMousePosition(this.domElement, upEvent.clientX, upEvent.clientY, this.currentPosition);
+        const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
+        this.processClick(intersectable.filterIntersections(intersects));
+    }
+
     onPointerUp(upEvent: PointerEvent) {
         if (!this.enabled) return;
         if (upEvent.button !== 0) return;
@@ -150,7 +159,6 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
 
                 this.state.disposable.dispose();
                 this.state = { tag: 'none' };
-                this.dispatchEvent({ type: 'end' });
 
                 break;
             case 'dragging':
@@ -161,7 +169,6 @@ export abstract class AbstractViewportSelector extends THREE.EventDispatcher {
                 const selected = this.selectionBox.select();
                 this.processBoxSelect(intersectable.filterMeshes(selected));
 
-                this.dispatchEvent({ type: 'end' });
                 this.state.disposable.dispose();
                 this.state = { tag: 'none' };
 

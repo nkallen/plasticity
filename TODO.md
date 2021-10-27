@@ -38,15 +38,16 @@
 ### Todo
 
 - [ ] Can't remove fillet using modify contour command #bug  
-- [ ] Need to be able to drag and drop point when point selected & fillet I suppose  
 - [ ] only show points of selected object  
+- [ ] move point twice without moving the mouse inbetween and it doesn't work #bug  
 
 ### In Progress
 
-- [ ] click on control point to select  
+- [ ] Need to be able to drag and drop point when point selected & fillet I suppose  
 
 ### Done ✓
 
+- [x] click on control point to select  
 - [x] Make control points themselves d&d able (no circle)  
 - [x] Normalize curve should convert planar curves to space curves  
 - [x] Scale to flatten freestyle  

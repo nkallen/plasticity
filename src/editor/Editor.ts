@@ -14,7 +14,7 @@ import { ModifierHighlightManager } from "../selection/HighlightManager";
 import { SelectionInteractionManager, SelectionMode } from "../selection/SelectionInteraction";
 import { SelectionManager } from "../selection/SelectionManager";
 import { Helpers } from "../util/Helpers";
-import { CreateMutable, GConstructor } from "../util/Util";
+import { CreateMutable } from "../util/Util";
 import { Backup } from "./Backup";
 import ContourManager from "./curves/ContourManager";
 import { CrossPointDatabase } from "./curves/CrossPointDatabase";

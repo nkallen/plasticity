@@ -222,6 +222,7 @@ export class ControlPointGizmo extends AbstractGizmo<(value: THREE.Vector3) => v
     private readonly delta = new THREE.Vector3();
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(1.5), this.editor.gizmos.black.mesh);
     readonly helper = new DashedLineMagnitudeHelper();
+    private didMove = false;
 
     constructor(name: string, editor: EditorLike) {
         super(name.split(':')[0], editor);
@@ -229,12 +230,16 @@ export class ControlPointGizmo extends AbstractGizmo<(value: THREE.Vector3) => v
     }
 
     onPointerDown(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void { }
-    onPointerUp(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void { }
+    onPointerUp(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
+        if (!this.didMove) info.viewport.selector.forceUpEvent(info.lastPointerEvent);
+    }
+
     onInterrupt(cb: (value: THREE.Vector3) => void): void {
         cb(this.delta);
     }
 
     onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
+        this.didMove = true;
         this.delta.copy(info.pointEnd3d).sub(info.pointStart3d);
         const { position } = info.constructionPlane.project(this.delta);
         this.delta.copy(position);
@@ -263,8 +268,7 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
 
             const onPointerDown = (event: PointerEvent) => {
                 if (winner === undefined) return;
-                const pointer = AbstractGizmo.getPointer(domElement, event);
-                winner.gizmo.stateMachine!.update(viewport, pointer);
+                winner.gizmo.stateMachine!.update(viewport, event);
                 winner.gizmo.stateMachine!.pointerDown(() => {
                     domElement.ownerDocument.body.setAttribute("gizmo", this.title);
                     viewport.disableControls();
@@ -277,7 +281,7 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
                 const pointer = AbstractGizmo.getPointer(domElement, event);
                 this.raycaster.setFromCamera(pointer, camera);
                 if (winner !== undefined) {
-                    winner.gizmo.stateMachine!.update(viewport, pointer);
+                    winner.gizmo.stateMachine!.update(viewport, event);
                     winner.gizmo.stateMachine!.pointerHover();
                 }
                 let newWinner = undefined;
@@ -292,7 +296,7 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
                 if (newWinner === undefined) return;
                 if (newWinner === winner) return;
                 winner = newWinner;
-                winner.gizmo.stateMachine!.update(viewport, pointer);
+                winner.gizmo.stateMachine!.update(viewport, event);
                 winner.gizmo.stateMachine!.pointerHover();
             }
 

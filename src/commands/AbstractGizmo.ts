@@ -36,7 +36,7 @@ export interface EditorLike {
     viewports: Viewport[],
     signals: EditorSignals,
     registry: CommandRegistry,
-    gizmos: GizmoMaterialDatabase
+    gizmos: GizmoMaterialDatabase,
 }
 
 export interface GizmoLike<CB> {
@@ -111,8 +111,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                         // not have received any pointer info from pointermove/hover. Since we need a "start"
                         // position for many calculations, use the "lastPointerEvent" which is ALMOST always available.
                         const lastEvent = viewport.lastPointerEvent ?? new PointerEvent("pointermove");
-                        const pointer = AbstractGizmo.getPointer(domElement, lastEvent);
-                        stateMachine.update(viewport, pointer);
+                        stateMachine.update(viewport, lastEvent);
                         stateMachine.command(fn, () => {
                             domElement.ownerDocument.body.setAttribute("gizmo", this.title);
                             viewport.disableControls();
@@ -133,14 +132,12 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 }
 
                 const onPointerMove = (event: PointerEvent) => {
-                    const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.update(viewport, pointer);
+                    stateMachine.update(viewport, event);
                     stateMachine.pointerMove();
                 }
 
                 const onPointerUp = (event: PointerEvent) => {
-                    const pointer = AbstractGizmo.getPointer(domElement, event);
-                    stateMachine.update(viewport, pointer);
+                    stateMachine.update(viewport, event);
                     stateMachine.pointerUp(() => {
                         if ((mode & Mode.Persistent) !== Mode.Persistent) {
                             dispose();
@@ -194,8 +191,7 @@ export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
         const { renderer: { domElement } } = viewport;
 
         const onPointerDown = (event: PointerEvent) => {
-            const pointer = AbstractGizmo.getPointer(domElement, event);
-            stateMachine.update(viewport, pointer);
+            stateMachine.update(viewport, event);
             stateMachine.pointerDown(() => {
                 domElement.ownerDocument.body.setAttribute("gizmo", this.title);
                 viewport.disableControls();
@@ -208,8 +204,7 @@ export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
         }
 
         const onPointerHover = (event: PointerEvent) => {
-            const pointer = AbstractGizmo.getPointer(domElement, event);
-            stateMachine.update(viewport, pointer);
+            stateMachine.update(viewport, event);
             stateMachine.pointerHover();
         }
 
@@ -232,6 +227,8 @@ export interface Pointer {
 export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) => THREE.Intersection | undefined
 
 export interface MovementInfo {
+    lastPointerEvent: PointerEvent;
+
     // These are the mouse down and mouse move positions in screenspace
     pointStart2d: THREE.Vector2;
     pointEnd2d: THREE.Vector2;
@@ -273,6 +270,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     center2d = new THREE.Vector2()
     endRadius = new THREE.Vector2();
     angle = 0;
+    lastPointerEvent!: PointerEvent;
 
     private readonly raycaster = new THREE.Raycaster();
     // FIXME set layer
@@ -287,8 +285,10 @@ export class GizmoStateMachine<T> implements MovementInfo {
     get viewport() { return this._viewport }
 
     private camera!: THREE.Camera;
-    update(viewport: Viewport, pointer: Pointer) {
+    update(viewport: Viewport, event: PointerEvent) {
+        const pointer = AbstractGizmo.getPointer(viewport.domElement, event);
         const camera = viewport.camera;
+        this.lastPointerEvent = event;
         this._viewport = viewport;
         this.camera = camera;
         this.eye.copy(camera.position).sub(this.gizmo.position).normalize();
@@ -335,7 +335,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
             case 'hover':
                 const clearEventHandlers = start();
                 if (fn(this.cb) === undefined) {
-                    this.gizmo.update(this.camera); // FIXME: need to update the gizmo after calling fn. figure out a way to test
+                    this.gizmo.update(this.camera);
                     this.begin();
                     this.state = { tag: 'command', clearEventHandlers, text: "" };
                     this.gizmo.dispatchEvent({ type: 'start' });
