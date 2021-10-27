@@ -36,7 +36,6 @@
 
 ### Todo
 
-- [ ] Normalize curve should convert planar curves to space curves  
 - [ ] Make control points themselves d&d able (no circle)  
 - [ ] Review if the high performance control point implementation is the best way to do it  
 - [ ] Can't remove fillet using modify contour command #bug  
@@ -47,6 +46,7 @@
 
 ### Done ✓
 
+- [x] Normalize curve should convert planar curves to space curves  
 - [x] Scale to flatten freestyle  
 - [x] Point picker restrict to line not working great with scale freestyle command (xyz axes seem available) #bug  
 - [x] Deleting points in a contour should work  

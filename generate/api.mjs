@@ -379,6 +379,10 @@ export default {
             dependencies: ["Curve3D.h", "Placement3D.h"],
             initializers: [
                 "const MbPlacement3D & placement, const MbCurve & init, bool same"
+            ],
+            functions: [
+                "const MbPlacement3D & GetPlacement()",
+                { signature: "MbItem * Cast()", isManual: true },
             ]
         },
         Contour3D: {
@@ -530,6 +534,10 @@ export default {
             dependencies: ["Curve.h", "CartPoint.h"],
             initializers: [
                 "const MbCartPoint & p1, const MbCartPoint & p2"
+            ],
+            functions: [
+                "const MbCartPoint & GetPoint1()",
+                "const MbCartPoint & GetPoint2()",
             ]
         },
         Line3D: {
@@ -816,7 +824,9 @@ export default {
             ],
             functions: [
                 { signature: "const MbContour & GetContour()", return: isOnHeap },
-                { signature: "const MbSurface & GetSurface()", return: isOnHeap }
+                { signature: "const MbSurface & GetSurface()", return: isOnHeap },
+                "const MbCurve * GetSegment(size_t index)",
+                "size_t GetSegmentsCount()"
             ]
         },
         ContourOnPlane: {
@@ -982,12 +992,13 @@ export default {
         Arc3D: {
             rawHeader: "cur_arc3d.h",
             extends: "Curve3D",
-            dependencies: ["CartPoint3D.h", "Curve3D.h", "Placement3D.h"],
+            dependencies: ["CartPoint3D.h", "Curve3D.h", "Placement3D.h", "Arc.h"],
             initializers: [
                 "const MbCartPoint3D & p0, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int n, bool closed",
                 "const MbCartPoint3D & pc, const MbCartPoint3D & p1, const MbCartPoint3D & p2, int initSense = 0",
                 "const MbPlacement3D & place, double aa, double bb, double angle",
                 "const MbCartPoint3D & pc, const MbCartPoint3D & p1, const MbCartPoint3D & p2, const MbVector3D & aZ, int initSense",
+                "const MbArc &ellipse, const MbPlacement3D &place",
             ],
             functions: [
                 "void SetLimitPoint(ptrdiff_t number, const MbCartPoint3D & pnt)",
@@ -1003,6 +1014,11 @@ export default {
                 "double GetTrim1()",
                 "double GetTrim2()",
             ]
+        },
+        Arc: {
+            rawHeader: "cur_arc.h",
+            extends: "Curve",
+            dependencies: ["Curve.h"],
         },
         PolyCurve3D: {
             rawHeader: "cur_polycurve3d.h",
@@ -1051,7 +1067,11 @@ export default {
         LineSegment3D: {
             rawHeader: "cur_line_segment3d.h",
             extends: "Curve3D",
-            dependencies: ["Curve3D.h"],
+            dependencies: ["Curve3D.h", "CartPoint3D.h"],
+            initializers: ["MbCartPoint3D p1, MbCartPoint3D p2"],
+            functions: [
+                { signature: "MbItem * Cast()", isManual: true },
+            ]
         },
         PointFrame: {
             rawHeader: "point_frame.h",
@@ -1632,6 +1652,7 @@ export default {
                 { signature: "MbResultType SpiralCurve(const MbCartPoint3D & point0, const MbCartPoint3D & point1, const MbCartPoint3D & point2, double radius, double step, double angle, MbCurve * lawCurve, bool spiralAxis, MbCurve3D *& result)", lawCurve: isNullable },
                 { signature: "MbResultType CreateContours(RPArray<MbCurve3D> & curves, double metricEps, RPArray<MbContour3D> & result, bool onlySmoothConnected = false, VERSION version = Math::DefaultMathVersion())", result: isReturn },
                 // "MbResultType RegularPolygon(const MbCartPoint3D & centre, const MbCartPoint3D & point, const MbVector3D & axisZ, size_t vertexCount, bool describe, MbCurve3D *& result )",
+                "MbResultType PlaneCurve(const MbPlacement3D &place, const MbCurve &curve, MbCurve3D *& result)",
             ]
         },
         ActionRegion: {

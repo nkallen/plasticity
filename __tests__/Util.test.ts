@@ -4,11 +4,12 @@ import { CenterPointArcFactory } from "../src/commands/arc/ArcFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
 import JoinCurvesFactory from "../src/commands/curve/JoinCurvesFactory";
 import LineFactory from "../src/commands/line/LineFactory";
+import { ProjectCurveFactory } from "../src/commands/translate/ProjectCurveFactory";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import * as visual from '../src/editor/VisualModel';
-import { composeMainName, curve3d2curve2d, decomposeMainName, inst2curve, mat2mat, normalizeCurve, normalizePlacement, point2point, polyline2contour, unit, vec2vec } from "../src/util/Conversion";
+import { composeMainName, curve3d2curve2d, decomposeMainName, inst2curve, mat2mat, normalizeCurve, normalizePlacement, point2point, polyline2contour, unit } from "../src/util/Conversion";
 import { Redisposable, RefCounter, WeakValueMap } from "../src/util/Util";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
@@ -330,7 +331,7 @@ describe('normalizeCurve', () => {
         });
     })
 
-    describe('prepare', () => {
+    describe('arcs', () => {
         let line1, arc1, line2, contour: visual.SpaceInstance<visual.Curve3D>;
 
         beforeEach(async () => {
@@ -365,6 +366,49 @@ describe('normalizeCurve', () => {
             expect(normalized.GetSegmentsCount()).toBe(3);
         })
     });
+
+    describe('planar curves', () => {
+        let line1, arc1, line2, projected: visual.SpaceInstance<visual.Curve3D>;
+
+        beforeEach(async () => {
+            const makeLine1 = new LineFactory(db, materials, signals);
+            makeLine1.p1 = new THREE.Vector3(-2, 0, 0);
+            makeLine1.p2 = new THREE.Vector3(-1, 0, 1);
+            line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+
+            const makeArc1 = new CenterPointArcFactory(db, materials, signals);
+            makeArc1.center = new THREE.Vector3(0, 0, 1);
+            makeArc1.p2 = new THREE.Vector3(-1, 0, 1);
+            makeArc1.p3 = new THREE.Vector3(1, 0, 1);
+            arc1 = await makeArc1.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const makeLine2 = new LineFactory(db, materials, signals);
+            makeLine2.p1 = new THREE.Vector3(1, 0, 1);
+            makeLine2.p2 = new THREE.Vector3(2, 0, 0);
+            line2 = await makeLine2.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const makeContour = new JoinCurvesFactory(db, materials, signals);
+            makeContour.push(line1);
+            makeContour.push(arc1);
+            makeContour.push(line2);
+            const contours = await makeContour.commit() as visual.SpaceInstance<visual.Curve3D>[];
+
+            const project = new ProjectCurveFactory(db, materials, signals);
+            project.curves = contours;
+            project.origin = new THREE.Vector3();
+            project.normal = new THREE.Vector3(0, 0, 1);
+            const projecteds = await project.commit() as visual.SpaceInstance<visual.Curve3D>[];
+            projected = projecteds[0];
+        });
+
+        it.only('works', async () => {
+            const model = inst2curve(db.lookup(projected)) as c3d.PlaneCurve;
+            const normalized = await normalizeCurve(model);
+            expect(normalized.IsClosed()).toBe(false);
+            expect(normalized.GetSegmentsCount()).toBe(3);
+        })
+    })
 })
 
 

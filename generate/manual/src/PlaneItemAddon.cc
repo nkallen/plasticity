@@ -4,6 +4,8 @@
 #include "../include/PlaneItem.h"
 #include "../include/Region.h"
 #include "../include/Contour.h"
+#include "../include/LineSegment.h"
+#include "../include/Arc.h"
 
 Napi::Value cast(MbPlaneItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -30,6 +32,10 @@ Napi::Value cast(MbPlaneItem *_underlying, const Napi::CallbackInfo &info)
 
     switch (isa)
     {
+    case pt_LineSegment:
+        return LineSegment::NewInstance(env, (MbLineSegment *)(_underlying));
+    case pt_Arc:
+        return Arc::NewInstance(env, (MbArc *)(_underlying));
     case pt_Region:
         return Region::NewInstance(env, (MbRegion *)(_underlying));
     case pt_Curve:

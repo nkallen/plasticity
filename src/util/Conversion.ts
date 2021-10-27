@@ -275,13 +275,21 @@ export async function polyline2contour(polyline: c3d.Polyline3D): Promise<c3d.Co
     return contours[0];
 }
 
+// FIXME: Refactor this mess. In addition to the switch(IsA) vs instanceof inconsistency, the use of process.push() is unsafe because it can
+// reorder things. Probably(?) only contours should use push, otherwise everyone else should use unshift? It might be nicer to make a bunch
+// a2b functions and have the loop be much simpler.
+
 export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D> {
     const result = new c3d.Contour3D();
     const process: c3d.Curve3D[] = [curve];
     while (process.length > 0) {
         const item = process.shift()!;
         switch (item.IsA()) {
-        case c3d.SpaceType.Polyline3D:
+            case c3d.SpaceType.LineSegment3D:
+                const segment = item.Cast<c3d.LineSegment3D>(item.IsA());
+                result.AddCurveWithRuledCheck(new c3d.Polyline3D([segment.GetLimitPoint(1), segment.GetLimitPoint(2)], false));
+                break;
+            case c3d.SpaceType.Polyline3D:
                 const polyline = item.Cast<c3d.Polyline3D>(item.IsA());
                 const segments = polyline2segments(polyline);
                 for (const seg of segments) result.AddCurveWithRuledCheck(seg, 10e-5, true);
@@ -290,7 +298,7 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
                 const decompose = item.Cast<c3d.Contour3D>(item.IsA());
                 for (const segment of decompose.GetSegments()) process.push(segment);
                 break;
-            case c3d.SpaceType.TrimmedCurve3D:
+            case c3d.SpaceType.TrimmedCurve3D: {
                 const trimmed = item.Cast<c3d.TrimmedCurve3D>(item.IsA());
                 const basis = trimmed.GetBasisCurve();
                 const cast = basis.Cast<c3d.Curve3D>(basis.IsA());
@@ -302,8 +310,39 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
                     const keep = ts.filter(t => t > tmin && t < tmax);
                     const points = [trimmed.GetLimitPoint(1), ...keep.map(t => cast._PointOn(t)), trimmed.GetLimitPoint(2)];
                     process.push(new c3d.Polyline3D(points, false));
-                    break;
-                } else throw new Error();
+                } else {
+                    console.warn("Unsupported trimmed curve: " + c3d.SpaceType[basis.IsA()]);
+                    result.AddCurveWithRuledCheck(trimmed.Duplicate().Cast<c3d.Curve3D>(trimmed.IsA()), 10e-5, true);
+                }
+                break;
+            }
+            case c3d.SpaceType.PlaneCurve: {
+                const cast = item.Cast<c3d.PlaneCurve>(item.IsA());
+                const { placement, curve2d } = cast.GetPlaneCurve(false);
+                process.push(c3d.ActionCurve3D.PlaneCurve(placement, curve2d));
+                break;
+            }
+            case c3d.SpaceType.ContourOnPlane: {
+                const decompose = item.Cast<c3d.ContourOnPlane>(item.IsA());
+                const placement = decompose.GetPlacement();
+                for (let i = 0, l = decompose.GetSegmentsCount(); i < l; i++) {
+                    const segment = decompose.GetSegment(i)!;
+                    const cast = segment.Cast<c3d.PlaneCurve>(segment.IsA());
+                    if (cast instanceof c3d.LineSegment) {
+                        const p1_2d = cast.GetPoint1();
+                        const p2_2d = cast.GetPoint2();
+                        const p1 = placement.GetPointFrom(p1_2d.x, p1_2d.y, 0);
+                        const p2 = placement.GetPointFrom(p2_2d.x, p2_2d.y, 0);
+                        process.push(new c3d.LineSegment3D(p1, p2));
+                    } else if (cast instanceof c3d.Arc) {
+                        process.push(new c3d.Arc3D(cast, placement));
+                    } else {
+                        console.warn("Unsupported curve: " + cast.constructor.name);
+                        result.AddCurveWithRuledCheck(item.Duplicate().Cast<c3d.Curve3D>(item.IsA()), 10e-5, true);
+                    }
+                }
+                break;
+            }
             default:
                 result.AddCurveWithRuledCheck(item.Duplicate().Cast<c3d.Curve3D>(item.IsA()), 10e-5, true);
         }

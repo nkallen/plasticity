@@ -27,6 +27,7 @@
 #include "../include/SurfaceIntersectionCurve.h"
 #include "../include/OffsetCurve3D.h"
 #include "../include/Assembly.h"
+#include "../include/PlaneCurve.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -165,6 +166,16 @@ Napi::Value Contour3D::Cast(const Napi::CallbackInfo &info)
     return cast(this->_underlying, info);
 }
 
+Napi::Value PlaneCurve::Cast(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+Napi::Value LineSegment3D::Cast(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
 // THESE ARE FAKE ASYNC IMPLEMENTATIONS TO GET THE COMPILER TO STOP COMPLAINING
 
 Napi::Value SpaceItem::Cast_async(const Napi::CallbackInfo &info)
@@ -198,6 +209,16 @@ Napi::Value PolyCurve3D::Cast_async(const Napi::CallbackInfo &info)
 }
 
 Napi::Value Contour3D::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+Napi::Value PlaneCurve::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+Napi::Value LineSegment3D::Cast_async(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
 }
