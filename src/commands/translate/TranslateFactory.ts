@@ -2,13 +2,13 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from "../../editor/GeometryDatabase";
 import * as visual from '../../editor/VisualModel';
-import { composeMainName, deunit, inst2curve, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
-import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
+import { composeMainName, deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
+import { GeometryFactory, NoOpError } from '../GeometryFactory';
 
 const identityMatrix = new THREE.Matrix4();
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
+export const X = new THREE.Vector3(1, 0, 0);
+export const Y = new THREE.Vector3(0, 1, 0);
+export const Z = new THREE.Vector3(0, 0, 1);
 
 abstract class TranslateFactory extends GeometryFactory {
     _items!: visual.Item[];
@@ -244,23 +244,29 @@ export interface FreestyleScaleFactoryLike extends ScaleParams, GeometryFactory 
 }
 
 export class FreestyleScaleFactory extends TranslateFactory implements FreestyleScaleFactoryLike {
+    get pivot() { return this._pivot }
     set pivot(pivot: THREE.Vector3) {
+        this._pivot.copy(pivot);
         const { translateFrom, translateTo } = this;
         translateFrom.makeTranslation(-unit(pivot.x), -unit(pivot.y), -unit(pivot.z));
         translateTo.makeTranslation(unit(pivot.x), unit(pivot.y), unit(pivot.z));
     }
 
     get matrix() { return this._matrix }
-    get scale() { return new THREE.Vector3(1, 1, 1) }
+    get scale() {
+        const els = this.scalemat.elements;
+        return new THREE.Vector3(els[0], els[4], els[8]);
+    }
 
     readonly ref = new THREE.Vector3();
+    private readonly _pivot = new THREE.Vector3();
     private refMagnitude = 1;
     private quat = new THREE.Quaternion();
     private rotateFrom = new THREE.Matrix4();
     private rotateTo = new THREE.Matrix4();
     private translateFrom = new THREE.Matrix4();
     private translateTo = new THREE.Matrix4();
-    private mat = new THREE.Matrix4();
+    private scalemat = new THREE.Matrix4();
 
     from(p1: THREE.Vector3, p2: THREE.Vector3) {
         const { ref, quat, rotateFrom, rotateTo } = this;
@@ -277,7 +283,7 @@ export class FreestyleScaleFactory extends TranslateFactory implements Freestyle
     }
 
     to(p1: THREE.Vector3, p3: THREE.Vector3) {
-        const { _matrix, refMagnitude, rotateFrom, rotateTo, mat: scale, translateFrom, translateTo } = this;
+        const { _matrix, refMagnitude, rotateFrom, rotateTo, scalemat: scale, translateFrom, translateTo } = this;
         const transMagnitude = p3.distanceTo(p1);
 
         const scaleRatio = transMagnitude / refMagnitude;
@@ -293,67 +299,6 @@ export class FreestyleScaleFactory extends TranslateFactory implements Freestyle
 
     protected get transform(): c3d.TransformValues {
         throw new Error("Method not implemented.");
-    }
-}
-
-export class ProjectCurveFactory extends GeometryFactory {
-    origin!: THREE.Vector3;
-    normal!: THREE.Vector3;
-    private _curves!: c3d.Curve3D[];
-    set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
-        const result = [];
-        for (const curve of curves) {
-            const inst = this.db.lookup(curve);
-            result.push(inst2curve(inst)!);
-        }
-        this._curves = result;
-    }
-
-    async calculate() {
-        const { origin, normal, _curves: curves } = this;
-        const result = [];
-        for (const curve of curves) {
-            const placement = new c3d.Placement3D(point2point(origin), vec2vec(normal), false);
-            const projected = curve.GetProjection(placement);
-            if (projected === null) throw new ValidationError();
-            const planar = new c3d.PlaneCurve(placement, projected, true);
-            result.push(new c3d.SpaceInstance(planar));
-        }
-        return result;
-    }
-}
-
-export class ProjectingBasicScaleFactory extends BasicScaleFactory {
-    private project = new ProjectCurveFactory(this.db, this.materials, this.signals);
-    private basic = new BasicScaleFactory(this.db, this.materials, this.signals);
-
-    get items() { return this._items }
-    set items(items: visual.Item[]) {
-        super.items = items;
-        const curves = items.filter(i => i instanceof visual.SpaceInstance) as visual.SpaceInstance<visual.Curve3D>[];
-        const nonCurves = items.filter(i => !(i instanceof visual.SpaceInstance)) as visual.Item[];
-        this.project.curves = curves;
-        this.basic.items = nonCurves;
-    }
-
-    async calculate() {
-        const { scale, project, pivot, basic } = this;
-        const x = scale.x === 0;
-        const y = scale.y === 0;
-        const z = scale.z === 0;
-        if (x || y || z) {
-            project.origin = pivot;
-            if (x) project.normal = X;
-            if (y) project.normal = Y;
-            if (z) project.normal = Z;
-            const promises = [];
-            promises.push(project.calculate());
-            if (basic.items.length > 0) promises.push(basic.calculate());
-            const [curves, rest] = await Promise.all(promises);
-            return [...curves, ...(rest ?? [])];
-        } else {
-            return super.calculate();
-        }
     }
 }
 

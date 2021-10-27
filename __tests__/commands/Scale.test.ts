@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { CenterBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
-import { BasicScaleFactory, FreestyleScaleFactory, ProjectCurveFactory, ProjectingBasicScaleFactory } from '../../src/commands/translate/TranslateFactory';
+import { BasicScaleFactory, FreestyleScaleFactory } from '../../src/commands/translate/TranslateFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -10,6 +10,7 @@ import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import c3d from '../../build/Release/c3d.node';
 import '../matchers';
 import { inst2curve } from "../../src/util/Conversion";
+import { ProjectCurveFactory, ProjectingBasicScaleFactory, ProjectingFreestyleScaleFactory } from "../../src/commands/translate/ProjectCurveFactory";
 
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
@@ -146,7 +147,6 @@ describe(ProjectCurveFactory, () => {
     })
 });
 
-
 describe(ProjectingBasicScaleFactory, () => {
     let curve: visual.SpaceInstance<visual.Curve3D>;
 
@@ -207,5 +207,48 @@ describe(ProjectingBasicScaleFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0.75));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1, -1, 0.5));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    });
+});
+
+
+describe(ProjectingFreestyleScaleFactory, () => {
+    let curve: visual.SpaceInstance<visual.Curve3D>;
+
+    beforeEach(async () => {
+        const makeCurve = new CurveFactory(db, materials, signals);
+        makeCurve.type = c3d.SpaceType.Polyline3D;
+
+        makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+        makeCurve.points.push(new THREE.Vector3(1, 0, 1));
+        makeCurve.points.push(new THREE.Vector3(2, 2, -1));
+        curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const model = inst2curve(db.lookup(curve))!;
+        expect(model.IsClosed()).toBe(false);
+
+        bbox.setFromObject(curve);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 1));
+    });
+
+    let projectCurve: ProjectingFreestyleScaleFactory;
+
+    beforeEach(() => {
+        projectCurve = new ProjectingFreestyleScaleFactory(db, materials, signals);
+    })
+
+    test('when scale is 0', async () => {
+        projectCurve.items = [curve];
+        projectCurve.from(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1));
+        projectCurve.to(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0));
+        const flattened = await projectCurve.commit() as visual.SpaceInstance<visual.Curve3D>[];
+
+        bbox.setFromObject(flattened[0]);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
     });
 });

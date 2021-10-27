@@ -61,13 +61,14 @@ import { ThinSolidFactory } from "./thin-solid/ThinSolidFactory";
 import { MoveDialog } from "./translate/MoveDialog";
 import { MoveGizmo } from './translate/MoveGizmo';
 import { MoveKeyboardGizmo } from "./translate/MoveKeyboardGizmo";
+import { ProjectingBasicScaleFactory, ProjectingFreestyleScaleFactory } from "./translate/ProjectCurveFactory";
 import { RotateDialog } from "./translate/RotateDialog";
 import { RotateGizmo } from './translate/RotateGizmo';
 import { RotateKeyboardGizmo } from "./translate/RotateKeyboardGizmo";
 import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
-import { BasicScaleFactory, FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, ProjectingBasicScaleFactory, RotateFactory, RotateFactoryLike } from './translate/TranslateFactory';
+import { FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './translate/TranslateFactory';
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -947,7 +948,7 @@ export class FreestyleScaleCommand extends AbstractFreestyleScaleCommand {
         const centroid = new THREE.Vector3();
         bbox.getCenter(centroid);
 
-        const scale = new FreestyleScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const scale = new ProjectingFreestyleScaleFactory(editor.db, editor.materials, editor.signals).resource(this);
         scale.items = objects;
 
         return scale;
