@@ -22,8 +22,8 @@ class <%- klass.cppClassName -%> : public
         <%- klass.cppClassName -%>(const Napi::CallbackInfo& info);
 
     <%_ for (const func of klass.functions) { _%>
-        <%- func.isStaticMethod ? 'static' : '' %> Napi::Value <%- func.jsName %>(const Napi::CallbackInfo& info);
-        <%- func.isStaticMethod ? 'static' : '' %> Napi::Value <%- func.jsName %>_async(const Napi::CallbackInfo& info);
+        <%- func.isStatic ? 'static' : '' %> Napi::Value <%- func.jsName %>(const Napi::CallbackInfo& info);
+        <%- func.isStatic ? 'static' : '' %> Napi::Value <%- func.jsName %>_async(const Napi::CallbackInfo& info);
     <%_ } _%>
     <%_ if (!klass.isPOD) { _%>
         Napi::Value Id(const Napi::CallbackInfo& info);

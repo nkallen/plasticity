@@ -276,8 +276,8 @@ export async function polyline2contour(polyline: c3d.Polyline3D): Promise<c3d.Co
 }
 
 // FIXME: Refactor this mess. In addition to the switch(IsA) vs instanceof inconsistency, the use of process.push() is unsafe because it can
-// reorder things. Probably(?) only contours should use push, otherwise everyone else should use unshift? It might be nicer to make a bunch
-// a2b functions and have the loop be much simpler.
+// reorder things. Probably(?) only contours should use push, otherwise everyone else should use unshift? In other words, this needs to be depth
+// first and right now it's anarchy
 
 export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D> {
     const result = new c3d.Contour3D();
@@ -319,28 +319,8 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
             case c3d.SpaceType.PlaneCurve: {
                 const cast = item.Cast<c3d.PlaneCurve>(item.IsA());
                 const { placement, curve2d } = cast.GetPlaneCurve(false);
-                process.push(c3d.ActionCurve3D.PlaneCurve(placement, curve2d));
-                break;
-            }
-            case c3d.SpaceType.ContourOnPlane: {
-                const decompose = item.Cast<c3d.ContourOnPlane>(item.IsA());
-                const placement = decompose.GetPlacement();
-                for (let i = 0, l = decompose.GetSegmentsCount(); i < l; i++) {
-                    const segment = decompose.GetSegment(i)!;
-                    const cast = segment.Cast<c3d.PlaneCurve>(segment.IsA());
-                    if (cast instanceof c3d.LineSegment) {
-                        const p1_2d = cast.GetPoint1();
-                        const p2_2d = cast.GetPoint2();
-                        const p1 = placement.GetPointFrom(p1_2d.x, p1_2d.y, 0);
-                        const p2 = placement.GetPointFrom(p2_2d.x, p2_2d.y, 0);
-                        process.push(new c3d.LineSegment3D(p1, p2));
-                    } else if (cast instanceof c3d.Arc) {
-                        process.push(new c3d.Arc3D(cast, placement));
-                    } else {
-                        console.warn("Unsupported curve: " + cast.constructor.name);
-                        result.AddCurveWithRuledCheck(item.Duplicate().Cast<c3d.Curve3D>(item.IsA()), 10e-5, true);
-                    }
-                }
+                const curve3d = curve2d2curve3d(curve2d, placement);
+                process.push(curve3d);
                 break;
             }
             default:
@@ -348,4 +328,29 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
         }
     }
     return result;
+}
+
+export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c3d.Curve3D {
+    const cast = curve.Cast<c3d.Curve>(curve.IsA());
+    if (cast instanceof c3d.LineSegment) {
+        const p1_2d = cast.GetPoint1();
+        const p2_2d = cast.GetPoint2();
+        const p1 = placement.GetPointFrom(p1_2d.x, p1_2d.y, 0);
+        const p2 = placement.GetPointFrom(p2_2d.x, p2_2d.y, 0);
+        return new c3d.Polyline3D([p1, p2], false);
+    } else if (cast instanceof c3d.Contour) {
+        const result = new c3d.Contour3D();
+        for (let i = 0, l = cast.GetSegmentsCount(); i < l; i++) {
+            const segment2d = cast.GetSegment(i)!;
+            const segment3d = curve2d2curve3d(segment2d, placement);
+            result.AddCurveWithRuledCheck(segment3d);
+        }
+        return result;
+    } else if (cast instanceof c3d.Arc) {
+        return new c3d.Arc3D(cast, placement);
+    } else if (cast instanceof c3d.Nurbs) {
+        return c3d.Nurbs3D.Create(cast, placement)!;
+    } else {
+        throw new Error("Unsupported curve: " + cast.constructor.name);
+    }
 }

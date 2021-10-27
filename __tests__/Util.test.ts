@@ -402,7 +402,7 @@ describe('normalizeCurve', () => {
             projected = projecteds[0];
         });
 
-        it.only('works', async () => {
+        it('works', async () => {
             const model = inst2curve(db.lookup(projected)) as c3d.PlaneCurve;
             const normalized = await normalizeCurve(model);
             expect(normalized.IsClosed()).toBe(false);

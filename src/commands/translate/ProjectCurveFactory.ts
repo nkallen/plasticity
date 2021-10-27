@@ -97,7 +97,6 @@ export class ProjectingFreestyleScaleFactory extends FreestyleScaleFactory {
         if (x || y || z) {
             project.origin = pivot;
             project.normal = this.ref;
-            console.log(pivot, this.ref);
             const promises = [];
             promises.push(project.calculate());
             if (freestyle.items.length > 0)

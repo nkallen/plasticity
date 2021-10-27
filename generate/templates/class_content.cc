@@ -8,7 +8,7 @@
 Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "<%- klass.jsClassName %>", {
         <%_ for (const func of klass.functions) { _%>
-            <%_ if (func.isStaticMethod) { _%>
+            <%_ if (func.isStatic) { _%>
         StaticMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),
             <%_ } else { _%>
         InstanceMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),

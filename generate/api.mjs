@@ -1062,7 +1062,15 @@ export default {
         Nurbs3D: {
             rawHeader: "cur_nurbs3d.h",
             extends: "PolyCurve3D",
-            dependencies: ["PolyCurve3D.h"],
+            dependencies: ["PolyCurve3D.h", "Placement3D.h", "Nurbs.h"],
+            functions: [
+                { signature: "MbNurbs3D * MbNurbs3D::Create(const MbNurbs & nurbs, const MbPlacement3D & place)", isStatic: true },
+            ]
+        },
+        Nurbs: {
+            rawHeader: "cur_nurbs.h",
+            extends: "PolyCurve",
+            dependencies: ["PolyCurve.h"],
         },
         LineSegment3D: {
             rawHeader: "cur_line_segment3d.h",
