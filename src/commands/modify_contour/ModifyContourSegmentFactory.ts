@@ -142,7 +142,7 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
             const before_before_tmax = before_before.GetTMax();
             const before_before_tangent_begin = vec2vec(before_before.Tangent(before_before_tmin), 1);
             const before_before_tangent_end = vec2vec(before_before.Tangent(before_before_tmax), 1);
-            if (!(before_before instanceof c3d.Arc3D) && isSmoothlyConnected(before_before, before, active)) {
+            if (!(active instanceof c3d.Arc3D && before_before instanceof c3d.Arc3D) && isSmoothlyConnected(before_before, before, active)) {
                 radiusBefore = deunit(before.GetRadius());
 
                 before = before_before;
@@ -175,7 +175,7 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
             
             const after_after_tangent_begin = vec2vec(after_after.Tangent(after_after_tmin), 1).multiplyScalar(-1);
             const after_after_tangent_end = vec2vec(after_after.Tangent(after_after_tmax), 1).multiplyScalar(-1);
-            if (!(after_after instanceof c3d.Arc3D) && isSmoothlyConnected(active, after, after_after)) {
+            if (!(active instanceof c3d.Arc3D && after_after instanceof c3d.Arc3D) && isSmoothlyConnected(active, after, after_after)) {
                 radiusAfter = deunit(after.GetRadius());
 
                 after = after_after;
@@ -373,7 +373,6 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
             case 'Arc3D:Arc3D:Polyline3D': {
                 const arc = active as c3d.Arc3D;
                 const existingRadius = arc.GetRadius();
-                isSmoothlyConnected(before, active);
                 if (isSmoothlyConnected(before, active, after)) {
                     const radius = deunit(existingRadius) + distance / 2;
 
@@ -397,6 +396,35 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
                     return { before_extended, active_new: undefined, after_extended, radius };
                 } else {
                     throw new Error("Unsupported case of Arc3D:Arc3D:Polyline3D");
+                }
+            }
+            case 'Polyline3D:Arc3D:Arc3D': {
+                const arc = active as c3d.Arc3D;
+                const existingRadius = arc.GetRadius();
+                if (isSmoothlyConnected(before, active, after)) {
+                    const radius = deunit(existingRadius) + distance / 2;
+
+                    const before_pmin = before.PointOn(before_tmin);
+                    const before_line = new c3d.Line3D(before_pmin, point2point(before_pmax));
+
+                    let after_extended = after.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
+                    after_extended.MakeTrimmed(0, 2 * Math.PI);
+
+                    const { result1: before_line_result, count, result2: after_extended_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_line, after_extended, 1e-6);
+                    if (count < 1) throw new ValidationError("count == " + count);
+
+                    const before_line_tmax = Math.min(...before_line_result);
+                    const before_line_p = before_line.PointOn(before_line_tmax);
+
+                    const before_extended = new c3d.Polyline3D([before_pmin, before_line_p], false);
+
+                    const index2 = before_line_result.findIndex(t => t === before_line_tmax);
+                    const after_ext_t = after_extended_result[index2];
+                    after_extended.MakeTrimmed(after_ext_t, after_tmax);
+
+                    return { before_extended, active_new: undefined, after_extended, radius };
+                } else {
+                    throw new Error("Unsupported case of Polyline3D:Arc3D:Arc3D");
                 }
             }
             case 'Arc3D:Polyline3D:Arc3D': {

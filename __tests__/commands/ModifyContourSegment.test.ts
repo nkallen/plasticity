@@ -1007,7 +1007,7 @@ describe('Line:Arc:Line', () => {
             expect(model.GetSegmentsCount()).toBe(5);
         })
 
-        it('offsets the fillet', async () => {
+        it('offsets the second fillet', async () => {
             modifyContour.contour = filleted;
             modifyContour.distance = -0.1;
             modifyContour.segment = 3;
@@ -1021,6 +1021,40 @@ describe('Line:Arc:Line', () => {
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
             expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+        });
+
+        it('offsets the first fillet (Line:Arc:Arc)', async () => {
+            modifyContour.contour = filleted;
+            modifyContour.distance = -0.1;
+            modifyContour.segment = 1;
+            const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(5);
+            expect(model.IsClosed()).toBe(false);
+    
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+        });
+
+        it('offsets the last line (which is smoothly connected before by multiple steps)', async () => {
+            modifyContour.contour = filleted;
+            modifyContour.distance = -0.1;
+            modifyContour.segment = 4;
+            const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(5);
+            expect(model.IsClosed()).toBe(false);
+    
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.45, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.1, 0));
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
         })
     });
