@@ -1,9 +1,14 @@
-import { Disposable } from "event-kit";
 import * as THREE from "three";
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
-import { EditorLike, ViewportControl } from "../components/viewport/ViewportControl";
+import {  ViewportControl } from "../components/viewport/ViewportControl";
 import * as intersectable from "../editor/Intersectable";
 import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
+import Command, * as cmd from "../commands/Command";
+import { EditorOriginator } from "../editor/History";
+
+export interface EditorLike extends cmd.EditorLike {
+    enqueue(command: Command, interrupt?: boolean): Promise<void>;
+}
 
 export abstract class AbstractViewportSelector extends ViewportControl {
     private readonly selectionHelper = new SelectionHelper(this.domElement, 'select-box');
@@ -11,12 +16,13 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
     startHover(intersections: intersectable.Intersection[]) {
         this.processHover(intersections);
-        return new Disposable(() => this.clearHoverState())
     }
 
     continueHover(intersections: intersectable.Intersection[]) {
         this.processHover(intersections);
     }
+
+    endHover() { this.processHover([]) }
 
     startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2) {
         this.selectionBox.startPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
@@ -29,9 +35,11 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
         const selected = this.selectionBox.select();
         this.processBoxHover(intersectable.filterMeshes(selected));
-    }
+    }    
 
-    finishClick(intersections: intersectable.Intersection[]) {
+    startClick(intersections: intersectable.Intersection[]) {}
+
+    endClick(intersections: intersectable.Intersection[]) {
         this.processClick(intersections);
     }
 
@@ -48,7 +56,6 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
     protected abstract processClick(intersects: intersectable.Intersection[]): void;
     protected abstract processHover(intersects: intersectable.Intersection[]): void;
-    clearHoverState() { this.processHover([]) }
 }
 
 export class ViewportSelector extends AbstractViewportSelector {
@@ -57,7 +64,7 @@ export class ViewportSelector extends AbstractViewportSelector {
         domElement: HTMLElement,
         private readonly editor: EditorLike,
     ) {
-        super(camera, domElement, editor.db, editor.signals);
+        super(camera, domElement, editor.db);
     }
 
     protected processBoxHover(selected: Set<intersectable.Intersectable>) {

@@ -5,7 +5,7 @@ import { Viewport } from "../../components/viewport/Viewport";
 import { CancellablePromise } from "../../util/Cancellable";
 import { AbstractGizmo, EditorLike, GizmoStateMachine, GizmoTriggerStrategy, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, CircularGizmo, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry, VectorStateMachine } from "../MiniGizmos";
+import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
 import { ModifyContourParams } from "./ModifyContourFactory";
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -14,16 +14,14 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
     private readonly filletAll = new FilletCornerGizmo("modify-contour:fillet-all", this.editor, true);
     private readonly segments: PushCurveGizmo[] = [];
     private readonly corners: FilletCornerGizmo[] = [];
-    private readonly controlPoints: ControlPointGizmo[] = [];
 
     private readonly segmentTrigger = new AdvancedGizmoTriggerStrategy("modify-contour:segment", this.editor);
     private readonly filletTrigger = new AdvancedGizmoTriggerStrategy("modify-contour:fillet", this.editor);
-    private readonly controlPointTrigger = new AdvancedGizmoTriggerStrategy("modify-contour:radius", this.editor);
 
     constructor(params: ModifyContourParams, editor: EditorLike) {
         super(params, editor);
 
-        for (const segment of params.segmentAngles) {
+        for (const _ of params.segmentAngles) {
             const gizmo = new PushCurveGizmo("modify-contour:segment", this.editor);
             gizmo.trigger = this.segmentTrigger;
             this.segments.push(gizmo);
@@ -34,12 +32,6 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             gizmo.userData.index = corner.index;
             gizmo.trigger = this.filletTrigger;
             this.corners.push(gizmo);
-        }
-
-        for (const _ of params.controlPointInfo) {
-            const gizmo = new ControlPointGizmo("fillet-curve:control-point", this.editor);
-            gizmo.trigger = this.controlPointTrigger;
-            this.controlPoints.push(gizmo);
         }
     }
 
@@ -74,32 +66,23 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
             filletAll.position.copy(centroid);
         }
 
-        for (const [i, controlPoint] of params.controlPointInfo.entries()) {
-            const gizmo = this.controlPoints[i];
-            gizmo.relativeScale.setScalar(0.1);
-            gizmo.position.copy(controlPoint.origin);
-        }
-
         this.add(filletAll);
         for (const segment of segments) this.add(segment);
         for (const corner of corners) this.add(corner);
-        for (const cp of this.controlPoints) this.add(cp);
     }
 
     execute(cb: (params: ModifyContourParams) => void, mode: Mode = Mode.None): CancellablePromise<void> {
-        const { filletAll, segments, params, corners, controlPoints } = this;
-        const { segmentTrigger, filletTrigger, controlPointTrigger } = this;
+        const { filletAll, segments, params, corners } = this;
+        const { segmentTrigger, filletTrigger } = this;
 
         const disposable = new CompositeDisposable();
         disposable.add(segmentTrigger.execute());
         disposable.add(filletTrigger.execute());
-        disposable.add(controlPointTrigger.execute());
 
         for (const [i, segment] of segments.entries()) {
             this.addGizmo(segment, d => {
                 this.disableCorners();
                 this.disableSegments(segment);
-                this.disableControlPoints();
 
                 params.mode = 'offset';
                 params.segment = i;
@@ -111,7 +94,6 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         if (params.cornerAngles.length > 0) {
             this.addGizmo(filletAll, d => {
                 this.disableSegments();
-                this.disableControlPoints();
 
                 params.mode = 'fillet';
                 for (const [i, corner] of params.cornerAngles.entries()) {
@@ -124,23 +106,9 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         for (const corner of corners) {
             this.addGizmo(corner, d => {
                 this.disableSegments();
-                this.disableControlPoints();
 
                 params.mode = 'fillet';
                 params.radiuses[corner.userData.index] = d;
-            });
-        }
-
-        for (const [i, controlPoint] of controlPoints.entries()) {
-            this.addGizmo(controlPoint, d => {
-                this.disableSegments();
-                this.disableControlPoints(controlPoint);
-                this.disableCorners();
-
-                controlPoint.position.copy(params.controlPointInfo[i].origin).add(d);
-                params.mode = 'change-point';
-                params.controlPoints = [i];
-                params.move = d;
             });
         }
 
@@ -160,14 +128,6 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
         for (const corners of this.corners) {
             corners.stateMachine!.isEnabled = false;
             corners.visible = false;
-        }
-    }
-
-    private disableControlPoints(except?: ControlPointGizmo) {
-        for (const cp of this.controlPoints) {
-            if (cp === except) continue;
-            cp.stateMachine!.isEnabled = false;
-            cp.visible = false;
         }
     }
 
@@ -212,39 +172,6 @@ export class FilletCornerGizmo extends AbstractAxialScaleGizmo {
 
     protected accumulate(original: number, dist: number, denom: number, sign: number = 1): number {
         return Math.max(0, sign * (original + dist - denom))
-    }
-
-    get shouldRescaleOnZoom() { return true }
-}
-
-export class ControlPointGizmo extends AbstractGizmo<(value: THREE.Vector3) => void> {
-    protected readonly hasCommand = false;
-    private readonly delta = new THREE.Vector3();
-    protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(1.5), this.editor.gizmos.black.mesh);
-    readonly helper = new DashedLineMagnitudeHelper();
-    private didMove = false;
-
-    constructor(name: string, editor: EditorLike) {
-        super(name.split(':')[0], editor);
-        this.picker.add(this.knob);
-    }
-
-    onPointerDown(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void { }
-    onPointerUp(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
-        // if (!this.didMove) info.viewport.selector.forceUpEvent(info.pointer.event);
-    }
-
-    onInterrupt(cb: (value: THREE.Vector3) => void): void {
-        cb(this.delta);
-    }
-
-    onPointerMove(cb: (delta: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
-        this.didMove = true;
-        this.delta.copy(info.pointEnd3d).sub(info.pointStart3d);
-        const { position } = info.constructionPlane.project(this.delta);
-        this.delta.copy(position);
-
-        cb(this.delta.clone());
     }
 
     get shouldRescaleOnZoom() { return true }

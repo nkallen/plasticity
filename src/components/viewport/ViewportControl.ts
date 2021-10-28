@@ -1,18 +1,10 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import Command, * as cmd from "../../commands/Command";
-import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
-import { EditorOriginator } from "../../editor/History";
 import * as intersectable from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 
-export interface EditorLike extends cmd.EditorLike {
-    originator: EditorOriginator,
-    enqueue(command: Command, interrupt?: boolean): Promise<void>;
-}
-
-type State = { tag: 'none' } | { tag: 'hover', disposable: Disposable } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
+type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
 
 const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
     Mesh: { threshold: 0 },
@@ -30,6 +22,8 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             switch (this.state.tag) {
                 case 'none': break;
                 case 'hover':
+                    this.endHover();
+                    break;
                 case 'down':
                 case 'dragging':
                     this.state.disposable.dispose();
@@ -52,7 +46,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         protected readonly camera: THREE.Camera,
         protected readonly domElement: HTMLElement,
         protected readonly db: DatabaseLike,
-        protected readonly signals: EditorSignals,
         readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
     ) {
         super();
@@ -76,7 +69,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
         switch (this.state.tag) {
             case 'hover':
-                // this.state.disposable.dispose();
+                this.endHover();
             case 'none':
                 getMousePosition(this.domElement, downEvent.clientX, downEvent.clientY, this.onDownPosition);
 
@@ -88,7 +81,10 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 disposable.add(new Disposable(() => document.removeEventListener('pointerup', this.onPointerUp)));
                 disposable.add(new Disposable(() => this.dispatchEvent({ type: 'end' })));
 
-                this.state = { tag: 'down', disposable, downEvent }
+                const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
+                this.startClick(intersectable.filterIntersections(intersects));
+
+                this.state = { tag: 'down', disposable, downEvent };
 
                 this.dispatchEvent({ type: 'start' });
                 break;
@@ -104,13 +100,18 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         switch (this.state.tag) {
             case 'none': {
                 const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
-                const disposable = this.startHover(intersectable.filterIntersections(intersects));
-                this.state = { tag: 'hover', disposable };
+                if (intersects.length === 0) break;
+                this.startHover(intersectable.filterIntersections(intersects));
+                this.state = { tag: 'hover' };
                 break;
             }
             case 'hover': {
                 const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
-                this.continueHover(intersectable.filterIntersections(intersects));
+                if (intersects.length === 0) {
+                    this.endHover();
+                    this.state = { tag: 'none' };
+                }
+                else this.continueHover(intersectable.filterIntersections(intersects));
                 break;
             }
             case 'down': {
@@ -147,7 +148,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         switch (this.state.tag) {
             case 'down':
                 const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
-                this.finishClick(intersectable.filterIntersections(intersects));
+                this.endClick(intersectable.filterIntersections(intersects));
 
                 this.state.disposable.dispose();
                 this.state = { tag: 'none' };
@@ -165,9 +166,11 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         }
     }
 
-    protected abstract startHover(intersections: intersectable.Intersection[]): Disposable;
+    protected abstract startHover(intersections: intersectable.Intersection[]): void;
     protected abstract continueHover(intersections: intersectable.Intersection[]): void;
-    protected abstract finishClick(intersections: intersectable.Intersection[]): void;
+    protected abstract endHover(): void;
+    protected abstract startClick(intersections: intersectable.Intersection[]): void;
+    protected abstract endClick(intersections: intersectable.Intersection[]): void;
     protected abstract startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
     protected abstract continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;

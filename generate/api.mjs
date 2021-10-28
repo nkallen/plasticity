@@ -358,6 +358,11 @@ export default {
             extends: "Curve3D",
             dependencies: ["Curve3D.h"],
         },
+        SurfaceCurve: {
+            rawHeader: "cur_surface_curve.h",
+            extends: "Curve3D",
+            dependencies: ["Curve3D.h"],
+        },
         Spiral: {
             rawHeader: "cur_spiral.h",
             extends: "Curve3D",

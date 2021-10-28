@@ -271,7 +271,6 @@ export class GizmoStateMachine<T> implements MovementInfo {
     angle = 0;
 
     private readonly raycaster = new THREE.Raycaster();
-    // FIXME set layer
 
     constructor(
         private readonly gizmo: AbstractGizmo<T>,
@@ -370,7 +369,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
             case 'command':
                 this.pointEnd2d.set(this.pointer.x, this.pointer.y);
                 const intersection = this.intersector(this.cameraPlane, true);
-                if (!intersection) throw "corrupt intersection query";
+                if (!intersection) throw new Error("corrupt intersection query");
                 this.pointEnd3d.copy(intersection.point);
                 this.endRadius.copy(this.pointEnd2d).sub(this.center2d).normalize();
                 const startRadius = this.pointStart2d.clone().sub(this.center2d);

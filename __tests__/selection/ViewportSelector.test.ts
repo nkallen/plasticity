@@ -91,7 +91,7 @@ test('hover and click on viewport will enqueue a change selection command', asyn
     expect(start).toHaveBeenCalledTimes(1);
     expect(end).toHaveBeenCalledTimes(0);
     expect(enqueue).toHaveBeenCalledTimes(0);
-    expect(selection.hovered.solids.size).toBe(1);
+    expect(selection.hovered.solids.size).toBe(0);
     expect(selection.selected.solids.size).toBe(0);
 
     document.dispatchEvent(pointerup);

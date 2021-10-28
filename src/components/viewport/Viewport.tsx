@@ -12,7 +12,7 @@ import { xray } from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { PlaneSnap } from "../../editor/snaps/Snap";
 import { HighlightManager } from "../../selection/HighlightManager";
-import * as control from './ViewportControl';
+import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
@@ -21,6 +21,7 @@ import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
 import { ProxyCamera } from "./ProxyCamera";
 import { Orientation, ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
+import { ViewportPointControl } from "./ViewportPointControl";
 
 const gridColor = new THREE.Color(0x666666).convertGammaToLinear();
 const X = new THREE.Vector3(1, 0, 0);
@@ -28,7 +29,7 @@ const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 const backgroundColor = new THREE.Color(0x424242).convertGammaToLinear();
 
-export interface EditorLike extends control.EditorLike {
+export interface EditorLike extends selector.EditorLike {
     db: DatabaseLike,
     helpers: Helpers,
     viewports: Viewport[],
@@ -46,6 +47,7 @@ export class Viewport {
     readonly outlinePassHover: OutlinePass;
     readonly phantomsPass: RenderPass;
     readonly helpersPass: RenderPass;
+    readonly points = new ViewportPointControl(this, this.renderer.domElement, this.editor);
     readonly selector = new ViewportSelector(this.camera, this.renderer.domElement, this.editor);
     lastPointerEvent?: PointerEvent;
     private readonly disposable = new CompositeDisposable();

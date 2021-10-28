@@ -38,15 +38,16 @@
 ### Todo
 
 - [ ] Can't remove fillet using modify contour command #bug  
-- [ ] move point twice without moving the mouse inbetween and it doesn't work #bug  
+- [ ] Test trim - and anywhere objectpicker is used  
+- [ ] Can't modify endpoint of specific curve #bug  
 
 ### In Progress
 
-- [ ] only show points of selected object  
 - [ ] Need to be able to drag and drop point when point selected & fillet I suppose  
 
 ### Done ✓
 
+- [x] move point twice without moving the mouse inbetween and it doesn't work #bug  
 - [x] click on control point to select  
 - [x] Make control points themselves d&d able (no circle)  
 - [x] Normalize curve should convert planar curves to space curves  

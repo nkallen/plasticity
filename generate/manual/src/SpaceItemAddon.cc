@@ -28,6 +28,7 @@
 #include "../include/OffsetCurve3D.h"
 #include "../include/Assembly.h"
 #include "../include/PlaneCurve.h"
+#include "../include/SurfaceCurve.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -104,6 +105,8 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return ContourOnPlane::NewInstance(env, (MbContourOnPlane *)(_underlying));
     case st_PlaneCurve:
         return PlaneCurve::NewInstance(env, (MbPlaneCurve *)(_underlying));
+    case st_SurfaceCurve:
+        return SurfaceCurve::NewInstance(env, (MbSurfaceCurve *)(_underlying));
     case st_OffsetCurve3D:
         return OffsetCurve3D::NewInstance(env, (MbOffsetCurve3D *)(_underlying));
 

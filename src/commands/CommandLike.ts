@@ -17,7 +17,7 @@ import { MoveFactory } from './translate/TranslateFactory';
  * But these represent actions/state-changes that are meant to be atomic (for the purpose of UNDO).
  */
 
-abstract class CommandLike extends Command {
+export abstract class CommandLike extends Command {
     remember = false;
 }
 

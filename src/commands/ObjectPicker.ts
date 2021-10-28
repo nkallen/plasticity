@@ -19,7 +19,7 @@ interface EditorLike {
 }
 
 class MyViewportSelector extends AbstractViewportSelector {
-    private interaction = new SelectionInteractionManager(this.selection, this.editor.materials, this.signals);
+    private interaction = new SelectionInteractionManager(this.selection, this.editor.materials, this.editor.signals);
 
     constructor(
         camera: THREE.Camera,
@@ -29,7 +29,7 @@ class MyViewportSelector extends AbstractViewportSelector {
         private readonly onEmptyIntersection = () => { },
         raycasterParams: THREE.RaycasterParameters,
     ) {
-        super(camera, domElement, editor.db, editor.signals, raycasterParams);
+        super(camera, domElement, editor.db, raycasterParams);
         this.selection.mode.add(SelectionMode.Curve);
     }
 
