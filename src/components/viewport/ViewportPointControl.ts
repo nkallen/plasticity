@@ -47,6 +47,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         if (intersections.length === 0) return;
         const first = intersections[0];
         if (!(first.object instanceof visual.ControlPoint)) return;
+        if (this.domElement.ownerDocument.body.hasAttribute('gizmo')) return;
 
         switch (this.mode.tag) {
             case 'none':
