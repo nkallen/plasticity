@@ -115,7 +115,7 @@ describe('A triangle', () => {
         const before_extended = model.GetSegments()[2];
         const active_new = model.GetSegments()[0];
         const after_extended = model.GetSegments()[1];
-        const result = { before_extended, active_new, after_extended, radius: 0} as unknown as OffsetResult;
+        const result = { before_extended, active_new, after_extended, radius: 0 } as unknown as OffsetResult;
         const info = { radiusBefore: 0, radiusAfter: 0 };
         const { ordered } = ContourRebuilder.calculate(0, model.GetSegments(), true, result, info);
         expect(ordered.length).toBe(3);
@@ -946,7 +946,45 @@ describe('Line:Arc:Line', () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.25, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -0.5, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
-    })
+    });
+
+    describe('Filetted at a junction (Arc:Arc:Line)', () => {
+        let filleted: visual.SpaceInstance<visual.Curve3D>;
+
+        beforeEach(async () => {
+            const makeFillet = new ContourFilletFactory(db, materials, signals);
+            makeFillet.contour = contour;
+            makeFillet.radiuses[1] = 0.1;
+            expect(makeFillet.cornerAngles.length).toBe(2);
+            filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            bbox.setFromObject(filleted);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(4);
+        })
+
+        it('offsets the fillet', async () => {
+            modifyContour.contour = filleted;
+            modifyContour.distance = -0.1;
+            modifyContour.segment = 2;
+            const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(4);
+            expect(model.IsClosed()).toBe(false);
+    
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+        })
+    });
 });
 
 describe('Line:Line:Arc', () => {

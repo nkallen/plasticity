@@ -135,15 +135,15 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
         let radiusAfter = 0;
 
         if (before instanceof c3d.Arc3D && isSmoothlyConnected(before, active)) {
-            radiusBefore = deunit(before.GetRadius());
-
             const before_before = segments[(index - 2 + segments.length) % segments.length];
-
+            
             const before_before_tmin = before_before.GetTMin();
             const before_before_tmax = before_before.GetTMax();
             const before_before_tangent_begin = vec2vec(before_before.Tangent(before_before_tmin), 1);
             const before_before_tangent_end = vec2vec(before_before.Tangent(before_before_tmax), 1);
             if (isSmoothlyConnected(before_before, before, active)) {
+                radiusBefore = deunit(before.GetRadius());
+
                 before = before_before.Cast<c3d.Curve3D>(before_before.IsA());
                 before_tmin = before_before_tmin;
                 const before_before_pmax = before.GetLimitPoint(2);
@@ -166,16 +166,16 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
         }
 
         if (after instanceof c3d.Arc3D && isSmoothlyConnected(active, after)) {
-            radiusAfter = deunit(after.GetRadius());
-
             const after_after = segments[(index + 2) % segments.length];
-
+            
             const after_after_tmin = after_after.GetTMin();
             const after_after_tmax = after_after.GetTMax();
-
+            
             const after_after_tangent_begin = vec2vec(after_after.Tangent(after_after_tmin), 1).multiplyScalar(-1);
             const after_after_tangent_end = vec2vec(after_after.Tangent(after_after_tmax), 1).multiplyScalar(-1);
             if (isSmoothlyConnected(active, after, after_after)) {
+                radiusAfter = deunit(after.GetRadius());
+
                 after = after_after.Cast<c3d.Curve3D>(after_after.IsA());
                 after_tmax = after_after_tmax;
                 const after_after_pmin = after.GetLimitPoint(1);
@@ -368,6 +368,35 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
                     return { before_extended, active_new, after_extended, radius: 0 }
                 }
             }
+            case 'Arc3D:Arc3D:Polyline3D': {
+                const arc = active as c3d.Arc3D;
+                const existingRadius = arc.GetRadius();
+                isSmoothlyConnected(before, active);
+                if (isSmoothlyConnected(before, active, after)) {
+                    const radius = deunit(existingRadius) + distance / 2;
+
+                    let before_extended = before.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
+                    before_extended.MakeTrimmed(0, 2 * Math.PI);
+
+                    const after_line = new c3d.Line3D(point2point(after_pmin), after.PointOn(after_tmax));
+
+                    const { result1: after_line_result, count, result2: before_extended_result } = c3d.ActionPoint.CurveCurveIntersection3D(after_line, before_extended, 1e-6);
+                    if (count < 1) throw new ValidationError("count == " + count);
+
+                    const after_line_tmin = Math.max(...after_line_result);
+                    const after_line_p = after_line.PointOn(after_line_tmin);
+
+                    const index2 = after_line_result.findIndex(t => t === after_line_tmin);
+                    const before_ext_t = before_extended_result[index2];
+                    before_extended.MakeTrimmed(0, before_ext_t);
+
+                    const after_extended = new c3d.Polyline3D([after_line_p, after.GetLimitPoint(2)], false);
+
+                    return { before_extended, active_new: undefined, after_extended, radius };
+                } else {
+                    throw new Error("Unsupported case of Arc3D:Arc3D:Polyline3D");
+                }
+            }
             case 'Arc3D:Polyline3D:Arc3D': {
                 const normal = this.segmentAngles[this.segment].normal.clone();
                 normal.multiplyScalar(distance);
@@ -459,7 +488,7 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
                 const { count: count1, result1: before_extended_result, result2: active_line_before_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_extended, active_line, 10e-5);
                 if (count1 < 1) throw new Error("Failed to intersect with before");
                 const active_line_tmin = Math.max(...active_line_before_result);
-                const index1 = active_line_before_result.findIndex((value) => value === active_line_tmin);
+                const index1 = active_line_before_result.findIndex(value => value === active_line_tmin);
                 const before_ext_t = before_extended_result[index1];
                 if (before_ext_t === undefined) throw new Error();
                 before_extended.MakeTrimmed(before_tmin, before_ext_t);
