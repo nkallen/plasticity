@@ -36,7 +36,7 @@ import { MaxFilletFactory } from './fillet/FilletFactory';
 import { FilletSolidGizmo, MagnitudeGizmo } from './fillet/FilletGizmo';
 import { ChamferAndFilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
-import LineFactory from './line/LineFactory';
+import LineFactory, { PhantomLineFactory } from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import { MirrorFactory, SymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
@@ -792,7 +792,7 @@ abstract class AbstractFreestyleMoveCommand extends Command {
             await move.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        const line = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const line = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
         const pointPicker = new PointPicker(editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
         line.p1 = p1;
@@ -901,7 +901,7 @@ abstract class AbstractFreestyleScaleCommand extends Command {
             await scale.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const referenceLine = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
         const pointPicker = new PointPicker(editor);
         const { point: p1 } = await pointPicker.execute().resource(this);
         referenceLine.p1 = p1;
@@ -913,20 +913,13 @@ abstract class AbstractFreestyleScaleCommand extends Command {
         }).resource(this);
         scale.from(p1, p2);
 
-        const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
-        transformationLine.p1 = p1;
-
         pointPicker.restrictToLine(p1, scale.ref);
         await pointPicker.execute(({ point: p3 }) => {
-            transformationLine.p2 = p3;
-            transformationLine.update();
-
             scale.to(p1, p3);
             scale.update();
             dialog.render();
         }).resource(this);
 
-        transformationLine.cancel();
         referenceLine.cancel();
         dialog.finish();
 
@@ -1028,7 +1021,7 @@ abstract class AbstractFreestyleRotateCommand extends Command {
             await rotate.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        const referenceLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const referenceLine = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
         let pointPicker = new PointPicker(editor);
         const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
         referenceLine.p1 = p1;
@@ -1043,12 +1036,13 @@ abstract class AbstractFreestyleRotateCommand extends Command {
             referenceLine.p2 = p2;
             referenceLine.update();
         }).resource(this);
-        const reference = p2.clone().sub(p1).applyQuaternion(quat);
+        const reference = p2.clone().sub(p1).applyQuaternion(quat).normalize();
 
-        const transformationLine = new LineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const transformationLine = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
         transformationLine.p1 = p1;
 
         pointPicker = new PointPicker(this.editor);
+        pointPicker.addSnap(new AxisSnap(undefined, reference, p1));
         pointPicker.restrictToPlane(constructionPlane2.move(p2));
         const transformation = new THREE.Vector3();
         await pointPicker.execute(({ point: p3 }) => {

@@ -39,6 +39,7 @@
 
 - [ ] Can't remove fillet using modify contour command #bug  
 - [ ] Test trim - and anywhere objectpicker is used  
+- [ ] scale freestyle broken on commit #bug  
 
 ### In Progress
 
