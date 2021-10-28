@@ -878,7 +878,7 @@ export class ScaleItemCommand extends Command {
             switch (s) {
                 case 'free':
                     this.finish();
-                    this.editor.enqueue(new FreestyleScaleCommand(this.editor), false);
+                    this.editor.enqueue(new FreestyleItemScaleCommand(this.editor), false);
             }
         }).resource(this);
 
@@ -931,7 +931,7 @@ abstract class AbstractFreestyleScaleCommand extends Command {
 
     protected abstract makeFactory(): Promise<FreestyleScaleFactoryLike>;
 }
-export class FreestyleScaleCommand extends AbstractFreestyleScaleCommand {
+export class FreestyleItemScaleCommand extends AbstractFreestyleScaleCommand {
     protected async makeFactory() {
         const { editor } = this
         const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];

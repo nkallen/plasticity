@@ -91,10 +91,7 @@ export class ProjectingFreestyleScaleFactory extends FreestyleScaleFactory {
 
     async calculate() {
         const { scale, project, pivot, freestyle } = this;
-        const x = scale.x === 0;
-        const y = scale.y === 0;
-        const z = scale.z === 0;
-        if (x || y || z) {
+        if (scale.x === 0) {
             project.origin = pivot;
             project.normal = this.ref;
             const promises = [];

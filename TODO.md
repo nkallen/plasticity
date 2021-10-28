@@ -39,14 +39,14 @@
 
 - [ ] Can't remove fillet using modify contour command #bug  
 - [ ] Test trim - and anywhere objectpicker is used  
-- [ ] scale freestyle broken on commit #bug  
 
 ### In Progress
 
-- [ ] Can't modify endpoint of specific curve #bug  
+- [ ] scale freestyle broken on commit #bug  
 
 ### Done ✓
 
+- [x] Can't modify endpoint of specific curve #bug  
 - [x] Need to be able to drag and drop point when point selected & fillet I suppose  
 - [x] move point twice without moving the mouse inbetween and it doesn't work #bug  
 - [x] click on control point to select  

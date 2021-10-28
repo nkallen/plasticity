@@ -89,9 +89,8 @@ describe(FreestyleScaleFactory, () => {
         scale = new FreestyleScaleFactory(db, materials, signals);
     })
 
-    test('no pivot', async () => {
+    test('it works', async () => {
         scale.items = [box];
-        scale.pivot = new THREE.Vector3();
         scale.from(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
         scale.to(new THREE.Vector3(), new THREE.Vector3(2, 0, 0));
 
@@ -250,5 +249,19 @@ describe(ProjectingFreestyleScaleFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0, 1, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 2, 0));
+    });
+
+    test('when scale is not 0', async () => {
+        projectCurve.items = [box];
+        projectCurve.from(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
+        projectCurve.to(new THREE.Vector3(), new THREE.Vector3(2, 0, 0));
+
+        expect(box.scale).toEqual(new THREE.Vector3(1, 1, 1));
+        const scaleds = await projectCurve.commit() as visual.Solid[];
+        bbox.setFromObject(scaleds[0]);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, -1, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 1));
     });
 });
