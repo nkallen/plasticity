@@ -12,7 +12,7 @@ import { xray } from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { PlaneSnap } from "../../editor/snaps/Snap";
 import { HighlightManager } from "../../selection/HighlightManager";
-import * as selector from '../../selection/ViewportSelector';
+import * as control from './ViewportControl';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
@@ -28,7 +28,7 @@ const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 const backgroundColor = new THREE.Color(0x424242).convertGammaToLinear();
 
-export interface EditorLike extends selector.EditorLike {
+export interface EditorLike extends control.EditorLike {
     db: DatabaseLike,
     helpers: Helpers,
     viewports: Viewport[],

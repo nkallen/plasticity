@@ -2,6 +2,12 @@ import KeymapManager from "atom-keymap-plasticity";
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 
+/**
+ * This class is responsible for listening to events (e.g., keydown events) and sending them to the keymap manager
+ * to be interpreted and to invoke the various commands. Most of the implementation is concerned with mapping mouse
+ * events like click and wheel+up/wheel+down to key events so that they can be bound by the user as well.
+ */
+
 // Time thresholds are in milliseconds, distance thresholds are in pixels.
 const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
 const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummated
