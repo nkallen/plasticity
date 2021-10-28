@@ -236,11 +236,8 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
 
         if (distance === 0) throw new NoOpError();
 
-        const segments = contour.GetSegments();
-
-        const { radiusBefore, radiusAfter, beforeIsAfter } = info;
         const result = this.process(info);
-        const { before_extended, active_new, after_extended, radius } = result;
+        const { before_extended, active_new, after_extended } = result;
 
         const outContour = new c3d.Contour3D();
         const { ordered, radiuses } = ContourRebuilder.calculate(index, contour.GetSegments(), contour.IsClosed(), result, info);
@@ -267,7 +264,7 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
     }
 
     private process(info: OffsetPrecomputeInfo): OffsetResult {
-        const { before, active, after, active_tangent_begin, active_tangent_end, before_tmin, after_tmax, beforeIsAfter } = info;
+        const { before, active, after, before_tmin, after_tmax, beforeIsAfter } = info;
 
         const before_tangent_end = info.before_tangent_end.clone();
         const after_tangent_begin = info.after_tangent_begin.clone();
@@ -369,7 +366,6 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
                     }
 
                     return { before_extended, active_new, after_extended, radius: 0 }
-
                 }
             }
             case 'Arc3D:Polyline3D:Arc3D': {
@@ -412,7 +408,6 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
                 const after_ext_p = after_extended.GetLimitPoint(1);
 
                 const active_new: c3d.PolyCurve3D = new c3d.Polyline3D([before_ext_p, after_ext_p], false);
-                const foo: c3d.Curve3D = active_new;
                 return { before_extended, active_new, after_extended, radius: 0 };
             }
             case 'Polyline3D:Polyline3D:Arc3D':
@@ -509,9 +504,9 @@ export class ContourRebuilder {
         const beforeIsAfter = segments.length === 2 && isClosed;
 
         let numFillets = 0;
-        if (radiusBefore > 0) numFillets++;
-        if (radiusAfter > 0) numFillets++;
-        if (radius > 0) numFillets++;
+        if (radiusBefore !== 0) numFillets++;
+        if (radiusAfter !== 0) numFillets++;
+        if (radius !== 0) numFillets++;
         const numSegmentsWithoutFillets = segments.length - numFillets;
 
         const isAtEnd = index === segments.length - 1 || index === segments.length - 2 && radiusAfter > 0;
