@@ -429,7 +429,7 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
                 const before_ext_p = before_line.PointOn(before_line_t);
 
                 const { count: count2, result1: after_extended_result, result2: active_line_after_result } = c3d.ActionPoint.CurveCurveIntersection3D(after_extended, active_line, 10e-5);
-                if (count2 < 1) throw new Error();
+                if (count2 < 1) throw new Error("Can't satisfy intersection");
 
                 const active_line_tmax = Math.min(...active_line_after_result);
                 const index2 = active_line_after_result.findIndex((value) => value === active_line_tmax);
@@ -457,7 +457,7 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
                 const after_line = new c3d.Line3D(point2point(after_pmin), after.GetLimitPoint(2));
 
                 const { count: count1, result1: before_extended_result, result2: active_line_before_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_extended, active_line, 10e-5);
-                if (count1 < 1) throw new Error();
+                if (count1 < 1) throw new Error("Failed to intersect with before");
                 const active_line_tmin = Math.max(...active_line_before_result);
                 const index1 = active_line_before_result.findIndex((value) => value === active_line_tmin);
                 const before_ext_t = before_extended_result[index1];

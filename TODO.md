@@ -11,8 +11,7 @@
 - [ ] line2 raycasting bad in ortho camera  
 - [ ] more robust mirror and consolidated with symmetry  
 - [ ] performance audit hit testing and snaps - use gpu picking #performance  
-- [ ] memoize and discretize calculations like fillet  
-- #performance  
+- [ ] memoize and discretize calculations like fillet #performance  
 - [ ] memoize mesh generation of faces in mesh creator (for the duration of a command). #performance  
 - [ ] in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?  
 - [ ] showPhantoms() in ModifyContourPointFactory needs implementation  
