@@ -985,6 +985,45 @@ describe('Line:Arc:Line', () => {
             expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
         })
     });
+
+    describe('Filetted at both junctions (Arc:Arc:Line)', () => {
+        let filleted: visual.SpaceInstance<visual.Curve3D>;
+
+        beforeEach(async () => {
+            const makeFillet = new ContourFilletFactory(db, materials, signals);
+            makeFillet.contour = contour;
+            makeFillet.radiuses[1] = 0.1;
+            makeFillet.radiuses[0] = 0.1;
+            expect(makeFillet.cornerAngles.length).toBe(2);
+            filleted = await makeFillet.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            bbox.setFromObject(filleted);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+
+            const model = inst2curve(db.lookup(filleted)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(5);
+        })
+
+        it('offsets the fillet', async () => {
+            modifyContour.contour = filleted;
+            modifyContour.distance = -0.1;
+            modifyContour.segment = 3;
+            const result = await modifyContour.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            const model = inst2curve(db.lookup(result)) as c3d.Contour3D;
+            expect(model.GetSegmentsCount()).toBe(5);
+            expect(model.IsClosed()).toBe(false);
+    
+            bbox.setFromObject(result);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0.5, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-2, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(2, 1, 0));
+        })
+    });
 });
 
 describe('Line:Line:Arc', () => {

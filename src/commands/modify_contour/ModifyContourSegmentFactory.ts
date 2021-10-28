@@ -135,16 +135,17 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
         let radiusAfter = 0;
 
         if (before instanceof c3d.Arc3D && isSmoothlyConnected(before, active)) {
-            const before_before = segments[(index - 2 + segments.length) % segments.length];
+            let before_before = segments[(index - 2 + segments.length) % segments.length];
+            before_before = before_before.Cast<c3d.Curve3D>(before_before.IsA());
             
             const before_before_tmin = before_before.GetTMin();
             const before_before_tmax = before_before.GetTMax();
             const before_before_tangent_begin = vec2vec(before_before.Tangent(before_before_tmin), 1);
             const before_before_tangent_end = vec2vec(before_before.Tangent(before_before_tmax), 1);
-            if (isSmoothlyConnected(before_before, before, active)) {
+            if (!(before_before instanceof c3d.Arc3D) && isSmoothlyConnected(before_before, before, active)) {
                 radiusBefore = deunit(before.GetRadius());
 
-                before = before_before.Cast<c3d.Curve3D>(before_before.IsA());
+                before = before_before;
                 before_tmin = before_before_tmin;
                 const before_before_pmax = before.GetLimitPoint(2);
                 const before_before_ext_p = point2point(before_before_pmax).add(before_before_tangent_end);
@@ -166,17 +167,18 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
         }
 
         if (after instanceof c3d.Arc3D && isSmoothlyConnected(active, after)) {
-            const after_after = segments[(index + 2) % segments.length];
+            let after_after = segments[(index + 2) % segments.length];
+            after_after = after_after.Cast<c3d.Curve3D>(after_after.IsA());
             
             const after_after_tmin = after_after.GetTMin();
             const after_after_tmax = after_after.GetTMax();
             
             const after_after_tangent_begin = vec2vec(after_after.Tangent(after_after_tmin), 1).multiplyScalar(-1);
             const after_after_tangent_end = vec2vec(after_after.Tangent(after_after_tmax), 1).multiplyScalar(-1);
-            if (isSmoothlyConnected(active, after, after_after)) {
+            if (!(after_after instanceof c3d.Arc3D) && isSmoothlyConnected(active, after, after_after)) {
                 radiusAfter = deunit(after.GetRadius());
 
-                after = after_after.Cast<c3d.Curve3D>(after_after.IsA());
+                after = after_after;
                 after_tmax = after_after_tmax;
                 const after_after_pmin = after.GetLimitPoint(1);
                 const after_after_ext_p = point2point(after_after_pmin).add(after_after_tangent_begin);
