@@ -280,6 +280,11 @@ export default {
             extends: "Curve",
             dependencies: ["Curve.h"],
         },
+        Polyline: {
+            rawHeader: "cur_polyline.h",
+            extends: "PolyCurve",
+            dependencies: ["PolyCurve.h"],
+        },
         Contour: {
             rawHeader: "cur_contour.h",
             extends: "Curve",
@@ -1041,9 +1046,10 @@ export default {
         Polyline3D: {
             rawHeader: "cur_polyline3d.h",
             extends: "PolyCurve3D",
-            dependencies: ["PolyCurve3D.h", "CartPoint3D.h"],
+            dependencies: ["PolyCurve3D.h", "CartPoint3D.h", "Polyline.h"],
             initializers: [
-                "const SArray<MbCartPoint3D> & initList, bool closed"
+                "const SArray<MbCartPoint3D> & initList, bool closed",
+                "const MbPolyline & polyline, const MbPlacement3D &placement",
             ],
             functions: [
                 { signature: "MbItem * Cast()", isManual: true },

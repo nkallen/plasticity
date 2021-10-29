@@ -350,6 +350,8 @@ export function curve2d2curve3d(curve: c3d.Curve, placement: c3d.Placement3D): c
         return new c3d.Arc3D(cast, placement);
     } else if (cast instanceof c3d.Nurbs) {
         return c3d.Nurbs3D.Create(cast, placement)!;
+    } else if (cast instanceof c3d.Polyline) {
+        return new c3d.Polyline3D(cast, placement)!;
     } else {
         throw new Error("Unsupported curve: " + cast.constructor.name);
     }
