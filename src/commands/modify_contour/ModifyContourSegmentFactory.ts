@@ -137,7 +137,7 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
         if (before instanceof c3d.Arc3D && isSmoothlyConnected(before, active)) {
             let before_before = segments[(index - 2 + segments.length) % segments.length];
             before_before = before_before.Cast<c3d.Curve3D>(before_before.IsA());
-            
+
             const before_before_tmin = before_before.GetTMin();
             const before_before_tmax = before_before.GetTMax();
             const before_before_tangent_begin = vec2vec(before_before.Tangent(before_before_tmin), 1);
@@ -169,10 +169,10 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
         if (after instanceof c3d.Arc3D && isSmoothlyConnected(active, after)) {
             let after_after = segments[(index + 2) % segments.length];
             after_after = after_after.Cast<c3d.Curve3D>(after_after.IsA());
-            
+
             const after_after_tmin = after_after.GetTMin();
             const after_after_tmax = after_after.GetTMax();
-            
+
             const after_after_tangent_begin = vec2vec(after_after.Tangent(after_after_tmin), 1).multiplyScalar(-1);
             const after_after_tangent_end = vec2vec(after_after.Tangent(after_after_tmax), 1).multiplyScalar(-1);
             if (!(active instanceof c3d.Arc3D && after_after instanceof c3d.Arc3D) && isSmoothlyConnected(active, after, after_after)) {
@@ -432,7 +432,6 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
                 normal.multiplyScalar(distance);
 
                 const active_line = new c3d.Line3D(point2point(before_pmax), point2point(after_pmin));
-                active_line.Move(vec2vec(normal));
 
                 let before_extended = before.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
                 before_extended.MakeTrimmed(0, 2 * Math.PI);
@@ -440,24 +439,47 @@ export class ModifyContourSegmentFactory extends GeometryFactory {
                 let after_extended = after.Duplicate().Cast<c3d.Arc3D>(c3d.SpaceType.Arc3D);
                 after_extended.MakeTrimmed(0, 2 * Math.PI);
 
+                // FIXME Extract this to method and unit test (it's hard to integration test)
+                let index_after = 0;
+                {
+                    const { count: count0, result2: active_result } = c3d.ActionPoint.CurveCurveIntersection3D(after_extended, active_line, 10e-5);
+                    if (count0 !== 2) throw new Error();
+                    active_result.sort(asc);
+                    if (point2point(active_line.PointOn(active_result[0])).manhattanDistanceTo(after_pmin) > 10e-4) {
+                        index_after = 1;
+                    }
+                }
+
+                let index_before = 0;
+                {
+                    const { count: count0, result2: active_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_extended, active_line, 10e-5);
+                    if (count0 !== 2) throw new Error();
+                    active_result.sort(asc);
+                    if (point2point(active_line.PointOn(active_result[0])).manhattanDistanceTo(before_pmax) > 10e-4) {
+                        index_before = 1;
+                    }
+                }
+
+                active_line.Move(vec2vec(normal));
+
                 const { count: count2, result1: after_extended_result, result2: active_line_after_result } = c3d.ActionPoint.CurveCurveIntersection3D(after_extended, active_line, 10e-5);
                 if (count2 < 1) throw new Error();
-                const active_line_tmax = Math.min(...active_line_after_result.filter(t => t > 0));
+                const active_line_tmax = [...active_line_after_result].sort(asc)[index_after];
                 const index2 = active_line_after_result.findIndex(value => value === active_line_tmax);
                 const after_ext_t = after_extended_result[index2];
                 if (after_ext_t === undefined) throw new Error();
 
                 if (beforeIsAfter) {
                     if (count2 !== 2) throw new Error();
-                    before_extended.MakeTrimmed(after_extended_result[(index2 + 1) % 2], after_ext_t);
+                    before_extended.MakeTrimmed(after_ext_t, after_extended_result[(index2 + 1) % 2]);
                     after_extended = before_extended;
                 } else {
                     const { count: count1, result1: before_extended_result, result2: active_line_before_result } = c3d.ActionPoint.CurveCurveIntersection3D(before_extended, active_line, 10e-5);
                     if (count1 < 1) throw new Error();
-                    const active_line_tmin = Math.max(...active_line_before_result.filter(t => t < active_line_tmax));
+                    const active_line_tmin = [...active_line_before_result].sort(asc)[index_before];
+                    if (!isFinite(active_line_tmin)) throw new Error();
                     const index1 = active_line_before_result.findIndex((value) => value === active_line_tmin);
                     const before_ext_t = before_extended_result[index1];
-                    if (before_ext_t === undefined) throw new Error();
 
                     before_extended.MakeTrimmed(before_tmin, before_ext_t);
                     after_extended.MakeTrimmed(after_ext_t, after_tmax);
@@ -624,3 +646,5 @@ export class ContourRebuilder {
         return { ordered, radiuses };
     }
 }
+
+function asc(a: number, b: number) { return a - b }

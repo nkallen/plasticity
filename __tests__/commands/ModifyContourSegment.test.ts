@@ -1166,7 +1166,7 @@ describe('Arc:Line:Line', () => {
     })
 })
 
-describe('A half moon (Arc:Line[closed])', () => {
+describe('A half moon (Arc:Line[closed] beforeIsAfter)', () => {
     beforeEach(async () => {
         const makeLine1 = new LineFactory(db, materials, signals);
         makeLine1.p1 = new THREE.Vector3(1, 0, 0);
@@ -1241,7 +1241,7 @@ describe('A half moon (Arc:Line[closed])', () => {
         expect(ordered[0]).toBe(active_new);
         expect(ordered[1]).toBe(after_extended);
     })
-})
+});
 
 describe('A half moon in the other direction (Line:Arc[closed])', () => {
     beforeEach(async () => {
