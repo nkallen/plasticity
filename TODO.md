@@ -18,6 +18,7 @@
 - [ ] Nearpointprojection needs to be errorbool  
 - [ ] Trim command should allow splitting segments  
 - [ ] Trim command should allow points  
+- [ ] Trim should allow box selecting  
 - [ ] Move/Translate allows face selection #bug  
 - [ ] Box select during active command allows selecting faces that will be deleted #bug  
 - [ ] Some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)  

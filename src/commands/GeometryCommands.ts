@@ -912,6 +912,7 @@ abstract class AbstractFreestyleScaleCommand extends Command {
             referenceLine.update();
         }).resource(this);
         scale.from(p1, p2);
+        pointPicker.addSnap(new PointSnap("zero", p1));
 
         pointPicker.restrictToLine(p1, scale.ref);
         await pointPicker.execute(({ point: p3 }) => {
