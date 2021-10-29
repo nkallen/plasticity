@@ -1,7 +1,7 @@
 import * as visual from '../../editor/VisualModel';
 import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 import * as THREE from "three";
 
 export default class OffsetCurveFactory extends GeometryFactory {
@@ -120,10 +120,17 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
 
     async calculate() {
         const { _curve: curve, distance, names } = this;
+        if (distance === 0) throw new NoOpError();
+
         const dist = unit(distance);
-        const vec = curve.IsClosed() ? new c3d.Vector3D(dist, 0, 0) : new c3d.Vector3D(-dist, -dist, 0);
-        const params = new c3d.SpatialOffsetCurveParams(vec, names);
-        const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, params);
-        return new c3d.SpaceInstance(wireframe.GetCurves()[0]);
+        if (curve.IsPlanar()) {
+            const result = await c3d.ActionSurfaceCurve.OffsetPlaneCurve_async(curve, dist);
+            return new c3d.SpaceInstance(result);
+        } else {
+            const vec = new c3d.Vector3D(0, dist, 0);
+            const params = new c3d.SpatialOffsetCurveParams(vec, names);
+            const wireframe = await c3d.ActionSurfaceCurve.OffsetCurve_async(curve, params);
+            return new c3d.SpaceInstance(wireframe.GetCurves()[0]);
+        }
     }
 }

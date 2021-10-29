@@ -86,8 +86,8 @@ describe(OffsetSpaceCurveFactory, () => {
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3());
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.1, -1.1, 0));
-            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.1, 1.1, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.9, -0.9, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.9, 0.9, 0));
         });
     });
 
@@ -114,9 +114,9 @@ describe(OffsetSpaceCurveFactory, () => {
             const bbox = new THREE.Box3().setFromObject(curve);
             const center = new THREE.Vector3();
             bbox.getCenter(center);
-            expect(center).toApproximatelyEqual(new THREE.Vector3(0.57, 0.43, 0));
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -0.14, 0));
-            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.14, 1, 0));
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.45, 0.55, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0.1, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.9, 1, 0));
         });
     });
 });
@@ -151,8 +151,8 @@ describe(OffsetCurveFactory, () => {
             const center = new THREE.Vector3();
             bbox.getCenter(center);
             expect(center).toApproximatelyEqual(new THREE.Vector3());
-            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.1, -1.1, 0));
-            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.1, 1.1, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.9, -0.9, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(0.9, 0.9, 0));
         });
     });
 
