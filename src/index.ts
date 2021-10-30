@@ -29,6 +29,7 @@ const createWindow = (): void => {
         x: 0,
         y: 0,
         show: false,
+        autoHideMenuBar: true,
         webPreferences: {
             // preload: path.join(path.join(__dirname, 'preload.js')),
             nodeIntegration: true,

@@ -292,7 +292,9 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
             case c3d.SpaceType.Polyline3D:
                 const polyline = item.Cast<c3d.Polyline3D>(item.IsA());
                 const segments = polyline2segments(polyline);
-                for (const seg of segments) result.AddCurveWithRuledCheck(seg, 10e-5, true);
+                for (const seg of segments) {
+                    result.AddCurveWithRuledCheck(seg, 10e-5, true);
+                }
                 break;
             case c3d.SpaceType.Contour3D:
                 const decompose = item.Cast<c3d.Contour3D>(item.IsA());
@@ -309,7 +311,7 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
                     const tmax = trimmed.GetTMax();
                     const keep = ts.filter(t => t > tmin && t < tmax);
                     const points = [trimmed.GetLimitPoint(1), ...keep.map(t => cast._PointOn(t)), trimmed.GetLimitPoint(2)];
-                    process.push(new c3d.Polyline3D(points, false));
+                    result.AddCurveWithRuledCheck(new c3d.Polyline3D(points, false), 10e-5, true);
                 } else {
                     console.warn("Unsupported trimmed curve: " + c3d.SpaceType[basis.IsA()]);
                     result.AddCurveWithRuledCheck(trimmed.Duplicate().Cast<c3d.Curve3D>(trimmed.IsA()), 10e-5, true);
