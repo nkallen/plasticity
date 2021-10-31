@@ -29,7 +29,6 @@ const createWindow = (): void => {
         x: 0,
         y: 0,
         show: false,
-        autoHideMenuBar: true,
         webPreferences: {
             // preload: path.join(path.join(__dirname, 'preload.js')),
             nodeIntegration: true,
@@ -38,6 +37,7 @@ const createWindow = (): void => {
             enableRemoteModule: true,
         }
     });
+    mainWindow.removeMenu();
 
     // and load the index.html of the app.
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
