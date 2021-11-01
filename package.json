@@ -151,5 +151,6 @@
         "stats.js": "^0.17.0",
         "three": "^0.132.2",
         "underscore-plus": "^1.7.0"
-    }
+    },
+    "packageManager": "yarn@3.1.0"
 }

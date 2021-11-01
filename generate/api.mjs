@@ -788,7 +788,7 @@ export default {
         },
         SurfaceIntersectionCurve: {
             rawHeader: "cur_surface_intersection.h",
-            dependencies: ["Surface.h", "Curve3D.h", "Curve.h"],
+            dependencies: ["Surface.h", "Curve3D.h", "Curve.h", "SurfaceCurve.h"],
             extends: "Curve3D",
             functions: [
                 "const MbSurface * GetSurfaceOne()",
@@ -799,8 +799,14 @@ export default {
                 // "const MbSurfaceCurve * GetSCurveTwo()",
                 "const MbCurve * GetPCurveOne()",
                 "const MbCurve * GetPCurveTwo()",
+                "const MbSurfaceCurve *	GetSCurveOne()",
+                "const MbSurfaceCurve *	GetSCurveTwo()",
+                "const MbCurve3D * GetSpaceCurve()",
+                // "const MbCurve3D & GetCurveOne()",
+                // "const MbCurve3D & GetCurveTwo()",
                 { signature: "const MbSurface & GetCurveOneSurface()", return: isOnHeap },
                 { signature: "const MbSurface & GetCurveTwoSurface()", return: isOnHeap },
+                { signature: "MbItem * Cast()", isManual: true },
             ]
         },
         CurveEdge: {

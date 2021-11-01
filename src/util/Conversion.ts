@@ -276,8 +276,7 @@ export async function polyline2contour(polyline: c3d.Polyline3D): Promise<c3d.Co
 }
 
 // FIXME: Refactor this mess. In addition to the switch(IsA) vs instanceof inconsistency, the use of process.push() is unsafe because it can
-// reorder things. Probably(?) only contours should use push, otherwise everyone else should use unshift? In other words, this needs to be depth
-// first and right now it's anarchy
+// reorder things.  
 
 export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D> {
     const result = new c3d.Contour3D();
@@ -322,7 +321,12 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
                 const cast = item.Cast<c3d.PlaneCurve>(item.IsA());
                 const { placement, curve2d } = cast.GetPlaneCurve(false);
                 const curve3d = curve2d2curve3d(curve2d, placement);
-                process.push(curve3d);
+                process.unshift(curve3d);
+                break;
+            }
+            case c3d.SpaceType.SurfaceIntersectionCurve: {
+                const cast = item.Cast<c3d.SurfaceIntersectionCurve>(item.IsA());
+                process.unshift(cast.GetSpaceCurve()!);
                 break;
             }
             default:
