@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] If there is a solid and two curves. Select solid and SHIFT-H. Get an error like: "touched is not iterable" #bug  
 - [ ] Redo titlebar to save space  
 - [ ] crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196  
 - [ ] performance audit hit testing and snaps - use gpu picking #performance  
@@ -21,7 +22,6 @@
 - [ ] PointPicker: Restrictions are ignored with choice -  
 - [ ] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
 - [ ] currently FINISH is always available, even at step 1 of 3 points box. #bug - registry.add(command:finish) should maybe not happen in command executor but in await this.finished  
-- [ ] If there is a solid and two curves. Select solid and SHIFT-H. Get an error like: "touched is not iterable" #bug  
 - [ ] ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909  
 - #bug  
 - [ ] rename Id() .id  
