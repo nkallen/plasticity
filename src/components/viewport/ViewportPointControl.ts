@@ -43,11 +43,11 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
     protected endHover(): void { }
 
     private mode: Mode = { tag: 'none' };
-    protected startClick(intersections: Intersection[]): void {
-        if (intersections.length === 0) return;
+    protected startClick(intersections: Intersection[]): boolean {
+        if (intersections.length === 0) return false;
         const first = intersections[0];
-        if (!(first.object instanceof visual.ControlPoint)) return;
-        if (this.domElement.ownerDocument.body.hasAttribute('gizmo')) return;
+        if (!(first.object instanceof visual.ControlPoint)) return false;
+        if (this.domElement.ownerDocument.body.hasAttribute('gizmo')) return false;
 
         switch (this.mode.tag) {
             case 'none':
@@ -66,6 +66,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
                 break;
             default: throw new Error("invalid state");
         }
+        return true;
     }
 
     protected endClick(intersections: Intersection[]): void {
@@ -153,9 +154,7 @@ class MoveControlPointCommand extends CommandLike {
     controlPoint!: visual.ControlPoint;
     gizmo!: GizmoLike<(delta: THREE.Vector3) => void>;
 
-    constructor(
-        editor: cmd.EditorLike,
-    ) { super(editor) }
+    constructor(editor: cmd.EditorLike) { super(editor) }
 
     async execute(): Promise<void> {
         const { controlPoint, gizmo } = this;

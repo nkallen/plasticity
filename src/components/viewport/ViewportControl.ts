@@ -73,6 +73,9 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             case 'none':
                 getMousePosition(this.domElement, downEvent.clientX, downEvent.clientY, this.onDownPosition);
 
+                const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
+                if (!this.startClick(intersectable.filterIntersections(intersects))) return;
+
                 const disposable = new CompositeDisposable();
 
                 document.addEventListener('pointerup', this.onPointerUp);
@@ -81,8 +84,9 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 disposable.add(new Disposable(() => document.removeEventListener('pointerup', this.onPointerUp)));
                 disposable.add(new Disposable(() => this.dispatchEvent({ type: 'end' })));
 
-                const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
-                this.startClick(intersectable.filterIntersections(intersects));
+                downEvent.preventDefault();
+                downEvent.stopPropagation();
+                downEvent.stopImmediatePropagation();
 
                 this.state = { tag: 'down', disposable, downEvent };
 
@@ -169,7 +173,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected abstract startHover(intersections: intersectable.Intersection[]): void;
     protected abstract continueHover(intersections: intersectable.Intersection[]): void;
     protected abstract endHover(): void;
-    protected abstract startClick(intersections: intersectable.Intersection[]): void;
+    protected abstract startClick(intersections: intersectable.Intersection[]): boolean;
     protected abstract endClick(intersections: intersectable.Intersection[]): void;
     protected abstract startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
     protected abstract continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;

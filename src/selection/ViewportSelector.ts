@@ -37,7 +37,9 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.processBoxHover(intersectable.filterMeshes(selected));
     }    
 
-    startClick(intersections: intersectable.Intersection[]) {}
+    startClick(intersections: intersectable.Intersection[]) {
+        return true;
+    }
 
     endClick(intersections: intersectable.Intersection[]) {
         this.processClick(intersections);
