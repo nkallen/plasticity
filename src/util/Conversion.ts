@@ -286,7 +286,7 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
         switch (item.IsA()) {
             case c3d.SpaceType.LineSegment3D:
                 const segment = item.Cast<c3d.LineSegment3D>(item.IsA());
-                result.AddCurveWithRuledCheck(new c3d.Polyline3D([segment.GetLimitPoint(1), segment.GetLimitPoint(2)], false));
+                result.AddCurveWithRuledCheck(new c3d.Polyline3D([segment.GetLimitPoint(1), segment.GetLimitPoint(2)], false), 10e-5, true);
                 break;
             case c3d.SpaceType.Polyline3D:
                 const polyline = item.Cast<c3d.Polyline3D>(item.IsA());
