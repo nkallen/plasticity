@@ -181,6 +181,7 @@ interface GizmoInfo<T> {
     gizmo: AbstractGizmo<T>;
     addEventHandlers: () => Disposable;
 }
+
 class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
     private readonly map: GizmoInfo<T>[] = [];
     private readonly raycaster = new THREE.Raycaster();
@@ -198,6 +199,11 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
                 winner.gizmo.stateMachine!.update(viewport, event);
                 winner.gizmo.stateMachine!.pointerDown(() => {
                     domElement.ownerDocument.body.setAttribute("gizmo", this.title);
+
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+
                     viewport.disableControls();
                     return winner!.addEventHandlers();
                 });
@@ -227,10 +233,11 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
                 winner.gizmo.stateMachine!.pointerHover();
             }
 
-            domElement.addEventListener('pointerdown', onPointerDown);
+            // NOTE: Gizmos take priority over viewport controls; capture:true it's received first here.
+            domElement.addEventListener('pointerdown', onPointerDown, { capture: true });
             domElement.addEventListener('pointermove', onPointerHover);
             disposable.add(new Disposable(() => {
-                domElement.removeEventListener('pointerdown', onPointerDown);
+                domElement.removeEventListener('pointerdown', onPointerDown, { capture: true });
                 domElement.removeEventListener('pointermove', onPointerHover);
             }));
         }

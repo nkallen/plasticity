@@ -192,6 +192,10 @@ export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
         const onPointerDown = (event: PointerEvent) => {
             stateMachine.update(viewport, event);
             stateMachine.pointerDown(() => {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+
                 domElement.ownerDocument.body.setAttribute("gizmo", this.title);
                 viewport.disableControls();
                 return addEventHandlers();
@@ -207,11 +211,12 @@ export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
             stateMachine.pointerHover();
         }
 
-        domElement.addEventListener('pointerdown', onPointerDown);
+        // NOTE: Gizmos take priority over viewport controls; capture:true it's received first here.
+        domElement.addEventListener('pointerdown', onPointerDown, { capture: true });
         domElement.addEventListener('pointermove', onPointerHover);
         domElement.ownerDocument.addEventListener('keypress', onKeyPress);
         return new Disposable(() => {
-            domElement.removeEventListener('pointerdown', onPointerDown);
+            domElement.removeEventListener('pointerdown', onPointerDown, { capture: true });
             domElement.removeEventListener('pointermove', onPointerHover);
             domElement.ownerDocument.removeEventListener('keypress', onKeyPress);
             domElement.ownerDocument.body.removeAttribute('gizmo');

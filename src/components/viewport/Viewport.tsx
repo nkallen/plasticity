@@ -290,11 +290,11 @@ export class Viewport {
     }
 
     disableControls() {
-        this.selector.enabled = this.navigationControls.enabled = false;
+        this.selector.enabled = this.navigationControls.enabled = this.points.enabled = false;
     }
 
     enableControls() {
-        this.selector.enabled = this.navigationControls.enabled = true;
+        this.selector.enabled = this.navigationControls.enabled = this.points.enabled = true;
     }
 
     private navigationState: NavigationState = { tag: 'none' }
