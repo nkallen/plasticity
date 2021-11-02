@@ -36,7 +36,6 @@
 - [ ] Refactor curve extension code  
 - [ ] Curve generated flatten can't be edited  
 - [ ] line2 raycasting bad in ortho camera  
-- [ ] camera near plane sucks with ortho now  
 - [ ] Viewport: save state  
 - [ ] more robust mirror and consolidated with symmetry  
 - [ ] Some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)  
@@ -45,6 +44,7 @@
 
 ### In Progress
 
+- [ ] camera near plane sucks with ortho now  
 
 ### Done ✓
 

@@ -389,8 +389,8 @@ export class Viewport {
     }
 
     focus() {
-        const solids = this.editor.selection.selected.solids;
-        this.navigationControls.focus([...solids], this.editor.db.visibleObjects);
+        const { solids, curves, regions, controlPoints } = this.editor.selection.selected;
+        this.navigationControls.focus([...solids, ...curves, ...regions, ...controlPoints], this.editor.db.visibleObjects);
     }
 
     private _isOrtho = false;
