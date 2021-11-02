@@ -193,7 +193,7 @@ export default {
     },
 
     "orbit-controls": {
-        "mouse1": "orbit:rotate",
+        "ctrl-mouse0": "orbit:rotate",
         "mouse2": "orbit:pan",
     },
 

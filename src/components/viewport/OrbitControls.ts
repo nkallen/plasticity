@@ -17,7 +17,8 @@ type Camera = THREE.Camera & {
     isOrthographicCamera: boolean,
     fov: number,
 };
-type State = 'none' | 'rotate' | 'dolly' | 'pan'
+
+type State = 'none' | 'rotate' | 'dolly' | 'pan' | 'touch-rotate' | 'touch-dolly-pan' | 'touch-pan' | 'touch-dolly-rotate';
 
 export class OrbitControls extends THREE.EventDispatcher {
     private state: State = 'none';
@@ -51,6 +52,7 @@ export class OrbitControls extends THREE.EventDispatcher {
     enablePan = true;
 
     mouseButtons: Record<string, string>;
+    touches: Record<string, string>;
 
     private readonly target0 = this.target.clone();
     private readonly position0 = this.object.position.clone();
@@ -60,8 +62,8 @@ export class OrbitControls extends THREE.EventDispatcher {
         super();
         domElement.style.touchAction = 'none';
 
+        let bindings = keymaps.getKeyBindings();
         MouseButtons: {
-            let bindings = keymaps.getKeyBindings();
             bindings = bindings.filter(b => b.selector == 'orbit-controls');
             const r = bindings.filter(b => b.command == 'orbit:rotate').sort((a, b) => a.compare(b))[0];
             const p = bindings.filter(b => b.command == 'orbit:pan').sort((a, b) => a.compare(b))[0];
@@ -72,8 +74,12 @@ export class OrbitControls extends THREE.EventDispatcher {
             if (d !== undefined) mouseButtons[d.keystrokes] = d.command;
             this.mouseButtons = mouseButtons;
         }
+        Touches: {
+            this.touches = { 1: 'orbit:rotate', 2: 'orbit:dolly-pan' };
+        }
 
         this.onContextMenu = this.onContextMenu.bind(this);
+        this.onTouchStart = this.onTouchStart.bind(this);
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerCancel = this.onPointerCancel.bind(this);
         this.onMouseWheel = this.onMouseWheel.bind(this);
@@ -282,7 +288,7 @@ export class OrbitControls extends THREE.EventDispatcher {
         this.addPointer(event);
 
         if (event.pointerType === 'touch') {
-            // onTouchStart(event);
+            this.onTouchStart(event);
         } else {
             this.onMouseDown(event);
         }
@@ -293,7 +299,7 @@ export class OrbitControls extends THREE.EventDispatcher {
         if (enabled === false) return;
 
         if (event.pointerType === 'touch') {
-            // onTouchMove(event);
+            this.onTouchMove(event);
         } else {
             this.onMouseMove(event);
         }
@@ -304,7 +310,7 @@ export class OrbitControls extends THREE.EventDispatcher {
         if (enabled === false) return;
 
         if (event.pointerType === 'touch') {
-            // onTouchEnd();
+            this.onTouchEnd(event);
         } else {
             this.onMouseUp(event);
         }
@@ -412,6 +418,179 @@ export class OrbitControls extends THREE.EventDispatcher {
         this.update();
         this.dispatchEvent(endEvent);
     }
+
+    onTouchStart(event: PointerEvent) {
+        this.trackTouch(event);
+        switch (this.touches[this.pointers.length]) {
+            case 'orbit:rotate':
+                if (!this.enableRotate) return;
+                this.handleTouchStartRotate();
+                this.state = 'touch-rotate';
+                break;
+            case 'orbit:dolly-pan':
+                if (!this.enableZoom && !this.enablePan) return;
+                this.handleTouchStartDollyPan();
+                this.state = 'touch-dolly-pan';
+                break;
+            default:
+                this.state = 'none';
+        }
+
+        if (this.state !== 'none') this.dispatchEvent(startEvent);
+    }
+
+    onTouchMove(event: PointerEvent) {
+        this.trackTouch(event);
+        switch (this.state) {
+            case 'touch-rotate':
+                if (this.enableRotate === false) return;
+                this.handleTouchMoveRotate(event);
+                this.update();
+                break;
+            case 'touch-pan':
+                if (this.enablePan === false) return;
+                this.handleTouchMovePan(event);
+                this.update();
+                break;
+            case 'touch-dolly-pan':
+                if (this.enableZoom === false && this.enablePan === false) return;
+                this.handleTouchMoveDollyPan(event);
+                this.update();
+                break;
+            case 'touch-dolly-rotate':
+                if (this.enableZoom === false && this.enableRotate === false) return;
+                this.handleTouchMoveDollyRotate(event);
+                this.update();
+                break;
+            default:
+                this.state = 'none';
+        }
+    }
+
+    onTouchEnd(event: PointerEvent) {
+        // this.handleTouchEnd(event);
+        this.dispatchEvent(endEvent);
+        this.state = 'none';
+    }
+
+    private readonly pointerPosition = new Map<number, THREE.Vector2>();
+    private trackTouch(event: PointerEvent) {
+        let position = this.pointerPositions.get(event.pointerId);
+        if (position === undefined) {
+            position = new THREE.Vector2();
+            this.pointerPositions.set(event.pointerId, position);
+        }
+
+        position.set(event.pageX, event.pageY);
+    }
+
+    private getSecondPointerPosition(event: PointerEvent): THREE.Vector2 {
+        const pointer = (event.pointerId === this.pointers[0].pointerId) ? this.pointers[1] : this.pointers[0];
+        return this.pointerPositions.get(pointer.pointerId);
+    }
+
+    private handleTouchStartRotate() {
+        const { pointers, rotateStart } = this;
+        if (pointers.length === 1) {
+            rotateStart.set(pointers[0].pageX, pointers[0].pageY);
+        } else {
+            const x = 0.5 * (pointers[0].pageX + pointers[1].pageX);
+            const y = 0.5 * (pointers[0].pageY + pointers[1].pageY);
+            rotateStart.set(x, y);
+        }
+    }
+
+    private handleTouchStartPan() {
+        const { pointers, panStart } = this;
+        if (pointers.length === 1) {
+            panStart.set(pointers[0].pageX, pointers[0].pageY);
+        } else {
+            const x = 0.5 * (pointers[0].pageX + pointers[1].pageX);
+            const y = 0.5 * (pointers[0].pageY + pointers[1].pageY);
+            panStart.set(x, y);
+        }
+    }
+
+    private handleTouchStartDolly() {
+        const { pointers, dollyStart } = this;
+        const dx = pointers[0].pageX - pointers[1].pageX;
+        const dy = pointers[0].pageY - pointers[1].pageY;
+
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        dollyStart.set(0, distance);
+    }
+
+    private handleTouchStartDollyPan() {
+        if (this.enableZoom) this.handleTouchStartDolly();
+        if (this.enablePan) this.handleTouchStartPan();
+    }
+
+    private handleTouchStartDollyRotate() {
+        if (this.enableZoom) this.handleTouchStartDolly();
+        if (this.enableRotate) this.handleTouchStartRotate();
+    }
+
+    private handleTouchMoveRotate(event: PointerEvent) {
+        const { pointers, rotateDelta, rotateEnd, rotateStart, domElement, rotateSpeed, sphericalDelta } = this;
+        if (pointers.length == 1) {
+            rotateEnd.set(event.pageX, event.pageY);
+        } else {
+            const position = this.getSecondPointerPosition(event);
+            const x = 0.5 * (event.pageX + position.x);
+            const y = 0.5 * (event.pageY + position.y);
+            rotateEnd.set(x, y);
+        }
+
+        rotateDelta.subVectors(rotateEnd, rotateStart).multiplyScalar(rotateSpeed);
+        sphericalDelta.theta = -(2 * Math.PI * rotateDelta.x / domElement.clientHeight); // yes, height
+        sphericalDelta.phi = -(2 * Math.PI * rotateDelta.y / domElement.clientHeight);
+        rotateStart.copy(rotateEnd);
+    }
+
+    private readonly touchMovePan = new THREE.Vector3();
+    private handleTouchMovePan(event: PointerEvent) {
+        const { pointers, panEnd, panDelta, panStart, panSpeed, touchMovePan } = this;
+        if (pointers.length === 1) {
+            panEnd.set(event.pageX, event.pageY);
+        } else {
+            const position = this.getSecondPointerPosition(event);
+
+            const x = 0.5 * (event.pageX + position.x);
+            const y = 0.5 * (event.pageY + position.y);
+
+            panEnd.set(x, y);
+        }
+        panDelta.subVectors(panEnd, panStart).multiplyScalar(panSpeed);
+
+        this.pan(touchMovePan.set(panDelta.x, panDelta.y, 0));
+        panStart.copy(panEnd);
+    }
+
+    private handleTouchMoveDolly(event: PointerEvent) {
+        const { dollyEnd, dollyDelta, dollyStart, zoomSpeed } = this;
+        const position = this.getSecondPointerPosition(event);
+
+        const dx = event.pageX - position.x;
+        const dy = event.pageY - position.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        dollyEnd.set(0, distance);
+        dollyDelta.set(0, Math.pow(dollyEnd.y / dollyStart.y, zoomSpeed));
+        this.dolly(-dollyDelta.y);
+        dollyStart.copy(dollyEnd);
+    }
+
+    private handleTouchMoveDollyPan(event: PointerEvent) {
+        if (this.enableZoom) this.handleTouchMoveDolly(event);
+        if (this.enablePan) this.handleTouchMovePan(event);
+    }
+
+    private handleTouchMoveDollyRotate(event: PointerEvent) {
+        if (this.enableZoom) this.handleTouchMoveDolly(event);
+        if (this.enableRotate) this.handleTouchMoveRotate(event);
+    }
+
     private get zoomScale() { return Math.pow(0.95, this.zoomSpeed) }
 
     private dolly(dollyScale: number) {
