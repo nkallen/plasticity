@@ -1,5 +1,7 @@
+import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from '../commands/mirror/MirrorFactory';
+import { ProxyCamera } from '../components/viewport/ProxyCamera';
 import { RefCounter } from '../util/Util';
 import ContourManager from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
@@ -59,6 +61,82 @@ export class SelectionMemento {
         readonly selectedRegionIds: Set<c3d.SimpleName>,
         readonly selectedControlPointIds: Set<string>,
     ) { }
+}
+
+export class CameraMemento {
+    constructor(
+        readonly mode: ProxyCamera["mode"],
+        readonly position: THREE.Vector3,
+        readonly quaternion: THREE.Quaternion,
+        readonly zoom: number,
+        readonly offsetWidth: number,
+        readonly offsetHeight: number,
+    ) { }
+
+    toJSON() {
+        return JSON.stringify({
+            mode: this.mode,
+            position: this.position.toArray(),
+            quaternion: this.quaternion.toArray(),
+            zoom: this.zoom,
+            offsetWidth: this.offsetWidth,
+            offsetHeight: this.offsetHeight
+        });
+    }
+
+    static fromJSON(data: string): CameraMemento {
+        const p = JSON.parse(data);
+        const { mode, zoom, offsetWidth, offsetHeight } = p;
+        const position = new THREE.Vector3().fromArray(p.position);
+        const quaternion = new THREE.Quaternion().fromArray(p.quaternion);
+        return new CameraMemento(mode, position, quaternion, zoom, offsetWidth, offsetHeight);
+    }
+}
+
+export class ConstructionPlaneMemento {
+    constructor(
+        readonly n: THREE.Vector3,
+        readonly o: THREE.Vector3
+    ) { }
+
+    toJSON() {
+        return JSON.stringify({
+            n: this.n.toArray(),
+            o: this.o.toArray(),
+        });
+    }
+
+    static fromJSON(data: string): ConstructionPlaneMemento {
+        const p = JSON.parse(data);
+        const n = new THREE.Vector3().fromArray(p.n);
+        const o = new THREE.Vector3().fromArray(p.o);
+        return new ConstructionPlaneMemento(n, o);
+    }
+}
+
+export class ViewportMemento {
+    constructor(
+        readonly camera: CameraMemento,
+        readonly target: THREE.Vector3,
+        readonly constructionPlane: ConstructionPlaneMemento,
+    ) { }
+
+    serialize(): Buffer {
+        const string = JSON.stringify({
+            camera: this.camera.toJSON(),
+            target: this.target.toArray(),
+            constructionPlane: this.constructionPlane.toJSON(),
+        });
+        return Buffer.from(string);
+    }
+
+    static deserialize(data: Buffer): ViewportMemento {
+        const p = JSON.parse(data.toString());
+        const camera = CameraMemento.fromJSON(p.camera);
+        const target = new THREE.Vector3().fromArray(p.target);
+        const constructionPlane = ConstructionPlaneMemento.fromJSON(p.constructionPlane);
+        return new ViewportMemento(camera, target, constructionPlane);
+    }
 }
 
 export class SnapMemento {
@@ -176,6 +254,7 @@ export class ModifierStackMemento {
 export type StateChange = (f: () => void) => void;
 
 type OriginatorState = { tag: 'start' } | { tag: 'group', memento: Memento }
+
 export class EditorOriginator {
     private state: OriginatorState = { tag: 'start' }
     private version = 0;
@@ -188,6 +267,7 @@ export class EditorOriginator {
         readonly curves: MementoOriginator<CurveMemento>,
         readonly contours: ContourManager,
         readonly modifiers: MementoOriginator<ModifierMemento>,
+        readonly viewports: MementoOriginator<ViewportMemento>[],
     ) { }
 
     group(fn: () => void) {
@@ -238,19 +318,49 @@ export class EditorOriginator {
     async serialize(): Promise<Buffer> {
         const db = await this.db.serialize();
         const modifiers = await this.modifiers.serialize();
-        const result = Buffer.alloc(8 + db.length + 8 + modifiers.length);
+        const numViewports = this.viewports.length;
+        const viewports = await Promise.all(this.viewports.map(v => v.serialize()));
+        const viewportsLength = viewports.reduce((acc: number, x: Buffer) => acc + x.length, 0);
+        const result = Buffer.alloc(8 + db.length + 8 + modifiers.length + 8 + 8 * numViewports + viewportsLength);
+        let pos = 0;
         result.writeBigUInt64BE(BigInt(db.length));
-        db.copy(result, 8);
-        result.writeBigUInt64BE(BigInt(modifiers.length), 8 + db.length);
-        modifiers.copy(result, 8 + db.length + 8);
+        pos += 8;
+        db.copy(result, pos);
+        pos += db.length;
+        result.writeBigUInt64BE(BigInt(modifiers.length), pos);
+        pos += 8;
+        modifiers.copy(result, pos);
+        pos += modifiers.length;
+        result.writeBigUInt64BE(BigInt(viewports.length), pos);
+        pos += 8;
+        for (let i = 0; i < viewports.length; i++) {
+            const viewport = viewports[i];
+            result.writeBigUInt64BE(BigInt(viewport.length), pos);
+            pos += 8;
+            viewport.copy(result, pos);
+            pos += viewport.length;
+        }
         return result;
     }
 
     async deserialize(data: Buffer): Promise<void> {
+        let pos = 0;
         const db = Number(data.readBigUInt64BE());
-        await this.db.deserialize(data.slice(8, 8 + db));
-        const modifiers = Number(data.readBigUInt64BE(db + 8));
-        await this.modifiers.deserialize(data.slice(8 + db + 8, 8 + db + 8 + modifiers));
+        pos += 8;
+        await this.db.deserialize(data.slice(pos, pos + db));
+        pos += db;
+        const modifiers = Number(data.readBigUInt64BE(pos));
+        pos += 8;
+        await this.modifiers.deserialize(data.slice(pos, pos + modifiers));
+        pos += modifiers;
+        const numViewports = Number(data.readBigUInt64BE(pos));
+        pos += 8;
+        for (let i = 0; i < numViewports; i++) {
+            const viewport = Number(data.readBigUInt64BE(pos));
+            pos += 8;
+            await this.viewports[i].deserialize(data.slice(pos, pos + viewport));
+            pos += viewport;
+        }
         await this.contours.rebuild()
     }
 

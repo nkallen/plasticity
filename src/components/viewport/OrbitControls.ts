@@ -176,9 +176,7 @@ export class OrbitControls extends THREE.EventDispatcher {
     update() {
         const { object, target, offset, spherical, sphericalDelta, quat, quatInverse, lastPosition, lastQuaternion, minAzimuthAngle, maxAzimuthAngle, minPolarAngle, maxPolarAngle, minDistance, maxDistance, scale, panOffset, zoomChanged } = this;
 
-
         const position = object.position;
-
         offset.copy(position).sub(target);
 
         // rotate offset to "y-axis-is-up" space

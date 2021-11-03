@@ -7,7 +7,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
 import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike } from "../../editor/GeometryDatabase";
-import { EditorOriginator } from "../../editor/History";
+import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { xray } from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { PlaneSnap } from "../../editor/snaps/Snap";
@@ -40,7 +40,7 @@ export interface EditorLike extends selector.EditorLike {
     keymaps: AtomKeymap.KeymapManager,
 }
 
-export class Viewport {
+export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly changed = new signals.Signal();
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
@@ -279,6 +279,7 @@ export class Viewport {
     }
 
     setSize(offsetWidth: number, offsetHeight: number) {
+        console.log("set size in viewport");
         const { camera } = this;
         camera.setSize(offsetWidth, offsetHeight);
 
@@ -400,6 +401,30 @@ export class Viewport {
         console.assert(this.selector.enabled, "this.selector.enabled");
         this.selector.enabled = true;
     }
+
+    saveToMemento(): ViewportMemento {
+        return new ViewportMemento(
+            this.camera.saveToMemento(),
+            this.navigationControls.target,
+            new ConstructionPlaneMemento(this.constructionPlane.n, this.constructionPlane.n));
+    }
+
+    restoreFromMemento(m: ViewportMemento): void {
+        this.camera.restoreFromMemento(m.camera);
+        this.navigationControls.target.copy(m.target);
+        this.constructionPlane = new PlaneSnap(m.constructionPlane.n, m.constructionPlane.o);
+        this.changed.dispatch();
+    }
+
+    async serialize(): Promise<Buffer> {
+        return this.saveToMemento().serialize();
+    }
+
+    async deserialize(data: Buffer): Promise<void> {
+        this.restoreFromMemento(ViewportMemento.deserialize(data));
+    }
+
+    debug(): void {}
 }
 
 type NavigationState = { tag: 'none' } | { tag: 'navigating', selectorEnabled: boolean, quaternion: THREE.Quaternion }

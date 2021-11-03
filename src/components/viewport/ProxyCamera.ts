@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { CameraMemento, MementoOriginator } from "../../editor/History";
 
 export const near = 0.01;
 export const far = 10_000;
@@ -8,7 +9,7 @@ export const aspect = 1;
 
 type Mode = 'orthographic' | 'perspective';
 
-export class ProxyCamera extends THREE.Camera {
+export class ProxyCamera extends THREE.Camera implements MementoOriginator<CameraMemento> {
     private readonly orthographic = makeOrthographicCamera();
     private readonly perspective = makePerspectiveCamera();
 
@@ -91,6 +92,29 @@ export class ProxyCamera extends THREE.Camera {
     get aspect() { return this.perspective.aspect }
 
     getEffectiveFOV() { return this.perspective.getEffectiveFOV() }
+
+    saveToMemento(): CameraMemento {
+        return new CameraMemento(
+            this.mode,
+            this.position.clone(),
+            this.quaternion.clone(),
+            this.zoom,
+            this.offsetWidth, this.offsetHeight);
+    }
+
+    restoreFromMemento(m: CameraMemento): void {
+        this.mode = m.mode;
+        this.position.copy(m.position);
+        this.quaternion.copy(m.quaternion);
+        this.zoom = m.zoom;
+        this.updateMatrixWorld();
+        this.updateProjectionMatrix();
+    }
+
+    serialize(): Promise<Buffer> { throw new Error("Method not implemented.") }
+    deserialize(data: Buffer): Promise<void> { throw new Error("Method not implemented.") }
+    validate(): void { throw new Error("Method not implemented.") }
+    debug(): void { throw new Error("Method not implemented.") }
 }
 
 export function makeOrthographicCamera() {

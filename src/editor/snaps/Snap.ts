@@ -4,6 +4,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { PointPicker } from "../../commands/PointPicker";
 import { curve3d2curve2d, deunit, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
 import { CrossPoint } from "../curves/CrossPointDatabase";
+import { ConstructionPlaneMemento, MementoOriginator } from "../History";
 import * as visual from '../VisualModel';
 
 export enum Layers {
