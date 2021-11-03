@@ -1294,19 +1294,6 @@ export class PurifyFaceCommand extends Command {
     }
 }
 
-export class CreateFaceCommand extends Command {
-    async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selected.faces];
-        const parent = faces[0].parentItem as visual.Solid
-
-        const createFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        createFace.solid = parent;
-        createFace.faces = faces;
-
-        await createFace.commit();
-    }
-}
-
 export class ActionFaceCommand extends Command {
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selected.faces];
@@ -1916,13 +1903,22 @@ export class RevolutionCommand extends Command {
 
 export class DuplicateCommand extends Command {
     async execute(): Promise<void> {
-        const { editor: { selection: { selected: { solids, curves, edges }, selected } } } = this;
+        const { editor: { selection: { selected: { solids, curves, edges, faces }, selected } } } = this;
         const db = this.editor.db;
 
         const promises: Promise<visual.Item>[] = [];
         for (const solid of solids) promises.push(db.duplicate(solid));
         for (const curve of curves) promises.push(db.duplicate(curve));
         for (const edge of edges) promises.push(db.duplicate(edge));
+
+        if (faces.size > 0) {
+            const parent = faces.first.parentItem as visual.Solid
+            const createFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            createFace.solid = parent;
+            createFace.faces = [...faces];
+            const result = createFace.commit() as Promise<visual.Solid>;
+            promises.push(result);
+        }
 
         const objects = await Promise.all(promises);
 
@@ -1946,6 +1942,7 @@ export class DuplicateCommand extends Command {
         for (const solid of solids) selected.removeSolid(solid);
         for (const curve of curves) selected.removeCurve(curve);
         for (const edge of edges) selected.removeEdge(edge, edge.parentItem);
+        for (const face of faces) selected.removeFace(face, face.parentItem);
 
         this.editor.selection.selected.add(selection);
     }

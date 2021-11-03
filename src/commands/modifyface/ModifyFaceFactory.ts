@@ -44,7 +44,7 @@ export abstract class ModifyFaceFactory extends GeometryFactory {
         this.facesModel = facesModel;
     }
 
-    async calculate() {
+    async calculate(): Promise<c3d.Solid> {
         const { solidModel, facesModel, direction } = this;
         if (direction.manhattanLength() < 10e-4) {
             if (this.operationType === c3d.ModifyingType.Action ||
@@ -62,7 +62,7 @@ export abstract class ModifyFaceFactory extends GeometryFactory {
     }
 
     get keys() { return ['direction'] }
-    get originalItem() { return this.solid }
+    get originalItem(): visual.Item[] | visual.Solid { return this.solid }
 }
 
 export class RemoveFaceFactory extends ModifyFaceFactory {
@@ -71,6 +71,7 @@ export class RemoveFaceFactory extends ModifyFaceFactory {
 
 export class CreateFaceFactory extends ModifyFaceFactory {
     operationType = c3d.ModifyingType.Create;
+    get originalItem() { return [] }
 }
 
 export class ActionFaceFactory extends ModifyFaceFactory implements MoveParams {

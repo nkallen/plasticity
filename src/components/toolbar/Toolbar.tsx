@@ -44,7 +44,6 @@ export class Model {
         if (selection.faces.size > 0) {
             result.push(cmd.OffsetCurveCommand);
             result.push(cmd.ExtrudeCommand);
-            result.push(cmd.CreateFaceCommand); // This becomes duplicate
         }
         if ((selection.faces.size > 0 || selection.solids.size > 0) && selection.curves.size > 0) {
             result.push(cmd.CutCommand);
