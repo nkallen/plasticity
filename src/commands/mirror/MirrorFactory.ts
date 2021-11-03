@@ -3,17 +3,67 @@ import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from '../../editor/GeometryDatabase';
 import * as visual from '../../editor/VisualModel';
 import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../GeometryFactory';
+
+export interface MirrorParams {
+    clipping: boolean;
+    origin: THREE.Vector3;
+    quaternion: THREE.Quaternion;
+}
+
+const X = new THREE.Vector3(1, 0, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
+export class MirrorOrSymmetryFactory extends GeometryFactory implements MirrorParams {
+    private readonly mirror = new MirrorFactory(this.db, this.materials, this.signals);
+    private readonly symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
+    clipping = true;
+
+    set item(item: visual.Item) {
+        this.mirror.item = item;
+        if (item instanceof visual.Solid) {
+            this.symmetry.solid = item;
+        }
+    }
+
+    set normal(normal: THREE.Vector3) {
+        normal = normal.clone().normalize();
+        this.mirror.normal = normal;
+        this.symmetry.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, normal);
+    }
+
+    set quaternion(orientation: THREE.Quaternion) {
+        this.mirror.normal = Z.clone().applyQuaternion(orientation);
+        this.symmetry.quaternion = orientation;
+    }
+
+    set origin(origin: THREE.Vector3) {
+        this.mirror.origin = origin;
+        this.symmetry.origin = origin;
+    }
+
+    calculate() {
+        if (this.clipping && this.mirror.item instanceof visual.Solid) return this.symmetry.calculate();
+        else return this.mirror.calculate();
+    }
+
+    get originalItem() {
+        if (this.clipping && this.mirror.item instanceof visual.Solid) return this.mirror.item;
+        else return [];
+    }
+}
 
 export class MirrorFactory extends GeometryFactory {
-    curve!: visual.SpaceInstance<visual.Curve3D>;
+    item!: visual.Item;
     origin!: THREE.Vector3;
     normal!: THREE.Vector3;
 
     async calculate() {
         const { origin, normal } = this;
-        const model = this.db.lookup(this.curve);
-        const transformed = model.Duplicate().Cast<c3d.SpaceInstance>(c3d.SpaceType.SpaceInstance);
+        if (origin === undefined || normal === undefined) throw new NoOpError();
+
+        const model = this.db.lookup(this.item);
+        const transformed = model.Duplicate().Cast<c3d.Item>(model.IsA());
         const mat = new c3d.Matrix3D();
         mat.Symmetry(point2point(origin), vec2vec(normal, 1));
         transformed.Transform(mat);
@@ -22,17 +72,9 @@ export class MirrorFactory extends GeometryFactory {
     }
 }
 
-export interface MirrorParams {
-    origin: THREE.Vector3;
-    orientation: THREE.Quaternion;
-}
-
-const X = new THREE.Vector3(1, 0, 0);
-const Z = new THREE.Vector3(0, 0, 1);
-
 export class SymmetryFactory extends GeometryFactory {
     origin = new THREE.Vector3();
-    orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+    quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
 
     private model!: c3d.Solid;
     private _solid!: visual.Solid;
@@ -53,7 +95,7 @@ export class SymmetryFactory extends GeometryFactory {
     private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.SymmetrySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
-        const { model, origin, orientation, names } = this;
+        const { model, origin, quaternion: orientation, names } = this;
 
         const { X, Y, Z } = this;
         Z.set(0, 0, -1).applyQuaternion(orientation);
@@ -66,7 +108,6 @@ export class SymmetryFactory extends GeometryFactory {
             this._isOverlapping = true;
             return c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names);
         } catch (e) {
-            console.warn("Substituting mirror for symmetry solid");
             this._isOverlapping = false;
             const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
             const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
@@ -77,7 +118,7 @@ export class SymmetryFactory extends GeometryFactory {
     private temp?: TemporaryObject;
 
     async doUpdate() {
-        const { solid, model, origin, orientation, names } = this;
+        const { solid, model, origin, quaternion: orientation, names } = this;
 
         return this.db.optimization(solid, async () => {
             const point1 = new c3d.CartPoint(0, -1000);
@@ -130,7 +171,7 @@ export class SymmetryFactory extends GeometryFactory {
             dataType: 'SymmetryFactory',
             params: {
                 origin: this.origin,
-                orientation: this.orientation,
+                orientation: this.quaternion,
             },
         }
     }
@@ -141,6 +182,6 @@ export class SymmetryFactory extends GeometryFactory {
         const orientation = new THREE.Quaternion();
         Object.assign(orientation, json.orientation);
         this.origin = origin;
-        this.orientation = orientation;
+        this.quaternion = orientation;
     }
 }

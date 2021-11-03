@@ -122,13 +122,14 @@ export default {
         "ctrl-z": "gizmo:line:undo",
     },
 
-    "[command='symmetry'] ispace-viewport": {
-        "x": "gizmo:symmetry:x",
-        "y": "gizmo:symmetry:y",
-        "z": "gizmo:symmetry:z",
-        "shift-x": "gizmo:symmetry:-x",
-        "shift-y": "gizmo:symmetry:-y",
-        "shift-z": "gizmo:symmetry:-z",
+    "[command='mirror'] ispace-viewport": {
+        "x": "gizmo:mirror:x",
+        "y": "gizmo:mirror:y",
+        "z": "gizmo:mirror:z",
+        "shift-x": "gizmo:mirror:-x",
+        "shift-y": "gizmo:mirror:-y",
+        "shift-z": "gizmo:mirror:-z",
+        "f": "gizmo:mirror:free",
     },
 
     "[command='thin-solid'] ispace-viewport": {
@@ -169,7 +170,7 @@ export default {
         "e": "command:extrude",
         "t": "command:trim",
         "i": "command:offset",
-        "alt-x": "command:symmetry",
+        "alt-x": "command:mirror",
         "tab": "command:mode",
         "x": "command:delete",
         "delete": "command:delete",

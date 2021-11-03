@@ -77,7 +77,6 @@ icons.set(cmd.CharacterCurveCommand, characterCurve);
 // icons.set(cmd.MergerFaceCommand, offsetFace);
 icons.set(cmd.TrimCommand, trim);
 icons.set(cmd.OffsetCurveCommand, line);
-icons.set(cmd.SymmetryCommand, mirror);
 icons.set(cmd.BridgeCurvesCommand, mirror);
 icons.set(cmd.RevolutionCommand, line);
 icons.set(cmd.ModifyContourCommand, changePoint);
@@ -132,7 +131,6 @@ tooltips.set(cmd.SpiralCommand, "Spiral");
 tooltips.set(cmd.CharacterCurveCommand, "Custom Function");
 tooltips.set(cmd.TrimCommand, "Cut off line segments at intersections of curves");
 tooltips.set(cmd.OffsetCurveCommand, "Offset Loop");
-tooltips.set(cmd.SymmetryCommand, "Mirror solid");
 tooltips.set(cmd.BridgeCurvesCommand, "Bridge two curves");
 tooltips.set(cmd.RevolutionCommand, "Revolve");
 tooltips.set(cmd.ModifyContourCommand, "ModifyCurve");
@@ -203,12 +201,13 @@ keybindings.set("gizmo:cylinder:difference", "Difference");
 keybindings.set("gizmo:cylinder:intersect", "Intersect");
 keybindings.set("gizmo:cylinder:new-body", "New body");
 keybindings.set("gizmo:offset-face:distance", "Distance");
-keybindings.set("gizmo:symmetry:x", "Positive X");
-keybindings.set("gizmo:symmetry:y", "Positive Y");
-keybindings.set("gizmo:symmetry:z", "Positive Z");
-keybindings.set("gizmo:symmetry:-x", "Negative X");
-keybindings.set("gizmo:symmetry:-y", "Negative Y");
-keybindings.set("gizmo:symmetry:-z", "Negative Z");
+keybindings.set("gizmo:mirror:x", "Positive X");
+keybindings.set("gizmo:mirror:y", "Positive Y");
+keybindings.set("gizmo:mirror:z", "Positive Z");
+keybindings.set("gizmo:mirror:-x", "Negative X");
+keybindings.set("gizmo:mirror:-y", "Negative Y");
+keybindings.set("gizmo:mirror:-z", "Negative Z");
+keybindings.set("gizmo:mirror:free", "Freestyle");
 keybindings.set("gizmo:rebuild:forward", "Go forward in history");
 keybindings.set("gizmo:rebuild:backward", "Go backward in history");
 keybindings.set("gizmo:modify-contour:fillet-all", "Fillet all");
@@ -248,7 +247,7 @@ export default (editor: Editor): void => {
         'command:hide-selected': () => editor.enqueue(new HideSelectedCommand(editor)),
         'command:hide-unselected': () => editor.enqueue(new HideUnselectedCommand(editor)),
         'command:duplicate': () => editor.enqueue(new cmd.DuplicateCommand(editor)),
-        'command:symmetry': () => editor.enqueue(new cmd.SymmetryCommand(editor)),
+        'command:mirror': () => editor.enqueue(new cmd.MirrorCommand(editor)),
         'command:rebuild': () => editor.enqueue(new RebuildCommand(editor)),
         'command:deselect-all': () => editor.enqueue(new DeselectAllCommand(editor)),
     })

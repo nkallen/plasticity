@@ -28,12 +28,12 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
     private readonly red = this.materials.red;
     private readonly green = this.materials.green;
     private readonly blue = this.materials.blue;
-    private readonly x = new MirrorAxisGizmo("symmetry:x", this.editor, this.red);
-    private readonly y = new MirrorAxisGizmo("symmetry:y", this.editor, this.green);
-    private readonly z = new MirrorAxisGizmo("symmetry:z", this.editor, this.blue);
-    private readonly _x = new MirrorAxisGizmo("symmetry:-x", this.editor, this.red);
-    private readonly _y = new MirrorAxisGizmo("symmetry:-y", this.editor, this.green);
-    private readonly _z = new MirrorAxisGizmo("symmetry:-z", this.editor, this.blue);
+    private readonly x = new MirrorAxisGizmo("mirror:x", this.editor, this.red);
+    private readonly y = new MirrorAxisGizmo("mirror:y", this.editor, this.green);
+    private readonly z = new MirrorAxisGizmo("mirror:z", this.editor, this.blue);
+    private readonly _x = new MirrorAxisGizmo("mirror:-x", this.editor, this.red);
+    private readonly _y = new MirrorAxisGizmo("mirror:-y", this.editor, this.green);
+    private readonly _z = new MirrorAxisGizmo("mirror:-z", this.editor, this.blue);
 
     prepare() {
         const { x, y, z, _x, _y, _z } = this;
@@ -53,23 +53,23 @@ export class MirrorGizmo extends CompositeGizmo<MirrorParams> {
         _z.quaternion.setFromUnitVectors(Y, _Z);
 
         this.addGizmo(x, () => {
-            params.orientation = mirrorPosX;
+            params.quaternion = mirrorPosX;
         });
         this.addGizmo(y, () => {
-            params.orientation = mirrorPosY;
+            params.quaternion = mirrorPosY;
         });
         this.addGizmo(z, () => {
-            params.orientation = mirrorPosZ;
+            params.quaternion = mirrorPosZ;
         });
 
         this.addGizmo(_x, () => {
-            params.orientation = mirrorNegX;
+            params.quaternion = mirrorNegX;
         });
         this.addGizmo(_y, () => {
-            params.orientation = mirrorNegY;
+            params.quaternion = mirrorNegY;
         });
         this.addGizmo(_z, () => {
-            params.orientation = mirrorNegZ;
+            params.quaternion = mirrorNegZ;
         });
 
         return super.execute(cb, mode);

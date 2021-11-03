@@ -5,7 +5,7 @@ import * as visual from "../editor/VisualModel";
 import Command, * as cmd from "./Command";
 import { ExportDialog } from './export/ExportDialog';
 import { ExportFactory } from './export/ExportFactory';
-import { SymmetryFactory } from './mirror/MirrorFactory';
+import { MirrorOrSymmetryFactory, SymmetryFactory } from './mirror/MirrorFactory';
 import { MirrorGizmo } from './mirror/MirrorGizmo';
 import { RebuildFactory } from "./rebuild/RebuildFactory";
 import { RebuildKeyboardGizmo } from './rebuild/RebuildKeyboardGizmo';
@@ -144,8 +144,8 @@ export class AddModifierCommand extends CommandLike {
         const { modifiers, selection } = this.editor;
         const solid = selection.selected.solids.first;
 
-        const preview = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        preview.solid = solid;
+        const preview = new MirrorOrSymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        preview.item = solid;
         preview.origin = new THREE.Vector3();
 
         const gizmo = new MirrorGizmo(preview, this.editor);
@@ -160,7 +160,7 @@ export class AddModifierCommand extends CommandLike {
         const factory = stack_factory.factory;
         factory.solid = solid;
         factory.origin = preview.origin;
-        factory.orientation = preview.orientation;
+        factory.quaternion = preview.quaternion;
         stack = await modifiers.rebuild(stack);
 
         selection.selected.addSolid(stack.modified);

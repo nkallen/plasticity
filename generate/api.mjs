@@ -1370,6 +1370,11 @@ export default {
             extends: "Creator",
             dependencies: ["Creator.h"]
         },
+        TransformationMaker: {
+            rawHeader: "cr_displace_creator.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
         MpGraph: {
             rawHeader: "contour_graph.h",
             cppClassName: "Graph",

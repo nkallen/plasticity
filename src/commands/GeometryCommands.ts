@@ -38,8 +38,10 @@ import { ChamferAndFilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory, { PhantomLineFactory } from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
-import { MirrorFactory, SymmetryFactory } from "./mirror/MirrorFactory";
+import { MirrorDialog } from "./mirror/MirrorDialog";
+import { MirrorFactory, MirrorOrSymmetryFactory, SymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
+import { MirrorKeyboardGizmo } from "./mirror/MirrorKeyboardGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
@@ -1383,38 +1385,65 @@ export class ExtrudeCommand extends Command {
 
 export class MirrorCommand extends Command {
     async execute(): Promise<void> {
-        const curves = [...this.editor.selection.selected.curves];
-        const mirror = new MirrorFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        mirror.curve = curves[0];
+        const solid = this.editor.selection.selected.solids.first;
+        const curve = this.editor.selection.selected.curves.first;
+        const mirror = new MirrorOrSymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        mirror.item = solid ?? curve;
+        mirror.origin = new THREE.Vector3();
 
-        const pointPicker = new PointPicker(this.editor);
-        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
-        pointPicker.restrictToPlaneThroughPoint(p1);
+        const gizmo = new MirrorGizmo(mirror, this.editor);
+        const dialog = new MirrorDialog(mirror, this.editor.signals);
+        const keyboard = new MirrorKeyboardGizmo(this.editor);
 
-        mirror.origin = p1;
+        dialog.execute(async params => {
+            await mirror.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        await pointPicker.execute(({ point: p2 }) => {
-            mirror.normal = p2.clone().sub(p1).cross(constructionPlane.n);
+        gizmo.execute(s => {
             mirror.update();
         }).resource(this);
+
+        keyboard.execute(async s => {
+            switch (s) {
+                case 'free':
+                    this.cancel();
+                    this.editor.enqueue(new FreestyleMirrorCommand(this.editor), true);
+            }
+        }).resource(this);
+
+        await this.finished;
 
         await mirror.commit();
     }
 }
 
-export class SymmetryCommand extends Command {
+export class FreestyleMirrorCommand extends Command {
     async execute(): Promise<void> {
         const solid = this.editor.selection.selected.solids.first;
-        const symmetry = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        symmetry.solid = solid;
-        symmetry.origin = new THREE.Vector3();
+        const curve = this.editor.selection.selected.curves.first;
+        const mirror = new MirrorOrSymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        mirror.item = solid ?? curve;
 
-        const gizmo = new MirrorGizmo(symmetry, this.editor);
-        await gizmo.execute(s => {
-            symmetry.update();
+        const pointPicker = new PointPicker(this.editor);
+        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
+        // pointPicker.restrictToPlaneThroughPoint(p1);
+
+        mirror.origin = p1;
+
+        const line = new PhantomLineFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        line.p1 = p1;
+
+        await pointPicker.execute(({ point: p2 }) => {
+            line.p2 = p2;
+            line.update();
+            
+            mirror.normal = p2.clone().sub(p1).cross(constructionPlane.n);
+            mirror.update();
         }).resource(this);
 
-        await symmetry.commit();
+        line.cancel();
+
+        await mirror.commit();
     }
 }
 

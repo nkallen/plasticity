@@ -56,7 +56,7 @@ describe(ModifierManager, () => {
         const { factory, stack: st } = manager.add(box, SymmetryFactory);
         manager.validate();
 
-        factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        factory.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
         stack = st;
 
         expect(stack).not.toBeUndefined();
@@ -96,7 +96,7 @@ describe(ModifierManager, () => {
         const { factory, stack: st } = manager.add(box, SymmetryFactory);
         manager.validate();
 
-        factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        factory.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
         stack = st;
         stack = await manager.rebuild(stack);
         manager.validate();
@@ -113,7 +113,7 @@ describe(ModifierManager, () => {
 
     test('when applying', async () => {
         const { factory, stack: st } = manager.add(box, SymmetryFactory);
-        factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        factory.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
         stack = st;
         stack = await manager.rebuild(stack);
         expect(db.visibleObjects.length).toBe(2);
@@ -136,7 +136,7 @@ describe(ModifierManager, () => {
         {
             let { factory, stack: st } = manager.add(box, SymmetryFactory);
             stack = st;
-            factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+            factory.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
         }
         stack = await manager.rebuild(stack);
         expect(db.visibleObjects.length).toBe(2);
@@ -145,7 +145,7 @@ describe(ModifierManager, () => {
         {
             const { factory, stack: st } = manager.add(stack.premodified, SymmetryFactory);
             stack = st;
-            factory.orientation = new THREE.Quaternion();
+            factory.quaternion = new THREE.Quaternion();
         }
         stack = await manager.rebuild(stack);
         expect(db.visibleObjects.length).toBe(2);
@@ -164,7 +164,7 @@ describe(ModifierManager, () => {
     describe('modified objects', () => {
         beforeEach(async () => {
             const { factory, stack: st } = manager.add(box, SymmetryFactory);
-            factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+            factory.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
             stack = st;
             stack = await manager.rebuild(stack);
         })
@@ -227,7 +227,7 @@ describe(ModifierManager, () => {
         test('creating a temporary object updates the modifier even if there are multiple modifiers', async () => {
             const { factory, stack: st } = manager.add(stack.premodified, SymmetryFactory);
             stack = st;
-            factory.orientation = new THREE.Quaternion();
+            factory.quaternion = new THREE.Quaternion();
             stack = await manager.rebuild(stack);
             expect(db.visibleObjects.length).toBe(2);
             expect(stack.modifiers.length).toBe(2);
@@ -373,7 +373,7 @@ describe(ModifierManager, () => {
     describe("serialization", () => {
         beforeEach(async () => {
             const { factory, stack: st } = manager.add(box, SymmetryFactory);
-            factory.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+            factory.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
             stack = st;
             stack = await manager.rebuild(stack);
         });

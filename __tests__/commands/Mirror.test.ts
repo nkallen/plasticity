@@ -1,6 +1,7 @@
+import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import * as THREE from "three";
 import LineFactory from "../../src/commands/line/LineFactory";
-import { MirrorFactory, SymmetryFactory } from "../../src/commands/mirror/MirrorFactory";
+import { MirrorFactory, MirrorOrSymmetryFactory, SymmetryFactory } from "../../src/commands/mirror/MirrorFactory";
 import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -12,13 +13,11 @@ import '../matchers';
 let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
-let mirror: MirrorFactory;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    mirror = new MirrorFactory(db, materials, signals);
 })
 
 describe(MirrorFactory, () => {
@@ -34,7 +33,7 @@ describe(MirrorFactory, () => {
         makeLine.p2 = new THREE.Vector3(1, 1, 0);
         const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
         mirror.origin = new THREE.Vector3();
-        mirror.curve = line;
+        mirror.item = line;
         mirror.normal = new THREE.Vector3(0, 1, 0);
 
         const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
@@ -44,6 +43,33 @@ describe(MirrorFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, -0.5, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+    })
+
+    test('solids', async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        const box = await makeBox.commit() as visual.Solid;
+
+        const bbox = new THREE.Box3().setFromObject(box);
+        const center = new THREE.Vector3();
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+
+        mirror.origin = new THREE.Vector3();
+        mirror.item = box;
+        mirror.normal = new THREE.Vector3(0, 1, 0);
+
+        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        bbox.setFromObject(item);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, -0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 0, 1));
     })
 })
 
@@ -65,7 +91,7 @@ describe(SymmetryFactory, () => {
 
         symmetry.solid = sphere;
         symmetry.origin = new THREE.Vector3();
-        symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        symmetry.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
 
         const item = await symmetry.commit() as visual.SpaceInstance<visual.Curve3D>;
         const bbox = new THREE.Box3().setFromObject(item);
@@ -86,7 +112,7 @@ describe(SymmetryFactory, () => {
 
         symmetry.solid = sphere;
         symmetry.origin = new THREE.Vector3();
-        symmetry.orientation = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        symmetry.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
 
         await symmetry.update();
         expect(db.temporaryObjects.children.length).toBe(1);
@@ -103,3 +129,59 @@ describe(SymmetryFactory, () => {
         expect(db.visibleObjects.length).toBe(1);
     });
 });
+
+describe(MirrorOrSymmetryFactory, () => {
+    let mirror: MirrorOrSymmetryFactory;
+
+    beforeEach(() => {
+        mirror = new MirrorOrSymmetryFactory(db, materials, signals);
+    })
+
+    let box: visual.Solid;
+    const bbox = new THREE.Box3();
+    const center = new THREE.Vector3();
+
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box = await makeBox.commit() as visual.Solid;
+
+        bbox.setFromObject(box);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+
+    });
+
+    test('solids clipping=false', async () => {
+        mirror.origin = new THREE.Vector3();
+        mirror.item = box;
+        mirror.normal = new THREE.Vector3(0, 1, 0);
+        mirror.clipping = false;
+
+        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        bbox.setFromObject(item);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, -0.5, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 0, 1));
+    })
+
+    test('solids clipping=true', async () => {
+        mirror.origin = new THREE.Vector3();
+        mirror.item = box;
+        mirror.normal = new THREE.Vector3(0, 1, 0);
+        mirror.clipping = true;
+
+        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        bbox.setFromObject(item);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0.5));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    })
+})

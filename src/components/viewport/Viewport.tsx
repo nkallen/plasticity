@@ -279,7 +279,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     setSize(offsetWidth: number, offsetHeight: number) {
-        console.log("set size in viewport");
         const { camera } = this;
         camera.setSize(offsetWidth, offsetHeight);
 

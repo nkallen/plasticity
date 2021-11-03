@@ -36,14 +36,15 @@
 
 - [ ] Refactor curve extension code  
 - [ ] line2 raycasting bad in ortho camera  
-- [ ] more robust mirror and consolidated with symmetry  
 - [ ] Some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)  
 - [ ] 2D dashed line helper position off when inspector open  
 - [ ] Audit re-used icons  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
+- [ ] outline for e.g., mirror command is strange - only outline visible items  
 
 ### In Progress
 
+- [ ] more robust mirror and consolidated with symmetry  
 
 ### Done ✓
 

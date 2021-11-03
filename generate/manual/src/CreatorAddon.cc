@@ -30,8 +30,9 @@
 #include "../include/DetachSolid.h"
 #include "../include/DuplicationSolid.h"
 #include "../include/ReverseCreator.h"
+#include "../include/TransformationMaker.h"
 
-Napi::Value cast(MbCreator * _underlying, const Napi::CallbackInfo &info)
+Napi::Value cast(MbCreator *_underlying, const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     if (info.Length() != 1)
@@ -85,7 +86,7 @@ Napi::Value cast(MbCreator * _underlying, const Napi::CallbackInfo &info)
     case ct_FilletSolid:
         return FilletSolid::NewInstance(env, (MbFilletSolid *)(_underlying));
     // case ct_FullFilletSolid:
-        // return FullFilletSolid::NewInstance(env, (MbFullFilletSolid *)(_underlying));
+    // return FullFilletSolid::NewInstance(env, (MbFullFilletSolid *)(_underlying));
     case ct_ShellSolid:
         return ShellSolid::NewInstance(env, (MbShellSolid *)(_underlying));
     case ct_DraftSolid:
@@ -101,7 +102,7 @@ Napi::Value cast(MbCreator * _underlying, const Napi::CallbackInfo &info)
     case ct_ModifiedNurbsItem:
         return ModifiedNurbsItem::NewInstance(env, (MbModifiedNurbsItem *)(_underlying));
     // case ct_NurbsModification:
-        // return NurbsModification::NewInstance(env, (MbNurbsModification *)(_underlying));
+    // return NurbsModification::NewInstance(env, (MbNurbsModification *)(_underlying));
     case ct_TransformedSolid:
         return TransformedSolid::NewInstance(env, (MbTransformedSolid *)(_underlying));
     case ct_ThinShellCreator:
@@ -114,6 +115,8 @@ Napi::Value cast(MbCreator * _underlying, const Napi::CallbackInfo &info)
         return DuplicationSolid::NewInstance(env, (MbDuplicationSolid *)(_underlying));
     case ct_ReverseCreator:
         return ReverseCreator::NewInstance(env, (MbReverseCreator *)(_underlying));
+    case ct_TransformationMaker:
+        return TransformationMaker::NewInstance(env, (MbTransformationMaker *)(_underlying));
     default:
         std::ostringstream msg;
         msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << "\n";

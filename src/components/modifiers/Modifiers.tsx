@@ -5,7 +5,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
 import { AddModifierCommand, ApplyModifierCommand, RemoveModifierCommand } from '../../commands/CommandLike';
-import { FilletSolidCommand, SymmetryCommand, UnionCommand } from '../../commands/GeometryCommands';
+import { FilletSolidCommand, MirrorCommand, UnionCommand } from '../../commands/GeometryCommands';
 import { GeometryFactory } from '../../commands/GeometryFactory';
 import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
 import { Editor } from '../../editor/Editor';
@@ -72,7 +72,7 @@ export default (editor: Editor) => {
                     <ol>
                         <li>
                             <button type="button" onClick={_ => editor.enqueue(new AddModifierCommand(editor))} tabIndex={-1}>
-                                <img src={icons.get(SymmetryCommand)}></img>
+                                <img src={icons.get(MirrorCommand)}></img>
                                 <ispace-tooltip placement="bottom">Add symmetry modifier</ispace-tooltip>
                             </button>
                         </li>
