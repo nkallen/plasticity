@@ -59,6 +59,7 @@ import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFact
 import { PossiblyBooleanSphereFactory } from './sphere/SphereFactory';
 import { SpiralFactory } from "./spiral/SpiralFactory";
 import { SpiralGizmo } from "./spiral/SpiralGizmo";
+import { ThinSolidDialog } from "./thin-solid/ThinSolidDialog";
 import { ThinSolidFactory } from "./thin-solid/ThinSolidFactory";
 import { MoveDialog } from "./translate/MoveDialog";
 import { MoveGizmo } from './translate/MoveGizmo';
@@ -1881,14 +1882,24 @@ export class ThinSolidCommand extends Command {
         }
 
         const gizmo = new FilletMagnitudeGizmo("thin-solid:thickness", this.editor);
+        const dialog = new ThinSolidDialog(thin, this.editor.signals);
+
+        dialog.execute(async params => {
+            gizmo.render(params.thickness1);
+            await thin.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
         const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(face));
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         gizmo.position.copy(point);
 
-        await gizmo.execute(thickness => {
+        gizmo.execute(thickness => {
             thin.thickness1 = thickness;
+            dialog.render();
             thin.update();
         }).resource(this);
+
+        await this.finished;
 
         await thin.commit();
     }

@@ -421,7 +421,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     restoreFromMemento(m: ViewportMemento): void {
         this.camera.restoreFromMemento(m.camera);
         this.navigationControls.target.copy(m.target);
-        this.constructionPlane = new ConstructionPlaneSnap(m.constructionPlane.n, m.constructionPlane.o);
+        // this.constructionPlane = new ConstructionPlaneSnap(m.constructionPlane.n, m.constructionPlane.o);
         this.isXRay = m.isXRay;
         this.changed.dispatch();
     }
