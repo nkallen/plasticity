@@ -4,7 +4,9 @@
 
 ### Backlog
 
-- [ ] If there is a solid and two curves. Select solid and SHIFT-H. Get an error like: "touched is not iterable" #bug  
+- [ ] Audit re-used icons  
+- [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
+- [ ] outline for e.g., mirror command is strange - only outline visible items  
 - [ ] camera near plane sucks with ortho now  
 - [ ] Redo titlebar to save space  
 - [ ] crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196  
@@ -35,9 +37,6 @@
 ### Todo
 
 - [ ] Refactor curve extension code  
-- [ ] Audit re-used icons  
-- [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
-- [ ] outline for e.g., mirror command is strange - only outline visible items  
 
 ### In Progress
 
@@ -45,6 +44,7 @@
 
 ### Done ✓
 
+- [x] If there is a solid and two curves. Select solid and SHIFT-H. Get an error like: "touched is not iterable" #bug  
 - [x] 2D dashed line helper position off when inspector open  
 - [x] SelectionMode 1/2/3/4 should set by default, whereas SHIFT 1/2/3/4 should toggle  
 - [x] Some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)  

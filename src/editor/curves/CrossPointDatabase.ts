@@ -103,15 +103,16 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         deleted.add(id);
 
         const touched = curve2touched.get(id)!;
+        if (touched === undefined) return transaction;
 
         const visited = dirty;
-        let walk = [...touched];
-        while (walk.length > 0) {
-            const touchee = walk.pop()!;
+        let toVisit = [...touched];
+        while (toVisit.length > 0) {
+            const touchee = toVisit.pop()!;
             if (visited.has(touchee)) continue;
 
             visited.add(touchee);
-            walk = walk.concat([...curve2touched.get(touchee)!]);
+            toVisit = toVisit.concat([...curve2touched.get(touchee)!]);
         }
 
         return transaction;
@@ -122,6 +123,8 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
         id2curve.delete(id);
         curve2touched.delete(id);
         const invalidatedCrosses = id2cross.get(id)!;
+        if (invalidatedCrosses === undefined) return;
+        
         for (const cross of invalidatedCrosses) {
             crosses.delete(cross);
         }
