@@ -4,11 +4,11 @@ import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
-import { CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
+import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import { VisibleLayers } from '../editor/LayerManager';
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, Layers, LineSnap, NormalAxisSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import * as visual from "../editor/VisualModel";
@@ -17,6 +17,7 @@ import { inst2curve, point2point } from '../util/Conversion';
 import { Helper, Helpers } from '../util/Helpers';
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
+const origin = new THREE.Vector3();
 
 export interface EditorLike {
     db: DatabaseLike,
@@ -165,11 +166,16 @@ export class Model {
 
     private counter = -1; // counter descends from -1 to avoid conflicting with objects in the geometry database
     private readonly cross2axis = new Map<c3d.SimpleName, AxisSnap>();
-    private addAxis(axis: PointAxisSnap, into: Snap[]) {
-        into.push(axis);
+    private addAxisCrosses(axis: AxisSnap): Set<CrossPoint> {
         const counter = this.counter--;
         const crosses = this.crosses.add(counter, new c3d.Line3D(point2point(axis.o), point2point(axis.o.clone().add(axis.n))));
         this.cross2axis.set(counter, axis);
+        return crosses;
+    }
+
+    private addAxis(axis: PointAxisSnap, into: Snap[]) {
+        into.push(axis);
+        const crosses = this.addAxisCrosses(axis);
         for (const cross of crosses) {
             if (cross.position.manhattanDistanceTo(axis.o) < 10e-3) continue;
             const antecedentAxis = this.cross2axis.get(cross.on2.id);

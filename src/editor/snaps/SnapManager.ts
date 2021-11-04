@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
-import { Redisposable } from "../../util/Util";
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";

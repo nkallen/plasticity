@@ -1,7 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import { point2point } from '../../util/Conversion';
 import { CrossPointMemento, MementoOriginator } from '../History';
-import * as visual from "../VisualModel";
 import { PointOnCurve, Transaction } from './ContourManager';
 
 export class CrossPoint {
@@ -27,7 +26,6 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
 
     add(id: c3d.SimpleName, curve: c3d.Curve3D) {
         const { curve2touched, _crosses: allCrosses, id2cross } = this;
-
         const { crosses: newCrosses, touched } = this.calculate(id, curve);
 
         this.id2curve.set(id, curve);
@@ -83,15 +81,12 @@ export class CrossPointDatabase implements MementoOriginator<CrossPointMemento> 
             readd.set(touchee, this.id2curve.get(touchee)!);
             this.removeInfo(touchee);
         }
-
         for (const touchee of data.deleted) {
             if (data.dirty.has(touchee)) continue;
-
             this.removeInfo(touchee);
         }
         for (const touchee of data.dirty) {
             if (data.deleted.has(touchee)) continue;
-
             this.add(touchee, readd.get(touchee)!);
         }
     }

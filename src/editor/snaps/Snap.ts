@@ -504,7 +504,6 @@ const dotGeometry = new THREE.BufferGeometry();
 dotGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0]), 3));
 const dotMaterial = new THREE.PointsMaterial({ size: 5, sizeAttenuation: false });
 
-
 export class PointAxisSnap extends AxisSnap {
     readonly helper = new THREE.Group();
     protected readonly layer: Layers = Layers.Intersection;
