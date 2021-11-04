@@ -37,13 +37,17 @@
 ### Todo
 
 - [ ] Refactor curve extension code  
+- [ ] boolean needs movement  
+- [ ] snap targets not scaling like helpres should  
 
 ### In Progress
 
 - [ ] line2 raycasting bad in ortho camera  
+- [ ] Shell command needs dialog (thickness 1 and 2)  
 
 ### Done ✓
 
+- [x] Center snap point for circle curves  
 - [x] If there is a solid and two curves. Select solid and SHIFT-H. Get an error like: "touched is not iterable" #bug  
 - [x] 2D dashed line helper position off when inspector open  
 - [x] SelectionMode 1/2/3/4 should set by default, whereas SHIFT 1/2/3/4 should toggle  

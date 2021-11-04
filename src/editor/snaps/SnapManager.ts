@@ -163,6 +163,15 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const begSnap = new EdgeEndPointSnap("Beginning", point2point(begPt));
         const midSnap = new EdgePointSnap("Middle", point2point(midPt));
 
+        const underlying = model.GetSpaceCurve();
+        if (underlying !== null) {
+            if (underlying.IsA() === c3d.SpaceType.Arc3D) {
+                const cast = underlying.Cast<c3d.Arc3D>(underlying.IsA());
+                const centerSnap = new PointSnap("Center", point2point(cast.GetCentre()))
+                into.add(centerSnap);
+            }
+        }
+
         const edgeSnap = new CurveEdgeSnap(edge, model);
         into.add(edgeSnap);
         into.add(begSnap);
