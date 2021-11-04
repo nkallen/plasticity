@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { CancellablePromise } from "../../util/Cancellable";
 import { Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { MagnitudeGizmo } from "../fillet/FilletGizmo";
+import { FilletMagnitudeGizmo } from "../fillet/FilletGizmo";
 import { AngleGizmo } from "../MiniGizmos";
 import { SpiralParams } from "./SpiralFactory";
 
@@ -10,9 +10,9 @@ const Y = new THREE.Vector3(0, 1, 0);
 const X = new THREE.Vector3(1, 0, 0);
 
 export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
-    private readonly angleGizmo = new AngleGizmo("spiral:angle", this.editor);
-    private readonly lengthGizmo = new MagnitudeGizmo("spiral:length", this.editor);
-    private readonly radiusGizmo = new MagnitudeGizmo("spiral:radius", this.editor);
+    private readonly angleGizmo = new SpiralAngleGizmo("spiral:angle", this.editor);
+    private readonly lengthGizmo = new FilletMagnitudeGizmo("spiral:length", this.editor);
+    private readonly radiusGizmo = new FilletMagnitudeGizmo("spiral:radius", this.editor);
 
     protected prepare(mode: Mode) {
         const { angleGizmo, lengthGizmo, radiusGizmo, params } = this;
@@ -64,4 +64,10 @@ export class SpiralGizmo extends CompositeGizmo<SpiralParams> {
     }
 
     get shouldRescaleOnZoom() { return false }
+}
+
+class SpiralAngleGizmo extends AngleGizmo {
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.push();
+    }
 }

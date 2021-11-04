@@ -4,7 +4,7 @@
 import KeymapManager from "atom-keymap-plasticity";
 import * as THREE from "three";
 import { EditorLike, MovementInfo } from "../../src/commands/AbstractGizmo";
-import { MagnitudeGizmo } from "../../src/commands/fillet/FilletGizmo";
+import { FilletMagnitudeGizmo } from "../../src/commands/fillet/FilletGizmo";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { AngleGizmo, DistanceGizmo, LengthGizmo } from "../../src/commands/MiniGizmos";
 import { CircleMoveGizmo, MoveAxisGizmo, PlanarMoveGizmo } from "../../src/commands/translate/MoveGizmo";
@@ -344,11 +344,11 @@ describe(PlanarScaleGizmo, () => {
     })
 })
 
-describe(MagnitudeGizmo, () => {
-    let gizmo: MagnitudeGizmo;
+describe(FilletMagnitudeGizmo, () => {
+    let gizmo: FilletMagnitudeGizmo;
 
     beforeEach(() => {
-        gizmo = new MagnitudeGizmo("name", editor);
+        gizmo = new FilletMagnitudeGizmo("name", editor);
         expect(gizmo.value).toBe(0);
     })
 
@@ -373,7 +373,7 @@ describe(MagnitudeGizmo, () => {
         expect(gizmo.value).toBeCloseTo(0.28);
 
         gizmo.onInterrupt(intersector);
-        expect(gizmo.value).toBeCloseTo(0.14);
+        expect(gizmo.value).toBeCloseTo(0.28);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
     })

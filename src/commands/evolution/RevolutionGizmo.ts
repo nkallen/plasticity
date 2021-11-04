@@ -9,8 +9,8 @@ import { RevolutionParams } from './RevolutionFactory';
 const Y = new THREE.Vector3(0, 1, 0);
 
 export class RevolutionGizmo extends CompositeGizmo<RevolutionParams> {
-    private readonly thickness = new MagnitudeGizmo("revolution:thickness", this.editor);
-    private readonly angle = new AngleGizmo("revolution:angle", this.editor, this.editor.gizmos.white);
+    private readonly thickness = new RevolutionMagnitudeGizmo("revolution:thickness", this.editor);
+    private readonly angle = new RevolutionAngleGizmo("revolution:angle", this.editor, this.editor.gizmos.white);
 
     prepare() {
         const { thickness, angle, params } = this;
@@ -41,5 +41,17 @@ export class RevolutionGizmo extends CompositeGizmo<RevolutionParams> {
     render(params: RevolutionParams) {
         // this.angle.render(params.side1);
         this.thickness.render(params.thickness1);
+    }
+}
+
+class RevolutionMagnitudeGizmo extends MagnitudeGizmo {
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.push();
+    }
+}
+
+class RevolutionAngleGizmo extends AngleGizmo {
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.push();
     }
 }

@@ -36,7 +36,6 @@
 
 - [ ] Refactor curve extension code  
 - [ ] line2 raycasting bad in ortho camera  
-- [ ] Some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)  
 - [ ] 2D dashed line helper position off when inspector open  
 - [ ] Audit re-used icons  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
@@ -44,10 +43,11 @@
 
 ### In Progress
 
-- [ ] more robust mirror and consolidated with symmetry  
 
 ### Done ✓
 
+- [x] Some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)  
+- [x] more robust mirror and consolidated with symmetry  
 - [x] Consolidate create face into duplicate  
 - [x] Viewport: save state  
 - [x] Dragging control point that overlaps with curve offset triangle errors#bug  

@@ -7,8 +7,8 @@ import { AbstractAxialScaleGizmo, AngleGizmo, boxGeometry, DistanceGizmo, lineGe
 import { ExtrudeParams } from "./ExtrudeFactory";
 
 export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
-    private readonly distance1Gizmo = new DistanceGizmo("extrude:distance1", this.editor);
-    private readonly race1Gizmo = new AngleGizmo("extrude:race1", this.editor, this.editor.gizmos.white);
+    private readonly distance1Gizmo = new ExtrudeDistanceGizmo("extrude:distance1", this.editor);
+    private readonly race1Gizmo = new ExtrudeAngleGizmo("extrude:race1", this.editor, this.editor.gizmos.white);
     private readonly thicknessGizmo = new MagnitudeGizmo("extrude:thickness", this.editor);
 
     protected prepare(mode: Mode) {
@@ -42,6 +42,18 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
     }
 }
 
+class ExtrudeDistanceGizmo extends DistanceGizmo {
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.push();
+    }
+}
+
+class ExtrudeAngleGizmo extends AngleGizmo {
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.push();
+    }
+}
+
 export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
     readonly state = new MagnitudeStateMachine(0);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(boxGeometry, this.material.mesh);
@@ -52,5 +64,9 @@ export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
     constructor(name: string, editor: EditorLike) {
         super(name, editor, editor.gizmos.default);
         this.setup();
+    }
+
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.push();
     }
 }

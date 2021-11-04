@@ -33,7 +33,7 @@ import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
 import { MaxFilletFactory } from './fillet/FilletFactory';
-import { FilletSolidGizmo, MagnitudeGizmo } from './fillet/FilletGizmo';
+import { FilletSolidGizmo, FilletMagnitudeGizmo } from './fillet/FilletGizmo';
 import { ChamferAndFilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory, { PhantomLineFactory } from './line/LineFactory';
@@ -1339,7 +1339,7 @@ export class LoftCommand extends Command {
         // await curve.update();
 
         const { point, Z } = spine[0];
-        const gizmo = new MagnitudeGizmo("loft:thickness", this.editor);
+        const gizmo = new FilletMagnitudeGizmo("loft:thickness", this.editor);
         gizmo.position.copy(point);
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), Z);
         await gizmo.execute(async thickness => {
@@ -1436,7 +1436,7 @@ export class FreestyleMirrorCommand extends Command {
         await pointPicker.execute(({ point: p2 }) => {
             line.p2 = p2;
             line.update();
-            
+
             mirror.normal = p2.clone().sub(p1).cross(constructionPlane.n);
             mirror.update();
         }).resource(this);
@@ -1880,7 +1880,7 @@ export class ThinSolidCommand extends Command {
             face = solid.faces.get(0);
         }
 
-        const gizmo = new MagnitudeGizmo("thin-solid:thickness", this.editor);
+        const gizmo = new FilletMagnitudeGizmo("thin-solid:thickness", this.editor);
         const { point, normal } = OffsetFaceGizmo.placement(this.editor.db.lookupTopologyItem(face));
         gizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
         gizmo.position.copy(point);

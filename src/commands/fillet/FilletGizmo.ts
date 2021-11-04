@@ -13,9 +13,9 @@ import { FilletParams } from './FilletFactory';
 const Y = new THREE.Vector3(0, 1, 0);
 
 export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
-    private readonly main = new MagnitudeGizmo("fillet-solid:distance", this.editor);
-    private readonly angle = new AngleGizmo("fillet-solid:angle", this.editor, this.editor.gizmos.white);
-    private readonly variables: MagnitudeGizmo[] = [];
+    private readonly main = new FilletMagnitudeGizmo("fillet-solid:distance", this.editor);
+    private readonly angle = new FilletAngleGizmo("fillet-solid:angle", this.editor, this.editor.gizmos.white);
+    private readonly variables: FilletMagnitudeGizmo[] = [];
 
     private mode: fillet.Mode = c3d.CreatorType.FilletSolid;
 
@@ -98,11 +98,11 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         this.main.render(length);
     }
 
-    addVariable(point: THREE.Vector3, snap: CurveEdgeSnap): MagnitudeGizmo {
+    addVariable(point: THREE.Vector3, snap: CurveEdgeSnap): FilletMagnitudeGizmo {
         const { model, t } = snap;
 
         const normal = model.EdgeNormal(t);
-        const gizmo = new MagnitudeGizmo(`fillet:distance:${this.variables.length}`, this.editor);
+        const gizmo = new FilletMagnitudeGizmo(`fillet:distance:${this.variables.length}`, this.editor);
         gizmo.relativeScale.setScalar(0.5);
         gizmo.value = 1;
         gizmo.position.copy(point);
@@ -122,7 +122,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     }
 }
 
-export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
+export class FilletMagnitudeGizmo extends AbstractAxialScaleGizmo {
     readonly state = new MagnitudeStateMachine(0);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
@@ -134,4 +134,15 @@ export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
     }
 
     get shouldRescaleOnZoom() { return true }
+
+
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.push();
+    }
+}
+
+class FilletAngleGizmo extends AngleGizmo {
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.push();
+    }
 }
