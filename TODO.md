@@ -35,7 +35,6 @@
 ### Todo
 
 - [ ] Refactor curve extension code  
-- [ ] 2D dashed line helper position off when inspector open  
 - [ ] Audit re-used icons  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - [ ] outline for e.g., mirror command is strange - only outline visible items  
@@ -46,6 +45,7 @@
 
 ### Done ✓
 
+- [x] 2D dashed line helper position off when inspector open  
 - [x] SelectionMode 1/2/3/4 should set by default, whereas SHIFT 1/2/3/4 should toggle  
 - [x] Some gizmos should abort on interrupt (move xyz) and others should confirm (extrude)  
 - [x] more robust mirror and consolidated with symmetry  

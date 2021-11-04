@@ -426,8 +426,8 @@ export class DashedLineMagnitudeHelper implements GizmoHelper {
 
     constructor() {
         this.element = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        this.element.setAttribute('viewBox', '0 0 1 1');
-        this.element.setAttribute('preserveAspectRatio', 'xMinYMin')
+        this.element.setAttribute('viewBox', '-1 -1 2 2');
+        this.element.setAttribute('preserveAspectRatio', 'none')
         this.element.classList.add('gizmo-helper');
 
         this.line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -472,8 +472,8 @@ export class DashedLineMagnitudeHelper implements GizmoHelper {
 
     private readonly converted = new THREE.Vector2();
     toSVGCoordinates(from: THREE.Vector2): THREE.Vector2 {
-        this.converted.x = this.aspectRatio * (from.x + 1) / 2;
-        this.converted.y = (from.y - 1) / -2;
+        this.converted.x = from.x;
+        this.converted.y = -from.y;
         return this.converted;
     }
 
