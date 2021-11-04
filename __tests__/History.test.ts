@@ -24,6 +24,7 @@ import { MakeViewport } from '../__mocks__/FakeViewport';
 import { Editor } from '../src/editor/Editor';
 import KeymapManager from 'atom-keymap-plasticity';
 import CommandRegistry from '../src/components/atom/CommandRegistry';
+import LayerManager from '../src/editor/LayerManager';
 
 describe(EditorOriginator, () => {
     let db: GeometryDatabase;
@@ -56,7 +57,8 @@ describe(EditorOriginator, () => {
         contours = new ContourManager(db, curves, regions);
         const keymaps = new KeymapManager();
         const registry = new CommandRegistry();
-        const editor = { keymaps, db, registry } as unknown as Editor;
+        const layers = new LayerManager(selection.selected, signals);
+        const editor = { keymaps, db, registry, layers } as unknown as Editor;
         viewports = [MakeViewport(editor)];
         originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers, viewports);
     });

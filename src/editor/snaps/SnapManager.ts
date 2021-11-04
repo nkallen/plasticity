@@ -336,7 +336,7 @@ function sortIntersectionsXRay(i1: THREE.Intersection, i2: THREE.Intersection): 
 
 function sortIntersectionsNotXRay(i1: THREE.Intersection, i2: THREE.Intersection): number {
     const delta = i1.distance - i2.distance;
-    if (Math.abs(delta) < 10e-3) {
+    if (Math.abs(delta) < 10e-2) {
         return sortIntersectionsXRay(i1, i2);
     } else {
         return delta;

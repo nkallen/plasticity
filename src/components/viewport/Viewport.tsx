@@ -10,11 +10,11 @@ import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { xray } from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
-import { PlaneSnap } from "../../editor/snaps/Snap";
+import { ConstructionPlaneSnap, PlaneSnap } from "../../editor/snaps/Snap";
 import { HighlightManager } from "../../selection/HighlightManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
-import { Helpers } from "../../util/Helpers";
+import { Helper, Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
 import { GridHelper } from "./GridHelper";
 import { OrbitControls } from "./OrbitControls";
@@ -223,6 +223,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         if (!this.needsRender) return;
 
         const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, phantomsPass, helpersPass, grid, constructionPlane, domElement } = this
+        const additional = [...this.additionalHelpers];
 
         try {
             // prepare the scene, once per frame (there may be multiple viewports rendering the same frame):
@@ -240,7 +241,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
 
-                const additional = [...this.additionalHelpers];
                 if (additional.length > 0) {
                     if (this.isXRay) helpersScene.add(...additional);
                     else this.scene.add(...additional)
@@ -252,6 +252,9 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
             const resolution = new THREE.Vector2(domElement.offsetWidth, domElement.offsetHeight);
             signals.renderPrepared.dispatch({ camera, resolution });
+            helpersScene.traverse(child => { if (child instanceof Helper) child.update(camera) });
+            // FIXME this is inefficient
+            scene.traverse(child => { if (child instanceof Helper) child.update(camera) });
 
             composer.render();
 
@@ -319,7 +322,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 if (Math.abs(dot - 1) > 10e-3) {
                     if (this._isOrtho) {
                         this._isOrtho = false;
-                        this.constructionPlane = new PlaneSnap(Z);
+                        this.constructionPlane = new ConstructionPlaneSnap(Z);
                         this.changed.dispatch();
                     }
                 }
@@ -366,6 +369,12 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     get isXRay() { return VisibleLayers.test(xray) }
+    set isXRay(isXRay: boolean) {
+        this.editor.layers.setXRay(isXRay);
+        this.setNeedsRender();
+        this.changed.dispatch();
+    }
+
     toggleXRay() {
         this.editor.layers.toggleXRay();
         this.setNeedsRender();
@@ -382,7 +391,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     navigate(to: Orientation) {
         const n = this.navigator.prepareAnimationData(to);
-        const constructionPlane = new PlaneSnap(n);
+        const constructionPlane = new ConstructionPlaneSnap(n);
         this.constructionPlane = constructionPlane;
         this._isOrtho = true;
         this.changed.dispatch();
@@ -405,13 +414,15 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         return new ViewportMemento(
             this.camera.saveToMemento(),
             this.navigationControls.target,
+            this.isXRay,
             new ConstructionPlaneMemento(this.constructionPlane.n, this.constructionPlane.n));
     }
 
     restoreFromMemento(m: ViewportMemento): void {
         this.camera.restoreFromMemento(m.camera);
         this.navigationControls.target.copy(m.target);
-        this.constructionPlane = new PlaneSnap(m.constructionPlane.n, m.constructionPlane.o);
+        this.constructionPlane = new ConstructionPlaneSnap(m.constructionPlane.n, m.constructionPlane.o);
+        this.isXRay = m.isXRay;
         this.changed.dispatch();
     }
 
@@ -423,7 +434,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.restoreFromMemento(ViewportMemento.deserialize(data));
     }
 
-    debug(): void {}
+    debug(): void { }
 }
 
 type NavigationState = { tag: 'none' } | { tag: 'navigating', selectorEnabled: boolean, quaternion: THREE.Quaternion }
@@ -481,7 +492,7 @@ export default (editor: EditorLike) => {
             camera.lookAt(new THREE.Vector3());
             camera.updateMatrixWorld();
 
-            const constructionPlane = new PlaneSnap(n);
+            const constructionPlane = new ConstructionPlaneSnap(n);
 
             this.model = new Viewport(
                 editor,

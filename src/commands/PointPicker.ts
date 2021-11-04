@@ -17,7 +17,6 @@ import { inst2curve, point2point } from '../util/Conversion';
 import { Helper, Helpers } from '../util/Helpers';
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
-const origin = new THREE.Vector3();
 
 export interface EditorLike {
     db: DatabaseLike,

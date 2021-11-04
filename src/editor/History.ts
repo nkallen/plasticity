@@ -118,6 +118,7 @@ export class ViewportMemento {
     constructor(
         readonly camera: CameraMemento,
         readonly target: THREE.Vector3,
+        readonly isXRay: boolean,
         readonly constructionPlane: ConstructionPlaneMemento,
     ) { }
 
@@ -135,7 +136,7 @@ export class ViewportMemento {
         const camera = CameraMemento.fromJSON(p.camera);
         const target = new THREE.Vector3().fromArray(p.target);
         const constructionPlane = ConstructionPlaneMemento.fromJSON(p.constructionPlane);
-        return new ViewportMemento(camera, target, constructionPlane);
+        return new ViewportMemento(camera, target, p.isXRay, constructionPlane);
     }
 }
 

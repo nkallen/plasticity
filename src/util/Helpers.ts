@@ -60,8 +60,6 @@ export class Helpers {
     readonly axes: THREE.AxesHelper;
 
     constructor(signals: EditorSignals) {
-        signals.renderPrepared.add(({ camera }) => this.update(camera));
-
         const axes = new THREE.AxesHelper(10_000);
         axes.layers.set(visual.Layers.Overlay);
         this.axes = axes;
@@ -76,13 +74,5 @@ export class Helpers {
 
     remove(...objects: THREE.Object3D[]) {
         this.scene.remove(...objects);
-    }
-
-    update(camera: THREE.Camera) {
-        this.scene.traverse(child => {
-            if (child instanceof Helper) {
-                child.update(camera);
-            }
-        })
     }
 }

@@ -69,6 +69,16 @@ export default class LayerManager {
         IntersectableLayers.disable(visual.Layers.ControlPoint);
     }
 
+    setXRay(isSet: boolean) {
+        if (isSet) {
+            VisibleLayers.set(visual.Layers.XRay);
+            IntersectableLayers.set(visual.Layers.XRay);
+        } else {
+            VisibleLayers.disable(visual.Layers.XRay);
+            IntersectableLayers.disable(visual.Layers.XRay);
+        }
+    }
+
     toggleXRay() {
         VisibleLayers.toggle(visual.Layers.XRay);
         IntersectableLayers.toggle(visual.Layers.XRay);

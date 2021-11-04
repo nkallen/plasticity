@@ -44,6 +44,7 @@
 
 - [ ] line2 raycasting bad in ortho camera  
 - [ ] Shell command needs dialog (thickness 1 and 2)  
+- [ ] XRay & snaps not working correctly  
 
 ### Done ✓
 
