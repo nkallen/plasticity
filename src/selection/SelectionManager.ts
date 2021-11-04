@@ -304,6 +304,14 @@ export class ToggleableSet<T> extends Set<T> {
         }
         this.signals.selectionModeChanged.dispatch();
     }
+
+    set(...elements: T[]) {
+        this.clear();
+        for (const element of elements) {
+            this.add(element);
+        }
+        this.signals.selectionModeChanged.dispatch();
+    }
 }
 
 export interface HasSelectedAndHovered {

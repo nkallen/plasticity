@@ -143,10 +143,15 @@ export default {
     },
 
     "body:not([gizmo]) ispace-viewport": {
-        "1": "selection:toggle-control-point",
-        "2": "selection:toggle-edge",
-        "3": "selection:toggle-face",
-        "4": "selection:toggle-solid",
+        "1": "selection:set-control-point",
+        "2": "selection:set-edge",
+        "3": "selection:set-face",
+        "4": "selection:set-solid",
+
+        "!": "selection:toggle-control-point",
+        "@": "selection:toggle-edge",
+        "#": "selection:toggle-face",
+        "$": "selection:toggle-solid",
 
         "numpad1": "viewport:front",
         "numpad3": "viewport:right",
