@@ -799,8 +799,8 @@ export default {
                 // "const MbSurfaceCurve * GetSCurveTwo()",
                 "const MbCurve * GetPCurveOne()",
                 "const MbCurve * GetPCurveTwo()",
-                "const MbSurfaceCurve *	GetSCurveOne()",
-                "const MbSurfaceCurve *	GetSCurveTwo()",
+                "const MbSurfaceCurve * GetSCurveOne()",
+                "const MbSurfaceCurve * GetSCurveTwo()",
                 "const MbCurve3D * GetSpaceCurve()",
                 // "const MbCurve3D & GetCurveOne()",
                 // "const MbCurve3D & GetCurveTwo()",
@@ -1516,7 +1516,24 @@ export default {
             initializers: [
                 "const MbFace & f, const MbAxis3D & a, double d, const MbSNameMaker & nm"
             ]
-        }
+        },
+        DuplicationValues: {
+            rawHeader: "op_duplication_parameter.h",
+            cppClassName: "_DuplicationValues",
+            rawClassName: "DuplicationValues",
+            jsClassName: "DuplicationValues",
+        },
+        DuplicationMeshValues: {
+            rawHeader: "op_duplication_parameter.h",
+            extends: ["DuplicationValues"],
+            dependencies: ["_DuplicationValues.h", "Vector3D.h", "CartPoint3D.h"],
+            cppClassName: "_DuplicationMeshValues",
+            rawClassName: "DuplicationMeshValues",
+            jsClassName: "DuplicationMeshValues",
+            initializers: [
+                "bool isPolar, const MbVector3D & dir1, const double step1, const uint num1, const MbVector3D &dir2, const double step2, const uint num2, const MbCartPoint3D * center = NULL, bool isAlongAxis = false"
+            ]
+        },
     },
     modules: {
         Enabler: {
@@ -1580,7 +1597,7 @@ export default {
         },
         ActionSolid: {
             rawHeader: "action_solid.h",
-            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h", "ShellCuttingParams.h", "_SweptValues.h", "_RevolutionValues.h", "_EvolutionValues.h"],
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h", "ShellCuttingParams.h", "_SweptValues.h", "_RevolutionValues.h", "_EvolutionValues.h", "_DuplicationValues.h"],
             functions: [
                 "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
                 // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
@@ -1600,6 +1617,7 @@ export default {
                 "MbResultType ThinSolid(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbFace> & outFaces, RPArray<MbFace> & offFaces, SArray<double> & offDists, SweptValues & params, const MbSNameMaker & names, bool copyFaceAttrs, MbSolid *& result)",
                 "MbResultType RevolutionSolid(const MbSweptData & sweptData, const MbAxis3D & axis, const RevolutionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)",
                 "MbResultType EvolutionSolid(const MbSweptData & sweptData, const MbCurve3D & spine, const EvolutionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, const MbSNameMaker & spineNames, MbSolid *& result)",
+                "MbResultType DuplicationSolid(const MbSolid & solid, const DuplicationValues & params, const MbSNameMaker & names, MbSolid *& result)",
             ]
 
         },

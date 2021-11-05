@@ -6,6 +6,8 @@ import { Finish } from "../util/Cancellable";
 import { decomposeMainName, point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
+import { RadialArrayDialog } from "./array/RadialArrayDialog";
+import { ArrayFactory } from "./array/ArrayFactory";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
 import { BooleanFactory, CutAndSplitFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
@@ -1985,6 +1987,43 @@ export class DuplicateCommand extends Command {
         for (const face of faces) selected.removeFace(face, face.parentItem);
 
         this.editor.selection.selected.add(selection);
+    }
+}
+
+export class RadialArrayCommand extends Command {
+    async execute(): Promise<void> {
+        const solid = this.editor.selection.selected.solids.first;
+
+        const factory = new ArrayFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        factory.isPolar = true;
+        factory.solid = solid;
+        factory.num1 = 1;
+        factory.num2 = 8;
+        factory.isAlongAxis = true;
+        factory.step2 = Math.PI / 4;
+
+        const dialog = new RadialArrayDialog(factory, this.editor.signals);
+
+        let pointPicker = new PointPicker(this.editor);
+        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
+
+        const bbox = new THREE.Box3();
+        bbox.setFromObject(solid);
+        const centroid = bbox.getCenter(new THREE.Vector3());
+
+        centroid.sub(p1);
+        factory.step1 = centroid.length();
+        factory.dir1 = centroid.normalize();
+        factory.dir2 = constructionPlane.n.clone().normalize();
+        factory.center = p1;
+
+        await factory.update();
+
+        await dialog.execute(async params => {
+            factory.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        await factory.commit();
     }
 }
 

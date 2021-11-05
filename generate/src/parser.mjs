@@ -235,11 +235,10 @@ class FunctionDeclaration {
         this.params = [];
         let jsIndex = 0;
         for (const [cppIndex, paramDesc] of paramDescs.entries()) {
-            if (paramDesc != "") {
-                const param = new ParamDeclaration(cppIndex, jsIndex, paramDesc, this.typeRegistry, options);
-                this.params.push(param);
-                if (param.isJsArg) jsIndex++;
-            }
+            if (paramDesc == "") continue;
+            const param = new ParamDeclaration(cppIndex, jsIndex, paramDesc, this.typeRegistry, options);
+            this.params.push(param);
+            if (param.isJsArg) jsIndex++;
         }
 
         let returnsCount = 0;
@@ -424,7 +423,7 @@ class ReturnDeclaration extends TypeDeclaration {
 }
 
 class InitializerDeclaration {
-    static declaration = /(?<params>[\w\s,&*:<>]*)/
+    static declaration = /(?<params>[\w\s,&*:<>=()]*)/
 
     constructor(desc, typeRegistry) {
         this.desc = desc;

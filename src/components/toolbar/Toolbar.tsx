@@ -14,7 +14,7 @@ export class Model {
 
     get commands() {
         const result = [];
-        const { db, selection } = this;
+        const { selection } = this;
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0 || selection.controlPoints.size > 0) {
             result.push(cmd.DeleteCommand);
             result.push(cmd.RotateCommand);
@@ -33,6 +33,9 @@ export class Model {
         }
         if (selection.regions.size > 0) {
             result.push(cmd.ExtrudeCommand);
+        }
+        if (selection.solids.size > 0) {
+            result.push(cmd.RadialArrayCommand);
         }
         if (selection.solids.size > 1) {
             result.push(cmd.UnionCommand);

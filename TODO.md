@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] Incorporate parcel https://github.com/parcel-bundler/watcher  
 - [ ] Audit re-used icons  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - [ ] outline for e.g., mirror command is strange - only outline visible items  
@@ -42,6 +43,7 @@
 ### In Progress
 
 - [ ] line2 raycasting bad in ortho camera  
+- [ ] Radial array  
 
 ### Done ✓
 

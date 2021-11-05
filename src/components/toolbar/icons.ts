@@ -34,6 +34,7 @@ import threePointCircle from './img/three-point-circle.svg';
 import threePointEllipse from './img/three-point-ellipse.svg';
 import threePointRectangle from './img/three-point-rectangle.svg';
 import trim from './img/trim.svg';
+import radialArray from './img/radial-array.svg';
 import twoPointCircle from './img/two-point-circle.svg';
 import { default as changePoint, default as union } from './img/union.svg';
 
@@ -81,6 +82,7 @@ icons.set(cmd.BridgeCurvesCommand, mirror);
 icons.set(cmd.RevolutionCommand, line);
 icons.set(cmd.ModifyContourCommand, changePoint);
 icons.set(cmd.ShellCommand, changePoint);
+icons.set(cmd.RadialArrayCommand, radialArray);
 
 icons.set(c3d.ElementarySolid, box);
 icons.set(c3d.FilletSolid, fillet);
@@ -91,6 +93,7 @@ icons.set(c3d.ChamferSolid, fillet);
 icons.set(c3d.TransformedSolid, move);
 icons.set(c3d.SymmetrySolid, mirror);
 icons.set(c3d.CuttingSolid, cut);
+icons.set(c3d.DuplicationSolid, radialArray);
 
 export const tooltips = new Map<typeof Command, string>();
 tooltips.set(cmd.MoveCommand, "Move");
@@ -128,13 +131,14 @@ tooltips.set(cmd.MirrorCommand, "Mirror");
 tooltips.set(cmd.JoinCurvesCommand, "Join curves");
 tooltips.set(cmd.ExtrudeCommand, "Extrude");
 tooltips.set(cmd.SpiralCommand, "Spiral");
-tooltips.set(cmd.CharacterCurveCommand, "Custom Function");
+tooltips.set(cmd.CharacterCurveCommand, "Custom function");
 tooltips.set(cmd.TrimCommand, "Cut off line segments at intersections of curves");
 tooltips.set(cmd.OffsetCurveCommand, "Offset Loop");
 tooltips.set(cmd.BridgeCurvesCommand, "Bridge two curves");
 tooltips.set(cmd.RevolutionCommand, "Revolve");
 tooltips.set(cmd.ModifyContourCommand, "ModifyCurve");
 tooltips.set(cmd.ShellCommand, "Shell (thicken) solid or stroke (thicken) curve");
+tooltips.set(cmd.RadialArrayCommand, "Radial array");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");
