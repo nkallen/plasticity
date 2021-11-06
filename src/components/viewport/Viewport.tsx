@@ -162,6 +162,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.editor.signals.selectionChanged.add(this.outlineSelection);
         this.editor.signals.historyChanged.add(this.outlineSelection);
+        this.editor.signals.factoryUpdated.add(this.outlineSelection);
         this.editor.signals.objectHovered.add(this.outlineHover);
         this.editor.signals.objectUnhovered.add(this.outlineHover);
 
@@ -191,6 +192,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.editor.signals.selectionChanged.remove(this.outlineSelection);
             this.editor.signals.historyChanged.remove(this.outlineSelection);
             this.editor.signals.objectHovered.remove(this.outlineHover);
+            this.editor.signals.objectUnhovered.remove(this.outlineHover);
+            this.editor.signals.factoryUpdated.remove(this.outlineSelection);
 
             this.editor.signals.selectionChanged.remove(this.setNeedsRender);
             this.editor.signals.sceneGraphChanged.remove(this.setNeedsRender);

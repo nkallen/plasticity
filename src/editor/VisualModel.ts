@@ -49,6 +49,7 @@ export class Solid extends Item {
     get edges() { return this.lod.children[this.lod.children.length - 1].children[0] as CurveEdgeGroup }
     get faces() { return this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup }
     get outline() {
+        if (!this.visible) return [];
         return [...this.faces];
     }
 
