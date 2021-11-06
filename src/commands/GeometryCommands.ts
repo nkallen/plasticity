@@ -6,10 +6,10 @@ import { Finish } from "../util/Cancellable";
 import { decomposeMainName, point2point } from "../util/Conversion";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
-import { RadialArrayDialog } from "./array/RadialArrayDialog";
 import { ArrayFactory } from "./array/ArrayFactory";
+import { RadialArrayDialog } from "./array/RadialArrayDialog";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
-import { BooleanFactory, CutAndSplitFactory, DifferenceFactory, IntersectionFactory, UnionFactory } from './boolean/BooleanFactory';
+import { CutAndSplitFactory, MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
@@ -35,13 +35,13 @@ import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
 import { MaxFilletFactory } from './fillet/FilletFactory';
-import { FilletSolidGizmo, FilletMagnitudeGizmo } from './fillet/FilletGizmo';
+import { FilletMagnitudeGizmo, FilletSolidGizmo } from './fillet/FilletGizmo';
 import { ChamferAndFilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory, { PhantomLineFactory } from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import { MirrorDialog } from "./mirror/MirrorDialog";
-import { MirrorFactory, MirrorOrSymmetryFactory, SymmetryFactory } from "./mirror/MirrorFactory";
+import { MirrorOrSymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { MirrorKeyboardGizmo } from "./mirror/MirrorKeyboardGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
@@ -747,8 +747,7 @@ export class MoveItemCommand extends Command {
 
         const bbox = new THREE.Box3();
         for (const object of objects) bbox.expandByObject(object);
-        const centroid = new THREE.Vector3();
-        bbox.getCenter(centroid);
+        const centroid = bbox.getCenter(new THREE.Vector3());
 
         const move = new MoveFactory(editor.db, editor.materials, editor.signals).resource(this);
         move.pivot = centroid;
@@ -1096,36 +1095,51 @@ export class FreestyleRotateItemCommand extends AbstractFreestyleRotateCommand {
 }
 
 abstract class BooleanCommand extends Command {
-    protected abstract factory: BooleanFactory;
+    protected abstract factory: MovingBooleanFactory;
 
     async execute(): Promise<void> {
-        const { factory } = this;
+        const { factory, editor } = this;
         factory.resource(this);
 
-        const items = [...this.editor.selection.selected.solids];
+        const items = [...editor.selection.selected.solids];
+        const tools = items.slice(1);
+
+        const bbox = new THREE.Box3();
+        for (const object of tools) bbox.expandByObject(object);
+        const centroid = bbox.getCenter(new THREE.Vector3());
+
         factory.solid = items[0];
-        factory.tools = items.slice(1);
+        factory.tools = tools;
         await factory.update();
 
-        const dialog = new BooleanDialog(factory, this.editor.signals);
-        await dialog.execute(async params => {
+        const dialog = new BooleanDialog(factory, editor.signals);
+        const gizmo = new MoveGizmo(factory, editor);
+
+        dialog.execute(async params => {
             await factory.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        gizmo.position.copy(centroid);
+        gizmo.execute(s => {
+            factory.update();
         }).resource(this);
+
+        await this.finished;
 
         await factory.commit();
     }
 }
 
 export class UnionCommand extends BooleanCommand {
-    protected factory = new UnionFactory(this.editor.db, this.editor.materials, this.editor.signals);
+    protected factory = new MovingUnionFactory(this.editor.db, this.editor.materials, this.editor.signals);
 }
 
 export class IntersectionCommand extends BooleanCommand {
-    protected factory = new IntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals);
+    protected factory = new MovingIntersectionFactory(this.editor.db, this.editor.materials, this.editor.signals);
 }
 
 export class DifferenceCommand extends BooleanCommand {
-    protected factory = new DifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
+    protected factory = new MovingDifferenceFactory(this.editor.db, this.editor.materials, this.editor.signals);
 }
 
 export class CutCommand extends Command {

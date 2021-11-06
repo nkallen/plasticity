@@ -74,13 +74,13 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         if (!this.shouldRemoveOriginalItemOnCommit) for (const i of this.originalItems)
             i.visible = true;
 
-        // 1. Asynchronously compute the geometry (and the phantom if there is one)
+        // 1. Asynchronously compute the geometry
         let result;
         try {
             performance.mark('begin-factory-calculate');
             result = await this.calculate(options);
         } catch (e) {
-            if (e instanceof ValidationError) for (const temp of this.temps) temp.cancel();
+            if (e instanceof ValidationError) this.cleanupTempsOnFinishOrCancel();
             throw e;
         } finally {
             performance.measure('factory-calculate', 'begin-factory-calculate');
@@ -101,9 +101,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
             }
         }
 
-        for (const { phantom, material } of this.phantoms) {
-            promises.push(this.db.addPhantom(phantom, material));
-        }
+        this.addPhantoms(promises);
 
         // 3. When all async work is complete, we can safely show/hide items to the user;
         // The specific order of operations is designed to avoid any flicker: compute
@@ -113,7 +111,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         // 3.a. remove any previous temporary items.
         for (const temp of this.temps) temp.cancel();
 
-        // @ts-expect-error
+        // @ts-expect-error('cancelled is a possible state because the user may have cancelled during an async operation')
         if (this.state.tag === 'cancelled' || this.state.tag === 'committed') {
             for (const p of finished) p.cancel();
             return Promise.resolve([]);
@@ -121,6 +119,12 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
 
         // 3.c. show the newly created temporary items.
         return this.showTemps(finished);
+    }
+
+    protected addPhantoms(into: Promise<TemporaryObject>[]) {
+        for (const { phantom, material } of this.phantoms) {
+            into.push(this.db.addPhantom(phantom, material));
+        }
     }
 
     protected showTemps(finished: TemporaryObject[]) {
@@ -167,8 +171,12 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         } finally {
             await Promise.resolve(); // This removes flickering when rendering. // FIXME is that still true?
             for (const i of this.originalItems) i.visible = true;
-            for (const temp of this.temps) temp.cancel();
+            this.cleanupTempsOnFinishOrCancel();
         }
+    }
+
+    protected cleanupTempsOnFinishOrCancel() {
+        for (const temp of this.temps) temp.cancel();
     }
 
     private zip(originals: visual.Item[], replacements: c3d.Item[], shouldRemoveOriginal: boolean) {
@@ -181,7 +189,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
 
     protected doCancel(): void {
         for (const i of this.originalItems) i.visible = true;
-        for (const temp of this.temps) temp.cancel();
+        this.cleanupTempsOnFinishOrCancel();
     }
 
     calculate(options?: any): Promise<c3d.Item | c3d.Item[]> { throw new Error("Implement this for simple factories"); }

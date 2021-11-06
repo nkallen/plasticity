@@ -136,7 +136,7 @@ abstract class TranslateFactory extends GeometryFactory {
 
 export interface MoveParams {
     move: THREE.Vector3;
-    pivot: THREE.Vector3;
+    pivot: THREE.Vector3; // FIXME remove pivot for move
 }
 
 export interface MoveFactoryLike extends GeometryFactory, MoveParams {

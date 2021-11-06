@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { MaterialOverride } from "../../editor/GeometryDatabase";
+import { MaterialOverride, TemporaryObject } from "../../editor/GeometryDatabase";
 import { PlaneSnap } from "../../editor/snaps/Snap";
 import * as visual from '../../editor/VisualModel';
 import { composeMainName, curve3d2curve2d, point2point, vec2vec } from '../../util/Conversion';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, PhantomInfo, ValidationError } from '../GeometryFactory';
+import { MoveParams } from "../translate/TranslateFactory";
 
 interface BooleanLikeFactory extends GeometryFactory {
     solid?: visual.Solid;
@@ -46,7 +47,7 @@ export class BooleanFactory extends GeometryFactory implements BooleanLikeFactor
         this.toolModels = tools.map(t => this.db.lookup(t));
     }
 
-    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.BooleanSolid, this.db.version), c3d.ESides.SideNone, 0);
+    protected readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.BooleanSolid, this.db.version), c3d.ESides.SideNone, 0);
     protected _isOverlapping = false;
 
     async calculate() {
@@ -98,6 +99,91 @@ export class IntersectionFactory extends BooleanFactory {
 }
 
 export class DifferenceFactory extends BooleanFactory {
+    operationType = c3d.OperationType.Difference;
+}
+
+export class MovingBooleanFactory extends BooleanFactory implements MoveParams {
+    move = new THREE.Vector3();
+    pivot = new THREE.Vector3();
+
+    async calculate() {
+        const tools = this.moveTools();
+        const { solidModel, names, mergingFaces, mergingEdges } = this;
+
+        const flags = new c3d.MergingFlags();
+        flags.SetMergingFaces(mergingFaces);
+        flags.SetMergingEdges(mergingEdges);
+
+        const { result } = await c3d.ActionSolid.UnionResult_async(solidModel, c3d.CopyMode.Copy, tools, c3d.CopyMode.Copy, this.operationType, true, flags, names, false);
+        this._isOverlapping = true;
+        return result;
+    }
+
+    private moveTools() {
+        let tools = [];
+        const { move, toolModels } = this;
+        if (move.manhattanLength() > 10e-6) {
+            const transform = new c3d.TransformValues();
+            transform.Move(vec2vec(move));
+            const names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.TransformedSolid, this.db.version), c3d.ESides.SideNone, 0);
+            for (const tool of toolModels) {
+                const transformed = c3d.ActionDirect.TransformedSolid(tool, c3d.CopyMode.Copy, transform, names);
+                tools.push(transformed);
+            }
+        } else tools = toolModels;
+        return tools;
+    }
+
+    private _phantoms?: Promise<TemporaryObject>[];
+    protected addPhantoms(promises: Promise<TemporaryObject>[]) {
+        if (this._phantoms === undefined) {
+            const into: Promise<TemporaryObject>[] = [];
+            super.addPhantoms(into);
+            this._phantoms = into;
+            DoNotCancelPhantomsOnUpdate: {
+                for (const i of into) {
+                    const uncancellable: Promise<TemporaryObject> = i.then(phantom => {
+                        return {
+                            underlying: phantom.underlying,
+                            show() { phantom.show() },
+                            cancel() { }
+                        }
+                    });
+                    promises.push(uncancellable);
+                }
+            }
+        }
+        MovePhantomsOnUpdate: {
+            const lastIndex = this._phantoms.length - 1;
+            for (const [i, phantom] of this._phantoms.entries()) {
+                // Don't move the original item phantom
+                if (i === lastIndex && this.operationType === c3d.OperationType.Intersect) break;
+
+                phantom.then(phantom => {
+                    phantom.underlying.position.copy(this.move);
+                });
+            }
+        }
+    }
+
+    protected cleanupTempsOnFinishOrCancel() {
+        for (const temp of this.temps) temp.cancel();
+        if (this._phantoms === undefined) return;
+        CancelPhantomsForReal: {
+            for (const temp of this._phantoms) temp.then(t => t.cancel());
+        }
+    }
+}
+
+export class MovingUnionFactory extends MovingBooleanFactory {
+    operationType = c3d.OperationType.Union;
+}
+
+export class MovingIntersectionFactory extends MovingBooleanFactory {
+    operationType = c3d.OperationType.Intersect;
+}
+
+export class MovingDifferenceFactory extends MovingBooleanFactory {
     operationType = c3d.OperationType.Difference;
 }
 
