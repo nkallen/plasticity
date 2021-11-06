@@ -292,8 +292,12 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.setNeedsRender();
     }
 
-    disableControls() {
-        this.selector.enabled = this.navigationControls.enabled = this.points.enabled = false;
+    private readonly controls = [this.selector, this.navigationControls, this.points];
+    disableControls(except?: { set enabled(e: boolean) }) {
+        for (const control of this.controls) {
+            if (control === except) continue;
+            control.enabled = false;
+        }
     }
 
     enableControls() {
@@ -308,7 +312,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 this.navigationControls.addEventListener('change', this.navigationChange);
                 this.navigationControls.addEventListener('end', this.navigationEnd);
                 this.navigationState = { tag: 'navigating', selectorEnabled: this.selector.enabled, quaternion: this.camera.quaternion.clone() };
-                this.selector.enabled = false;
+                this.disableControls(this.navigationControls);
                 this.editor.signals.viewportActivated.dispatch(this);
                 break;
             default: throw new Error("invalid state");

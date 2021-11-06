@@ -369,7 +369,7 @@ export class OrbitControls extends THREE.EventDispatcher {
             case "orbit:pan":
                 if (this.enablePan === false) return;
 
-                this.panStart.set(event.clientX, event.clientY);
+                this.panStart.set(event.clientX, event.clientY, 0);
                 this.state = 'pan';
                 break;
             default:
@@ -501,11 +501,11 @@ export class OrbitControls extends THREE.EventDispatcher {
     private handleTouchStartPan() {
         const { pointers, panStart } = this;
         if (pointers.length === 1) {
-            panStart.set(pointers[0].pageX, pointers[0].pageY);
+            panStart.set(pointers[0].pageX, pointers[0].pageY, 0);
         } else {
             const x = 0.5 * (pointers[0].pageX + pointers[1].pageX);
             const y = 0.5 * (pointers[0].pageY + pointers[1].pageY);
-            panStart.set(x, y);
+            panStart.set(x, y, 0);
         }
     }
 
@@ -550,14 +550,14 @@ export class OrbitControls extends THREE.EventDispatcher {
     private handleTouchMovePan(event: PointerEvent) {
         const { pointers, panEnd, panDelta, panStart, panSpeed, touchMovePan } = this;
         if (pointers.length === 1) {
-            panEnd.set(event.pageX, event.pageY);
+            panEnd.set(event.pageX, event.pageY, 0);
         } else {
             const position = this.getSecondPointerPosition(event);
 
             const x = 0.5 * (event.pageX + position.x);
             const y = 0.5 * (event.pageY + position.y);
 
-            panEnd.set(x, y);
+            panEnd.set(x, y, 0);
         }
         panDelta.subVectors(panEnd, panStart).multiplyScalar(panSpeed);
 
@@ -632,14 +632,14 @@ export class OrbitControls extends THREE.EventDispatcher {
         this.update();
     }
 
-    private readonly panStart = new THREE.Vector2();
-    private readonly panEnd = new THREE.Vector2();
-    private readonly panDelta = new THREE.Vector2();
+    private readonly panStart = new THREE.Vector3();
+    private readonly panEnd = new THREE.Vector3();
+    private readonly panDelta = new THREE.Vector3();
     private handleMouseMovePan(event: PointerEvent) {
         const { panStart, panEnd, panDelta, panSpeed } = this;
-        panEnd.set(event.clientX, event.clientY);
+        panEnd.set(event.clientX, event.clientY, 0);
         panDelta.subVectors(panEnd, panStart).multiplyScalar(panSpeed);
-        this.pan(new THREE.Vector3(panDelta.x, panDelta.y, 0));
+        this.pan(panDelta);
         panStart.copy(panEnd);
         this.update();
     }
