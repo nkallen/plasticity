@@ -45,12 +45,20 @@ export class Model {
         const result = [];
 
         for (const topo of model.GetItems()) {
-            if (name.IsChild(topo) && topo.IsA() === c3d.TopologyType.Face) {
-                const index = model.GetFaceIndex(topo.Cast<c3d.Face>(c3d.TopologyType.Face));
-                const { views } = db.lookupTopologyItemById(visual.Face.simpleName(solid.simpleName, index))
-                const view = views.values().next().value as visual.Face;
-                hovered.addFace(view, solid);
-                result.push(view);
+            if (name.IsChild(topo)) {
+                if (topo.IsA() === c3d.TopologyType.Face) {
+                    const index = model.GetFaceIndex(topo.Cast<c3d.Face>(c3d.TopologyType.Face));
+                    const { views } = db.lookupTopologyItemById(visual.Face.simpleName(solid.simpleName, index))
+                    const view = views.values().next().value as visual.Face;
+                    hovered.addFace(view, solid);
+                    result.push(view);
+                } else if (topo.IsA() === c3d.TopologyType.CurveEdge) {
+                    const index = model.GetEdgeIndex(topo.Cast<c3d.CurveEdge>(c3d.TopologyType.CurveEdge));
+                    const { views } = db.lookupTopologyItemById(visual.CurveEdge.simpleName(solid.simpleName, index))
+                    const view = views.values().next().value as visual.CurveEdge;
+                    hovered.addEdge(view, solid);
+                    result.push(view);
+                }
             }
         }
         return result;
@@ -116,7 +124,7 @@ export default (editor: Editor) => {
     }
     customElements.define('ispace-creators', Creators);
 
-    class Creator<C extends c3d.Creator> extends HTMLElement {
+    class Creator extends HTMLElement {
         private _index!: number;
         set index(index: number) { this._index = index }
         get index() { return this._index }
@@ -173,7 +181,7 @@ export default (editor: Editor) => {
     customElements.define('ispace-creator', Creator);
 
     for (const key in c3d.CreatorType) {
-        class Anon extends Creator<any> { };
+        class Anon extends Creator { };
         customElements.define(`ispace-creator-${_.dasherize(key)}`, Anon);
     }
 }

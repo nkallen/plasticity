@@ -3,6 +3,7 @@
 
 #include "../include/Face.h"
 #include "../include/Edge.h"
+#include "../include/CurveEdge.h"
 
 Napi::Value cast(MbTopologyItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -31,6 +32,8 @@ Napi::Value cast(MbTopologyItem *_underlying, const Napi::CallbackInfo &info)
     {
     case tt_Face:
         return Face::NewInstance(env, (MbFace *)(_underlying));
+    case tt_CurveEdge:
+        return CurveEdge::NewInstance(env, (MbCurveEdge *)(_underlying));
     }
 }
 

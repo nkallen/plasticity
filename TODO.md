@@ -37,6 +37,7 @@
 
 ### Todo
 
+- [ ] Allow gettings edge selection from creators  
 - [ ] Refactor curve extension code  
 - [ ] boolean needs movement  
 

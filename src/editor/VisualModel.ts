@@ -283,6 +283,10 @@ export abstract class Edge extends TopologyItem { }
 export class CurveEdge extends Edge {
     get child() { return this.line };
 
+    static simpleName(parentId: c3d.SimpleName, index: number) {
+        return `edge,${parentId},${index}`;
+    }
+
     static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial): CurveEdge {
         const geometry = new LineGeometry();
         geometry.setPositions(edge.position);
@@ -296,7 +300,7 @@ export class CurveEdge extends Edge {
 
         const result = new CurveEdge(line, occludedLine);
         result.userData.name = edge.name;
-        result.userData.simpleName = `edge,${parentId},${edge.i}`;
+        result.userData.simpleName = this.simpleName(parentId, edge.i);
         result.userData.index = edge.i;
 
         return result;

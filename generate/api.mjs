@@ -82,6 +82,7 @@ export default {
                 "MbeProcessState GetStatus()",
                 "void SetStatus(MbeProcessState l)",
                 { signature: "bool CreateShell(MbFaceShell *& shell, MbeCopyMode sameShell, RPArray<MbSpaceItem> * items = NULL)", items: isReturn, shell: { isInput: true }, return: { name: "success" } },
+                "SimpleName GetMainName()",
             ]
         },
         Transactions: {
@@ -681,6 +682,7 @@ export default {
             dependencies: ["RefItem.h", "TopologyItem.h"],
             functions: [
                 "bool IsChild(const MbTopologyItem & t)",
+                "SimpleName GetMainName()",
             ]
         },
         SNameMaker: {
