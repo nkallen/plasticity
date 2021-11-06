@@ -43,10 +43,11 @@
 ### In Progress
 
 - [ ] line2 raycasting bad in ortho camera  
-- [ ] Radial array  
 
 ### Done ✓
 
+- [x] Experiment: Boolean allows movement  
+- [x] Radial array 1st pass  
 - [x] snap targets not scaling like helpres should  
 - [x] Shell command needs dialog (thickness 1 and 2)  
 - [x] Center snap point for circle curves  
