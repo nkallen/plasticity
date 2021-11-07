@@ -131,35 +131,53 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     }
 
     removeFace(object: visual.Face, parentItem: visual.Solid) {
+        const id = object.simpleName;
+        if (!this.faceIds.has(id)) return;
+
         this.faceIds.delete(object.simpleName);
         this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectRemoved.dispatch(object);
     }
 
     addFace(object: visual.Face, parentItem: visual.Solid) {
-        this.faceIds.add(object.simpleName);
+        const id = object.simpleName;
+        if (this.faceIds.has(id)) return;
+
+        this.faceIds.add(id);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
-            new Redisposable(() => this.faceIds.delete(object.simpleName)));
+            new Redisposable(() => this.faceIds.delete(id)));
         this.signals.objectAdded.dispatch(object);
     }
 
     removeRegion(object: visual.PlaneInstance<visual.Region>) {
+        const id = object.simpleName;
+        if (!this.regionIds.has(id)) return;
+
         this.regionIds.delete(object.simpleName);
         this.signals.objectRemoved.dispatch(object);
     }
 
     addRegion(object: visual.PlaneInstance<visual.Region>) {
+        const id = object.simpleName;
+        if (this.regionIds.has(id)) return;
+
         this.regionIds.add(object.simpleName);
         this.signals.objectAdded.dispatch(object);
     }
 
     removeEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
+        const id = object.simpleName;
+        if (!this.edgeIds.has(id)) return;
+
         this.edgeIds.delete(object.simpleName);
         this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectRemoved.dispatch(object);
     }
 
     addEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
+        const id = object.simpleName;
+        if (this.edgeIds.has(id)) return;
+
         this.edgeIds.add(object.simpleName);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
             new Redisposable(() => this.edgeIds.delete(object.simpleName))
@@ -168,33 +186,51 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     }
 
     removeSolid(solid: visual.Solid) {
+        const id = solid.simpleName;
+        if (!this.solidIds.has(id)) return;
+
         this.solidIds.delete(solid.simpleName);
         this.signals.objectRemoved.dispatch(solid);
     }
 
     addSolid(solid: visual.Solid) {
+        const id = solid.simpleName;
+        if (this.solidIds.has(id)) return;
+        
         this.solidIds.add(solid.simpleName);
         this.signals.objectAdded.dispatch(solid);
     }
 
     removeCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
+        const id = curve.simpleName;
+        if (!this.curveIds.has(id)) return;
+
         this.curveIds.delete(curve.simpleName);
         this.signals.objectRemoved.dispatch(curve);
     }
 
     addCurve(curve: visual.SpaceInstance<visual.Curve3D>) {
-        this.curveIds.add(curve.simpleName);
+        const id = curve.simpleName;
+        if (this.curveIds.has(id)) return;
+
+        this.curveIds.add(id);
         this.signals.objectAdded.dispatch(curve);
     }
 
     addControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
-        this.controlPointIds.add(point.simpleName);
+        const id = point.simpleName;
+        if (this.controlPointIds.has(id)) return;
+
+        this.controlPointIds.add(id);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
-            new Redisposable(() => this.controlPointIds.delete(point.simpleName)));
+            new Redisposable(() => this.controlPointIds.delete(id)));
         this.signals.objectAdded.dispatch(point);
     }
 
     removeControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
+        const id = point.simpleName;
+        if (!this.controlPointIds.has(id)) return;
+
         this.controlPointIds.delete(point.simpleName);
         this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectRemoved.dispatch(point);

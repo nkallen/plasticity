@@ -9,7 +9,7 @@ import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { Intersection } from '../../src/editor/Intersectable';
 import * as visual from '../../src/editor/VisualModel';
 import { SelectionInteractionManager } from '../../src/selection/SelectionInteraction';
-import { SelectionManager } from '../../src/selection/SelectionManager';
+import { SelectionManager, Selection } from '../../src/selection/SelectionManager';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
@@ -668,3 +668,100 @@ describe(SelectionManager, () => {
         expect(selectionManager.hovered.regions.size).toBe(1);
     })
 });
+
+describe(Selection, () => {
+    let selection: Selection;
+
+    beforeEach(() => {
+
+        const sigs = {
+            objectRemovedFromDatabase: signals.objectRemoved,
+            objectAdded: signals.objectSelected,
+            objectRemoved: signals.objectDeselected,
+            selectionChanged: signals.selectionChanged
+        };
+        selection = new Selection(db, sigs as any);
+    });
+
+    test.only("add & remove solid", async () => {
+        const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
+        const objectRemoved = jest.spyOn(signals.objectDeselected, 'dispatch');
+
+        expect(selection.solids.first).toBe(undefined);
+        expect(objectAdded).toHaveBeenCalledTimes(0);
+        expect(objectRemoved).toHaveBeenCalledTimes(0);
+
+        selection.addSolid(solid);
+        expect(selection.solids.first).toBe(solid);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(0);
+
+        selection.removeSolid(solid);
+        expect(selection.solids.first).toBe(undefined);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(1);
+    });
+
+    test("add solid twice", async () => {
+        const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
+        const objectRemoved = jest.spyOn(signals.objectDeselected, 'dispatch');
+
+        selection.addSolid(solid);
+        expect(selection.solids.first).toBe(solid);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(0);
+
+        selection.addSolid(solid);
+        expect(selection.solids.first).toBe(solid);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(0);
+    });
+
+    test("remove solid twice", async () => {
+        const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
+        const objectRemoved = jest.spyOn(signals.objectDeselected, 'dispatch');
+
+        selection.addSolid(solid);
+        expect(selection.solids.first).toBe(solid);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(0);
+
+        selection.removeSolid(solid);
+        expect(selection.solids.first).toBe(undefined);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(1);
+
+        selection.removeSolid(solid);
+        expect(selection.solids.first).toBe(undefined);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(1);
+    });
+
+    test("add face twice", async () => {
+        const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
+        const objectRemoved = jest.spyOn(signals.objectDeselected, 'dispatch');
+
+        const face = solid.faces.get(0);
+        
+        selection.addFace(face, solid);
+        expect(selection.faces.first).toBe(face);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(0);
+
+        expect(selection.hasSelectedChildren(solid)).toBe(true);
+
+        selection.addFace(face, solid);
+        expect(selection.faces.first).toBe(face);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(0);
+
+        expect(selection.hasSelectedChildren(solid)).toBe(true);
+
+        selection.removeFace(face, solid);
+        expect(selection.faces.first).toBe(undefined);
+        expect(objectAdded).toHaveBeenCalledTimes(1);
+        expect(objectRemoved).toHaveBeenCalledTimes(1);
+
+        expect(selection.hasSelectedChildren(solid)).toBe(false);
+    });
+})

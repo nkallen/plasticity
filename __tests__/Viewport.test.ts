@@ -83,11 +83,11 @@ test("item selected", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
 });
 
-test("item hovered", () => {
+test.only("item hovered", () => {
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
     interaction.onHover([{ object: sphere.faces.get(0), distance: 1, point }]);
-    expect(viewport.outlinePassHover.selectedObjects).toEqual(sphere.outline);
+    expect(viewport.outlinePassHover.selectedObjects).toEqual([sphere.outline]);
     interaction.onHover([]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
 });
