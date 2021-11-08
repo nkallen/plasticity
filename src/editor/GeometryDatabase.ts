@@ -410,15 +410,13 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 const edges = new visual.CurveEdgeGroupBuilder();
                 const lineMaterial = materials?.line ?? this.materials.line();
                 for (const edge of item.edges) {
-                    const line = visual.CurveEdge.build(edge, id, lineMaterial, this.materials.lineDashed());
-                    edges.addEdge(line);
+                    edges.add(edge, id, lineMaterial, this.materials.lineDashed());
                 }
 
                 const faces = new visual.FaceGroupBuilder();
                 for (const grid of item.faces) {
                     const material = materials?.mesh ?? this.materials.mesh(grid);
-                    const mesh = visual.Face.mesh(grid, id, material);
-                    faces.add(mesh);
+                    faces.add(grid, id, material);
                 }
                 solid.add(edges, faces, distance);
                 break;

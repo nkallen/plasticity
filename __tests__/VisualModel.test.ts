@@ -35,8 +35,8 @@ beforeEach(() => {
 
 test('constructs solids', () => {
     const makeEdges = new visual.CurveEdgeGroupBuilder();
-    const edge = visual.CurveEdge.build({ position: new Float32Array([1, 2, 3]) } as c3d.MeshBuffer, 0, materials.line(), materials.lineDashed());
-    makeEdges.addEdge(edge);
+    const edge = visual.CurveEdge.mesh({ position: new Float32Array([1, 2, 3]) } as c3d.MeshBuffer, 0, materials.line(), materials.lineDashed());
+    makeEdges.add(edge);
 
     const makeFaces = new visual.FaceGroupBuilder();
     const face = visual.Face.mesh({} as c3d.MeshBuffer, 0, materials.mesh());

@@ -113,8 +113,11 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     }
 
     showEdges() {
-        for (const edge of this.params.edges)
-            this.editor.db.temporaryObjects.add(edge.occludedLine.clone());
+        for (const edge of this.params.edges) {
+            const view = edge.makeView();
+            view.material = this.editor.materials.lineDashed();
+            this.editor.db.temporaryObjects.add(view);
+        }
     }
 
     get shouldRescaleOnZoom() {

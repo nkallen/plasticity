@@ -52,9 +52,9 @@ export class HighlightManager {
         const { views } = this.db.lookupTopologyItemById(item.simpleName);
         for (const view of views) {
             const edge = view as visual.CurveEdge;
-            if (edge.child.userData.oldMaterial === undefined)
-                edge.child.userData.oldMaterial = edge.child.material;
-            edge.child.material = line_hovered;
+            // if (edge.child.userData.oldMaterial === undefined)
+            //     edge.child.userData.oldMaterial = edge.child.material;
+            // edge.child.material = line_hovered;
         }
     }
 
@@ -193,9 +193,9 @@ export class HighlightManager {
         const { selected } = this.selection;
 
         edge.visible = true;
-        edge.child.material = selected.edgeIds.has(edge.simpleName) ? line_highlighted : line_unhighlighted;
+        // edge.child.material = selected.edgeIds.has(edge.simpleName) ? line_highlighted : line_unhighlighted;
         edge.layers.set(visual.Layers.CurveEdge);
-        edge.child.layers.set(visual.Layers.CurveEdge);
+        // edge.child.layers.set(visual.Layers.CurveEdge);
     }
 
     protected highlightFace(face: visual.Face, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {

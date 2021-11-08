@@ -4,6 +4,7 @@ import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from "../editor/GeometryDatabase";
+import MaterialDatabase from "../editor/MaterialDatabase";
 import { PlaneSnap } from "../editor/snaps/Snap";
 import { CancellablePromise } from "../util/Cancellable";
 import { Helper, Helpers } from "../util/Helpers";
@@ -37,6 +38,7 @@ export interface EditorLike {
     signals: EditorSignals,
     registry: CommandRegistry,
     gizmos: GizmoMaterialDatabase,
+    materials: MaterialDatabase,
 }
 
 export interface GizmoLike<CB> {

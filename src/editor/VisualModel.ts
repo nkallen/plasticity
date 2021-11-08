@@ -1,8 +1,10 @@
 import * as THREE from "three";
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
+import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import c3d from '../../build/Release/c3d.node';
 import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
@@ -283,43 +285,29 @@ export abstract class TopologyItem extends THREE.Object3D {
 export abstract class Edge extends TopologyItem { }
 
 export class CurveEdge extends Edge {
-    get child() { return this.line };
-
     static simpleName(parentId: c3d.SimpleName, index: number) {
         return `edge,${parentId},${index}`;
     }
 
-    static build(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial): CurveEdge {
-        const geometry = new LineGeometry();
-        geometry.setPositions(edge.position);
-        const line = new Line2(geometry, material);
-        line.scale.setScalar(0.01);
-
-        const occludedLine = new Line2(geometry, occludedMaterial);
-        occludedLine.scale.setScalar(0.01);
-        occludedLine.computeLineDistances();
-        occludedLine.name = 'occluded';
-
-        const result = new CurveEdge(line, occludedLine);
-        result.userData.name = edge.name;
-        result.userData.simpleName = this.simpleName(parentId, edge.i);
-        result.userData.index = edge.i;
-
-        return result;
-    }
-
-    private constructor(readonly line: Line2, readonly occludedLine: Line2) {
+    constructor(readonly group: Readonly<GeometryGroup>, userData: any) {
         super();
-        if (arguments.length === 0) return;
-        this.add(line, occludedLine);
-        occludedLine.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
-        occludedLine.layers.set(Layers.XRay);
+        this.userData = userData;
     }
 
-    dispose() {
-        this.line.geometry.dispose();
-        this.occludedLine.geometry.dispose();
+    makeView() {
+        const edgeGroup = this.parent as CurveEdgeGroup;
+        const original = (edgeGroup.mesh.children[0] as LineSegments2).geometry;
+        const instanceStart = original.attributes.instanceStart as THREE.InterleavedBufferAttribute;
+        const array = instanceStart.data.array as Float32Array;
+        const slice = new Float32Array(array, this.group.start, this.group.count);
+        const geometry = new LineSegmentsGeometry();
+        geometry.setPositions(slice);
+        const line = new LineSegments2(geometry);
+        line.computeLineDistances();
+        return line;
     }
+
+    dispose() { }
 }
 export class Vertex {
     static build(edge: c3d.EdgeBuffer, material: LineMaterial) {
@@ -333,23 +321,6 @@ export class Face extends TopologyItem {
         return `face,${parentId},${index}`;
     }
 
-    static mesh(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material): THREE.Mesh {
-        const geometry = new THREE.BufferGeometry();
-        geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
-        geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
-        geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.scale.setScalar(0.01);
-        const userData = {
-            name: grid.name,
-            simpleName: this.simpleName(parentId, grid.i),
-            index: grid.i,
-        }
-        geometry.userData = userData;
-
-        return mesh;
-    }
-
     constructor(readonly group: Readonly<GeometryGroup>, userData: any) {
         super();
         this.userData = userData;
@@ -357,7 +328,12 @@ export class Face extends TopologyItem {
 
     makeSnap(): THREE.Mesh {
         const faceGroup = this.parent as FaceGroup;
-        const geometry = faceGroup.mesh.geometry.clone();
+        const geometry = new THREE.BufferGeometry();
+        const original = faceGroup.mesh.geometry;
+        geometry.attributes = original.attributes;
+        geometry.index = original.index;
+        geometry.boundingBox = original.boundingBox;
+        geometry.boundingSphere = original.boundingSphere;
         geometry.addGroup(this.group.start, this.group.count, 0);
         const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial());
         mesh.scale.setScalar(deunit(1));
@@ -370,18 +346,26 @@ export class Face extends TopologyItem {
 export class CurveEdgeGroup extends THREE.Group {
     private _useNominal: undefined;
 
+    constructor(readonly mesh: THREE.Group, readonly edges: ReadonlyArray<CurveEdge>) {
+        super();
+        this.add(mesh);
+        this.add(...edges);
+    }
+
     *[Symbol.iterator]() {
-        for (const child of this.children) {
-            yield child as CurveEdge;
-        }
+        for (const edge of this.edges) yield edge;
     }
 
     get(i: number): CurveEdge {
-        return this.children[i] as CurveEdge;
+        return this.edges[i];
     }
 
     dispose() {
-        for (const edge of this) edge.dispose();
+        for (const edge of this.edges) edge.dispose();
+        for (const child of this.mesh.children) {
+            if (!(child instanceof LineSegments2)) throw new Error("invalid precondition");
+            child.geometry.dispose();
+        }
     }
 }
 
@@ -414,7 +398,7 @@ export class FaceGroup extends THREE.Group {
     }
 
     *[Symbol.iterator]() {
-        return this.faces;
+        for (const face of this.faces) yield face;
     }
 
     get(i: number): Face {
@@ -569,8 +553,21 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
 export class FaceGroupBuilder {
     private readonly meshes: THREE.Mesh[] = [];
 
-    add(face: THREE.Mesh) {
-        this.meshes.push(face);
+    add(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material) {
+        const geometry = new THREE.BufferGeometry();
+        geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
+        geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
+        geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.scale.setScalar(0.01);
+        const userData = {
+            name: grid.name,
+            simpleName: Face.simpleName(parentId, grid.i),
+            index: grid.i,
+        }
+        geometry.userData = userData;
+
+        this.meshes.push(mesh);
     }
 
     build(): FaceGroup {
@@ -599,14 +596,63 @@ export class FaceGroupBuilder {
 }
 
 export class CurveEdgeGroupBuilder {
-    private curveEdgeGroup = new CurveEdgeGroup();
+    private readonly lines: { position: Float32Array, userData: any, material: LineMaterial, occludedMaterial: LineMaterial }[] = [];
 
-    addEdge(edge: CurveEdge) {
-        this.curveEdgeGroup.add(edge);
+    add(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial) {
+        const position = edge.position;
+        const userData = {
+            name: edge.name,
+            simpleName: CurveEdge.simpleName(parentId, edge.i),
+            index: edge.i
+        }
+
+        this.lines.push({ position, userData, material, occludedMaterial });
     }
 
     build() {
-        return this.curveEdgeGroup;
+        const { lines } = this;
+        const groups: GeometryGroup[] = [];
+
+        let arrayLength = 0;
+        for (const { position } of lines) {
+            arrayLength += (position.length - 3) * 2;
+        }
+        const array = new Float32Array(arrayLength);
+        let offset = 0;
+        for (const [i, { position }] of lines.entries()) {
+            // converts [ x1, y1, z1,  x2, y2, z2, ... ] to pairs format
+            for (let i = 0; i < position.length; i += 3) {
+                array[offset + 2 * i] = position[i];
+                array[offset + 2 * i + 1] = position[i + 1];
+                array[offset + 2 * i + 2] = position[i + 2];
+                array[offset + 2 * i + 3] = position[i + 3];
+                array[offset + 2 * i + 4] = position[i + 4];
+                array[offset + 2 * i + 5] = position[i + 5];
+            }
+            const length = (position.length - 3) * 2;
+            groups.push({ start: offset, count: length, materialIndex: i })
+            offset += length;
+        }
+        const geometry = new LineSegmentsGeometry();
+        geometry.setPositions(array);
+        const line = new LineSegments2(geometry, lines[0].material);
+        line.scale.setScalar(deunit(1));
+        const occluded = new LineSegments2(geometry, lines[0].occludedMaterial);
+        occluded.renderOrder = line.renderOrder = RenderOrder.CurveEdge;
+        occluded.layers.set(Layers.XRay);
+        occluded.scale.setScalar(deunit(1));
+        occluded.computeLineDistances();
+
+        const mesh = new THREE.Group();
+        mesh.add(line, occluded);
+
+        const edges = [];
+        for (const [i, { userData, material, occludedMaterial }] of lines.entries()) {
+            const edge = new CurveEdge(groups[i], userData);
+            edges.push(edge);
+        }
+
+        return new CurveEdgeGroup(mesh, edges);
     }
 }
 

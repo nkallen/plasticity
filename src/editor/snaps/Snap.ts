@@ -197,7 +197,7 @@ export class FaceCenterPointSnap extends PointSnap {
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
     t!: number;
-    readonly snapper = new Line2(this.view.child.geometry, this.view.child.material);
+    readonly snapper = this.view.makeView();
     protected readonly layer = Layers.CurveEdge;
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
