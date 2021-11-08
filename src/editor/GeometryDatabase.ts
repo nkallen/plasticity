@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Curve, PointsMaterial } from 'three';
+import { PointsMaterial } from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
 import { SequentialExecutor } from '../util/SequentialExecutor';
@@ -417,10 +417,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 const faces = new visual.FaceGroupBuilder();
                 for (const grid of item.faces) {
                     const material = materials?.mesh ?? this.materials.mesh(grid);
-                    const face = visual.Face.build(grid, id, material);
-                    faces.addFace(face);
+                    const mesh = visual.Face.mesh(grid, id, material);
+                    faces.add(mesh);
                 }
-                solid.addLOD(edges.build(), faces.build(), distance);
+                solid.add(edges, faces, distance);
                 break;
             }
             default: throw new Error("type not yet supported");

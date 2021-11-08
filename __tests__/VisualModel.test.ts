@@ -39,11 +39,15 @@ test('constructs solids', () => {
     makeEdges.addEdge(edge);
 
     const makeFaces = new visual.FaceGroupBuilder();
-    const face = visual.Face.build({} as c3d.MeshBuffer, 0, materials.mesh());
-    makeFaces.addFace(face);
+    const face = visual.Face.mesh({} as c3d.MeshBuffer, 0, materials.mesh());
+    makeFaces.add(face);
 
     const makeSolid = new visual.SolidBuilder();
-    makeSolid.addLOD(makeEdges.build(), makeFaces.build());
+    makeSolid.add(makeEdges.build(), makeFaces.build());
     const solid = makeSolid.build();
     expect(solid).toBeInstanceOf(visual.Solid);
 });
+
+test('optimize', () => {
+
+})

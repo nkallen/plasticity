@@ -105,7 +105,6 @@ export class ExportFactory extends GeometryFactory {
                 const geometry = line.userData.geometry;
                 geometries.push(geometry);
             }
-            // @ts-expect-error
             const merged = BufferGeometryUtils.mergeBufferGeometries(geometries);
             const mesh = new THREE.Mesh(merged);
             mesh.scale.setScalar(deunit(1));

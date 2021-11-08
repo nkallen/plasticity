@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
@@ -325,38 +326,45 @@ export class Vertex {
     }
 }
 
-export class Face extends TopologyItem {
-    get child() { return this.mesh };
+type GeometryGroup = { start: number; count: number; materialIndex?: number | undefined };
 
+export class Face extends TopologyItem {
     static simpleName(parentId: c3d.SimpleName, index: number) {
         return `face,${parentId},${index}`;
     }
 
-    static build(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material): Face {
+    static mesh(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material): THREE.Mesh {
         const geometry = new THREE.BufferGeometry();
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
         const mesh = new THREE.Mesh(geometry, material);
         mesh.scale.setScalar(0.01);
-        const result = new Face(mesh);
-        result.userData.name = grid.name;
-        result.userData.simpleName = this.simpleName(parentId, grid.i);
-        result.userData.index = grid.i;
+        const userData = {
+            name: grid.name,
+            simpleName: this.simpleName(parentId, grid.i),
+            index: grid.i,
+        }
+        geometry.userData = userData;
 
-        return result;
+        return mesh;
     }
 
-    private constructor(private readonly mesh: THREE.Mesh) {
+    constructor(readonly group: Readonly<GeometryGroup>, userData: any) {
         super();
-        if (arguments.length === 0) return;
-        this.renderOrder = RenderOrder.Face;
-        this.add(mesh);
+        this.userData = userData;
     }
 
-    dispose() {
-        this.mesh.geometry.dispose();
+    makeSnap(): THREE.Mesh {
+        const faceGroup = this.parent as FaceGroup;
+        const geometry = faceGroup.mesh.geometry.clone();
+        geometry.addGroup(this.group.start, this.group.count, 0);
+        const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial());
+        mesh.scale.setScalar(deunit(1));
+        return mesh;
     }
+
+    dispose() { }
 }
 
 export class CurveEdgeGroup extends THREE.Group {
@@ -399,18 +407,23 @@ export class CurveSegmentGroup extends THREE.Group {
 export class FaceGroup extends THREE.Group {
     private _useNominal: undefined;
 
+    constructor(readonly mesh: THREE.Mesh, readonly faces: ReadonlyArray<Face>) {
+        super();
+        this.add(mesh);
+        this.add(...faces);
+    }
+
     *[Symbol.iterator]() {
-        for (const child of this.children) {
-            yield child as Face;
-        }
+        return this.faces;
     }
 
     get(i: number): Face {
-        return this.children[i] as Face;
+        return this.faces[i];
     }
 
     dispose() {
-        for (const face of this) face.dispose();
+        for (const face of this.faces) face.dispose();
+        this.mesh.geometry.dispose();
     }
 }
 
@@ -515,14 +528,15 @@ export class ControlPointGroup extends THREE.Group {
 export class SolidBuilder {
     private readonly solid = new Solid();
 
-    addLOD(edges: CurveEdgeGroup, faces: FaceGroup, distance?: number) {
+    add(edges: CurveEdgeGroupBuilder, faces: FaceGroupBuilder, distance?: number) {
         const level = new THREE.Group();
-        level.add(edges);
-        level.add(faces);
+        level.add(edges.build());
+        level.add(faces.build());
         this.solid.lod.addLevel(level, distance);
     }
 
     build(): Solid {
+        console.log(this.solid);
         return this.solid;
     }
 }
@@ -553,14 +567,34 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
 }
 
 export class FaceGroupBuilder {
-    private faceGroup = new FaceGroup();
+    private readonly meshes: THREE.Mesh[] = [];
 
-    addFace(face: Face) {
-        this.faceGroup.add(face);
+    add(face: THREE.Mesh) {
+        this.meshes.push(face);
     }
 
-    build() {
-        return this.faceGroup;
+    build(): FaceGroup {
+        const geos = [];
+        const meshes = this.meshes;
+        for (const mesh of meshes) geos.push(mesh.geometry);
+        const merged = BufferGeometryUtils.mergeBufferGeometries(geos, true);
+        for (const mesh of meshes) geos.push(mesh.geometry.dispose());
+
+        const materials = meshes.map(mesh => mesh.material as THREE.Material);
+        const mesh = new THREE.Mesh(merged, materials[0]);
+
+        const faces = [];
+        for (const [i, group] of mesh.geometry.groups.entries()) {
+            const face = new Face(group, mesh.geometry.userData.mergedUserData[i]);
+            faces.push(face);
+        }
+
+        mesh.geometry.clearGroups();
+
+        mesh.scale.setScalar(deunit(1));
+        mesh.renderOrder = RenderOrder.Face;
+
+        return new FaceGroup(mesh, faces);
     }
 }
 

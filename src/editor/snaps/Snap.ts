@@ -353,7 +353,7 @@ export class TanTanSnap extends PointSnap {
 
 export class FaceSnap extends Snap {
     readonly name = "Face";
-    readonly snapper = this.view.child.clone();
+    readonly snapper = this.view.makeSnap();
     protected readonly layer = Layers.Face;
 
     constructor(readonly view: visual.Face, readonly model: c3d.Face) {

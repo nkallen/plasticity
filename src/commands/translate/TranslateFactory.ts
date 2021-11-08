@@ -56,7 +56,8 @@ abstract class TranslateFactory extends GeometryFactory {
                 item.matrix.copy(mat);
                 item.matrix.decompose(item.position, item.quaternion, item.scale);
 
-                return [{ underlying: item, show() { }, cancel() { } }];
+                const temp = { underlying: item, show() { }, cancel() { } } as TemporaryObject;
+                return [temp];
             }, () => this.doOriginalUpdate(item));
             const temp = temps.then(t => t[0]);
             result.push(temp);
@@ -64,7 +65,7 @@ abstract class TranslateFactory extends GeometryFactory {
         return await Promise.all(result);
     }
 
-    protected doOriginalUpdate(item?: visual.Item) {
+    protected doOriginalUpdate(item?: visual.Item): Promise<TemporaryObject[]> {
         return super.doUpdate(item);
     }
 
@@ -190,7 +191,8 @@ export class RotateFactory extends TranslateFactory implements RotateFactoryLike
                 if (angle === 0) {
                     item.position.set(0, 0, 0);
                     item.quaternion.set(0, 0, 0, 1);
-                    return [{ underlying: item, show() { }, cancel() { } }];
+                    const temp = { underlying: item, show() { }, cancel() { } } as TemporaryObject;
+                    return [temp];
                 }
 
                 item.position.set(0, 0, 0);
@@ -199,7 +201,8 @@ export class RotateFactory extends TranslateFactory implements RotateFactoryLike
                 item.position.add(point);
                 item.quaternion.setFromAxisAngle(axis, angle);
 
-                return [{ underlying: item, show() { }, cancel() { } }];
+                const temp = { underlying: item, show() { }, cancel() { } };
+                return [temp];
             }, () => this.doOriginalUpdate(item));
             const temp = temps.then(t => t[0]);
             result.push(temp);

@@ -51,7 +51,7 @@ export class HighlightManager {
     private hoverCurveEdge(item: visual.CurveEdge) {
         const { views } = this.db.lookupTopologyItemById(item.simpleName);
         for (const view of views) {
-            const edge = view as visual.Face;
+            const edge = view as visual.CurveEdge;
             if (edge.child.userData.oldMaterial === undefined)
                 edge.child.userData.oldMaterial = edge.child.material;
             edge.child.material = line_hovered;
@@ -62,7 +62,7 @@ export class HighlightManager {
         const { views } = this.db.lookupTopologyItemById(item.simpleName);
         for (const view of views) {
             const face = view as visual.Face;
-            face.child.material = face_hovered;
+            // face.child.material = face_hovered;
         }
     }
 
@@ -201,12 +201,12 @@ export class HighlightManager {
     protected highlightFace(face: visual.Face, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {
         const selection = this.selection.selected;
         if (selection.faceIds.has(face.simpleName)) {
-            face.child.material = highlighted;
+            // face.child.material = highlighted;
         } else {
-            face.child.material = unhighlighted;
+            // face.child.material = unhighlighted;
         }
         face.layers.set(visual.Layers.Face);
-        face.child.layers.set(visual.Layers.Face);
+        // face.child.layers.set(visual.Layers.Face);
     }
 
     setResolution(size: THREE.Vector2) {
@@ -246,9 +246,9 @@ export class ModifierHighlightManager extends HighlightManager {
             for (const face of premodified.allFaces) {
                 // But only if they're unselected
                 if (selected.faceIds.has(face.simpleName)) {
-                    face.child.material = invisible_highlighted;
+                    // face.child.material = invisible_highlighted;
                 } else {
-                    face.child.material = invisible;
+                    // face.child.material = invisible;
                 }
             }
 
@@ -304,10 +304,10 @@ export class ModifierHighlightManager extends HighlightManager {
             const solid = face.parentItem;
             switch (this.modifiers.stateOf(solid)) {
                 case 'premodified':
-                    face.child.material = invisible_hovered;
+                    // face.child.material = invisible_hovered;
                     break;
                 default:
-                    face.child.material = face_hovered;
+                    // face.child.material = face_hovered;
             }
         }
     }

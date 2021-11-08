@@ -81,9 +81,19 @@ if (b.test(1) !== false) throw new Error("invalid precondition");
 start = performance.now();
 for (let i = 0; i < iterations; i++) {
     const rand = Math.floor(Math.random() * width);
-    for (let i = rand; i < Math.min(width * height, rand + 10000); i++) {
+    for (let i = rand; i < Math.min(width * height, rand + 100000); i++) {
         b.enable(buff[i]);
     }
 }
-console.log("Fill set", (performance.now() - start) / iterations);
+console.log("Fill bitset", (performance.now() - start) / iterations);
 // 19.20521978020668
+
+const s = new Set();
+start = performance.now();
+for (let i = 0; i < iterations; i++) {
+    const rand = Math.floor(Math.random() * width);
+    for (let i = rand; i < Math.min(width * height, rand + 100000); i++) {
+        s.add(buff[i]);
+    }
+}
+console.log("Fill Set", (performance.now() - start) / iterations);

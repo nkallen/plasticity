@@ -97,7 +97,7 @@
         "@types/jest": "^26.0.22",
         "@types/signals": "^1.0.1",
         "@types/stats.js": "^0.17.0",
-        "@types/three": "^0.131.0",
+        "@types/three": "^0.133.1",
         "@types/webpack-env": "^1.16.2",
         "@typescript-eslint/eslint-plugin": "^4.22.0",
         "@typescript-eslint/parser": "^4.22.0",
