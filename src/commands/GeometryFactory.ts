@@ -4,10 +4,8 @@ import { DatabaseLike, MaterialOverride, TemporaryObject } from '../editor/Geome
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../editor/VisualModel';
 import { CancellableRegisterable } from '../util/Cancellable';
-import { inst2curve, normalizeCurve } from '../util/Conversion';
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { zip } from '../util/Util';
-import { ModifyContourFactory } from './modify_contour/ModifyContourFactory';
 
 type State = { tag: 'none', last: undefined }
     | { tag: 'updated', last?: Map<string, any> }

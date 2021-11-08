@@ -52,6 +52,31 @@ export class Solid extends Item {
     get edges() { return this.lod.children[this.lod.children.length - 1].children[0] as CurveEdgeGroup }
     get faces() { return this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup }
 
+    get picker() {
+        const faces = this.lod.children[this.lod.getCurrentLevel()].children[1] as FaceGroup;
+        const facePicker = faces.mesh.clone();
+        facePicker.material = new THREE.ShaderMaterial({
+            vertexShader: `
+         	attribute vec4 color;
+            varying vec4 vColor;
+            void main() {
+                vColor = color;
+                #include <begin_vertex>
+                #include <project_vertex>
+                #include <clipping_planes_vertex>
+            }
+            `,
+            fragmentShader: `
+            varying vec4 vColor;
+            void main() {
+                gl_FragColor = vColor / 255.;
+            }
+            `,
+            side: THREE.FrontSide,
+        });
+        return facePicker;
+    }
+
     get outline() {
         if (!this.visible) return [];
         return this.faces;
@@ -520,7 +545,6 @@ export class SolidBuilder {
     }
 
     build(): Solid {
-        console.log(this.solid);
         return this.solid;
     }
 }
@@ -552,8 +576,10 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
 
 export class FaceGroupBuilder {
     private readonly meshes: THREE.Mesh[] = [];
+    private parentId!: c3d.SimpleName;
 
     add(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material) {
+        this.parentId = parentId;
         const geometry = new THREE.BufferGeometry();
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
@@ -575,7 +601,7 @@ export class FaceGroupBuilder {
         const meshes = this.meshes;
         for (const mesh of meshes) geos.push(mesh.geometry);
         const merged = BufferGeometryUtils.mergeBufferGeometries(geos, true);
-        for (const mesh of meshes) geos.push(mesh.geometry.dispose());
+        for (const mesh of meshes) mesh.geometry.dispose();
 
         const materials = meshes.map(mesh => mesh.material as THREE.Material);
         const mesh = new THREE.Mesh(merged, materials[0]);
@@ -585,6 +611,13 @@ export class FaceGroupBuilder {
             const face = new Face(group, mesh.geometry.userData.mergedUserData[i]);
             faces.push(face);
         }
+
+        const colors = new Uint32Array(merged.getAttribute('position').array.length * 4 / 3);
+        for (const [i, group] of mesh.geometry.groups.entries()) {
+            colors.fill((this.parentId << 16) | (i & 0xffff), group.start, group.start + group.count);
+        }
+        const attribute = new THREE.Uint8BufferAttribute(new Uint8Array(colors.buffer), 4);
+        merged.setAttribute('color', attribute);
 
         mesh.geometry.clearGroups();
 

@@ -58,6 +58,15 @@ export class ProxyCamera extends THREE.Camera implements MementoOriginator<Camer
         this.updateProjectionMatrix();
     }
 
+    setViewOffset(fullWidth: number, fullHeight: number, x: number, y: number, width: number, height: number) {
+        this.perspective.setViewOffset(fullWidth, fullHeight, x, y, width, height);
+    }
+
+    clearViewOffset() {
+        this.perspective.clearViewOffset();
+        this.orthographic.clearViewOffset();
+    }
+
     updateProjectionMatrix() {
         this.orthographic.updateProjectionMatrix();
         this.perspective.updateProjectionMatrix();

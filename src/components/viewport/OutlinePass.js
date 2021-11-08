@@ -25,7 +25,7 @@ import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
 class OutlinePass extends Pass {
 
-    constructor(resolution, scene, camera, selectedObjects) {
+    constructor(resolution, camera, selectedObjects) {
 
         super();
 

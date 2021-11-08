@@ -33,8 +33,8 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
 
     private readonly cameraPlane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
 
-    constructor(private readonly viewport: Viewport, domElement: HTMLElement, private readonly editor: EditorLike) {
-        super(viewport.camera, domElement, editor.db);
+    constructor(viewport: Viewport, private readonly editor: EditorLike) {
+        super(viewport, editor.db);
         this._raycaster.layers.enableAll();
     }
 
@@ -47,16 +47,17 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         if (intersections.length === 0) return false;
         const first = intersections[0];
         if (!(first.object instanceof visual.ControlPoint)) return false;
-        if (this.domElement.ownerDocument.body.hasAttribute('gizmo')) return false;
+        const { domElement } = this.viewport;
+        if (domElement.ownerDocument.body.hasAttribute('gizmo')) return false;
 
         switch (this.mode.tag) {
             case 'none':
                 const controlPoint = first.object;
                 // this.viewport.disableControls();
-                this.domElement.ownerDocument.body.setAttribute("gizmo", "point-control");
+                domElement.ownerDocument.body.setAttribute("gizmo", "point-control");
                 const disposable = new Disposable(() => {
                     // this.viewport.enableControls();
-                    this.domElement.ownerDocument.body.removeAttribute("gizmo");
+                    domElement.ownerDocument.body.removeAttribute("gizmo");
                 })
 
                 this.pointStart3d.copy(first.object.position);
@@ -86,7 +87,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         switch (this.mode.tag) {
             case 'none': break;
             case 'start':
-                const { center2d, center3d, pointStart3d, camera, helper, domElement } = this;
+                const { center2d, center3d, pointStart3d, helper, viewport: { camera, domElement } } = this;
                 center3d.copy(pointStart3d).project(camera);
                 center2d.set(center3d.x, center3d.y);
 
@@ -104,18 +105,18 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
             case 'none': break;
             case 'start': break;
             case 'executing':
-                const { pointEnd3d, camera, _raycaster: raycaster, delta, helper, viewport, pointStart3d } = this;
+                const { pointEnd3d, _raycaster: raycaster, delta, helper, viewport: { camera, constructionPlane }, pointStart3d } = this;
 
                 helper.onMove(normalizedMousePosition);
 
                 raycaster.setFromCamera(normalizedMousePosition, camera);
-                const moved = viewport.constructionPlane.move(pointStart3d);
+                const moved = constructionPlane.move(pointStart3d);
                 const intersection = raycaster.intersectObject(moved.snapper);
                 if (intersection.length === 0) throw new Error("corrupt intersection query");
                 pointEnd3d.copy(intersection[0].point);
 
                 delta.copy(pointEnd3d).sub(pointStart3d);
-                const { position } = viewport.constructionPlane.project(delta);
+                const { position } = constructionPlane.project(delta);
                 delta.copy(position);
 
                 this.mode.cb(this.delta.clone());

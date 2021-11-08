@@ -56,10 +56,6 @@ export class DatabaseProxy implements DatabaseLike {
         this.db.clearTemporaryObjects();
     }
 
-    rebuildScene() {
-        this.db.rebuildScene();
-    }
-
     get temporaryObjects() { return this.db.temporaryObjects }
     get phantomObjects() { return this.db.phantomObjects }
 
@@ -113,10 +109,6 @@ export class DatabaseProxy implements DatabaseLike {
 
     unhideAll(): Promise<visual.Item[]> {
         return this.db.unhideAll();
-    }
-
-    get scene() {
-        return this.db.scene;
     }
 
     async deserialize(data: Buffer): Promise<void> {

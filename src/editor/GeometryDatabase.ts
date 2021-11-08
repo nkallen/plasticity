@@ -18,7 +18,6 @@ export type Agent = 'user' | 'automatic';
 
 export interface DatabaseLike {
     get version(): number;
-    get scene(): THREE.Scene;
 
     addItem(model: c3d.Solid, agent?: Agent): Promise<visual.Solid>;
     addItem(model: c3d.SpaceInstance, agent?: Agent): Promise<visual.SpaceInstance<visual.Curve3D>>;
@@ -44,7 +43,6 @@ export interface DatabaseLike {
     optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T;
 
     clearTemporaryObjects(): void;
-    rebuildScene(): void;
     readonly temporaryObjects: THREE.Scene; // FIXME should this really be public?
     readonly phantomObjects: THREE.Scene;
 
@@ -303,18 +301,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             if (!hidden.has(view.simpleName)) difference.push(view);
         }
         return difference;
-    }
-
-    _scene = new THREE.Scene();
-    get scene(): THREE.Scene {
-        return this._scene;
-    }
-
-    rebuildScene() {
-        this._scene.clear();
-        for (const v of this.visibleObjects) this._scene.add(v);
-        this._scene.add(this.temporaryObjects);
-        return this._scene;
     }
 
     private async meshes(obj: c3d.Item, id: c3d.SimpleName, note: c3d.FormNote, precision_distance: [number, number][], materials?: MaterialOverride): Promise<visual.Item> {

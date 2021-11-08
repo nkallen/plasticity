@@ -11,6 +11,7 @@ import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, Viewport
 import { xray } from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap, PlaneSnap } from "../../editor/snaps/Snap";
+import * as visual from '../../editor/VisualModel';
 import { HighlightManager } from "../../selection/HighlightManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
@@ -47,20 +48,22 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly outlinePassHover: OutlinePass;
     readonly phantomsPass: RenderPass;
     readonly helpersPass: RenderPass;
-    readonly points = new ViewportPointControl(this, this.renderer.domElement, this.editor);
-    readonly selector = new ViewportSelector(this.camera, this.renderer.domElement, this.editor);
+    readonly points = new ViewportPointControl(this, this.editor);
+    readonly selector = new ViewportSelector(this, this.editor);
     lastPointerEvent?: PointerEvent;
     private readonly disposable = new CompositeDisposable();
 
     private readonly scene = new THREE.Scene();
-    private readonly phantomsScene = new THREE.Scene();
-    private readonly helpersScene = new THREE.Scene();
+    private readonly phantomsScene = new THREE.Scene(); // Objects visualizing a geometry computation, like a transparent red boolean difference object.
+    private readonly helpersScene = new THREE.Scene(); // Things like gizmos
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
-
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
-
     private grid = new GridHelper(300, 300, gridColor, gridColor);
+
+    private readonly pickingScene = new THREE.Scene();
+    readonly pickingTarget: THREE.WebGLRenderTarget;
+    pickingBuffer: Readonly<Uint8Array>;
 
     constructor(
         private readonly editor: EditorLike,
@@ -82,6 +85,9 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType });
         renderTarget.samples = 8;
 
+        this.pickingTarget = new THREE.WebGLRenderTarget(size.width, size.height);
+        this.pickingBuffer = new Uint8Array(size.width * size.height * 4);
+
         EffectComposer: {
             this.composer = new EffectComposer(this.renderer, renderTarget);
             this.composer.setPixelRatio(window.devicePixelRatio);
@@ -95,7 +101,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.helpersPass.clear = false;
             this.helpersPass.clearDepth = true;
 
-            const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), editor.db.scene, this.camera);
+            const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), this.camera);
             outlinePassSelection.edgeStrength = 3;
             outlinePassSelection.edgeGlow = 0;
             outlinePassSelection.edgeThickness = 1;
@@ -104,7 +110,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             outlinePassSelection.downSampleRatio = 1;
             this.outlinePassSelection = outlinePassSelection;
 
-            const outlinePassHover = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), editor.db.scene, this.camera);
+            const outlinePassHover = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), this.camera);
             outlinePassHover.edgeStrength = 3;
             outlinePassHover.edgeGlow = 0;
             outlinePassHover.edgeThickness = 1;
@@ -114,7 +120,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.outlinePassHover = outlinePassHover;
 
             const navigatorPass = new ViewportNavigatorPass(this.navigator, this.camera);
-
             const gammaCorrection = new ShaderPass(GammaCorrectionShader);
 
             this.composer.addPass(renderPass);
@@ -128,6 +133,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.render = this.render.bind(this);
         this.setNeedsRender = this.setNeedsRender.bind(this);
+        this.pick = this.pick.bind(this);
         this.outlineSelection = this.outlineSelection.bind(this);
         this.outlineHover = this.outlineHover.bind(this);
         this.navigationStart = this.navigationStart.bind(this);
@@ -174,10 +180,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.signals.gizmoChanged.add(this.setNeedsRender);
         this.editor.signals.objectHovered.add(this.setNeedsRender);
         this.editor.signals.objectUnhovered.add(this.setNeedsRender);
-        this.editor.signals.objectAdded.add(this.setNeedsRender);
         this.editor.signals.historyChanged.add(this.setNeedsRender);
         this.editor.signals.commandEnded.add(this.setNeedsRender);
         this.editor.signals.moduleReloaded.add(this.setNeedsRender);
+
+        this.editor.signals.sceneGraphChanged.add(this.pick);
+        this.editor.signals.historyChanged.add(this.pick);
+        this.editor.signals.commandEnded.add(this.pick);
 
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);
@@ -203,9 +212,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.editor.signals.gizmoChanged.remove(this.setNeedsRender);
             this.editor.signals.objectHovered.remove(this.setNeedsRender);
             this.editor.signals.objectUnhovered.remove(this.setNeedsRender);
-            this.editor.signals.objectAdded.remove(this.setNeedsRender);
             this.editor.signals.historyChanged.remove(this.setNeedsRender);
             this.editor.signals.moduleReloaded.remove(this.setNeedsRender);
+
+            this.editor.signals.sceneGraphChanged.remove(this.pick);
+            this.editor.signals.historyChanged.remove(this.pick);
+            this.editor.signals.commandEnded.remove(this.pick);
+
 
             this.navigationControls.removeEventListener('change', this.setNeedsRender);
             this.navigationControls.removeEventListener('start', this.navigationStart);
@@ -231,8 +244,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         try {
             // prepare the scene, once per frame (there may be multiple viewports rendering the same frame):
             if (frameNumber > lastFrameNumber) {
-                db.rebuildScene();
-                scene.add(db.scene);
+                scene.add(...db.visibleObjects);
+                scene.add(db.temporaryObjects);
                 grid.position.set(0, 0, -0.01);
                 grid.quaternion.setFromUnitVectors(Y, constructionPlane.n);
                 grid.update(camera);
@@ -272,6 +285,27 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         }
     }
 
+    pick() {
+        const { renderer, camera, pickingScene, pickingTarget, pickingBuffer } = this;
+
+        console.time();
+        for (const object of this.editor.db.visibleObjects) {
+            if (object instanceof visual.Solid) {
+                if (!object.visible) continue;
+                pickingScene.add(object.picker);
+            }
+        }
+        renderer.setRenderTarget(pickingTarget);
+        renderer.render(pickingScene, camera);
+        renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
+        console.timeEnd();
+
+        // renderer.setRenderTarget(null);
+        // renderer.render(pickingScene, camera);
+
+        pickingScene.clear();
+    }
+
     outlineSelection() {
         const selection = this.editor.highlighter.outlineSelection;
         const toOutline = [...selection].flatMap(item => item.outline);
@@ -285,14 +319,17 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     setSize(offsetWidth: number, offsetHeight: number) {
-        const { camera } = this;
+        const { camera, renderer, composer, outlinePassHover, outlinePassSelection, pickingTarget } = this;
         camera.setSize(offsetWidth, offsetHeight);
 
-        this.renderer.setSize(offsetWidth, offsetHeight);
-        this.composer.setSize(offsetWidth, offsetHeight);
-        this.outlinePassHover.setSize(offsetWidth, offsetHeight);
-        this.outlinePassSelection.setSize(offsetWidth, offsetHeight);
+        renderer.setSize(offsetWidth, offsetHeight);
+        composer.setSize(offsetWidth, offsetHeight);
+        outlinePassHover.setSize(offsetWidth, offsetHeight);
+        outlinePassSelection.setSize(offsetWidth, offsetHeight);
+        pickingTarget.setSize(offsetWidth, offsetHeight);
+        this.pickingBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
         this.setNeedsRender();
+        this.pick();
     }
 
     private readonly controls = [this.selector, this.navigationControls, this.points];
@@ -345,6 +382,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 this.navigationControls.removeEventListener('change', this.navigationChange);
                 this.navigationControls.removeEventListener('end', this.navigationEnd);
                 this.selector.enabled = this.navigationState.selectorEnabled;
+                this.pick();
                 this.navigationState = { tag: 'none' };
                 break;
             default: throw new Error("invalid state");

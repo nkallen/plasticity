@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import * as intersectable from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
+import { Viewport } from "./Viewport";
 
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
 
@@ -43,8 +44,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     private readonly disposable = new CompositeDisposable();
 
     constructor(
-        protected readonly camera: THREE.Camera,
-        protected readonly domElement: HTMLElement,
+        protected readonly viewport: Viewport,
         protected readonly db: DatabaseLike,
         readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
     ) {
@@ -57,6 +57,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
 
+        const domElement = viewport.domElement;
         domElement.addEventListener('pointerdown', this.onPointerDown);
         domElement.addEventListener('pointermove', this.onPointerMove);
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointerdown', this.onPointerDown)));
@@ -71,7 +72,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             case 'hover':
                 this.endHover();
             case 'none':
-                getMousePosition(this.domElement, downEvent.clientX, downEvent.clientY, this.onDownPosition);
+                getMousePosition(this.viewport.domElement, downEvent.clientX, downEvent.clientY, this.onDownPosition);
 
                 const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
                 if (!this.startClick(intersectable.filterIntersections(intersects))) return;
@@ -99,7 +100,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     onPointerMove(moveEvent: PointerEvent) {
         if (!this.enabled) return;
 
-        getMousePosition(this.domElement, moveEvent.clientX, moveEvent.clientY, this.currentPosition);
+        getMousePosition(this.viewport.domElement, moveEvent.clientX, moveEvent.clientY, this.currentPosition);
 
         switch (this.state.tag) {
             case 'none': {
@@ -147,7 +148,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         if (!this.enabled) return;
         if (upEvent.button !== 0) return;
 
-        getMousePosition(this.domElement, upEvent.clientX, upEvent.clientY, this.currentPosition);
+        getMousePosition(this.viewport.domElement, upEvent.clientX, upEvent.clientY, this.currentPosition);
 
         switch (this.state.tag) {
             case 'down':
@@ -180,10 +181,22 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
     private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
-        screen2normalized(screenPoint, this.normalizedMousePosition);
-        this.raycaster.setFromCamera(this.normalizedMousePosition, this.camera);
+        const viewport = this.viewport;
+        let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * viewport.camera.offsetWidth);
+        i *= 2;
 
-        return this.raycaster.intersectObjects(objects, true);
+        const buffer = new Uint16Array(viewport.pickingBuffer.buffer);
+        // console.log(buffer[i]);
+        const index = buffer[i + 0];
+        const parentId = buffer[i + 1];
+        // console.log(buffer[i + 0], buffer[i + 1], buffer[i + 2], buffer[i + 3])
+        console.log(parentId, index);
+
+        // screen2normalized(screenPoint, this.normalizedMousePosition);
+        // this.raycaster.setFromCamera(this.normalizedMousePosition, viewport.camera);
+
+        // return this.raycaster.intersectObjects(objects, true);
+        return [];
     }
 
     dispose() { this.disposable.dispose() }
@@ -195,7 +208,7 @@ function screen2normalized(from: THREE.Vector2, to: THREE.Vector2) {
 
 function getMousePosition(dom: HTMLElement, x: number, y: number, to: THREE.Vector2) {
     const rect = dom.getBoundingClientRect();
-    to.set((x - rect.left) / rect.width, (y - rect.top) / rect.height);
+    to.set((x - rect.left), rect.height - (y - rect.top));
 }
 
 // Time thresholds are in milliseconds, distance thresholds are in pixels.

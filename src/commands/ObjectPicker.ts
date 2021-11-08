@@ -22,14 +22,13 @@ class MyViewportSelector extends AbstractViewportSelector {
     private interaction = new SelectionInteractionManager(this.selection, this.editor.materials, this.editor.signals);
 
     constructor(
-        camera: THREE.Camera,
-        domElement: HTMLElement,
+        viewport: Viewport,
         private readonly editor: EditorLike,
         private readonly selection: SelectionManager,
         private readonly onEmptyIntersection = () => { },
         raycasterParams: THREE.RaycasterParameters,
     ) {
-        super(camera, domElement, editor.db, raycasterParams);
+        super(viewport, editor.db, raycasterParams);
         this.selection.mode.add(SelectionMode.Curve);
     }
 
@@ -89,7 +88,7 @@ export class ObjectPicker {
                 viewport.selector.enabled = false;
                 disposables.add(new Disposable(() => viewport.enableControls()));
 
-                const selector = new MyViewportSelector(viewport.camera, viewport.renderer.domElement, editor, selection, finish, this.raycasterParams);
+                const selector = new MyViewportSelector(viewport, editor, selection, finish, this.raycasterParams);
 
                 disposables.add(new Disposable(() => selector.dispose()));
             }

@@ -1,18 +1,18 @@
 import * as THREE from "three";
+import Command, * as cmd from "../commands/Command";
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
-import {  ViewportControl } from "../components/viewport/ViewportControl";
+import { Viewport } from "../components/viewport/Viewport";
+import { ViewportControl } from "../components/viewport/ViewportControl";
 import * as intersectable from "../editor/Intersectable";
 import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
-import Command, * as cmd from "../commands/Command";
-import { EditorOriginator } from "../editor/History";
 
 export interface EditorLike extends cmd.EditorLike {
     enqueue(command: Command, interrupt?: boolean): Promise<void>;
 }
 
 export abstract class AbstractViewportSelector extends ViewportControl {
-    private readonly selectionHelper = new SelectionHelper(this.domElement, 'select-box');
-    private readonly selectionBox = new BetterSelectionBox(this.camera, this.db.scene);
+    private readonly selectionHelper = new SelectionHelper(this.viewport.domElement, 'select-box');
+    private readonly selectionBox = new BetterSelectionBox(this.viewport.camera, new THREE.Scene()); // FIXME
 
     startHover(intersections: intersectable.Intersection[]) {
         this.processHover(intersections);
@@ -35,7 +35,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
         const selected = this.selectionBox.select();
         this.processBoxHover(intersectable.filterMeshes(selected));
-    }    
+    }
 
     startClick(intersections: intersectable.Intersection[]) {
         return true;
@@ -61,12 +61,8 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 }
 
 export class ViewportSelector extends AbstractViewportSelector {
-    constructor(
-        camera: THREE.Camera,
-        domElement: HTMLElement,
-        private readonly editor: EditorLike,
-    ) {
-        super(camera, domElement, editor.db);
+    constructor(viewport: Viewport, private readonly editor: EditorLike,) {
+        super(viewport, editor.db);
     }
 
     protected processBoxHover(selected: Set<intersectable.Intersectable>) {
