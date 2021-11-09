@@ -33,29 +33,28 @@ export class SelectionInteractionManager {
         this.hoverStrategy = new HoverStrategy(selection.mode, selection.selected, selection.hovered);
     }
 
-    private onIntersection(intersections: Intersection[], strategy: SelectionStrategy): Intersection | undefined {
+    private onIntersection(intersections: Intersectable[], strategy: SelectionStrategy): Intersectable | undefined {
         if (intersections.length == 0) {
             strategy.emptyIntersection();
             return;
         }
 
         for (const intersection of intersections) {
-            const object = intersection.object;
-            if (object instanceof Face || object instanceof CurveEdge) {
-                const parentItem = object.parentItem;
-                if (strategy.solid(object, parentItem)) return intersection;
-                if (strategy.topologicalItem(object, parentItem)) return intersection;
-            } else if (object instanceof Curve3D) {
-                const parentItem = object.parentItem;
-                if (strategy.curve3D(object, parentItem)) return intersection;
-            } else if (object instanceof Region) {
-                const parentItem = object.parentItem;
-                if (strategy.region(object, parentItem)) return intersection;
-            } else if (object instanceof ControlPoint) {
-                const parentItem = object.parentItem;
-                if (strategy.controlPoint(object, parentItem)) return intersection;
+            if (intersection instanceof Face || intersection instanceof CurveEdge) {
+                const parentItem = intersection.parentItem;
+                if (strategy.solid(intersection, parentItem)) return intersection;
+                if (strategy.topologicalItem(intersection, parentItem)) return intersection;
+            } else if (intersection instanceof Curve3D) {
+                const parentItem = intersection.parentItem;
+                if (strategy.curve3D(intersection, parentItem)) return intersection;
+            } else if (intersection instanceof Region) {
+                const parentItem = intersection.parentItem;
+                if (strategy.region(intersection, parentItem)) return intersection;
+            } else if (intersection instanceof ControlPoint) {
+                const parentItem = intersection.parentItem;
+                if (strategy.controlPoint(intersection, parentItem)) return intersection;
             } else {
-                console.error(object);
+                console.error(intersection);
                 throw new Error("Invalid precondition");
             }
         }
@@ -64,11 +63,11 @@ export class SelectionInteractionManager {
         return;
     }
 
-    onClick(intersections: Intersection[]): Intersection | undefined {
+    onClick(intersections: Intersectable[]): Intersectable | undefined {
         return this.onIntersection(intersections, this.clickStrategy);
     }
 
-    onHover(intersections: Intersection[]): void {
+    onHover(intersections: Intersectable[]): void {
         this.onIntersection(intersections, this.hoverStrategy);
     }
 

@@ -22,11 +22,11 @@ export abstract class CommandLike extends Command {
 }
 
 export class ClickChangeSelectionCommand extends CommandLike {
-    intersection?: THREE.Intersection;
+    intersection?: Intersectable;
 
     constructor(
         editor: cmd.EditorLike,
-        private readonly intersections: Intersection[]
+        private readonly intersections: Intersectable[]
     ) { super(editor) }
 
 

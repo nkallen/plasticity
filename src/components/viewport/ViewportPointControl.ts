@@ -6,7 +6,7 @@ import Command, * as cmd from "../../commands/Command";
 import { ClickChangeSelectionCommand, CommandLike } from "../../commands/CommandLike";
 import { DashedLineMagnitudeHelper } from "../../commands/MiniGizmos";
 import { MoveContourPointFactory } from "../../commands/modify_contour/ModifyContourPointFactory";
-import { Intersection } from "../../editor/Intersectable";
+import { Intersectable, Intersection } from "../../editor/Intersectable";
 import * as visual from '../../editor/VisualModel';
 import { CancellablePromise } from "../../util/Cancellable";
 import { Viewport } from "./Viewport";
@@ -38,21 +38,21 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         this._raycaster.layers.enableAll();
     }
 
-    protected startHover(intersections: Intersection[]) { }
-    protected continueHover(intersections: Intersection[]): void { }
+    protected startHover(intersections: Intersectable[]) { }
+    protected continueHover(intersections: Intersectable[]): void { }
     protected endHover(): void { }
 
     private mode: Mode = { tag: 'none' };
-    protected startClick(intersections: Intersection[]): boolean {
+    protected startClick(intersections: Intersectable[]): boolean {
         if (intersections.length === 0) return false;
         const first = intersections[0];
-        if (!(first.object instanceof visual.ControlPoint)) return false;
+        if (!(first instanceof visual.ControlPoint)) return false;
         const { domElement } = this.viewport;
         if (domElement.ownerDocument.body.hasAttribute('gizmo')) return false;
 
         switch (this.mode.tag) {
             case 'none':
-                const controlPoint = first.object;
+                const controlPoint = first;
                 // this.viewport.disableControls();
                 domElement.ownerDocument.body.setAttribute("gizmo", "point-control");
                 const disposable = new Disposable(() => {
@@ -60,7 +60,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
                     domElement.ownerDocument.body.removeAttribute("gizmo");
                 })
 
-                this.pointStart3d.copy(first.object.position);
+                this.pointStart3d.copy(first.position);
                 this.cameraPlane.position.copy(this.pointStart3d);
                 this.mode = { tag: 'start', controlPoint, disposable };
 
@@ -70,7 +70,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         return true;
     }
 
-    protected endClick(intersections: Intersection[]): void {
+    protected endClick(intersections: Intersectable[]): void {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start':

@@ -2,8 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import * as intersectable from "../../editor/Intersectable";
-import * as visual from "../../editor/VisualModel";
-import { VisibleLayers } from "../../editor/LayerManager";
+import { GPUPicker } from "./GPUPicking";
 import { Viewport } from "./Viewport";
 
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
@@ -36,7 +35,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
     private state: State = { tag: 'none' }
 
-    private readonly raycaster = new THREE.Raycaster();
+    private readonly raycaster = new GPUPicker(this.db, this.viewport);
 
     private readonly normalizedMousePosition = new THREE.Vector2(); // normalized device coordinates
     private readonly onDownPosition = new THREE.Vector2(); // screen coordinates
@@ -50,9 +49,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
     ) {
         super();
-
-        this.raycaster.params = this.raycasterParams;
-        this.raycaster.layers = VisibleLayers;
 
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
@@ -76,7 +72,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 getMousePosition(this.viewport.domElement, downEvent.clientX, downEvent.clientY, this.onDownPosition);
 
                 const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
-                if (!this.startClick(intersectable.filterIntersections(intersects))) return;
+                if (!this.startClick(intersects)) return;
 
                 const disposable = new CompositeDisposable();
 
@@ -107,7 +103,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             case 'none': {
                 const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
                 if (intersects.length === 0) break;
-                this.startHover(intersectable.filterIntersections(intersects));
+                this.startHover(intersects);
                 this.state = { tag: 'hover' };
                 break;
             }
@@ -117,7 +113,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                     this.endHover();
                     this.state = { tag: 'none' };
                 }
-                else this.continueHover(intersectable.filterIntersections(intersects));
+                else this.continueHover(intersects);
                 break;
             }
             case 'down': {
@@ -154,7 +150,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         switch (this.state.tag) {
             case 'down':
                 const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
-                this.endClick(intersectable.filterIntersections(intersects));
+                this.endClick(intersects);
 
                 this.state.disposable.dispose();
                 this.state = { tag: 'none' };
@@ -172,25 +168,17 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         }
     }
 
-    protected abstract startHover(intersections: intersectable.Intersection[]): void;
-    protected abstract continueHover(intersections: intersectable.Intersection[]): void;
+    protected abstract startHover(intersections: intersectable.Intersectable[]): void;
+    protected abstract continueHover(intersections: intersectable.Intersectable[]): void;
     protected abstract endHover(): void;
-    protected abstract startClick(intersections: intersectable.Intersection[]): boolean;
-    protected abstract endClick(intersections: intersectable.Intersection[]): void;
+    protected abstract startClick(intersections: intersectable.Intersectable[]): boolean;
+    protected abstract endClick(intersections: intersectable.Intersectable[]): void;
     protected abstract startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
     protected abstract continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
-    private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
-        const viewport = this.viewport;
-        let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * viewport.camera.offsetWidth);
-
-        const buffer = new Uint32Array(viewport.pickingBuffer.buffer);
-        const id = buffer[i];
-        if (id === 0) return [];
-        console.log(visual.SolidBuilder.compact2full(id));
-
-        return [];
+    private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersectable[] {
+        return this.raycaster.intersect(screenPoint);
     }
 
     dispose() { this.disposable.dispose() }

@@ -508,12 +508,17 @@ export class SolidBuilder {
         return id;
     }
 
-    static compact2full(compact: number): string {
+    static extract(compact: number) {
         const parentId = compact >> 16;
         compact &= 0xffff;
         const type = compact >> 15;
         compact &= 0x7fff;
         const index = compact;
+        return { parentId, type, index };
+    }
+
+    static compact2full(compact: number): string {
+        const { parentId, type, index } = this.extract(compact);
         return type === 0 ? CurveEdge.simpleName(parentId, index) : Face.simpleName(parentId, index);
     }
 

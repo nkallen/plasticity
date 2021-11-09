@@ -1,4 +1,37 @@
 import * as THREE from "three";
+import { DatabaseLike } from "../../editor/GeometryDatabase";
+import { Viewport } from "./Viewport";
+import * as visual from "../../editor/VisualModel";
+import * as intersectable from "../../editor/Intersectable";
+
+export class GPUPicker {
+    constructor(private readonly db: DatabaseLike, private readonly viewport: Viewport) {
+    }
+
+    intersect(screenPoint: THREE.Vector2): intersectable.Intersectable[] {
+        const { db, viewport } = this;
+        let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * viewport.camera.offsetWidth);
+
+        const buffer = new Uint32Array(viewport.pickingBuffer.buffer);
+        const id = buffer[i];
+        if (id === 0) return [];
+        const { parentId } = visual.SolidBuilder.extract(id);
+        const item = db.lookupItemById(parentId).view;
+        if (item instanceof visual.Solid) {
+            const simpleName = visual.SolidBuilder.compact2full(id)
+            console.log(simpleName);
+            const data = db.lookupTopologyItemById(simpleName);
+            return [[...data.views][0]];
+        } else if (item instanceof visual.SpaceInstance) {
+            return [item.underlying];
+        } else if (item instanceof visual.PlaneInstance) {
+            return [item.underlying];
+        } else {
+            throw new Error("invalid item");
+        }
+
+    }
+}
 
 export const vertexColorMaterial = new THREE.ShaderMaterial({
     vertexShader: `

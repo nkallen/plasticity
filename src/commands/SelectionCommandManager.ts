@@ -2,7 +2,6 @@ import { DatabaseLike } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as gizmo from './AbstractGizmo';
 import Command, * as cmd from './Command';
-import { ClickChangeSelectionCommand } from './CommandLike';
 import { ExtrudeCommand, FilletSolidCommand, ModifyContourCommand, OffsetFaceCommand } from './GeometryCommands';
 
 export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
@@ -15,7 +14,9 @@ export class SelectionCommandManager {
     constructor(private readonly editor: EditorLike) { }
 
     commandFor(command?: Command): Command | undefined {
-        const point = command instanceof ClickChangeSelectionCommand ? command.intersection?.point : undefined;
+        // FIXME
+        // const point = command instanceof ClickChangeSelectionCommand ? command.intersection?.point : undefined;
+        const point = undefined;
         const selected = this.editor.selection.selected;
 
         if (selected.regions.size > 0) {
