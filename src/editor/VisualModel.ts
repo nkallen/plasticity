@@ -6,6 +6,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import c3d from '../../build/Release/c3d.node';
+import { pickingMaterial } from "../components/viewport/GPUPicking";
 import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 
@@ -53,27 +54,9 @@ export class Solid extends Item {
     get faces() { return this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup }
 
     get picker() {
-        const faces = this.lod.children[this.lod.getCurrentLevel()].children[1] as FaceGroup;
+        const faces = this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup;
         const facePicker = faces.mesh.clone();
-        facePicker.material = new THREE.ShaderMaterial({
-            vertexShader: `
-         	attribute vec4 color;
-            varying vec4 vColor;
-            void main() {
-                vColor = color;
-                #include <begin_vertex>
-                #include <project_vertex>
-                #include <clipping_planes_vertex>
-            }
-            `,
-            fragmentShader: `
-            varying vec4 vColor;
-            void main() {
-                gl_FragColor = vColor / 255.;
-            }
-            `,
-            side: THREE.FrontSide,
-        });
+        facePicker.material = pickingMaterial;
         return facePicker;
     }
 

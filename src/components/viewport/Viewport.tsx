@@ -300,9 +300,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
         console.timeEnd();
 
-        // renderer.setRenderTarget(null);
-        // renderer.render(pickingScene, camera);
-
         pickingScene.clear();
     }
 
