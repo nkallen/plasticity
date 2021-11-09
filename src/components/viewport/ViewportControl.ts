@@ -2,6 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import * as intersectable from "../../editor/Intersectable";
+import * as visual from "../../editor/VisualModel";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { Viewport } from "./Viewport";
 
@@ -183,19 +184,12 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection[] {
         const viewport = this.viewport;
         let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * viewport.camera.offsetWidth);
-        i *= 2;
 
-        const buffer = new Uint16Array(viewport.pickingBuffer.buffer);
-        // console.log(buffer[i]);
-        const index = buffer[i + 0];
-        const parentId = buffer[i + 1];
-        // console.log(buffer[i + 0], buffer[i + 1], buffer[i + 2], buffer[i + 3])
-        console.log(parentId, index);
+        const buffer = new Uint32Array(viewport.pickingBuffer.buffer);
+        const id = buffer[i];
+        if (id === 0) return [];
+        console.log(visual.SolidBuilder.compact2full(id));
 
-        // screen2normalized(screenPoint, this.normalizedMousePosition);
-        // this.raycaster.setFromCamera(this.normalizedMousePosition, viewport.camera);
-
-        // return this.raycaster.intersectObjects(objects, true);
         return [];
     }
 

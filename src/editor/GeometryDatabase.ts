@@ -353,8 +353,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
                         const segments = new visual.CurveSegmentGroupBuilder();
                         for (const edge of item.edges) {
-                            const segment = visual.CurveSegment.build(edge, id, materials?.line ?? lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
-                            segments.addSegment(segment);
+                            segments.add(edge, id, materials?.line ?? lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
                         }
 
                         const curve = new visual.Curve3DBuilder();
@@ -380,8 +379,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 if (item.faces.length != 1) throw new Error("Invalid precondition: grid with length: " + item.faces.length);
                 const grid = item.faces[0];
                 const material = materials?.region ?? this.materials.region();
-                const region = visual.Region.build(grid, material);
-                instance.add(region, distance);
+                instance.add(grid, material);
                 break;
             }
             // case c3d.SpaceType.Point3D: {

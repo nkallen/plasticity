@@ -65,9 +65,7 @@ export class HighlightManager {
 
     private hoverCurve(item: visual.SpaceInstance<visual.Curve3D>) {
         const curve = item.underlying;
-        for (const segment of curve.segments) {
-            segment.line.material = line_hovered;
-        }
+        curve.line.material = line_hovered;
     }
 
     private hoverControlPoint(v: visual.ControlPoint) {
@@ -148,11 +146,9 @@ export class HighlightManager {
         const layer = curve.isFragment ? visual.Layers.CurveFragment : visual.Layers.Curve;
         const occludedLayer = curve.isFragment ? visual.Layers.CurveFragment_XRay : visual.Layers.XRay;
         const isSelected = selected.curveIds.has(item.simpleName);
-        for (const segment of curve.segments) {
-            segment.line.material = isSelected ? line_highlighted : line_unhighlighted;
-            segment.line.layers.set(layer);
-            segment.occludedLine.layers.set(occludedLayer);
-        }
+        curve.line.material = isSelected ? line_highlighted : line_unhighlighted;
+        curve.line.layers.set(layer);
+        curve.occludedLine.layers.set(occludedLayer);
         const geometry = curve.points.geometry;
         if (geometry !== undefined) {
             const colors = geometry.attributes.color;

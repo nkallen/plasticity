@@ -290,15 +290,16 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         console.time();
         for (const object of this.editor.db.visibleObjects) {
-            if (object instanceof visual.Solid) {
-                if (!object.visible) continue;
-                pickingScene.add(object.picker);
-            }
+            if (!object.visible) continue; // FIXME handle this a better way
+            pickingScene.add(object.picker);
         }
         renderer.setRenderTarget(pickingTarget);
         renderer.render(pickingScene, camera);
         renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
         console.timeEnd();
+
+        // renderer.setRenderTarget(null);
+        // renderer.render(pickingScene, camera);
 
         pickingScene.clear();
     }

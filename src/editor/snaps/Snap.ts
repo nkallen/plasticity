@@ -237,11 +237,7 @@ export class CurveSnap extends Snap {
 
     constructor(readonly view: visual.SpaceInstance<visual.Curve3D>, readonly model: c3d.Curve3D) {
         super();
-        const curve = view.underlying;
-        for (const child of curve.segments.children) {
-            const segment = child as visual.CurveSegment;
-            this.snapper.add(segment.line.clone());
-        }
+        this.snapper.add(view.picker);
         this.init();
     }
 

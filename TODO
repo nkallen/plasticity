@@ -4,3 +4,4 @@ Test FaceGroupBuilder
 Test CurveEdgeGroupBuilder
 Test Fillet hidden edge shown
 Test SelectionBox
+See if we can get rid of get child() in visualmodel
