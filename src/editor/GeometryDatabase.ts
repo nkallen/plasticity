@@ -361,7 +361,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                         const pointGroup = visual.ControlPointGroup.build(underlying, id, pointMaterial);
                         curve.addControlPoints(pointGroup);
                         curve.addSegments(segments.build());
-                        curveBuilder.addLOD(curve.build(), distance);
+                        curveBuilder.add(curve.build(), distance);
                         break;
                     case c3d.SpaceType.Surface:
                         const surfaceBuilder = builder as visual.SpaceInstanceBuilder<visual.Surface>;
@@ -369,7 +369,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                         const grid = item.faces[0];
                         const material = materials?.surface ?? this.materials.surface(instance);
                         const surface = visual.Surface.build(grid, material);
-                        surfaceBuilder.addLOD(surface, distance);
+                        surfaceBuilder.add(surface, distance);
                         break;
                     default: throw new Error("invalid precondition")
                 }
@@ -381,7 +381,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 const grid = item.faces[0];
                 const material = materials?.region ?? this.materials.region();
                 const region = visual.Region.build(grid, material);
-                instance.addLOD(region, distance);
+                instance.add(region, distance);
                 break;
             }
             // case c3d.SpaceType.Point3D: {

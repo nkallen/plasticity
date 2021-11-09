@@ -41,11 +41,8 @@ export class HighlightManager {
         performance.measure('hover', 'begin-hover');
     }
 
-    private hoverRegion(item: visual.PlaneInstance<any>) {
-        for (const level of item.levels) {
-            const region = level as visual.Region;
-            region.child.material = region_hovered;
-        }
+    private hoverRegion(item: visual.PlaneInstance<visual.Region>) {
+        item.underlying.child.material = region_hovered;
     }
 
     private hoverCurveEdge(item: visual.CurveEdge) {
@@ -66,12 +63,10 @@ export class HighlightManager {
         }
     }
 
-    private hoverCurve(item: visual.SpaceInstance<any>) {
-        for (const level of item.levels) {
-            const curve = level as visual.Curve3D;
-            for (const segment of curve.segments) {
-                segment.line.material = line_hovered;
-            }
+    private hoverCurve(item: visual.SpaceInstance<visual.Curve3D>) {
+        const curve = item.underlying;
+        for (const segment of curve.segments) {
+            segment.line.material = line_hovered;
         }
     }
 
@@ -141,39 +136,35 @@ export class HighlightManager {
 
     private highlightRegion(item: visual.PlaneInstance<visual.Region>) {
         const { selected } = this.selection;
-        for (const level of item.levels) {
-            const region = level as visual.Region;
-            region.child.material = selected.regionIds.has(region.simpleName) ? region_highlighted : region_unhighlighted;
-            region.layers.set(visual.Layers.Region);
-            region.child.layers.set(visual.Layers.Region);
-        }
+        const region = item.underlying as visual.Region;
+        region.child.material = selected.regionIds.has(region.simpleName) ? region_highlighted : region_unhighlighted;
+        region.layers.set(visual.Layers.Region);
+        region.child.layers.set(visual.Layers.Region);
     }
 
     private highlightCurve(item: visual.SpaceInstance<visual.Curve3D>) {
         const { selected } = this.selection;
-        for (const level of item.levels) {
-            const curve = level as visual.Curve3D;
-            const layer = curve.isFragment ? visual.Layers.CurveFragment : visual.Layers.Curve;
-            const occludedLayer = curve.isFragment ? visual.Layers.CurveFragment_XRay : visual.Layers.XRay;
-            const isSelected = selected.curveIds.has(item.simpleName);
-            for (const segment of curve.segments) {
-                segment.line.material = isSelected ? line_highlighted : line_unhighlighted;
-                segment.line.layers.set(layer);
-                segment.occludedLine.layers.set(occludedLayer);
-            }
-            const geometry = curve.points.geometry;
-            if (geometry !== undefined) {
-                const colors = geometry.attributes.color;
-                const array = colors.array as unknown as Float32Array;
-                for (let i = 0; i < array.length / 3; i++) {
-                    array[i * 3 + 0] = controlPoint_unhighlighted.r;
-                    array[i * 3 + 1] = controlPoint_unhighlighted.g;
-                    array[i * 3 + 2] = controlPoint_unhighlighted.b;
-                }
-                colors.needsUpdate = true;
-            }
-            curve.layers.set(visual.Layers.Curve);
+        const curve = item.underlying;
+        const layer = curve.isFragment ? visual.Layers.CurveFragment : visual.Layers.Curve;
+        const occludedLayer = curve.isFragment ? visual.Layers.CurveFragment_XRay : visual.Layers.XRay;
+        const isSelected = selected.curveIds.has(item.simpleName);
+        for (const segment of curve.segments) {
+            segment.line.material = isSelected ? line_highlighted : line_unhighlighted;
+            segment.line.layers.set(layer);
+            segment.occludedLine.layers.set(occludedLayer);
         }
+        const geometry = curve.points.geometry;
+        if (geometry !== undefined) {
+            const colors = geometry.attributes.color;
+            const array = colors.array as unknown as Float32Array;
+            for (let i = 0; i < array.length / 3; i++) {
+                array[i * 3 + 0] = controlPoint_unhighlighted.r;
+                array[i * 3 + 1] = controlPoint_unhighlighted.g;
+                array[i * 3 + 2] = controlPoint_unhighlighted.b;
+            }
+            colors.needsUpdate = true;
+        }
+        curve.layers.set(visual.Layers.Curve);
     }
 
     private highlightControlPoints() {
@@ -307,7 +298,7 @@ export class ModifierHighlightManager extends HighlightManager {
                     // face.child.material = invisible_hovered;
                     break;
                 default:
-                    // face.child.material = face_hovered;
+                // face.child.material = face_hovered;
             }
         }
     }

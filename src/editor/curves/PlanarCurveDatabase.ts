@@ -245,8 +245,7 @@ export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
         for (const { trimmed, start, stop } of result) {
             const inst = new c3d.SpaceInstance(new c3d.PlaneCurve(placement, trimmed, true));
             const p = db.addItem(inst, 'automatic').then(item => {
-                for (const curve of item.levels)
-                    curve.befragment(start, stop, instance);
+                item.underlying.befragment(start, stop, instance);
                 return item.simpleName;
             });
             views.push(p);

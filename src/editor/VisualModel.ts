@@ -37,6 +37,12 @@ export abstract class PlaneItem extends THREE.Object3D {
 
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
+
+    // abstract get picker(): THREE.Object3D
+    get simpleName(): c3d.SimpleName { return this.userData.simpleName }
+}
+
+export class Solid extends Item {
     readonly lod = new THREE.LOD();
 
     constructor() {
@@ -44,16 +50,13 @@ export abstract class Item extends SpaceItem {
         this.add(this.lod);
     }
 
-    get simpleName(): c3d.SimpleName { return this.userData.simpleName }
-}
-
-export class Solid extends Item {
     private _useNominal3: undefined;
     // the higher detail ones are later
     get edges() { return this.lod.children[this.lod.children.length - 1].children[0] as CurveEdgeGroup }
     get faces() { return this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup }
 
     get picker() {
+        // FIXME use this.lod.getCurrentLevel -- currently returns wrong value
         const faces = this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup;
         const facePicker = faces.mesh.clone();
         facePicker.material = pickingMaterial;
@@ -97,22 +100,14 @@ export class Solid extends Item {
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
     private _useNominal3: undefined;
-    get underlying() { return this.lod.children[this.lod.children.length - 1] as T }
-    get levels() { return this.lod.children as T[] }
-
-    dispose() {
-        for (const l of this.levels) l.dispose();
-    }
+    get underlying() { return this.children[0] as T }
+    dispose() { this.underlying.dispose() }
 }
 
 export class PlaneInstance<T extends PlaneItem> extends Item {
     private _useNominal3: undefined;
-    get underlying() { return this.lod.children[this.lod.children.length - 1] as T }
-    get levels() { return this.lod.children as T[] }
-
-    dispose() {
-        for (const l of this.levels) l.dispose();
-    }
+    get underlying() { return this.children[0] as T }
+    dispose() { this.underlying.dispose() }
 }
 
 // This only extends THREE.Object3D for type-compatibility with raycasting
@@ -535,26 +530,15 @@ export class SolidBuilder {
 export class SpaceInstanceBuilder<T extends SpaceItem> {
     private readonly instance = new SpaceInstance<T>();
 
-    addLOD(t: T, distance?: number) {
-        this.instance.lod.addLevel(t, distance);
-    }
-
-    build(): SpaceInstance<T> {
-        const built = this.instance;
-        return built;
-    }
+    add(t: T, distance?: number) { this.instance.add(t) }
+    build(): SpaceInstance<T> { return this.instance }
 }
 
 export class PlaneInstanceBuilder<T extends PlaneItem> {
     private readonly instance = new PlaneInstance<T>();
 
-    addLOD(t: T, distance?: number) {
-        this.instance.lod.addLevel(t, distance);
-    }
-
-    build(): PlaneInstance<T> {
-        return this.instance;
-    }
+    add(t: T, distance?: number) { this.instance.add(t) }
+    build(): PlaneInstance<T> { return this.instance }
 }
 
 export class FaceGroupBuilder {
