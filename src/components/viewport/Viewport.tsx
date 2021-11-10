@@ -16,7 +16,7 @@ import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helper, Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
-import { GPUPicker } from "./GPUPicking";
+import { GPUPicker } from "./gpu_picking/GPUPicking";
 import { GridHelper } from "./GridHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";

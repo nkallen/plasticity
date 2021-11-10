@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { GPUPicker } from "../../components/viewport/GPUPicking";
+import { GPUPicker } from "../../components/viewport/gpu_picking/GPUPicking";
 import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";

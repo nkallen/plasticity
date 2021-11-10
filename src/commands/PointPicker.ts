@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
-import { SnapPicker } from '../components/viewport/GPUPicking';
+import { SnapPicker } from "../components/viewport/gpu_picking/GPUPickingAdapter";
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatabase';

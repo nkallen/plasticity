@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { PointsMaterial } from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
-import { GPUPicker } from '../components/viewport/GPUPicking';
+import { GPUPicker } from '../components/viewport/gpu_picking/GPUPicking';
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { assertUnreachable, GConstructor } from '../util/Util';
 import { EditorSignals } from './EditorSignals';

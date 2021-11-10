@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import * as intersectable from "../../editor/Intersectable";
-import { GeometryPicker } from "./GPUPicking";
+import { GeometryPicker } from "./gpu_picking/GPUPickingAdapter";
 import { Viewport } from "./Viewport";
 
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
