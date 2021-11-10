@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] panning and release mouse outside of window errors #bug  
 - [ ] Incorporate parcel https://github.com/parcel-bundler/watcher  
 - [ ] Audit re-used icons  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  

@@ -16,8 +16,8 @@ export class GPUPicker {
 
         const buffer = new Uint32Array(viewport.pickingBuffer.buffer);
         const id = buffer[i];
-        if (id === 0) return [];
-        console.log(id, GPUPicker.extract(id));
+        if (id === 0 || id === undefined) return [];
+
         const { parentId } = GPUPicker.extract(id);
         const item = db.lookupItemById(parentId).view;
         if (item instanceof visual.Solid) {
@@ -68,9 +68,9 @@ export class VertexColorMaterial extends THREE.ShaderMaterial {
         const merged = BufferGeometryUtils.mergeBufferGeometries(geos, true);
         const colors = new Uint32Array(merged.index!.count);
         let offset = 0;
-        for (const [i, geo] of geos.entries()) {
+        for (const geo of geos) {
             const count = geo.getAttribute('position').count;
-            colors.fill(id(i), offset, offset + count);
+            colors.fill(id(geo.userData.index), offset, offset + count);
             offset += count;
         }
         const attribute = new THREE.Uint8BufferAttribute(new Uint8Array(colors.buffer), 4, true);
@@ -162,12 +162,15 @@ export class LineSegmentGeometryAddon {
 }
 
 export class LineVertexColorMaterial extends THREE.ShaderMaterial {
-    static mergePositions(positions: Float32Array[], id: (i: number) => number) {
-        const { geometry, array, groups } = LineSegmentGeometryAddon.mergePositions(positions);
+    static mergePositions(lines: visual.LineInfo[], id: (i: number) => number) {
+        const { geometry, array, groups } = LineSegmentGeometryAddon.mergePositions(lines.map(l => l.position));
 
         const colors = new Uint32Array(array.length / 3);
-        for (const [i, group] of groups.entries()) {
-            colors.fill(id(i), group.start, group.start + group.count);
+        let offset = 0;
+        for (const { position, userData } of lines) {
+            const length = (position.length - 3) * 2 / 3;
+            colors.fill(id(userData.index), offset, offset + length);
+            offset += length;
         }
         const instanceColorBuffer = new THREE.InstancedInterleavedBuffer(new Uint8Array(colors.buffer), 8, 1); // rgb, rgb
         geometry.setAttribute('instanceColorStart', new THREE.InterleavedBufferAttribute(instanceColorBuffer, 4, 0)); // rgb

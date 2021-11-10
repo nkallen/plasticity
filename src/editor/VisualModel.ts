@@ -72,6 +72,7 @@ export class Solid extends Item {
 
         const group = new THREE.Group();
         group.add(facePicker, edgePicker);
+        // group.add(edgePicker);
         return group;
     }
 
@@ -557,9 +558,8 @@ export class FaceGroupBuilder {
     build(): FaceGroup {
         const geos = [];
         const meshes = this.meshes;
-        let i = 0;
         for (const mesh of meshes) geos.push(mesh.geometry);
-        const merged = VertexColorMaterial.mergeBufferGeometries(geos, id => GPUPicker.compactTopologyId('face', this.parentId, i));
+        const merged = VertexColorMaterial.mergeBufferGeometries(geos, id => GPUPicker.compactTopologyId('face', this.parentId, id));
         const groups = merged.groups;
 
         const materials = meshes.map(mesh => mesh.material as THREE.Material);
@@ -581,8 +581,15 @@ export class FaceGroupBuilder {
     }
 }
 
+export type LineInfo = {
+    position: Float32Array;
+    userData: any;
+    material: LineMaterial;
+    occludedMaterial: LineMaterial;
+};
+
 abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
-    private readonly lines: { position: Float32Array, userData: any, material: LineMaterial, occludedMaterial: LineMaterial }[] = [];
+    private readonly lines: LineInfo[] = [];
     private parentId!: c3d.SimpleName;
 
     add(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial) {
@@ -598,11 +605,9 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
     }
 
     build() {
-        const { lines } = this;
+        let { lines } = this;
 
-        const positions = lines.map(l => l.position);
-
-        const geometry = LineVertexColorMaterial.mergePositions(positions, id => GPUPicker.compactTopologyId('edge', this.parentId, id));
+        const geometry = LineVertexColorMaterial.mergePositions(lines, id => GPUPicker.compactTopologyId('edge', this.parentId, id));
         const line = new LineSegments2(geometry, lines[0].material);
         line.scale.setScalar(deunit(1));
 
