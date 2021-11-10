@@ -74,6 +74,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             case 'none':
                 this.viewport.getMousePosition(downEvent, this.onDownPosition);
                 this.currentPosition.copy(this.onDownPosition);
+                this.viewport.normalizeMousePosition(this.normalizedMousePosition.copy(this.currentPosition));
 
                 const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
                 if (!this.startClick(intersects)) return;
@@ -128,7 +129,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 if (moveEvent.timeStamp - dragStartTime >= consummationTimeThreshold ||
                     currentPosition.distanceTo(startPosition) >= consummationDistanceThreshold
                 ) {
-                    screen2normalized(this.onDownPosition, this.normalizedMousePosition);
+                    this.viewport.normalizeMousePosition(this.normalizedMousePosition.copy(this.onDownPosition));
                     this.startDrag(downEvent, this.normalizedMousePosition);
 
                     this.state = { tag: 'dragging', downEvent, disposable, startEvent: moveEvent }
@@ -137,7 +138,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 break;
             }
             case 'dragging':
-                screen2normalized(this.currentPosition, this.normalizedMousePosition);
+                this.viewport.normalizeMousePosition(this.normalizedMousePosition.copy(this.currentPosition));
                 this.continueDrag(moveEvent, this.normalizedMousePosition);
 
                 break;
@@ -159,7 +160,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
                 break;
             case 'dragging':
-                screen2normalized(this.currentPosition, this.normalizedMousePosition);
+                this.viewport.normalizeMousePosition(this.normalizedMousePosition.copy(this.currentPosition));
                 this.endDrag(this.normalizedMousePosition);
 
                 this.state.disposable.dispose();
@@ -185,10 +186,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     }
 
     dispose() { this.disposable.dispose() }
-}
-
-function screen2normalized(from: THREE.Vector2, to: THREE.Vector2) {
-    to.set((from.x * 2) - 1, - (from.y * 2) + 1);
 }
 
 // Time thresholds are in milliseconds, distance thresholds are in pixels.

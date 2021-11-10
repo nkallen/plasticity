@@ -80,7 +80,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
         const size = this.renderer.getSize(new THREE.Vector2());
-        const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType });
+        const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false });
         renderTarget.samples = 8;
 
         EffectComposer: {
@@ -448,6 +448,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         const rect = this.domElement.getBoundingClientRect();
         to.set((x - rect.left), rect.height - (y - rect.top));
         return to;
+    }
+
+    normalizeMousePosition(position: THREE.Vector2): THREE.Vector2 {
+        const rect = this.domElement.getBoundingClientRect();
+        position.set(position.x / rect.width, position.y / rect.height);
+        position.set((position.x * 2) - 1, - (position.y * 2) + 1);
+        return position;
     }
 }
 
