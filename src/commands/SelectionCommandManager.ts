@@ -14,8 +14,6 @@ export class SelectionCommandManager {
     constructor(private readonly editor: EditorLike) { }
 
     commandFor(command?: Command): Command | undefined {
-        // FIXME
-        // const point = command instanceof ClickChangeSelectionCommand ? command.intersection?.point : undefined;
         const point = undefined;
         const selected = this.editor.selection.selected;
 

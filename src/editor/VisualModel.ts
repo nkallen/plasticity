@@ -4,7 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import c3d from '../../build/Release/c3d.node';
-import { IdMaterial, vertexColorLineMaterial, vertexColorMaterial } from "../components/viewport/GPUPicking";
+import { GPUPicker, IdMaterial, LineSegmentGeometryAddon, LineVertexColorMaterial, vertexColorLineMaterial, VertexColorMaterial, vertexColorMaterial } from "../components/viewport/GPUPicking";
 import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
@@ -312,7 +312,7 @@ export class Vertex {
     }
 }
 
-type GeometryGroup = { start: number; count: number; materialIndex?: number | undefined };
+export type GeometryGroup = { start: number; count: number; materialIndex?: number | undefined };
 
 export class Face extends TopologyItem {
     static simpleName(parentId: c3d.SimpleName, index: number) {
@@ -494,34 +494,6 @@ export class ControlPointGroup extends THREE.Group {
 export class SolidBuilder {
     private readonly solid = new Solid();
 
-    static compactTopologyId(type: 'edge' | 'face', parentId: number, index: number): number {
-        if (parentId > (1 << 16)) throw new Error("precondition failure");
-        if (index > (1 << 15)) throw new Error("precondition failure");
-
-        const a = ((parentId >> 8) & 255);
-        const b = ((parentId >> 0) & 255);
-        const c = (type === 'edge' ? 0 : 1) << 7;
-        const d = c | ((index >> 8) & 0xef);
-        const e = ((index >> 0) & 255);
-
-        const id = (a << 24) | (b << 16) | (d << 8) | e;
-        return id;
-    }
-
-    static extract(compact: number) {
-        const parentId = compact >> 16;
-        compact &= 0xffff;
-        const type = compact >> 15;
-        compact &= 0x7fff;
-        const index = compact;
-        return { parentId, type, index };
-    }
-
-    static compact2full(compact: number): string {
-        const { parentId, type, index } = this.extract(compact);
-        return type === 0 ? CurveEdge.simpleName(parentId, index) : Face.simpleName(parentId, index);
-    }
-
     add(edges: CurveEdgeGroupBuilder, faces: FaceGroupBuilder, distance?: number) {
         const level = new THREE.Group();
         level.add(edges.build());
@@ -585,30 +557,25 @@ export class FaceGroupBuilder {
     build(): FaceGroup {
         const geos = [];
         const meshes = this.meshes;
+        let i = 0;
         for (const mesh of meshes) geos.push(mesh.geometry);
-        const merged = BufferGeometryUtils.mergeBufferGeometries(geos, true);
-        for (const mesh of meshes) mesh.geometry.dispose();
+        const merged = VertexColorMaterial.mergeBufferGeometries(geos, id => GPUPicker.compactTopologyId('face', this.parentId, i));
+        const groups = merged.groups;
 
         const materials = meshes.map(mesh => mesh.material as THREE.Material);
         const mesh = new THREE.Mesh(merged, materials[0]);
 
         const faces = [];
-        for (const [i, group] of mesh.geometry.groups.entries()) {
-            const face = new Face(group, mesh.geometry.userData.mergedUserData[i]);
+        for (const [i, group] of groups.entries()) {
+            const face = new Face(group, merged.userData.mergedUserData[i]);
             faces.push(face);
         }
 
-        const colors = new Uint32Array(merged.getAttribute('position').array.length * 4 / 3);
-        for (const [i, group] of mesh.geometry.groups.entries()) {
-            colors.fill(SolidBuilder.compactTopologyId('face', this.parentId, i), group.start, group.start + group.count);
-        }
-        const attribute = new THREE.Float32BufferAttribute(new Uint8Array(colors.buffer), 4, true);
-        merged.setAttribute('color', attribute);
-
-        mesh.geometry.clearGroups();
-
         mesh.scale.setScalar(deunit(1));
         mesh.renderOrder = RenderOrder.Face;
+
+        for (const geo of geos) geo.dispose();
+        merged.clearGroups();
 
         return new FaceGroup(mesh, faces);
     }
@@ -617,31 +584,6 @@ export class FaceGroupBuilder {
 abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
     private readonly lines: { position: Float32Array, userData: any, material: LineMaterial, occludedMaterial: LineMaterial }[] = [];
     private parentId!: c3d.SimpleName;
-
-    static concatenatePositions(positions: Float32Array[]): [Float32Array, GeometryGroup[]] {
-        const groups: GeometryGroup[] = [];
-        let arrayLength = 0;
-        for (const position of positions) {
-            arrayLength += (position.length - 3) * 2;
-        }
-        const array = new Float32Array(arrayLength);
-        let offset = 0;
-        for (const [i, position] of positions.entries()) {
-            // converts [ x1, y1, z1,  x2, y2, z2, ... ] to pairs format
-            for (let i = 0; i < position.length; i += 3) {
-                array[offset + 2 * i + 0] = position[i + 0];
-                array[offset + 2 * i + 1] = position[i + 1];
-                array[offset + 2 * i + 2] = position[i + 2];
-                array[offset + 2 * i + 3] = position[i + 3];
-                array[offset + 2 * i + 4] = position[i + 4];
-                array[offset + 2 * i + 5] = position[i + 5];
-            }
-            const length = (position.length - 3) * 2;
-            groups.push({ start: offset, count: length, materialIndex: i })
-            offset += length;
-        }
-        return [array, groups];
-    }
 
     add(edge: c3d.EdgeBuffer, parentId: c3d.SimpleName, material: LineMaterial, occludedMaterial: LineMaterial) {
         this.parentId = parentId;
@@ -659,20 +601,8 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
         const { lines } = this;
 
         const positions = lines.map(l => l.position);
-        const [array, groups] = CurveBuilder.concatenatePositions(positions);
-        const geometry = new LineSegmentsGeometry();
-        geometry.setPositions(array);
 
-        const colors = new Uint32Array(array.length / 3);
-        for (const [i, group] of groups.entries()) {
-            const id = SolidBuilder.compactTopologyId('edge', this.parentId, i);
-            colors.fill(id, group.start, group.start + group.count);
-        }
-
-        const instanceColorBuffer = new THREE.InstancedInterleavedBuffer(new Uint8Array(colors.buffer), 8, 1); // rgb, rgb
-        geometry.setAttribute('instanceColorStart', new THREE.InterleavedBufferAttribute(instanceColorBuffer, 4, 0)); // rgb
-        geometry.setAttribute('instanceColorEnd', new THREE.InterleavedBufferAttribute(instanceColorBuffer, 4, 4)); // rgb
-
+        const geometry = LineVertexColorMaterial.mergePositions(positions, id => GPUPicker.compactTopologyId('edge', this.parentId, id));
         const line = new LineSegments2(geometry, lines[0].material);
         line.scale.setScalar(deunit(1));
 
@@ -687,7 +617,7 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
 
         const edges: T[] = [];
         for (const [i, { userData }] of lines.entries()) {
-            const edge = new this.make(groups[i], userData);
+            const edge = new this.make(geometry.userData.groups[i], userData);
             edges.push(edge);
         }
 
