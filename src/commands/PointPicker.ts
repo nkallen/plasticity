@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
-import { GPUPicker, GPUSnapAdapter } from '../components/viewport/GPUPicking';
+import { SnapPicker } from '../components/viewport/GPUPicking';
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
@@ -304,10 +304,6 @@ export class Model {
             }
         }
     }
-
-    update(picker: GPUPicker) {
-        picker.update(this.snaps.map(s => s.snapper));
-    }
 }
 
 interface SnapInfo extends PointInfo {
@@ -317,7 +313,7 @@ interface SnapInfo extends PointInfo {
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
 // There are icons, indicators, textual name explanations, etc.
 export class Presentation {
-    static make(viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
+    static make(picker: SnapPicker, viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
         if (isOrtho) snaps.layers.disable(Layers.Face);
@@ -334,8 +330,9 @@ export class Presentation {
             nearby = []
         } else {
             const restrictions = model.restrictionsFor(constructionPlane, isOrtho);
+            // FIXME nearby
             nearby = snaps.nearby(viewport.picker, model.snaps, restrictions);
-            snappers = snaps.snap(viewport.picker, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions, viewport.isXRay);
+            snappers = picker.intersect();
         }
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
@@ -423,7 +420,7 @@ export class PointPicker {
             let info: SnapInfo | undefined = undefined;
 
             for (const viewport of this.editor.viewports) {
-                viewport.selector.enabled = false;
+                viewport.disableControls(viewport.navigationControls);
                 disposables.add(new Disposable(() => viewport.enableControls()));
 
                 let isNavigating = false;
@@ -432,23 +429,22 @@ export class PointPicker {
                     () => isNavigating = false));
 
                 const { camera, renderer: { domElement } } = viewport;
+                const picker = new SnapPicker(viewport.picker, editor.snaps, editor.db);
 
                 viewport.additionalHelpers.add(helpers);
                 disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));
 
                 let lastMoveEvent: PointerEvent | undefined = undefined;
                 let lastSnap: Snap | undefined = undefined;
-
-                // editor.snaps.update(viewport.picker);
-                // model.update(viewport.picker);
-                new GPUSnapAdapter(editor.snaps).update(viewport.picker);
                 
                 const onPointerMove = (e: PointerEvent | undefined) => {
                     if (e === undefined) return;
                     if (isNavigating) return;
 
                     lastMoveEvent = e;
-                    const { presentation, snappers } = Presentation.make(viewport, model, editor.snaps, editor.snapPresenter);
+                    picker.setFromCamera(viewport.getMousePosition(e), camera);
+
+                    const { presentation, snappers } = Presentation.make(picker, viewport, model, editor.snaps, editor.snapPresenter);
 
                     this.model.activateSnapped(snappers);
 
@@ -471,17 +467,6 @@ export class PointPicker {
                             { position: position.clone().project(camera), names }
                             : undefined);
                     editor.signals.pointPickerChanged.dispatch();
-                }
-
-                const getPointer = (e: PointerEvent) => {
-                    const rect = domElement.getBoundingClientRect();
-                    const pointer = e;
-
-                    return {
-                        x: (pointer.clientX - rect.left) / rect.width * 2 - 1,
-                        y: - (pointer.clientY - rect.top) / rect.height * 2 + 1,
-                        button: e.button
-                    };
                 }
 
                 const onPointerDown = (e: PointerEvent) => {

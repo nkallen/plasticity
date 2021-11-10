@@ -28,10 +28,7 @@ export interface Restriction {
     isValid(pt: THREE.Vector3): boolean;
 }
 
-let uuid = 0;
-
 export abstract class Snap implements Restriction {
-    counter = uuid++;
     readonly name?: string = undefined;
     abstract readonly snapper: THREE.Object3D; // the actual object to snap to, used in raycasting when snapping
     readonly nearby?: THREE.Object3D; // a slightly larger object for raycasting when showing nearby snap points

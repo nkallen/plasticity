@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { PointsMaterial } from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
+import { GPUPicker } from '../components/viewport/GPUPicking';
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { assertUnreachable, GConstructor } from '../util/Util';
 import { EditorSignals } from './EditorSignals';
@@ -108,7 +109,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals) { }
 
-    private counter = 0;
+    private counter = GPUPicker.minimumEntityId;
     get version() { return this.counter }
 
     async addItem(model: c3d.Solid, agent?: Agent, name?: c3d.SimpleName): Promise<visual.Solid>;

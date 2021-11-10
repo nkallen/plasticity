@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import * as intersectable from "../../editor/Intersectable";
+import { GeometryPicker } from "./GPUPicking";
 import { Viewport } from "./Viewport";
 
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
@@ -39,12 +40,14 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     private readonly onDownPosition = new THREE.Vector2(); // screen coordinates
     private readonly currentPosition = new THREE.Vector2(); // screen coordinates
 
+    private readonly picker = new GeometryPicker(this.viewport.picker, this.db, this.signals);
+
     private readonly disposable = new CompositeDisposable();
 
     constructor(
         protected readonly viewport: Viewport,
         protected readonly db: DatabaseLike,
-        signals: EditorSignals,
+        private readonly signals: EditorSignals,
         readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
     ) {
         super();
@@ -53,26 +56,12 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
 
-        const domElement = viewport.domElement;
+        const domElement = viewport.renderer.domElement;
         domElement.addEventListener('pointerdown', this.onPointerDown);
         domElement.addEventListener('pointermove', this.onPointerMove);
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointerdown', this.onPointerDown)));
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointermove', this.onPointerMove)));
-
-        this.updatePicker = this.updatePicker.bind(this);
-        signals.sceneGraphChanged.add(this.updatePicker);
-        signals.historyChanged.add(this.updatePicker);
-        signals.commandEnded.add(this.updatePicker);
-        this.disposable.add(new Disposable(() => {
-            signals.sceneGraphChanged.remove(this.updatePicker);
-            signals.historyChanged.remove(this.updatePicker);
-            signals.commandEnded.remove(this.updatePicker);
-
-        }));
-    }
-
-    updatePicker() {
-        this.viewport.picker.update(this.db.visibleObjects.map(o => o.picker));
+        this.disposable.add(new Disposable(() => this.picker.dispose()));
     }
 
     onPointerDown(downEvent: PointerEvent) {
@@ -83,7 +72,8 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             case 'hover':
                 this.endHover();
             case 'none':
-                getMousePosition(this.viewport.domElement, downEvent.clientX, downEvent.clientY, this.onDownPosition);
+                this.viewport.getMousePosition(downEvent, this.onDownPosition);
+                this.currentPosition.copy(this.onDownPosition);
 
                 const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
                 if (!this.startClick(intersects)) return;
@@ -110,8 +100,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
     onPointerMove(moveEvent: PointerEvent) {
         if (!this.enabled) return;
-
-        getMousePosition(this.viewport.domElement, moveEvent.clientX, moveEvent.clientY, this.currentPosition);
+        this.viewport.getMousePosition(moveEvent, this.currentPosition);
 
         switch (this.state.tag) {
             case 'none': {
@@ -158,8 +147,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     onPointerUp(upEvent: PointerEvent) {
         if (!this.enabled) return;
         if (upEvent.button !== 0) return;
-
-        getMousePosition(this.viewport.domElement, upEvent.clientX, upEvent.clientY, this.currentPosition);
+        this.viewport.getMousePosition(upEvent, this.currentPosition);
 
         switch (this.state.tag) {
             case 'down':
@@ -192,8 +180,8 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
     private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersectable[] {
-        this.viewport.picker.setFromCamera(screenPoint, this.viewport.camera);
-        return this.viewport.picker.intersect();
+        this.picker.setFromCamera(screenPoint, this.viewport.camera);
+        return this.picker.intersect();
     }
 
     dispose() { this.disposable.dispose() }
@@ -201,11 +189,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
 function screen2normalized(from: THREE.Vector2, to: THREE.Vector2) {
     to.set((from.x * 2) - 1, - (from.y * 2) + 1);
-}
-
-function getMousePosition(dom: HTMLElement, x: number, y: number, to: THREE.Vector2) {
-    const rect = dom.getBoundingClientRect();
-    to.set((x - rect.left), rect.height - (y - rect.top));
 }
 
 // Time thresholds are in milliseconds, distance thresholds are in pixels.

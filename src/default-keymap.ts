@@ -136,12 +136,14 @@ export default {
         "d": "gizmo:thin-solid:thickness",
     },
 
+    "ispace-viewport": {
+        "z": "viewport:picker:show",
+    },
+
     "body[command] ispace-viewport": {
         "escape": "command:abort",
         "enter": "command:finish",
         "mouse2": "command:finish",
-
-        "z": "viewport:picker:show",
     },
 
     "body:not([gizmo]) ispace-viewport": {

@@ -52,7 +52,9 @@ export default (editor: Editor) => {
             render(result, this);
         }
 
-        execute() {
+        execute(event: MouseEvent) {
+            event.preventDefault();
+            event.stopPropagation();
             const klass = this.klass as unknown as GConstructor<Command>;
             editor.enqueue(new klass(editor));
         }
@@ -171,7 +173,7 @@ export default (editor: Editor) => {
 
                     const button = e.target;
                     if (button instanceof CommandButton) {
-                        button.execute();
+                        button.execute(e);
                     }
 
                     disposable.dispose();

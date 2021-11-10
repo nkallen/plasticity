@@ -43,6 +43,7 @@ export interface EditorLike extends selector.EditorLike {
 
 export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly changed = new signals.Signal();
+    readonly picker = new GPUPicker(this);
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
@@ -61,7 +62,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
     private grid = new GridHelper(300, 300, gridColor, gridColor);
 
-    readonly picker = new GPUPicker(this, this.editor.db);
 
     constructor(
         private readonly editor: EditorLike,
@@ -429,7 +429,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     restoreFromMemento(m: ViewportMemento): void {
         this.camera.restoreFromMemento(m.camera);
         this.navigationControls.target.copy(m.target);
-        // this.constructionPlane = new ConstructionPlaneSnap(m.constructionPlane.n, m.constructionPlane.o);
         this.isXRay = m.isXRay;
         this.changed.dispatch();
     }
@@ -443,6 +442,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     debug(): void { }
+
+    getMousePosition(event: PointerEvent, to = new THREE.Vector2()): THREE.Vector2 {
+        const [x, y] = [event.clientX, event.clientY];
+        const rect = this.domElement.getBoundingClientRect();
+        to.set((x - rect.left), rect.height - (y - rect.top));
+        return to;
+    }
 }
 
 type NavigationState = { tag: 'none' } | { tag: 'navigating', selectorEnabled: boolean, quaternion: THREE.Quaternion }

@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { Uint8BufferAttribute } from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { GPUPicker } from "../../components/viewport/GPUPicking";
 import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
@@ -8,7 +7,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, ConstructionPlaneSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, LineSnap, NormalAxisSnap, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap, TanTanSnap } from "./Snap";
+import { AxisSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Restriction, Snap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -158,10 +157,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     private addFace(face: visual.Face, model: c3d.Face, into: Set<Snap>) {
-        // FIXME
         const faceSnap = new FaceSnap(face, model);
-        // into.add(faceSnap);
-
         const centerSnap = new FaceCenterPointSnap(point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
         into.add(centerSnap);
     }
@@ -181,9 +177,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             }
         }
 
-        // FIXME
-        // const edgeSnap = new CurveEdgeSnap(edge, model);
-        // into.add(edgeSnap);
         into.add(begSnap);
         into.add(midSnap);
     }
@@ -303,52 +296,3 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 }
 
 export const originSnap = new PointSnap("Origin");
-
-const priorities = new Map<any, number>();
-priorities.set(CrossPointSnap, 1);
-priorities.set(AxisAxisCrossPointSnap, 1);
-priorities.set(AxisCurveCrossPointSnap, 1);
-priorities.set(TanTanSnap, 1);
-priorities.set(PointSnap, 1);
-priorities.set(CurvePointSnap, 1);
-priorities.set(CurveEndPointSnap, 1);
-priorities.set(EdgePointSnap, 1);
-priorities.set(EdgeEndPointSnap, 1);
-priorities.set(CurveEdgeSnap, 2);
-priorities.set(CurveSnap, 2);
-priorities.set(FaceCenterPointSnap, 2);
-priorities.set(FaceSnap, 3);
-priorities.set(AxisSnap, 4);
-priorities.set(NormalAxisSnap, 4);
-priorities.set(PointAxisSnap, 4);
-priorities.set(PlaneSnap, 5);
-priorities.set(LineSnap, 5);
-priorities.set(ConstructionPlaneSnap, 6);
-
-function sortIntersectionsXRay(i1: THREE.Intersection, i2: THREE.Intersection): number {
-    const snap1 = i1.object.userData.snap as Snap;
-    const snap2 = i2.object.userData.snap as Snap;
-    const x = priorities.get(snap1.constructor);
-    const y = priorities.get(snap2.constructor)
-    if (x === undefined || y === undefined) {
-        console.error(i1);
-        console.error(i2);
-        throw new Error("invalid precondition: missing priority for " + `${i1.object.userData.snap.constructor.name}, ${i2.object.userData.snap.constructor.name}`);
-    }
-    const delta = x - y;
-    if (delta != 0) return delta;
-    else {
-        const delta = i1.distance - i2.distance;
-        if (delta != 0) return delta
-        else return snap2.counter - snap1.counter; // ensure deterministic order to avoid flickering
-    }
-}
-
-function sortIntersectionsNotXRay(i1: THREE.Intersection, i2: THREE.Intersection): number {
-    const delta = i1.distance - i2.distance;
-    if (Math.abs(delta) < 10e-2) {
-        return sortIntersectionsXRay(i1, i2);
-    } else {
-        return delta;
-    }
-}
