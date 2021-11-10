@@ -1,8 +1,8 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
+import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import * as intersectable from "../../editor/Intersectable";
-import { GPUPicker } from "./GPUPicking";
 import { Viewport } from "./Viewport";
 
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
@@ -44,6 +44,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     constructor(
         protected readonly viewport: Viewport,
         protected readonly db: DatabaseLike,
+        signals: EditorSignals,
         readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
     ) {
         super();
@@ -57,6 +58,21 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         domElement.addEventListener('pointermove', this.onPointerMove);
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointerdown', this.onPointerDown)));
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointermove', this.onPointerMove)));
+
+        this.updatePicker = this.updatePicker.bind(this);
+        signals.sceneGraphChanged.add(this.updatePicker);
+        signals.historyChanged.add(this.updatePicker);
+        signals.commandEnded.add(this.updatePicker);
+        this.disposable.add(new Disposable(() => {
+            signals.sceneGraphChanged.remove(this.updatePicker);
+            signals.historyChanged.remove(this.updatePicker);
+            signals.commandEnded.remove(this.updatePicker);
+
+        }));
+    }
+
+    updatePicker() {
+        this.viewport.picker.update(this.db.visibleObjects.map(o => o.picker));
     }
 
     onPointerDown(downEvent: PointerEvent) {
@@ -176,7 +192,8 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
     private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersectable[] {
-        return this.viewport.picker.intersect(screenPoint);
+        this.viewport.picker.setFromCamera(screenPoint, this.viewport.camera);
+        return this.viewport.picker.intersect();
     }
 
     dispose() { this.disposable.dispose() }

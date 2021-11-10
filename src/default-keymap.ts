@@ -140,6 +140,8 @@ export default {
         "escape": "command:abort",
         "enter": "command:finish",
         "mouse2": "command:finish",
+
+        "z": "viewport:picker:show",
     },
 
     "body:not([gizmo]) ispace-viewport": {

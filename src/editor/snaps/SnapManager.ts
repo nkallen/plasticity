@@ -1,5 +1,7 @@
 import * as THREE from "three";
+import { Uint8BufferAttribute } from "three";
 import c3d from '../../../build/Release/c3d.node';
+import { GPUPicker } from "../../components/viewport/GPUPicking";
 import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
@@ -49,10 +51,11 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
         this.layers.enableAll();
 
-        this.update();
+        this.refresh();
     }
 
-    nearby(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
+    // FIXME should nearbys only be points?
+    nearby(picker: GPUPicker, additional: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
         if (!this.shouldSnap) return [];
         performance.mark('begin-nearby');
 
@@ -60,20 +63,21 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         for (const a of additional) if (a.nearby !== undefined) additionalNearbys.push(a.nearby);
         const nearbys = [...this.nearbys, ...additionalNearbys];
 
-        raycaster.layers = this.layers;
-        const intersections = raycaster.intersectObjects(nearbys);
-        const result = [];
-        for (const intersection of intersections) {
-            if (!this.satisfiesRestrictions(intersection.object.position, restrictions)) continue;
-            const snap = intersection.object.userData.snap as Snap;
-            const { position, orientation } = snap.project(intersection);
-            result.push({ snap, position, orientation });
-        }
-        performance.measure('nearby', 'begin-nearby');
-        return result;
+        picker.layers = this.layers;
+        // const intersections = picker.intersectObjects(nearbys);
+        return []; // FIXME
+        // const result = [];
+        // for (const intersection of intersections) {
+        //     if (!this.satisfiesRestrictions(intersection.object.position, restrictions)) continue;
+        //     const snap = intersection.object.userData.snap as Snap;
+        //     const { position, orientation } = snap.project(intersection);
+        //     result.push({ snap, position, orientation });
+        // }
+        // performance.measure('nearby', 'begin-nearby');
+        // return result;
     }
 
-    snap(raycaster: THREE.Raycaster, additional: Snap[] = [], restrictionSnaps: Snap[] = [], restrictions: Restriction[] = [], isXRay: boolean = true): SnapResult[] {
+    snap(picker: GPUPicker, additional: Snap[] = [], restrictionSnaps: Snap[] = [], restrictions: Restriction[] = [], isXRay: boolean = true): SnapResult[] {
         performance.mark('begin-snap');
         // NOTE: restriction snaps, including the construction plane, are always snappable
         let snappers = restrictionSnaps.map(a => a.snapper);
@@ -82,19 +86,18 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         }
         snappers = [...new Set(snappers)];
 
-        raycaster.layers = this.layers;
-        const snapperIntersections = raycaster.intersectObjects(snappers, true);
-        const sortFn = isXRay ? sortIntersectionsXRay : sortIntersectionsNotXRay;
-        snapperIntersections.sort(sortFn);
+        picker.layers = this.layers;
+        const snapperIntersections = picker.intersect();
         const result: SnapResult[] = [];
+        return result;
 
-        for (const intersection of snapperIntersections) {
-            const snap = intersection.object.userData.snap as Snap;
-            const { position, orientation } = snap.project(intersection);
-            if (!this.satisfiesRestrictions(position, restrictions)) continue;
-            result.push({ snap, position, orientation });
-        }
-        performance.measure('snap', 'begin-snap');
+        // for (const intersection of snapperIntersections) {
+        //     const snap = intersection.object.userData.snap as Snap;
+        //     const { position, orientation } = snap.project(intersection);
+        //     if (!this.satisfiesRestrictions(position, restrictions)) continue;
+        //     result.push({ snap, position, orientation });
+        // }
+        // performance.measure('snap', 'begin-snap');
         return result;
     }
 
@@ -105,10 +108,15 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         return true;
     }
 
-    private update() {
-        performance.mark('begin-snap-update');
+    get all() {
         let all = [...this.basicSnaps, ...this.crossSnaps];
         for (const snaps of this.id2snaps.values()) all = all.concat([...snaps]);
+        return all;
+    }
+
+    private refresh() {
+        const all = this.all;
+        performance.mark('begin-snap-update');
         this.nearbys = all.map((s) => s.nearby).filter(x => !!x) as THREE.Object3D[];
         this.snappers = all.map((s) => s.snapper);
         performance.measure('snap-update', 'begin-snap-update');
@@ -146,12 +154,13 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         }
 
         performance.measure('snap-add', 'begin-snap-add');
-        this.update();
+        this.refresh();
     }
 
     private addFace(face: visual.Face, model: c3d.Face, into: Set<Snap>) {
+        // FIXME
         const faceSnap = new FaceSnap(face, model);
-        into.add(faceSnap);
+        // into.add(faceSnap);
 
         const centerSnap = new FaceCenterPointSnap(point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
         into.add(centerSnap);
@@ -172,8 +181,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
             }
         }
 
-        const edgeSnap = new CurveEdgeSnap(edge, model);
-        into.add(edgeSnap);
+        // FIXME
+        // const edgeSnap = new CurveEdgeSnap(edge, model);
+        // into.add(edgeSnap);
         into.add(begSnap);
         into.add(midSnap);
     }
@@ -254,7 +264,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private delete(item: visual.Item): void {
         this.id2snaps.delete(item.simpleName);
         if (item instanceof visual.SpaceInstance) this.crosses.remove(item.simpleName);
-        this.update();
+        this.refresh();
     }
 
     toggle() {
@@ -272,7 +282,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     restoreFromMemento(m: SnapMemento) {
         (this.id2snaps as SnapManager['id2snaps']) = m.id2snaps;
-        this.update();
+        this.refresh();
     }
 
     serialize(): Promise<Buffer> {

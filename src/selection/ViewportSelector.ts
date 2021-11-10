@@ -62,7 +62,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
 export class ViewportSelector extends AbstractViewportSelector {
     constructor(viewport: Viewport, private readonly editor: EditorLike,) {
-        super(viewport, editor.db);
+        super(viewport, editor.db, editor.signals);
     }
 
     protected processBoxHover(selected: Set<intersectable.Intersectable>) {

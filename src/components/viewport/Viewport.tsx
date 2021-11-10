@@ -61,7 +61,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
     private grid = new GridHelper(300, 300, gridColor, gridColor);
 
-    readonly picker = new GPUPicker(this, this.editor.db, this.editor.signals);
+    readonly picker = new GPUPicker(this, this.editor.db);
 
     constructor(
         private readonly editor: EditorLike,
@@ -145,6 +145,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 'viewport:toggle-orthographic': () => this.togglePerspective(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
                 'viewport:toggle-overlays': () => this.toggleOverlays(),
+                'viewport:picker:show': () => this.picker.show(), // FIXME keep?
             })
         );
 
@@ -344,7 +345,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 this.navigationControls.removeEventListener('change', this.navigationChange);
                 this.navigationControls.removeEventListener('end', this.navigationEnd);
                 this.selector.enabled = this.navigationState.selectorEnabled;
-                this.picker.update();
+                this.picker.render();
                 this.navigationState = { tag: 'none' };
                 break;
             default: throw new Error("invalid state");

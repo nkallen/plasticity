@@ -28,7 +28,7 @@ class MyViewportSelector extends AbstractViewportSelector {
         private readonly onEmptyIntersection = () => { },
         raycasterParams: THREE.RaycasterParameters,
     ) {
-        super(viewport, editor.db, raycasterParams);
+        super(viewport, editor.db, editor.signals, raycasterParams);
         this.selection.mode.add(SelectionMode.Curve);
     }
 

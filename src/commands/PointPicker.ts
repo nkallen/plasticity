@@ -2,12 +2,12 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
+import { GPUPicker, GPUSnapAdapter } from '../components/viewport/GPUPicking';
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import { VisibleLayers } from '../editor/LayerManager';
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
@@ -304,6 +304,10 @@ export class Model {
             }
         }
     }
+
+    update(picker: GPUPicker) {
+        picker.update(this.snaps.map(s => s.snapper));
+    }
 }
 
 interface SnapInfo extends PointInfo {
@@ -313,7 +317,7 @@ interface SnapInfo extends PointInfo {
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
 // There are icons, indicators, textual name explanations, etc.
 export class Presentation {
-    static make(raycaster: THREE.Raycaster, viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
+    static make(viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
         if (isOrtho) snaps.layers.disable(Layers.Face);
@@ -322,14 +326,16 @@ export class Presentation {
         let nearby: SnapResult[], snappers: SnapResult[];
         const choice = model.choice;
         if (choice !== undefined) {
-            const position = choice.intersect(raycaster);
-            if (position !== undefined) snappers = [{ snap: choice, orientation: choice.orientation, position }];
-            else snappers = [];
+            // FIXME
+            // const position = choice.intersect(raycaster);
+            // if (position !== undefined) snappers = [{ snap: choice, orientation: choice.orientation, position }];
+            // else snappers = [];
+            snappers = [];
             nearby = []
         } else {
             const restrictions = model.restrictionsFor(constructionPlane, isOrtho);
-            nearby = snaps.nearby(raycaster, model.snaps, restrictions);
-            snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions, viewport.isXRay);
+            nearby = snaps.nearby(viewport.picker, model.snaps, restrictions);
+            snappers = snaps.snap(viewport.picker, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions, viewport.isXRay);
         }
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
@@ -390,6 +396,7 @@ export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
     private readonly helper = new PointTarget();
 
+    // FIXME ensure passed to GPUPicker
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Line: { threshold: 0.1 },
         Line2: { threshold: 20 },
@@ -407,10 +414,6 @@ export class PointPicker {
 
             document.body.setAttribute("gizmo", "point-picker");
             disposables.add(new Disposable(() => document.body.removeAttribute('gizmo')));
-
-            const raycaster = new THREE.Raycaster();
-            raycaster.params = this.raycasterParams;
-            raycaster.layers = VisibleLayers;
 
             editor.helpers.add(pointTarget);
             disposables.add(new Disposable(() => editor.helpers.remove(pointTarget)));
@@ -436,15 +439,16 @@ export class PointPicker {
                 let lastMoveEvent: PointerEvent | undefined = undefined;
                 let lastSnap: Snap | undefined = undefined;
 
+                // editor.snaps.update(viewport.picker);
+                // model.update(viewport.picker);
+                new GPUSnapAdapter(editor.snaps).update(viewport.picker);
+                
                 const onPointerMove = (e: PointerEvent | undefined) => {
                     if (e === undefined) return;
                     if (isNavigating) return;
 
                     lastMoveEvent = e;
-                    const pointer = getPointer(e);
-                    raycaster.setFromCamera(pointer, camera);
-
-                    const { presentation, snappers } = Presentation.make(raycaster, viewport, model, editor.snaps, editor.snapPresenter);
+                    const { presentation, snappers } = Presentation.make(viewport, model, editor.snaps, editor.snapPresenter);
 
                     this.model.activateSnapped(snappers);
 
@@ -466,7 +470,6 @@ export class PointPicker {
                         names.length > 0 ?
                             { position: position.clone().project(camera), names }
                             : undefined);
-
                     editor.signals.pointPickerChanged.dispatch();
                 }
 

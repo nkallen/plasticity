@@ -34,7 +34,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
     private readonly cameraPlane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
 
     constructor(viewport: Viewport, private readonly editor: EditorLike) {
-        super(viewport, editor.db);
+        super(viewport, editor.db, editor.signals);
         this._raycaster.layers.enableAll();
     }
 

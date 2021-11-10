@@ -1,59 +1,66 @@
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import * as THREE from "three";
-import { DatabaseLike } from "../../editor/GeometryDatabase";
-import { Viewport } from "./Viewport";
-import * as visual from "../../editor/VisualModel";
-import * as intersectable from "../../editor/Intersectable";
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
-import { EditorSignals } from '../../editor/EditorSignals';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { DatabaseLike } from "../../editor/GeometryDatabase";
+import * as intersectable from "../../editor/Intersectable";
+import { PointSnap } from "../../editor/snaps/Snap";
+import { SnapManager } from "../../editor/snaps/SnapManager";
+import * as visual from "../../editor/VisualModel";
+import { Viewport } from "./Viewport";
 
 export class GPUPicker {
     private readonly pickingScene = new THREE.Scene();
     readonly pickingTarget = new THREE.WebGLRenderTarget(1, 1);
     pickingBuffer: Readonly<Uint8Array> = new Uint8Array();
 
-    constructor( private readonly viewport: Viewport, private readonly db: DatabaseLike, private readonly signals: EditorSignals) {
-        this.update = this.update.bind(this);
+    layers = new THREE.Layers();
 
-        signals.sceneGraphChanged.add(this.update);
-        signals.historyChanged.add(this.update);
-        signals.commandEnded.add(this.update);
+    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+        Line: { threshold: 0.1 },
+        Line2: { threshold: 20 },
+        Points: { threshold: 1 }
+    };
+
+    constructor(private readonly viewport: Viewport, private readonly db: DatabaseLike) {
+        this.render = this.render.bind(this);
     }
-
-    dispose() {
-        const signals = this.signals;
-        signals.sceneGraphChanged.remove(this.update);
-        signals.historyChanged.remove(this.update);
-        signals.commandEnded.remove(this.update);
-    }
-
     setSize(offsetWidth: number, offsetHeight: number) {
         this.pickingTarget.setSize(offsetWidth, offsetHeight);
         this.pickingBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
-        this.update();
+        this.render();
     }
 
-    update() {
+    update(pickers: THREE.Object3D[]) {
+        this.pickingScene.clear();
+        for (const picker of pickers) {
+            this.pickingScene.add(picker);
+        }
+        this.render();
+    }
+
+    render() {
         const { viewport: { renderer, camera }, pickingScene, pickingTarget, pickingBuffer } = this;
 
         console.time();
-        for (const object of this.db.visibleObjects) {
-            if (!object.visible) continue; // FIXME handle this a better way
-            pickingScene.add(object.picker);
-        }
         renderer.setRenderTarget(pickingTarget);
         renderer.render(pickingScene, camera);
         renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
         console.timeEnd();
-
-        // renderer.setRenderTarget(null);
-        // renderer.render(pickingScene, camera);
-
-        pickingScene.clear();
     }
 
-    intersect(screenPoint: THREE.Vector2): intersectable.Intersectable[] {
-        const { db, viewport } = this;
+    show() {
+        const { viewport: { renderer, camera }, pickingScene } = this;
+        renderer.setRenderTarget(null);
+        renderer.render(pickingScene, camera);
+    }
+
+    private readonly screenPoint = new THREE.Vector2();
+    setFromCamera(screenPoint: THREE.Vector2, camera: THREE.Camera) {
+        this.screenPoint.copy(screenPoint);
+    }
+
+    intersect(): intersectable.Intersectable[] {
+        const { db, viewport, screenPoint } = this;
         let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * viewport.camera.offsetWidth);
 
         const buffer = new Uint32Array(this.pickingBuffer.buffer);
@@ -64,7 +71,6 @@ export class GPUPicker {
         const item = db.lookupItemById(parentId).view;
         if (item instanceof visual.Solid) {
             const simpleName = GPUPicker.compact2full(id)
-            console.log(simpleName);
             const data = db.lookupTopologyItemById(simpleName);
             return [[...data.views][0]];
         } else if (item instanceof visual.SpaceInstance) {
@@ -145,6 +151,54 @@ export class VertexColorMaterial extends THREE.ShaderMaterial {
 }
 
 export const vertexColorMaterial = new VertexColorMaterial();
+
+export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
+    static make(points: [number, THREE.Vector3][]) {
+        const positions = new Float32Array(points.length * 3);
+        const colors = new Uint32Array(points.length);
+        for (const [i, [id, point]] of points.entries()) {
+            const position = point;
+            positions[i + 0] = position.x;
+            positions[i + 1] = position.y;
+            positions[i + 2] = position.z;
+
+            console.log(id);
+            colors[i] = id;
+        }
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.Uint8BufferAttribute(colors.buffer, 3, true));
+        const material = new PointsVertexColorMaterial(20);
+        return new THREE.Points(geometry, material);
+    }
+
+    constructor(size: number) {
+        super({
+            vertexShader: `
+            uniform float size;
+            attribute vec4 color;
+            varying vec4 vColor;
+            void main() {
+                vColor = color;
+                #include <begin_vertex>
+                #include <project_vertex>
+                gl_PointSize = size;
+                #include <clipping_planes_vertex>
+            }`,
+            fragmentShader: `
+            varying vec4 vColor;
+            void main() {
+                gl_FragColor = vColor;
+            }
+            `,
+            clipping: true,
+            uniforms: {
+                size: { value: size }
+            },
+            blending: THREE.NoBlending,
+        })
+    }
+}
 
 export class IdMaterial extends THREE.ShaderMaterial {
     constructor(id: number) {
@@ -246,3 +300,20 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
 }
 
 export const vertexColorLineMaterial = new LineVertexColorMaterial();
+
+export class GPUSnapAdapter {
+    constructor(private readonly snaps: SnapManager) { }
+
+    update(picker: GPUPicker) {
+        picker.update(this.refresh());
+    }
+
+    refresh() {
+        const points: [number, THREE.Vector3][] = [];
+        for (const [i, snap] of this.snaps.all.entries()) {
+            if (snap instanceof PointSnap) points.push([i, snap.position]);
+        }
+
+        return [PointsVertexColorMaterial.make(points)];
+    }
+}
