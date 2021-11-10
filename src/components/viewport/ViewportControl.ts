@@ -35,8 +35,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
     private state: State = { tag: 'none' }
 
-    private readonly raycaster = new GPUPicker(this.db, this.viewport);
-
     private readonly normalizedMousePosition = new THREE.Vector2(); // normalized device coordinates
     private readonly onDownPosition = new THREE.Vector2(); // screen coordinates
     private readonly currentPosition = new THREE.Vector2(); // screen coordinates
@@ -178,7 +176,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
     private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersectable[] {
-        return this.raycaster.intersect(screenPoint);
+        return this.viewport.picker.intersect(screenPoint);
     }
 
     dispose() { this.disposable.dispose() }

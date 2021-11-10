@@ -11,12 +11,12 @@ import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, Viewport
 import { xray } from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap, PlaneSnap } from "../../editor/snaps/Snap";
-import * as visual from '../../editor/VisualModel';
 import { HighlightManager } from "../../selection/HighlightManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helper, Helpers } from "../../util/Helpers";
 import { Pane } from '../pane/Pane';
+import { GPUPicker } from "./GPUPicking";
 import { GridHelper } from "./GridHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
@@ -61,9 +61,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
     private grid = new GridHelper(300, 300, gridColor, gridColor);
 
-    private readonly pickingScene = new THREE.Scene();
-    readonly pickingTarget: THREE.WebGLRenderTarget;
-    pickingBuffer: Readonly<Uint8Array>;
+    readonly picker = new GPUPicker(this, this.editor.db, this.editor.signals);
 
     constructor(
         private readonly editor: EditorLike,
@@ -84,9 +82,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         const size = this.renderer.getSize(new THREE.Vector2());
         const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType });
         renderTarget.samples = 8;
-
-        this.pickingTarget = new THREE.WebGLRenderTarget(size.width, size.height);
-        this.pickingBuffer = new Uint8Array(size.width * size.height * 4);
 
         EffectComposer: {
             this.composer = new EffectComposer(this.renderer, renderTarget);
@@ -133,7 +128,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.render = this.render.bind(this);
         this.setNeedsRender = this.setNeedsRender.bind(this);
-        this.pick = this.pick.bind(this);
         this.outlineSelection = this.outlineSelection.bind(this);
         this.outlineHover = this.outlineHover.bind(this);
         this.navigationStart = this.navigationStart.bind(this);
@@ -184,10 +178,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.signals.commandEnded.add(this.setNeedsRender);
         this.editor.signals.moduleReloaded.add(this.setNeedsRender);
 
-        this.editor.signals.sceneGraphChanged.add(this.pick);
-        this.editor.signals.historyChanged.add(this.pick);
-        this.editor.signals.commandEnded.add(this.pick);
-
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);
 
@@ -214,11 +204,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.editor.signals.objectUnhovered.remove(this.setNeedsRender);
             this.editor.signals.historyChanged.remove(this.setNeedsRender);
             this.editor.signals.moduleReloaded.remove(this.setNeedsRender);
-
-            this.editor.signals.sceneGraphChanged.remove(this.pick);
-            this.editor.signals.historyChanged.remove(this.pick);
-            this.editor.signals.commandEnded.remove(this.pick);
-
 
             this.navigationControls.removeEventListener('change', this.setNeedsRender);
             this.navigationControls.removeEventListener('start', this.navigationStart);
@@ -285,25 +270,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         }
     }
 
-    pick() {
-        const { renderer, camera, pickingScene, pickingTarget, pickingBuffer } = this;
-
-        console.time();
-        for (const object of this.editor.db.visibleObjects) {
-            if (!object.visible) continue; // FIXME handle this a better way
-            pickingScene.add(object.picker);
-        }
-        renderer.setRenderTarget(pickingTarget);
-        renderer.render(pickingScene, camera);
-        renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
-        console.timeEnd();
-
-        // renderer.setRenderTarget(null);
-        // renderer.render(pickingScene, camera);
-
-        pickingScene.clear();
-    }
-
     outlineSelection() {
         const selection = this.editor.highlighter.outlineSelection;
         const toOutline = [...selection].flatMap(item => item.outline);
@@ -317,17 +283,15 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     setSize(offsetWidth: number, offsetHeight: number) {
-        const { camera, renderer, composer, outlinePassHover, outlinePassSelection, pickingTarget } = this;
+        const { camera, renderer, composer, outlinePassHover, outlinePassSelection } = this;
         camera.setSize(offsetWidth, offsetHeight);
 
         renderer.setSize(offsetWidth, offsetHeight);
         composer.setSize(offsetWidth, offsetHeight);
         outlinePassHover.setSize(offsetWidth, offsetHeight);
         outlinePassSelection.setSize(offsetWidth, offsetHeight);
-        pickingTarget.setSize(offsetWidth, offsetHeight);
-        this.pickingBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
+        this.picker.setSize(offsetWidth, offsetHeight);
         this.setNeedsRender();
-        this.pick();
     }
 
     private readonly controls = [this.selector, this.navigationControls, this.points];
@@ -380,7 +344,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 this.navigationControls.removeEventListener('change', this.navigationChange);
                 this.navigationControls.removeEventListener('end', this.navigationEnd);
                 this.selector.enabled = this.navigationState.selectorEnabled;
-                this.pick();
+                this.picker.update();
                 this.navigationState = { tag: 'none' };
                 break;
             default: throw new Error("invalid state");

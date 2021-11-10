@@ -5,16 +5,58 @@ import { Viewport } from "./Viewport";
 import * as visual from "../../editor/VisualModel";
 import * as intersectable from "../../editor/Intersectable";
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
+import { EditorSignals } from '../../editor/EditorSignals';
 
 export class GPUPicker {
-    constructor(private readonly db: DatabaseLike, private readonly viewport: Viewport) {
+    private readonly pickingScene = new THREE.Scene();
+    readonly pickingTarget = new THREE.WebGLRenderTarget(1, 1);
+    pickingBuffer: Readonly<Uint8Array> = new Uint8Array();
+
+    constructor( private readonly viewport: Viewport, private readonly db: DatabaseLike, private readonly signals: EditorSignals) {
+        this.update = this.update.bind(this);
+
+        signals.sceneGraphChanged.add(this.update);
+        signals.historyChanged.add(this.update);
+        signals.commandEnded.add(this.update);
+    }
+
+    dispose() {
+        const signals = this.signals;
+        signals.sceneGraphChanged.remove(this.update);
+        signals.historyChanged.remove(this.update);
+        signals.commandEnded.remove(this.update);
+    }
+
+    setSize(offsetWidth: number, offsetHeight: number) {
+        this.pickingTarget.setSize(offsetWidth, offsetHeight);
+        this.pickingBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
+        this.update();
+    }
+
+    update() {
+        const { viewport: { renderer, camera }, pickingScene, pickingTarget, pickingBuffer } = this;
+
+        console.time();
+        for (const object of this.db.visibleObjects) {
+            if (!object.visible) continue; // FIXME handle this a better way
+            pickingScene.add(object.picker);
+        }
+        renderer.setRenderTarget(pickingTarget);
+        renderer.render(pickingScene, camera);
+        renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
+        console.timeEnd();
+
+        // renderer.setRenderTarget(null);
+        // renderer.render(pickingScene, camera);
+
+        pickingScene.clear();
     }
 
     intersect(screenPoint: THREE.Vector2): intersectable.Intersectable[] {
         const { db, viewport } = this;
         let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * viewport.camera.offsetWidth);
 
-        const buffer = new Uint32Array(viewport.pickingBuffer.buffer);
+        const buffer = new Uint32Array(this.pickingBuffer.buffer);
         const id = buffer[i];
         if (id === 0 || id === undefined) return [];
 

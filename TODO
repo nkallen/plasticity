@@ -1,8 +1,11 @@
 TODO:
 
+Get temporary objects to work
+Get highlighed faces and edges to workget region, curve, and point selection to work
 Test FaceGroupBuilder
 Test CurveEdgeGroupBuilder
 Test Fillet hidden edge shown
+Test vertexcolorMaterial/LineVertexColorMaterial statics
 Test SelectionBox
 See if we can get rid of get child() in visualmodel
 Move as much code as possible into GPU picking
