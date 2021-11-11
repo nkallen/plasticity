@@ -159,6 +159,8 @@ class GPUDepthReader {
         this.depthTarget.setSize(offsetWidth * dpr, offsetHeight * dpr);
         this.depthBuffer = new Uint8Array(offsetWidth * offsetHeight * 4 * dpr * dpr);
         const depthTexture = new THREE.DepthTexture(offsetWidth * dpr, offsetHeight * dpr);
+        depthTexture.format = THREE.DepthFormat;
+        depthTexture.type = THREE.UnsignedIntType; // Higher precision than the default, THREE.UnsignedShortType
         this.pickingTarget.depthTexture = depthTexture;
     }
 
