@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
-import { SnapPicker } from "../components/viewport/gpu_picking/GPUPickingAdapter";
+import { SnapGPUPickingAdapter } from "../components/viewport/gpu_picking/SnapGPUPicker";
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
@@ -313,7 +313,7 @@ interface SnapInfo extends PointInfo {
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
 // There are icons, indicators, textual name explanations, etc.
 export class Presentation {
-    static make(picker: SnapPicker, viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
+    static make(picker: SnapGPUPickingAdapter, viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
         if (isOrtho) snaps.layers.disable(Layers.Face);
@@ -429,7 +429,7 @@ export class PointPicker {
                     () => isNavigating = false));
 
                 const { camera, renderer: { domElement } } = viewport;
-                const picker = new SnapPicker(viewport.picker, editor.snaps, editor.db);
+                const picker = new SnapGPUPickingAdapter(viewport.picker, editor.snaps, editor.db);
 
                 viewport.additionalHelpers.add(helpers);
                 disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));

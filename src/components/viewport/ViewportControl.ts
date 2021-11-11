@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import * as intersectable from "../../editor/Intersectable";
-import { GeometryPicker } from "./gpu_picking/GPUPickingAdapter";
+import { GeometryGPUPickingAdapter } from "./gpu_picking/GeometryGPUPickingAdapter";
 import { Viewport } from "./Viewport";
 
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
@@ -42,7 +42,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     private readonly normalizedMousePosition = new THREE.Vector2(); // normalized device coordinates
     private readonly onDownPosition = new THREE.Vector2(); // normalized device coordinates
 
-    private readonly picker = new GeometryPicker(this.viewport.picker, this.db, this.signals);
+    private readonly picker = new GeometryGPUPickingAdapter(this.viewport.picker, this.db, this.signals);
 
     constructor(
         protected readonly viewport: Viewport,

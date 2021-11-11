@@ -3,7 +3,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
-import { GeometryPicker } from "../components/viewport/gpu_picking/GPUPickingAdapter";
+import { GeometryGPUPickingAdapter } from "../components/viewport/gpu_picking/GeometryGPUPickingAdapter";
 import { IdMaterial, LineVertexColorMaterial, vertexColorLineMaterial, VertexColorMaterial, vertexColorMaterial } from "../components/viewport/gpu_picking/GPUPickingMaterial";
 import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
@@ -559,7 +559,7 @@ export class FaceGroupBuilder {
         const geos = [];
         const meshes = this.meshes;
         for (const mesh of meshes) geos.push(mesh.geometry);
-        const merged = VertexColorMaterial.mergeBufferGeometries(geos, id => GeometryPicker.encoder.encode('face', this.parentId, id));
+        const merged = VertexColorMaterial.mergeBufferGeometries(geos, id => GeometryGPUPickingAdapter.encoder.encode('face', this.parentId, id));
         const groups = merged.groups;
 
         const materials = meshes.map(mesh => mesh.material as THREE.Material);
@@ -607,7 +607,7 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
     build() {
         let { lines } = this;
 
-        const geometry = LineVertexColorMaterial.mergePositions(lines, id => GeometryPicker.encoder.encode('edge', this.parentId, id));
+        const geometry = LineVertexColorMaterial.mergePositions(lines, id => GeometryGPUPickingAdapter.encoder.encode('edge', this.parentId, id));
         const line = new LineSegments2(geometry, lines[0].material);
         line.scale.setScalar(deunit(1));
 

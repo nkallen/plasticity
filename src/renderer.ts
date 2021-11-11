@@ -73,3 +73,11 @@ NumberScrubber(editor);
 Dialog(editor);
 ViewportHeader(editor);
 SnapOverlay(editor);
+
+// const makeBox = new ThreePointBoxFactory(editor.db, editor.materials, editor.signals);
+// makeBox.p1 = new THREE.Vector3();
+// makeBox.p2 = new THREE.Vector3(1, 0, 0);
+// makeBox.p3 = new THREE.Vector3(1, 1, 0);
+// makeBox.p4 = new THREE.Vector3(1, 1, 1);
+
+// makeBox.commit();

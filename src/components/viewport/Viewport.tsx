@@ -232,9 +232,10 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
             // prepare the scene, once per frame (there may be multiple viewports rendering the same frame):
             if (frameNumber > lastFrameNumber) {
-                scene.add(...db.visibleObjects);
+                const visibleObjects = db.visibleObjects;
+                if (visibleObjects.length > 0) scene.add(...visibleObjects);
                 scene.add(db.temporaryObjects);
-                grid.position.set(0, 0, -0.01);
+                grid.position.set(0, 0, -0.001);
                 grid.quaternion.setFromUnitVectors(Y, constructionPlane.n);
                 grid.update(camera);
                 if (this.showOverlays) {
