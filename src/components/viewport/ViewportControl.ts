@@ -16,6 +16,9 @@ const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: 
 };
 
 export abstract class ViewportControl extends THREE.EventDispatcher {
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+
     private _enabled = true;
     get enabled() { return this._enabled }
     set enabled(enabled: boolean) {
@@ -37,12 +40,9 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     private state: State = { tag: 'none' }
 
     private readonly normalizedMousePosition = new THREE.Vector2(); // normalized device coordinates
-    private readonly onDownPosition = new THREE.Vector2(); // screen coordinates
-    private readonly currentPosition = new THREE.Vector2(); // screen coordinates
+    private readonly onDownPosition = new THREE.Vector2(); // normalized device coordinates
 
     private readonly picker = new GeometryPicker(this.viewport.picker, this.db, this.signals);
-
-    private readonly disposable = new CompositeDisposable();
 
     constructor(
         protected readonly viewport: Viewport,
@@ -72,11 +72,10 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             case 'hover':
                 this.endHover();
             case 'none':
-                this.viewport.getMousePosition(downEvent, this.onDownPosition);
-                this.currentPosition.copy(this.onDownPosition);
-                this.viewport.normalizeMousePosition(this.normalizedMousePosition.copy(this.currentPosition));
+                this.viewport.getNormalizedMousePosition(downEvent, this.onDownPosition);
+                this.normalizedMousePosition.copy(this.onDownPosition);
 
-                const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
+                const intersects = this.getIntersects(this.normalizedMousePosition, this.db.visibleObjects);
                 if (!this.startClick(intersects)) return;
 
                 const disposable = new CompositeDisposable();
@@ -101,18 +100,18 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
     onPointerMove(moveEvent: PointerEvent) {
         if (!this.enabled) return;
-        this.viewport.getMousePosition(moveEvent, this.currentPosition);
+        this.viewport.getNormalizedMousePosition(moveEvent, this.normalizedMousePosition);
 
         switch (this.state.tag) {
             case 'none': {
-                const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
+                const intersects = this.getIntersects(this.normalizedMousePosition, this.db.visibleObjects);
                 if (intersects.length === 0) break;
                 this.startHover(intersects);
                 this.state = { tag: 'hover' };
                 break;
             }
             case 'hover': {
-                const intersects = this.getIntersects(this.currentPosition, this.db.visibleObjects);
+                const intersects = this.getIntersects(this.normalizedMousePosition, this.db.visibleObjects);
                 if (intersects.length === 0) {
                     this.endHover();
                     this.state = { tag: 'none' };
@@ -129,7 +128,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 if (moveEvent.timeStamp - dragStartTime >= consummationTimeThreshold ||
                     currentPosition.distanceTo(startPosition) >= consummationDistanceThreshold
                 ) {
-                    this.viewport.normalizeMousePosition(this.normalizedMousePosition.copy(this.onDownPosition));
+                    this.normalizedMousePosition.copy(this.onDownPosition);
                     this.startDrag(downEvent, this.normalizedMousePosition);
 
                     this.state = { tag: 'dragging', downEvent, disposable, startEvent: moveEvent }
@@ -138,7 +137,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 break;
             }
             case 'dragging':
-                this.viewport.normalizeMousePosition(this.normalizedMousePosition.copy(this.currentPosition));
                 this.continueDrag(moveEvent, this.normalizedMousePosition);
 
                 break;
@@ -148,11 +146,11 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     onPointerUp(upEvent: PointerEvent) {
         if (!this.enabled) return;
         if (upEvent.button !== 0) return;
-        this.viewport.getMousePosition(upEvent, this.currentPosition);
+        this.viewport.getNormalizedMousePosition(upEvent, this.normalizedMousePosition);
 
         switch (this.state.tag) {
             case 'down':
-                const intersects = this.getIntersects(this.currentPosition, [...this.db.visibleObjects]);
+                const intersects = this.getIntersects(this.normalizedMousePosition, [...this.db.visibleObjects]);
                 this.endClick(intersects);
 
                 this.state.disposable.dispose();
@@ -160,7 +158,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
                 break;
             case 'dragging':
-                this.viewport.normalizeMousePosition(this.normalizedMousePosition.copy(this.currentPosition));
                 this.endDrag(this.normalizedMousePosition);
 
                 this.state.disposable.dispose();
@@ -180,12 +177,10 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected abstract continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
-    private getIntersects(screenPoint: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersectable[] {
-        this.picker.setFromCamera(screenPoint, this.viewport.camera);
+    private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersectable[] {
+        this.picker.setFromCamera(normalizedMousePosition, this.viewport.camera);
         return this.picker.intersect();
     }
-
-    dispose() { this.disposable.dispose() }
 }
 
 // Time thresholds are in milliseconds, distance thresholds are in pixels.

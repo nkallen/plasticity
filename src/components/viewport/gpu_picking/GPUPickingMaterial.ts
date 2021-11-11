@@ -57,8 +57,6 @@ export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
 
             colors[i] = id;
         }
-        console.log(positions);
-        console.log(colors);
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.setAttribute('color', new THREE.Uint8BufferAttribute(colors.buffer, 4, true));

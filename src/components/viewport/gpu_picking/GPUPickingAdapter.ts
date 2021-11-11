@@ -25,8 +25,8 @@ export class SnapPicker implements GPUPickingAdapter<SnapResult> {
         this.picker.update(this.pickers);
     }
 
-    setFromCamera(screenPoint: THREE.Vector2, camera: THREE.Camera) {
-        this.picker.setFromCamera(screenPoint, camera);
+    setFromCamera(normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera) {
+        this.picker.setFromCamera(normalizedScreenPoint, camera);
     }
 
     intersect(): SnapResult[] {
@@ -60,7 +60,6 @@ export class SnapPicker implements GPUPickingAdapter<SnapResult> {
 
     refresh() {
         this.all = this.snaps.all;
-        console.log(this.all);
 
         const points: [number, THREE.Vector3][] = [];
         const axes: { position: Float32Array; userData: { index: number; }; }[] = [];
@@ -145,8 +144,8 @@ export class GeometryPicker implements GPUPickingAdapter<intersectable.Intersect
         this.update();
     }
 
-    setFromCamera(screenPoint: THREE.Vector2, camera: THREE.Camera) {
-        this.picker.setFromCamera(screenPoint, camera);
+    setFromCamera(normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera) {
+        this.picker.setFromCamera(normalizedScreenPoint, camera);
     }
 
     intersect() {
@@ -162,6 +161,7 @@ export class GeometryPicker implements GPUPickingAdapter<intersectable.Intersect
         const item = db.lookupItemById(parentId).view;
         if (item instanceof visual.Solid) {
             const simpleName = GeometryPicker.compact2full(id);
+            console.log(simpleName);
             const data = db.lookupTopologyItemById(simpleName);
             return [...data.views][0];
         } else if (item instanceof visual.SpaceInstance) {

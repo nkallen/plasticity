@@ -443,20 +443,36 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     debug(): void { }
 
-    // bottom left is 0,0, top right is width,height
+    // top left is 0,0, bottom right is width,height
     getMousePosition(event: PointerEvent, to = new THREE.Vector2()): THREE.Vector2 {
         const [x, y] = [event.clientX, event.clientY];
         const rect = this.domElement.getBoundingClientRect();
-        to.set((x - rect.left), (y - rect.top));
+        to.set((x - rect.left), rect.height - (y - rect.top));
         return to;
     }
 
-    // center is 0,0, bottom left -1,-1, top right 1,1
-    normalizeMousePosition(position: THREE.Vector2): THREE.Vector2 {
+    // input: top left is 0,0, bottom right is width,height
+    // output: bottom left -1,-1, top right 1,1
+    normalizeScreenPosition(position: THREE.Vector2): THREE.Vector2 {
         const rect = this.domElement.getBoundingClientRect();
         position.set(position.x / rect.width, position.y / rect.height);
-        position.set((position.x * 2) - 1, - (position.y * 2) + 1);
+        position.set((position.x * 2) - 1, (position.y * 2) - 1);
         return position;
+    }
+
+    // input: bottom left -1,-1, top right 1,1
+    // output: top left is 0,0, botton right is width,height
+    denormalizeScreenPosition(position: THREE.Vector2): THREE.Vector2 {
+        position.set((position.x + 1) /2, (position.y + 1) / 1);
+        const rect = this.domElement.getBoundingClientRect();
+        position.set(position.x * rect.width, position.y * rect.height);
+        return position;
+    }
+
+    getNormalizedMousePosition(event: PointerEvent, to = new THREE.Vector2()): THREE.Vector2 {
+        const result = this.getMousePosition(event, to);
+        this.normalizeScreenPosition(result);
+        return result;
     }
 }
 

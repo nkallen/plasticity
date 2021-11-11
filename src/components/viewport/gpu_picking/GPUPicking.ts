@@ -42,14 +42,14 @@ export class GPUPicker {
     }
 
     intersect(): { id: number, position: THREE.Vector3 } | undefined {
-        const { screenPoint, ndc, viewport: { camera } } = this;
-        let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * camera.offsetWidth);
+        const { denormalizedScreenPoint, viewport: { camera }, viewport } = this;
+        let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth);
 
         const buffer = new Uint32Array(this.pickingBuffer.buffer);
         const id = buffer[i];
         if (id === 0 || id === undefined) return undefined;
 
-        const position = this.depth.read(screenPoint, ndc);
+        const position = this.depth.read(denormalizedScreenPoint, this.normalizedScreenPoint);
 
         console.log(id, position);
         
@@ -92,11 +92,11 @@ export class GPUPicker {
         renderer.render(scene, camera);
     }
 
-    private readonly screenPoint = new THREE.Vector2();
-    private readonly ndc = new THREE.Vector2();
-    setFromCamera(screenPoint: THREE.Vector2, camera: THREE.Camera) {
-        this.screenPoint.copy(screenPoint);
-        this.viewport.normalizeMousePosition(this.ndc.copy(screenPoint));
+    private readonly normalizedScreenPoint = new THREE.Vector2();
+    private readonly denormalizedScreenPoint = new THREE.Vector2();
+    setFromCamera(normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera) {
+        this.normalizedScreenPoint.copy(normalizedScreenPoint);
+        this.viewport.denormalizeScreenPosition(this.denormalizedScreenPoint.copy(normalizedScreenPoint));
     }
 }
 
@@ -166,9 +166,9 @@ class GPUDepthReader {
 
     private readonly positionh = new THREE.Vector4();
     private readonly unpackDepth = new THREE.Vector4()
-    read(screenPoint: THREE.Vector2, ndc: THREE.Vector2): THREE.Vector3 {
+    read(denormalizedScreenPoint: THREE.Vector2, normalizedScreenPoint: THREE.Vector2): THREE.Vector3 {
         const { viewport: { camera }, positionh, unpackDepth } = this;
-        let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * camera.offsetWidth);
+        let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth);
 
         // depth from shader a float [0,1] packed over 4 bytes, each [0,255].
         unpackDepth.fromArray(this.depthBuffer.slice(i * 4, i * 4 + 4));
@@ -177,7 +177,7 @@ class GPUDepthReader {
 
         // unproject in homogeneous coordinates, cf https://stackoverflow.com/questions/11277501/how-to-recover-view-space-position-given-view-space-depth-value-and-ndc-xy/46118945#46118945
         camera.updateProjectionMatrix(); // ensure up-to-date
-        positionh.set(ndc.x, ndc.y, ndc_z, 1);
+        positionh.set(normalizedScreenPoint.x, normalizedScreenPoint.y, ndc_z, 1);
         positionh.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.matrixWorld);
 
         // for perspective, unhomogenize
