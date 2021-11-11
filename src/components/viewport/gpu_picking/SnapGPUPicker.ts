@@ -37,8 +37,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
     intersect(): SnapResult[] {
         const intersection = this.picker.intersect();
-        if (intersection === undefined)
-            return [];
+        if (intersection === undefined) return [];
         const { id, position } = intersection;
 
         if (GeometryGPUPickingAdapter.encoder.parentIdMask & id) {
@@ -67,8 +66,6 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
     // FIXME only run when the scene graph changes; thus need a persistent cache object
     refresh() {
         this.all = this.snaps.all;
-
-        console.log(this.all);
 
         const points: [number, THREE.Vector3][] = [];
         const axes: { position: Float32Array; userData: { index: number; }; }[] = [];

@@ -43,7 +43,7 @@ export class GPUPicker {
     }
 
     intersect(): { id: number, position: THREE.Vector3 } | undefined {
-        const { denormalizedScreenPoint, viewport: { camera }, viewport } = this;
+        const { denormalizedScreenPoint, viewport: { camera } } = this;
         let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth);
 
         const buffer = new Uint32Array(this.pickingBuffer.buffer);

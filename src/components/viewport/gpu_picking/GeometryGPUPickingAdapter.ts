@@ -99,6 +99,7 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
     }
 
     update() {
+        console.log("geometry update")
         this.picker.update(this.db.visibleObjects.map(o => o.picker));
     }
 

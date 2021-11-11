@@ -442,7 +442,7 @@ export class PointPicker {
                     if (isNavigating) return;
 
                     lastMoveEvent = e;
-                    picker.setFromCamera(viewport.getMousePosition(e), camera);
+                    picker.setFromCamera(viewport.getNormalizedMousePosition(e), camera);
 
                     const { presentation, snappers } = Presentation.make(picker, viewport, model, editor.snaps, editor.snapPresenter);
 
