@@ -119,10 +119,10 @@ export class GeometryPicker implements GPUPickingAdapter<intersectable.Intersect
     }
 
     static get(id: number, db: DatabaseLike): intersectable.Intersectable {
-        const { parentId } = GPUPicker.extract(id);
+        const { parentId } = GeometryPicker.extract(id);
         const item = db.lookupItemById(parentId).view;
         if (item instanceof visual.Solid) {
-            const simpleName = GPUPicker.compact2full(id);
+            const simpleName = GeometryPicker.compact2full(id);
             const data = db.lookupTopologyItemById(simpleName);
             return [...data.views][0];
         } else if (item instanceof visual.SpaceInstance) {
@@ -136,5 +136,32 @@ export class GeometryPicker implements GPUPickingAdapter<intersectable.Intersect
 
     update() {
         this.picker.update(this.db.visibleObjects.map(o => o.picker));
+    }
+
+    static compactTopologyId(type: 'edge' | 'face', parentId: number, index: number): number {
+        if (parentId > (1 << 16)) throw new Error("precondition failure");
+        if (index > (1 << 15)) throw new Error("precondition failure");
+
+        parentId <<= 16;
+        const c = (type === 'edge' ? 0 : 1) << 7;
+        const d = c | ((index >> 8) & 0xef);
+        const e = ((index >> 0) & 255);
+
+        const id = parentId | (d << 8) | e;
+        return id;
+    }
+
+    static extract(compact: number) {
+        const parentId = compact >> 16;
+        compact &= 0xffff;
+        const type = compact >> 15;
+        compact &= 0x7fff;
+        const index = compact;
+        return { parentId, type, index };
+    }
+
+    static compact2full(compact: number): string {
+        const { parentId, type, index } = this.extract(compact);
+        return type === 0 ? visual.CurveEdge.simpleName(parentId, index) : visual.Face.simpleName(parentId, index);
     }
 }
