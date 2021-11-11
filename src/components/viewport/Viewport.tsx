@@ -443,13 +443,15 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     debug(): void { }
 
+    // bottom left is 0,0, top right is width,height
     getMousePosition(event: PointerEvent, to = new THREE.Vector2()): THREE.Vector2 {
         const [x, y] = [event.clientX, event.clientY];
         const rect = this.domElement.getBoundingClientRect();
-        to.set((x - rect.left), rect.height - (y - rect.top));
+        to.set((x - rect.left), (y - rect.top));
         return to;
     }
 
+    // center is 0,0, bottom left -1,-1, top right 1,1
     normalizeMousePosition(position: THREE.Vector2): THREE.Vector2 {
         const rect = this.domElement.getBoundingClientRect();
         position.set(position.x / rect.width, position.y / rect.height);

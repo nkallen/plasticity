@@ -11,12 +11,12 @@ import { inst2curve } from "../../../util/Conversion";
 import { PointsVertexColorMaterial, LineVertexColorMaterial, vertexColorLineMaterial } from "./GPUPickingMaterial";
 import { GPUPicker } from "./GPUPicking";
 
-interface Picker<T> {
+interface GPUPickingAdapter<T> {
     setFromCamera(screenPoint: THREE.Vector2, camera: THREE.Camera): void;
     intersect(): T[];
 }
 
-export class SnapPicker implements Picker<SnapResult> {
+export class SnapPicker implements GPUPickingAdapter<SnapResult> {
     private all: Snap[] = [];
     private pickers: THREE.Object3D[] = [];
 
@@ -89,7 +89,7 @@ export class SnapPicker implements Picker<SnapResult> {
     }
 }
 
-export class GeometryPicker implements Picker<intersectable.Intersectable> {
+export class GeometryPicker implements GPUPickingAdapter<intersectable.Intersectable> {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose(); }
 

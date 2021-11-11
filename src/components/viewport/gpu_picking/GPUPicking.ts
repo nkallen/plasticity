@@ -2,6 +2,21 @@ import * as THREE from "three";
 import * as visual from "../../../editor/VisualModel";
 import { Viewport } from "../Viewport";
 
+/**
+ * The GPUPicker identifies objects in 3d space pointed at by the mouse. It extracts a 32-bit
+ * object id from the rendered rgba color of a picking scene. Depth is extracted from the
+ * z-buffer and converted to a world space position.
+ * 
+ * This picker is unusual in that rather than render a 1x1 pixel scene on every mouse move,
+ * we render the entire width,height scene only when the camera stops moving; then on every mouse
+ * move we simple read 1 pixel from the width,height buffer. Since the scene is geometry-heavy,
+ * this puts less pressure on the vertex shader and more on fragment/memory bandwidth, which
+ * is (currently) a good tradeoff.
+ * 
+ * NOTE: Rather than using this class directly, write or use a GPUPickingAdapter, which returns
+ * real objects rather than object ids and is closer to the THREE.js Raycaster interface.
+ */
+
 const depthPlane = new THREE.PlaneGeometry(2, 2);
 
 export class GPUPicker {
@@ -35,14 +50,8 @@ export class GPUPicker {
         void main() {
             float depth;
             float fragCoordZ = texture2D( tDepth, vUv ).x;
-            // FIXME replace conditional with #define
-            if (isOrthographic) {
-                depth = fragCoordZ;
-            } else {
-                float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar );
-                depth = viewZToOrthographicDepth(viewZ, cameraNear, cameraFar);
-            }
-            gl_FragColor = packDepthToRGBA(depth);
+            depth = fragCoordZ;
+            gl_FragColor = packDepthToRGBA(depth); // for higher precision, spread float onto 4 bytes
         }
         `,
         uniforms: {
@@ -124,24 +133,30 @@ export class GPUPicker {
         this.viewport.normalizeMousePosition(this.ndc.copy(screenPoint));
     }
 
+    private readonly positionh = new THREE.Vector4();
+    private readonly unpackDepth = new THREE.Vector4()
     intersect(): { id: number, position: THREE.Vector3 } | undefined {
-        const { viewport, screenPoint } = this;
-        let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * viewport.camera.offsetWidth);
+        const { screenPoint, ndc, viewport: { camera }, positionh, unpackDepth } = this;
+        let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * camera.offsetWidth);
 
         const buffer = new Uint32Array(this.pickingBuffer.buffer);
         const id = buffer[i];
         if (id === 0 || id === undefined) return undefined;
 
-        const vec4 = new THREE.Vector4()
-        vec4.fromArray(this.depthBuffer.slice(i * 4, i * 4 + 4));
-        vec4.divideScalar(255);
-        const z = vec4.dot(UnpackFactors) * (viewport.camera.far - viewport.camera.near);
-        console.log(z);
-        console.log(this.ndc);
-        const position = new THREE.Vector3(this.ndc.x, this.ndc.y, z);
-        position.unproject(this.viewport.camera);
-        console.log(position)
+        // depth from shader a float [0,1] packed over 4 bytes, each [0,255].
+        unpackDepth.fromArray(this.depthBuffer.slice(i * 4, i * 4 + 4));
+        unpackDepth.divideScalar(255);
+        const ndc_z = unpackDepth.dot(UnpackFactors) * 2 - 1;
 
+        // unproject in homogeneous coordinates, cf https://stackoverflow.com/questions/11277501/how-to-recover-view-space-position-given-view-space-depth-value-and-ndc-xy/46118945#46118945
+        camera.updateProjectionMatrix(); // ensure up-to-date
+        positionh.set(ndc.x, ndc.y, ndc_z, 1);
+        positionh.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.matrixWorld);
+
+        // for perspective, unhomogenize
+        const position = new THREE.Vector3(positionh.x, positionh.height, positionh.z).divideScalar(positionh.w);
+        console.log(position);
+        
         return { id, position };
     }
 
@@ -173,6 +188,8 @@ export class GPUPicker {
         return type === 0 ? visual.CurveEdge.simpleName(parentId, index) : visual.Face.simpleName(parentId, index);
     }
 }
+
+// FIXME implement async:
 
 // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices
 
@@ -224,5 +241,5 @@ async function readPixelsAsync(gl: any, x: any, y: any, w: any, h: any, format: 
 
 const UnpackDownscale = 255. / 256.; // 0..1 -> fraction (excluding 1)
 const PackFactors = new THREE.Vector3(256. * 256. * 256., 256. * 256., 256.);
-const UnpackFactors = new THREE.Vector4(1/PackFactors.x, 1/PackFactors.y, 1/PackFactors.z, 1)
+const UnpackFactors = new THREE.Vector4(1 / PackFactors.x, 1 / PackFactors.y, 1 / PackFactors.z, 1)
 UnpackFactors.multiplyScalar(UnpackDownscale);

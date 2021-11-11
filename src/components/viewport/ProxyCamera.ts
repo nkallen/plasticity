@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { CameraMemento, MementoOriginator } from "../../editor/History";
 
 export const near = 0.01;
-export const far = 10_000;
+export const far = 10;
 export const frustumSize = 6;
 export const fov = 50;
 export const aspect = 1;
@@ -10,8 +10,8 @@ export const aspect = 1;
 type Mode = 'orthographic' | 'perspective';
 
 export class ProxyCamera extends THREE.Camera implements MementoOriginator<CameraMemento> {
-    private readonly orthographic = makeOrthographicCamera();
-    private readonly perspective = makePerspectiveCamera();
+     readonly orthographic = makeOrthographicCamera();
+     readonly perspective = makePerspectiveCamera();
 
     static isPerspective(camera: THREE.Camera): camera is THREE.PerspectiveCamera {
         if (camera instanceof THREE.PerspectiveCamera) return true;
