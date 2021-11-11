@@ -188,7 +188,7 @@ class GPUDepthReader {
         positionh.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(camera.matrixWorld);
 
         // for perspective, unhomogenize
-        const position = new THREE.Vector3(positionh.x, positionh.height, positionh.z).divideScalar(positionh.w);
+        const position = new THREE.Vector3(positionh.x, positionh.y, positionh.z).divideScalar(positionh.w);
         
         return position;
     }

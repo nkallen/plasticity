@@ -100,7 +100,6 @@ export class IdMaterial extends THREE.ShaderMaterial {
     constructor(id: number) {
         // be careful about endian-ness: we read out Uint32Array in GPUPicker, therefore endianness matters.
         const array = new Float32Array(new Uint8Array(new Uint32Array([id]).buffer));
-        console.log(array, "from", array, id);
         super({
             vertexShader: THREE.ShaderChunk.meshbasic_vert,
             fragmentShader: `

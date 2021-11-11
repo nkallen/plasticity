@@ -56,14 +56,12 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         const intersection = this.viewport.picker.intersect();
         if (intersection === undefined) return [];
         const { id, position } = intersection;
-        console.log(id, SnapGPUPickingAdapter.encoder.decode(id));
 
         if (GeometryGPUPickingAdapter.encoder.parentIdMask & id) {
             const intersectable = GeometryGPUPickingAdapter.get(id, this.db);
             return [{ snap: this.intersectable2snap(intersectable), position, orientation: new THREE.Quaternion }];
         } else {
             const [type, index] = SnapGPUPickingAdapter.encoder.decode(id);
-            console.log(type, index);
             if (type == 'manager')
                 return [{ snap: this.managerSnaps[index - 1], position, orientation: new THREE.Quaternion }];
             else
@@ -123,7 +121,6 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
             } else if (snap instanceof PlaneSnap) {
                 const geo = PlaneSnap.geometry;
                 // FIXME dispose of material
-                console.log("set material id to", id)
                 const mesh = new THREE.Mesh(geo, new IdMaterial(id))
                 planes.push(mesh);
             } else {
@@ -131,6 +128,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
                 throw new Error("Invalid snap");
             }
         }
+        // FIXME dispose of geometry
         const pointCloud = PointsVertexColorMaterial.make(points);
         const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
         // @ts-expect-error
