@@ -98,24 +98,22 @@ export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
 
 export class IdMaterial extends THREE.ShaderMaterial {
     constructor(id: number) {
+        // be careful about endian-ness: we read out Uint32Array in GPUPicker, therefore endianness matters.
+        const array = new Float32Array(new Uint8Array(new Uint32Array([id]).buffer));
+        console.log(array, "from", array, id);
         super({
             vertexShader: THREE.ShaderChunk.meshbasic_vert,
             fragmentShader: `
             uniform vec4 id;
             void main() {
-                gl_FragColor = id;
+                gl_FragColor = id / 255.;
             }
             `,
             side: THREE.FrontSide,
             blending: THREE.NoBlending,
             uniforms: {
                 id: {
-                    value: [
-                        (id >> 24 & 255) / 255,
-                        (id >> 16 & 255) / 255,
-                        (id >> 8 & 255) / 255,
-                        (id & 255) / 255,
-                    ]
+                    value: array
                 }
             }
         });

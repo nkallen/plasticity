@@ -561,12 +561,13 @@ export class LineSnap extends Snap {
         return this.axis.isValid(pt);
     }
 }
-const planeGeo = new THREE.PlaneGeometry(10000, 10000, 2, 2);
 const mat = new THREE.MeshBasicMaterial();
 mat.side = THREE.DoubleSide;
 
 export class PlaneSnap extends Snap {
-    readonly snapper = new THREE.Mesh(planeGeo, mat);
+    static geometry = new THREE.PlaneGeometry(10000, 10000, 2, 2);
+
+    readonly snapper = new THREE.Mesh(PlaneSnap.geometry, mat);
     protected readonly layer: Layers = Layers.Plane;
 
     static X = new PlaneSnap(new THREE.Vector3(1, 0, 0));

@@ -40,6 +40,8 @@ export class GPUPicker {
 
     constructor(private readonly viewport: Viewport) {
         this.setNeedsRender = this.setNeedsRender.bind(this);
+        // this.pickingTarget.texture.internalFormat = 'RGBA';
+        console.log(this.pickingTarget);
     }
 
     intersect(): { id: number, position: THREE.Vector3 } | undefined {

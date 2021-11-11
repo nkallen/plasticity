@@ -4,26 +4,25 @@ import { EditorSignals } from "../../../editor/EditorSignals";
 import { DatabaseLike } from "../../../editor/GeometryDatabase";
 import * as intersectable from "../../../editor/Intersectable";
 import * as visual from "../../../editor/VisualModel";
-import { GPUPicker } from "./GPUPicking";
+import { GPUPicker } from "./GPUPicker";
 
 export interface GPUPickingAdapter<T> {
     setFromCamera(screenPoint: THREE.Vector2, camera: THREE.Camera): void;
     intersect(): T[];
 }
 
-class GeometryIdEncoder {
-    readonly parentIdMask: number = 0xffff000;
+export class GeometryIdEncoder {
+    readonly parentIdMask: number = 0xffff0000;
 
     encode(type: 'edge' | 'face', parentId: number, index: number): number {
         if (parentId > (1 << 16)) throw new Error("precondition failure");
         if (index > (1 << 15)) throw new Error("precondition failure");
 
         parentId <<= 16;
-        const c = (type === 'edge' ? 0 : 1) << 7;
-        const d = c | ((index >> 8) & 0xef);
-        const e = ((index >> 0) & 255);
+        index &=  0x7fff;
+        const t = (type === 'edge' ? 0 : 0x8000);
 
-        const id = parentId | (d << 8) | e;
+        const id = parentId | t | index;
         return id;
     }
 
@@ -39,8 +38,8 @@ class GeometryIdEncoder {
 
 // Encoding a 32 bit id into RGBA might be transparent; turn on alpha some alpha bits at the
 // expense of losing some id space.
-class DebugGeometryIdEncoder extends GeometryIdEncoder {
-    readonly parentIdMask = 0x0fff000;
+export class DebugGeometryIdEncoder extends GeometryIdEncoder {
+    readonly parentIdMask = 0x0fff0000;
 
     encode(type: 'edge' | 'face', parentId: number, index: number): number {
         return super.encode(type, parentId, index) | 0xf0000000;
@@ -99,7 +98,6 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
     }
 
     update() {
-        console.log("geometry update")
         this.picker.update(this.db.visibleObjects.map(o => o.picker));
     }
 

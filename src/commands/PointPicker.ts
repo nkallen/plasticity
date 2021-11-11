@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
-import { SnapGPUPickingAdapter } from "../components/viewport/gpu_picking/SnapGPUPicker";
+import { SnapGPUPickingAdapter } from "../components/viewport/gpu_picking/SnapGPUPickingAdapter";
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
@@ -429,14 +429,14 @@ export class PointPicker {
                     () => isNavigating = false));
 
                 const { camera, renderer: { domElement } } = viewport;
-                const picker = new SnapGPUPickingAdapter(viewport.picker, editor.snaps, editor.db);
+                const picker = new SnapGPUPickingAdapter(viewport, editor.snaps, this.model, editor.db);
 
                 viewport.additionalHelpers.add(helpers);
                 disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));
 
                 let lastMoveEvent: PointerEvent | undefined = undefined;
                 let lastSnap: Snap | undefined = undefined;
-                
+
                 const onPointerMove = (e: PointerEvent | undefined) => {
                     if (e === undefined) return;
                     if (isNavigating) return;
