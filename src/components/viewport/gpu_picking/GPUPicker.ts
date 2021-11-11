@@ -97,10 +97,8 @@ export class GPUPicker {
     }
 
     show() {
-        const { viewport: { renderer, camera }, objects, scene } = this;
-        renderer.setRenderTarget(null);
-        for (const object of objects) scene.add(object);
-        renderer.render(scene, camera);
+        const debug = new DebugRenderTarget(this.pickingTarget, this.viewport);
+        debug.render();
     }
 
     private readonly normalizedScreenPoint = new THREE.Vector2();
@@ -147,7 +145,6 @@ class GPUDepthReader {
         uniforms: {
             cameraNear: { value: null },
             cameraFar: { value: null },
-            isOrthographic: { value: null },
             tDepth: { value: null }
         }
     });
@@ -169,7 +166,6 @@ class GPUDepthReader {
         const { viewport: { renderer, camera }, depthMaterial, depthTarget, depthCamera, depthScene, pickingTarget, depthBuffer } = this;
         depthMaterial.uniforms.cameraNear.value = camera.near;
         depthMaterial.uniforms.cameraFar.value = camera.far;
-        depthMaterial.uniforms.isOrthographic.value = camera.isOrthographicCamera;
         depthMaterial.uniforms.tDepth.value = pickingTarget.depthTexture;
         renderer.setRenderTarget(depthTarget);
         renderer.render(depthScene, depthCamera);
@@ -213,3 +209,44 @@ const UnpackDownscale = 255. / 256.; // 0..1 -> fraction (excluding 1)
 const PackFactors = new THREE.Vector3(256. * 256. * 256., 256. * 256., 256.);
 const UnpackFactors = new THREE.Vector4(1 / PackFactors.x, 1 / PackFactors.y, 1 / PackFactors.z, 1)
 UnpackFactors.multiplyScalar(UnpackDownscale);
+
+
+class DebugRenderTarget {
+    private readonly scene = new THREE.Scene();
+    private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    material = new THREE.ShaderMaterial({
+        vertexShader: `
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+        `,
+        fragmentShader: `
+        uniform sampler2D tDiffuse;
+        varying vec2 vUv;
+        void main() {
+            gl_FragColor = texture2D( tDiffuse, vUv );
+        }
+        `,
+        uniforms: {
+            tDiffuse: { value: null }
+        }
+    });
+    private readonly depthQuad = new THREE.Mesh(depthPlane, this.material);
+
+    constructor(private readonly target: THREE.WebGLRenderTarget, private readonly viewport: Viewport) {
+        this.scene.add(this.depthQuad);
+    }
+
+    render() {
+        const { viewport: { renderer }, material, camera, scene } = this;
+        material.uniforms.tDiffuse.value = this.target.texture;
+        renderer.setRenderTarget(null);
+        renderer.render(scene, camera);
+    }
+
+    get dpr() {
+        return this.viewport.renderer.getPixelRatio();
+    }
+}
