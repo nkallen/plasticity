@@ -7,11 +7,8 @@ import { Viewport } from "../Viewport";
  * object id from the rendered rgba color of a picking scene. Depth is extracted from the
  * z-buffer and converted to a world space position.
  * 
- * This picker is unusual in that rather than render a 1x1 pixel scene on every mouse move,
- * we render the entire width,height scene only when the camera stops moving; then on every mouse
- * move we simple read 1 pixel from the width,height buffer. Since the scene is geometry-heavy,
- * this puts less pressure on the vertex shader and more on fragment/memory bandwidth, which
- * is (currently) a good tradeoff.
+ * This picker is unusual in that it reads a 1x1 pixel from the gpu on every mouse move, but
+ * we render the entire width,height scene only when the camera stops moving.
  * 
  * NOTE: Rather than using this class directly, write or use a GPUPickingAdapter, which returns
  * real objects rather than object ids and is closer to the THREE.js Raycaster interface.
@@ -40,25 +37,30 @@ export class GPUPicker {
 
     constructor(private readonly viewport: Viewport) {
         this.setNeedsRender = this.setNeedsRender.bind(this);
-        // this.pickingTarget.texture.internalFormat = 'RGBA';
-        console.log(this.pickingTarget);
     }
 
     intersect(): { id: number, position: THREE.Vector3 } | undefined {
         const { denormalizedScreenPoint, viewport: { camera } } = this;
-        let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth);
+        // const dpr = this.dpr;
+        // let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth * dpr);
 
-        const buffer = new Uint32Array(this.pickingBuffer.buffer);
-        const id = buffer[i];
+        const pixelBuffer = new Uint8Array(4);
+        this.viewport.renderer.readRenderTargetPixels(this.pickingTarget, denormalizedScreenPoint.x, denormalizedScreenPoint.y, 1, 1, pixelBuffer);
+
+        const buffer = new Uint32Array(pixelBuffer.buffer);
+        const id = buffer[0];
         if (id === 0 || id === undefined) return undefined;
+
+        console.log(id);
 
         const position = this.depth.read(denormalizedScreenPoint, this.normalizedScreenPoint);
         return { id, position };
     }
 
     setSize(offsetWidth: number, offsetHeight: number) {
-        this.pickingTarget.setSize(offsetWidth, offsetHeight);
-        this.pickingBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
+        const dpr = this.dpr;
+        this.pickingTarget.setSize(offsetWidth * dpr, offsetHeight * dpr);
+        this.pickingBuffer = new Uint8Array(offsetWidth * offsetHeight * 4 * dpr * dpr);
 
         this.depth.setSize(offsetWidth, offsetHeight);
         this.setNeedsRender();
@@ -78,7 +80,6 @@ export class GPUPicker {
 
         const { viewport: { renderer, camera }, objects, scene, pickingTarget, pickingBuffer } = this;
 
-        console.time("picking");
         this.scene.clear();
         renderer.setRenderTarget(pickingTarget);
         for (const object of objects) scene.add(object);
@@ -88,12 +89,11 @@ export class GPUPicker {
                 obj.material.resolution.set(camera.offsetWidth, camera.offsetHeight);
             }
         })
-        
+
         renderer.render(scene, camera);
         this.depth.render();
 
-        renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
-        console.timeEnd("picking");
+        // renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth * this.dpr, camera.offsetHeight * this.dpr, pickingBuffer);
     }
 
     show() {
@@ -108,6 +108,11 @@ export class GPUPicker {
     setFromCamera(normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera) {
         this.normalizedScreenPoint.copy(normalizedScreenPoint);
         this.viewport.denormalizeScreenPosition(this.denormalizedScreenPoint.copy(normalizedScreenPoint));
+        this.denormalizedScreenPoint.multiplyScalar(this.dpr);
+    }
+
+    get dpr() {
+        return this.viewport.renderer.getPixelRatio();
     }
 }
 
@@ -153,9 +158,10 @@ class GPUDepthReader {
     }
 
     setSize(offsetWidth: number, offsetHeight: number) {
-        this.depthTarget.setSize(offsetWidth, offsetHeight);
-        this.depthBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
-        const depthTexture = new THREE.DepthTexture(offsetWidth, offsetHeight);
+        const dpr = this.dpr;
+        this.depthTarget.setSize(offsetWidth * dpr, offsetHeight * dpr);
+        this.depthBuffer = new Uint8Array(offsetWidth * offsetHeight * 4 * dpr * dpr);
+        const depthTexture = new THREE.DepthTexture(offsetWidth * dpr, offsetHeight * dpr);
         this.pickingTarget.depthTexture = depthTexture;
     }
 
@@ -168,17 +174,22 @@ class GPUDepthReader {
         renderer.setRenderTarget(depthTarget);
         renderer.render(depthScene, depthCamera);
 
-        renderer.readRenderTargetPixels(depthTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, depthBuffer);
+        // const dpr = this.dpr;
+        // renderer.readRenderTargetPixels(depthTarget, 0, 0, camera.offsetWidth * dpr, camera.offsetHeight * dpr, depthBuffer);
     }
 
     private readonly positionh = new THREE.Vector4();
     private readonly unpackDepth = new THREE.Vector4()
     read(denormalizedScreenPoint: THREE.Vector2, normalizedScreenPoint: THREE.Vector2): THREE.Vector3 {
         const { viewport: { camera }, positionh, unpackDepth } = this;
-        let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth);
+        // const dpr = this.dpr;
+        // let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth * dpr);
+
+        const pixelBuffer = new Uint8Array(4);
+        this.viewport.renderer.readRenderTargetPixels(this.pickingTarget, denormalizedScreenPoint.x, denormalizedScreenPoint.y, 1, 1, pixelBuffer);
 
         // depth from shader a float [0,1] packed over 4 bytes, each [0,255].
-        unpackDepth.fromArray(this.depthBuffer.slice(i * 4, i * 4 + 4));
+        unpackDepth.fromArray(pixelBuffer);
         unpackDepth.divideScalar(255);
         const ndc_z = unpackDepth.dot(UnpackFactors) * 2 - 1;
 
@@ -189,8 +200,12 @@ class GPUDepthReader {
 
         // for perspective, unhomogenize
         const position = new THREE.Vector3(positionh.x, positionh.y, positionh.z).divideScalar(positionh.w);
-        
+
         return position;
+    }
+
+    get dpr() {
+        return this.viewport.renderer.getPixelRatio();
     }
 }
 

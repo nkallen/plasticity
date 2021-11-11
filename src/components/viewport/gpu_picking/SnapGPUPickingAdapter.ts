@@ -62,6 +62,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
             return [{ snap: this.intersectable2snap(intersectable), position, orientation: new THREE.Quaternion }];
         } else {
             const [type, index] = SnapGPUPickingAdapter.encoder.decode(id);
+            console.log(type, index);
             if (type == 'manager')
                 return [{ snap: this.managerSnaps[index - 1], position, orientation: new THREE.Quaternion }];
             else
