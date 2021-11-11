@@ -1,6 +1,6 @@
+import { app, BrowserWindow, crashReporter } from 'electron';
 if (require('electron-squirrel-startup')) app.quit();
 
-import { app, BrowserWindow, crashReporter } from 'electron';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';

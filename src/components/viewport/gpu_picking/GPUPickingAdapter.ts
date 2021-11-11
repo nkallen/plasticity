@@ -89,9 +89,48 @@ export class SnapPicker implements GPUPickingAdapter<SnapResult> {
     }
 }
 
+
+class GeometryIdEncoder {
+    encode(type: 'edge' | 'face', parentId: number, index: number): number {
+        if (parentId > (1 << 16)) throw new Error("precondition failure");
+        if (index > (1 << 15)) throw new Error("precondition failure");
+
+        parentId <<= 16;
+        const c = (type === 'edge' ? 0 : 1) << 7;
+        const d = c | ((index >> 8) & 0xef);
+        const e = ((index >> 0) & 255);
+
+        const id = parentId | (d << 8) | e;
+        return id;
+    }
+
+    decode(compact: number) {
+        const parentId = compact >> 16;
+        compact &= 0xffff;
+        const type = compact >> 15;
+        compact &= 0x7fff;
+        const index = compact;
+        return { parentId, type, index };
+    }
+}
+
+// Encoding a 32 bit id into RGBA might be transparent; turn on alpha some alpha bits at the
+// expense of losing some id space.
+class DebugGeometryIdEncoder extends GeometryIdEncoder {
+    encode(type: 'edge' | 'face', parentId: number, index: number): number {
+        return super.encode(type, parentId, index) | 0xf0000000;
+    }
+
+    decode(compact: number) {
+        return super.decode(compact & 0x0fffffff);
+    }
+}
+
 export class GeometryPicker implements GPUPickingAdapter<intersectable.Intersectable> {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose(); }
+
+    static encoder = process.env.NODE_ENV == 'development' ? new DebugGeometryIdEncoder() : new GeometryIdEncoder();
 
     constructor(private readonly picker: GPUPicker, private readonly db: DatabaseLike, signals: EditorSignals) {
         this.update = this.update.bind(this);
@@ -119,7 +158,7 @@ export class GeometryPicker implements GPUPickingAdapter<intersectable.Intersect
     }
 
     static get(id: number, db: DatabaseLike): intersectable.Intersectable {
-        const { parentId } = GeometryPicker.extract(id);
+        const { parentId } = GeometryPicker.encoder.decode(id);
         const item = db.lookupItemById(parentId).view;
         if (item instanceof visual.Solid) {
             const simpleName = GeometryPicker.compact2full(id);
@@ -138,30 +177,8 @@ export class GeometryPicker implements GPUPickingAdapter<intersectable.Intersect
         this.picker.update(this.db.visibleObjects.map(o => o.picker));
     }
 
-    static compactTopologyId(type: 'edge' | 'face', parentId: number, index: number): number {
-        if (parentId > (1 << 16)) throw new Error("precondition failure");
-        if (index > (1 << 15)) throw new Error("precondition failure");
-
-        parentId <<= 16;
-        const c = (type === 'edge' ? 0 : 1) << 7;
-        const d = c | ((index >> 8) & 0xef);
-        const e = ((index >> 0) & 255);
-
-        const id = parentId | (d << 8) | e;
-        return id;
-    }
-
-    static extract(compact: number) {
-        const parentId = compact >> 16;
-        compact &= 0xffff;
-        const type = compact >> 15;
-        compact &= 0x7fff;
-        const index = compact;
-        return { parentId, type, index };
-    }
-
     static compact2full(compact: number): string {
-        const { parentId, type, index } = this.extract(compact);
+        const { parentId, type, index } = GeometryPicker.encoder.decode(compact);
         return type === 0 ? visual.CurveEdge.simpleName(parentId, index) : visual.Face.simpleName(parentId, index);
     }
 }
