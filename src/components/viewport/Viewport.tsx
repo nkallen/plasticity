@@ -218,7 +218,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private needsRender = true;
     private setNeedsRender() { this.needsRender = true }
 
-    lastFrameNumber = -1; // FIXME move to editor
+    private lastFrameNumber = -1; // FIXME move to editor so that when there are multiple viewports, we don't redo work
     render(frameNumber: number) {
         if (!this.started) return;
         requestAnimationFrame(this.render);
@@ -228,6 +228,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         const additional = [...this.additionalHelpers];
 
         try {
+            this.picker.currentFrameNumber = frameNumber;
+
             // prepare the scene, once per frame (there may be multiple viewports rendering the same frame):
             if (frameNumber > lastFrameNumber) {
                 scene.add(...db.visibleObjects);
@@ -463,7 +465,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     // input: bottom left -1,-1, top right 1,1
     // output: top left is 0,0, botton right is width,height
     denormalizeScreenPosition(position: THREE.Vector2): THREE.Vector2 {
-        position.set((position.x + 1) /2, (position.y + 1) / 1);
+        position.set((position.x + 1) / 2, (position.y + 1) / 2);
         const rect = this.domElement.getBoundingClientRect();
         position.set(position.x * rect.width, position.y * rect.height);
         return position;

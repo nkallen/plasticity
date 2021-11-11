@@ -50,9 +50,6 @@ export class GPUPicker {
         if (id === 0 || id === undefined) return undefined;
 
         const position = this.depth.read(denormalizedScreenPoint, this.normalizedScreenPoint);
-
-        console.log(id, position);
-        
         return { id, position };
     }
 
@@ -65,24 +62,31 @@ export class GPUPicker {
     }
 
     update(scene: THREE.Object3D[]) {
+        console.log("updating with", scene);
         this.objects = scene;
         this.render();
     }
 
+    private lastFrameNumber = -1;
+    currentFrameNumber = -1;
     render() {
-        const { viewport: { renderer, camera }, objects, scene, pickingTarget, pickingBuffer } = this;
+        const { viewport: { renderer, camera }, objects, scene, pickingTarget, pickingBuffer, lastFrameNumber, currentFrameNumber } = this;
+
+        // Don't update more than once per frame
+        if (lastFrameNumber >= currentFrameNumber) return;
 
         console.time("picking");
+        this.scene.clear();
         renderer.setRenderTarget(pickingTarget);
         for (const object of objects) scene.add(object);
+        
         renderer.render(scene, camera);
-        console.timeEnd("picking");
-
         this.depth.render();
 
-        console.time("read");
         renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
-        console.timeEnd("read");
+        console.timeEnd("picking");
+
+        this.lastFrameNumber = currentFrameNumber;
     }
 
     show() {
@@ -150,18 +154,14 @@ class GPUDepthReader {
 
     render() {
         const { viewport: { renderer, camera }, depthMaterial, depthTarget, depthCamera, depthScene, pickingTarget, depthBuffer } = this;
-        console.time("depth");
         depthMaterial.uniforms.cameraNear.value = camera.near;
         depthMaterial.uniforms.cameraFar.value = camera.far;
         depthMaterial.uniforms.isOrthographic.value = camera.isOrthographicCamera;
         depthMaterial.uniforms.tDepth.value = pickingTarget.depthTexture;
         renderer.setRenderTarget(depthTarget);
         renderer.render(depthScene, depthCamera);
-        console.timeEnd("depth");
 
-        console.time("read");
         renderer.readRenderTargetPixels(depthTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, depthBuffer);
-        console.timeEnd("read");
     }
 
     private readonly positionh = new THREE.Vector4();

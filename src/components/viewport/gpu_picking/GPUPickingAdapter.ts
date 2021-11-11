@@ -161,7 +161,6 @@ export class GeometryPicker implements GPUPickingAdapter<intersectable.Intersect
         const item = db.lookupItemById(parentId).view;
         if (item instanceof visual.Solid) {
             const simpleName = GeometryPicker.compact2full(id);
-            console.log(simpleName);
             const data = db.lookupTopologyItemById(simpleName);
             return [...data.views][0];
         } else if (item instanceof visual.SpaceInstance) {
