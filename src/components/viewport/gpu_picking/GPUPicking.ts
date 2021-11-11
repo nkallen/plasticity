@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import * as visual from "../../../editor/VisualModel";
 import { Viewport } from "../Viewport";
 
 /**
@@ -27,6 +26,81 @@ export class GPUPicker {
     readonly pickingTarget = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: true });
     pickingBuffer: Readonly<Uint8Array> = new Uint8Array();
 
+    private depth = new GPUDepthReader(this.pickingTarget, this.viewport);
+
+    // FIXME verify working
+    layers = new THREE.Layers();
+
+    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+        Line: { threshold: 0.1 },
+        Line2: { threshold: 20 },
+        Points: { threshold: 1 }
+    };
+
+    constructor(private readonly viewport: Viewport) {
+        this.render = this.render.bind(this);
+    }
+
+    intersect(): { id: number, position: THREE.Vector3 } | undefined {
+        const { screenPoint, ndc, viewport: { camera } } = this;
+        let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * camera.offsetWidth);
+
+        const buffer = new Uint32Array(this.pickingBuffer.buffer);
+        const id = buffer[i];
+        if (id === 0 || id === undefined) return undefined;
+
+        const position = this.depth.read(screenPoint, ndc);
+
+        console.log(id, position);
+        
+        return { id, position };
+    }
+
+    setSize(offsetWidth: number, offsetHeight: number) {
+        this.pickingTarget.setSize(offsetWidth, offsetHeight);
+        this.pickingBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
+
+        this.depth.setSize(offsetWidth, offsetHeight);
+        this.render();
+    }
+
+    update(scene: THREE.Object3D[]) {
+        this.objects = scene;
+        this.render();
+    }
+
+    render() {
+        const { viewport: { renderer, camera }, objects, scene, pickingTarget, pickingBuffer } = this;
+
+        console.time("picking");
+        renderer.setRenderTarget(pickingTarget);
+        for (const object of objects) scene.add(object);
+        renderer.render(scene, camera);
+        console.timeEnd("picking");
+
+        this.depth.render();
+
+        console.time("read");
+        renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
+        console.timeEnd("read");
+    }
+
+    show() {
+        const { viewport: { renderer, camera }, objects, scene } = this;
+        renderer.setRenderTarget(null);
+        for (const object of objects) scene.add(object);
+        renderer.render(scene, camera);
+    }
+
+    private readonly screenPoint = new THREE.Vector2();
+    private readonly ndc = new THREE.Vector2();
+    setFromCamera(screenPoint: THREE.Vector2, camera: THREE.Camera) {
+        this.screenPoint.copy(screenPoint);
+        this.viewport.normalizeMousePosition(this.ndc.copy(screenPoint));
+    }
+}
+
+class GPUDepthReader {
     readonly depthTarget = new THREE.WebGLRenderTarget(1, 1);
     private readonly depthScene = new THREE.Scene();
     private readonly depthCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -63,85 +137,38 @@ export class GPUPicker {
     });
     private readonly depthQuad = new THREE.Mesh(depthPlane, this.depthMaterial);
 
-    // FIXME verify working
-    layers = new THREE.Layers();
-
-    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
-        Line: { threshold: 0.1 },
-        Line2: { threshold: 20 },
-        Points: { threshold: 1 }
-    };
-
-    constructor(private readonly viewport: Viewport) {
-        this.render = this.render.bind(this);
+    constructor(private readonly pickingTarget: THREE.WebGLRenderTarget, private readonly viewport: Viewport) {
         this.depthScene.add(this.depthQuad);
     }
 
     setSize(offsetWidth: number, offsetHeight: number) {
-        this.pickingTarget.setSize(offsetWidth, offsetHeight);
-        this.pickingBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
-
         this.depthTarget.setSize(offsetWidth, offsetHeight);
-        // this.depthTarget.stencilBuffer = false;
         this.depthBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
         const depthTexture = new THREE.DepthTexture(offsetWidth, offsetHeight);
-
         this.pickingTarget.depthTexture = depthTexture;
-        this.render();
-    }
-
-    update(scene: THREE.Object3D[]) {
-        this.objects = scene;
-        this.render();
     }
 
     render() {
-        const { viewport: { renderer, camera }, objects, scene, pickingTarget, pickingBuffer, depthMaterial, depthCamera, depthScene, depthTarget, depthBuffer } = this;
-
-        console.time("picking");
-        renderer.setRenderTarget(pickingTarget);
-        for (const object of objects) scene.add(object);
-        renderer.render(scene, camera);
-        console.timeEnd("picking");
-
+        const { viewport: { renderer, camera }, depthMaterial, depthTarget, depthCamera, depthScene, pickingTarget, depthBuffer } = this;
         console.time("depth");
-        depthMaterial.uniforms.cameraNear.value = this.viewport.camera.near;
-        depthMaterial.uniforms.cameraFar.value = this.viewport.camera.far;
-        depthMaterial.uniforms.isOrthographic.value = this.viewport.camera.isOrthographicCamera;
+        depthMaterial.uniforms.cameraNear.value = camera.near;
+        depthMaterial.uniforms.cameraFar.value = camera.far;
+        depthMaterial.uniforms.isOrthographic.value = camera.isOrthographicCamera;
         depthMaterial.uniforms.tDepth.value = pickingTarget.depthTexture;
         renderer.setRenderTarget(depthTarget);
         renderer.render(depthScene, depthCamera);
         console.timeEnd("depth");
 
         console.time("read");
-        renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
         renderer.readRenderTargetPixels(depthTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, depthBuffer);
         console.timeEnd("read");
     }
 
-    show() {
-        const { viewport: { renderer, camera }, objects, scene } = this;
-        renderer.setRenderTarget(null);
-        for (const object of objects) scene.add(object);
-        renderer.render(scene, camera);
-    }
-
-    private readonly screenPoint = new THREE.Vector2();
-    private readonly ndc = new THREE.Vector2();
-    setFromCamera(screenPoint: THREE.Vector2, camera: THREE.Camera) {
-        this.screenPoint.copy(screenPoint);
-        this.viewport.normalizeMousePosition(this.ndc.copy(screenPoint));
-    }
-
     private readonly positionh = new THREE.Vector4();
     private readonly unpackDepth = new THREE.Vector4()
-    intersect(): { id: number, position: THREE.Vector3 } | undefined {
-        const { screenPoint, ndc, viewport: { camera }, positionh, unpackDepth } = this;
+    read(screenPoint: THREE.Vector2, ndc: THREE.Vector2): THREE.Vector3 {
+        const { viewport: { camera }, positionh, unpackDepth } = this;
         let i = (screenPoint.x | 0) + ((screenPoint.y | 0) * camera.offsetWidth);
-
-        const buffer = new Uint32Array(this.pickingBuffer.buffer);
-        const id = buffer[i];
-        if (id === 0 || id === undefined) return undefined;
 
         // depth from shader a float [0,1] packed over 4 bytes, each [0,255].
         unpackDepth.fromArray(this.depthBuffer.slice(i * 4, i * 4 + 4));
@@ -155,9 +182,8 @@ export class GPUPicker {
 
         // for perspective, unhomogenize
         const position = new THREE.Vector3(positionh.x, positionh.height, positionh.z).divideScalar(positionh.w);
-        console.log(position);
         
-        return { id, position };
+        return position;
     }
 }
 
