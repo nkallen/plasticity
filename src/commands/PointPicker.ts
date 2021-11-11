@@ -322,7 +322,7 @@ export class Presentation {
         let nearby: SnapResult[], snappers: SnapResult[];
         const choice = model.choice;
         if (choice !== undefined) {
-            // FIXME
+            // FIXME:
             // const position = choice.intersect(raycaster);
             // if (position !== undefined) snappers = [{ snap: choice, orientation: choice.orientation, position }];
             // else snappers = [];

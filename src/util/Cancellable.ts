@@ -196,7 +196,7 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
         }
     }
 
-    finalize(state: State) { // FIXME who calls this?
+    finalize(state: State) { // FIXME: who calls this?
         if (this.state != 'None') return;
         this.state = state;
     }

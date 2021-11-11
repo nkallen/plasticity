@@ -218,7 +218,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private needsRender = true;
     private setNeedsRender() { this.needsRender = true }
 
-    private lastFrameNumber = -1; // FIXME move to editor so that when there are multiple viewports, we don't redo work
+    private lastFrameNumber = -1; // FIXME: move to editor so that when there are multiple viewports, we don't redo work
     render(frameNumber: number) {
         if (!this.started) return;
         requestAnimationFrame(this.render);

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { LineMaterialParameters } from "three/examples/jsm/lines/LineMaterial";
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import * as visual from "../../../editor/VisualModel";
@@ -46,7 +47,7 @@ export class VertexColorMaterial extends THREE.ShaderMaterial {
 export const vertexColorMaterial = new VertexColorMaterial();
 
 export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
-    static make(points: [number, THREE.Vector3][]) {
+    static make(points: [number, THREE.Vector3][], options: THREE.PointsMaterialParameters = {}) {
         const positions = new Float32Array(points.length * 3);
         const colors = new Uint32Array(points.length);
         for (const [i, [id, point]] of points.entries()) {
@@ -60,11 +61,11 @@ export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.setAttribute('color', new THREE.Uint8BufferAttribute(colors.buffer, 4, true));
-        const material = new PointsVertexColorMaterial(20);
+        const material = new PointsVertexColorMaterial(options);
         return new THREE.Points(geometry, material);
     }
 
-    constructor(size: number) {
+    constructor(parameters: THREE.PointsMaterialParameters = { size: 20 }) {
         super({
             vertexShader: `
             uniform float size;
@@ -88,9 +89,7 @@ export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
             }
             `,
             clipping: true,
-            uniforms: {
-                size: { value: size }
-            },
+            uniforms: { size: { value: parameters.size } },
             blending: THREE.NoBlending,
         });
     }
@@ -168,8 +167,9 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
         return geometry;
     }
 
-    constructor() {
+    constructor(parameters: LineMaterialParameters = { linewidth: 10 }) {
         super({
+            ...parameters,
             vertexShader: THREE.ShaderLib['line'].vertexShader
                 .replace('attribute vec3 instanceColorStart;', 'attribute vec4 instanceColorStart;')
                 .replace('attribute vec3 instanceColorEnd;', 'attribute vec4 instanceColorEnd;')
@@ -184,7 +184,7 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
             blending: THREE.NoBlending,
             uniforms: {
                 ...THREE.UniformsUtils.clone(THREE.ShaderLib['line'].uniforms),
-                diffuse: { value: [1, 1, 1] }, opacity: { value: 1 }, linewidth: { value: 10 }
+                diffuse: { value: [1, 1, 1] }, opacity: { value: 1 }, linewidth: { value: parameters.linewidth }
             },
             defines: { 'USE_COLOR_ALPHA': '' },
             clipping: true,
@@ -196,4 +196,5 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
     }
 }
 
+// { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }
 export const vertexColorLineMaterial = new LineVertexColorMaterial();

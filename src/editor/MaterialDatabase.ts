@@ -106,7 +106,7 @@ export class BasicMaterialDatabase implements MaterialDatabase {
             material = this.materials.get(o.style);
         }
         material = material ?? mesh;
-        // material = material.clone(); // FIXME need to dispose of this material
+        // material = material.clone(); // FIXME: need to dispose of this material
         material.side = doubleSided ? THREE.FrontSide : THREE.DoubleSide;
         return material;
     }

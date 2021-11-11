@@ -11,7 +11,7 @@
 //     MbSpaceItem *item = instance->SetSpaceItem();
 //     switch (item->Family())
 //     {
-//     case st_Curve3D: // FIXME add other cases
+//     case st_Curve3D: // FIXME: add other cases
 //         MbCurve3D &curve = *((MbCurve3D *)item);
 //         MbCurve3D &idup = (MbCurve3D &)curve.Duplicate();
 //         return SpaceInstance::NewInstance(env,

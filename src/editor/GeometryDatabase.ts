@@ -44,7 +44,7 @@ export interface DatabaseLike {
     optimization<T>(from: visual.Item, fast: () => T, ifDisallowed: () => T): T;
 
     clearTemporaryObjects(): void;
-    readonly temporaryObjects: THREE.Scene; // FIXME should this really be public?
+    readonly temporaryObjects: THREE.Scene; // FIXME: should this really be public?
     readonly phantomObjects: THREE.Scene;
 
     lookup(object: visual.Solid): c3d.Solid;

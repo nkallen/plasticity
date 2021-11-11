@@ -121,16 +121,16 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
                 axes.push({ position, userData: { index: id } });
             } else if (snap instanceof PlaneSnap) {
                 const geo = PlaneSnap.geometry;
-                // FIXME dispose of material
-                const mesh = new THREE.Mesh(geo, new IdMaterial(id))
+                // FIXME: dispose of material
+                const mesh = new THREE.Mesh(geo, new IdMaterial(id));
                 planes.push(mesh);
             } else {
                 console.error(snap.constructor.name);
                 throw new Error("Invalid snap");
             }
         }
-        // FIXME dispose of geometry
-        const pointCloud = PointsVertexColorMaterial.make(points);
+        // FIXME: dispose of geometry
+        const pointCloud = PointsVertexColorMaterial.make(points, { size: 20, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
         const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
         // @ts-expect-error
         const line = new LineSegments2(lineGeometry, vertexColorLineMaterial);
@@ -139,20 +139,5 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
     }
 }
 
-// class PointPickerQuery {
-//     constructor(private readonly pointPicker: PointPicker, private readonly snaps: SnapManager, private readonly viewport: Viewport) {
-
-//     }
-//     // nearby = snaps.nearby(raycaster, model.snaps, restrictions);
-//     // snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions, viewport.isXRay);
-
-//     snap() {
-//         const { viewport: { constructionPlane, isOrtho }, pointPicker, snaps } = this;
-
-//         const additional = pointPicker.snapsFor(constructionPlane, isOrtho);
-//         const restrictionSnaps = pointPicker.restrictionSnapsFor(constructionPlane, isOrtho);
-//         // const restrictions = pointPicker.restrictionsFor(constructionPlane, isOrtho);
-
-//         return [...additional, ...restrictionSnaps];
-//     }
-// }
+    // nearby = snaps.nearby(raycaster, model.snaps, restrictions);
+    // snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions, viewport.isXRay);
