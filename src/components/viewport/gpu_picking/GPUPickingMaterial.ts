@@ -193,6 +193,10 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
             clipping: true,
         });
     }
+
+    get resolution(): THREE.Vector3 {
+        return this.uniforms.resolution.value;
+    }
 }
 
 export const vertexColorLineMaterial = new LineVertexColorMaterial();

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { Viewport } from "../Viewport";
 
 /**
@@ -38,7 +39,7 @@ export class GPUPicker {
     };
 
     constructor(private readonly viewport: Viewport) {
-        this.render = this.render.bind(this);
+        this.setNeedsRender = this.setNeedsRender.bind(this);
     }
 
     intersect(): { id: number, position: THREE.Vector3 } | undefined {
@@ -58,35 +59,39 @@ export class GPUPicker {
         this.pickingBuffer = new Uint8Array(offsetWidth * offsetHeight * 4);
 
         this.depth.setSize(offsetWidth, offsetHeight);
-        this.render();
+        this.setNeedsRender();
     }
 
     update(scene: THREE.Object3D[]) {
-        console.log("updating with", scene);
         this.objects = scene;
-        this.render();
+        this.setNeedsRender();
     }
 
-    private lastFrameNumber = -1;
-    currentFrameNumber = -1;
-    render() {
-        const { viewport: { renderer, camera }, objects, scene, pickingTarget, pickingBuffer, lastFrameNumber, currentFrameNumber } = this;
+    private needsRender = true;
+    setNeedsRender() { this.needsRender = true }
 
-        // Don't update more than once per frame
-        if (lastFrameNumber >= currentFrameNumber) return;
+    render() {
+        if (!this.needsRender) return;
+        this.needsRender = false;
+
+        const { viewport: { renderer, camera }, objects, scene, pickingTarget, pickingBuffer } = this;
 
         console.time("picking");
         this.scene.clear();
         renderer.setRenderTarget(pickingTarget);
         for (const object of objects) scene.add(object);
+
+        scene.traverse(obj => {
+            if (obj instanceof LineSegments2) {
+                obj.material.resolution.set(camera.offsetWidth, camera.offsetHeight);
+            }
+        })
         
         renderer.render(scene, camera);
         this.depth.render();
 
         renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth, camera.offsetHeight, pickingBuffer);
         console.timeEnd("picking");
-
-        this.lastFrameNumber = currentFrameNumber;
     }
 
     show() {

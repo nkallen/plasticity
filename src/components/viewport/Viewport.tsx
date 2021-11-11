@@ -222,14 +222,16 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     render(frameNumber: number) {
         if (!this.started) return;
         requestAnimationFrame(this.render);
+
+        this.picker.render();
+
         if (!this.needsRender) return;
+        this.needsRender = false;
 
         const { editor: { db, helpers, signals }, scene, phantomsScene, helpersScene, composer, camera, lastFrameNumber, phantomsPass, helpersPass, grid, constructionPlane, domElement } = this
         const additional = [...this.additionalHelpers];
 
         try {
-            this.picker.currentFrameNumber = frameNumber;
-
             // prepare the scene, once per frame (there may be multiple viewports rendering the same frame):
             if (frameNumber > lastFrameNumber) {
                 const visibleObjects = db.visibleObjects;
@@ -269,7 +271,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 phantomsScene.clear();
             }
         } finally {
-            this.needsRender = false;
             this.lastFrameNumber = frameNumber;
         }
     }
@@ -348,7 +349,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 this.navigationControls.removeEventListener('change', this.navigationChange);
                 this.navigationControls.removeEventListener('end', this.navigationEnd);
                 this.selector.enabled = this.navigationState.selectorEnabled;
-                this.picker.render();
+                this.picker.setNeedsRender();
                 this.navigationState = { tag: 'none' };
                 break;
             default: throw new Error("invalid state");

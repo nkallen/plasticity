@@ -94,7 +94,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
         this.pickers = [];
         this.pickers.push(pointCloud);
-        this.pickers.push(line, pointCloud);
+        this.pickers.push(line);
         this.pickers.push(...this.db.visibleObjects.map(o => o.picker));
     }
 }
