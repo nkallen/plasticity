@@ -144,10 +144,8 @@ class GPUDepthReader {
         uniform float cameraFar;
 
         void main() {
-            float depth;
             float fragCoordZ = texture2D( tDepth, vUv ).x;
-            depth = fragCoordZ;
-            gl_FragColor = packDepthToRGBA(depth); // for higher precision, spread float onto 4 bytes
+            gl_FragColor = packDepthToRGBA(fragCoordZ); // for higher precision, spread float onto 4 bytes
         }
         `,
         uniforms: {
@@ -187,12 +185,12 @@ class GPUDepthReader {
     private readonly positionh = new THREE.Vector4();
     private readonly unpackDepth = new THREE.Vector4()
     read(denormalizedScreenPoint: THREE.Vector2, normalizedScreenPoint: THREE.Vector2): THREE.Vector3 {
-        const { viewport: { camera }, positionh, unpackDepth } = this;
+        const { viewport: { camera, renderer }, positionh, unpackDepth, depthTarget } = this;
         // const dpr = this.dpr;
         // let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth * dpr);
 
         const pixelBuffer = new Uint8Array(4);
-        this.viewport.renderer.readRenderTargetPixels(this.pickingTarget, denormalizedScreenPoint.x, denormalizedScreenPoint.y, 1, 1, pixelBuffer);
+        renderer.readRenderTargetPixels(depthTarget, denormalizedScreenPoint.x, denormalizedScreenPoint.y, 1, 1, pixelBuffer);
 
         // depth from shader a float [0,1] packed over 4 bytes, each [0,255].
         unpackDepth.fromArray(pixelBuffer);

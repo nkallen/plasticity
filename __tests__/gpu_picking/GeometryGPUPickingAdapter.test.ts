@@ -1,4 +1,4 @@
-import { DebugGeometryIdEncoder, GeometryIdEncoder } from '../../src/components/viewport/gpu_picking/GeometryGPUPickingAdapter';
+import { GeometryIdEncoder } from '../../src/components/viewport/gpu_picking/GeometryGPUPickingAdapter';
 import '../matchers';
 
 beforeEach(async () => {
