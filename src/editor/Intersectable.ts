@@ -28,21 +28,6 @@ export function filterMeshes(selected: THREE.Mesh[]): Set<Intersectable> {
 export interface Intersection {
     object: Intersectable;
     point: THREE.Vector3;
-    distance: number;
-}
-
-export function filterIntersections(intersections: THREE.Intersection[]): Intersection[] {
-    intersections = intersections.filter(i => isSelectable(i.object));
-    const sortable: [THREE.Intersection, Intersectable][] = intersections.map((i) => [i, findIntersectable(i.object, i.index)]);
-    sortable.sort(sortIntersections);
-    const visited: Set<Intersectable> = new Set();
-    const result: Intersection[] = [];
-    for (const [{ point, distance }, intersectable] of sortable) {
-        if (visited.has(intersectable)) continue;
-        visited.add(intersectable);
-        result.push({ object: intersectable, point, distance });
-    }
-    return result;
 }
 
 function isSelectable(object: THREE.Object3D): boolean {

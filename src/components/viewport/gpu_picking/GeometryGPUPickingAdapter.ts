@@ -50,7 +50,7 @@ export class DebugGeometryIdEncoder extends GeometryIdEncoder {
     }
 }
 
-export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectable.Intersectable> {
+export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectable.Intersection> {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose(); }
 
@@ -73,12 +73,15 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
         this.picker.setFromCamera(normalizedScreenPoint, camera);
     }
 
-    intersect() {
+    intersect(): intersectable.Intersection[] {
         const intersection = this.picker.intersect();
         if (intersection === undefined)
             return [];
         else
-            return [GeometryGPUPickingAdapter.get(intersection.id, this.db)];
+            return [{ 
+                object: GeometryGPUPickingAdapter.get(intersection.id, this.db),
+                point: intersection.position
+             }];
     }
 
     static get(id: number, db: DatabaseLike): intersectable.Intersectable {

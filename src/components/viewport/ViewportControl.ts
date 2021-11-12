@@ -168,16 +168,16 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         }
     }
 
-    protected abstract startHover(intersections: intersectable.Intersectable[]): void;
-    protected abstract continueHover(intersections: intersectable.Intersectable[]): void;
+    protected abstract startHover(intersections: intersectable.Intersection[]): void;
+    protected abstract continueHover(intersections: intersectable.Intersection[]): void;
     protected abstract endHover(): void;
-    protected abstract startClick(intersections: intersectable.Intersectable[]): boolean;
-    protected abstract endClick(intersections: intersectable.Intersectable[]): void;
+    protected abstract startClick(intersections: intersectable.Intersection[]): boolean;
+    protected abstract endClick(intersections: intersectable.Intersection[]): void;
     protected abstract startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
     protected abstract continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
-    private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersectable[] {
+    private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersection[] {
         this.picker.setFromCamera(normalizedMousePosition, this.viewport.camera);
         return this.picker.intersect();
     }

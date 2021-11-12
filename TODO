@@ -2,8 +2,10 @@ TODO:
 
 nearby
 xray/non xray
-Get temporary objects to work
 Get highlighed faces and edges to workget region, curve, and point selection to work
+box selection left
+box selection right
+Get temporary objects to work
 Test FaceGroupBuilder
 Test CurveEdgeGroupBuilder
 Test GPU*

@@ -57,7 +57,7 @@ export class Solid extends Item {
 
     get picker() {
         const lod = this.lod.children[this.lod.children.length - 1];
-        // FIXME use this.lod.getCurrentLevel -- currently returns wrong value
+        // FIXME: use this.lod.getCurrentLevel -- currently returns wrong value
         const edges = lod.children[0] as CurveGroup<CurveEdge>;
         const faces = lod.children[1] as FaceGroup;
 
@@ -183,7 +183,7 @@ export class Curve3D extends SpaceItem {
 
     get picker() {
         const picker = this.line.clone();
-        // FIXME gc material
+        // FIXME: gc material
         picker.material = new LineMaterial({ color: this.parentItem.simpleName, blending: THREE.NoBlending });
         return picker;
     }
@@ -227,7 +227,7 @@ export class Surface extends SpaceItem {
 
     get picker() {
         const picker = this.mesh.clone();
-        // FIXME cache and dispose();
+        // FIXME: cache and dispose();
         picker.material = new IdMaterial(this.simpleName);
         return picker;
     }
@@ -253,7 +253,7 @@ export class Region extends PlaneItem {
 
     get picker() {
         const picker = this.mesh.clone();
-        // FIXME cache and dispose();
+        // FIXME: cache and dispose();
         picker.material = new IdMaterial(this.simpleName);
         return picker;
     }
@@ -292,7 +292,7 @@ export class CurveEdge extends Edge {
         this.userData = userData;
     }
 
-    // FIXME this is to be removed
+    // FIXME: this is to be removed
     makeView() {
         const edgeGroup = this.parent as CurveGroup<CurveSegment>;
         const original = (edgeGroup.mesh.children[0] as LineSegments2).geometry;
@@ -348,7 +348,7 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
     constructor(readonly mesh: THREE.Group, readonly edges: ReadonlyArray<T>) {
         super();
         this.add(mesh);
-        this.add(...edges);
+        if (edges.length > 0) this.add(...edges);
     }
 
     *[Symbol.iterator]() {
@@ -606,6 +606,14 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
 
     build() {
         let { lines } = this;
+        if (lines.length === 0) {
+            const group = new THREE.Group();
+            // FIXME ensure gc
+            const line = new LineSegments2(new LineSegmentsGeometry(), new LineMaterial())
+            const occluded = new LineSegments2(new LineSegmentsGeometry(), new LineMaterial());
+            group.add(line, occluded);
+            return new CurveGroup(group, []);
+        }
 
         const geometry = LineVertexColorMaterial.mergePositions(lines, id => GeometryGPUPickingAdapter.encoder.encode('edge', this.parentId, id));
         const line = new LineSegments2(geometry, lines[0].material);
@@ -637,6 +645,7 @@ export class CurveEdgeGroupBuilder extends CurveBuilder<CurveEdge> {
 }
 
 export class CurveSegmentGroupBuilder extends CurveBuilder<CurveSegment> {
+    // FIXME: probably don't build colors for curve segments
     get make() { return CurveSegment }
 }
 

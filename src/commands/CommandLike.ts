@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { ModifierStack } from '../editor/ModifierManager';
 import { Intersectable, Intersection } from '../editor/Intersectable';
+import { ModifierStack } from '../editor/ModifierManager';
 import * as visual from "../editor/VisualModel";
 import Command, * as cmd from "./Command";
 import { ExportDialog } from './export/ExportDialog';
@@ -9,8 +9,6 @@ import { MirrorOrSymmetryFactory, SymmetryFactory } from './mirror/MirrorFactory
 import { MirrorGizmo } from './mirror/MirrorGizmo';
 import { RebuildFactory } from "./rebuild/RebuildFactory";
 import { RebuildKeyboardGizmo } from './rebuild/RebuildKeyboardGizmo';
-import { MoveGizmo } from './translate/MoveGizmo';
-import { MoveFactory } from './translate/TranslateFactory';
 
 /**
  * These aren't typical commands, with a set of steps and gizmos to perform a geometrical operation.
@@ -21,18 +19,18 @@ export abstract class CommandLike extends Command {
     remember = false;
 }
 
+// FIXME: move to site used
 export class ClickChangeSelectionCommand extends CommandLike {
-    intersection?: Intersectable;
+    point?: THREE.Vector3;
 
     constructor(
         editor: cmd.EditorLike,
-        private readonly intersections: Intersectable[]
+        private readonly intersection: Intersection[]
     ) { super(editor) }
 
 
     async execute(): Promise<void> {
-        const intersection = this.editor.selectionInteraction.onClick(this.intersections);
-        this.intersection = intersection;
+        this.point = this.editor.selectionInteraction.onClick(this.intersection)?.point;
     }
 
     shouldAddToHistory(selectionChanged: boolean) {

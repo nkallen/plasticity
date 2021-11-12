@@ -38,12 +38,12 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         this._raycaster.layers.enableAll();
     }
 
-    protected startHover(intersections: Intersectable[]) { }
-    protected continueHover(intersections: Intersectable[]): void { }
+    protected startHover(intersections: Intersection[]) { }
+    protected continueHover(intersections: Intersection[]): void { }
     protected endHover(): void { }
 
     private mode: Mode = { tag: 'none' };
-    protected startClick(intersections: Intersectable[]): boolean {
+    protected startClick(intersections: Intersection[]): boolean {
         if (intersections.length === 0) return false;
         const first = intersections[0];
         if (!(first instanceof visual.ControlPoint)) return false;
@@ -70,7 +70,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         return true;
     }
 
-    protected endClick(intersections: Intersectable[]): void {
+    protected endClick(intersections: Intersection[]): void {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start':

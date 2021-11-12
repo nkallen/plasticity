@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import { Intersectable } from '../editor/Intersectable';
+import { Intersectable, Intersection } from '../editor/Intersectable';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { SelectionInteractionManager, SelectionMode } from '../selection/SelectionInteraction';
 import { HasSelection, Selectable, SelectionManager, ToggleableSet } from '../selection/SelectionManager';
@@ -34,12 +34,12 @@ class MyViewportSelector extends AbstractViewportSelector {
 
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands temporarily modify the selection
-    protected processClick(intersections: Intersectable[]) {
+    protected processClick(intersections: Intersection[]) {
         this.interaction.onClick(intersections);
         if (intersections.length === 0) this.onEmptyIntersection();
     }
 
-    protected processHover(intersects: Intersectable[]) {
+    protected processHover(intersects: Intersection[]) {
         this.editor.selectionInteraction.onHover(intersects);
     }
 

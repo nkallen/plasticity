@@ -360,7 +360,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                         const curve = new visual.Curve3DBuilder();
                         const pointGroup = visual.ControlPointGroup.build(underlying, id, pointMaterial);
                         curve.addControlPoints(pointGroup);
-                        curve.addSegments(segments.build());
+                        curve.addSegments(segments.build()!);
                         curveBuilder.add(curve.build(), distance);
                         break;
                     case c3d.SpaceType.Surface:

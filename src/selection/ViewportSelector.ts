@@ -14,11 +14,11 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     private readonly selectionHelper = new SelectionHelper(this.viewport.domElement, 'select-box');
     private readonly selectionBox = new BetterSelectionBox(this.viewport.camera, new THREE.Scene()); // FIXME
 
-    startHover(intersections: intersectable.Intersectable[]) {
+    startHover(intersections: intersectable.Intersection[]) {
         this.processHover(intersections);
     }
 
-    continueHover(intersections: intersectable.Intersectable[]) {
+    continueHover(intersections: intersectable.Intersection[]) {
         this.processHover(intersections);
     }
 
@@ -37,11 +37,11 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.processBoxHover(intersectable.filterMeshes(selected));
     }
 
-    startClick(intersections: intersectable.Intersectable[]) {
+    startClick(intersections: intersectable.Intersection[]) {
         return true;
     }
 
-    endClick(intersections: intersectable.Intersectable[]) {
+    endClick(intersections: intersectable.Intersection[]) {
         this.processClick(intersections);
     }
 
@@ -56,8 +56,8 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     protected abstract processBoxHover(selected: Set<intersectable.Intersectable>): void;
     protected abstract processBoxSelect(selected: Set<intersectable.Intersectable>): void;
 
-    protected abstract processClick(intersects: intersectable.Intersectable[]): void;
-    protected abstract processHover(intersects: intersectable.Intersectable[]): void;
+    protected abstract processClick(intersects: intersectable.Intersection[]): void;
+    protected abstract processHover(intersects: intersectable.Intersection[]): void;
 }
 
 export class ViewportSelector extends AbstractViewportSelector {
@@ -74,12 +74,12 @@ export class ViewportSelector extends AbstractViewportSelector {
         this.editor.enqueue(command, true);
     }
 
-    protected processClick(intersects: intersectable.Intersectable[]) {
+    protected processClick(intersects: intersectable.Intersection[]) {
         const command = new ClickChangeSelectionCommand(this.editor, intersects);
         this.editor.enqueue(command, true);
     }
 
-    protected processHover(intersects: intersectable.Intersectable[]) {
+    protected processHover(intersects: intersectable.Intersection[]) {
         this.editor.selectionInteraction.onHover(intersects);
     }
 }
