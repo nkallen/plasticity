@@ -51,8 +51,6 @@ export class GPUPicker {
         const id = buffer[0];
         if (id === 0 || id === undefined) return undefined;
 
-        console.log(id);
-
         const position = this.depth.read(denormalizedScreenPoint, this.normalizedScreenPoint);
         return { id, position };
     }

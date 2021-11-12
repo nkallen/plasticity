@@ -58,7 +58,7 @@ export abstract class Snap implements Restriction {
         });
     }
 
-    abstract project(intersection: THREE.Intersection): { position: THREE.Vector3; orientation: THREE.Quaternion; };
+    abstract project(point: THREE.Vector3): { position: THREE.Vector3; orientation: THREE.Quaternion; };
     abstract isValid(pt: THREE.Vector3): boolean;
 
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
@@ -83,7 +83,7 @@ export class PointSnap extends Snap {
         super.init();
     }
 
-    project(intersection: THREE.Intersection) {
+    project(point: THREE.Vector3) {
         const position = this.position;
         const orientation = new THREE.Quaternion().setFromUnitVectors(Z, this.normal);
         return { position, orientation };
@@ -203,13 +203,12 @@ export class CurveEdgeSnap extends Snap {
         this.init();
     }
 
-    project(intersection: THREE.Intersection) {
-        const pt = intersection.point;
-        const t = this.model.PointProjection(point2point(pt));
+    project(point: THREE.Vector3) {
+        const t = this.model.PointProjection(point2point(point));
         this.t = t;
         const on = this.model.Point(t);
         const curve = this.model.GetSpaceCurve()!;
-        const t2 = curve.NearPointProjection(point2point(pt), false).t;
+        const t2 = curve.NearPointProjection(point2point(point), false).t;
         const tan = curve.Tangent(t2);
         const position = point2point(on);
         const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(tan, 1));
@@ -238,9 +237,8 @@ export class CurveSnap extends Snap {
         this.init();
     }
 
-    project(intersection: THREE.Intersection) {
-        const pt = intersection.point;
-        const { t } = this.model.NearPointProjection(point2point(pt), false);
+    project(point: THREE.Vector3) {
+        const { t } = this.model.NearPointProjection(point2point(point), false);
         const on = this.model.PointOn(t);
         const tan = this.model.Tangent(t);
         this.t = t;
@@ -354,9 +352,9 @@ export class FaceSnap extends Snap {
         this.init();
     }
 
-    project(intersection: THREE.Intersection) {
+    project(point: THREE.Vector3) {
         const { model } = this;
-        const { u, v, normal } = model.NearPointProjection(point2point(intersection.point));
+        const { u, v, normal } = model.NearPointProjection(point2point(point));
         const { faceU, faceV } = model.GetFaceParam(u, v);
         const projected = point2point(model.Point(faceU, faceV));
         const position = projected;
@@ -442,10 +440,10 @@ export class AxisSnap extends Snap {
 
     private readonly projection = new THREE.Vector3();
     private readonly intersectionPoint = new THREE.Vector3();
-    project(intersection: THREE.Intersection) {
+    project(point: THREE.Vector3) {
         const { n, o, orientation } = this;
         const { projection, intersectionPoint } = this;
-        const position = projection.copy(n).multiplyScalar(n.dot(intersectionPoint.copy(intersection.point).sub(o))).add(o);
+        const position = projection.copy(n).multiplyScalar(n.dot(intersectionPoint.copy(point).sub(o))).add(o);
         return { position, orientation };
     }
 
@@ -553,8 +551,8 @@ export class LineSnap extends Snap {
         this.init();
     }
 
-    project(intersection: THREE.Intersection) {
-        return this.axis.project(intersection);
+    project(point: THREE.Vector3) {
+        return this.axis.project(point);
     }
 
     isValid(pt: THREE.Vector3): boolean {

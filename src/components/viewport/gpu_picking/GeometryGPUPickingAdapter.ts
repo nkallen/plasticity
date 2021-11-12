@@ -19,8 +19,8 @@ export class GeometryIdEncoder {
         if (index > (1 << 15)) throw new Error("precondition failure");
 
         parentId <<= 16;
-        index &=  0x7fff;
-        const t = (type === 'edge' ? 0 : 0x8000);
+        index &= 0x7fff;
+        const t = (type === 'edge' ? 0 : (1 << 15));
 
         const id = parentId | t | index;
         return id;

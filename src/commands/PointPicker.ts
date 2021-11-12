@@ -40,7 +40,7 @@ export class Model {
     private readonly otherAddedSnaps = new Array<Snap>();
 
     private readonly restrictions = new Array<Restriction>();
-    private readonly restrictionSnaps = new Array<Snap>(); // Snap targets for the restrictions
+    private readonly _restrictionSnaps = new Array<Snap>(); // Snap targets for the restrictions
     restrictToConstructionPlane = false;
     private restrictionPoint?: THREE.Vector3;
     restrictionPlane?: PlaneSnap;
@@ -62,10 +62,8 @@ export class Model {
         return result;
     }
 
-    restrictionSnapsFor(constructionPlane: PlaneSnap, isOrtho: boolean): Snap[] {
-        const snaps = [...this.restrictionSnaps];
-        if (snaps.length === 0) snaps.push(this.actualConstructionPlaneGiven(constructionPlane, isOrtho))
-        return snaps;
+    get restrictionSnaps(): Snap[] {
+        return this._restrictionSnaps;
     }
 
     restrictionsFor(constructionPlane: PlaneSnap, isOrtho: boolean): Restriction[] {
@@ -211,7 +209,7 @@ export class Model {
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
         const line = LineSnap.make(undefined, direction, origin);
         this.restrictions.push(line);
-        this.restrictionSnaps.push(line);
+        this._restrictionSnaps.push(line);
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {
@@ -219,7 +217,7 @@ export class Model {
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge);
             const restriction = new CurveEdgeSnap(edge, model);
-            this.restrictionSnaps.push(restriction);
+            this._restrictionSnaps.push(restriction);
             restrictions.push(restriction);
         }
         const restriction = new OrRestriction(restrictions);
@@ -234,7 +232,7 @@ export class Model {
             const item = inst.GetSpaceItem()!;
             const model = item.Cast<c3d.Curve3D>(item.IsA());
             const restriction = new CurveSnap(curve, model);
-            this.restrictionSnaps.push(restriction);
+            this._restrictionSnaps.push(restriction);
             restrictions.push(restriction);
         }
         const restriction = new OrRestriction(restrictions);

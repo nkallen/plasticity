@@ -1,5 +1,7 @@
 TODO:
 
+nearby
+xray/non xray
 Get temporary objects to work
 Get highlighed faces and edges to workget region, curve, and point selection to work
 Test FaceGroupBuilder
