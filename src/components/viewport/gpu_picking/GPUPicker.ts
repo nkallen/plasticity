@@ -122,7 +122,7 @@ export class GPUPicker {
     }
 }
 
-class GPUDepthReader {
+export class GPUDepthReader {
     readonly depthTarget = new THREE.WebGLRenderTarget(1, 1);
     private readonly depthScene = new THREE.Scene();
     private readonly depthCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -192,8 +192,18 @@ class GPUDepthReader {
         const pixelBuffer = new Uint8Array(4);
         renderer.readRenderTargetPixels(depthTarget, denormalizedScreenPoint.x, denormalizedScreenPoint.y, 1, 1, pixelBuffer);
 
-        // depth from shader a float [0,1] packed over 4 bytes, each [0,255].
-        unpackDepth.fromArray(pixelBuffer);
+        return GPUDepthReader.depth2position(pixelBuffer, normalizedScreenPoint, camera);
+    }
+
+    get dpr() {
+        return this.viewport.renderer.getPixelRatio();
+    }
+
+    private static readonly unpackDepth = new THREE.Vector4()
+    private static readonly positionh = new THREE.Vector4();
+    static depth2position(array: ArrayLike<number>, normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera & { updateProjectionMatrix(): void }): THREE.Vector3 {
+        const { unpackDepth, positionh } = this;
+        unpackDepth.fromArray(array);
         unpackDepth.divideScalar(255);
         const ndc_z = unpackDepth.dot(UnpackFactors) * 2 - 1;
 
@@ -204,12 +214,7 @@ class GPUDepthReader {
 
         // for perspective, unhomogenize
         const position = new THREE.Vector3(positionh.x, positionh.y, positionh.z).divideScalar(positionh.w);
-
         return position;
-    }
-
-    get dpr() {
-        return this.viewport.renderer.getPixelRatio();
     }
 }
 
