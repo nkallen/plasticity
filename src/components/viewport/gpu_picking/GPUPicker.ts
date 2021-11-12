@@ -1,3 +1,4 @@
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { Viewport } from "../Viewport";
@@ -17,6 +18,9 @@ import { Viewport } from "../Viewport";
 const depthPlane = new THREE.PlaneGeometry(2, 2);
 
 export class GPUPicker {
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+
     static minimumEntityId = 1;
 
     private readonly scene = new THREE.Scene();
@@ -37,6 +41,12 @@ export class GPUPicker {
 
     constructor(private readonly viewport: Viewport) {
         this.setNeedsRender = this.setNeedsRender.bind(this);
+        viewport.changed.add(this.setNeedsRender);
+        viewport.navigationEnded.add(this.setNeedsRender);
+        this.disposable.add(new Disposable(() => {
+            viewport.changed.remove(this.setNeedsRender);
+            viewport.navigationEnded.remove(this.setNeedsRender);
+        }));
     }
 
     intersect(): { id: number, position: THREE.Vector3 } | undefined {

@@ -4,7 +4,6 @@ import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeome
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import * as visual from "../../../editor/VisualModel";
 
-
 export class VertexColorMaterial extends THREE.ShaderMaterial {
     static mergeBufferGeometries(geos: THREE.BufferGeometry[], id: (i: number) => number) {
         const merged = BufferGeometryUtils.mergeBufferGeometries(geos, true);
@@ -20,8 +19,9 @@ export class VertexColorMaterial extends THREE.ShaderMaterial {
         return merged;
     }
 
-    constructor() {
+    constructor(parameters: THREE.ShaderMaterialParameters = {}) {
         super({
+            ...parameters,
             vertexShader: `
             attribute vec4 color;
             varying vec4 vColor;
@@ -44,7 +44,7 @@ export class VertexColorMaterial extends THREE.ShaderMaterial {
     }
 }
 
-export const vertexColorMaterial = new VertexColorMaterial();
+export const vertexColorMaterial = new VertexColorMaterial({polygonOffset: true, polygonOffsetFactor: 10, polygonOffsetUnits: 1});
 
 export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
     static make(points: [number, THREE.Vector3][], options: THREE.PointsMaterialParameters = {}) {
@@ -65,8 +65,9 @@ export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
         return new THREE.Points(geometry, material);
     }
 
-    constructor(parameters: THREE.PointsMaterialParameters = { size: 20 }) {
+    constructor(parameters: THREE.PointsMaterialParameters = { size: 30, polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -1 }) {
         super({
+            ...parameters,
             vertexShader: `
             uniform float size;
             attribute vec4 color;

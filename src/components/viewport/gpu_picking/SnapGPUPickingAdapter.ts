@@ -148,7 +148,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
             }
         }
         // FIXME: dispose of geometry
-        const pointCloud = PointsVertexColorMaterial.make(points, { size: 20, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+        const pointCloud = PointsVertexColorMaterial.make(points, { size: 20, polygonOffset: true, polygonOffsetFactor: -100, polygonOffsetUnits: -100 });
         const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
         // @ts-expect-error
         const line = new LineSegments2(lineGeometry, vertexColorLineMaterial);

@@ -42,7 +42,12 @@ export interface EditorLike extends selector.EditorLike {
 }
 
 export class Viewport implements MementoOriginator<ViewportMemento> {
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+
     readonly changed = new signals.Signal();
+    readonly navigationEnded = new signals.Signal();
+    
     readonly picker = new GPUPicker(this);
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
@@ -52,7 +57,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly points = new ViewportPointControl(this, this.editor);
     readonly selector = new ViewportSelector(this, this.editor);
     lastPointerEvent?: PointerEvent;
-    private readonly disposable = new CompositeDisposable();
 
     private readonly scene = new THREE.Scene();
     private readonly phantomsScene = new THREE.Scene(); // Objects visualizing a geometry computation, like a transparent red boolean difference object.
@@ -349,7 +353,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 this.navigationControls.removeEventListener('change', this.navigationChange);
                 this.navigationControls.removeEventListener('end', this.navigationEnd);
                 this.selector.enabled = this.navigationState.selectorEnabled;
-                this.picker.setNeedsRender();
+                this.navigationEnded.dispatch();
                 this.navigationState = { tag: 'none' };
                 break;
             default: throw new Error("invalid state");
@@ -361,10 +365,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     private selectionEnd() { }
-
-    dispose() {
-        this.disposable.dispose();
-    }
 
     private _constructionPlane!: PlaneSnap;
     get constructionPlane() { return this._constructionPlane }
