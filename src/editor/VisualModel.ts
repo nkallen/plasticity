@@ -666,7 +666,8 @@ export const RenderOrder = {
     Face: 10,
     CurveSegment: 20,
     SnapPoints: 30,
-    SnapLines: 20 // not sure what this should be yet
+    SnapLines: 20, // not sure what this should be yet
+    SnapNearbyIndicator: 40
 }
 
 export enum Layers {

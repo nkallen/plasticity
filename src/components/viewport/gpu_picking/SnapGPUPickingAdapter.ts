@@ -10,7 +10,6 @@ import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
-import { DebugRenderTarget } from "./GPUPicker";
 import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial, vertexColorLineMaterial } from "./GPUPickingMaterial";
 
 export class SnapIdEncoder {
@@ -215,12 +214,12 @@ class NearbySnapGPUicker {
         try {
             renderer.setRenderTarget(nearbyTarget);
             // nearbyTarget.depthTexture = pickingTarget.depthTexture;
-            // renderer.autoClearDepth = false;
+            renderer.autoClearDepth = false;
             camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, x_dom, y_dom, radius * 2 * dpr, radius * 2 * dpr); // takes DOM coordinates
             renderer.render(scene, camera);
         } finally {
             renderer.setRenderTarget(oldRenderTarget);
-            // renderer.autoClearDepth = oldAutoClearDepth;
+            renderer.autoClearDepth = oldAutoClearDepth;
             camera.clearViewOffset();
         }
 
