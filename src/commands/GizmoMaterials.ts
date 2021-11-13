@@ -43,7 +43,7 @@ export class GizmoMaterialDatabase {
         const b = hoverColor.getHex();
         return {
             mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.75, color: a }, depthInfo, { side })),
-            line2: new LineMaterial(Object.assign({ color: a, opacity: 0.75, linewidth: 3, }, depthInfo, { side })),
+            line2: new LineMaterial(Object.assign({ color: a, opacity: 1, linewidth: 3, }, depthInfo, { side })),
             line: new THREE.LineBasicMaterial({ opacity: 0.75, color: a, }),
             hover: {
                 mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 1, color: b }, depthInfo, { side })),
@@ -56,6 +56,7 @@ export class GizmoMaterialDatabase {
     readonly default = GizmoMaterialDatabase.make(0xffff00);
     readonly red = GizmoMaterialDatabase.make(0xff0000);
     readonly black = GizmoMaterialDatabase.make(0x0);
+    readonly darkGray = GizmoMaterialDatabase.make(0x0f0f0f);
     readonly green = GizmoMaterialDatabase.make(0x00ff00);
     readonly blue = GizmoMaterialDatabase.make(0x0000ff);
     readonly yellow = GizmoMaterialDatabase.make(0xffff00, THREE.DoubleSide);
@@ -63,8 +64,8 @@ export class GizmoMaterialDatabase {
     readonly magenta = GizmoMaterialDatabase.make(0xff00ff, THREE.DoubleSide)
     readonly cyan = GizmoMaterialDatabase.make(0x00ffff, THREE.DoubleSide);
     private readonly lines = [
-        this.white.line2, this.red.line2, this.green.line2, this.blue.line2, this.yellow.line2, this.default.line2, this.black.line2,
-        this.white.hover.line2, this.red.hover.line2, this.green.hover.line2, this.blue.hover.line2, this.yellow.hover.line2, this.default.hover.line2, this.black.hover.line2
+        this.white.line2, this.red.line2, this.green.line2, this.blue.line2, this.yellow.line2, this.default.line2, this.black.line2, this.darkGray.line2,
+        this.white.hover.line2, this.red.hover.line2, this.green.hover.line2, this.blue.hover.line2, this.yellow.hover.line2, this.default.hover.line2, this.black.hover.line2, this.darkGray.hover.line2,
     ];
 
     constructor(signals: EditorSignals) {

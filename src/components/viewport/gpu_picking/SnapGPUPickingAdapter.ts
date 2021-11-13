@@ -10,7 +10,6 @@ import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
-import { DebugRenderTarget, GPUDepthReader } from "./GPUPicker";
 import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial, vertexColorLineMaterial } from "./GPUPickingMaterial";
 
 export class SnapIdEncoder {
@@ -39,7 +38,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
     private managerSnaps: Snap[] = [];
     private pointPickerSnaps: Snap[] = [];
     private pickers: THREE.Object3D[] = [];
-    private readonly _nearby = new NearbyGUPicker(100, this.viewport.picker.pickingTarget, this.viewport);
+    private readonly _nearby = new NearbySnapGPUicker(50, this.viewport.picker.pickingTarget, this.viewport);
 
     static encoder = process.env.NODE_ENV == 'development' ? new DebugSnapIdEncoder() : new SnapIdEncoder();
 
@@ -164,7 +163,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
             }
         }
         // FIXME: dispose of geometry
-        const pointCloud = PointsVertexColorMaterial.make(points, { size: 1, polygonOffset: true, polygonOffsetFactor: -100, polygonOffsetUnits: -100 });
+        const pointCloud = PointsVertexColorMaterial.make(points, { size: 35, polygonOffset: true, polygonOffsetFactor: 0, polygonOffsetUnits: 0 });
         const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
         // @ts-expect-error
         const line = new LineSegments2(lineGeometry, vertexColorLineMaterial);
@@ -176,7 +175,11 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
     private points: THREE.Points[] = [];
 }
 
-class NearbyGUPicker {
+/**
+ * Find snap-points nearby the user's mouse cursor. Render a radius*radius box around the mouse cursor; iterate through the
+ * pixels, counting unique colors. Re-use the existing Z-buffer if x-ray mode is off.
+ */
+class NearbySnapGPUicker {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
@@ -184,7 +187,10 @@ class NearbyGUPicker {
     readonly nearbyTarget = new THREE.WebGLRenderTarget(this.radius * this.dpr, this.radius * this.dpr, { depthBuffer: true });
     private readonly nearbyBuffer: Readonly<Uint8Array> = new Uint8Array(this.radius * this.radius * this.dpr * this.dpr * 4);
 
-    constructor(private readonly radius: number, private readonly pickingTarget: THREE.WebGLRenderTarget, private readonly viewport: Viewport) {
+    constructor(
+        private readonly radius: number,
+        private readonly pickingTarget: THREE.WebGLRenderTarget,
+        private readonly viewport: Viewport) {
     }
 
     intersectObjects(objects: THREE.Points[]) {
@@ -199,28 +205,26 @@ class NearbyGUPicker {
         this.scene.clear();
         for (const object of objects) scene.add(object);
 
-        renderer.setRenderTarget(nearbyTarget);
-        // renderer.setRenderTarget(null);
-        nearbyTarget.depthTexture = pickingTarget.depthTexture;
-        renderer.autoClearDepth = false;
-        camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, x_dom, y_dom, radius, radius); // takes DOM coordinates
-        renderer.render(scene, camera);
-        renderer.setRenderTarget(null);
-        renderer.autoClearDepth = true;
-        camera.clearViewOffset();
+        const oldRenderTarget = renderer.getRenderTarget();
+        const oldAutoClearDepth = renderer.autoClearDepth;
+
+        try {
+            renderer.setRenderTarget(nearbyTarget);
+            // nearbyTarget.depthTexture = pickingTarget.depthTexture;
+            // renderer.autoClearDepth = false;
+            camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, x_dom, y_dom, radius, radius); // takes DOM coordinates
+            renderer.render(scene, camera);
+        } finally {
+            renderer.setRenderTarget(oldRenderTarget);
+            // renderer.autoClearDepth = oldAutoClearDepth;
+            camera.clearViewOffset();
+        }
 
         renderer.readRenderTargetPixels(nearbyTarget, 0, 0, radius * dpr, radius * dpr, nearbyBuffer); // takes WebGL coordinates
         const ids = new Uint32Array(nearbyBuffer.buffer);
 
-        console.time("setify")
         const set = new Set<number>();
-        for (const id of ids) set.add(id);
-        console.timeEnd("setify");
-        console.log(set);
-
-        const debug = new DebugRenderTarget(this.nearbyTarget, this.viewport);
-        debug.render();
-
+        for (const id of ids) set.add(id); // NOTE: this is significantly faster than new Set(ids) for some reason;
         return set;
     }
 

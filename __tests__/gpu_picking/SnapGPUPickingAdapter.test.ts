@@ -10,20 +10,20 @@ describe(SnapIdEncoder, () => {
 
     test('encode & decode', () => {
         let type, id;
-        [type, id] = encoder.decode(encoder.encode('manager', 1));
+        [type, id] = encoder.decode(encoder.encode('manager', 1))!;
         expect(type).toEqual('manager');
         expect(id).toBe(1);
 
-        [type, id] = encoder.decode(encoder.encode('manager', 0));
+        [type, id] = encoder.decode(encoder.encode('manager', 0))!;
         expect(type).toEqual('manager');
         expect(id).toBe(0);
 
-        [type, id] = encoder.decode(encoder.encode('point-picker', 0));
+        [type, id] = encoder.decode(encoder.encode('point-picker', 0))!;
         expect(type).toEqual('point-picker');
         expect(id).toBe(0);
 
 
-        [type, id] = encoder.decode(encoder.encode('point-picker', 10099));
+        [type, id] = encoder.decode(encoder.encode('point-picker', 10099))!;
         expect(type).toEqual('point-picker');
         expect(id).toBe(10099);
     });
@@ -42,15 +42,15 @@ describe(DebugSnapIdEncoder, () => {
 
     test('encode & decode', () => {
         let type, id;
-        [type, id] = encoder.decode(encoder.encode('manager', 1));
+        [type, id] = encoder.decode(encoder.encode('manager', 1))!;
         expect(type).toEqual('manager');
         expect(id).toBe(1);
 
-        [type, id] = encoder.decode(encoder.encode('manager', 0));
+        [type, id] = encoder.decode(encoder.encode('manager', 0))!;
         expect(type).toEqual('manager');
         expect(id).toBe(0);
 
-        [type, id] = encoder.decode(encoder.encode('point-picker', 1099));
+        [type, id] = encoder.decode(encoder.encode('point-picker', 1099))!;
         expect(type).toEqual('point-picker');
         expect(id).toBe(1099);
     });

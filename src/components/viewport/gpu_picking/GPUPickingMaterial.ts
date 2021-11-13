@@ -44,7 +44,7 @@ export class VertexColorMaterial extends THREE.ShaderMaterial {
     }
 }
 
-export const vertexColorMaterial = new VertexColorMaterial({polygonOffset: true, polygonOffsetFactor: 10, polygonOffsetUnits: 1});
+export const vertexColorMaterial = new VertexColorMaterial({ polygonOffset: true, polygonOffsetFactor: 10, polygonOffsetUnits: 1 });
 
 export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
     static make(points: [number, THREE.Vector3][], options: THREE.PointsMaterialParameters = {}) {
@@ -195,4 +195,4 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
 }
 
 // { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }
-export const vertexColorLineMaterial = new LineVertexColorMaterial();
+export const vertexColorLineMaterial = new LineVertexColorMaterial({ depthWrite: false });

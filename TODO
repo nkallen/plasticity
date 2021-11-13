@@ -2,14 +2,16 @@ TODO:
 
 nearby
 xray/non xray
-Get highlighed faces and edges to workget region, curve, and point selection to work
+Get highlighed faces and edges to work
+get region, curve, and point selection to work
 box selection left
 box selection right
 Get temporary objects to work
-Test FaceGroupBuilder
-Test CurveEdgeGroupBuilder
-Test GPU*
-Test Fillet hidden edge shown
-Test vertexcolorMaterial/LineVertexColorMaterial statics
+unit Test FaceGroupBuilder
+unit Test CurveEdgeGroupBuilder
+unit Test GPU*
+verify Fillet hidden edge shown
+verify vertexcolorMaterial/LineVertexColorMaterial statics
 Test SelectionBox
 See if we can get rid of get child() in visualmodel
+Helper for center (of arc) point snap
