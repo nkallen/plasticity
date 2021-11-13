@@ -51,9 +51,6 @@ export class GPUPicker {
 
     intersect(): { id: number, position: THREE.Vector3 } | undefined {
         const { denormalizedScreenPoint, viewport: { camera } } = this;
-        // const dpr = this.dpr;
-        // let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth * dpr);
-
         const pixelBuffer = new Uint8Array(4);
         this.viewport.renderer.readRenderTargetPixels(this.pickingTarget, denormalizedScreenPoint.x, denormalizedScreenPoint.y, 1, 1, pixelBuffer);
 
@@ -86,7 +83,7 @@ export class GPUPicker {
         if (!this.needsRender) return;
         this.needsRender = false;
 
-        const { viewport: { renderer, camera }, objects, scene, pickingTarget, pickingBuffer } = this;
+        const { viewport: { renderer, camera }, objects, scene, pickingTarget } = this;
 
         this.scene.clear();
         renderer.setRenderTarget(pickingTarget);
@@ -100,8 +97,6 @@ export class GPUPicker {
 
         renderer.render(scene, camera);
         this.depth.render();
-
-        // renderer.readRenderTargetPixels(pickingTarget, 0, 0, camera.offsetWidth * this.dpr, camera.offsetHeight * this.dpr, pickingBuffer);
     }
 
     show() {
@@ -177,17 +172,10 @@ export class GPUDepthReader {
         depthMaterial.uniforms.tDepth.value = pickingTarget.depthTexture;
         renderer.setRenderTarget(depthTarget);
         renderer.render(depthScene, depthCamera);
-
-        // const dpr = this.dpr;
-        // renderer.readRenderTargetPixels(depthTarget, 0, 0, camera.offsetWidth * dpr, camera.offsetHeight * dpr, depthBuffer);
     }
 
-    private readonly positionh = new THREE.Vector4();
-    private readonly unpackDepth = new THREE.Vector4()
     read(denormalizedScreenPoint: THREE.Vector2, normalizedScreenPoint: THREE.Vector2): THREE.Vector3 {
-        const { viewport: { camera, renderer }, positionh, unpackDepth, depthTarget } = this;
-        // const dpr = this.dpr;
-        // let i = (denormalizedScreenPoint.x | 0) + ((denormalizedScreenPoint.y | 0) * camera.offsetWidth * dpr);
+        const { viewport: { camera, renderer }, depthTarget } = this;
 
         const pixelBuffer = new Uint8Array(4);
         renderer.readRenderTargetPixels(depthTarget, denormalizedScreenPoint.x, denormalizedScreenPoint.y, 1, 1, pixelBuffer);

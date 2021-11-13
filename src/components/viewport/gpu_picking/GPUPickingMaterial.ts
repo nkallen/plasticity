@@ -165,7 +165,7 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
         return geometry;
     }
 
-    constructor(parameters: LineMaterialParameters = { linewidth: 10 }) {
+    constructor(parameters: LineMaterialParameters = {}) {
         super({
             ...parameters,
             vertexShader: THREE.ShaderLib['line'].vertexShader
@@ -182,7 +182,7 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
             blending: THREE.NoBlending,
             uniforms: {
                 ...THREE.UniformsUtils.clone(THREE.ShaderLib['line'].uniforms),
-                diffuse: { value: [1, 1, 1] }, opacity: { value: 1 }, linewidth: { value: parameters.linewidth }
+                diffuse: { value: [1, 1, 1] }, opacity: { value: 1 }, linewidth: { value: parameters.linewidth ?? 10 }
             },
             defines: { 'USE_COLOR_ALPHA': '' },
             clipping: true,
@@ -194,5 +194,4 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
     }
 }
 
-// { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }
 export const vertexColorLineMaterial = new LineVertexColorMaterial({ depthWrite: false });

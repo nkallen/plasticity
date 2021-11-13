@@ -56,7 +56,7 @@ export class GizmoMaterialDatabase {
     readonly default = GizmoMaterialDatabase.make(0xffff00);
     readonly red = GizmoMaterialDatabase.make(0xff0000);
     readonly black = GizmoMaterialDatabase.make(0x0);
-    readonly darkGray = GizmoMaterialDatabase.make(0x0f0f0f);
+    readonly darkGray = GizmoMaterialDatabase.make(0x010101);
     readonly green = GizmoMaterialDatabase.make(0x00ff00);
     readonly blue = GizmoMaterialDatabase.make(0x0000ff);
     readonly yellow = GizmoMaterialDatabase.make(0xffff00, THREE.DoubleSide);

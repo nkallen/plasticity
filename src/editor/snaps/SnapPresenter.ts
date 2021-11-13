@@ -7,15 +7,17 @@ import { CircleGeometry } from "../../util/Util";
 import { PointSnap } from "./Snap";
 import { SnapResult } from "./SnapManager";
 
-const nearbyGeometry = new THREE.CircleGeometry(0.05, 24);
+const nearbyGeometry = new THREE.CircleGeometry(0.025, 24);
 const snapGeometry = new LineGeometry();
 snapGeometry.setPositions(CircleGeometry(0.1, 24));
+
+const nearbyMaterial = new THREE.MeshBasicMaterial({ color: 0x555555,  blending: THREE.MultiplyBlending });
 
 export class SnapPresenter {
     constructor(private readonly materials: GizmoMaterialDatabase) { }
 
     nearbyIndicatorFor(snap: PointSnap): Helper {
-        const disc = new SimpleHelper(new THREE.Mesh(nearbyGeometry, this.materials.darkGray.mesh));
+        const disc = new SimpleHelper(new THREE.Mesh(nearbyGeometry, nearbyMaterial));
 
         const { position } = snap;
         const { orientation } = snap.project(position);

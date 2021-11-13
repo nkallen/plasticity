@@ -10,6 +10,7 @@ import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
+import { DebugRenderTarget } from "./GPUPicker";
 import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial, vertexColorLineMaterial } from "./GPUPickingMaterial";
 
 export class SnapIdEncoder {
@@ -168,6 +169,9 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         // @ts-expect-error
         const line = new LineSegments2(lineGeometry, vertexColorLineMaterial);
 
+        line.renderOrder = 1000;
+        pointCloud.renderOrder = 2;
+
         this.points.push(pointCloud);
 
         return [pointCloud, line, ...planes];
@@ -184,8 +188,8 @@ class NearbySnapGPUicker {
     dispose() { this.disposable.dispose() }
 
     private readonly scene = new THREE.Scene();
-    readonly nearbyTarget = new THREE.WebGLRenderTarget(this.radius * this.dpr, this.radius * this.dpr, { depthBuffer: true });
-    private readonly nearbyBuffer: Readonly<Uint8Array> = new Uint8Array(this.radius * this.radius * this.dpr * this.dpr * 4);
+    readonly nearbyTarget = new THREE.WebGLRenderTarget(this.radius * 2 * this.dpr, this.radius * 2 * this.dpr, { depthBuffer: true });
+    private readonly nearbyBuffer: Readonly<Uint8Array> = new Uint8Array(this.radius * 2 * this.radius * 2 * this.dpr * this.dpr * 4);
 
     constructor(
         private readonly radius: number,
@@ -212,7 +216,7 @@ class NearbySnapGPUicker {
             renderer.setRenderTarget(nearbyTarget);
             // nearbyTarget.depthTexture = pickingTarget.depthTexture;
             // renderer.autoClearDepth = false;
-            camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, x_dom, y_dom, radius, radius); // takes DOM coordinates
+            camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, x_dom, y_dom, radius * 2 * dpr, radius * 2 * dpr); // takes DOM coordinates
             renderer.render(scene, camera);
         } finally {
             renderer.setRenderTarget(oldRenderTarget);
@@ -220,11 +224,14 @@ class NearbySnapGPUicker {
             camera.clearViewOffset();
         }
 
-        renderer.readRenderTargetPixels(nearbyTarget, 0, 0, radius * dpr, radius * dpr, nearbyBuffer); // takes WebGL coordinates
+        renderer.readRenderTargetPixels(nearbyTarget, 0, 0, radius * 2 * dpr, radius * 2 * dpr, nearbyBuffer); // takes WebGL coordinates
         const ids = new Uint32Array(nearbyBuffer.buffer);
+
+        // new DebugRenderTarget(nearbyTarget, this.viewport).render();
 
         const set = new Set<number>();
         for (const id of ids) set.add(id); // NOTE: this is significantly faster than new Set(ids) for some reason;
+        set.delete(0);
         return set;
     }
 
