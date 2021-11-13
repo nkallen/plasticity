@@ -10,7 +10,7 @@ import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
-import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial, vertexColorLineMaterial } from "./GPUPickingMaterial";
+import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial } from "./GPUPickingMaterial";
 
 export class SnapIdEncoder {
     encode(type: 'manager' | 'point-picker', index: number) {
@@ -149,7 +149,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
             if (snap instanceof PointSnap) {
                 points.push([id, snap.position]);
             } else if (snap instanceof AxisSnap) {
-                p.copy(snap.o).add(snap.n).multiplyScalar(100);
+                p.copy(snap.n).multiplyScalar(100).add(snap.o);
                 const position = new Float32Array([snap.o.x, snap.o.y, snap.o.z, p.x, p.y, p.z]);
                 axes.push({ position, userData: { index: id } });
             } else if (snap instanceof ConstructionPlaneSnap) {
@@ -246,3 +246,5 @@ class NearbySnapGPUicker {
         return this.viewport.renderer.getPixelRatio();
     }
 }
+
+const vertexColorLineMaterial = new LineVertexColorMaterial({ depthWrite: true });

@@ -195,4 +195,3 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
 }
 
 export const vertexColorLineMaterial = new LineVertexColorMaterial({ depthWrite: false });
-console.log(vertexColorLineMaterial.depthWrite)

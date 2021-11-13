@@ -11,7 +11,7 @@ import MaterialDatabase from './MaterialDatabase';
 import { ParallelMeshCreator } from './MeshCreator';
 import * as visual from './VisualModel';
 
-const mesh_precision_distance: [number, number][] = [[5, 500], [0.15, 1]];
+const mesh_precision_distance: [number, number][] = [[5, 1000], [0.15, 1]];
 const other_precision_distance: [number, number][] = [[0.05, 1]];
 const temporary_precision_distance: [number, number][] = [[0.4, 1]];
 
