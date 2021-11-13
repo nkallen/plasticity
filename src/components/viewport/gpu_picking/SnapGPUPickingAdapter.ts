@@ -169,8 +169,8 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         // @ts-expect-error
         const line = new LineSegments2(lineGeometry, vertexColorLineMaterial);
 
-        line.renderOrder = 1000;
-        pointCloud.renderOrder = 2;
+        line.renderOrder = visual.RenderOrder.SnapLines;
+        pointCloud.renderOrder = visual.RenderOrder.SnapPoints;
 
         this.points.push(pointCloud);
 
