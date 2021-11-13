@@ -224,7 +224,7 @@ const UnpackFactors = new THREE.Vector4(1 / PackFactors.x, 1 / PackFactors.y, 1 
 UnpackFactors.multiplyScalar(UnpackDownscale);
 
 
-class DebugRenderTarget {
+export class DebugRenderTarget {
     private readonly scene = new THREE.Scene();
     private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     material = new THREE.ShaderMaterial({

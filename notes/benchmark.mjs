@@ -33,14 +33,14 @@ const height = 1956;
 
 // Giant buffer allocations:
 let start;
-let iterations = 1000;
+let iterations = 200;
 let buff;
 start = performance.now();
 for (let i = 0; i < iterations; i++) {
     buff = new Uint8Array(width * height);
 }
 console.log("Allocate", (performance.now() - start) / iterations);
-// 0.6736891102790833
+// 0.5535899889469147
 
 // Fill:
 start = performance.now();
@@ -48,7 +48,7 @@ for (let i = 0; i < iterations; i++) {
     buff.fill(10);
 }
 console.log("Fill", (performance.now() - start) / iterations);
-// 0.31879846930503847
+// 0.16024360060691833
 
 // Linear write:
 start = performance.now();
@@ -58,7 +58,7 @@ for (let i = 0; i < iterations; i++) {
     }
 }
 console.log("Write", (performance.now() - start) / iterations);
-// 10.633516939878463
+// 5.40160609960556
 
 // Linear read:
 let sum = 0;
@@ -69,7 +69,7 @@ for (let i = 0; i < iterations; i++) {
     }
 }
 console.log("Read", (performance.now() - start) / iterations);
-// 8.525561339855194
+// 4.298746429681778
 
 const b = new Bitmap(1024 * 2 * 2);
 if (b.test(1) !== false) throw new Error("invalid precondition");
@@ -85,8 +85,18 @@ for (let i = 0; i < iterations; i++) {
         b.enable(buff[i]);
     }
 }
-console.log("Fill bitset", (performance.now() - start) / iterations);
-// 19.20521978020668
+console.log("Fill partial bitset", (performance.now() - start) / iterations);
+// 0.2630272948741913
+
+start = performance.now();
+for (let i = 0; i < iterations; i++) {
+    const rand = Math.floor(Math.random() * width);
+    for (let i = rand; i < buff.length; i++) {
+        b.enable(buff[i]);
+    }
+}
+console.log("Fill bitset full", (performance.now() - start) / iterations);
+// 8.467950174808502
 
 const s = new Set();
 start = performance.now();
@@ -96,4 +106,24 @@ for (let i = 0; i < iterations; i++) {
         s.add(buff[i]);
     }
 }
-console.log("Fill Set", (performance.now() - start) / iterations);
+console.log("Fill partial set", (performance.now() - start) / iterations);
+// 0.933610144853592
+
+start = performance.now();
+let ss;
+for (let i = 0; i < iterations; i++) {
+    ss = new Set(buff);
+}
+console.log("Constructor set", (performance.now() - start) / iterations);
+// 134.64948480010034
+
+start = performance.now();
+s.clear();
+for (let i = 0; i < iterations; i++) {
+    const rand = Math.floor(Math.random() * width);
+    for (let i = rand; i < buff.length; i++) {
+        s.add(buff[i]);
+    }
+}
+console.log("Fill set full", (performance.now() - start) / iterations);
+// 37.46329090952873

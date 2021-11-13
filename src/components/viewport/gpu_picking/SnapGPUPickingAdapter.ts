@@ -1,3 +1,4 @@
+import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { Model as PointPicker } from "../../../commands/PointPicker";
@@ -9,6 +10,7 @@ import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
+import { DebugRenderTarget, GPUDepthReader } from "./GPUPicker";
 import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial, vertexColorLineMaterial } from "./GPUPickingMaterial";
 
 export class SnapIdEncoder {
@@ -37,6 +39,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
     private managerSnaps: Snap[] = [];
     private pointPickerSnaps: Snap[] = [];
     private pickers: THREE.Object3D[] = [];
+    private readonly _nearby = new NearbyGUPicker(100, this.viewport.picker.pickingTarget, this.viewport);
 
     static encoder = process.env.NODE_ENV == 'development' ? new DebugSnapIdEncoder() : new SnapIdEncoder();
 
@@ -49,6 +52,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         this.normalizedScreenPoint.copy(normalizedScreenPoint);
         this.viewport.picker.setFromCamera(normalizedScreenPoint, camera);
         this.raycaster.setFromCamera(normalizedScreenPoint, camera);
+        this._nearby.setFromCamera(normalizedScreenPoint, camera);
         this.raycaster.layers.enableAll();
     }
 
@@ -76,6 +80,18 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         }
         const { position: precisePosition, orientation } = snap.project(approximatePosition);
         return [{ snap, position: precisePosition, orientation }];
+    }
+
+    nearby(): PointSnap[] {
+        const snaps: PointSnap[] = [];
+        const ids = this._nearby.intersectObjects(this.points);
+        for (const id of ids) {
+            const [type, index] = SnapGPUPickingAdapter.encoder.decode(id)!;
+            const snap = (type == 'manager') ? this.managerSnaps[index] : this.pointPickerSnaps[index];
+            if (!(snap instanceof PointSnap)) throw new Error("validation error");
+            snaps.push(snap);
+        }
+        return snaps;
     }
 
     private intersectable2snap(intersectable: intersectable.Intersectable): Snap {
@@ -148,14 +164,75 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
             }
         }
         // FIXME: dispose of geometry
-        const pointCloud = PointsVertexColorMaterial.make(points, { size: 25, polygonOffset: true, polygonOffsetFactor: -100, polygonOffsetUnits: -100 });
+        const pointCloud = PointsVertexColorMaterial.make(points, { size: 1, polygonOffset: true, polygonOffsetFactor: -100, polygonOffsetUnits: -100 });
         const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
         // @ts-expect-error
         const line = new LineSegments2(lineGeometry, vertexColorLineMaterial);
 
+        this.points.push(pointCloud);
+
         return [pointCloud, line, ...planes];
     }
+    private points: THREE.Points[] = [];
 }
 
-    // nearby = snaps.nearby(raycaster, model.snaps, restrictions);
-    // snappers = snaps.snap(raycaster, model.snapsFor(constructionPlane, isOrtho), model.restrictionSnapsFor(constructionPlane, isOrtho), restrictions, viewport.isXRay);
+class NearbyGUPicker {
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+
+    private readonly scene = new THREE.Scene();
+    readonly nearbyTarget = new THREE.WebGLRenderTarget(this.radius * this.dpr, this.radius * this.dpr, { depthBuffer: true });
+    private readonly nearbyBuffer: Readonly<Uint8Array> = new Uint8Array(this.radius * this.radius * this.dpr * this.dpr * 4);
+
+    constructor(private readonly radius: number, private readonly pickingTarget: THREE.WebGLRenderTarget, private readonly viewport: Viewport) {
+    }
+
+    intersectObjects(objects: THREE.Points[]) {
+        const { viewport: { renderer, camera }, scene, pickingTarget, nearbyTarget, nearbyBuffer, denormalizedScreenPoint, dpr, radius } = this;
+
+        // Draw a bounding rectangle with x,y representing upper-left. It surrounds the mouse cursor by size,size
+        const x = (denormalizedScreenPoint.x - radius * dpr) | 0;
+        const y = (denormalizedScreenPoint.y + radius * dpr) | 0; // WebGL screen coordinatse are 0,0 in lower-left corner
+        const x_dom = x;
+        const y_dom = (renderer.domElement.height - denormalizedScreenPoint.y - radius * dpr) | 0; // DOM coordinates are 0,0 in upper-left corner
+
+        this.scene.clear();
+        for (const object of objects) scene.add(object);
+
+        renderer.setRenderTarget(nearbyTarget);
+        // renderer.setRenderTarget(null);
+        nearbyTarget.depthTexture = pickingTarget.depthTexture;
+        renderer.autoClearDepth = false;
+        camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, x_dom, y_dom, radius, radius); // takes DOM coordinates
+        renderer.render(scene, camera);
+        renderer.setRenderTarget(null);
+        renderer.autoClearDepth = true;
+        camera.clearViewOffset();
+
+        renderer.readRenderTargetPixels(nearbyTarget, 0, 0, radius * dpr, radius * dpr, nearbyBuffer); // takes WebGL coordinates
+        const ids = new Uint32Array(nearbyBuffer.buffer);
+
+        console.time("setify")
+        const set = new Set<number>();
+        for (const id of ids) set.add(id);
+        console.timeEnd("setify");
+        console.log(set);
+
+        const debug = new DebugRenderTarget(this.nearbyTarget, this.viewport);
+        debug.render();
+
+        return set;
+    }
+
+    private readonly normalizedScreenPoint = new THREE.Vector2();
+    private readonly denormalizedScreenPoint = new THREE.Vector2();
+    setFromCamera(normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera) {
+        this.normalizedScreenPoint.copy(normalizedScreenPoint);
+        this.viewport.denormalizeScreenPosition(this.denormalizedScreenPoint.copy(normalizedScreenPoint));
+        this.denormalizedScreenPoint.multiplyScalar(this.dpr);
+    }
+
+    get dpr() {
+        return this.viewport.renderer.getPixelRatio();
+    }
+}

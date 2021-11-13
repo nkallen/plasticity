@@ -62,6 +62,7 @@ export class Model {
         return result;
     }
 
+    // FIXME: rename/cleanup -- combine restrictions/snaps, remove For methods, etc.
     get restrictionSnaps(): Snap[] {
         return this._restrictionSnaps;
     }
@@ -317,7 +318,7 @@ export class Presentation {
         if (isOrtho) snaps.layers.disable(Layers.Face);
         else snaps.layers.enable(Layers.Face);
 
-        let nearby: SnapResult[], snappers: SnapResult[];
+        let nearby: PointSnap[], snappers: SnapResult[];
         const choice = model.choice;
         if (choice !== undefined) {
             // FIXME:
@@ -329,7 +330,7 @@ export class Presentation {
         } else {
             const restrictions = model.restrictionsFor(constructionPlane, isOrtho);
             // FIXME nearby
-            nearby = snaps.nearby(viewport.picker, model.snaps, restrictions);
+            nearby = picker.nearby();
             snappers = picker.intersect();
         }
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane, isOrtho);
@@ -343,7 +344,7 @@ export class Presentation {
     readonly names: string[];
     readonly nearby: Helper[];
 
-    constructor(nearby: SnapResult[], snaps: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapPresenter) {
+    constructor(nearby: PointSnap[], snaps: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapPresenter) {
         this.nearby = nearby.map(n => presenter.nearbyIndicatorFor(n));
 
         if (snaps.length === 0) {
