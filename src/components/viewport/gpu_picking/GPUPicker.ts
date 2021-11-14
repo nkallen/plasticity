@@ -25,7 +25,7 @@ export class GPUPicker {
 
     private readonly scene = new THREE.Scene();
     private objects: THREE.Object3D[] = [];
-    readonly pickingTarget = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: true });
+    readonly pickingTarget = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: true, stencilBuffer: true });
     pickingBuffer: Readonly<Uint8Array> = new Uint8Array();
 
     private depth = new GPUDepthReader(this.pickingTarget, this.viewport);
@@ -160,8 +160,8 @@ export class GPUDepthReader {
         this.depthTarget.setSize(offsetWidth * dpr, offsetHeight * dpr);
         this.depthBuffer = new Uint8Array(offsetWidth * offsetHeight * 4 * dpr * dpr);
         const depthTexture = new THREE.DepthTexture(offsetWidth * dpr, offsetHeight * dpr);
-        depthTexture.format = THREE.DepthFormat;
-        depthTexture.type = THREE.UnsignedIntType; // Higher precision than the default, THREE.UnsignedShortType
+        depthTexture.format = THREE.DepthStencilFormat;
+        depthTexture.type = THREE.UnsignedInt248Type; // Higher precision than the default, THREE.UnsignedShortType
         this.pickingTarget.depthTexture = depthTexture;
     }
 

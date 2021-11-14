@@ -10,8 +10,14 @@ import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
+import { DebugRenderTarget } from "./GPUPicker";
 import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial } from "./GPUPickingMaterial";
 import { readRenderTargetPixelsAsync } from "./GPUWaitAsync";
+
+const nearbyRadius = 50; // px
+const axisSnapLineWidth = 12;
+const pointSnapSize = 35;
+const nearbySnapSize = 1;
 
 export class SnapIdEncoder {
     encode(type: 'manager' | 'point-picker', index: number) {
@@ -40,7 +46,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
     private pointPickerSnaps: Snap[] = [];
     private pickers: THREE.Object3D[] = [];
-    private readonly _nearby = new NearbySnapGPUicker(100, this.viewport.picker.pickingTarget, this.viewport);
+    private readonly _nearby = new NearbySnapGPUicker(nearbyRadius, this.viewport.picker.pickingTarget, this.viewport);
 
     static encoder = process.env.NODE_ENV == 'development' ? new DebugSnapIdEncoder() : new SnapIdEncoder();
 
@@ -85,7 +91,9 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
     nearby(): PointSnap[] {
         const snaps: PointSnap[] = [];
-        const ids = this._nearby.intersectObjects([this.pointPickerInfo!.points, this.snaps.points]);
+        const pointss = [this.pointPickerInfo!.points.clone(), this.snaps.points.clone()];
+        pointss.map(points => points.material = nearbyMaterial);
+        const ids = this._nearby.intersectObjects(pointss);
         for (const id of ids) {
             const [type, index] = SnapGPUPickingAdapter.encoder.decode(id)!;
             const snap = (type == 'manager') ? this.snaps.all[index] : this.pointPickerSnaps[index];
@@ -195,20 +203,18 @@ function makePickers(snaps: Snap[], name: (index: number) => number): PickerInfo
             throw new Error("Invalid snap");
         }
     }
-    const pointsGeometry = PointsVertexColorMaterial.make(pointInfo);
-    const pointsMaterial = new PointsVertexColorMaterial({ size: 35, polygonOffset: true, polygonOffsetFactor: 0, polygonOffsetUnits: 0 });
+    const pointsGeometry = PointsVertexColorMaterial.geometry(pointInfo);
     disposable.add(new Disposable(() => {
         pointsGeometry.dispose();
-        pointsMaterial.dispose();
     }));
-    const points = new THREE.Points(pointsGeometry, pointsMaterial);
+    const points = new THREE.Points(pointsGeometry, snapPointsMaterial);
 
     const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
     disposable.add(new Disposable(() => {
         lineGeometry.dispose();
     }))
     // @ts-expect-error
-    const lines = new LineSegments2(lineGeometry, vertexColorLineMaterial);
+    const lines = new LineSegments2(lineGeometry, snapAxisMaterial);
 
     lines.renderOrder = visual.RenderOrder.SnapLines;
     points.renderOrder = visual.RenderOrder.SnapPoints;
@@ -251,7 +257,7 @@ class NearbySnapGPUicker {
 
         try {
             renderer.setRenderTarget(nearbyTarget);
-            // nearbyTarget.depthTexture = pickingTarget.depthTexture;
+            nearbyTarget.depthTexture = pickingTarget.depthTexture;
             renderer.autoClearDepth = false;
             camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, x_dom, y_dom, radius * 2 * dpr, radius * 2 * dpr); // takes DOM coordinates
             renderer.render(scene, camera);
@@ -286,4 +292,20 @@ class NearbySnapGPUicker {
     }
 }
 
-const vertexColorLineMaterial = new LineVertexColorMaterial({ depthWrite: true });
+/**
+ * The stencil writing is complicated so here is context. Normal rendering would lead to lines (e.g., from edges) writing over points
+ * (like midpoints and endpoints for those lines). Both points and lines have a "thickness" that extends their z-value over several pixels;
+ * in practice when a line is at an angle to the camera, both points and lines are like a deck of cards spread out, |||||||||, so the point 
+ * (one card) is hidden by the line's cards that come right before and after. The click-target for the point is thus tiny.
+ * 
+ * So, what we do instead is render points before lines, enabling the stencil buffer where points are written. This is then used as a mask
+ * for the line, so a line never writes on top of a point. Z-buffering is thus turned off for line-point interactions. Z-buffering is still
+ * turned on between lines and faces and between points and faces.
+ */
+const pointsAlwaysWinOverLines = 1;
+const snapPointsMaterial = new PointsVertexColorMaterial({ size: pointSnapSize, stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc, stencilRef: pointsAlwaysWinOverLines, stencilZPass: THREE.ReplaceStencilOp });
+const snapAxisMaterial = new LineVertexColorMaterial({ linewidth: axisSnapLineWidth, stencilWrite: true, stencilFunc: THREE.NotEqualStencilFunc, stencilRef: pointsAlwaysWinOverLines });
+const nearbyCalculationShouldClobberZbuffer = false;
+const nearbyMaterial = new PointsVertexColorMaterial({ size: nearbySnapSize, depthWrite: nearbyCalculationShouldClobberZbuffer });
+
+console.log(snapAxisMaterial.stencilWrite);

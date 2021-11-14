@@ -47,7 +47,7 @@ export class VertexColorMaterial extends THREE.ShaderMaterial {
 export const vertexColorMaterial = new VertexColorMaterial({ polygonOffset: true, polygonOffsetFactor: 10, polygonOffsetUnits: 1 });
 
 export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
-    static make(points: [number, THREE.Vector3][]) {
+    static geometry(points: [number, THREE.Vector3][]) {
         const positions = new Float32Array(points.length * 3);
         const colors = new Uint32Array(points.length);
         for (const [i, [id, point]] of points.entries()) {
@@ -64,7 +64,7 @@ export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
         return geometry;
     }
 
-    constructor(parameters: THREE.PointsMaterialParameters = { size: 30, polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -1 }) {
+    constructor(parameters: THREE.PointsMaterialParameters = { size: 30 }) {
         super({
             ...parameters,
             vertexShader: `

@@ -608,7 +608,7 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
         let { lines } = this;
         if (lines.length === 0) {
             const group = new THREE.Group();
-            // FIXME ensure gc
+            // FIXME: ensure gc
             const line = new LineSegments2(new LineSegmentsGeometry(), new LineMaterial())
             const occluded = new LineSegments2(new LineSegmentsGeometry(), new LineMaterial());
             group.add(line, occluded);
@@ -666,7 +666,7 @@ export const RenderOrder = {
     Face: 10,
     CurveSegment: 20,
     SnapPoints: 30,
-    SnapLines: 20, // not sure what this should be yet
+    SnapLines: 40,
     SnapNearbyIndicator: 40
 }
 
