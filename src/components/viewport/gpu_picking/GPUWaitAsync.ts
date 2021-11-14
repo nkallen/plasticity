@@ -1,7 +1,7 @@
-// FIXME use this
+import * as THREE from "three";
 
 // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices
-function clientWaitAsync(gl: any, sync: any, flags: any, interval_ms: number) {
+export function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: GLbitfield, interval_ms: number) {
     return new Promise<void>((resolve, reject) => {
         function test() {
             const res = gl.clientWaitSync(sync, flags, 0);
@@ -20,8 +20,10 @@ function clientWaitAsync(gl: any, sync: any, flags: any, interval_ms: number) {
 }
 
 async function getBufferSubDataAsync(
-    gl: any, target: any, buffer: any, srcByteOffset: any, dstBuffer: any, dstOffset?: number, length?: number) {
+    gl: WebGL2RenderingContext, target: GLenum, buffer: WebGLBuffer, srcByteOffset: GLintptr, dstBuffer: ArrayBufferView, dstOffset?: number, length?: number) {
     const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+    if (sync === null) return Promise.reject("SYNC_GPU_COMMANDS_COMPLETE failed");
+
     gl.flush();
 
     await clientWaitAsync(gl, sync, 0, 10);
@@ -34,8 +36,10 @@ async function getBufferSubDataAsync(
     return dstBuffer;
 }
 
-async function readPixelsAsync(gl: any, x: any, y: any, w: any, h: any, format: any, type: any, dest: any) {
+export async function readPixelsAsync(gl: WebGL2RenderingContext, x: number, y: number, w: number, h: number, format: GLenum, type: GLenum, dest: ArrayBufferView) {
     const buf = gl.createBuffer();
+    if (buf === null) return Promise.reject("could not create buffer");
+
     gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
     gl.bufferData(gl.PIXEL_PACK_BUFFER, dest.byteLength, gl.STREAM_READ);
     gl.readPixels(x, y, w, h, format, type, 0);
@@ -45,4 +49,18 @@ async function readPixelsAsync(gl: any, x: any, y: any, w: any, h: any, format: 
 
     gl.deleteBuffer(buf);
     return dest;
+}
+
+export async function readRenderTargetPixelsAsync(renderer: THREE.WebGLRenderer, renderTarget: THREE.WebGLRenderTarget, x: number, y: number, w: number, h: number, dest: ArrayBufferView) {
+    const gl = renderer.getContext() as WebGL2RenderingContext;
+    const framebuffer = renderer.properties.get(renderTarget).__webglFramebuffer;
+    try {
+        renderer.state.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        return readPixelsAsync(gl, 0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, dest);
+    } finally {
+        // restore framebuffer of current render target if necessary
+        const currentRenderTarget = renderer.getRenderTarget();
+        const framebuffer = (currentRenderTarget !== null) ? renderer.properties.get(currentRenderTarget).__webglFramebuffer : null;
+        renderer.state.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    }
 }

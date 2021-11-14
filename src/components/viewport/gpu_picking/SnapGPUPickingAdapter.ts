@@ -11,6 +11,7 @@ import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
 import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial } from "./GPUPickingMaterial";
+import { readRenderTargetPixelsAsync } from "./GPUWaitAsync";
 
 export class SnapIdEncoder {
     encode(type: 'manager' | 'point-picker', index: number) {
@@ -38,7 +39,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
     private managerSnaps: Snap[] = [];
     private pointPickerSnaps: Snap[] = [];
     private pickers: THREE.Object3D[] = [];
-    private readonly _nearby = new NearbySnapGPUicker(50, this.viewport.picker.pickingTarget, this.viewport);
+    private readonly _nearby = new NearbySnapGPUicker(100, this.viewport.picker.pickingTarget, this.viewport);
 
     static encoder = process.env.NODE_ENV == 'development' ? new DebugSnapIdEncoder() : new SnapIdEncoder();
 
@@ -217,17 +218,17 @@ class NearbySnapGPUicker {
             renderer.autoClearDepth = false;
             camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, x_dom, y_dom, radius * 2 * dpr, radius * 2 * dpr); // takes DOM coordinates
             renderer.render(scene, camera);
+            performance.mark('begin-nearby-snap-read-render-target-pixels')
+            readRenderTargetPixelsAsync(renderer, nearbyTarget, 0, 0, radius * 2 * dpr, radius * 2 * dpr, nearbyBuffer).then(result => {
+                performance.measure('nearby-snap-read-render-target-pixels', 'begin-nearby-snap-read-render-target-pixels');
+            });
         } finally {
             renderer.setRenderTarget(oldRenderTarget);
             renderer.autoClearDepth = oldAutoClearDepth;
             camera.clearViewOffset();
         }
 
-        renderer.readRenderTargetPixels(nearbyTarget, 0, 0, radius * 2 * dpr, radius * 2 * dpr, nearbyBuffer); // takes WebGL coordinates
         const ids = new Uint32Array(nearbyBuffer.buffer);
-
-        // new DebugRenderTarget(nearbyTarget, this.viewport).render();
-
         const set = new Set<number>();
         for (const id of ids) set.add(id); // NOTE: this is significantly faster than new Set(ids) for some reason;
         set.delete(0);
@@ -243,6 +244,7 @@ class NearbySnapGPUicker {
     }
 
     get dpr() {
+        // return 1;
         return this.viewport.renderer.getPixelRatio();
     }
 }
