@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
-import { SnapGPUPickingAdapter } from "../components/viewport/gpu_picking/SnapGPUPickingAdapter";
+import { SnapGPUPickingAdapter, SnapManagerGeometryCache } from "../components/viewport/gpu_picking/SnapGPUPickingAdapter";
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
@@ -417,6 +417,10 @@ export class PointPicker {
             const helpers = new THREE.Scene();
 
             let info: SnapInfo | undefined = undefined;
+            console.time();
+            const snapCache = new SnapManagerGeometryCache(editor.snaps);
+            console.timeEnd();
+            disposables.add(new Disposable(() => snapCache.dispose));
 
             for (const viewport of this.editor.viewports) {
                 viewport.disableControls(viewport.navigationControls);
@@ -428,7 +432,8 @@ export class PointPicker {
                     () => isNavigating = false));
 
                 const { camera, renderer: { domElement } } = viewport;
-                const picker = new SnapGPUPickingAdapter(viewport, editor.snaps, this.model, editor.db);
+                const picker = new SnapGPUPickingAdapter(viewport, snapCache, this.model, editor.db);
+                disposables.add(new Disposable(() => picker.dispose()));
 
                 viewport.additionalHelpers.add(helpers);
                 disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));

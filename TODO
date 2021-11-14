@@ -2,21 +2,23 @@ TODO:
 
 make point and line size configured
 
+make size of points/lines correct (eg 1px for nearby)
 ctrl click to turn off
 nearby
 choice
-control to disable
 xray/non xray
+
 Get highlighed faces and edges to work
 get region, curve, and point selection to work
+verify Fillet hidden edge shown
+Test SelectionBox
+
 box selection left
 box selection right
 Get temporary objects to work
 unit Test FaceGroupBuilder
 unit Test CurveEdgeGroupBuilder
 unit Test GPU*
-verify Fillet hidden edge shown
 verify vertexcolorMaterial/LineVertexColorMaterial statics
-Test SelectionBox
 See if we can get rid of get child() in visualmodel
 Helper for center (of arc) point snap

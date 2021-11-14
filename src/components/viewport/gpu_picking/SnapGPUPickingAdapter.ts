@@ -1,4 +1,4 @@
-import { CompositeDisposable } from "event-kit";
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { Model as PointPicker } from "../../../commands/PointPicker";
@@ -36,14 +36,15 @@ export class DebugSnapIdEncoder extends SnapIdEncoder {
 }
 
 export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
-    private managerSnaps: Snap[] = [];
+    dispose() { this.pointPickerInfo?.dispose() }
+
     private pointPickerSnaps: Snap[] = [];
     private pickers: THREE.Object3D[] = [];
     private readonly _nearby = new NearbySnapGPUicker(100, this.viewport.picker.pickingTarget, this.viewport);
 
     static encoder = process.env.NODE_ENV == 'development' ? new DebugSnapIdEncoder() : new SnapIdEncoder();
 
-    constructor(private readonly viewport: Viewport, private readonly snaps: SnapManager, private readonly pointPicker: PointPicker, private readonly db: DatabaseLike) {
+    constructor(private readonly viewport: Viewport, private readonly snaps: SnapManagerGeometryCache, private readonly pointPicker: PointPicker, private readonly db: DatabaseLike) {
         this.update();
     }
 
@@ -75,7 +76,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
                 snap = this.intersectable2snap(intersectable);
             } else {
                 const [type, index] = SnapGPUPickingAdapter.encoder.decode(id)!;
-                snap = (type == 'manager') ? this.managerSnaps[index] : this.pointPickerSnaps[index];
+                snap = (type == 'manager') ? this.snaps.all[index] : this.pointPickerSnaps[index];
             }
         }
         const { position: precisePosition, orientation } = snap.project(approximatePosition);
@@ -84,10 +85,10 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
     nearby(): PointSnap[] {
         const snaps: PointSnap[] = [];
-        const ids = this._nearby.intersectObjects(this.points);
+        const ids = this._nearby.intersectObjects([this.pointPickerInfo!.points, this.snaps.points]);
         for (const id of ids) {
             const [type, index] = SnapGPUPickingAdapter.encoder.decode(id)!;
-            const snap = (type == 'manager') ? this.managerSnaps[index] : this.pointPickerSnaps[index];
+            const snap = (type == 'manager') ? this.snaps.all[index] : this.pointPickerSnaps[index];
             if (!(snap instanceof PointSnap)) throw new Error("validation error");
             snaps.push(snap);
         }
@@ -109,74 +110,110 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         }
     }
 
+    private pointPickerInfo?: PickerInfo;
     private update() {
-        const { pointPicker } = this;
+        const { pointPicker, snaps } = this;
+        this.pointPickerInfo?.dispose();
+
         this.pickers = [];
         const restrictions = pointPicker.restrictionSnaps;
         if (restrictions.length > 0) {
-            const pickers = this.makePickers(restrictions, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
-            this.pickers.push(...pickers);
+            const info = makePickers(restrictions, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
+            this.pointPickerInfo = info;
+            this.pickers.push(info.lines, info.points, ...info.planes);
         } else {
-            this.manager();
-            this.model();
+            const info = this.model();
+            this.pointPickerInfo = info;
+            this.pickers.push(info.lines, info.points, ...info.planes);
+            this.pickers.push(snaps.lines, snaps.points, ...snaps.planes);
             this.pickers.push(...this.db.visibleObjects.map(o => o.picker));
         }
         this.viewport.picker.update(this.pickers);
-    }
-
-    // FIXME: only run when the scene graph changes; thus need a persistent cache object
-    manager() {
-        const { snaps } = this;
-        this.managerSnaps = snaps.all;
-        const pickers = this.makePickers(this.managerSnaps, i => SnapGPUPickingAdapter.encoder.encode('manager', i));
-        this.pickers.push(...pickers);
     }
 
     model() {
         const { pointPicker } = this;
         const additional = pointPicker.snaps;
         this.pointPickerSnaps = additional;
-        const pickers = this.makePickers(this.pointPickerSnaps, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
-        this.pickers.push(...pickers);
+        return makePickers(this.pointPickerSnaps, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
+    }
+}
+
+export class SnapManagerGeometryCache implements PickerInfo {
+    dispose() { this.info?.dispose() }
+
+    all!: Snap[];
+    private info?: PickerInfo;
+
+    get lines() { return this.info!.lines }
+    get points() { return this.info!.points }
+    get planes() { return this.info!.planes }
+
+    constructor(private readonly snaps: SnapManager) {
+        this.update();
     }
 
-    private makePickers(snaps: Snap[], name: (index: number) => number) {
-        const points: [number, THREE.Vector3][] = [];
-        const axes: { position: Float32Array; userData: { index: number; }; }[] = [];
-        const planes: THREE.Mesh[] = [];
-        const p = new THREE.Vector3;
-        for (const [i, snap] of snaps.entries()) {
-            const id = name(i);
-            if (snap instanceof PointSnap) {
-                points.push([id, snap.position]);
-            } else if (snap instanceof AxisSnap) {
-                p.copy(snap.n).multiplyScalar(100).add(snap.o);
-                const position = new Float32Array([snap.o.x, snap.o.y, snap.o.z, p.x, p.y, p.z]);
-                axes.push({ position, userData: { index: id } });
-            } else if (snap instanceof ConstructionPlaneSnap) {
-                const geo = PlaneSnap.geometry;
-                // FIXME: dispose of material
-                const mesh = new THREE.Mesh(geo, new IdMaterial(id));
-                planes.push(mesh);
-            } else {
-                console.error(snap.constructor.name);
-                throw new Error("Invalid snap");
-            }
+    private update() {
+        const { snaps, info } = this;
+        info?.dispose();
+
+        this.all = snaps.all;
+        this.info = makePickers(this.all, i => SnapGPUPickingAdapter.encoder.encode('manager', i));
+    }
+
+}
+
+interface PickerInfo {
+    points: THREE.Points<THREE.BufferGeometry, PointsVertexColorMaterial>;
+    lines: LineSegments2;
+    planes: THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>[];
+    dispose(): void;
+};
+
+function makePickers(snaps: Snap[], name: (index: number) => number): PickerInfo {
+    const disposable = new CompositeDisposable();
+    const pointInfo: [number, THREE.Vector3][] = [];
+    const axes: { position: Float32Array; userData: { index: number; }; }[] = [];
+    const planes: THREE.Mesh[] = [];
+    const p = new THREE.Vector3;
+    for (const [i, snap] of snaps.entries()) {
+        const id = name(i);
+        if (snap instanceof PointSnap) {
+            pointInfo.push([id, snap.position]);
+        } else if (snap instanceof AxisSnap) {
+            p.copy(snap.n).multiplyScalar(10_000).add(snap.o);
+            const position = new Float32Array([snap.o.x, snap.o.y, snap.o.z, p.x, p.y, p.z]);
+            axes.push({ position, userData: { index: id } });
+        } else if (snap instanceof ConstructionPlaneSnap) {
+            const geo = PlaneSnap.geometry;
+            const mat = new IdMaterial(id);
+            disposable.add(new Disposable(() => mat.dispose()));
+            const mesh = new THREE.Mesh(geo, mat);
+            planes.push(mesh);
+        } else {
+            console.error(snap.constructor.name);
+            throw new Error("Invalid snap");
         }
-        // FIXME: dispose of geometry
-        const pointCloud = PointsVertexColorMaterial.make(points, { size: 35, polygonOffset: true, polygonOffsetFactor: 0, polygonOffsetUnits: 0 });
-        const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
-        // @ts-expect-error
-        const line = new LineSegments2(lineGeometry, vertexColorLineMaterial);
-
-        line.renderOrder = visual.RenderOrder.SnapLines;
-        pointCloud.renderOrder = visual.RenderOrder.SnapPoints;
-
-        this.points.push(pointCloud);
-
-        return [pointCloud, line, ...planes];
     }
-    private points: THREE.Points[] = [];
+    const pointsGeometry = PointsVertexColorMaterial.make(pointInfo);
+    const pointsMaterial = new PointsVertexColorMaterial({ size: 35, polygonOffset: true, polygonOffsetFactor: 0, polygonOffsetUnits: 0 });
+    disposable.add(new Disposable(() => {
+        pointsGeometry.dispose();
+        pointsMaterial.dispose();
+    }));
+    const points = new THREE.Points(pointsGeometry, pointsMaterial);
+
+    const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
+    disposable.add(new Disposable(() => {
+        lineGeometry.dispose();
+    }))
+    // @ts-expect-error
+    const lines = new LineSegments2(lineGeometry, vertexColorLineMaterial);
+
+    lines.renderOrder = visual.RenderOrder.SnapLines;
+    points.renderOrder = visual.RenderOrder.SnapPoints;
+
+    return { points, lines, planes, dispose() { disposable.dispose() } };
 }
 
 /**
@@ -200,7 +237,7 @@ class NearbySnapGPUicker {
     intersectObjects(objects: THREE.Points[]) {
         const { viewport: { renderer, camera }, scene, pickingTarget, nearbyTarget, nearbyBuffer, denormalizedScreenPoint, dpr, radius } = this;
 
-        // Draw a bounding rectangle with x,y representing upper-left. It surrounds the mouse cursor by size,size
+        // Draw a bounding rectangle with x,y representing upper-left. It surrounds the mouse cursor by radius,radius
         const x = (denormalizedScreenPoint.x - radius * dpr) | 0;
         const y = (denormalizedScreenPoint.y + radius * dpr) | 0; // WebGL screen coordinatse are 0,0 in lower-left corner
         const x_dom = x;
