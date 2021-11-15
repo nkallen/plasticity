@@ -138,6 +138,10 @@ export default {
 
     "ispace-viewport": {
         "ctrl-alt-cmd-z": "viewport:picker:show",
+
+        "numpad1": "viewport:front",
+        "numpad3": "viewport:right",
+        "numpad7": "viewport:top",
     },
 
     "body[command] ispace-viewport": {
@@ -156,10 +160,6 @@ export default {
         "@": "selection:toggle-edge",
         "#": "selection:toggle-face",
         "$": "selection:toggle-solid",
-
-        "numpad1": "viewport:front",
-        "numpad3": "viewport:right",
-        "numpad7": "viewport:top",
 
         "/": "viewport:focus",
 

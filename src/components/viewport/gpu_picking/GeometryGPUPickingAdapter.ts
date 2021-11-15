@@ -3,9 +3,9 @@ import * as THREE from "three";
 import { EditorSignals } from "../../../editor/EditorSignals";
 import { DatabaseLike } from "../../../editor/GeometryDatabase";
 import * as intersectable from "../../../editor/Intersectable";
+import LayerManager, { IntersectableLayers } from "../../../editor/LayerManager";
 import * as visual from "../../../editor/VisualModel";
 import { Viewport } from "../Viewport";
-import { GPUPicker } from "./GPUPicker";
 
 export interface GPUPickingAdapter<T> {
     setFromCamera(screenPoint: THREE.Vector2, camera: THREE.Camera): void;
@@ -57,7 +57,7 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
 
     static encoder = process.env.NODE_ENV == 'development' ? new DebugGeometryIdEncoder() : new GeometryIdEncoder();
 
-    constructor(private readonly viewport: Viewport, private readonly db: DatabaseLike, signals: EditorSignals) {
+    constructor(private readonly viewport: Viewport, private readonly layers: LayerManager, private readonly db: DatabaseLike, signals: EditorSignals) {
         this.update = this.update.bind(this);
 
         viewport.changed.add(this.update);
@@ -108,6 +108,7 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
 
     update() {
         const pickers = this.db.visibleObjects.map(o => o.picker(this.viewport.isXRay));
+        this.viewport.picker.layers.mask = this.layers.intersectable.mask;
         this.viewport.picker.update(pickers);
     }
 

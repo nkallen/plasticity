@@ -301,10 +301,6 @@ export class Presentation {
     static make(picker: SnapGPUPickingAdapter, viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
-        // FIXME:
-        // if (isOrtho) snaps.layers.disable(Layers.Face);
-        // else snaps.layers.enable(Layers.Face);
-
         const nearby = picker.nearby();
         const snappers = picker.intersect();
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane, isOrtho);
@@ -366,7 +362,7 @@ export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
     private readonly helper = new PointTarget();
 
-    // FIXME ensure passed to GPUPicker
+    // FIXME: ensure passed to GPUPicker
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Line: { threshold: 0.1 },
         Line2: { threshold: 20 },
@@ -460,7 +456,6 @@ export class PointPicker {
                     if (isNavigating) return;
 
                     if (e.key == "Control") {
-                        console.log("toggle");
                         editor.snaps.enabled = false;
                         onPointerMove(lastMoveEvent);
                     } else if (e.key == "Shift") {

@@ -4,6 +4,7 @@ import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import { Intersectable, Intersection } from '../editor/Intersectable';
+import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { SelectionInteractionManager, SelectionMode } from '../selection/SelectionInteraction';
 import { HasSelection, Selectable, SelectionManager, ToggleableSet } from '../selection/SelectionManager';
@@ -16,6 +17,7 @@ interface EditorLike {
     signals: EditorSignals;
     materials: MaterialDatabase;
     selectionInteraction: SelectionInteractionManager;
+    layers: LayerManager;
 }
 
 class MyViewportSelector extends AbstractViewportSelector {
@@ -28,7 +30,7 @@ class MyViewportSelector extends AbstractViewportSelector {
         private readonly onEmptyIntersection = () => { },
         raycasterParams: THREE.RaycasterParameters,
     ) {
-        super(viewport, editor.db, editor.signals, raycasterParams);
+        super(viewport, editor.layers, editor.db, editor.signals, raycasterParams);
         this.selection.mode.add(SelectionMode.Curve);
     }
 

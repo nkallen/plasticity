@@ -1,8 +1,9 @@
 TODO:
 
 listening to events in geometry might clobber stuff]
+- need a reserve/release feature , perhaps that has the raycaster on it
+- layers should be set when render is called; no other time is safe?
 
-1/2/3 selection mode
 layers
 get region, curve, and point selection to work
 
@@ -12,6 +13,7 @@ Test SelectionBox
 
 get rid of all snappers in snap
 vertify point drag works
+test curve fragment works (trim)
 
 box selection left
 box selection right

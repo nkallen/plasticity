@@ -152,7 +152,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
     private pointPickerInfo?: PickerInfo;
     private update() {
-        const { pointPicker, snaps, viewport } = this;
+        const { pointPicker, snaps, viewport: { isXRay, isOrtho, picker } } = this;
         this.pointPickerInfo?.dispose();
 
         this.pickers = [];
@@ -161,20 +161,23 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
             // "Choices" are handled at intersect()
         } else if (restrictions.length > 0) {
             this.pointPickerSnaps = restrictions;
-            const info = makePickers(restrictions, viewport.isXRay, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
+            const info = makePickers(restrictions, isXRay, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
             this.pointPickerInfo = info;
             this.pickers.push(info.lines, info.points, ...info.planes);
         } else {
             const additional = pointPicker.snaps;
             this.pointPickerSnaps = additional;
-            const info = makePickers(this.pointPickerSnaps, viewport.isXRay, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
+            const info = makePickers(this.pointPickerSnaps, isXRay, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
             this.pointPickerInfo = info;
             this.pickers.push(info.lines, info.points, ...info.planes);
             this.pickers.push(snaps.lines, snaps.points, ...snaps.planes);
-            const geometryPickers = this.db.visibleObjects.map(o => o.picker(viewport.isXRay));
+            const geometryPickers = this.db.visibleObjects.map(o => o.picker(isXRay));
             this.pickers.push(...geometryPickers);
         }
-        this.viewport.picker.update(this.pickers);
+
+        picker.layers.enableAll();
+        if (isOrtho) picker.layers.disable(visual.Layers.Face);
+        picker.update(this.pickers);
     }
 }
 
@@ -325,7 +328,7 @@ class NearbySnapGPUicker {
     }
 
     get dpr() {
-        // return 1; // QUESTION: can we get away with 1px?
+        // return 1; // FIXME: can we get away with 1px?
         return this.viewport.renderer.getPixelRatio();
     }
 }

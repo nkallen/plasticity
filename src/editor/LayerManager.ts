@@ -24,6 +24,9 @@ export default class LayerManager {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
+    get intersectable() { return IntersectableLayers }
+    get visible() { return VisibleLayers }
+
     constructor(private readonly selection: HasSelection, signals: EditorSignals) {
         this.controlPoints = this.controlPoints.bind(this);
         this.selectionModeChanged = this.selectionModeChanged.bind(this);
@@ -82,8 +85,11 @@ export default class LayerManager {
         if (mode.has(SelectionMode.Curve)) IntersectableLayers.enable(visual.Layers.Curve);
         if (mode.has(SelectionMode.ControlPoint)) IntersectableLayers.enable(visual.Layers.ControlPoint);
 
-        if (!mode.has(SelectionMode.Face)) IntersectableLayers.disable(visual.Layers.Face);
-        if (!mode.has(SelectionMode.CurveEdge)) IntersectableLayers.disable(visual.Layers.CurveEdge);
+
+        if (!mode.has(SelectionMode.Solid)) {
+            if (!mode.has(SelectionMode.Face)) IntersectableLayers.disable(visual.Layers.Face);
+            if (!mode.has(SelectionMode.CurveEdge)) IntersectableLayers.disable(visual.Layers.CurveEdge);
+        }
         if (!mode.has(SelectionMode.Curve)) IntersectableLayers.disable(visual.Layers.Curve);
         if (!mode.has(SelectionMode.ControlPoint)) IntersectableLayers.disable(visual.Layers.ControlPoint);
     }

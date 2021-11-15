@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] optimize hide/unhide in snapman  
 - [ ] refactor IntersectableLayers  
 - [ ] Snap points should always be before their geometry if they're visible  
 - [ ] panning and release mouse outside of window errors #bug  

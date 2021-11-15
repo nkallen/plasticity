@@ -1,7 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
-import { IntersectableLayers } from "../../../editor/LayerManager";
 import { Viewport } from "../Viewport";
 
 /**
@@ -21,6 +20,8 @@ const depthPlane = new THREE.PlaneGeometry(2, 2);
 export class GPUPicker {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
+
+    readonly layers = new THREE.Layers();
 
     static minimumEntityId = 1;
 
@@ -93,10 +94,13 @@ export class GPUPicker {
             }
         })
 
-        const { layers: oldLayers } = camera;
-        camera.layers = IntersectableLayers;
-        renderer.render(scene, camera);
-        camera.layers = oldLayers;
+        const oldLayers = this.viewport.camera.layers;
+        try {
+            camera.layers = this.layers;
+            renderer.render(scene, camera);
+        } finally {
+            this.viewport.camera.layers = oldLayers;
+        }
 
         this.depth.render();
     }

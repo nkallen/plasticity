@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import * as intersectable from "../../editor/Intersectable";
+import LayerManager from "../../editor/LayerManager";
 import { GeometryGPUPickingAdapter } from "./gpu_picking/GeometryGPUPickingAdapter";
 import { Viewport } from "./Viewport";
 
@@ -42,10 +43,11 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     private readonly normalizedMousePosition = new THREE.Vector2(); // normalized device coordinates
     private readonly onDownPosition = new THREE.Vector2(); // normalized device coordinates
 
-    private readonly picker = new GeometryGPUPickingAdapter(this.viewport, this.db, this.signals);
+    private readonly picker = new GeometryGPUPickingAdapter(this.viewport, this.layers, this.db, this.signals);
 
     constructor(
         protected readonly viewport: Viewport,
+        private readonly layers: LayerManager,
         protected readonly db: DatabaseLike,
         private readonly signals: EditorSignals,
         readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
