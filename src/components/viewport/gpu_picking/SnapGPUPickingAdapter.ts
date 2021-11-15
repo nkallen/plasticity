@@ -15,7 +15,7 @@ import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial } from "
 import { readRenderTargetPixelsAsync } from "./GPUWaitAsync";
 
 const nearbyRadius = 50; // px
-const axisSnapLineWidth = 12;
+const axisSnapLineWidth = 14;
 const pointSnapSize = 35;
 const nearbySnapSize = 1;
 
@@ -65,12 +65,18 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
     private readonly raycaster = new THREE.Raycaster();
     intersect(): SnapResult[] {
-        const intersection = this.viewport.picker.intersect();
+        const { normalizedScreenPoint, viewport, viewport: { picker, camera, isOrtho }, raycaster, pointPicker, db, pointPickerSnaps, snaps, pointPicker: { choice } } = this;
+
+        const intersection = picker.intersect();
         let snap, approximatePosition;
-        if (intersection === undefined) {
-            const constructionPlane = this.pointPicker.actualConstructionPlaneGiven(this.viewport.constructionPlane, this.viewport.isOrtho);
-            this.raycaster.setFromCamera(this.normalizedScreenPoint, this.viewport.camera);
-            const intersections = this.raycaster.intersectObject(constructionPlane.snapper);
+        raycaster.setFromCamera(normalizedScreenPoint, camera);
+        if (choice !== undefined) {
+            const position = choice.intersect(raycaster);
+            if (position === undefined) return [];
+            else return [{ snap: choice, orientation: choice.orientation, position }];
+        } if (intersection === undefined) {
+            const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, isOrtho);
+            const intersections = raycaster.intersectObject(constructionPlane.snapper);
             if (intersections.length === 0) throw new Error("Invalid condition: should always be able to intersect with construction plane");
             approximatePosition = intersections[0].point;
             snap = constructionPlane;
@@ -78,11 +84,11 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
             const { id, position: pos } = intersection;
             approximatePosition = pos;
             if (GeometryGPUPickingAdapter.encoder.parentIdMask & id) {
-                const intersectable = GeometryGPUPickingAdapter.get(id, this.db);
+                const intersectable = GeometryGPUPickingAdapter.get(id, db);
                 snap = this.intersectable2snap(intersectable);
             } else {
                 const [type, index] = SnapGPUPickingAdapter.encoder.decode(id)!;
-                snap = (type == 'manager') ? this.snaps.all[index] : this.pointPickerSnaps[index];
+                snap = (type == 'manager') ? snaps.all[index] : pointPickerSnaps[index];
             }
         }
         const { position: precisePosition, orientation } = snap.project(approximatePosition);
@@ -125,7 +131,9 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
         this.pickers = [];
         const restrictions = pointPicker.restrictionSnaps;
-        if (restrictions.length > 0) {
+        if (pointPicker.choice !== undefined) {
+            // "Choices" are handled at intersect()
+        } else if (restrictions.length > 0) {
             const info = makePickers(restrictions, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
             this.pointPickerInfo = info;
             this.pickers.push(info.lines, info.points, ...info.planes);

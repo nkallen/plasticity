@@ -122,7 +122,7 @@ export class Model {
         return new Disposable(() => this.clearKeybindingFor(...this.otherAddedSnaps, ...this.snapsForLastPickedPoint));
     }
 
-    register(domElement: HTMLElement, fn: () => void) {
+    registerKeyboardCommands(domElement: HTMLElement, fn: () => void) {
         const choose = (which: Choices) => {
             this.choose(which);
             fn();
@@ -315,24 +315,12 @@ export class Presentation {
     static make(picker: SnapGPUPickingAdapter, viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
+        // FIXME:
         if (isOrtho) snaps.layers.disable(Layers.Face);
         else snaps.layers.enable(Layers.Face);
 
-        let nearby: PointSnap[], snappers: SnapResult[];
-        const choice = model.choice;
-        if (choice !== undefined) {
-            // FIXME:
-            // const position = choice.intersect(raycaster);
-            // if (position !== undefined) snappers = [{ snap: choice, orientation: choice.orientation, position }];
-            // else snappers = [];
-            snappers = [];
-            nearby = []
-        } else {
-            const restrictions = model.restrictionsFor(constructionPlane, isOrtho);
-            // FIXME nearby
-            nearby = picker.nearby();
-            snappers = picker.intersect();
-        }
+        const nearby = picker.nearby();
+        const snappers = picker.intersect();
         const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
         const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho, presenter);
@@ -505,7 +493,7 @@ export class PointPicker {
                     }
                 }
 
-                const d = model.register(viewport.domElement, () => onPointerMove(lastMoveEvent));
+                const d = model.registerKeyboardCommands(viewport.domElement, () => onPointerMove(lastMoveEvent));
                 disposables.add(d);
 
                 domElement.addEventListener('pointermove', onPointerMove);

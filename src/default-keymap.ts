@@ -137,7 +137,7 @@ export default {
     },
 
     "ispace-viewport": {
-        "z": "viewport:picker:show",
+        "ctrl-alt-cmd-z": "viewport:picker:show",
     },
 
     "body[command] ispace-viewport": {

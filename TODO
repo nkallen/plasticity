@@ -1,10 +1,8 @@
 TODO:
 
-make size of points/lines correct (eg 1px for nearby)
 ctrl click to turn off
-nearby
-choice
 xray/non xray
+1/2/3 selection mode
 
 Get highlighed faces and edges to work
 get region, curve, and point selection to work
