@@ -62,22 +62,8 @@ export class Model {
         return result;
     }
 
-    // FIXME: rename/cleanup -- combine restrictions/snaps, remove For methods, etc.
     get restrictionSnaps(): Snap[] {
         return this._restrictionSnaps;
-    }
-
-    restrictionsFor(constructionPlane: PlaneSnap, isOrtho: boolean): Restriction[] {
-        const restrictions = [...this.restrictions];
-        this.addConstructionPlaneIfPlanarRestriction(constructionPlane, restrictions, isOrtho);
-        return restrictions;
-    }
-
-    private addConstructionPlaneIfPlanarRestriction(constructionPlane: PlaneSnap, collection: Snap[] | Restriction[], isOrtho: boolean) {
-        if (this.restrictionPlane !== undefined || this.restrictionPoint !== undefined || this.restrictToConstructionPlane) {
-            constructionPlane = this.actualConstructionPlaneGiven(constructionPlane, isOrtho);
-            collection.push(constructionPlane);
-        }
     }
 
     actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap, isOrtho: boolean) {

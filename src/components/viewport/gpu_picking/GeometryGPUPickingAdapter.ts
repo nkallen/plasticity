@@ -60,7 +60,6 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
     constructor(private readonly viewport: Viewport, private readonly db: DatabaseLike, signals: EditorSignals) {
         this.update = this.update.bind(this);
 
-        console.trace("here");
         viewport.changed.add(this.update);
         signals.sceneGraphChanged.add(this.update);
         signals.historyChanged.add(this.update);
