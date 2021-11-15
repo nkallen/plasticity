@@ -10,7 +10,6 @@ import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
-import { DebugRenderTarget } from "./GPUPicker";
 import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial } from "./GPUPickingMaterial";
 import { readRenderTargetPixelsAsync } from "./GPUWaitAsync";
 
@@ -63,39 +62,60 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         this.raycaster.layers.enableAll();
     }
 
+
     private readonly raycaster = new THREE.Raycaster();
     intersect(): SnapResult[] {
-        const { normalizedScreenPoint, viewport, viewport: { picker, camera, isOrtho }, raycaster, pointPicker, db, pointPickerSnaps, snaps, pointPicker: { choice } } = this;
+        const {  viewport: { picker }, pointPicker: { choice }, snaps } = this;
+
+        if (!snaps.enabled) return this.intersectConstructionPlane();
 
         const intersection = picker.intersect();
-        let snap, approximatePosition;
+        if (choice !== undefined) return this.intersectChoice(choice);
+        if (intersection === undefined) return this.intersectConstructionPlane();
+        else return this.intersectSnaps(intersection);
+    }
+
+    private intersectConstructionPlane(): SnapResult[] {
+        const { normalizedScreenPoint, viewport, viewport: { picker, camera, isOrtho }, raycaster, pointPicker, db, pointPickerSnaps, snaps, pointPicker: { choice } } = this;
+
         raycaster.setFromCamera(normalizedScreenPoint, camera);
-        if (choice !== undefined) {
-            const position = choice.intersect(raycaster);
-            if (position === undefined) return [];
-            else return [{ snap: choice, orientation: choice.orientation, position }];
-        } if (intersection === undefined) {
-            const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, isOrtho);
-            const intersections = raycaster.intersectObject(constructionPlane.snapper);
-            if (intersections.length === 0) throw new Error("Invalid condition: should always be able to intersect with construction plane");
-            approximatePosition = intersections[0].point;
-            snap = constructionPlane;
+        const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, isOrtho);
+        const intersections = raycaster.intersectObject(constructionPlane.snapper);
+        if (intersections.length === 0) throw new Error("Invalid condition: should always be able to intersect with construction plane");
+        const approximatePosition = intersections[0].point;
+        const snap = constructionPlane;
+        const { position: precisePosition, orientation } = snap.project(approximatePosition);
+        return [{ snap, position: precisePosition, orientation }];
+    }
+
+    private intersectChoice(choice: AxisSnap): SnapResult[] {
+        const { normalizedScreenPoint, viewport: { camera }, raycaster} = this;
+
+        raycaster.setFromCamera(normalizedScreenPoint, camera);
+        const position = choice.intersect(raycaster);
+        if (position === undefined) return [];
+        else return [{ snap: choice!, orientation: choice.orientation, position }];
+    }
+
+    private intersectSnaps(intersection: { id: number, position: THREE.Vector3 }): SnapResult[] {
+        const { db, pointPickerSnaps, snaps } = this;
+        const { id, position: pos } = intersection;
+        const approximatePosition = pos;
+        let snap;
+        if (GeometryGPUPickingAdapter.encoder.parentIdMask & id) {
+            const intersectable = GeometryGPUPickingAdapter.get(id, db);
+            snap = this.intersectable2snap(intersectable);
         } else {
-            const { id, position: pos } = intersection;
-            approximatePosition = pos;
-            if (GeometryGPUPickingAdapter.encoder.parentIdMask & id) {
-                const intersectable = GeometryGPUPickingAdapter.get(id, db);
-                snap = this.intersectable2snap(intersectable);
-            } else {
-                const [type, index] = SnapGPUPickingAdapter.encoder.decode(id)!;
-                snap = (type == 'manager') ? snaps.all[index] : pointPickerSnaps[index];
-            }
+            const [type, index] = SnapGPUPickingAdapter.encoder.decode(id)!;
+            snap = (type == 'manager') ? snaps.all[index] : pointPickerSnaps[index];
         }
         const { position: precisePosition, orientation } = snap.project(approximatePosition);
         return [{ snap, position: precisePosition, orientation }];
     }
 
     nearby(): PointSnap[] {
+        if (!this.snaps.enabled) return [];
+
         const snaps: PointSnap[] = [];
         const pointss = [this.pointPickerInfo!.points.clone(), this.snaps.points.clone()];
         pointss.map(points => points.material = nearbyMaterial);
@@ -164,6 +184,8 @@ export class SnapManagerGeometryCache implements PickerInfo {
     get lines() { return this.info!.lines }
     get points() { return this.info!.points }
     get planes() { return this.info!.planes }
+
+    get enabled() { return this.snaps.enabled }
 
     constructor(private readonly snaps: SnapManager) {
         this.update();
@@ -309,11 +331,12 @@ class NearbySnapGPUicker {
  * So, what we do instead is render points before lines, enabling the stencil buffer where points are written. This is then used as a mask
  * for the line, so a line never writes on top of a point. Z-buffering is thus turned off for line-point interactions. Z-buffering is still
  * turned on between lines and faces and between points and faces.
+ * 
+ * NOTE: A better approach would be to bind the depth buffer in the vertex shader and "occlusion" cull there
+ * 
  */
 const pointsAlwaysWinOverLines = 1;
 const snapPointsMaterial = new PointsVertexColorMaterial({ size: pointSnapSize, stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc, stencilRef: pointsAlwaysWinOverLines, stencilZPass: THREE.ReplaceStencilOp });
 const snapAxisMaterial = new LineVertexColorMaterial({ linewidth: axisSnapLineWidth, stencilWrite: true, stencilFunc: THREE.NotEqualStencilFunc, stencilRef: pointsAlwaysWinOverLines });
 const nearbyCalculationShouldClobberZbuffer = false;
 const nearbyMaterial = new PointsVertexColorMaterial({ size: nearbySnapSize, depthWrite: nearbyCalculationShouldClobberZbuffer });
-
-console.log(snapAxisMaterial.stencilWrite);

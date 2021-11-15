@@ -316,8 +316,8 @@ export class Presentation {
         const { constructionPlane, isOrtho } = viewport;
 
         // FIXME:
-        if (isOrtho) snaps.layers.disable(Layers.Face);
-        else snaps.layers.enable(Layers.Face);
+        // if (isOrtho) snaps.layers.disable(Layers.Face);
+        // else snaps.layers.enable(Layers.Face);
 
         const nearby = picker.nearby();
         const snappers = picker.intersect();
@@ -474,7 +474,8 @@ export class PointPicker {
                     if (isNavigating) return;
 
                     if (e.key == "Control") {
-                        editor.snaps.toggle();
+                        console.log("toggle");
+                        editor.snaps.enabled = false;
                         onPointerMove(lastMoveEvent);
                     } else if (e.key == "Shift") {
                         this.model.choose(lastSnap);
@@ -485,7 +486,7 @@ export class PointPicker {
                     if (isNavigating) return;
 
                     if (e.key == "Control") {
-                        editor.snaps.toggle();
+                        editor.snaps.enabled = true;
                         onPointerMove(lastMoveEvent);
                     } else if (e.key == "Shift") {
                         this.model.choice = undefined;

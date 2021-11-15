@@ -1,13 +1,12 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { GPUPicker } from "../../components/viewport/gpu_picking/GPUPicker";
 import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../VisualModel';
-import { AxisSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Restriction, Snap } from "./Snap";
+import { AxisSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
 
 export interface SnapResult {
     snap: Snap;
@@ -16,17 +15,9 @@ export interface SnapResult {
 }
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
-    isEnabled = true;
-    private isToggled = false;
-
+    enabled = true;
     private readonly basicSnaps = new Set<Snap>();
-
     private readonly id2snaps = new Map<c3d.SimpleName, Set<Snap>>();
-
-    private nearbys: THREE.Object3D[] = []; // visual objects indicating nearby snap points
-    private snappers: THREE.Object3D[] = []; // actual snap points
-
-    readonly layers = new THREE.Layers();
 
     constructor(
         private readonly db: DatabaseLike,
@@ -47,78 +38,12 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         });
         signals.objectUnhidden.add(item => this.add(item));
         signals.objectHidden.add(item => this.delete(item));
-
-        this.layers.enableAll();
-
-        this.refresh();
-    }
-
-    // FIXME should nearbys only be points?
-    nearby(picker: GPUPicker, additional: Snap[] = [], restrictions: Restriction[] = []): SnapResult[] {
-        if (!this.shouldSnap) return [];
-        performance.mark('begin-nearby');
-
-        const additionalNearbys = [];
-        for (const a of additional) if (a.nearby !== undefined) additionalNearbys.push(a.nearby);
-        const nearbys = [...this.nearbys, ...additionalNearbys];
-
-        picker.layers = this.layers;
-        // const intersections = picker.intersectObjects(nearbys);
-        return []; // FIXME
-        // const result = [];
-        // for (const intersection of intersections) {
-        //     if (!this.satisfiesRestrictions(intersection.object.position, restrictions)) continue;
-        //     const snap = intersection.object.userData.snap as Snap;
-        //     const { position, orientation } = snap.project(intersection);
-        //     result.push({ snap, position, orientation });
-        // }
-        // performance.measure('nearby', 'begin-nearby');
-        // return result;
-    }
-
-    snap(picker: GPUPicker, additional: Snap[] = [], restrictionSnaps: Snap[] = [], restrictions: Restriction[] = [], isXRay: boolean = true): SnapResult[] {
-        performance.mark('begin-snap');
-        // NOTE: restriction snaps, including the construction plane, are always snappable
-        let snappers = restrictionSnaps.map(a => a.snapper);
-        if (this.shouldSnap) {
-            snappers = snappers.concat([...this.snappers, ...additional.map(a => a.snapper)]);
-        }
-        snappers = [...new Set(snappers)];
-
-        picker.layers = this.layers;
-        const snapperIntersections = picker.intersect();
-        const result: SnapResult[] = [];
-        return result;
-
-        // for (const intersection of snapperIntersections) {
-        //     const snap = intersection.object.userData.snap as Snap;
-        //     const { position, orientation } = snap.project(intersection);
-        //     if (!this.satisfiesRestrictions(position, restrictions)) continue;
-        //     result.push({ snap, position, orientation });
-        // }
-        // performance.measure('snap', 'begin-snap');
-        return result;
-    }
-
-    private satisfiesRestrictions(point: THREE.Vector3, restrictions: Restriction[]): boolean {
-        for (const restriction of restrictions) {
-            if (!restriction.isValid(point)) return false;
-        }
-        return true;
     }
 
     get all() {
         let all = [...this.basicSnaps, ...this.crossSnaps];
         for (const snaps of this.id2snaps.values()) all = all.concat([...snaps]);
         return all;
-    }
-
-    private refresh() {
-        const all = this.all;
-        performance.mark('begin-snap-update');
-        this.nearbys = all.map((s) => s.nearby).filter(x => !!x) as THREE.Object3D[];
-        this.snappers = all.map((s) => s.snapper);
-        performance.measure('snap-update', 'begin-snap-update');
     }
 
     get crossSnaps(): CrossPointSnap[] {
@@ -153,7 +78,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         }
 
         performance.measure('snap-add', 'begin-snap-add');
-        this.refresh();
     }
 
     private addFace(face: visual.Face, model: c3d.Face, into: Set<Snap>) {
@@ -257,16 +181,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     private delete(item: visual.Item): void {
         this.id2snaps.delete(item.simpleName);
         if (item instanceof visual.SpaceInstance) this.crosses.remove(item.simpleName);
-        this.refresh();
-    }
-
-    toggle() {
-        this.isToggled = !this.isToggled;
-    }
-
-    private get shouldSnap() {
-        const { isEnabled, isToggled } = this;
-        return (isEnabled && !isToggled) || (!isEnabled && isToggled);
     }
 
     saveToMemento(): SnapMemento {
@@ -275,7 +189,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     restoreFromMemento(m: SnapMemento) {
         (this.id2snaps as SnapManager['id2snaps']) = m.id2snaps;
-        this.refresh();
     }
 
     serialize(): Promise<Buffer> {

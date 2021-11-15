@@ -1779,12 +1779,12 @@ export class BridgeCurvesCommand extends Command {
         const factory = new BridgeCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selected = this.editor.selection.selected;
 
-        const mask = this.editor.snaps.layers.mask;
-        this.editor.snaps.layers.disableAll();
-        this.editor.snaps.layers.enable(Layers.Curve);
-        this.editor.snaps.layers.enable(Layers.Plane);
-        this.editor.snaps.layers.enable(Layers.CurvePoint);
-        this.ensure(() => this.editor.snaps.layers.mask = mask);
+        // const mask = this.editor.snaps.layers.mask;
+        // this.editor.snaps.layers.disableAll();
+        // this.editor.snaps.layers.enable(Layers.Curve);
+        // this.editor.snaps.layers.enable(Layers.Plane);
+        // this.editor.snaps.layers.enable(Layers.CurvePoint);
+        // this.ensure(() => this.editor.snaps.layers.mask = mask);
 
         const dialog = new BridgeCurvesDialog(factory, this.editor.signals);
         dialog.execute(params => {
