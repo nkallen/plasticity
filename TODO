@@ -1,14 +1,16 @@
 TODO:
 
-xray/non xray
+listening to events in geometry might clobber stuff]
+
 1/2/3 selection mode
 layers
+get region, curve, and point selection to work
 
 Get highlighed faces and edges to work
-get region, curve, and point selection to work
 verify Fillet hidden edge shown
 Test SelectionBox
 
+get rid of all snappers in snap
 vertify point drag works
 
 box selection left

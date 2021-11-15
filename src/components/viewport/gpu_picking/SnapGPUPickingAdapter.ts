@@ -41,7 +41,8 @@ export class DebugSnapIdEncoder extends SnapIdEncoder {
 }
 
 export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
-    dispose() { this.pointPickerInfo?.dispose() }
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
 
     private pointPickerSnaps: Snap[] = [];
     private pickers: THREE.Object3D[] = [];
@@ -50,7 +51,13 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
     static encoder = process.env.NODE_ENV == 'development' ? new DebugSnapIdEncoder() : new SnapIdEncoder();
 
     constructor(private readonly viewport: Viewport, private readonly snaps: SnapManagerGeometryCache, private readonly pointPicker: PointPicker, private readonly db: DatabaseLike) {
+        this.update = this.update.bind(this);
+        viewport.changed.add(this.update);
+        this.disposable.add(new Disposable(() => {
+            viewport.changed.remove(this.update);
+        }));
         this.update();
+        this.disposable.add(new Disposable(() => { this.pointPickerInfo?.dispose() }));
     }
 
     private readonly normalizedScreenPoint = new THREE.Vector2();
@@ -61,7 +68,6 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         this._nearby.setFromCamera(normalizedScreenPoint, camera);
         this.raycaster.layers.enableAll();
     }
-
 
     private readonly raycaster = new THREE.Raycaster();
     intersect(): SnapResult[] {
@@ -146,7 +152,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
     private pointPickerInfo?: PickerInfo;
     private update() {
-        const { pointPicker, snaps } = this;
+        const { pointPicker, snaps, viewport } = this;
         this.pointPickerInfo?.dispose();
 
         this.pickers = [];
@@ -155,17 +161,18 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
             // "Choices" are handled at intersect()
         } else if (restrictions.length > 0) {
             this.pointPickerSnaps = restrictions;
-            const info = makePickers(restrictions, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
+            const info = makePickers(restrictions, viewport.isXRay, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
             this.pointPickerInfo = info;
             this.pickers.push(info.lines, info.points, ...info.planes);
         } else {
             const additional = pointPicker.snaps;
             this.pointPickerSnaps = additional;
-            const info = makePickers(this.pointPickerSnaps, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
+            const info = makePickers(this.pointPickerSnaps, viewport.isXRay, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
             this.pointPickerInfo = info;
             this.pickers.push(info.lines, info.points, ...info.planes);
             this.pickers.push(snaps.lines, snaps.points, ...snaps.planes);
-            this.pickers.push(...this.db.visibleObjects.map(o => o.picker));
+            const geometryPickers = this.db.visibleObjects.map(o => o.picker(viewport.isXRay));
+            this.pickers.push(...geometryPickers);
         }
         this.viewport.picker.update(this.pickers);
     }
@@ -192,7 +199,8 @@ export class SnapManagerGeometryCache implements PickerInfo {
         info?.dispose();
 
         this.all = snaps.all;
-        this.info = makePickers(this.all, i => SnapGPUPickingAdapter.encoder.encode('manager', i));
+        // FIXME: isXray is viewport specific ...
+        this.info = makePickers(this.all, true, i => SnapGPUPickingAdapter.encoder.encode('manager', i));
     }
 
 }
@@ -204,7 +212,7 @@ interface PickerInfo {
     dispose(): void;
 };
 
-function makePickers(snaps: Snap[], name: (index: number) => number): PickerInfo {
+function makePickers(snaps: Snap[], isXRay: boolean, name: (index: number) => number): PickerInfo {
     const disposable = new CompositeDisposable();
     const pointInfo: [number, THREE.Vector3][] = [];
     const axes: { position: Float32Array; userData: { index: number; }; }[] = [];
@@ -238,17 +246,16 @@ function makePickers(snaps: Snap[], name: (index: number) => number): PickerInfo
     disposable.add(new Disposable(() => {
         pointsGeometry.dispose();
     }));
-    const points = new THREE.Points(pointsGeometry, snapPointsMaterial);
+    const points = new THREE.Points(pointsGeometry, isXRay ? snapPointsXRayMaterial : snapPointsMaterial);
 
     const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
     disposable.add(new Disposable(() => {
         lineGeometry.dispose();
     }))
-    // @ts-expect-error
-    const lines = new LineSegments2(lineGeometry, snapAxisMaterial);
+    const lines = new LineSegments2(lineGeometry, isXRay ? snapAxisMaterialXRayMaterial : snapAxisMaterial);
 
-    lines.renderOrder = visual.RenderOrder.SnapLines;
-    points.renderOrder = visual.RenderOrder.SnapPoints;
+    lines.renderOrder = lines.material.userData.renderOrder;
+    points.renderOrder = lines.material.userData.renderOrder;
 
     return { points, lines, planes, dispose() { disposable.dispose() } };
 }
@@ -318,26 +325,31 @@ class NearbySnapGPUicker {
     }
 
     get dpr() {
-        // return 1;
+        // return 1; // QUESTION: can we get away with 1px?
         return this.viewport.renderer.getPixelRatio();
     }
 }
 
-/**
- * The stencil writing is complicated so here is context. Normal rendering would lead to lines (e.g., from edges) writing over points
- * (like midpoints and endpoints for those lines). Both points and lines have a "thickness" that extends their z-value over several pixels;
- * in practice when a line is at an angle to the camera, both points and lines are like a deck of cards spread out, |||||||||, so the point 
- * (one card) is hidden by the line's cards that come right before and after. The click-target for the point is thus tiny.
- * 
- * So, what we do instead is render points before lines, enabling the stencil buffer where points are written. This is then used as a mask
- * for the line, so a line never writes on top of a point. Z-buffering is thus turned off for line-point interactions. Z-buffering is still
- * turned on between lines and faces and between points and faces.
- * 
- * NOTE: A better approach would be to bind the depth buffer in the vertex shader and "occlusion" cull there
- * 
- */
-const pointsAlwaysWinOverLines = 1;
-const snapPointsMaterial = new PointsVertexColorMaterial({ size: pointSnapSize, stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc, stencilRef: pointsAlwaysWinOverLines, stencilZPass: THREE.ReplaceStencilOp });
-const snapAxisMaterial = new LineVertexColorMaterial({ linewidth: axisSnapLineWidth, stencilWrite: true, stencilFunc: THREE.NotEqualStencilFunc, stencilRef: pointsAlwaysWinOverLines });
+const snapPointsMaterial = new PointsVertexColorMaterial({
+    size: pointSnapSize,
+    stencilWrite: true,
+    stencilFunc: THREE.AlwaysStencilFunc,
+    stencilRef: 1,
+    stencilZPass: THREE.ReplaceStencilOp
+});
+snapPointsMaterial.userData.renderOrder = 9; // < snapAxisMaterial.userData.renderOrder
+
+const snapAxisMaterial = new LineVertexColorMaterial({
+    linewidth: axisSnapLineWidth,
+    stencilWrite: true,
+    stencilFunc: THREE.NotEqualStencilFunc,
+    stencilRef: snapPointsMaterial.stencilRef
+});
+snapAxisMaterial.userData.renderOrder = 10;
+
+const snapPointsXRayMaterial = snapPointsMaterial.clone();
+snapPointsMaterial.userData.renderOrder = 0; // < vertexColorMaterial.userData.renderOrder
+const snapAxisMaterialXRayMaterial = snapAxisMaterial.clone();
+
 const nearbyCalculationShouldClobberZbuffer = false;
 const nearbyMaterial = new PointsVertexColorMaterial({ size: nearbySnapSize, depthWrite: nearbyCalculationShouldClobberZbuffer });

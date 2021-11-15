@@ -42,7 +42,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     private readonly normalizedMousePosition = new THREE.Vector2(); // normalized device coordinates
     private readonly onDownPosition = new THREE.Vector2(); // normalized device coordinates
 
-    private readonly picker = new GeometryGPUPickingAdapter(this.viewport.picker, this.db, this.signals);
+    private readonly picker = new GeometryGPUPickingAdapter(this.viewport, this.db, this.signals);
 
     constructor(
         protected readonly viewport: Viewport,

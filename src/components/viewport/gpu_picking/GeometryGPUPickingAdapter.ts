@@ -4,6 +4,7 @@ import { EditorSignals } from "../../../editor/EditorSignals";
 import { DatabaseLike } from "../../../editor/GeometryDatabase";
 import * as intersectable from "../../../editor/Intersectable";
 import * as visual from "../../../editor/VisualModel";
+import { Viewport } from "../Viewport";
 import { GPUPicker } from "./GPUPicker";
 
 export interface GPUPickingAdapter<T> {
@@ -56,12 +57,16 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
 
     static encoder = process.env.NODE_ENV == 'development' ? new DebugGeometryIdEncoder() : new GeometryIdEncoder();
 
-    constructor(private readonly picker: GPUPicker, private readonly db: DatabaseLike, signals: EditorSignals) {
+    constructor(private readonly viewport: Viewport, private readonly db: DatabaseLike, signals: EditorSignals) {
         this.update = this.update.bind(this);
+
+        console.trace("here");
+        viewport.changed.add(this.update);
         signals.sceneGraphChanged.add(this.update);
         signals.historyChanged.add(this.update);
         signals.commandEnded.add(this.update);
         this.disposable.add(new Disposable(() => {
+            viewport.changed.remove(this.update);
             signals.sceneGraphChanged.remove(this.update);
             signals.historyChanged.remove(this.update);
             signals.commandEnded.remove(this.update);
@@ -70,11 +75,11 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
     }
 
     setFromCamera(normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera) {
-        this.picker.setFromCamera(normalizedScreenPoint, camera);
+        this.viewport.picker.setFromCamera(normalizedScreenPoint, camera);
     }
 
     intersect(): intersectable.Intersection[] {
-        const intersection = this.picker.intersect();
+        const intersection = this.viewport.picker.intersect();
         if (intersection === undefined)
             return [];
         else
@@ -101,7 +106,7 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
     }
 
     update() {
-        this.picker.update(this.db.visibleObjects.map(o => o.picker));
+        this.viewport.picker.update(this.db.visibleObjects.map(o => o.picker(this.viewport.isXRay)));
     }
 
     static compact2full(compact: number): string {

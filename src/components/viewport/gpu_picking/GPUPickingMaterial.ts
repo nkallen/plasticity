@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { LineMaterialParameters } from "three/examples/jsm/lines/LineMaterial";
+import { LineMaterial, LineMaterialParameters } from "three/examples/jsm/lines/LineMaterial";
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import * as visual from "../../../editor/VisualModel";
@@ -43,8 +43,6 @@ export class VertexColorMaterial extends THREE.ShaderMaterial {
         });
     }
 }
-
-export const vertexColorMaterial = new VertexColorMaterial({ polygonOffset: true, polygonOffsetFactor: 10, polygonOffsetUnits: 1 });
 
 export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
     static geometry(points: [number, THREE.Vector3][]) {
@@ -146,7 +144,7 @@ export class LineSegmentGeometryAddon {
     }
 }
 
-export class LineVertexColorMaterial extends THREE.ShaderMaterial {
+export class LineVertexColorMaterial extends THREE.ShaderMaterial implements LineMaterial {
     static mergePositions(lines: { position: Float32Array; userData: { index: number; }; }[], id: (i: number) => number) {
         const { geometry, array, groups } = LineSegmentGeometryAddon.mergePositions(lines.map(l => l.position));
 
@@ -188,9 +186,35 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial {
         });
     }
 
-    get resolution(): THREE.Vector3 {
+    // NOTE: these are unimplemented/unused, but allow adhering to the LineMaterial interface
+    color!: THREE.Color;
+    dashed!: boolean;
+    dashScale!: number;
+    dashSize!: number;
+    dashOffset!: number;
+    gapSize!: number;
+    isLineMaterial!: true;
+    worldUnits!: boolean;
+
+    get resolution(): THREE.Vector2 {
         return this.uniforms.resolution.value;
     }
 }
 
-export const vertexColorLineMaterial = new LineVertexColorMaterial({ depthWrite: false });
+export const vertexColorLineMaterial = new LineVertexColorMaterial();
+vertexColorLineMaterial.userData.renderOrder = 20;
+export const vertexColorMaterial = new VertexColorMaterial({ polygonOffset: true, polygonOffsetFactor: 5, polygonOffsetUnits: 1 });
+vertexColorMaterial.userData.renderOrder = 10;
+
+export const vertexColorLineMaterialXRay = vertexColorLineMaterial.clone();
+vertexColorLineMaterialXRay.stencilWrite = true;
+vertexColorLineMaterialXRay.stencilFunc = THREE.AlwaysStencilFunc;
+vertexColorLineMaterialXRay.stencilRef = 1;
+vertexColorLineMaterialXRay.stencilZPass = THREE.ReplaceStencilOp;
+vertexColorLineMaterialXRay.userData.renderOrder = 10;
+
+export const vertexColorMaterialXRay = vertexColorMaterial.clone();
+vertexColorMaterialXRay.stencilWrite = true;
+vertexColorMaterialXRay.stencilFunc = THREE.NotEqualStencilFunc;
+vertexColorMaterialXRay.stencilRef = vertexColorLineMaterialXRay.stencilRef;
+vertexColorMaterialXRay.userData.renderOrder = 20;

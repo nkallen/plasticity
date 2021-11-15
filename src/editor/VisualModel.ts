@@ -4,7 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { GeometryGPUPickingAdapter } from "../components/viewport/gpu_picking/GeometryGPUPickingAdapter";
-import { IdMaterial, LineVertexColorMaterial, vertexColorLineMaterial, VertexColorMaterial, vertexColorMaterial } from "../components/viewport/gpu_picking/GPUPickingMaterial";
+import { IdMaterial, LineVertexColorMaterial, vertexColorLineMaterial, vertexColorLineMaterialXRay, VertexColorMaterial, vertexColorMaterial, vertexColorMaterialXRay } from "../components/viewport/gpu_picking/GPUPickingMaterial";
 import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
@@ -26,23 +26,24 @@ import { GConstructor } from "../util/Util";
 
 export abstract class SpaceItem extends THREE.Object3D {
     private _useNominal: undefined;
-    abstract get picker(): THREE.Object3D
+    abstract picker(isXRay: boolean): THREE.Object3D
     abstract dispose(): void;
 }
 
 export abstract class PlaneItem extends THREE.Object3D {
     private _useNominal: undefined;
-    abstract get picker(): THREE.Object3D
+    abstract picker(isXRay: boolean): THREE.Object3D
     abstract dispose(): void;
 }
 
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
-    abstract get picker(): THREE.Object3D
+    abstract picker(isXRay: boolean): THREE.Object3D
     get simpleName(): c3d.SimpleName { return this.userData.simpleName }
 }
 
 export class Solid extends Item {
+    private _useNominal3: undefined;
     readonly lod = new THREE.LOD();
 
     constructor() {
@@ -50,29 +51,30 @@ export class Solid extends Item {
         this.add(this.lod);
     }
 
-    private _useNominal3: undefined;
     // the higher detail ones are later
     get edges() { return this.lod.children[this.lod.children.length - 1].children[0] as CurveGroup<CurveEdge> }
     get faces() { return this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup }
 
-    get picker() {
+    picker(isXRay: boolean) {
         const lod = this.lod.children[this.lod.children.length - 1];
         // FIXME: use this.lod.getCurrentLevel -- currently returns wrong value
         const edges = lod.children[0] as CurveGroup<CurveEdge>;
         const faces = lod.children[1] as FaceGroup;
-
         const facePicker = faces.mesh.clone();
-        facePicker.material = vertexColorMaterial;
-
         const edgePicker = edges.line.clone();
-        // @ts-expect-error
-        edgePicker.material = vertexColorLineMaterial;
-        vertexColorLineMaterial.uniforms.resolution.value.copy(edges.line.material.resolution)
-        edgePicker.material.needsUpdate = true;
 
         const group = new THREE.Group();
+        if (isXRay) {
+            facePicker.material = vertexColorMaterialXRay;
+            edgePicker.material = vertexColorLineMaterialXRay;
+        } else {
+            facePicker.material = vertexColorMaterial;
+            edgePicker.material = vertexColorLineMaterial;
+        }
+        edgePicker.renderOrder = edgePicker.material.userData.renderOrder;
+        facePicker.renderOrder = facePicker.material.userData.renderOrder;
+
         group.add(facePicker, edgePicker);
-        // group.add(edgePicker);
         return group;
     }
 
@@ -114,14 +116,14 @@ export class Solid extends Item {
 export class SpaceInstance<T extends SpaceItem> extends Item {
     private _useNominal3: undefined;
     get underlying() { return this.children[0] as T }
-    get picker() { return this.underlying.picker }
+    picker(isXRay: boolean) { return this.underlying.picker(isXRay) }
     dispose() { this.underlying.dispose() }
 }
 
 export class PlaneInstance<T extends PlaneItem> extends Item {
     private _useNominal3: undefined;
     get underlying() { return this.children[0] as T }
-    get picker() { return this.underlying.picker }
+    picker(isXRay: boolean) { return this.underlying.picker(isXRay) }
     dispose() { this.underlying.dispose() }
 }
 
@@ -181,7 +183,7 @@ export class Curve3D extends SpaceItem {
         return !!this.userData.untrimmedAncestor;
     }
 
-    get picker() {
+    picker(isXRay: boolean) {
         const picker = this.line.clone();
         // FIXME: gc material
         picker.material = new LineMaterial({ color: this.parentItem.simpleName, blending: THREE.NoBlending });
@@ -225,7 +227,7 @@ export class Surface extends SpaceItem {
         return result;
     }
 
-    get picker() {
+    picker(isXRay: boolean) {
         const picker = this.mesh.clone();
         // FIXME: cache and dispose();
         picker.material = new IdMaterial(this.simpleName);
@@ -251,7 +253,7 @@ export class Region extends PlaneItem {
         this.add(mesh);
     }
 
-    get picker() {
+    picker(isXRay: boolean) {
         const picker = this.mesh.clone();
         // FIXME: cache and dispose();
         picker.material = new IdMaterial(this.simpleName);
@@ -665,8 +667,6 @@ export const RenderOrder = {
     CurveEdge: 20,
     Face: 10,
     CurveSegment: 20,
-    SnapPoints: 30,
-    SnapLines: 40,
     SnapNearbyIndicator: 40
 }
 

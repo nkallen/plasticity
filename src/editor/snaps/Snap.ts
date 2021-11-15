@@ -233,7 +233,7 @@ export class CurveSnap extends Snap {
 
     constructor(readonly view: visual.SpaceInstance<visual.Curve3D>, readonly model: c3d.Curve3D) {
         super();
-        this.snapper.add(view.picker);
+        // this.snapper.add(view.picker);
         this.init();
     }
 
