@@ -71,7 +71,7 @@ export default class LayerManager {
 
     setXRay(isSet: boolean) {
         if (isSet) {
-            VisibleLayers.set(visual.Layers.XRay);
+            VisibleLayers.enable(visual.Layers.XRay);
             IntersectableLayers.set(visual.Layers.XRay);
         } else {
             VisibleLayers.disable(visual.Layers.XRay);

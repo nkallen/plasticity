@@ -127,6 +127,7 @@ export class ViewportMemento {
             camera: this.camera.toJSON(),
             target: this.target.toArray(),
             constructionPlane: this.constructionPlane.toJSON(),
+            isXRay: this.isXRay,
         });
         return Buffer.from(string);
     }
@@ -346,23 +347,27 @@ export class EditorOriginator {
 
     async deserialize(data: Buffer): Promise<void> {
         let pos = 0;
-        const db = Number(data.readBigUInt64BE());
+        const dbSize = Number(data.readBigUInt64BE());
         pos += 8;
-        await this.db.deserialize(data.slice(pos, pos + db));
-        pos += db;
-        const modifiers = Number(data.readBigUInt64BE(pos));
+        const dbData = data.slice(pos, pos + dbSize);
+        pos += dbSize;
+        const modifiersSize = Number(data.readBigUInt64BE(pos));
         pos += 8;
-        await this.modifiers.deserialize(data.slice(pos, pos + modifiers));
-        pos += modifiers;
+        const modifiersData = data.slice(pos, pos + modifiersSize);
+        pos += modifiersSize;
         const numViewports = Number(data.readBigUInt64BE(pos));
         pos += 8;
         for (let i = 0; i < numViewports; i++) {
-            const viewport = Number(data.readBigUInt64BE(pos));
+            const viewportSize = Number(data.readBigUInt64BE(pos));
             pos += 8;
-            await this.viewports[i].deserialize(data.slice(pos, pos + viewport));
-            pos += viewport;
+            const viewportData = data.slice(pos, pos + viewportSize);
+            await this.viewports[i].deserialize(viewportData);
+            pos += viewportSize;
         }
-        await this.contours.rebuild()
+        
+        await this.db.deserialize(dbData);
+        await this.modifiers.deserialize(modifiersData);
+        await this.contours.rebuild();
     }
 
     validate() {
