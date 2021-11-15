@@ -4,23 +4,16 @@ listening to events in geometry might clobber stuff]
 - need a reserve/release feature , perhaps that has the raycaster on it
 - layers should be set when render is called; no other time is safe?
 
-layers
 get region, curve, and point selection to work
 
 Get highlighed faces and edges to work
 verify Fillet hidden edge shown
-Test SelectionBox
 
-get rid of all snappers in snap
 vertify point drag works
 test curve fragment works (trim)
 
 box selection left
 box selection right
-Get temporary objects to work
 unit Test FaceGroupBuilder
 unit Test CurveEdgeGroupBuilder
 unit Test GPU*
-verify vertexcolorMaterial/LineVertexColorMaterial statics
-See if we can get rid of get child() in visualmodel
-Helper for center (of arc) point snap
