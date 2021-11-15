@@ -6,10 +6,8 @@ import { CrossPointDatabase } from "../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { CurvePointSnap, CurveSnap, FaceSnap, PlaneSnap, PointSnap } from "../src/editor/snaps/Snap";
-import { originSnap, SnapManager } from "../src/editor/snaps/SnapManager";
+import { SnapManager } from "../src/editor/snaps/SnapManager";
 import * as visual from '../src/editor/VisualModel';
-import { inst2curve } from "../src/util/Conversion";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -38,9 +36,7 @@ beforeEach(() => {
 })
 
 test("initial state", () => {
-    // the origin and 3 axes
-    expect(snaps['snappers'].length).toBe(4);
-    expect(snaps['nearbys'].length).toBe(1);
+    expect(snaps.all.length).toBe(4);
 });
 
 test("adding & removing solid", async () => {
@@ -51,13 +47,11 @@ test("adding & removing solid", async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
 
-    expect(snaps['snappers'].length).toBe(52);
-    expect(snaps['nearbys'].length).toBe(31);
+    expect(snaps.all.length).toBe(34);
 
     db.removeItem(box);
 
-    expect(snaps['snappers'].length).toBe(4);
-    expect(snaps['nearbys'].length).toBe(1);
+    expect(snaps.all.length).toBe(4);
 });
 
 test("adding & hiding & unhiding solid", async () => {
@@ -68,28 +62,23 @@ test("adding & hiding & unhiding solid", async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
 
-    expect(snaps['snappers'].length).toBe(52);
-    expect(snaps['nearbys'].length).toBe(31);
+    expect(snaps.all.length).toBe(34);
 
     db.hide(box);
 
-    expect(snaps['snappers'].length).toBe(4);
-    expect(snaps['nearbys'].length).toBe(1);
+    expect(snaps.all.length).toBe(4);
 
     db.unhide(box);
 
-    expect(snaps['snappers'].length).toBe(52);
-    expect(snaps['nearbys'].length).toBe(31);
+    expect(snaps.all.length).toBe(34);
 
     db.hide(box);
 
-    expect(snaps['snappers'].length).toBe(4);
-    expect(snaps['nearbys'].length).toBe(1);
+    expect(snaps.all.length).toBe(4);
 
     db.unhideAll();
 
-    expect(snaps['snappers'].length).toBe(52);
-    expect(snaps['nearbys'].length).toBe(31);
+    expect(snaps.all.length).toBe(34);
 });
 
 test("adding & removing curve", async () => {
@@ -98,13 +87,11 @@ test("adding & removing curve", async () => {
     makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps['snappers'].length).toBe(7);
-    expect(snaps['nearbys'].length).toBe(3);
+    expect(snaps.all.length).toBe(7);
 
     db.removeItem(line);
 
-    expect(snaps['snappers'].length).toBe(4);
-    expect(snaps['nearbys'].length).toBe(1);
+    expect(snaps.all.length).toBe(4);
 });
 
 test("adding & removing polyline points", async () => {
@@ -113,180 +100,9 @@ test("adding & removing polyline points", async () => {
     makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0), new THREE.Vector3(2, 1, 0), new THREE.Vector3(3, 0, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps['snappers'].length).toBe(12);
-    expect(snaps['nearbys'].length).toBe(8);
+    expect(snaps.all.length).toBe(12);
 
     db.removeItem(line);
 
-    expect(snaps['snappers'].length).toBe(4);
-    expect(snaps['nearbys'].length).toBe(1);
-});
-
-describe("snap()", () => {
-    let point: THREE.Vector3;
-    const e = {} as PointerEvent;
-
-    beforeEach(() => {
-        point = new THREE.Vector3(1, 0, 0);
-        // Basically, say you intersect with everything
-        intersect.mockImplementation(as => as.map((a: THREE.Object3D, i: number) => {
-            return { object: a, point, distance: -i }
-        }));
-    })
-
-    test("basic behavior", async () => {
-        const [{ snap, position }] = snaps.snap(raycaster);
-        expect(snap).toBe(originSnap);
-        expect(position).toEqual(new THREE.Vector3());
-    });
-
-    test("xray vs non-xray", async () => {
-        const makeLine = new CurveFactory(db, materials, signals);
-        makeLine.type = c3d.SpaceType.Hermit3D;
-        makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
-        const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
-
-        const makeBox = new ThreePointBoxFactory(db, materials, signals);
-        makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
-        const box = await makeBox.commit() as visual.Solid;
-
-        const curveSnap = new CurveSnap(line, inst2curve(db.lookup(line))!);
-        const highPriority = new CurvePointSnap(undefined, point, curveSnap, 0);
-        const face = box.faces.get(0);
-        const lowPriority = new FaceSnap(face, db.lookupTopologyItem(face));
-
-        intersect.mockImplementation(() => {
-            return [
-                { object: highPriority.snapper, point, distance: 1 },
-                { object: lowPriority.snapper, point, distance: 0 },
-            ]
-        });
-
-        XRayOn: {
-            const [{ snap: snap1 }, { snap: snap2 }] = snaps.snap(raycaster, [], [], [], true);
-            expect(snap1).toBe(highPriority);
-            expect(snap2).toBe(lowPriority);
-        }
-
-        XRayOff: {
-            const [{ snap: snap1 }, { snap: snap2 }] = snaps.snap(raycaster, [], [], [], false);
-            expect(snap1).toBe(lowPriority);
-            expect(snap2).toBe(highPriority);
-        }
-    });
-
-    describe("restrictions", () => {
-        const pointSnap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
-
-        test("when no restrictions we match whatever", async () => {
-            const [{ snap: snap1 }, { snap: snap2 }] = snaps.snap(raycaster, [pointSnap], [], []);
-            expect(snap1).toBe(pointSnap);
-            expect(snap2).toBe(originSnap);
-        });
-
-        test("when restricted, only match restricted items", async () => {
-            const [{ snap, position },] = snaps.snap(raycaster, [], [pointSnap], [pointSnap]);
-            expect(snap).toBe(pointSnap);
-            expect(position).toEqual(new THREE.Vector3(1, 1, 1));
-        });
-
-        test("when restricted, without a restriction snap", async () => {
-            const result = snaps.snap(raycaster, [], [], [pointSnap]);
-            expect(result.length).toBe(0);
-        });
-
-
-        test("snaps disabled (with ctrl key)", async () => {
-            const pointSnap = new PointSnap(undefined, new THREE.Vector3(0, 0, 2));
-            const planeSnap = new PlaneSnap(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 2));
-            // point is on the plane
-
-            let snap;
-            [{ snap, },] = snaps.snap(raycaster, [planeSnap, pointSnap], [planeSnap], [planeSnap]);
-            expect(snap).toBe(pointSnap);
-
-            snaps.toggle();
-
-            [{ snap, }] = snaps.snap(raycaster, [planeSnap, pointSnap], [planeSnap], [planeSnap]);
-            expect(snap).toBe(planeSnap);
-
-            snaps.toggle();
-
-            [{ snap, },] = snaps.snap(raycaster, [planeSnap, pointSnap], [planeSnap], [planeSnap]);
-            expect(snap).toBe(pointSnap);
-        });
-    });
-});
-
-describe("nearby()", () => {
-    let point: THREE.Vector3;
-
-    beforeEach(() => {
-        point = new THREE.Vector3(1, 1, 1);
-        // Basically, say you intersect with everything
-        intersect.mockImplementation(as => as.map((a: THREE.Object3D) => {
-            return {
-                object: a,
-                point: point
-            }
-        }));
-    })
-
-    test("basic behavior", async () => {
-        const [pick,] = snaps.nearby(raycaster);
-        expect(pick.position).toEqual(originSnap.position);
-        expect(pick.snap).toEqual(originSnap);
-    });
-
-    test("restrictions satisfied", async () => {
-        const pointSnap = new PointSnap(undefined, point);
-        const [pick,] = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
-        expect(pick.position).toApproximatelyEqual(point)
-        expect(pick.snap).toBe(pointSnap)
-    });
-
-    test("restrictions unsatisfied", async () => {
-        const match = new PointSnap(undefined, new THREE.Vector3);
-        const restriction = new PointSnap(undefined, point);
-        const [pick,] = snaps.nearby(raycaster, [match], [restriction]);
-        expect(pick).toBe(undefined);
-    });
-
-    test("snaps disabled (with ctrl key)", async () => {
-        let nearby;
-        const pointSnap = new PointSnap(undefined, point);
-        snaps.toggle();
-        nearby = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
-        expect(nearby.length).toBe(0);
-        snaps.toggle();
-        nearby = snaps.nearby(raycaster, [pointSnap], [pointSnap]);
-        expect(nearby.length).toBe(1);
-    });
-});
-
-test("saveToMemento & restoreFromMemento", async () => {
-    const makeBox = new ThreePointBoxFactory(db, materials, signals);
-    makeBox.p1 = new THREE.Vector3();
-    makeBox.p2 = new THREE.Vector3(1, 0, 0);
-    makeBox.p3 = new THREE.Vector3(1, 1, 0);
-    makeBox.p4 = new THREE.Vector3(1, 1, 1);
-    const box = await makeBox.commit() as visual.Solid;
-
-    expect(snaps['snappers'].length).toBe(52);
-    expect(snaps['nearbys'].length).toBe(31);
-
-    const memento = snaps.saveToMemento();
-
-    db.removeItem(box);
-
-    expect(snaps['snappers'].length).toBe(4);
-    expect(snaps['nearbys'].length).toBe(1);
-
-    snaps.restoreFromMemento(memento);
-
-    expect(snaps['snappers'].length).toBe(52);
-    expect(snaps['nearbys'].length).toBe(31);
+    expect(snaps.all.length).toBe(4);
 });
