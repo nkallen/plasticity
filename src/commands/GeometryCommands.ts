@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { AxisSnap, CurvePointSnap, CurveSnap, Layers, PointSnap } from "../editor/snaps/Snap";
+import { AxisSnap, CurvePointSnap, CurveSnap, PointSnap } from "../editor/snaps/Snap";
 import * as visual from "../editor/VisualModel";
 import { Finish } from "../util/Cancellable";
 import { decomposeMainName, point2point } from "../util/Conversion";

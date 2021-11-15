@@ -66,7 +66,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
     private grid = new GridHelper(300, 300, gridColor, gridColor);
 
-
     constructor(
         private readonly editor: EditorLike,
         readonly renderer: THREE.WebGLRenderer,
@@ -155,6 +154,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.disposable.add(new Disposable(() => {
             this.selector.dispose();
+            this.points.dispose();
+            this.picker.dispose();
             this.navigationControls.dispose();
         }));
 

@@ -328,30 +328,30 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     debug() { }
 }
 
-export class ToggleableSet<T> extends Set<T> {
-    constructor(values: T[], private readonly signals: EditorSignals) {
+export class ToggleableSet extends Set<SelectionMode> {
+    constructor(values: SelectionMode[], private readonly signals: EditorSignals) {
         super(values);
     }
 
-    toggle(...elements: T[]) {
+    toggle(...elements: SelectionMode[]) {
         for (const element of elements) {
             if (this.has(element)) this.delete(element);
             else this.add(element);
         }
-        this.signals.selectionModeChanged.dispatch();
+        this.signals.selectionModeChanged.dispatch(this);
     }
 
-    set(...elements: T[]) {
+    set(...elements: SelectionMode[]) {
         this.clear();
         for (const element of elements) {
             this.add(element);
         }
-        this.signals.selectionModeChanged.dispatch();
+        this.signals.selectionModeChanged.dispatch(this);
     }
 }
 
 export interface HasSelectedAndHovered {
-    readonly mode: ToggleableSet<SelectionMode>;
+    readonly mode: ToggleableSet;
     readonly selected: ModifiesSelection;
     readonly hovered: ModifiesSelection;
 }
@@ -377,7 +377,7 @@ export class SelectionManager implements HasSelectedAndHovered {
         readonly db: DatabaseLike,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
-        readonly mode = new ToggleableSet<SelectionMode>([SelectionMode.Solid, SelectionMode.CurveEdge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint], signals)
+        readonly mode = new ToggleableSet([SelectionMode.Solid, SelectionMode.CurveEdge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint], signals)
     ) {
         this.clearHovered = this.clearHovered.bind(this);
         signals.historyChanged.add(this.clearHovered);

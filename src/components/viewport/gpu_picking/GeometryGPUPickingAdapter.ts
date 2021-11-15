@@ -64,11 +64,13 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
         signals.sceneGraphChanged.add(this.update);
         signals.historyChanged.add(this.update);
         signals.commandEnded.add(this.update);
+        signals.selectionModeChanged.add(this.update);
         this.disposable.add(new Disposable(() => {
             viewport.changed.remove(this.update);
             signals.sceneGraphChanged.remove(this.update);
             signals.historyChanged.remove(this.update);
             signals.commandEnded.remove(this.update);
+            signals.selectionModeChanged.remove(this.update);
         }));
         this.update();
     }
@@ -105,7 +107,8 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
     }
 
     update() {
-        this.viewport.picker.update(this.db.visibleObjects.map(o => o.picker(this.viewport.isXRay)));
+        const pickers = this.db.visibleObjects.map(o => o.picker(this.viewport.isXRay));
+        this.viewport.picker.update(pickers);
     }
 
     static compact2full(compact: number): string {

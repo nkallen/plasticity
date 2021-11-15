@@ -1,6 +1,7 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
+import { IntersectableLayers } from "../../../editor/LayerManager";
 import { Viewport } from "../Viewport";
 
 /**
@@ -29,9 +30,6 @@ export class GPUPicker {
     pickingBuffer: Readonly<Uint8Array> = new Uint8Array();
 
     private depth = new GPUDepthReader(this.pickingTarget, this.viewport);
-
-    // FIXME verify working
-    layers = new THREE.Layers();
 
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Line: { threshold: 0.1 },
@@ -95,7 +93,11 @@ export class GPUPicker {
             }
         })
 
+        const { layers: oldLayers } = camera;
+        camera.layers = IntersectableLayers;
         renderer.render(scene, camera);
+        camera.layers = oldLayers;
+
         this.depth.render();
     }
 

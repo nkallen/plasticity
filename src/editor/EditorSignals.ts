@@ -3,7 +3,7 @@ import c3d from '../build/Release/c3d.node';
 import { AbstractDialog } from "../commands/AbstractDialog";
 import Command from '../commands/Command';
 import { Viewport } from '../components/viewport/Viewport';
-import { HasSelection, Selectable } from '../selection/SelectionManager';
+import { HasSelection, Selectable, ToggleableSet } from '../selection/SelectionManager';
 import { Agent } from './GeometryDatabase';
 import { Replacement } from './ModifierManager';
 import * as visual from './VisualModel';
@@ -44,5 +44,5 @@ export class EditorSignals {
     dialogRemoved: signals.Signal = new signals.Signal();
     viewportActivated: signals.Signal<Viewport> = new signals.Signal();
     moduleReloaded: signals.Signal = new signals.Signal();
-    selectionModeChanged: signals.Signal = new signals.Signal();
+    selectionModeChanged: signals.Signal<ToggleableSet> = new signals.Signal();
 }

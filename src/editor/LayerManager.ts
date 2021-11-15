@@ -1,9 +1,11 @@
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import * as visual from '../editor/VisualModel';
-import { HasSelection } from '../selection/SelectionManager';
+import { SelectionMode } from "../selection/SelectionInteraction";
+import { HasSelection, ToggleableSet } from '../selection/SelectionManager';
 import { EditorSignals } from './EditorSignals';
 
-// FIXME make instance variables of LayerManager, and DI LayerManager where necessary
+// FIXME: make instance variables of LayerManager, and DI LayerManager where necessary
 
 export const VisibleLayers = new THREE.Layers();
 VisibleLayers.enableAll();
@@ -19,9 +21,20 @@ IntersectableLayers.disable(visual.Layers.ControlPoint);
 IntersectableLayers.disable(visual.Layers.Unselectable);
 
 export default class LayerManager {
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+
     constructor(private readonly selection: HasSelection, signals: EditorSignals) {
-        signals.objectSelected.add(o => this.controlPoints());
-        signals.objectDeselected.add(o => this.controlPoints());
+        this.controlPoints = this.controlPoints.bind(this);
+        this.selectionModeChanged = this.selectionModeChanged.bind(this);
+
+        signals.objectSelected.add(this.controlPoints);
+        signals.objectDeselected.add(this.controlPoints);
+        signals.selectionModeChanged.add(this.selectionModeChanged);
+        this.disposable.add(new Disposable(()=>{
+            signals.objectSelected.remove(this.controlPoints);
+            signals.objectDeselected.remove(this.controlPoints);    
+        }));
     }
 
     showFragments() {
@@ -59,6 +72,22 @@ export default class LayerManager {
         else this.hideControlPoints();
     }
 
+    private selectionModeChanged(mode: ToggleableSet) {
+        if (mode.has(SelectionMode.Solid)) {
+            IntersectableLayers.enable(visual.Layers.Face);
+            IntersectableLayers.enable(visual.Layers.CurveEdge);
+        }
+        if (mode.has(SelectionMode.Face)) IntersectableLayers.enable(visual.Layers.Face);
+        if (mode.has(SelectionMode.CurveEdge)) IntersectableLayers.enable(visual.Layers.CurveEdge);
+        if (mode.has(SelectionMode.Curve)) IntersectableLayers.enable(visual.Layers.Curve);
+        if (mode.has(SelectionMode.ControlPoint)) IntersectableLayers.enable(visual.Layers.ControlPoint);
+
+        if (!mode.has(SelectionMode.Face)) IntersectableLayers.disable(visual.Layers.Face);
+        if (!mode.has(SelectionMode.CurveEdge)) IntersectableLayers.disable(visual.Layers.CurveEdge);
+        if (!mode.has(SelectionMode.Curve)) IntersectableLayers.disable(visual.Layers.Curve);
+        if (!mode.has(SelectionMode.ControlPoint)) IntersectableLayers.disable(visual.Layers.ControlPoint);
+    }
+
     showControlPoints() {
         VisibleLayers.enable(visual.Layers.ControlPoint);
         IntersectableLayers.enable(visual.Layers.ControlPoint);
@@ -72,7 +101,7 @@ export default class LayerManager {
     setXRay(isSet: boolean) {
         if (isSet) {
             VisibleLayers.enable(visual.Layers.XRay);
-            IntersectableLayers.set(visual.Layers.XRay);
+            IntersectableLayers.enable(visual.Layers.XRay);
         } else {
             VisibleLayers.disable(visual.Layers.XRay);
             IntersectableLayers.disable(visual.Layers.XRay);

@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] refactor IntersectableLayers  
 - [ ] Snap points should always be before their geometry if they're visible  
 - [ ] panning and release mouse outside of window errors #bug  
 - [ ] Incorporate parcel https://github.com/parcel-bundler/watcher  

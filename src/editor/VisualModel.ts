@@ -72,7 +72,9 @@ export class Solid extends Item {
             edgePicker.material = vertexColorLineMaterial;
         }
         edgePicker.renderOrder = edgePicker.material.userData.renderOrder;
+        edgePicker.layers.set(Layers.CurveEdge);
         facePicker.renderOrder = facePicker.material.userData.renderOrder;
+        facePicker.layers.set(Layers.Face);
 
         group.add(facePicker, edgePicker);
         return group;

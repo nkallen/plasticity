@@ -54,7 +54,7 @@ class MyViewportSelector extends AbstractViewportSelector {
 }
 
 export class ObjectPicker {
-    private readonly mode = new ToggleableSet<SelectionMode>([], this.editor.signals);
+    private readonly mode = new ToggleableSet([], this.editor.signals);
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Mesh: { threshold: 0 },
         Line: { threshold: 0.1 },
