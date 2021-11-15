@@ -4,7 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { GeometryGPUPickingAdapter } from "../components/viewport/gpu_picking/GeometryGPUPickingAdapter";
-import { IdMaterial, LineVertexColorMaterial, vertexColorLineMaterial, vertexColorLineMaterialXRay, VertexColorMaterial, vertexColorMaterial, vertexColorMaterialXRay } from "../components/viewport/gpu_picking/GPUPickingMaterial";
+import { IdMeshMaterial, IdLineMaterial, LineVertexColorMaterial, vertexColorLineMaterial, vertexColorLineMaterialXRay, VertexColorMaterial, vertexColorMaterial, vertexColorMaterialXRay } from "../components/viewport/gpu_picking/GPUPickingMaterial";
 import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
@@ -188,7 +188,9 @@ export class Curve3D extends SpaceItem {
     picker(isXRay: boolean) {
         const picker = this.line.clone();
         // FIXME: gc material
-        picker.material = new LineMaterial({ color: this.parentItem.simpleName, blending: THREE.NoBlending });
+        const id = GeometryGPUPickingAdapter.encoder.encode('curve', this.parentItem.simpleName);
+        const material = new IdLineMaterial(id, { blending: THREE.NoBlending, linewidth: 10 });
+        picker.material = material;
         return picker;
     }
 
@@ -232,7 +234,7 @@ export class Surface extends SpaceItem {
     picker(isXRay: boolean) {
         const picker = this.mesh.clone();
         // FIXME: cache and dispose();
-        picker.material = new IdMaterial(this.simpleName);
+        picker.material = new IdMeshMaterial(GeometryGPUPickingAdapter.encoder.encode('surface', this.simpleName));
         return picker;
     }
 
@@ -258,7 +260,7 @@ export class Region extends PlaneItem {
     picker(isXRay: boolean) {
         const picker = this.mesh.clone();
         // FIXME: cache and dispose();
-        picker.material = new IdMaterial(this.simpleName);
+        picker.material = new IdMeshMaterial(GeometryGPUPickingAdapter.encoder.encode('region', this.simpleName));
         return picker;
     }
 

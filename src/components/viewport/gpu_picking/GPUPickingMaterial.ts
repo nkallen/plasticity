@@ -93,7 +93,7 @@ export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
     }
 }
 
-export class IdMaterial extends THREE.ShaderMaterial {
+export class IdMeshMaterial extends THREE.ShaderMaterial {
     constructor(id: number, parameters: THREE.ShaderMaterialParameters = {}) {
         // be careful about endian-ness: we read out Uint32Array in GPUPicker, therefore endianness matters.
         const array = new Float32Array(new Uint8Array(new Uint32Array([id]).buffer));
@@ -201,9 +201,45 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial implements Lin
     }
 }
 
-export const vertexColorLineMaterial = new LineVertexColorMaterial();
+export class IdLineMaterial extends THREE.ShaderMaterial implements LineMaterial {
+    constructor(id: number, parameters: LineMaterialParameters = {}) {
+        const array = new Float32Array(new Uint8Array(new Uint32Array([id]).buffer));
+        super({
+            ...parameters,
+            vertexShader: THREE.ShaderLib['line'].vertexShader,
+            fragmentShader: `
+            uniform vec4 id;
+            void main() {
+                gl_FragColor = id / 255.;
+            }
+            `,
+            blending: THREE.NoBlending,
+            uniforms: {
+                ...THREE.UniformsUtils.clone(THREE.ShaderLib['line'].uniforms),
+                id: { value: array }, opacity: { value: 1 }, linewidth: { value: parameters.linewidth ?? 10 }
+            },
+            clipping: true,
+        });
+    }
+
+    // NOTE: these are unimplemented/unused, but allow adhering to the LineMaterial interface
+    color!: THREE.Color;
+    dashed!: boolean;
+    dashScale!: number;
+    dashSize!: number;
+    dashOffset!: number;
+    gapSize!: number;
+    isLineMaterial!: true;
+    worldUnits!: boolean;
+
+    get resolution(): THREE.Vector2 {
+        return this.uniforms.resolution.value;
+    }
+}
+
+export const vertexColorLineMaterial = new LineVertexColorMaterial({ blending: THREE.NoBlending });
 vertexColorLineMaterial.userData.renderOrder = 20;
-export const vertexColorMaterial = new VertexColorMaterial({ polygonOffset: true, polygonOffsetFactor: 5, polygonOffsetUnits: 1 });
+export const vertexColorMaterial = new VertexColorMaterial({ polygonOffset: true, polygonOffsetFactor: 5, polygonOffsetUnits: 1, blending: THREE.NoBlending });
 vertexColorMaterial.userData.renderOrder = 10;
 
 export const vertexColorLineMaterialXRay = vertexColorLineMaterial.clone();

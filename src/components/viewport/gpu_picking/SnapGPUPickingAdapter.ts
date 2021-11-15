@@ -10,7 +10,7 @@ import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
-import { IdMaterial, LineVertexColorMaterial, PointsVertexColorMaterial } from "./GPUPickingMaterial";
+import { IdMeshMaterial, LineVertexColorMaterial, PointsVertexColorMaterial } from "./GPUPickingMaterial";
 import { readRenderTargetPixelsAsync } from "./GPUWaitAsync";
 
 const nearbyRadius = 50; // px
@@ -231,7 +231,7 @@ function makePickers(snaps: Snap[], isXRay: boolean, name: (index: number) => nu
             axes.push({ position, userData: { index: id } });
         } else if (snap instanceof LineSnap) {
             const { plane1, plane2 } = snap;
-            const mat = new IdMaterial(id, { side: THREE.DoubleSide });
+            const mat = new IdMeshMaterial(id, { side: THREE.DoubleSide });
             disposable.add(new Disposable(() => mat.dispose()));
             const snap1 = new THREE.Mesh(PlaneSnap.geometry, mat);
             const snap2 = new THREE.Mesh(PlaneSnap.geometry, mat);

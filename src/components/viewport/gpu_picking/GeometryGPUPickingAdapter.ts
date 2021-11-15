@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { EditorSignals } from "../../../editor/EditorSignals";
 import { DatabaseLike } from "../../../editor/GeometryDatabase";
 import * as intersectable from "../../../editor/Intersectable";
-import LayerManager, { IntersectableLayers } from "../../../editor/LayerManager";
+import LayerManager from "../../../editor/LayerManager";
 import * as visual from "../../../editor/VisualModel";
 import { Viewport } from "../Viewport";
 
@@ -12,10 +12,11 @@ export interface GPUPickingAdapter<T> {
     intersect(): T[];
 }
 
+type Type = 'edge' | 'face' | 'curve' | 'region' | 'control-point' | 'surface';
 export class GeometryIdEncoder {
     readonly parentIdMask: number = 0xffff0000;
 
-    encode(type: 'edge' | 'face', parentId: number, index: number): number {
+    encode(type: Type, parentId: number, index = 0): number {
         if (parentId > (1 << 16)) throw new Error("precondition failure");
         if (index > (1 << 15)) throw new Error("precondition failure");
 
@@ -42,7 +43,7 @@ export class GeometryIdEncoder {
 export class DebugGeometryIdEncoder extends GeometryIdEncoder {
     readonly parentIdMask = 0x0fff0000;
 
-    encode(type: 'edge' | 'face', parentId: number, index: number): number {
+    encode(type: Type, parentId: number, index: number): number {
         return super.encode(type, parentId, index) | 0xf0000000;
     }
 
@@ -84,10 +85,10 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
         if (intersection === undefined)
             return [];
         else
-            return [{ 
+            return [{
                 object: GeometryGPUPickingAdapter.get(intersection.id, this.db),
                 point: intersection.position
-             }];
+            }];
     }
 
     static get(id: number, db: DatabaseLike): intersectable.Intersectable {

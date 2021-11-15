@@ -1,10 +1,15 @@
 TODO:
 
+CURVE XRay
+region
+point non XRay
+point XRay
+
+
 listening to events in geometry might clobber stuff]
 - need a reserve/release feature , perhaps that has the raycaster on it
 - layers should be set when render is called; no other time is safe?
 
-get region, curve, and point selection to work
 
 Get highlighed faces and edges to work
 verify Fillet hidden edge shown
