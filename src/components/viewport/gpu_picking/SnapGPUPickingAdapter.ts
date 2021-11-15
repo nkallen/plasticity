@@ -4,7 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { Model as PointPicker } from "../../../commands/PointPicker";
 import { DatabaseLike } from "../../../editor/GeometryDatabase";
 import * as intersectable from "../../../editor/Intersectable";
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "../../../editor/snaps/Snap";
+import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, LineSnap, PlaneSnap, PointSnap, Snap } from "../../../editor/snaps/Snap";
 import { SnapManager, SnapResult } from "../../../editor/snaps/SnapManager";
 import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
@@ -65,7 +65,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
     private readonly raycaster = new THREE.Raycaster();
     intersect(): SnapResult[] {
-        const {  viewport: { picker }, pointPicker: { choice }, snaps } = this;
+        const { viewport: { picker }, pointPicker: { choice }, snaps } = this;
 
         if (!snaps.enabled) return this.intersectConstructionPlane();
 
@@ -89,7 +89,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
     }
 
     private intersectChoice(choice: AxisSnap): SnapResult[] {
-        const { normalizedScreenPoint, viewport: { camera }, raycaster} = this;
+        const { normalizedScreenPoint, viewport: { camera }, raycaster } = this;
 
         raycaster.setFromCamera(normalizedScreenPoint, camera);
         const position = choice.intersect(raycaster);
@@ -154,24 +154,20 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         if (pointPicker.choice !== undefined) {
             // "Choices" are handled at intersect()
         } else if (restrictions.length > 0) {
+            this.pointPickerSnaps = restrictions;
             const info = makePickers(restrictions, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
             this.pointPickerInfo = info;
             this.pickers.push(info.lines, info.points, ...info.planes);
         } else {
-            const info = this.model();
+            const additional = pointPicker.snaps;
+            this.pointPickerSnaps = additional;
+            const info = makePickers(this.pointPickerSnaps, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
             this.pointPickerInfo = info;
             this.pickers.push(info.lines, info.points, ...info.planes);
             this.pickers.push(snaps.lines, snaps.points, ...snaps.planes);
             this.pickers.push(...this.db.visibleObjects.map(o => o.picker));
         }
         this.viewport.picker.update(this.pickers);
-    }
-
-    model() {
-        const { pointPicker } = this;
-        const additional = pointPicker.snaps;
-        this.pointPickerSnaps = additional;
-        return makePickers(this.pointPickerSnaps, i => SnapGPUPickingAdapter.encoder.encode('point-picker', i));
     }
 }
 
@@ -204,7 +200,7 @@ export class SnapManagerGeometryCache implements PickerInfo {
 interface PickerInfo {
     points: THREE.Points<THREE.BufferGeometry, PointsVertexColorMaterial>;
     lines: LineSegments2;
-    planes: THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>[];
+    planes: THREE.Mesh[];
     dispose(): void;
 };
 
@@ -222,12 +218,17 @@ function makePickers(snaps: Snap[], name: (index: number) => number): PickerInfo
             p.copy(snap.n).multiplyScalar(10_000).add(snap.o);
             const position = new Float32Array([snap.o.x, snap.o.y, snap.o.z, p.x, p.y, p.z]);
             axes.push({ position, userData: { index: id } });
-        } else if (snap instanceof ConstructionPlaneSnap) {
-            const geo = PlaneSnap.geometry;
-            const mat = new IdMaterial(id);
+        } else if (snap instanceof LineSnap) {
+            const { plane1, plane2 } = snap;
+            const mat = new IdMaterial(id, { side: THREE.DoubleSide });
             disposable.add(new Disposable(() => mat.dispose()));
-            const mesh = new THREE.Mesh(geo, mat);
-            planes.push(mesh);
+            const snap1 = new THREE.Mesh(PlaneSnap.geometry, mat);
+            const snap2 = new THREE.Mesh(PlaneSnap.geometry, mat);
+            snap1.position.copy(plane1.snapper.position);
+            snap1.quaternion.copy(plane1.snapper.quaternion);
+            snap2.position.copy(plane2.snapper.position);
+            snap2.quaternion.copy(plane2.snapper.quaternion);
+            planes.push(snap1, snap2);
         } else {
             console.error(snap.constructor.name);
             throw new Error("Invalid snap");

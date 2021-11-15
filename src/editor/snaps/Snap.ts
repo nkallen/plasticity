@@ -546,7 +546,7 @@ export class LineSnap extends Snap {
         return new LineSnap(name, axis, plane1, plane2);
     }
 
-    private constructor(readonly name: string | undefined, private readonly axis: AxisSnap, private readonly plane1: PlaneSnap, private readonly plane2: PlaneSnap) {
+    private constructor(readonly name: string | undefined, private readonly axis: AxisSnap, readonly plane1: PlaneSnap, readonly plane2: PlaneSnap) {
         super();
         this.init();
     }

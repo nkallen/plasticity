@@ -2,11 +2,14 @@ TODO:
 
 xray/non xray
 1/2/3 selection mode
+layers
 
 Get highlighed faces and edges to work
 get region, curve, and point selection to work
 verify Fillet hidden edge shown
 Test SelectionBox
+
+vertify point drag works
 
 box selection left
 box selection right
