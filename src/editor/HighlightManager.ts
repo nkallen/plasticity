@@ -10,7 +10,7 @@ import matcap from '../img/matcap/ceramic_dark.exr';
 import { ItemSelection } from "../selection/Selection";
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionManager";
 
-export class HighlightManager {
+export class RenderedSceneBuilder {
     constructor(
         protected readonly db: DatabaseLike,
         protected readonly materials: MaterialDatabase,
@@ -207,11 +207,11 @@ export class HighlightManager {
 
 }
 
-export class CurveHighlightManager extends HighlightManager {
+export class CurveHighlightManager extends RenderedSceneBuilder {
 
 }
 
-export class ModifierHighlightManager extends HighlightManager {
+export class ModifierHighlightManager extends RenderedSceneBuilder {
     constructor(
         private readonly modifiers: ModifierManager,
         db: DatabaseLike,

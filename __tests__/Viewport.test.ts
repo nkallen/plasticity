@@ -15,7 +15,7 @@ import LayerManager, { IntersectableLayers, VisibleLayers } from "../src/editor/
 import MaterialDatabase from "../src/editor/MaterialDatabase";
 import { PlaneSnap } from "../src/editor/snaps/Snap";
 import * as visual from '../src/editor/VisualModel';
-import { HighlightManager } from "../src/editor/HighlightManager";
+import { RenderedSceneBuilder } from "../src/editor/HighlightManager";
 import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { Helpers } from "../src/util/Helpers";
@@ -33,7 +33,7 @@ let sphere: visual.Solid;
 let selection: SelectionManager;
 let interaction: SelectionInteractionManager;
 let originator: EditorOriginator;
-let highlighter: HighlightManager;
+let highlighter: RenderedSceneBuilder;
 
 beforeEach(async () => {
     materials = new FakeMaterials();
@@ -41,7 +41,7 @@ beforeEach(async () => {
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
     interaction = new SelectionInteractionManager(selection, materials, signals);
-    highlighter = new HighlightManager(db, materials, selection, signals);
+    highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
     const layers = new LayerManager(selection.selected, signals);
     const keymaps = new KeymapManager();
     editor = {

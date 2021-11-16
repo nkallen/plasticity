@@ -9,7 +9,7 @@ import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { filterIntersections, filterMeshes } from "../src/editor/Intersectable";
 import * as visual from "../src/editor/VisualModel";
-import { HighlightManager } from "../src/editor/HighlightManager";
+import { RenderedSceneBuilder } from "../src/editor/HighlightManager";
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { BetterSelectionBox } from "../src/util/BetterRaycastingPoints";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
@@ -23,7 +23,7 @@ let makeBox: ThreePointBoxFactory;
 let db: GeometryDatabase;
 let signals: EditorSignals;
 let makeRegion: RegionFactory;
-let highlighter: HighlightManager;
+let highlighter: RenderedSceneBuilder;
 let selection: SelectionManager;
 
 beforeEach(() => {
@@ -31,7 +31,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     selection = new SelectionManager(db, materials, signals);
-    highlighter = new HighlightManager(db, materials, selection, signals);
+    highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
 });
 
 beforeEach(() => {

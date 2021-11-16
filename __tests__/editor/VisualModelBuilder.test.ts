@@ -7,7 +7,7 @@ import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from "../../src/editor/VisualModel";
-import { HighlightManager } from "../../src/editor/HighlightManager";
+import { RenderedSceneBuilder } from "../../src/editor/HighlightManager";
 import { SelectionManager } from "../../src/selection/SelectionManager";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 
@@ -18,7 +18,7 @@ let makeCircle: CenterCircleFactory;
 let db: GeometryDatabase;
 let signals: EditorSignals;
 let makeRegion: RegionFactory;
-let highlighter: HighlightManager;
+let highlighter: RenderedSceneBuilder;
 let selection: SelectionManager;
 
 beforeEach(() => {
@@ -30,7 +30,7 @@ beforeEach(() => {
     makeCircle = new CenterCircleFactory(db, materials, signals);
     makeRegion = new RegionFactory(db, materials, signals);
     selection = new SelectionManager(db, materials, signals);
-    highlighter = new HighlightManager(db, materials, selection, signals);
+    highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
 });
 
 describe(visual.SolidBuilder, () => {
