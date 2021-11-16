@@ -7,7 +7,7 @@ import { CenterCircleFactory } from '../src/commands/circle/CircleFactory';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { RenderedSceneBuilder } from '../src/editor/HighlightManager';
+import { RenderedSceneBuilder } from '../src/editor/RenderedSceneBuilder';
 import * as visual from '../src/editor/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';

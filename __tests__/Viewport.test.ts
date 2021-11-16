@@ -15,7 +15,7 @@ import LayerManager, { IntersectableLayers, VisibleLayers } from "../src/editor/
 import MaterialDatabase from "../src/editor/MaterialDatabase";
 import { PlaneSnap } from "../src/editor/snaps/Snap";
 import * as visual from '../src/editor/VisualModel';
-import { RenderedSceneBuilder } from "../src/editor/HighlightManager";
+import { RenderedSceneBuilder } from "../src/editor/RenderedSceneBuilder";
 import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { Helpers } from "../src/util/Helpers";

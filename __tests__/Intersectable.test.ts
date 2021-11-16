@@ -9,7 +9,7 @@ import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { filterIntersections, filterMeshes } from "../src/editor/Intersectable";
 import * as visual from "../src/editor/VisualModel";
-import { RenderedSceneBuilder } from "../src/editor/HighlightManager";
+import { RenderedSceneBuilder } from "../src/editor/RenderedSceneBuilder";
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { BetterSelectionBox } from "../src/util/BetterRaycastingPoints";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
