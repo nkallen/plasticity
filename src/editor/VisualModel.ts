@@ -129,17 +129,20 @@ export class PlaneInstance<T extends PlaneItem> extends Item {
     dispose() { this.underlying.dispose() }
 }
 
-// This only extends THREE.Object3D for type-compatibility with raycasting
-// If you remove it and the system typechecks (in ControlPointGroup.raycast()), 
-// then it's no longer necessary.
 export class ControlPoint extends THREE.Object3D {
+    static simpleName(parentId: c3d.SimpleName, index: number) {
+        return `control-point,${parentId},${index}`;
+    }
+
+    readonly simpleName: string;
+
     constructor(
         readonly parentItem: SpaceInstance<Curve3D>,
-        readonly points: ControlPointGroup,
-        readonly index: number,
-        readonly simpleName: string
+        readonly points: THREE.Points,
+        readonly index: number
     ) {
-        super()
+        super();
+        this.simpleName = ControlPoint.simpleName(parentItem.simpleName, index);
     }
 
     get geometry() { return this.points.geometry }
@@ -164,7 +167,6 @@ export class Curve3D extends SpaceItem {
     constructor(readonly segments: CurveGroup<CurveSegment>, readonly points: THREE.Points) {
         super();
         this.add(segments, points);
-        console.log(points.geometry);
     }
 
     get parentItem(): SpaceInstance<Curve3D> {
@@ -188,6 +190,23 @@ export class Curve3D extends SpaceItem {
 
     get isFragment(): boolean {
         return !!this.userData.untrimmedAncestor;
+    }
+
+    get controlPoints() {
+        const position = this.points.geometry.attributes.position as THREE.Float32BufferAttribute;
+        const count = position.count;
+        const result = [];
+        const parentItem = this.parentItem;
+        for (let i = 0; i < count; i ++) {
+            const point = new ControlPoint(parentItem, this.points, i);
+            result.push(point);
+        }
+        return result;
+    }
+
+    makePoint(index: number) {
+        const parentItem = this.parentItem;
+        return new ControlPoint(parentItem, this.points, index);
     }
 
     picker(isXRay: boolean) {
@@ -418,12 +437,7 @@ export class FaceGroup extends THREE.Group {
     }
 }
 
-// Control points are a bit more complicated than other items. There isn't a c3d object equivalent,
-// they're just referred to by indexes. For performance reasons, with THREE.js we aggregate all
-// points into a THREE.Points object; so where we might want an object to refer to an
-// individual point, we "fake" it by creating a dummy object (cf findByIndex). Performance
-// optimizations aside, we do our usual raycast proxying to children, but we also have a completely
-// different screen-space raycasting algorithm in BetterRaycastingPoints.
+// FIXME: Move into curve builder?
 export class ControlPointGroup extends THREE.Group {
     static build(item: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial): THREE.Points {
         let points: c3d.CartPoint3D[] = [];
@@ -456,43 +470,6 @@ export class ControlPointGroup extends THREE.Group {
         const points = new THREE.Points(geometry, material);
         points.layers.set(Layers.ControlPoint);
         return points;
-    }
-
-    private constructor(readonly length = 0, readonly points?: THREE.Points) {
-        super();
-        if (points !== undefined) this.add(points);
-    }
-
-    get parentItem(): SpaceInstance<Curve3D> {
-        const result = this.parent?.parent;
-        if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
-        return result;
-    }
-
-    findByIndex(i: number): ControlPoint {
-        if (i >= this.length) throw new Error("invalid precondition");
-        const result = new ControlPoint(
-            this.parentItem,
-            this,
-            i,
-            `${this.parentId},${i}`
-        );
-        const position = this.geometry!.getAttribute('position') as THREE.BufferAttribute;
-        result.position.set(position.getX(i), position.getY(i), position.getZ(i));
-        return result;
-    }
-
-    *[Symbol.iterator]() {
-        for (let i = 0; i < this.length; i++) {
-            yield this.findByIndex(i) as ControlPoint;
-        }
-    }
-
-    get parentId(): number { return this.userData.parentId }
-    get geometry() { return this.points?.geometry }
-
-    dispose() {
-        this.points?.geometry.dispose();
     }
 }
 

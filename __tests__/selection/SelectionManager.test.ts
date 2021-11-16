@@ -88,7 +88,7 @@ describe('onClick', () => {
         intersections = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.points.findByIndex(0)
+            object: curve.underlying.controlPoints.findByIndex(0)
         }];
 
         interactionManager.onClick(intersections);
@@ -110,7 +110,7 @@ describe('onClick', () => {
         interactionManager.onClick(intersections);
         expect(selectionManager.selected.curves.size).toBe(1);
 
-        const boxed = new Set([curve.underlying.points.findByIndex(0)]);
+        const boxed = new Set([curve.underlying.controlPoints.findByIndex(0)]);
 
         interactionManager.onBoxSelect(boxed);
         expect(selectionManager.selected.curves.size).toBe(0);
@@ -134,7 +134,7 @@ describe('onClick', () => {
         intersections = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.points.findByIndex(0)
+            object: curve.underlying.controlPoints.findByIndex(0)
         }];
 
         interactionManager.onClick(intersections);
@@ -159,7 +159,7 @@ describe('onClick', () => {
         const intersectControlPoint = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.points.findByIndex(0)
+            object: curve.underlying.controlPoints.findByIndex(0)
         }];
 
         interactionManager.onClick(intersectControlPoint);
@@ -410,7 +410,7 @@ describe('onPointerMove', () => {
         intersections = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.points.findByIndex(0)
+            object: curve.underlying.controlPoints.findByIndex(0)
         }];
 
         interactionManager.onHover(intersections);
@@ -637,7 +637,7 @@ describe(SelectionManager, () => {
         const intersectionsControlPoint = [{
             distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.points.findByIndex(0)
+            object: curve.underlying.controlPoints.findByIndex(0)
         }];
 
         interactionManager.onHover(intersectionsControlPoint);

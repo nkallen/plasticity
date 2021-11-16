@@ -42,10 +42,7 @@ function isSelectable(object: THREE.Object3D): boolean {
 
 function findIntersectable(object: THREE.Object3D, index?: number): Intersectable {
     if (object instanceof BetterRaycastingPoint) {
-        const controlPointGroup = object.parent.parent! as ControlPointGroup;
-        if (!(controlPointGroup instanceof ControlPointGroup))
-            throw new Error("invalid precondition: " + parent.constructor.name);
-        return controlPointGroup.findByIndex(object.index)!;
+        throw "broekn";
     } else {
         const parent = object.parent!;
         if (parent instanceof Solid || parent instanceof TopologyItem || parent instanceof Region)

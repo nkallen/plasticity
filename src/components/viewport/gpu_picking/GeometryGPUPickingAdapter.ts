@@ -22,7 +22,7 @@ export class GeometryIdEncoder {
 
         parentId <<= 16;
         index &= 0x7fff;
-        const t = (type === 'edge' ? 0 : (1 << 15));
+        const t = type === 'edge' || type === 'curve' ? 0 : (1 << 15);
 
         const id = parentId | t | index;
         return id;
@@ -82,26 +82,27 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
 
     intersect(): intersectable.Intersection[] {
         const intersection = this.viewport.picker.intersect();
-        if (intersection === undefined)
-            return [];
-        else
-            return [{
-                object: GeometryGPUPickingAdapter.get(intersection.id, this.db),
-                point: intersection.position
-            }];
+        if (intersection === undefined) return [];
+        else return [{
+            object: GeometryGPUPickingAdapter.get(intersection.id, this.db),
+            point: intersection.position
+        }];
     }
 
     static get(id: number, db: DatabaseLike): intersectable.Intersectable {
-        const { parentId } = GeometryGPUPickingAdapter.encoder.decode(id);
+        const { parentId, type, index } = GeometryGPUPickingAdapter.encoder.decode(id);
         const item = db.lookupItemById(parentId).view;
         if (item instanceof visual.Solid) {
             const simpleName = GeometryGPUPickingAdapter.compact2full(id);
             const data = db.lookupTopologyItemById(simpleName);
             return [...data.views][0];
         } else if (item instanceof visual.SpaceInstance) {
-            return item.underlying;
+            let underlying = item.underlying as visual.Curve3D;
+            if (type === 0) return underlying;
+            else return underlying.makePoint(index);
         } else if (item instanceof visual.PlaneInstance) {
-            return item.underlying;
+            let underlying = item.underlying as visual.Region;
+            return underlying;
         } else {
             throw new Error("invalid item");
         }
