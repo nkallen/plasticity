@@ -250,16 +250,18 @@ function makePickers(snaps: Snap[], isXRay: boolean, name: (index: number) => nu
     disposable.add(new Disposable(() => {
         pointsGeometry.dispose();
     }));
-    const points = new THREE.Points(pointsGeometry, isXRay ? snapPointsXRayMaterial : snapPointsMaterial);
+    const pointsMaterial = isXRay ? snapPointsXRayMaterial : snapPointsMaterial;
+    const points = new THREE.Points(pointsGeometry, pointsMaterial);
 
     const lineGeometry = LineVertexColorMaterial.mergePositions(axes, id => id);
     disposable.add(new Disposable(() => {
         lineGeometry.dispose();
     }))
-    const lines = new LineSegments2(lineGeometry, isXRay ? snapAxisMaterialXRayMaterial : snapAxisMaterial);
+    const lineMaterial = isXRay ? snapAxisMaterialXRayMaterial : snapAxisMaterial;
+    const lines = new LineSegments2(lineGeometry, lineMaterial);
 
-    lines.renderOrder = lines.material.userData.renderOrder;
-    points.renderOrder = lines.material.userData.renderOrder;
+    lines.renderOrder = lineMaterial.userData.renderOrder;
+    points.renderOrder = pointsMaterial.userData.renderOrder;
 
     return { points, lines, planes, dispose() { disposable.dispose() } };
 }

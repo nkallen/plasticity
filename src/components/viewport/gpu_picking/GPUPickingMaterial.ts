@@ -155,9 +155,13 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial implements Lin
             colors.fill(id(userData.index), offset, offset + length);
             offset += length;
         }
-        const instanceColorBuffer = new THREE.InstancedInterleavedBuffer(new Uint8Array(colors.buffer), 8, 1); // rgb, rgb
-        geometry.setAttribute('instanceColorStart', new THREE.InterleavedBufferAttribute(instanceColorBuffer, 4, 0)); // rgb
-        geometry.setAttribute('instanceColorEnd', new THREE.InterleavedBufferAttribute(instanceColorBuffer, 4, 4)); // rgb
+        const instanceColorBuffer = new THREE.InstancedInterleavedBuffer(new Uint8Array(array.length), 6, 1);
+        geometry.setAttribute('instanceColorStart', new THREE.InterleavedBufferAttribute(instanceColorBuffer, 3, 0, true));
+        geometry.setAttribute('instanceColorEnd', new THREE.InterleavedBufferAttribute(instanceColorBuffer, 3, 3, true));
+
+        const idBuffer = new THREE.InstancedInterleavedBuffer(new Uint8Array(colors.buffer), 8, 1);
+        geometry.setAttribute('idStart', new THREE.InterleavedBufferAttribute(idBuffer, 4, 0));
+        geometry.setAttribute('idEnd', new THREE.InterleavedBufferAttribute(idBuffer, 4, 4));
         geometry.userData.groups = groups;
         return geometry;
     }
@@ -166,9 +170,9 @@ export class LineVertexColorMaterial extends THREE.ShaderMaterial implements Lin
         super({
             ...parameters,
             vertexShader: THREE.ShaderLib['line'].vertexShader
-                .replace('attribute vec3 instanceColorStart;', 'attribute vec4 instanceColorStart;')
-                .replace('attribute vec3 instanceColorEnd;', 'attribute vec4 instanceColorEnd;')
-                .replace('vColor.xyz = ( position.y < 0.5 ) ? instanceColorStart : instanceColorEnd', 'vColor = ( position.y < 0.5 ) ? instanceColorStart : instanceColorEnd')
+                .replace('attribute vec3 instanceColorStart;', 'attribute vec4 idStart;')
+                .replace('attribute vec3 instanceColorEnd;', 'attribute vec4 idEnd;')
+                .replace('vColor.xyz = ( position.y < 0.5 ) ? instanceColorStart : instanceColorEnd', 'vColor = ( position.y < 0.5 ) ? idStart : idEnd')
                 .replace(`#ifdef USE_COLOR`, `#ifdef USE_COLOR_ALPHA`),
             fragmentShader: `
             varying vec4 vColor;

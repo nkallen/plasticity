@@ -58,25 +58,4 @@ describe(GeometryGroupUtils, () => {
         result = GeometryGroupUtils.compact([{ start: 0, count: 10 }, { start: 10, count: 10 }, { start: 30, count: 10 }, { start: 40, count: 10 }, { start: 60, count: 10 }]);
         expect(result).toEqual([{ start: 0, count: 20 }, { start: 30, count: 20 }, { start: 60, count: 10 }]);
     });
-
-    test('partition', () => {
-        const groups = [{ start: 0, count: 10 }, { start: 10, count: 10 }, { start: 20, count: 10 }, { start: 30, count: 10 }, { start: 40, count: 10 }];
-        let left, right;
-
-        [left, right] = GeometryGroupUtils.partition(groups, new Set([0, 1, 2, 3, 4]), new Set());
-        expect(left).toEqual(groups);
-        expect(right).toEqual([]);
-
-        [left, right] = GeometryGroupUtils.partition(groups, new Set(), new Set([0, 1, 2, 3, 4]));
-        expect(left).toEqual([]);
-        expect(right).toEqual(groups);
-
-        [left, right] = GeometryGroupUtils.partition(groups, new Set([0, 1, 2]), new Set([3, 4]));
-        expect(left).toEqual([{ start: 0, count: 10 }, { start: 10, count: 10 }, { start: 20, count: 10 }]);
-        expect(right).toEqual([{ start: 30, count: 10 }, { start: 40, count: 10 }]);
-
-        [left, right] = GeometryGroupUtils.partition(groups, new Set([0, 2, 4]), new Set([1, 3]));
-        expect(left).toEqual([{ start: 0, count: 10 }, { start: 20, count: 10 }, { start: 40, count: 10 }]);
-        expect(right).toEqual([{ start: 10, count: 10 }, { start: 30, count: 10 }]);
-    });
 });

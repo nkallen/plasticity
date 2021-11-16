@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] make occluded lines/edges use geometry groups  
 - [ ] Helper for center (of arc) point snap  
 - [ ] See if we can get rid of get child() in visualmodel  
 - [ ] get rid of all snappers in snap  

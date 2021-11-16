@@ -30,9 +30,9 @@ export class RenderedSceneBuilder {
         if (item instanceof visual.SpaceInstance) {
             this.hoverCurve(item);
         } else if (item instanceof visual.Face) {
-            this.hoverFace(item);
+            this.highlightFaces(item.parentItem);
         } else if (item instanceof visual.CurveEdge) {
-            this.hoverCurveEdge(item);
+            this.highlightEdges(item.parentItem);
         } else if (item instanceof visual.PlaneInstance) {
             this.hoverRegion(item);
         } else if (item instanceof visual.ControlPoint) {
@@ -45,22 +45,7 @@ export class RenderedSceneBuilder {
         item.underlying.child.material = region_hovered;
     }
 
-    private hoverCurveEdge(item: visual.CurveEdge) {
-        const { views } = this.db.lookupTopologyItemById(item.simpleName);
-        for (const view of views) {
-            const edge = view as visual.CurveEdge;
-            // if (edge.child.userData.oldMaterial === undefined)
-            //     edge.child.userData.oldMaterial = edge.child.material;
-            // edge.child.material = line_hovered;
-        }
-    }
-
     protected hoverFace(item: visual.Face) {
-        const { views } = this.db.lookupTopologyItemById(item.simpleName);
-        for (const view of views) {
-            const face = view as visual.Face;
-            // face.child.material = face_hovered;
-        }
     }
 
     private hoverCurve(item: visual.SpaceInstance<visual.Curve3D>) {
@@ -83,12 +68,9 @@ export class RenderedSceneBuilder {
         if (item instanceof visual.SpaceInstance) {
             this.highlightCurve(item);
         } else if (item instanceof visual.Face) {
-            this.unhoverFace(item);
+            this.highlightFaces(item.parentItem);
         } else if (item instanceof visual.CurveEdge) {
-            const { views } = this.db.lookupTopologyItemById(item.simpleName);
-            for (const view of views) {
-                this.highlightCurveEdge(view as visual.CurveEdge)
-            }
+            this.highlightEdges(item.parentItem);
         } else if (item instanceof visual.PlaneInstance) {
             this.highlightRegion(item);
         } else if (item instanceof visual.ControlPoint) {
@@ -98,11 +80,6 @@ export class RenderedSceneBuilder {
     }
 
     protected unhoverFace(item: visual.Face) {
-        const { views } = this.db.lookupTopologyItemById(item.simpleName);
-        for (const topo of views) {
-            const face = topo as visual.Face;
-            this.highlightFace(face);
-        }
     }
 
     highlight() {
@@ -120,11 +97,11 @@ export class RenderedSceneBuilder {
         performance.measure('highlight', 'begin-highlight');
     }
 
-    private readonly lines = [line_unhighlighted, line_highlighted, line_hovered];
+    private readonly lines = [line_unselected, line_selected, line_edge, line_hovered];
 
     private highlightSolid(solid: visual.Solid) {
         this.highlightFaces(solid);
-        for (const edge of solid.allEdges) this.highlightCurveEdge(edge);
+        this.highlightEdges(solid);
         solid.layers.set(visual.Layers.Solid);
     }
 
@@ -142,7 +119,7 @@ export class RenderedSceneBuilder {
         const layer = curve.isFragment ? visual.Layers.CurveFragment : visual.Layers.Curve;
         const occludedLayer = curve.isFragment ? visual.Layers.CurveFragment_XRay : visual.Layers.XRay;
         const isSelected = selected.curveIds.has(item.simpleName);
-        curve.line.material = isSelected ? line_highlighted : line_unhighlighted;
+        curve.line.material = isSelected ? line_selected : line_unselected;
         curve.line.layers.set(layer);
         curve.occludedLine.layers.set(occludedLayer);
         const geometry = curve.points.geometry;
@@ -172,45 +149,83 @@ export class RenderedSceneBuilder {
         }
     }
 
-    private highlightCurveEdge(edge: visual.CurveEdge) {
-        const { selected } = this.selection;
+    protected highlightEdges(solid: visual.Solid) {
+        const selection = this.selection.selected;
+        const hovering = this.selection.hovered;
+        const edgegroup = solid.lod.children[1].children[0] as visual.CurveGroup<visual.CurveEdge>;
+        let hovered: visual.GeometryGroup[] = [];
+        let selected: visual.GeometryGroup[] = [];
+        let unselected: visual.GeometryGroup[] = [];
 
-        edge.visible = true;
-        // edge.child.material = selected.edgeIds.has(edge.simpleName) ? line_highlighted : line_unhighlighted;
-        edge.layers.set(visual.Layers.CurveEdge);
-        // edge.child.layers.set(visual.Layers.CurveEdge);
+        for (const edge of edgegroup) {
+            if (hovering.edgeIds.has(edge.simpleName)) {
+                hovered.push(edge.group);
+            } else if (selection.edgeIds.has(edge.simpleName)) {
+                selected.push(edge.group);
+            } else {
+                unselected.push(edge.group);
+            }
+        }
+        hovered = visual.GeometryGroupUtils.compact(hovered);
+        selected = visual.GeometryGroupUtils.compact(selected);
+        unselected = visual.GeometryGroupUtils.compact(unselected);
+
+        const colorStart = edgegroup.line.geometry.attributes.instanceColorStart as THREE.InterleavedBufferAttribute;
+        const array = colorStart.data.array as Uint8Array;
+
+        for (const group of unselected) {
+            for (let i = group.start / 3; i < (group.start + group.count) / 3; i++) {
+                array[i * 3 + 0] = line_unselected.color.r * 255;
+                array[i * 3 + 1] = line_unselected.color.g * 255;
+                array[i * 3 + 2] = line_unselected.color.b * 255;
+            }
+        }
+        for (const group of selected) {
+            for (let i = group.start / 3; i < (group.start + group.count) / 3; i++) {
+                array[i * 3 + 0] = line_selected.color.r * 255;
+                array[i * 3 + 1] = line_selected.color.g * 255;
+                array[i * 3 + 2] = line_selected.color.b * 255;
+            }
+        }
+        for (const group of hovered) {
+            for (let i = group.start / 3; i < (group.start + group.count) / 3; i++) {
+                array[i * 3 + 0] = line_hovered.color.r * 255;
+                array[i * 3 + 1] = line_hovered.color.g * 255;
+                array[i * 3 + 2] = line_hovered.color.b * 255;
+            }
+        }
+
+        colorStart.needsUpdate = true;
+        edgegroup.line.material = line_edge;
     }
 
     protected highlightFaces(solid: visual.Solid, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {
         const selection = this.selection.selected;
+        const hovering = this.selection.hovered;
         const facegroup = solid.lod.children[1].children[1] as visual.FaceGroup;
+        let hovered: visual.GeometryGroup[] = [];
         let selected: visual.GeometryGroup[] = [];
         let unselected: visual.GeometryGroup[] = [];
         for (const face of facegroup) {
-            if (selection.faceIds.has(face.simpleName)) {
+            if (hovering.faceIds.has(face.simpleName)) {
+                hovered.push(face.group);
+            } else if (selection.faceIds.has(face.simpleName)) {
                 selected.push(face.group);
             } else {
                 unselected.push(face.group);
             }
         }
+        hovered = visual.GeometryGroupUtils.compact(hovered);
         selected = visual.GeometryGroupUtils.compact(selected);
         unselected = visual.GeometryGroupUtils.compact(unselected);
-        selected.forEach(s => s.materialIndex = 0);
-        unselected.forEach(s => s.materialIndex = 1);
-        facegroup.mesh.material = [highlighted, unhighlighted];
-        facegroup.mesh.geometry.groups = unselected.concat(selected);
+        hovered.forEach(s => s.materialIndex = 0);
+        selected.forEach(s => s.materialIndex = 1);
+        unselected.forEach(s => s.materialIndex = 2);
+        facegroup.mesh.material = [face_hovered, highlighted, unhighlighted];
+        facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected];
     }
 
-    protected highlightFace(face: visual.Face, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {
-        const selection = this.selection.selected;
-        if (selection.faceIds.has(face.simpleName)) {
-            // face.child.material = highlighted;
-        } else {
-            // face.child.material = unhighlighted;
-        }
-        face.layers.set(visual.Layers.Face);
-        // face.child.layers.set(visual.Layers.Face);
-    }
+    protected highlightFace(face: visual.Face, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) { }
 
     setResolution(size: THREE.Vector2) {
         for (const material of this.lines) {
@@ -220,11 +235,6 @@ export class RenderedSceneBuilder {
 
     get outlineSelection() { return this.selection.selected.solids }
     get outlineHover() { return this.selection.hovered.solids }
-
-}
-
-export class CurveHighlightManager extends RenderedSceneBuilder {
-
 }
 
 export class ModifierHighlightManager extends RenderedSceneBuilder {
@@ -345,10 +355,12 @@ function unmask(child: THREE.Object3D) {
     }
 }
 
-const line_unhighlighted = new LineMaterial({ color: 0x000000, linewidth: 1.4 });
+const line_unselected = new LineMaterial({ color: 0x000000, linewidth: 1.4 });
 
-const line_highlighted = new LineMaterial({ color: 0xffff00, linewidth: 2 });
-line_highlighted.depthFunc = THREE.AlwaysDepth;
+const line_edge = new LineMaterial({ linewidth: 1.4, vertexColors: true });
+
+const line_selected = new LineMaterial({ color: 0xffff00, linewidth: 2 });
+line_selected.depthFunc = THREE.AlwaysDepth;
 
 const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2 });
 line_hovered.depthFunc = THREE.AlwaysDepth;

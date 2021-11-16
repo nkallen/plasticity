@@ -90,7 +90,9 @@ export class GPUPicker {
 
         scene.traverse(obj => {
             if (obj instanceof LineSegments2) {
-                obj.material.resolution.set(camera.offsetWidth, camera.offsetHeight);
+                const material = obj.material;
+                if (material instanceof Array) material.forEach(m => m.resolution.set(camera.offsetWidth, camera.offsetHeight));
+                else material.resolution.set(camera.offsetWidth, camera.offsetHeight);
             }
         })
 

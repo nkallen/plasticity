@@ -358,16 +358,6 @@ export class Vertex {
 
 export type GeometryGroup = { start: number; count: number; materialIndex?: number | undefined };
 export class GeometryGroupUtils {
-    static partition(groups: readonly GeometryGroup[], left: ReadonlySet<number>, right: ReadonlySet<number>) {
-        const leftGroups = [];
-        const rightGroups = [];
-        for (const [i, group] of groups.entries()) {
-            if (left.has(i)) leftGroups.push(group);
-            if (right.has(i)) rightGroups.push(group);
-        }
-        return [leftGroups, rightGroups];
-    }
-
     static compact(groups: Readonly<GeometryGroup>[]): GeometryGroup[] {
         const first = groups.shift();
         if (first === undefined) return [];
