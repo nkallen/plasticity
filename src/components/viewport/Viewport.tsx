@@ -11,7 +11,7 @@ import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, Viewport
 import { xray } from "../../editor/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap, PlaneSnap } from "../../editor/snaps/Snap";
-import { HighlightManager } from "../../selection/HighlightManager";
+import { HighlightManager } from "../../editor/HighlightManager";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helper, Helpers } from "../../util/Helpers";

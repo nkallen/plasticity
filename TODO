@@ -1,7 +1,5 @@
 TODO:
 
-point selection
-
 listening to events in geometry might clobber stuff]
 - need a reserve/release feature , perhaps that has the raycaster on it
 - layers should be set when render is called; no other time is safe?

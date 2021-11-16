@@ -1,14 +1,14 @@
 import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
-import { EditorSignals } from "../editor/EditorSignals";
-import { DatabaseLike } from "../editor/GeometryDatabase";
-import MaterialDatabase from "../editor/MaterialDatabase";
-import ModifierManager from "../editor/ModifierManager";
-import * as visual from '../editor/VisualModel';
+import { EditorSignals } from "./EditorSignals";
+import { DatabaseLike } from "./GeometryDatabase";
+import MaterialDatabase from "./MaterialDatabase";
+import ModifierManager from "./ModifierManager";
+import * as visual from './VisualModel';
 import matcap from '../img/matcap/ceramic_dark.exr';
-import { ItemSelection } from "./Selection";
-import { HasSelectedAndHovered, Selectable } from "./SelectionManager";
+import { ItemSelection } from "../selection/Selection";
+import { HasSelectedAndHovered, Selectable } from "../selection/SelectionManager";
 
 export class HighlightManager {
     constructor(

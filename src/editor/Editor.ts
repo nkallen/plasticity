@@ -10,7 +10,7 @@ import CommandRegistry from "../components/atom/CommandRegistry";
 import TooltipManager from "../components/atom/tooltip-manager";
 import KeyboardEventManager from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
-import { ModifierHighlightManager } from "../selection/HighlightManager";
+import { ModifierHighlightManager } from "./HighlightManager";
 import { SelectionInteractionManager, SelectionMode } from "../selection/SelectionInteraction";
 import { SelectionManager } from "../selection/SelectionManager";
 import { Helpers } from "../util/Helpers";
