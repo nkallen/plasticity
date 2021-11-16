@@ -269,6 +269,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             // FIXME this is inefficient
             scene.traverse(child => { if (child instanceof Helper) child.update(camera) });
 
+            camera.layers = VisibleLayers;
             composer.render();
 
             if (frameNumber > lastFrameNumber) {
@@ -528,7 +529,6 @@ export default (editor: EditorLike) => {
                     n = Y;
                     break;
             }
-            camera.layers = VisibleLayers;
 
             const navigationControls = new OrbitControls(camera, renderer.domElement, editor.keymaps);
             navigationControls.enableRotate = enableRotate;

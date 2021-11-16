@@ -71,10 +71,10 @@ export class HighlightManager {
     private hoverControlPoint(v: visual.ControlPoint) {
         const geometry = v.geometry!;
         const colors = geometry.attributes.color;
-        const array = colors.array as unknown as Float32Array;
-        array[v.index * 3 + 0] = controlPoint_hovered.r;
-        array[v.index * 3 + 1] = controlPoint_hovered.g;
-        array[v.index * 3 + 2] = controlPoint_hovered.b;
+        const array = colors.array as unknown as Uint8Array;
+        array[v.index * 3 + 0] = controlPoint_hovered.r * 255;
+        array[v.index * 3 + 1] = controlPoint_hovered.g * 255;
+        array[v.index * 3 + 2] = controlPoint_hovered.b * 255;
         colors.needsUpdate = true;
     }
 
@@ -152,11 +152,11 @@ export class HighlightManager {
         const geometry = curve.points.geometry;
         if (geometry !== undefined) {
             const colors = geometry.attributes.color;
-            const array = colors.array as unknown as Float32Array;
+            const array = colors.array as unknown as Uint8Array;
             for (let i = 0; i < array.length / 3; i++) {
-                array[i * 3 + 0] = controlPoint_unhighlighted.r;
-                array[i * 3 + 1] = controlPoint_unhighlighted.g;
-                array[i * 3 + 2] = controlPoint_unhighlighted.b;
+                array[i * 3 + 0] = controlPoint_unhighlighted.r * 255;
+                array[i * 3 + 1] = controlPoint_unhighlighted.g * 255;
+                array[i * 3 + 2] = controlPoint_unhighlighted.b * 255;
             }
             colors.needsUpdate = true;
         }
@@ -168,10 +168,10 @@ export class HighlightManager {
         for (const point of selected.controlPoints) {
             const geometry = point.geometry!;
             const colors = geometry.attributes.color;
-            const array = colors.array as unknown as Float32Array;
-            array[point.index * 3 + 0] = controlPoint_highlighted.r;
-            array[point.index * 3 + 1] = controlPoint_highlighted.g;
-            array[point.index * 3 + 2] = controlPoint_highlighted.b;
+            const array = colors.array as unknown as Uint8Array;
+            array[point.index * 3 + 0] = controlPoint_highlighted.r * 255;
+            array[point.index * 3 + 1] = controlPoint_highlighted.g * 255;
+            array[point.index * 3 + 2] = controlPoint_highlighted.b * 255;
             colors.needsUpdate = true;
         }
     }

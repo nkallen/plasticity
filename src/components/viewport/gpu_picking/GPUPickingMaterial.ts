@@ -44,21 +44,21 @@ export class VertexColorMaterial extends THREE.ShaderMaterial {
     }
 }
 
-export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
+export class IdPointsMaterial extends THREE.ShaderMaterial {
     static geometry(points: [number, THREE.Vector3][]) {
         const positions = new Float32Array(points.length * 3);
-        const colors = new Uint32Array(points.length);
+        const ids = new Uint32Array(points.length);
         for (const [i, [id, point]] of points.entries()) {
             const position = point;
             positions[i * 3 + 0] = position.x;
             positions[i * 3 + 1] = position.y;
             positions[i * 3 + 2] = position.z;
 
-            colors[i] = id;
+            ids[i] = id;
         }
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.Uint8BufferAttribute(colors.buffer, 4, true));
+        geometry.setAttribute('id', new THREE.Uint8BufferAttribute(ids.buffer, 4, true));
         return geometry;
     }
 
@@ -67,13 +67,13 @@ export class PointsVertexColorMaterial extends THREE.ShaderMaterial {
             ...parameters,
             vertexShader: `
             uniform float size;
-            attribute vec4 color;
+            attribute vec4 id;
             varying vec4 vColor;
 
             #include <common>
             #include <clipping_planes_pars_vertex>
             void main() {
-                vColor = color;
+                vColor = id;
                 #include <begin_vertex>
                 #include <project_vertex>
                 gl_PointSize = size;

@@ -147,6 +147,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 if (!(model instanceof c3d.Solid)) throw new Error("invalid precondition");
                 this.addTopologyItem(model, t);
             } else if (t instanceof visual.ControlPointGroup) {
+                // FIXME:
                 if (!(model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
                 for (const child of t) this.addControlPoint(model, child);
             }
@@ -346,7 +347,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 if (underlying === null) throw new Error("invalid precondition");
                 switch (underlying.Family()) {
                     case c3d.SpaceType.Curve3D:
-                        const curveBuilder = builder as visual.SpaceInstanceBuilder<visual.Curve3D>;
+                        builder = builder as visual.SpaceInstanceBuilder<visual.Curve3D>;
                         if (item.edges.length === 0) throw new Error(`invalid precondition: no edges`);
 
                         const lineMaterial = materials?.line ?? this.materials.line(instance);
@@ -357,19 +358,17 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                             segments.add(edge, id, materials?.line ?? lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
                         }
 
-                        const curve = new visual.Curve3DBuilder();
-                        const pointGroup = visual.ControlPointGroup.build(underlying, id, pointMaterial);
-                        curve.addControlPoints(pointGroup);
-                        curve.addSegments(segments.build()!);
-                        curveBuilder.add(curve.build(), distance);
+                        const points = visual.ControlPointGroup.build(underlying, id, pointMaterial);
+                        const curve = visual.Curve3D.build(segments, points);
+                        builder.add(curve, distance);
                         break;
                     case c3d.SpaceType.Surface:
-                        const surfaceBuilder = builder as visual.SpaceInstanceBuilder<visual.Surface>;
+                        builder = builder as visual.SpaceInstanceBuilder<visual.Surface>;
                         if (item.faces.length != 1) throw new Error("Invalid precondition");
                         const grid = item.faces[0];
                         const material = materials?.surface ?? this.materials.surface(instance);
                         const surface = visual.Surface.build(grid, material);
-                        surfaceBuilder.add(surface, distance);
+                        builder.add(surface, distance);
                         break;
                     default: throw new Error("invalid precondition")
                 }

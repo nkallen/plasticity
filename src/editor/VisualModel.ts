@@ -4,8 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { GeometryGPUPickingAdapter } from "../components/viewport/gpu_picking/GeometryGPUPickingAdapter";
-import { IdMeshMaterial, IdLineMaterial, LineVertexColorMaterial, vertexColorLineMaterial, vertexColorLineMaterialXRay, VertexColorMaterial, vertexColorMaterial, vertexColorMaterialXRay } from "../components/viewport/gpu_picking/GPUPickingMaterial";
-import { BetterRaycastingPoints } from '../util/BetterRaycastingPoints';
+import { IdLineMaterial, IdMeshMaterial, IdPointsMaterial, LineVertexColorMaterial, vertexColorLineMaterial, vertexColorLineMaterialXRay, VertexColorMaterial, vertexColorMaterial, vertexColorMaterialXRay } from "../components/viewport/gpu_picking/GPUPickingMaterial";
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
 
@@ -157,7 +156,11 @@ export class CurveSegment extends THREE.Object3D {
 }
 
 export class Curve3D extends SpaceItem {
-    constructor(readonly segments: CurveGroup<CurveSegment>, readonly points: ControlPointGroup) {
+    static build(segments: CurveSegmentGroupBuilder, points: THREE.Points) {
+        return new Curve3D(segments.build(), points);
+    }
+
+    constructor(readonly segments: CurveGroup<CurveSegment>, readonly points: THREE.Points) {
         super();
         this.add(segments, points);
     }
@@ -199,7 +202,7 @@ export class Curve3D extends SpaceItem {
 
     dispose() {
         this.segments.dispose();
-        this.points.dispose();
+        this.points.geometry.dispose();
     }
 }
 
@@ -407,7 +410,7 @@ export class FaceGroup extends THREE.Group {
 // optimizations aside, we do our usual raycast proxying to children, but we also have a completely
 // different screen-space raycasting algorithm in BetterRaycastingPoints.
 export class ControlPointGroup extends THREE.Group {
-    static build(item: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial): ControlPointGroup {
+    static build(item: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial): THREE.Points {
         let points: c3d.CartPoint3D[] = [];
         switch (item.Type()) {
             case c3d.SpaceType.PolyCurve3D: {
@@ -431,29 +434,13 @@ export class ControlPointGroup extends THREE.Group {
         return ControlPointGroup.fromCartPoints(points, parentId, material);
     }
 
-    private static fromCartPoints(ps: c3d.CartPoint3D[], parentId: c3d.SimpleName, material: THREE.PointsMaterial): ControlPointGroup {
-        let positions, colors;
-        positions = new Float32Array(ps.length * 3);
-        colors = new Float32Array(ps.length * 3);
-        for (const [i, p] of ps.entries()) {
-            positions[i * 3 + 0] = deunit(p.x);
-            positions[i * 3 + 1] = deunit(p.y);
-            positions[i * 3 + 2] = deunit(p.z);
-            colors[i * 3 + 0] = 0.1;
-            colors[i * 3 + 1] = 0.1;
-            colors[i * 3 + 2] = 0.1;
-        }
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-        const points = new BetterRaycastingPoints(geometry, material);
-
-        const result = new ControlPointGroup(ps.length, points);
-        result.layers.set(Layers.ControlPoint);
+    private static fromCartPoints(ps: c3d.CartPoint3D[], parentId: c3d.SimpleName, material: THREE.PointsMaterial) {
+        const info: [number, THREE.Vector3][] = ps.map((p, i) => [GeometryGPUPickingAdapter.encoder.encode('control-point', parentId, i), point2point(p)]);
+        const geometry = IdPointsMaterial.geometry(info);
+        geometry.setAttribute('color', new THREE.Uint8BufferAttribute(new Uint8Array(ps.length * 3), 3, true))
+        const points = new THREE.Points(geometry, material);
         points.layers.set(Layers.ControlPoint);
-        result.userData.parentId = parentId;
-        return result;
+        return points;
     }
 
     private constructor(readonly length = 0, readonly points?: THREE.Points) {
@@ -653,18 +640,6 @@ export class CurveEdgeGroupBuilder extends CurveBuilder<CurveEdge> {
 export class CurveSegmentGroupBuilder extends CurveBuilder<CurveSegment> {
     // FIXME: probably don't build colors for curve segments
     get make() { return CurveSegment }
-}
-
-export class Curve3DBuilder {
-    private segments!: CurveGroup<CurveSegment>;
-    private points!: ControlPointGroup;
-
-    addSegments(segments: CurveGroup<CurveSegment>) { this.segments = segments }
-    addControlPoints(points: ControlPointGroup) { this.points = points }
-
-    build(): Curve3D {
-        return new Curve3D(this.segments, this.points!);
-    }
 }
 
 export const RenderOrder = {

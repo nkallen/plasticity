@@ -61,23 +61,18 @@ test("adding & hiding & unhiding solid", async () => {
     makeBox.p3 = new THREE.Vector3(1, 1, 0);
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
-
     expect(snaps.all.length).toBe(34);
 
     db.hide(box);
-
     expect(snaps.all.length).toBe(4);
 
     db.unhide(box);
-
     expect(snaps.all.length).toBe(34);
 
     db.hide(box);
-
     expect(snaps.all.length).toBe(4);
 
     db.unhideAll();
-
     expect(snaps.all.length).toBe(34);
 });
 
@@ -87,7 +82,7 @@ test("adding & removing curve", async () => {
     makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps.all.length).toBe(7);
+    expect(snaps.all.length).toBe(6);
 
     db.removeItem(line);
 
@@ -100,7 +95,7 @@ test("adding & removing polyline points", async () => {
     makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0), new THREE.Vector3(2, 1, 0), new THREE.Vector3(3, 0, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps.all.length).toBe(12);
+    expect(snaps.all.length).toBe(11);
 
     db.removeItem(line);
 

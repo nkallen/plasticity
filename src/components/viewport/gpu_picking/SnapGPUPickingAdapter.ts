@@ -10,7 +10,7 @@ import * as visual from "../../../editor/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
-import { IdMeshMaterial, LineVertexColorMaterial, PointsVertexColorMaterial } from "./GPUPickingMaterial";
+import { IdMeshMaterial, LineVertexColorMaterial, IdPointsMaterial } from "./GPUPickingMaterial";
 import { readRenderTargetPixelsAsync } from "./GPUWaitAsync";
 
 const nearbyRadius = 50; // px
@@ -142,9 +142,9 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         } else if (intersectable instanceof visual.CurveEdge) {
             const model = this.db.lookupTopologyItem(intersectable);
             return new CurveEdgeSnap(intersectable, model);
-        } else if (intersectable instanceof visual.SpaceInstance) {
-            const model = this.db.lookup(intersectable);
-            return new CurveSnap(intersectable, inst2curve(model)!);
+        } else if (intersectable instanceof visual.Curve3D) {
+            const model = this.db.lookup(intersectable.parentItem);
+            return new CurveSnap(intersectable.parentItem, inst2curve(model)!);
         } else {
             throw new Error("invalid snap target");
         }
@@ -209,7 +209,7 @@ export class SnapManagerGeometryCache implements PickerInfo {
 }
 
 interface PickerInfo {
-    points: THREE.Points<THREE.BufferGeometry, PointsVertexColorMaterial>;
+    points: THREE.Points<THREE.BufferGeometry, IdPointsMaterial>;
     lines: LineSegments2;
     planes: THREE.Mesh[];
     dispose(): void;
@@ -245,7 +245,7 @@ function makePickers(snaps: Snap[], isXRay: boolean, name: (index: number) => nu
             throw new Error("Invalid snap");
         }
     }
-    const pointsGeometry = PointsVertexColorMaterial.geometry(pointInfo);
+    const pointsGeometry = IdPointsMaterial.geometry(pointInfo);
     disposable.add(new Disposable(() => {
         pointsGeometry.dispose();
     }));
@@ -333,7 +333,7 @@ class NearbySnapGPUicker {
     }
 }
 
-const snapPointsMaterial = new PointsVertexColorMaterial({
+const snapPointsMaterial = new IdPointsMaterial({
     size: pointSnapSize,
     stencilWrite: true,
     stencilFunc: THREE.AlwaysStencilFunc,
@@ -355,4 +355,4 @@ snapPointsMaterial.userData.renderOrder = 0; // < vertexColorMaterial.userData.r
 const snapAxisMaterialXRayMaterial = snapAxisMaterial.clone();
 
 const nearbyCalculationShouldClobberZbuffer = false;
-const nearbyMaterial = new PointsVertexColorMaterial({ size: nearbySnapSize, depthWrite: nearbyCalculationShouldClobberZbuffer });
+const nearbyMaterial = new IdPointsMaterial({ size: nearbySnapSize, depthWrite: nearbyCalculationShouldClobberZbuffer });
