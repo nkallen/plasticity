@@ -414,10 +414,12 @@ export class Face extends TopologyItem {
 export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group {
     private _useNominal: undefined;
 
+    readonly temp = new THREE.Group();
     constructor(readonly mesh: THREE.Group, readonly edges: ReadonlyArray<T>) {
         super();
-        this.add(mesh);
         if (edges.length > 0) this.add(...edges);
+        this.add(this.temp);
+        this.add(this.mesh);
     }
 
     *[Symbol.iterator]() {

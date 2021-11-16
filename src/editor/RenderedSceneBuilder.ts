@@ -1,14 +1,15 @@
 import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
+import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
+import matcap from '../img/matcap/ceramic_dark.exr';
+import { ItemSelection } from "../selection/Selection";
+import { HasSelectedAndHovered, Selectable } from "../selection/SelectionManager";
 import { EditorSignals } from "./EditorSignals";
 import { DatabaseLike } from "./GeometryDatabase";
 import MaterialDatabase from "./MaterialDatabase";
 import ModifierManager from "./ModifierManager";
 import * as visual from './VisualModel';
-import matcap from '../img/matcap/ceramic_dark.exr';
-import { ItemSelection } from "../selection/Selection";
-import { HasSelectedAndHovered, Selectable } from "../selection/SelectionManager";
 
 export class RenderedSceneBuilder {
     constructor(
@@ -19,6 +20,7 @@ export class RenderedSceneBuilder {
     ) {
         signals.renderPrepared.add(({ resolution }) => this.setResolution(resolution));
         signals.commandEnded.add(() => this.highlight());
+        signals.sceneGraphChanged.add(() => this.highlight());
         signals.modifiersLoaded.add(() => this.highlight());
         signals.historyChanged.add(() => this.highlight());
         signals.objectHovered.add(selectable => this.hover(selectable));
@@ -155,48 +157,40 @@ export class RenderedSceneBuilder {
         const edgegroup = solid.lod.children[1].children[0] as visual.CurveGroup<visual.CurveEdge>;
         let hovered: visual.GeometryGroup[] = [];
         let selected: visual.GeometryGroup[] = [];
-        let unselected: visual.GeometryGroup[] = [];
 
         for (const edge of edgegroup) {
             if (hovering.edgeIds.has(edge.simpleName)) {
                 hovered.push(edge.group);
             } else if (selection.edgeIds.has(edge.simpleName)) {
                 selected.push(edge.group);
-            } else {
-                unselected.push(edge.group);
             }
         }
         hovered = visual.GeometryGroupUtils.compact(hovered);
         selected = visual.GeometryGroupUtils.compact(selected);
-        unselected = visual.GeometryGroupUtils.compact(unselected);
 
-        const colorStart = edgegroup.line.geometry.attributes.instanceColorStart as THREE.InterleavedBufferAttribute;
-        const array = colorStart.data.array as Uint8Array;
+        const instanceStart = edgegroup.line.geometry.attributes.instanceStart as THREE.InterleavedBufferAttribute;
+        const inArray = instanceStart.data.array as Float32Array;
+        const inBuffer = Buffer.from(inArray.buffer);
 
-        for (const group of unselected) {
-            for (let i = group.start / 3; i < (group.start + group.count) / 3; i++) {
-                array[i * 3 + 0] = line_unselected.color.r * 255;
-                array[i * 3 + 1] = line_unselected.color.g * 255;
-                array[i * 3 + 2] = line_unselected.color.b * 255;
+        const pairs: [visual.GeometryGroup[], LineMaterial][] = [ [selected, line_selected], [hovered, line_hovered]]
+        edgegroup.temp.clear();
+        for (const [groups, mat] of pairs) {
+            let size = 0;
+            for (const group of groups) size += group.count;
+            const outBuffer = Buffer.alloc(size * 4);
+            let offset = 0;
+            for (const group of groups) {
+                const next = (group.start + group.count) * 4;
+                inBuffer.copy(outBuffer, offset, group.start * 4, next);
+                offset = next;
             }
+            const geometry = new LineSegmentsGeometry();
+            geometry.setPositions(new Float32Array(outBuffer.buffer));
+            const edges = edgegroup.line.clone();
+            edges.geometry = geometry;
+            edges.material = mat;
+            edgegroup.temp.add(edges);
         }
-        for (const group of selected) {
-            for (let i = group.start / 3; i < (group.start + group.count) / 3; i++) {
-                array[i * 3 + 0] = line_selected.color.r * 255;
-                array[i * 3 + 1] = line_selected.color.g * 255;
-                array[i * 3 + 2] = line_selected.color.b * 255;
-            }
-        }
-        for (const group of hovered) {
-            for (let i = group.start / 3; i < (group.start + group.count) / 3; i++) {
-                array[i * 3 + 0] = line_hovered.color.r * 255;
-                array[i * 3 + 1] = line_hovered.color.g * 255;
-                array[i * 3 + 2] = line_hovered.color.b * 255;
-            }
-        }
-
-        colorStart.needsUpdate = true;
-        edgegroup.line.material = line_edge;
     }
 
     protected highlightFaces(solid: visual.Solid, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {
@@ -359,10 +353,10 @@ const line_unselected = new LineMaterial({ color: 0x000000, linewidth: 1.4 });
 
 const line_edge = new LineMaterial({ linewidth: 1.4, vertexColors: true });
 
-const line_selected = new LineMaterial({ color: 0xffff00, linewidth: 2 });
+const line_selected = new LineMaterial({ color: 0xffff00, linewidth: 2, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 line_selected.depthFunc = THREE.AlwaysDepth;
 
-const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2 });
+const line_hovered = new LineMaterial({ color: 0xffffff, linewidth: 2, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
 line_hovered.depthFunc = THREE.AlwaysDepth;
 
 // @ts-expect-error
