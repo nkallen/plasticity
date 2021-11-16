@@ -5,6 +5,7 @@ import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeome
 import c3d from '../../build/Release/c3d.node';
 import { GeometryGPUPickingAdapter } from "../components/viewport/gpu_picking/GeometryGPUPickingAdapter";
 import { IdLineMaterial, IdMeshMaterial, IdPointsMaterial, LineVertexColorMaterial, vertexColorLineMaterial, vertexColorLineMaterialXRay, VertexColorMaterial, vertexColorMaterial, vertexColorMaterialXRay } from "../components/viewport/gpu_picking/GPUPickingMaterial";
+import { snapPointsMaterial, snapPointsXRayMaterial } from "../components/viewport/gpu_picking/SnapGPUPickingAdapter";
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
 
@@ -62,7 +63,6 @@ export class Solid extends Item {
         const facePicker = faces.mesh.clone();
         const edgePicker = edges.line.clone();
 
-        const group = new THREE.Group();
         if (isXRay) {
             facePicker.material = vertexColorMaterialXRay;
             edgePicker.material = vertexColorLineMaterialXRay;
@@ -75,6 +75,7 @@ export class Solid extends Item {
         edgePicker.layers.set(Layers.CurveEdge);
         facePicker.layers.set(Layers.Face);
 
+        const group = new THREE.Group();
         group.add(facePicker, edgePicker);
         return group;
     }
@@ -163,6 +164,7 @@ export class Curve3D extends SpaceItem {
     constructor(readonly segments: CurveGroup<CurveSegment>, readonly points: THREE.Points) {
         super();
         this.add(segments, points);
+        console.log(points.geometry);
     }
 
     get parentItem(): SpaceInstance<Curve3D> {
@@ -189,15 +191,25 @@ export class Curve3D extends SpaceItem {
     }
 
     picker(isXRay: boolean) {
-        const picker = this.line.clone();
-        const id = GeometryGPUPickingAdapter.encoder.encode('curve', this.parentItem.simpleName);
-        const prototype = isXRay ? vertexColorLineMaterialXRay : vertexColorLineMaterial;
-        const { stencilWrite, stencilFunc, stencilRef, stencilZPass } = prototype;
-        picker.renderOrder = prototype.userData.renderOrder;
+        const linePicker = this.line.clone();
+        const pointsPicker = this.points.clone();
+
+        const lineMaterialPrototype = isXRay ? vertexColorLineMaterialXRay : vertexColorLineMaterial;
+        const pointsMaterial = isXRay ? snapPointsXRayMaterial : snapPointsMaterial;
+        
+        const { stencilWrite, stencilFunc, stencilRef, stencilZPass } = lineMaterialPrototype;
+        linePicker.renderOrder = lineMaterialPrototype.userData.renderOrder;
+
         // FIXME: gc material
-        const material = new IdLineMaterial(id, { blending: THREE.NoBlending, linewidth: 10, stencilWrite, stencilFunc, stencilRef, stencilZPass });
-        picker.material = material;
-        return picker;
+        const id = GeometryGPUPickingAdapter.encoder.encode('curve', this.parentItem.simpleName);
+        const lineMaterial = new IdLineMaterial(id, { blending: THREE.NoBlending, linewidth: 10, stencilWrite, stencilFunc, stencilRef, stencilZPass });
+        linePicker.material = lineMaterial;
+
+        pointsPicker.material = pointsMaterial;
+
+        const group = new THREE.Group();
+        group.add(linePicker, pointsPicker);
+        return group;
     }
 
     get line() { return this.segments.line }

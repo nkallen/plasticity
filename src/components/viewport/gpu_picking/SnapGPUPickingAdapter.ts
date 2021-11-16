@@ -334,7 +334,7 @@ class NearbySnapGPUicker {
     }
 }
 
-const snapPointsMaterial = new IdPointsMaterial({
+export const snapPointsMaterial = new IdPointsMaterial({
     size: pointSnapSize,
     stencilWrite: true,
     stencilFunc: THREE.AlwaysStencilFunc,
@@ -351,7 +351,7 @@ const snapAxisMaterial = new LineVertexColorMaterial({
 });
 snapAxisMaterial.userData.renderOrder = 10;
 
-const snapPointsXRayMaterial = snapPointsMaterial.clone();
+export const snapPointsXRayMaterial = snapPointsMaterial.clone();
 snapPointsMaterial.userData.renderOrder = 0; // < vertexColorMaterial.userData.renderOrder
 const snapAxisMaterialXRayMaterial = snapAxisMaterial.clone();
 

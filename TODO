@@ -1,9 +1,6 @@
 TODO:
 
-CURVE XRay
-point non XRay
-point XRay
-
+point selection
 
 listening to events in geometry might clobber stuff]
 - need a reserve/release feature , perhaps that has the raycaster on it
