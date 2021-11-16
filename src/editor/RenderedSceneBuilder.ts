@@ -123,12 +123,8 @@ export class RenderedSceneBuilder {
     private readonly lines = [line_unhighlighted, line_highlighted, line_hovered];
 
     private highlightSolid(solid: visual.Solid) {
-        for (const face of solid.allFaces) {
-            this.highlightFace(face);
-        }
-        for (const edge of solid.allEdges) {
-            this.highlightCurveEdge(edge);
-        }
+        this.highlightFaces(solid);
+        for (const edge of solid.allEdges) this.highlightCurveEdge(edge);
         solid.layers.set(visual.Layers.Solid);
     }
 
@@ -183,6 +179,26 @@ export class RenderedSceneBuilder {
         // edge.child.material = selected.edgeIds.has(edge.simpleName) ? line_highlighted : line_unhighlighted;
         edge.layers.set(visual.Layers.CurveEdge);
         // edge.child.layers.set(visual.Layers.CurveEdge);
+    }
+
+    protected highlightFaces(solid: visual.Solid, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {
+        const selection = this.selection.selected;
+        const facegroup = solid.lod.children[1].children[1] as visual.FaceGroup;
+        let selected: visual.GeometryGroup[] = [];
+        let unselected: visual.GeometryGroup[] = [];
+        for (const face of facegroup) {
+            if (selection.faceIds.has(face.simpleName)) {
+                selected.push(face.group);
+            } else {
+                unselected.push(face.group);
+            }
+        }
+        selected = visual.GeometryGroupUtils.compact(selected);
+        unselected = visual.GeometryGroupUtils.compact(unselected);
+        selected.forEach(s => s.materialIndex = 0);
+        unselected.forEach(s => s.materialIndex = 1);
+        facegroup.mesh.material = [highlighted, unhighlighted];
+        facegroup.mesh.geometry.groups = unselected.concat(selected);
     }
 
     protected highlightFace(face: visual.Face, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {

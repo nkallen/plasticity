@@ -197,7 +197,7 @@ export class Curve3D extends SpaceItem {
         const count = position.count;
         const result = [];
         const parentItem = this.parentItem;
-        for (let i = 0; i < count; i ++) {
+        for (let i = 0; i < count; i++) {
             const point = new ControlPoint(parentItem, this.points, i);
             result.push(point);
         }
@@ -215,7 +215,7 @@ export class Curve3D extends SpaceItem {
 
         const lineMaterialPrototype = isXRay ? vertexColorLineMaterialXRay : vertexColorLineMaterial;
         const pointsMaterial = isXRay ? snapPointsXRayMaterial : snapPointsMaterial;
-        
+
         const { stencilWrite, stencilFunc, stencilRef, stencilZPass } = lineMaterialPrototype;
         linePicker.renderOrder = lineMaterialPrototype.userData.renderOrder;
 
@@ -357,6 +357,42 @@ export class Vertex {
 }
 
 export type GeometryGroup = { start: number; count: number; materialIndex?: number | undefined };
+export class GeometryGroupUtils {
+    static partition(groups: readonly GeometryGroup[], left: ReadonlySet<number>, right: ReadonlySet<number>) {
+        const leftGroups = [];
+        const rightGroups = [];
+        for (const [i, group] of groups.entries()) {
+            if (left.has(i)) leftGroups.push(group);
+            if (right.has(i)) rightGroups.push(group);
+        }
+        return [leftGroups, rightGroups];
+    }
+
+    static compact(groups: Readonly<GeometryGroup>[]): GeometryGroup[] {
+        const first = groups.shift();
+        if (first === undefined) return [];
+        if (groups.length === 0) return [first];
+
+        let start = first.start;
+        let count = first.count;
+        let position = start + count;
+
+        const result = [];
+        for (const group of groups) {
+            if (group.start === position) {
+                count += group.count;
+                position += group.count;
+            } else {
+                result.push({ start, count });
+                start = group.start;
+                count = group.count;
+                position = start + count;
+            }
+        }
+        result.push({ start, count });
+        return result;
+    }
+}
 
 export class Face extends TopologyItem {
     static simpleName(parentId: c3d.SimpleName, index: number) {
@@ -417,7 +453,7 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
 export class FaceGroup extends THREE.Group {
     private _useNominal: undefined;
 
-    constructor(readonly mesh: THREE.Mesh, readonly faces: ReadonlyArray<Face>) {
+    constructor(readonly mesh: THREE.Mesh, readonly faces: ReadonlyArray<Face>, readonly groups: ReadonlyArray<GeometryGroup>) {
         super();
         this.add(mesh);
         this.add(...faces);
@@ -427,9 +463,7 @@ export class FaceGroup extends THREE.Group {
         for (const face of this.faces) yield face;
     }
 
-    get(i: number): Face {
-        return this.faces[i];
-    }
+    get(i: number): Face { return this.faces[i] }
 
     dispose() {
         for (const face of this.faces) face.dispose();
@@ -562,7 +596,7 @@ export class FaceGroupBuilder {
         for (const geo of geos) geo.dispose();
         merged.clearGroups();
 
-        return new FaceGroup(mesh, faces);
+        return new FaceGroup(mesh, faces, groups);
     }
 }
 

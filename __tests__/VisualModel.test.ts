@@ -6,8 +6,8 @@ import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import * as visual from "../src/editor/VisualModel";
 import { RenderedSceneBuilder } from "../src/editor/RenderedSceneBuilder";
+import { GeometryGroupUtils } from '../src/editor/VisualModel';
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 
@@ -33,21 +33,50 @@ beforeEach(() => {
     highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
 });
 
-test('constructs solids', () => {
-    const makeEdges = new visual.CurveEdgeGroupBuilder();
-    const edge = visual.CurveEdge.mesh({ position: new Float32Array([1, 2, 3]) } as c3d.MeshBuffer, 0, materials.line(), materials.lineDashed());
-    makeEdges.add(edge);
 
-    const makeFaces = new visual.FaceGroupBuilder();
-    const face = visual.Face.mesh({} as c3d.MeshBuffer, 0, materials.mesh());
-    makeFaces.add(face);
+describe(GeometryGroupUtils, () => {
+    test('compact', () => {
+        let result;
+        result = GeometryGroupUtils.compact([]);
+        expect(result).toEqual([]);
 
-    const makeSolid = new visual.SolidBuilder();
-    makeSolid.add(makeEdges.build(), makeFaces.build());
-    const solid = makeSolid.build();
-    expect(solid).toBeInstanceOf(visual.Solid);
+        result = GeometryGroupUtils.compact([{ start: 0, count: 10 }]);
+        expect(result).toEqual([{ start: 0, count: 10 }]);
+
+        result = GeometryGroupUtils.compact([{ start: 0, count: 10 }, { start: 10, count: 10 }]);
+        expect(result).toEqual([{ start: 0, count: 20 }]);
+
+        result = GeometryGroupUtils.compact([{ start: 0, count: 10 }, { start: 11, count: 10 }]);
+        expect(result).toEqual([{ start: 0, count: 10 }, { start: 11, count: 10 }]);
+
+        result = GeometryGroupUtils.compact([{ start: 0, count: 10 }, { start: 10, count: 10 }, { start: 21, count: 10 }]);
+        expect(result).toEqual([{ start: 0, count: 20 }, { start: 21, count: 10 }]);
+
+        result = GeometryGroupUtils.compact([{ start: 0, count: 10 }, { start: 10, count: 10 }, { start: 30, count: 10 }, { start: 40, count: 10 }]);
+        expect(result).toEqual([{ start: 0, count: 20 }, { start: 30, count: 20 }]);
+
+        result = GeometryGroupUtils.compact([{ start: 0, count: 10 }, { start: 10, count: 10 }, { start: 30, count: 10 }, { start: 40, count: 10 }, { start: 60, count: 10 }]);
+        expect(result).toEqual([{ start: 0, count: 20 }, { start: 30, count: 20 }, { start: 60, count: 10 }]);
+    });
+
+    test('partition', () => {
+        const groups = [{ start: 0, count: 10 }, { start: 10, count: 10 }, { start: 20, count: 10 }, { start: 30, count: 10 }, { start: 40, count: 10 }];
+        let left, right;
+
+        [left, right] = GeometryGroupUtils.partition(groups, new Set([0, 1, 2, 3, 4]), new Set());
+        expect(left).toEqual(groups);
+        expect(right).toEqual([]);
+
+        [left, right] = GeometryGroupUtils.partition(groups, new Set(), new Set([0, 1, 2, 3, 4]));
+        expect(left).toEqual([]);
+        expect(right).toEqual(groups);
+
+        [left, right] = GeometryGroupUtils.partition(groups, new Set([0, 1, 2]), new Set([3, 4]));
+        expect(left).toEqual([{ start: 0, count: 10 }, { start: 10, count: 10 }, { start: 20, count: 10 }]);
+        expect(right).toEqual([{ start: 30, count: 10 }, { start: 40, count: 10 }]);
+
+        [left, right] = GeometryGroupUtils.partition(groups, new Set([0, 2, 4]), new Set([1, 3]));
+        expect(left).toEqual([{ start: 0, count: 10 }, { start: 20, count: 10 }, { start: 40, count: 10 }]);
+        expect(right).toEqual([{ start: 10, count: 10 }, { start: 30, count: 10 }]);
+    });
 });
-
-test('optimize', () => {
-
-})
