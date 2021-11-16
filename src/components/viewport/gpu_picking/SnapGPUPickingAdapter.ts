@@ -177,6 +177,7 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
 
         picker.layers.enableAll();
         if (isOrtho) picker.layers.disable(visual.Layers.Face);
+        picker.layers.disable(visual.Layers.Region);
         picker.update(this.pickers);
     }
 }

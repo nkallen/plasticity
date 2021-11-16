@@ -71,8 +71,8 @@ export class Solid extends Item {
             edgePicker.material = vertexColorLineMaterial;
         }
         edgePicker.renderOrder = edgePicker.material.userData.renderOrder;
-        edgePicker.layers.set(Layers.CurveEdge);
         facePicker.renderOrder = facePicker.material.userData.renderOrder;
+        edgePicker.layers.set(Layers.CurveEdge);
         facePicker.layers.set(Layers.Face);
 
         group.add(facePicker, edgePicker);
@@ -190,9 +190,12 @@ export class Curve3D extends SpaceItem {
 
     picker(isXRay: boolean) {
         const picker = this.line.clone();
-        // FIXME: gc material
         const id = GeometryGPUPickingAdapter.encoder.encode('curve', this.parentItem.simpleName);
-        const material = new IdLineMaterial(id, { blending: THREE.NoBlending, linewidth: 10 });
+        const prototype = isXRay ? vertexColorLineMaterialXRay : vertexColorLineMaterial;
+        const { stencilWrite, stencilFunc, stencilRef, stencilZPass } = prototype;
+        picker.renderOrder = prototype.userData.renderOrder;
+        // FIXME: gc material
+        const material = new IdLineMaterial(id, { blending: THREE.NoBlending, linewidth: 10, stencilWrite, stencilFunc, stencilRef, stencilZPass });
         picker.material = material;
         return picker;
     }
