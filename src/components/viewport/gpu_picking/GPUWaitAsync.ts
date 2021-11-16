@@ -66,13 +66,13 @@ export async function readRenderTargetPixelsAsync(renderer: THREE.WebGLRenderer,
 }
 
 // NOTE: Not yet used; to be used in GPUPicker to reduce latency
-export function preparePBO(renderer: THREE.WebGLRenderer, renderTarget: THREE.WebGLRenderTarget, buf: WebGLBuffer, x: number, y: number, w: number, h: number) {
+export function preparePBO(renderer: THREE.WebGLRenderer, renderTarget: THREE.WebGLRenderTarget, pbo: WebGLBuffer, x: number, y: number, w: number, h: number) {
     const gl = renderer.getContext() as WebGL2RenderingContext;
     const framebuffer = renderer.properties.get(renderTarget).__webglFramebuffer;
     try {
         renderer.state.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 
-        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
         gl.bufferData(gl.PIXEL_PACK_BUFFER, 4 * (w - x) * (h - y), gl.STREAM_READ);
         gl.readPixels(x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
@@ -82,7 +82,9 @@ export function preparePBO(renderer: THREE.WebGLRenderer, renderTarget: THREE.We
 
         gl.flush();
 
-        return sync;
+        return clientWaitAsync(gl, sync, 0, 10).then(() => {
+            return sync;
+        });
     } finally {
         // restore framebuffer of current render target if necessary
         const currentRenderTarget = renderer.getRenderTarget();

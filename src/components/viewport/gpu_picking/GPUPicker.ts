@@ -2,6 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { Viewport } from "../Viewport";
+import { preparePBO, readRenderTargetPixelsAsync } from "./GPUWaitAsync";
 
 /**
  * The GPUPicker identifies objects in 3d space pointed at by the mouse. It extracts a 32-bit
@@ -23,7 +24,7 @@ export class GPUPicker {
 
     readonly layers = new THREE.Layers();
 
-    static minimumEntityId = 1;
+    static readonly minimumEntityId = 1;
 
     private readonly scene = new THREE.Scene();
     private objects: THREE.Object3D[] = [];
@@ -82,7 +83,7 @@ export class GPUPicker {
         if (!this.needsRender) return;
         this.needsRender = false;
 
-        const { viewport: { renderer, camera }, objects, scene, pickingTarget } = this;
+        const { viewport: { renderer, camera }, objects, scene, pickingTarget, dpr } = this;
 
         this.scene.clear();
         renderer.setRenderTarget(pickingTarget);
@@ -100,6 +101,10 @@ export class GPUPicker {
         try {
             camera.layers = this.layers;
             renderer.render(scene, camera);
+            const time = performance.now();
+            readRenderTargetPixelsAsync(renderer, pickingTarget, 0, 0, camera.offsetWidth * dpr, camera.offsetHeight * dpr, this.pickingBuffer).then(() => {
+                console.log(performance.now() - time);
+            })
         } finally {
             this.viewport.camera.layers = oldLayers;
         }

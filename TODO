@@ -5,7 +5,6 @@ listening to events in geometry might clobber stuff]
 - layers should be set when render is called; no other time is safe?
 
 
-Get highlighed faces and edges to work
 verify Fillet hidden edge shown
 
 vertify point drag works
