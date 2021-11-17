@@ -335,18 +335,8 @@ export class CurveEdge extends Edge {
         this.userData = userData;
     }
 
-    // FIXME: this is to be removed
-    makeView() {
-        const edgeGroup = this.parent as CurveGroup<CurveSegment>;
-        const original = (edgeGroup.mesh.children[0] as LineSegments2).geometry;
-        const instanceStart = original.attributes.instanceStart as THREE.InterleavedBufferAttribute;
-        const array = instanceStart.data.array as Float32Array;
-        const slice = new Float32Array(array, this.group.start, this.group.count);
-        const geometry = new LineSegmentsGeometry();
-        geometry.setPositions(slice);
-        const line = new LineSegments2(geometry);
-        line.computeLineDistances();
-        return line;
+    slice() {
+        return this.parentItem.edges.slice([this]);
     }
 
     dispose() { }
