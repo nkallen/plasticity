@@ -430,6 +430,28 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
         return this.edges[i];
     }
 
+    slice(edges: T[]): LineSegments2 {
+        const instanceStart = this.line.geometry.attributes.instanceStart as THREE.InterleavedBufferAttribute;
+        const inArray = instanceStart.data.array as Float32Array;
+        const inBuffer = Buffer.from(inArray.buffer);
+
+        let size = 0;
+        for (const edge of edges) size += edge.group.count;
+        const outBuffer = Buffer.alloc(size * 4);
+        let offset = 0;
+        for (const edge of edges) {
+            const group = edge.group;
+            const next = (group.start + group.count) * 4;
+            inBuffer.copy(outBuffer, offset, group.start * 4, next);
+            offset += group.count * 4;
+        }
+        const geometry = new LineSegmentsGeometry();
+        geometry.setPositions(new Float32Array(outBuffer.buffer));
+        const line = this.line.clone();
+        line.geometry = geometry;
+        return line;
+    }
+
     get line() { return this.mesh.children[0] as LineSegments2 }
     get occludedLine() { return this.mesh.children[1] as LineSegments2 }
 

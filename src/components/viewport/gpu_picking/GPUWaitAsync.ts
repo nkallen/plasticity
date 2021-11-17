@@ -56,8 +56,7 @@ export async function readRenderTargetPixelsAsync(renderer: THREE.WebGLRenderer,
     const framebuffer = renderer.properties.get(renderTarget).__webglFramebuffer;
     try {
         renderer.state.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-        // NOTE: which format makes a significant performance difference.
-        return readPixelsAsync(gl, 0, 0, w, h, gl.RGBA8, gl.UNSIGNED_BYTE, dest);
+        return readPixelsAsync(gl, 0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, dest);
     } finally {
         // restore framebuffer of current render target if necessary
         const currentRenderTarget = renderer.getRenderTarget();

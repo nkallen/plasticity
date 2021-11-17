@@ -101,7 +101,7 @@ export default {
         },
         Model: {
             rawHeader: "model.h",
-            dependencies: ["Item.h", "Path.h", "Matrix3D.h", "ModelAddon.h", "Transactions.h"],
+            dependencies: ["Item.h", "Path.h", "Matrix3D.h", "ModelAddon.h", "Transactions.h", "Axis3D.h"],
             initializers: [""],
             extends: ["RefItem", "AttributeContainer", "Transactions"],
             functions: [
@@ -113,6 +113,10 @@ export default {
                 {
                     signature: "const MbItem * GetItemByName(SimpleName n, MbPath & path, MbMatrix3D & from)",
                     path: isReturn, from: isReturn, return: { name: "item" }
+                },
+                {
+                    signature: "bool NearestMesh(MbeSpaceType sType, MbeTopologyType tType, MbePlaneType pType, const MbAxis3D & axis, double maxDistance, bool gridPriority, MbItem *& find, SimpleName & findName, MbRefItem *& element, SimpleName & elementName, MbPath & path, MbMatrix3D & from)",
+                    return: { name: 'success' }, find: isReturn, findName: isReturn, element: isReturn, elementName: isReturn, path: isReturn, from: isReturn,
                 },
             ],
         },
@@ -129,6 +133,7 @@ export default {
                 "SimpleName GetItemName()",
                 { signature: "MbItem * Cast()", isManual: true },
                 { signature: "bool RebuildItem(MbeCopyMode sameShell, RPArray<MbSpaceItem> * items, ProgressIndicator * progInd = NULL)", items: isReturn, return: isErrorBool, progInd: isRaw },
+                "const MbItem * GetItemByPath(const MbPath & path, size_t ind, MbMatrix3D & from, size_t currInd = 0)"
             ],
         },
         TopItem: {
@@ -650,10 +655,21 @@ export default {
                 "bool Fair()",
             ],
         },
+        FloatAxis3D: {
+            rawHeader: "mesh_float_point3d.h",
+            dependencies: ["Axis3D.h"],
+            initializers: [
+                "const MbAxis3D & initAxis",
+            ],
+        },
+        FloatPoint3D: {
+            rawHeader: "mesh_float_point3d.h",
+            fields: ["float x", "float y", "float z"],
+        },
         Mesh: {
             rawHeader: "mesh.h",
             extends: "Item",
-            dependencies: ["Item.h", "Grid.h"],
+            dependencies: ["Item.h", "Grid.h", "FloatAxis3D.h", "FloatPoint3D.h", "Axis3D.h", "Matrix3D.h", "Path.h"],
             initializers: ["bool doExact"],
             functions: [
                 { signature: "void GetBuffers(RPArray<MeshBuffer> & result)", isManual: true, result: isReturn },
@@ -663,6 +679,16 @@ export default {
                 "void ConvertAllToTriangles()",
                 "bool IsClosed()",
                 "MbGrid * AddGrid()",
+                { signature: "void GetGrids(RPArray<MbGrid> & result)", result: isReturn },
+                "void CreateGridSearchTrees(bool forcedNew = false)",
+                {
+                    signature: "bool LineIntersection(const MbFloatAxis3D & line, MbFloatPoint3D & crossPnt, float & tRes)",
+                    crossPnt: isReturn, tRes: isReturn,
+                },
+                {
+                    signature: "bool NearestMesh(MbeSpaceType sType, MbeTopologyType tType, MbePlaneType pType, const MbAxis3D & axis, double maxDistance, bool gridPriority, double & t, double & dMin, MbItem *& find, SimpleName & findName, MbRefItem *& element, SimpleName & elementName, MbPath & path, MbMatrix3D & from)",
+                    return: { name: 'success' }, t: isReturn, dMin: isReturn, find: isReturn, findName: isReturn, element: isReturn, elementName: isReturn, path: isReturn, from: isReturn,
+                },
             ]
         },
         RegDuplicate: {
@@ -723,7 +749,10 @@ export default {
             ]
         },
         Path: {
-            rawHeader: "name_item.h"
+            rawHeader: "name_item.h",
+            functions: [
+                "size_t Count()",
+            ]
         },
         Matrix: {
             rawHeader: "mb_matrix.h",
@@ -1428,10 +1457,17 @@ export default {
         },
         Grid: {
             extends: "Primitive",
-            dependencies: ["Primitive.h", "StepData.h"],
+            dependencies: ["Primitive.h", "StepData.h", "Cube.h"],
             rawHeader: "mesh_primitive.h",
             functions: [
-                "void SetStepData(const MbStepData & stData)"
+                "void SetStepData(const MbStepData & stData)",
+                "bool IsSearchTreeReady()",
+                "bool CreateSearchTree()",
+                "void DeleteSearchTree()",
+                "const MbCube & GetCube()",
+                "const void * CreateGridTopology(bool keepExisting)",
+                "bool IsGridTopologyReady()",
+
             ]
         },
         ConvConvertorProperty3D: {

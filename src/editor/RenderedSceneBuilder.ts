@@ -155,41 +155,23 @@ export class RenderedSceneBuilder {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
         const edgegroup = solid.lod.children[1].children[0] as visual.CurveGroup<visual.CurveEdge>;
-        let hovered: visual.GeometryGroup[] = [];
-        let selected: visual.GeometryGroup[] = [];
+        let hovered: visual.CurveEdge[] = [];
+        let selected: visual.CurveEdge[] = [];
 
         for (const edge of edgegroup) {
             if (hovering.edgeIds.has(edge.simpleName)) {
-                hovered.push(edge.group);
+                hovered.push(edge);
             } else if (selection.edgeIds.has(edge.simpleName)) {
-                selected.push(edge.group);
+                selected.push(edge);
             }
         }
-        hovered = visual.GeometryGroupUtils.compact(hovered);
-        selected = visual.GeometryGroupUtils.compact(selected);
 
-        const instanceStart = edgegroup.line.geometry.attributes.instanceStart as THREE.InterleavedBufferAttribute;
-        const inArray = instanceStart.data.array as Float32Array;
-        const inBuffer = Buffer.from(inArray.buffer);
-
-        const pairs: [visual.GeometryGroup[], LineMaterial][] = [ [selected, line_selected], [hovered, line_hovered]]
+        const pairs: [visual.CurveEdge[], LineMaterial][] = [[selected, line_selected], [hovered, line_hovered]];
         edgegroup.temp.clear();
-        for (const [groups, mat] of pairs) {
-            let size = 0;
-            for (const group of groups) size += group.count;
-            const outBuffer = Buffer.alloc(size * 4);
-            let offset = 0;
-            for (const group of groups) {
-                const next = (group.start + group.count) * 4;
-                inBuffer.copy(outBuffer, offset, group.start * 4, next);
-                offset = next;
-            }
-            const geometry = new LineSegmentsGeometry();
-            geometry.setPositions(new Float32Array(outBuffer.buffer));
-            const edges = edgegroup.line.clone();
-            edges.geometry = geometry;
-            edges.material = mat;
-            edgegroup.temp.add(edges);
+        for (const [edges, mat] of pairs) {
+            const sliced = edgegroup.slice(edges);
+            sliced.material = mat;
+            edgegroup.temp.add(sliced);
         }
     }
 
