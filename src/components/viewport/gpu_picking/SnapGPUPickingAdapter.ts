@@ -74,9 +74,9 @@ export class SnapGPUPickingAdapter implements GPUPickingAdapter<SnapResult> {
         const { viewport: { picker }, pointPicker: { choice }, snaps } = this;
 
         if (!snaps.enabled) return this.intersectConstructionPlane();
+        if (choice !== undefined) return this.intersectChoice(choice);
 
         const intersection = picker.intersect();
-        if (choice !== undefined) return this.intersectChoice(choice);
         if (intersection === undefined) return this.intersectConstructionPlane();
         else return this.intersectSnaps(intersection);
     }
