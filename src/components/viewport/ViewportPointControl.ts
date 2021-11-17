@@ -44,8 +44,10 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
 
     private mode: Mode = { tag: 'none' };
     protected startClick(intersections: Intersection[]): boolean {
+        console.log(intersections);
+
         if (intersections.length === 0) return false;
-        const first = intersections[0];
+        const first = intersections[0].object;
         if (!(first instanceof visual.ControlPoint)) return false;
         const { domElement } = this.viewport;
         if (domElement.ownerDocument.body.hasAttribute('gizmo')) return false;
@@ -87,7 +89,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         switch (this.mode.tag) {
             case 'none': break;
             case 'start':
-                const { center2d, center3d, pointStart3d, helper, viewport: { camera, domElement } } = this;
+                const { center2d, center3d, pointStart3d, helper, viewport: { camera } } = this;
                 center3d.copy(pointStart3d).project(camera);
                 center2d.set(center3d.x, center3d.y);
 
