@@ -305,7 +305,7 @@ class NearbySnapGPUicker {
             renderer.autoClearDepth = false;
             camera.setViewOffset(renderer.domElement.width, renderer.domElement.height, x_dom, y_dom, radius * 2 * dpr, radius * 2 * dpr); // takes DOM coordinates
             renderer.render(scene, camera);
-            performance.mark('begin-nearby-snap-read-render-target-pixels')
+            performance.mark('begin-nearby-snap-read-render-target-pixels');
             readRenderTargetPixelsAsync(renderer, nearbyTarget, 0, 0, radius * 2 * dpr, radius * 2 * dpr, nearbyBuffer).then(result => {
                 performance.measure('nearby-snap-read-render-target-pixels', 'begin-nearby-snap-read-render-target-pixels');
             });
