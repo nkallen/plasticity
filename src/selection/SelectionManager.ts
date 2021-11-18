@@ -5,7 +5,7 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { Agent, DatabaseLike } from '../editor/GeometryDatabase';
 import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import * as visual from '../editor/VisualModel';
+import * as visual from '../visual_model/VisualModel';
 import { Redisposable, RefCounter } from '../util/Util';
 import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './Selection';
 import { SelectionMode } from './SelectionInteraction';

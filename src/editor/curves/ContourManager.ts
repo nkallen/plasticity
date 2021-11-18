@@ -1,7 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
 import { DatabaseProxy } from '../DatabaseProxy';
 import { Agent, GeometryDatabase } from '../GeometryDatabase';
-import * as visual from "../VisualModel";
+import * as visual from "../../visual_model/VisualModel";
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
 import { RegionManager } from "./RegionManager";
 

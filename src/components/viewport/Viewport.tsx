@@ -8,10 +8,10 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
-import { xray } from "../../editor/Intersectable";
+import { xray } from "../../visual_model/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap, PlaneSnap } from "../../editor/snaps/Snap";
-import { RenderedSceneBuilder } from "../../editor/RenderedSceneBuilder";
+import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helper, Helpers } from "../../util/Helpers";

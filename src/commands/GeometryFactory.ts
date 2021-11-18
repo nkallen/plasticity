@@ -2,7 +2,7 @@ import c3d from '../../build/Release/c3d.node';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import * as visual from '../editor/VisualModel';
+import * as visual from '../visual_model/VisualModel';
 import { CancellableRegisterable } from '../util/Cancellable';
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { zip } from '../util/Util';

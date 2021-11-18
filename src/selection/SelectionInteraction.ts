@@ -1,8 +1,8 @@
 import { EditorSignals } from '../editor/EditorSignals';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { Intersectable, Intersection } from "../editor/Intersectable";
-import * as visual from '../editor/VisualModel';
-import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../editor/VisualModel';
+import { Intersectable, Intersection } from "../visual_model/Intersectable";
+import * as visual from '../visual_model/VisualModel';
+import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../visual_model/VisualModel';
 import { ClickStrategy } from './Click';
 import { HoverStrategy } from './Hover';
 import { HasSelectedAndHovered } from './SelectionManager';

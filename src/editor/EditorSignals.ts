@@ -6,7 +6,7 @@ import { Viewport } from '../components/viewport/Viewport';
 import { HasSelection, Selectable, ToggleableSet } from '../selection/SelectionManager';
 import { Agent } from './GeometryDatabase';
 import { Replacement } from './ModifierManager';
-import * as visual from './VisualModel';
+import * as visual from '../visual_model/VisualModel';
 
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();

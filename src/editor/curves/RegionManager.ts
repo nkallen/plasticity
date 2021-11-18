@@ -2,7 +2,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { isSamePlacement } from '../../util/Conversion';
 import { GeometryDatabase } from '../GeometryDatabase';
 import { PlanarCurveDatabase } from './PlanarCurveDatabase';
-import * as visual from "../VisualModel";
+import * as visual from "../../visual_model/VisualModel";
 
 export class RegionManager {
     constructor(

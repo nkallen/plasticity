@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from '../../editor/GeometryDatabase';
-import * as visual from '../../editor/VisualModel';
+import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, NoOpError } from '../GeometryFactory';
 

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { BetterRaycastingPoint } from '../util/BetterRaycastingPoints';
-import { IntersectableLayers } from "./LayerManager";
-import { ControlPoint, Curve3D, CurveSegment, Layers, Region, Solid, TopologyItem } from "./VisualModel";
+import { IntersectableLayers } from "../editor/LayerManager";
+import { ControlPoint, Curve3D, CurveSegment, Layers, Region, Solid, TopologyItem } from "../visual_model/VisualModel";
 
 // It's important to conceptually distinguish intersectable objects from selectable objects
 // Selectable objects are what the user actually stores in a selection (e.g., a SpaceInstance<Curve3D>)

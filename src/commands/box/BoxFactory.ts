@@ -5,7 +5,7 @@ import { composeMainName, point2point } from "../../util/Conversion";
 import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import { CenterRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../rect/RectangleFactory";
-import * as visual from '../../editor/VisualModel';
+import * as visual from '../../visual_model/VisualModel';
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 }
 

@@ -4,7 +4,7 @@ import { composeMainName, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 import { ThickFaceFactory } from '../thin-solid/ThinSolidFactory';
 import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
-import * as visual from "../../editor/VisualModel";
+import * as visual from "../../visual_model/VisualModel";
 
 export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFaceParams {
     angle = 0;

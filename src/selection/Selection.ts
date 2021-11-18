@@ -1,6 +1,6 @@
 import c3d from '../build/Release/c3d.node';
 import { DatabaseLike } from "../editor/GeometryDatabase";
-import * as visual from '../editor/VisualModel';
+import * as visual from '../visual_model/VisualModel';
 
 abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem | visual.ControlPoint, S extends c3d.SimpleName | string> {
     size: number;

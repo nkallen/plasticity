@@ -3,7 +3,7 @@ import Command, * as cmd from "../commands/Command";
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
 import { Viewport } from "../components/viewport/Viewport";
 import { ViewportControl } from "../components/viewport/ViewportControl";
-import * as intersectable from "../editor/Intersectable";
+import * as intersectable from "../visual_model/Intersectable";
 import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
 
 export interface EditorLike extends cmd.EditorLike {

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../editor/VisualModel';
+import * as visual from '../../visual_model/VisualModel';
 import { point2point } from "../../util/Conversion";
 import { GeometryFactory } from '../GeometryFactory';
 

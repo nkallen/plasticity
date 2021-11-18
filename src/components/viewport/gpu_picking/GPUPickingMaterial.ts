@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { LineMaterial, LineMaterialParameters } from "three/examples/jsm/lines/LineMaterial";
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import * as visual from "../../../editor/VisualModel";
+import * as visual from "../../../visual_model/VisualModel";
 
 export class VertexColorMaterial extends THREE.ShaderMaterial {
     static mergeBufferGeometries(geos: THREE.BufferGeometry[], id: (i: number) => number) {

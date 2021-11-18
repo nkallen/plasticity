@@ -11,7 +11,7 @@ import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
 import MaterialDatabase from './MaterialDatabase';
 import ModifierManager, { ModifierStack } from './ModifierManager';
 import { Snap } from "./snaps/Snap";
-import * as visual from "./VisualModel";
+import * as visual from "../visual_model/VisualModel";
 
 export class Memento {
     constructor(

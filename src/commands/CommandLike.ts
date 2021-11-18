@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { Intersectable, Intersection } from '../editor/Intersectable';
+import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import { ModifierStack } from '../editor/ModifierManager';
-import * as visual from "../editor/VisualModel";
+import * as visual from "../visual_model/VisualModel";
 import Command, * as cmd from "./Command";
 import { ExportDialog } from './export/ExportDialog';
 import { ExportFactory } from './export/ExportFactory';

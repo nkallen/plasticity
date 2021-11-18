@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import { Intersectable, Intersection } from '../editor/Intersectable';
+import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { SelectionInteractionManager, SelectionMode } from '../selection/SelectionInteraction';

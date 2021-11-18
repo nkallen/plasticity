@@ -7,7 +7,7 @@ import { CreatorChangeSelectionCommand, RebuildCommand } from '../../commands/Co
 import { RebuildFactory } from '../../commands/rebuild/RebuildFactory';
 import { Editor } from '../../editor/Editor';
 import { TemporaryObject } from '../../editor/GeometryDatabase';
-import * as visual from '../../editor/VisualModel';
+import * as visual from '../../visual_model/VisualModel';
 import { icons } from '../toolbar/icons';
 
 type State = { tag: 'none' } | { tag: 'updating', temp?: TemporaryObject, factory: RebuildFactory }

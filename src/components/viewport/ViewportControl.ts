@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
-import * as intersectable from "../../editor/Intersectable";
+import * as intersectable from "../../visual_model/Intersectable";
 import LayerManager from "../../editor/LayerManager";
 import { GeometryGPUPickingAdapter } from "./gpu_picking/GeometryGPUPickingAdapter";
 import { Viewport } from "./Viewport";

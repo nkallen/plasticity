@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { ProxyCamera } from "../components/viewport/ProxyCamera";
 import { EditorSignals } from '../editor/EditorSignals';
-import * as visual from "../editor/VisualModel";
+import * as visual from "../visual_model/VisualModel";
 
 // Helpers are little visualization tools like gizmos that should
 // be rendered as a separate pass from the main scene so they appear

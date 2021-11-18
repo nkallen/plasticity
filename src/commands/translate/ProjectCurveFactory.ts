@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../editor/VisualModel';
+import * as visual from '../../visual_model/VisualModel';
 import { inst2curve, point2point, vec2vec } from "../../util/Conversion";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 import { BasicScaleFactory, X, Y, Z, FreestyleScaleFactory } from "./TranslateFactory";

@@ -10,7 +10,7 @@ import { EditorSignals } from "./EditorSignals";
 import { Agent, DatabaseLike, TemporaryObject } from "./GeometryDatabase";
 import { MementoOriginator, ModifierMemento, ModifierStackMemento } from "./History";
 import MaterialDatabase from "./MaterialDatabase";
-import * as visual from "./VisualModel";
+import * as visual from "../visual_model/VisualModel";
 
 export type Replacement = { from: visual.Item, to: visual.Item }
 

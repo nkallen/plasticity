@@ -2,9 +2,9 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { EditorSignals } from "../../../editor/EditorSignals";
 import { DatabaseLike } from "../../../editor/GeometryDatabase";
-import * as intersectable from "../../../editor/Intersectable";
+import * as intersectable from "../../../visual_model/Intersectable";
 import LayerManager from "../../../editor/LayerManager";
-import * as visual from "../../../editor/VisualModel";
+import * as visual from "../../../visual_model/VisualModel";
 import { Viewport } from "../Viewport";
 
 export interface GPUPickingAdapter<T> {

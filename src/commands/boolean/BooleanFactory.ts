@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride, TemporaryObject } from "../../editor/GeometryDatabase";
 import { PlaneSnap } from "../../editor/snaps/Snap";
-import * as visual from '../../editor/VisualModel';
+import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, curve3d2curve2d, point2point, vec2vec } from '../../util/Conversion';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, PhantomInfo, ValidationError } from '../GeometryFactory';

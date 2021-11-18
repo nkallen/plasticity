@@ -9,8 +9,8 @@ import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { ParallelMeshCreator } from './MeshCreator';
-import * as visual from './VisualModel';
-import * as build from './VisualModelBuilder';
+import * as visual from '../visual_model/VisualModel';
+import * as build from '../visual_model/VisualModelBuilder';
 
 const mesh_precision_distance: [number, number][] = [[5, 1000], [0.15, 1]];
 const other_precision_distance: [number, number][] = [[0.05, 1]];

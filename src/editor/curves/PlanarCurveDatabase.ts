@@ -5,7 +5,7 @@ import { EditorSignals } from '../EditorSignals';
 import { DatabaseLike } from '../GeometryDatabase';
 import { CurveMemento, MementoOriginator } from '../History';
 import MaterialDatabase from '../MaterialDatabase';
-import * as visual from "../VisualModel";
+import * as visual from "../../visual_model/VisualModel";
 
 export class PlanarCurveDatabase implements MementoOriginator<CurveMemento> {
     private readonly curve2info = new Map<c3d.SimpleName, CurveInfo>();

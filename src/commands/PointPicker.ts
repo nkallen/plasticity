@@ -11,7 +11,7 @@ import { DatabaseLike } from '../editor/GeometryDatabase';
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
-import * as visual from "../editor/VisualModel";
+import * as visual from "../visual_model/VisualModel";
 import { CancellablePromise } from '../util/Cancellable';
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helper, Helpers } from '../util/Helpers';

@@ -5,11 +5,11 @@ import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 import matcap from '../img/matcap/ceramic_dark.exr';
 import { ItemSelection } from "../selection/Selection";
 import { HasSelectedAndHovered, Selectable } from "../selection/SelectionManager";
-import { EditorSignals } from "./EditorSignals";
-import { DatabaseLike } from "./GeometryDatabase";
-import MaterialDatabase from "./MaterialDatabase";
-import ModifierManager from "./ModifierManager";
-import * as visual from './VisualModel';
+import { EditorSignals } from "../editor/EditorSignals";
+import { DatabaseLike } from "../editor/GeometryDatabase";
+import MaterialDatabase from "../editor/MaterialDatabase";
+import ModifierManager from "../editor/ModifierManager";
+import * as visual from '../visual_model/VisualModel';
 
 export class RenderedSceneBuilder {
     constructor(

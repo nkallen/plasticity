@@ -5,7 +5,7 @@ import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
-import * as visual from '../VisualModel';
+import * as visual from '../../visual_model/VisualModel';
 import { AxisSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
 
 export interface SnapResult {

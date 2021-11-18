@@ -1,5 +1,5 @@
-import { Intersectable } from "../editor/Intersectable";
-import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../editor/VisualModel";
+import { Intersectable } from "../visual_model/Intersectable";
+import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
 import { SelectionMode, SelectionStrategy } from "./SelectionInteraction";
 import { ModifiesSelection } from "./SelectionManager";
 

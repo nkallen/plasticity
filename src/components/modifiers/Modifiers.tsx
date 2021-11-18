@@ -11,7 +11,7 @@ import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
 import ModifierManager, { ModifierStack } from '../../editor/ModifierManager';
-import * as visual from '../../editor/VisualModel';
+import * as visual from '../../visual_model/VisualModel';
 import { HasSelection } from '../../selection/SelectionManager';
 import { icons } from '../toolbar/icons';
 
