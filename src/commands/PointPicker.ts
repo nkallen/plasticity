@@ -473,6 +473,7 @@ export class PointPicker {
                     } else if (e.key == "Shift") {
                         const oldChoice = this.model.choice;
                         this.model.choice = undefined;
+                        // FIXME: need to pass all last snap results
                         if (lastSnap !== undefined) model.activateSnapped([lastSnap]);
                         if (oldChoice !== undefined) onPointerMove(lastMoveEvent);
                     }

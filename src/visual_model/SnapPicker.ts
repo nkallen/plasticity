@@ -48,12 +48,11 @@ export class SnapPicker {
         if (restrictions.length > 0) {
             intersections = raycaster.intersectObjects(restrictions);
         } else {
-            const points = snaps.points;
+            const points = snaps.snappers;
             const additional = pointPicker.snaps.map(s => s.snapper);
             const geometry = db.visibleObjects;
             console.time();
             intersections = raycaster.intersectObjects([...points, ...additional, ...geometry], false);
-            // intersections = raycaster.intersectObjects([...additional, ...geometry], false);
             console.timeEnd();
         }
 
@@ -114,7 +113,6 @@ export interface SnapResult {
     orientation: THREE.Quaternion;
 }
 
-
 export class SnapManagerGeometryCache {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
@@ -125,12 +123,14 @@ export class SnapManagerGeometryCache {
         this.update();
     }
 
-    private geometrySnaps: Set<PointSnap>[] = [];
-    private foo: THREE.Points[] = [];
+    private geometrySnaps: PointSnap[][] = [];
+    private _snappers: THREE.Object3D[] = [];
     private update() {
         const { basicSnaps, geometrySnaps, crossSnaps } = this.snaps.all;
         const result = [];
-        for (const [i, points] of geometrySnaps.entries()) {
+        this.geometrySnaps = [];
+        let i = 0;
+        for (const points of geometrySnaps) {
             const pointInfo = new Float32Array(points.size * 3);
             let j = 0;
             for (const point of points) {
@@ -142,13 +142,16 @@ export class SnapManagerGeometryCache {
             const picker = new THREE.Points(pointsGeometry);
             picker.userData.index = i;
             result.push(picker);
+            i++;
+            this.geometrySnaps.push([...points]);
         }
-        this.foo = result;
-        this.geometrySnaps = [...geometrySnaps];
+        for (const snap of basicSnaps) result.push(snap.snapper);
+        for (const snap of crossSnaps) result.push(snap.snapper);
+        this._snappers = result;
     }
 
-    get points() {
-        return this.foo;
+    get snappers() {
+        return this._snappers;
     }
 
     get(points: THREE.Points, index: number) {
