@@ -3,6 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from '../commands/mirror/MirrorFactory';
 import { ProxyCamera } from '../components/viewport/ProxyCamera';
 import { RefCounter } from '../util/Util';
+import * as visual from "../visual_model/VisualModel";
 import ContourManager from './curves/ContourManager';
 import { CrossPoint } from './curves/CrossPointDatabase';
 import { PlanarCurveDatabase } from "./curves/PlanarCurveDatabase";
@@ -10,8 +11,7 @@ import { EditorSignals } from './EditorSignals';
 import { DatabaseLike, GeometryDatabase } from './GeometryDatabase';
 import MaterialDatabase from './MaterialDatabase';
 import ModifierManager, { ModifierStack } from './ModifierManager';
-import { Snap } from "./snaps/Snap";
-import * as visual from "../visual_model/VisualModel";
+import { PointSnap } from "./snaps/Snap";
 
 export class Memento {
     constructor(
@@ -143,7 +143,7 @@ export class ViewportMemento {
 
 export class SnapMemento {
     constructor(
-        readonly id2snaps: Map<c3d.SimpleName, Set<Snap>>
+        readonly id2snaps: Map<c3d.SimpleName, Set<PointSnap>>
     ) { }
 }
 

@@ -8,16 +8,11 @@ import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../../visual_model/VisualModel';
 import { AxisSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
 
-export interface SnapResult {
-    snap: Snap;
-    position: THREE.Vector3;
-    orientation: THREE.Quaternion;
-}
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
     enabled = true;
     private readonly basicSnaps = new Set<Snap>();
-    private readonly id2snaps = new Map<c3d.SimpleName, Set<Snap>>();
+    private readonly id2snaps = new Map<c3d.SimpleName, Set<PointSnap>>();
 
     constructor(
         private readonly db: DatabaseLike,
@@ -40,10 +35,10 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         signals.objectHidden.add(item => this.delete(item));
     }
 
-    get all() {
-        let all = [...this.basicSnaps, ...this.crossSnaps];
-        for (const snaps of this.id2snaps.values()) all = all.concat([...snaps]);
-        return all;
+    get all(): { basicSnaps: Set<Snap>, geometrySnaps: readonly Set<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
+        const { basicSnaps, id2snaps, crossSnaps } = this;
+        const geometrySnaps = [...id2snaps.values()];
+        return { basicSnaps, geometrySnaps, crossSnaps }
     }
 
     get crossSnaps(): CrossPointSnap[] {
@@ -61,7 +56,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
     private add(item: visual.Item) {
         performance.mark('begin-snap-add');
-        const snapsForItem = new Set<Snap>();
+        const snapsForItem = new Set<PointSnap>();
         this.id2snaps.set(item.simpleName, snapsForItem);
         if (item instanceof visual.Solid) {
             const model = this.db.lookup(item);

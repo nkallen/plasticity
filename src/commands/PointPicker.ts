@@ -2,19 +2,20 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
-import { SnapGPUPickingAdapter, SnapManagerGeometryCache } from "../components/viewport/gpu_picking/SnapGPUPickingAdapter";
 import { OrbitControls } from '../components/viewport/OrbitControls';
 import { Viewport } from '../components/viewport/Viewport';
 import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatabase';
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
-import { SnapManager, SnapResult } from '../editor/snaps/SnapManager';
+import LayerManager from '../editor/LayerManager';
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { SnapManager } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
-import * as visual from "../visual_model/VisualModel";
 import { CancellablePromise } from '../util/Cancellable';
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helper, Helpers } from '../util/Helpers';
+import { SnapManagerGeometryCache, SnapPicker, SnapResult } from '../visual_model/SnapPicker';
+import * as visual from "../visual_model/VisualModel";
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
@@ -27,6 +28,7 @@ export interface EditorLike {
     snapPresenter: SnapPresenter,
     crosses: CrossPointDatabase,
     registry: CommandRegistry,
+    layers: LayerManager,
 }
 
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap }
@@ -250,8 +252,8 @@ export class Model {
 
     // Sometimes additional snaps are "activated" when the user mouses over an existing snap
     private readonly activatedSnaps = new Set<Snap>();
-    activateSnapped(snaps: SnapResult[]) {
-        for (const { snap } of snaps) {
+    activateSnapped(snaps: Snap[]) {
+        for (const snap of snaps) {
             if (this.activatedSnaps.has(snap)) continue;
             this.activatedSnaps.add(snap); // idempotent
 
@@ -265,13 +267,13 @@ export class Model {
                 this.addAxis(snap.tangentSnap, this.snapsForLastPickedPoint)
             }
         }
-        this.activateMutualSnaps(snaps);
     }
 
+    // FIXME: verify this is working
     // Activate snaps like tan/tan and perp/perp which only make sense when the previously selected point and the
     // current nearby snaps match certain conditions.
     private readonly mutualSnaps = new Set<Snap>();
-    private activateMutualSnaps(nearby: SnapResult[]) {
+    activateMutualSnaps(nearby: SnapResult[]) {
         const { mutualSnaps: pointActivatedSnaps, pickedPointSnaps } = this;
         if (pickedPointSnaps.length === 0) return;
 
@@ -298,12 +300,12 @@ interface SnapInfo extends PointInfo {
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
 // There are icons, indicators, textual name explanations, etc.
 export class Presentation {
-    static make(picker: SnapGPUPickingAdapter, viewport: Viewport, model: Model, snaps: SnapManager, presenter: SnapPresenter) {
+    static make(picker: SnapPicker, viewport: Viewport, pointPicker: Model, snaps: SnapManager, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
         const nearby = picker.nearby();
-        const snappers = picker.intersect();
-        const actualConstructionPlaneGiven = model.actualConstructionPlaneGiven(constructionPlane, isOrtho);
+        const snappers = picker.intersect(pointPicker);
+        const actualConstructionPlaneGiven = pointPicker.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
         const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho, presenter);
         return { presentation, snappers, nearby };
@@ -402,8 +404,7 @@ export class PointPicker {
                     () => isNavigating = false));
 
                 const { camera, renderer: { domElement } } = viewport;
-                const picker = new SnapGPUPickingAdapter(viewport, snapCache, this.model, editor.db);
-                disposables.add(new Disposable(() => picker.dispose()));
+                const picker = new SnapPicker(this.editor.layers, snapCache, viewport, this.editor.db);
 
                 viewport.additionalHelpers.add(helpers);
                 disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));
@@ -420,7 +421,7 @@ export class PointPicker {
 
                     const { presentation, snappers } = Presentation.make(picker, viewport, model, editor.snaps, editor.snapPresenter);
 
-                    this.model.activateSnapped(snappers);
+                    this.model.activateMutualSnaps(snappers);
 
                     helpers.clear();
                     const { names, helpers: newHelpers, nearby: indicators } = presentation;
@@ -470,8 +471,10 @@ export class PointPicker {
                         editor.snaps.enabled = true;
                         onPointerMove(lastMoveEvent);
                     } else if (e.key == "Shift") {
+                        const oldChoice = this.model.choice;
                         this.model.choice = undefined;
-                        onPointerMove(lastMoveEvent);
+                        if (lastSnap !== undefined) model.activateSnapped([lastSnap]);
+                        if (oldChoice !== undefined) onPointerMove(lastMoveEvent);
                     }
                 }
 

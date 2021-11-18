@@ -2,9 +2,8 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
-import * as intersectable from "../../visual_model/Intersectable";
 import LayerManager from "../../editor/LayerManager";
-import { GeometryGPUPickingAdapter } from "./gpu_picking/GeometryGPUPickingAdapter";
+import * as intersectable from "../../visual_model/Intersectable";
 import { Viewport } from "./Viewport";
 
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }

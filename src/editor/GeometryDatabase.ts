@@ -245,21 +245,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     lookupTopologyItem(object: visual.Face): c3d.Face;
     lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
     lookupTopologyItem(object: visual.Edge | visual.Face): c3d.TopologyItem {
-        const parent = object.parentItem;
-        const { model: parentModel } = this.lookupItemById(parent.simpleName);
-        if (!(parentModel instanceof c3d.Solid)) throw new Error("Invalid precondition");
-        const solid = parentModel;
-
-        if (object instanceof visual.Edge) {
-            const result = solid.GetEdge(object.index);
-            if (!result) throw new Error("cannot find edge");
-            return result;
-        } else if (object instanceof visual.Face) {
-            const result = solid.GetFace(object.index);
-            if (!result) throw new Error("cannot find face");
-            return result;
-        }
-        assertUnreachable(object);
+        return this.lookupTopologyItemById(object.simpleName).model;
     }
 
     find<T extends visual.PlaneInstance<visual.Region>>(klass: GConstructor<T>): { view: T, model: c3d.PlaneInstance }[];

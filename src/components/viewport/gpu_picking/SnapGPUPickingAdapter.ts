@@ -5,13 +5,14 @@ import { Model as PointPicker } from "../../../commands/PointPicker";
 import { DatabaseLike } from "../../../editor/GeometryDatabase";
 import * as intersectable from "../../../visual_model/Intersectable";
 import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, LineSnap, PlaneSnap, PointSnap, Snap } from "../../../editor/snaps/Snap";
-import { SnapManager, SnapResult } from "../../../editor/snaps/SnapManager";
+import { SnapManager } from "../../../editor/snaps/SnapManager";
 import * as visual from "../../../visual_model/VisualModel";
 import { inst2curve } from "../../../util/Conversion";
 import { Viewport } from "../Viewport";
 import { GeometryGPUPickingAdapter, GPUPickingAdapter } from "./GeometryGPUPickingAdapter";
 import { IdMeshMaterial, LineVertexColorMaterial, IdPointsMaterial } from "./GPUPickingMaterial";
 import { readRenderTargetPixelsAsync } from "./GPUWaitAsync";
+import { SnapResult } from "../../../visual_model/SnapPicker";
 
 const nearbyRadius = 50; // px
 const axisSnapLineWidth = 14;
@@ -202,9 +203,10 @@ export class SnapManagerGeometryCache implements PickerInfo {
         const { snaps, info } = this;
         info?.dispose();
 
-        this.all = snaps.all;
-        // FIXME: isXray is viewport specific ...
-        this.info = makePickers(this.all, true, i => SnapGPUPickingAdapter.encoder.encode('manager', i));
+        // this.all = snaps.all;
+        // // FIXME: isXray is viewport specific ...
+        // this.info = makePickers(this.all, true, i => SnapGPUPickingAdapter.encoder.encode('manager', i));
+        // console.log(this.info);
     }
 
 }
@@ -224,6 +226,7 @@ function makePickers(snaps: Snap[], isXRay: boolean, name: (index: number) => nu
     const p = new THREE.Vector3;
     for (const [i, snap] of snaps.entries()) {
         const id = name(i);
+        console.log(i, snap);
         if (snap instanceof PointSnap) {
             pointInfo.push([id, snap.position]);
         } else if (snap instanceof AxisSnap) {

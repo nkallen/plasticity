@@ -4,9 +4,9 @@ import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { GizmoMaterialDatabase } from "../../commands/GizmoMaterials";
 import { Helper, SimpleHelper } from "../../util/Helpers";
 import { CircleGeometry } from "../../util/Util";
+import { SnapResult } from "../../visual_model/SnapPicker";
 import { RenderOrder } from "../../visual_model/VisualModel";
 import { PointSnap } from "./Snap";
-import { SnapResult } from "./SnapManager";
 
 const nearbyGeometry = new THREE.CircleGeometry(0.025, 24);
 const snapGeometry = new LineGeometry();

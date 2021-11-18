@@ -54,7 +54,6 @@ Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE
         const cube = grid.GetCube();
         const { pmin, pmax } = cube;
         this.boundingBox = new THREE.Box3(point2point(pmin, 1), point2point(pmax, 1));
-        console.log(this.boundingBox);
     }
     const boundingBox = this.boundingBox;
 
