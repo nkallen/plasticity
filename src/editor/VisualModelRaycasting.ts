@@ -4,7 +4,7 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
-import { point2point, vec2vec } from '../util/Conversion';
+import { point2point, unit, vec2vec } from '../util/Conversion';
 import { CurveEdge, CurveGroup, Face, FaceGroup, Solid } from './VisualModel';
 
 declare module './VisualModel' {
@@ -48,33 +48,33 @@ FaceGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: 
 }
 
 Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    return;
     const { grid } = this;
     const parent = this.parent as FaceGroup;
     const { matrixWorld } = parent.mesh;
-    // if (this.boundingBox === undefined) {
-    //     const cube = grid.GetCube();
-    //     const { pmin, pmax } = cube;
-    //     this.boundingBox = new THREE.THREE.Box3(point2point(pmin), point2point(pmax));
-    // }
-    // const boundingBox = this.boundingBox;
+    if (this.boundingBox === undefined) {
+        const cube = grid.GetCube();
+        const { pmin, pmax } = cube;
+        this.boundingBox = new THREE.Box3(point2point(pmin, 1), point2point(pmax, 1));
+        console.log(this.boundingBox);
+    }
+    const boundingBox = this.boundingBox;
 
-    // _inverseMatrix.copy(matrixWorld).invert();
-    // _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
-    // if (!_ray.intersectsBox(boundingBox)) return;
+    _inverseMatrix.copy(matrixWorld).invert();
+    _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
+    if (!_ray.intersectsBox(boundingBox)) return;
 
-    // const axis = new c3d.Axis3D(point2point(_ray.origin), vec2vec(_ray.direction, 1));
-    // const line = new c3d.FloatAxis3D(axis);
+    const axis = new c3d.Axis3D(point2point(_ray.origin,1), vec2vec(_ray.direction, 1));
+    const line = new c3d.FloatAxis3D(axis);
 
-    // const { intersected, crossPoint, tRes } = c3d.MeshGrid.LineGridIntersect(grid, line);
-    // if (intersected) {
-    //     const point = point2point(crossPoint);
-    //     intersects.push({
-    //         object: this,
-    //         distance: _ray.origin.distanceTo(point),
-    //         point,
-    //     });
-    // }
+    const { intersected, crossPoint } = c3d.MeshGrid.LineGridIntersect(grid, line);
+    if (intersected) {
+        const point = point2point(crossPoint);
+        intersects.push({
+            object: this,
+            distance: _ray.origin.distanceTo(point),
+            point,
+        });
+    }
 }
 
 CurveGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -99,8 +99,6 @@ CurveGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects:
         if (!_ray.intersectsSphere(_sphere)) return;
     }
 
-    // console.log("sphere check passed");
-
     BoundingBox: {
         if (geometry.boundingBox === null) geometry.computeBoundingBox();
         _box.copy(geometry.boundingBox!);
@@ -114,8 +112,6 @@ CurveGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects:
         _box.min.z -= boxMargin;
         if (!_ray.intersectsBox(geometry.boundingBox!)) return;
     }
-
-    // console.log("bbbbb check passed");
 
     for (const edge of this) {
         if (!(edge instanceof CurveEdge)) throw new Error("Invalid edge");

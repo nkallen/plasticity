@@ -1,24 +1,24 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 
-export function point2point(from: THREE.Vector3): c3d.CartPoint3D;
-export function point2point(from: c3d.CartPoint3D): THREE.Vector3;
-export function point2point(from: c3d.FloatPoint3D): THREE.Vector3;
-export function point2point(from: c3d.CartPoint): THREE.Vector2;
-export function point2point(from: THREE.Vector3 | c3d.CartPoint3D | c3d.FloatPoint3D | c3d.CartPoint): THREE.Vector3 | THREE.Vector2 | c3d.CartPoint3D {
+export function point2point(from: THREE.Vector3, factor?: number): c3d.CartPoint3D;
+export function point2point(from: c3d.CartPoint3D, factor?: number): THREE.Vector3;
+export function point2point(from: c3d.FloatPoint3D, factor?: number): THREE.Vector3;
+export function point2point(from: c3d.CartPoint, factor?: number): THREE.Vector2;
+export function point2point(from: THREE.Vector3 | c3d.CartPoint3D | c3d.FloatPoint3D | c3d.CartPoint, factor = unit(1)): THREE.Vector3 | THREE.Vector2 | c3d.CartPoint3D {
     if (from instanceof c3d.CartPoint3D || from instanceof c3d.FloatPoint3D) {
-        return new THREE.Vector3(from.x / 100, from.y / 100, from.z / 100);
+        return new THREE.Vector3(from.x / factor, from.y / factor, from.z / factor);
     } else if (from instanceof c3d.CartPoint) {
-        return new THREE.Vector2(from.x / 100, from.y / 100);
+        return new THREE.Vector2(from.x / factor, from.y / factor);
     } else {
-        return new c3d.CartPoint3D(from.x * 100, from.y * 100, from.z * 100);
+        return new c3d.CartPoint3D(from.x * factor, from.y * factor, from.z * factor);
     }
 }
 
 export function vec2vec(from: THREE.Vector3, factor?: number): c3d.Vector3D;
 export function vec2vec(from: c3d.Vector3D, factor?: number): THREE.Vector3;
 export function vec2vec(from: c3d.Vector, factor?: number): THREE.Vector2;
-export function vec2vec(from: THREE.Vector3 | c3d.Vector3D | c3d.Vector, factor = 100): THREE.Vector3 | THREE.Vector2 | c3d.Vector3D {
+export function vec2vec(from: THREE.Vector3 | c3d.Vector3D | c3d.Vector, factor = unit(1)): THREE.Vector3 | THREE.Vector2 | c3d.Vector3D {
     if (from instanceof c3d.Vector3D) {
         return new THREE.Vector3(from.x / factor, from.y / factor, from.z / factor);
     } else if (from instanceof c3d.Vector) {
