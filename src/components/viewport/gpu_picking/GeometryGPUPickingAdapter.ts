@@ -56,6 +56,12 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose(); }
 
+    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+        Line: { threshold: 0.1 },
+        Line2: { threshold: 20 },
+        Points: { threshold: 1 }
+    };
+
     static encoder = process.env.NODE_ENV == 'development' ? new DebugGeometryIdEncoder() : new GeometryIdEncoder();
 
     constructor(private readonly viewport: Viewport, private readonly layers: LayerManager, private readonly db: DatabaseLike, signals: EditorSignals) {
@@ -74,19 +80,28 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
             signals.selectionModeChanged.remove(this.update);
         }));
         this.update();
+        this.raycaster.params = this.raycasterParams;
     }
 
+    private readonly raycaster = new THREE.Raycaster();
     setFromCamera(normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera) {
         this.viewport.picker.setFromCamera(normalizedScreenPoint, camera);
+        this.raycaster.setFromCamera(normalizedScreenPoint, camera);
     }
 
     intersect(): intersectable.Intersection[] {
-        const intersection = this.viewport.picker.intersect();
-        if (intersection === undefined) return [];
-        else return [{
-            object: GeometryGPUPickingAdapter.get(intersection.id, this.db),
-            point: intersection.position
-        }];
+        this.raycaster.layers.enableAll();
+        console.time();
+        const casted = this.raycaster.intersectObjects(this.db.visibleObjects);
+        console.timeEnd();
+        return casted as any;
+
+        // const intersection = this.viewport.picker.intersect();
+        // if (intersection === undefined) return [];
+        // else return [{
+        //     object: GeometryGPUPickingAdapter.get(intersection.id, this.db),
+        //     point: intersection.position
+        // }];
     }
 
     static get(id: number, db: DatabaseLike): intersectable.Intersectable {

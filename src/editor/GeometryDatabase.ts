@@ -10,6 +10,7 @@ import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { ParallelMeshCreator } from './MeshCreator';
 import * as visual from './VisualModel';
+import * as build from './VisualModelBuilder';
 
 const mesh_precision_distance: [number, number][] = [[5, 1000], [0.15, 1]];
 const other_precision_distance: [number, number][] = [[0.05, 1]];
@@ -83,7 +84,7 @@ export interface TemporaryObject {
 export type TopologyData = { model: c3d.TopologyItem, views: Set<visual.Face | visual.Edge> };
 export type ControlPointData = { index: number, views: Set<visual.ControlPoint> };
 
-type Builder = visual.SpaceInstanceBuilder<visual.Curve3D | visual.Surface> | visual.PlaneInstanceBuilder<visual.Region> | visual.SolidBuilder;
+type Builder = build.SpaceInstanceBuilder<visual.Curve3D | visual.Surface> | build.PlaneInstanceBuilder<visual.Region> | build.SolidBuilder;
 
 export interface MaterialOverride {
     region?: THREE.Material;
@@ -308,13 +309,13 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         let builder;
         switch (obj.IsA()) {
             case c3d.SpaceType.SpaceInstance:
-                builder = new visual.SpaceInstanceBuilder<visual.Curve3D | visual.Surface>();
+                builder = new build.SpaceInstanceBuilder<visual.Curve3D | visual.Surface>();
                 break;
             case c3d.SpaceType.PlaneInstance:
-                builder = new visual.PlaneInstanceBuilder<visual.Region>();
+                builder = new build.PlaneInstanceBuilder<visual.Region>();
                 break;
             case c3d.SpaceType.Solid:
-                builder = new visual.SolidBuilder();
+                builder = new build.SolidBuilder();
                 break;
             default:
                 throw new Error("type not yet supported");
@@ -346,23 +347,23 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 if (underlying === null) throw new Error("invalid precondition");
                 switch (underlying.Family()) {
                     case c3d.SpaceType.Curve3D:
-                        builder = builder as visual.SpaceInstanceBuilder<visual.Curve3D>;
+                        builder = builder as build.SpaceInstanceBuilder<visual.Curve3D>;
                         if (item.edges.length === 0) throw new Error(`invalid precondition: no edges`);
 
                         const lineMaterial = materials?.line ?? this.materials.line(instance);
                         const pointMaterial = materials?.controlPoint ?? this.materials.controlPoint();
 
-                        const segments = new visual.CurveSegmentGroupBuilder();
+                        const segments = new build.CurveSegmentGroupBuilder();
                         for (const edge of item.edges) {
                             segments.add(edge, id, materials?.line ?? lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
                         }
 
-                        const points = visual.ControlPointGroup.build(underlying, id, pointMaterial);
+                        const points = build.ControlPointGroup.build(underlying, id, pointMaterial);
                         const curve = visual.Curve3D.build(segments, points);
                         builder.add(curve, distance);
                         break;
                     case c3d.SpaceType.Surface:
-                        builder = builder as visual.SpaceInstanceBuilder<visual.Surface>;
+                        builder = builder as build.SpaceInstanceBuilder<visual.Surface>;
                         if (item.faces.length != 1) throw new Error("Invalid precondition");
                         const grid = item.faces[0];
                         const material = materials?.surface ?? this.materials.surface(instance);
@@ -374,7 +375,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                 break;
             }
             case c3d.SpaceType.PlaneInstance: {
-                const instance = builder as visual.PlaneInstanceBuilder<visual.Region>;
+                const instance = builder as build.PlaneInstanceBuilder<visual.Region>;
                 if (item.faces.length != 1) throw new Error("Invalid precondition: grid with length: " + item.faces.length);
                 const grid = item.faces[0];
                 const material = materials?.region ?? this.materials.region();
@@ -389,14 +390,14 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             //     return points;
             // }
             case c3d.SpaceType.Solid: {
-                const solid = builder as visual.SolidBuilder;
-                const edges = new visual.CurveEdgeGroupBuilder();
+                const solid = builder as build.SolidBuilder;
+                const edges = new build.CurveEdgeGroupBuilder();
                 const lineMaterial = materials?.line ?? this.materials.line();
                 for (const edge of item.edges) {
                     edges.add(edge, id, lineMaterial, this.materials.lineDashed());
                 }
 
-                const faces = new visual.FaceGroupBuilder();
+                const faces = new build.FaceGroupBuilder();
                 for (const grid of item.faces) {
                     const material = materials?.mesh ?? this.materials.mesh(grid);
                     faces.add(grid, id, material);

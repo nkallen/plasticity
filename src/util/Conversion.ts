@@ -3,9 +3,10 @@ import c3d from '../../build/Release/c3d.node';
 
 export function point2point(from: THREE.Vector3): c3d.CartPoint3D;
 export function point2point(from: c3d.CartPoint3D): THREE.Vector3;
+export function point2point(from: c3d.FloatPoint3D): THREE.Vector3;
 export function point2point(from: c3d.CartPoint): THREE.Vector2;
-export function point2point(from: THREE.Vector3 | c3d.CartPoint3D | c3d.CartPoint): THREE.Vector3 | THREE.Vector2 | c3d.CartPoint3D {
-    if (from instanceof c3d.CartPoint3D) {
+export function point2point(from: THREE.Vector3 | c3d.CartPoint3D | c3d.FloatPoint3D | c3d.CartPoint): THREE.Vector3 | THREE.Vector2 | c3d.CartPoint3D {
+    if (from instanceof c3d.CartPoint3D || from instanceof c3d.FloatPoint3D) {
         return new THREE.Vector3(from.x / 100, from.y / 100, from.z / 100);
     } else if (from instanceof c3d.CartPoint) {
         return new THREE.Vector2(from.x / 100, from.y / 100);

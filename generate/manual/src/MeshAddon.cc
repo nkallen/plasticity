@@ -1,9 +1,10 @@
-webg#include "../include/Name.h"
+#include "../include/Name.h"
 #include "../include/CurveEdge.h"
 #include "../include/Face.h"
 #include "../include/Solid.h"
+#include "../include/Grid.h"
 
-Napi::Object getBuffer(const Napi::CallbackInfo &info, const size_t i, const MbGrid *grid)
+Napi::Object getBuffer(const Napi::CallbackInfo &info, const size_t i, MbGrid *grid)
 {
     Napi::Env env = info.Env();
     Napi::Object result = Napi::Object::New(env);
@@ -21,6 +22,7 @@ Napi::Object getBuffer(const Napi::CallbackInfo &info, const size_t i, const MbG
     result.Set(Napi::String::New(env, "style"), Napi::Number::New(env, grid->GetStyle()));
     result.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, grid->GetPrimitiveName()));
     result.Set(Napi::String::New(env, "i"), Napi::Number::New(env, i));
+    result.Set(Napi::String::New(env, "grid"), Grid::NewInstance(env, grid));
 
     const MbTopItem *top = grid->TopItem();
     if (top != NULL)
@@ -47,7 +49,7 @@ Napi::Value Mesh::GetBuffers(const Napi::CallbackInfo &info)
     {
         for (size_t i = 0, j = 0, iCount = mesh->GridsCount(); i < iCount; i++)
         {
-            const MbGrid *grid = mesh->GetGrid(i);
+            MbGrid *grid = mesh->SetGrid(i);
             if (grid != NULL)
             {
                 if (!grid->IsVisible())
@@ -143,6 +145,7 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
                 jsInfo.Set(Napi::String::New(env, "simpleName"), Napi::Number::New(env, edge->GetNameHash()));
                 jsInfo.Set(Napi::String::New(env, "name"), Name::NewInstance(env, new MbName(edge->GetName())));
                 jsInfo.Set(Napi::String::New(env, "i"), Napi::Number::New(env, edgeIndex - 1));
+                jsInfo.Set(Napi::String::New(env, "polygon"), Napi::Number::New(env, edgeIndex - 1));
             }
             else
             {
@@ -154,6 +157,7 @@ Napi::Value Mesh::GetEdges(const Napi::CallbackInfo &info)
             Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, 4 * 3 * pointsCnt);
             Napi::Float32Array line = Napi::Float32Array::New(env, 3 * pointsCnt, buf, 0);
             size_t i = 0;
+            // FIXME: benchmark and see if removing the copy would help
             for (size_t n = 0; n < pointsCnt; n++)
             {
                 polygon->GetPoint(n, p);

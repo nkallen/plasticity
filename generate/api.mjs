@@ -163,6 +163,10 @@ export default {
             functions: [
                 { signature: "bool CalculateMatrix(size_t pIndex, const MbCartPoint3D & point, const MbCartPoint3D & fixedPoint, bool useFixed, bool isotropy, MbMatrix3D & matrix)", matrix: isReturn },
                 { signature: "void ProjectionRect(const MbPlacement3D & place, MbRect & rect)", rect: isReturn }
+            ],
+            fields: [
+                "MbCartPoint3D pmin",
+                "MbCartPoint3D pmax",
             ]
         },
         BooleanFlags: {
@@ -1467,7 +1471,13 @@ export default {
                 "const MbCube & GetCube()",
                 "const void * CreateGridTopology(bool keepExisting)",
                 "bool IsGridTopologyReady()",
-
+            ]
+        },
+        Polygon3D: {
+            extends: "Primitive",
+            dependencies: ["Primitive.h", "StepData.h", "Cube.h"],
+            rawHeader: "mesh_primitive.h",
+            functions: [
             ]
         },
         ConvConvertorProperty3D: {
@@ -1795,6 +1805,13 @@ export default {
             dependencies: ["Curve.h"],
             functions: [
                 "double AreaSign(const MbCurve & curve, double sag, bool close)",
+            ]
+        },
+        MeshGrid: {
+            rawHeader: "mesh_grid.h",
+            dependencies: ["Grid.h", "FloatAxis3D.h", "FloatPoint3D.h"],
+            functions: [
+                { signature: "bool LineGridIntersect(const MbGrid & grid, const MbFloatAxis3D & line, const MbFloatPoint3D & crossPoint, float & tRes)", crossPoint: isReturn, tRes: isReturn, return: { name: "intersected" } }
             ]
         },
         Writer: {

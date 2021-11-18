@@ -1,4 +1,3 @@
-import { ControlPoint, ControlPointGroup } from "..//editor/VisualModel";
 import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 

@@ -44,8 +44,6 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
 
     private mode: Mode = { tag: 'none' };
     protected startClick(intersections: Intersection[]): boolean {
-        console.log(intersections);
-
         if (intersections.length === 0) return false;
         const first = intersections[0].object;
         if (!(first instanceof visual.ControlPoint)) return false;

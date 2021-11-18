@@ -48,6 +48,7 @@ declare module "*c3d.node" {
         simpleName: number;
         name: Name;
         i: number;
+        grid: Grid;
     }
 
     declare interface EdgeBuffer {
