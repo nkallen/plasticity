@@ -92,7 +92,7 @@ export class GeometryGPUPickingAdapter implements GPUPickingAdapter<intersectabl
     intersect(): intersectable.Intersection[] {
         this.raycaster.layers.enableAll();
         console.time();
-        const casted = this.raycaster.intersectObjects(this.db.visibleObjects);
+        const casted = this.raycaster.intersectObjects(this.db.visibleObjects, false);
         console.timeEnd();
         return casted as any;
 

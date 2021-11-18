@@ -5,7 +5,7 @@ import { ControlPoint, Curve3D, CurveSegment, Layers, Region, Solid, TopologyIte
 
 // It's important to conceptually distinguish intersectable objects from selectable objects
 // Selectable objects are what the user actually stores in a selection (e.g., a SpaceInstance<Curve3D>)
-// whereas the user actually clicks on (intersects) a CurveFragment (and it's child mesh).
+// whereas the user actually clicks on (intersects) a CurveFragment (and its children).
 
 export type Intersectable = Curve3D | TopologyItem | ControlPoint | Region;
 

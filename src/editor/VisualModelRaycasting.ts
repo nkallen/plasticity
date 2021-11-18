@@ -1,10 +1,9 @@
-import { intersectionTypeAnnotation } from "@babel/types";
 import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
-import { point2point, unit, vec2vec } from '../util/Conversion';
+import { point2point, vec2vec } from '../util/Conversion';
 import { CurveEdge, CurveGroup, Face, FaceGroup, Solid } from './VisualModel';
 
 declare module './VisualModel' {

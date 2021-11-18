@@ -12966,7 +12966,7 @@ fsevents@^1.2.7:
     style-loader: ^1.2.1
     svg-inline-loader: ^0.8.2
     terser-webpack-plugin: ^5.2.4
-    three: ^0.132.2
+    three: "https://github.com/mrdoob/three.js"
     ts-jest: ^27.0.0-next.10
     ts-loader: ^8.0.2
     ts-node: ^9.1.1
@@ -15364,10 +15364,10 @@ resolve@1.1.7:
   languageName: node
   linkType: hard
 
-"three@npm:^0.132.2":
-  version: 0.132.2
-  resolution: "three@npm:0.132.2"
-  checksum: ecb9ad178c9c7417147ac2971357e12c1b0a35408012085a71d61b36c54b1e18edb36502e99fe6c8684a4cd7c17a1a941123a6fb54b282f0a164bd974470fda9
+"three@https://github.com/mrdoob/three.js":
+  version: 0.134.0
+  resolution: "three@https://github.com/mrdoob/three.js.git#commit=19d9112c9fc406a83c217b0a61826f692c6c816c"
+  checksum: 2343754338e73349f703424c72ed734953d0ae46015355e1a9cc5a22b86fe2fa5de995455eef2515d9cd8fac214bcbbc0c6a9df595bfd8721218a6e28863ee4b
   languageName: node
   linkType: hard
 

@@ -149,7 +149,7 @@
         "preact": "^10.5.13",
         "signals": "^1.0.0",
         "stats.js": "^0.17.0",
-        "three": "^0.132.2",
+        "three": "https://github.com/mrdoob/three.js",
         "underscore-plus": "^1.7.0"
     },
     "packageManager": "yarn@3.1.0"

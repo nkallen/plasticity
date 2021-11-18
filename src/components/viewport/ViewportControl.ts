@@ -39,11 +39,10 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     }
 
     private state: State = { tag: 'none' }
+    private readonly raycaster = new THREE.Raycaster();
 
     private readonly normalizedMousePosition = new THREE.Vector2(); // normalized device coordinates
     private readonly onDownPosition = new THREE.Vector2(); // normalized device coordinates
-
-    private readonly picker = new GeometryGPUPickingAdapter(this.viewport, this.layers, this.db, this.signals);
 
     constructor(
         protected readonly viewport: Viewport,
@@ -54,6 +53,9 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     ) {
         super();
 
+        this.raycaster.params = this.raycasterParams;
+        this.raycaster.layers = layers.visible;
+
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
@@ -63,7 +65,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         domElement.addEventListener('pointermove', this.onPointerMove);
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointerdown', this.onPointerDown)));
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointermove', this.onPointerMove)));
-        this.disposable.add(new Disposable(() => this.picker.dispose()));
     }
 
     onPointerDown(downEvent: PointerEvent) {
@@ -180,8 +181,8 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
     private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersection[] {
-        this.picker.setFromCamera(normalizedMousePosition, this.viewport.camera);
-        return this.picker.intersect();
+        this.raycaster.setFromCamera(normalizedMousePosition, this.viewport.camera);
+        return this.raycaster.intersectObjects(objects, false);
     }
 }
 
