@@ -23,8 +23,8 @@ Solid.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THRE
     const edges = level.children[0];
     const faces = level.children[1];
 
-    faces.raycast(raycaster, intersects);
-    edges.raycast(raycaster, intersects);
+    raycaster.intersectObject(faces, false, intersects);
+    raycaster.intersectObject(edges, false, intersects);
 }
 
 FaceGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -41,9 +41,7 @@ FaceGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: 
         if (!_ray.intersectsBox(geometry.boundingBox)) return;
     }
 
-    for (const face of this) {
-        face.raycast(raycaster, intersects);
-    }
+    raycaster.intersectObjects([...this], false, intersects);
 }
 
 Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -110,9 +108,7 @@ CurveGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects:
         if (!_ray.intersectsBox(geometry.boundingBox!)) return;
     }
 
-    for (const edge of this) {
-        edge.raycast(raycaster, intersects);
-    }
+    raycaster.intersectObjects([...this], false, intersects);
 }
 
 CurveEdge.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
@@ -144,7 +140,7 @@ CurveEdge.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: 
     _lineSegments.geometry = _lineSegmentsGeometry;
     _lineSegments.matrixWorld.copy(line.matrixWorld);
     const is: THREE.Intersection[] = [];
-    _lineSegments.raycast(raycaster, is);
+    raycaster.intersectObject(_lineSegments, false, is);
 
     for (const i of is) {
         intersects.push({ ...i, object: this, })
@@ -152,7 +148,6 @@ CurveEdge.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: 
 }
 
 SpaceInstance.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    // FIXME: all layer supporting code needs to be like this:
     raycaster.intersectObject(this.underlying, false, intersects);
 }
 
@@ -168,19 +163,19 @@ Curve3D.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: TH
 ControlPointGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
     const inst = this.parentItem;
     const is: THREE.Intersection[] = [];
-    this.points.raycast(raycaster, is);
+    raycaster.intersectObject(this.points, false, is);
     for (const i of is) {
         intersects.push({ ...i, object: new ControlPoint(inst, this.points, i.index!), });
     }
 }
 
 PlaneInstance.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    this.underlying.raycast(raycaster, intersects);
+    raycaster.intersectObject(this.underlying, false, intersects);
 }
 
 Region.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
     const is: THREE.Intersection[] = [];
-    this.mesh.raycast(raycaster, is);
+    raycaster.intersectObject(this.mesh, false, is);
     for (const i of is) {
         intersects.push({ ...i, object: this, })
     }
