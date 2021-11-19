@@ -53,10 +53,9 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         switch (this.mode.tag) {
             case 'none':
                 const controlPoint = first;
-                // this.viewport.disableControls();
                 domElement.ownerDocument.body.setAttribute("gizmo", "point-control");
                 const disposable = new Disposable(() => {
-                    // this.viewport.enableControls();
+                    this.viewport.enableControls();
                     domElement.ownerDocument.body.removeAttribute("gizmo");
                 })
 
@@ -95,6 +94,8 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
                 command.controlPoint = this.mode.controlPoint;
                 command.gizmo = this;
                 this.editor.enqueue(command);
+                console.log("idsable");
+                this.viewport.disableControls(this);
 
                 helper.onStart(this.viewport.domElement, center2d);
         }

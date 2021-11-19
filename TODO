@@ -1,8 +1,7 @@
-vertify point drag works
-check layers (face etc)
 test curve fragment works (trim)
 control points, when one selected and another hovered, everything unhighlighted
 
+make viewport control have a manager that always picks winner so two can't be running simultaneously
 box selection left
 box selection right
 unit Test FaceGroupBuilder

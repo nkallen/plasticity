@@ -165,7 +165,9 @@ ControlPointGroup.prototype.raycast = function (raycaster: THREE.Raycaster, inte
     const is: THREE.Intersection[] = [];
     raycaster.intersectObject(this.points, false, is);
     for (const i of is) {
-        intersects.push({ ...i, object: new ControlPoint(inst, this.points, i.index!), });
+        const object = new ControlPoint(inst, this.points, i.index!);
+        object.position.copy(i.point);
+        intersects.push({ ...i, object });
     }
 }
 

@@ -13,7 +13,7 @@ const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: 
     Mesh: { threshold: 0 },
     Line: { threshold: 0.1 },
     Line2: { threshold: 15 },
-    Points: { threshold: 10 }
+    Points: { threshold: 20 }
 };
 
 export abstract class ViewportControl extends THREE.EventDispatcher {
