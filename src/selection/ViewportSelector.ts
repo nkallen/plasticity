@@ -80,6 +80,7 @@ export class ViewportSelector extends AbstractViewportSelector {
     }
 
     protected processHover(intersects: intersectable.Intersection[]) {
+        console.log(intersects);
         this.editor.selectionInteraction.onHover(intersects);
     }
 }

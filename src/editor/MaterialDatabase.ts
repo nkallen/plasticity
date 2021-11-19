@@ -4,6 +4,7 @@ import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 import c3d from '../../build/Release/c3d.node';
 import controlPointIcon from '../components/viewport/img/control-point.svg';
 import matcap from '../img/matcap/ceramic_dark.exr';
+import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "../visual_model/VisualModelRaycasting";
 import { EditorSignals } from "./EditorSignals";
 
 export default interface MaterialDatabase {
@@ -14,7 +15,7 @@ export default interface MaterialDatabase {
     surface(o?: c3d.Item): THREE.Material;
     mesh(o?: c3d.Item | c3d.MeshBuffer, doubleSided?: boolean): THREE.Material;
     region(): THREE.Material;
-    controlPoint(): THREE.PointsMaterial;
+    controlPoint(): BetterRaycastingPointsMaterial;
 
     lookup(o: c3d.Edge): LineMaterial;
     lookup(o: c3d.Face): THREE.Material;
@@ -29,7 +30,7 @@ const line_dashed = new LineMaterial({ color: 0x000000, linewidth: 0.5, dashed: 
 line_dashed.depthFunc = THREE.AlwaysDepth;
 line_dashed.defines.USE_DASH = "";
 
-const point = new THREE.PointsMaterial({ color: 0x888888 });
+const point = new BetterRaycastingPointsMaterial({ color: 0x888888 });
 
 // @ts-expect-error
 const matcapTexture = new EXRLoader().load(matcap);
@@ -53,8 +54,7 @@ region.opacity = 0.1;
 region.transparent = true;
 region.side = THREE.DoubleSide;
 
-const controlPoint = new THREE.PointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, transparent: true, vertexColors: true });
-controlPoint.userData.resolution = new THREE.Vector2();
+const controlPoint = new BetterRaycastingPointsMaterial({ map: new THREE.TextureLoader().load(controlPointIcon), size: 10, sizeAttenuation: false, vertexColors: true });
 
 export class BasicMaterialDatabase implements MaterialDatabase {
     readonly materials = new Map<number, THREE.Material>();
@@ -86,7 +86,7 @@ export class BasicMaterialDatabase implements MaterialDatabase {
         for (const material of this.lines) {
             material.resolution.copy(size);
         }
-        controlPoint.userData.resolution.copy(size);
+        controlPoint.resolution.copy(size);
     }
 
     point(o?: c3d.Item): THREE.Material {
@@ -112,7 +112,7 @@ export class BasicMaterialDatabase implements MaterialDatabase {
     }
 
     region(): THREE.Material { return region }
-    controlPoint(): THREE.PointsMaterial { return controlPoint }
+    controlPoint(): BetterRaycastingPointsMaterial { return controlPoint }
 
     lookup(o: c3d.Edge): LineMaterial;
     lookup(o: c3d.Curve3D): LineMaterial;

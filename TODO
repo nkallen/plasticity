@@ -1,5 +1,7 @@
 vertify point drag works
+check layers (face etc)
 test curve fragment works (trim)
+control points, when one selected and another hovered, everything unhighlighted
 
 box selection left
 box selection right

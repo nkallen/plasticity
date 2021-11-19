@@ -5,6 +5,7 @@ import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeome
 import c3d from '../../build/Release/c3d.node';
 import { deunit } from "../util/Conversion";
 import { CurveSegmentGroupBuilder } from "./VisualModelBuilder";
+import { BetterRaycastingPoints } from "./VisualModelRaycasting";
 
 /**
  * This class hierarchy mirrors the c3d hierarchy into the THREE.js Object3D hierarchy.
@@ -126,11 +127,11 @@ export class CurveSegment extends THREE.Object3D {
 }
 
 export class Curve3D extends SpaceItem {
-    static build(segments: CurveSegmentGroupBuilder, points: THREE.Points) {
+    static build(segments: CurveSegmentGroupBuilder, points: ControlPointGroup) {
         return new Curve3D(segments.build(), points);
     }
 
-    constructor(readonly segments: CurveGroup<CurveSegment>, readonly points: THREE.Points) {
+    constructor(readonly segments: CurveGroup<CurveSegment>, readonly points: ControlPointGroup) {
         super();
         this.add(segments, points);
     }
@@ -151,28 +152,11 @@ export class Curve3D extends SpaceItem {
         this.userData.start = start;
         this.userData.stop = stop;
         this.userData.untrimmedAncestor = ancestor;
-        this.points.clear();
+        this.points.dispose();
     }
 
     get isFragment(): boolean {
         return !!this.userData.untrimmedAncestor;
-    }
-
-    get controlPoints() {
-        const position = this.points.geometry.attributes.position as THREE.Float32BufferAttribute;
-        const count = position.count;
-        const result = [];
-        const parentItem = this.parentItem;
-        for (let i = 0; i < count; i++) {
-            const point = new ControlPoint(parentItem, this.points, i);
-            result.push(point);
-        }
-        return result;
-    }
-
-    makePoint(index: number) {
-        const parentItem = this.parentItem;
-        return new ControlPoint(parentItem, this.points, index);
     }
 
     get line() { return this.segments.line }
@@ -180,7 +164,7 @@ export class Curve3D extends SpaceItem {
 
     dispose() {
         this.segments.dispose();
-        this.points.geometry.dispose();
+        this.points.dispose();
     }
 }
 
@@ -275,6 +259,7 @@ export class Vertex {
 }
 
 export type GeometryGroup = { start: number; count: number; materialIndex?: number | undefined };
+
 export class GeometryGroupUtils {
     static compact(groups: Readonly<GeometryGroup>[]): GeometryGroup[] {
         const first = groups.shift();
@@ -403,6 +388,33 @@ export class FaceGroup extends THREE.Group {
     }
 }
 
+export class ControlPointGroup extends THREE.Object3D {
+    constructor(readonly length = 0, readonly points: BetterRaycastingPoints) {
+        super();
+        this.add(points);
+    }
+
+    get parentItem(): SpaceInstance<Curve3D> {
+        const result = this.parent?.parent;
+        if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
+        return result;
+    }
+
+    *[Symbol.iterator]() {
+        const parentItem = this.parentItem;
+        for (let i = 0; i < this.length; i++) {
+            yield new ControlPoint(parentItem, this.points, i);
+        }
+    }
+
+    get geometry() { return this.points.geometry }
+
+    dispose() {
+        this.points.geometry.dispose();
+        this.clear();
+    }
+}
+
 export const RenderOrder = {
     CurveEdge: 20,
     Face: 10,
@@ -434,3 +446,4 @@ export enum Layers {
 }
 
 import("./VisualModelRaycasting");
+import("./VisualModelBuilder");

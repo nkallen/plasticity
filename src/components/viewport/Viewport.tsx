@@ -376,6 +376,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.changed.dispatch();
     }
 
+    // FIXME: xray should be a viewport-only property
     get isXRay() { return VisibleLayers.test(xray) }
     set isXRay(isXRay: boolean) {
         this.editor.layers.setXRay(isXRay);

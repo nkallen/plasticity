@@ -9,7 +9,7 @@ import { SnapManager } from "../editor/snaps/SnapManager";
 import { inst2curve } from "../util/Conversion";
 import * as intersectable from "./Intersectable";
 import * as visual from "./VisualModel";
-import { BetterRaycastingPoints } from "./VisualModelRaycasting";
+import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "./VisualModelRaycasting";
 
 /**
  * The SnapPicker is a raycaster-like object specifically for Snaps. It finds snaps directly under
@@ -93,7 +93,9 @@ export class SnapPicker {
         for (const intersection of intersections) {
             const object = intersection.object;
             let snap: Snap;
-            if (object instanceof visual.TopologyItem || object instanceof visual.Curve3D || object instanceof visual.ControlPoint || object instanceof visual.Region) {
+            if (object instanceof visual.Region) {
+                continue; // FIXME:
+            } else if (object instanceof visual.TopologyItem || object instanceof visual.Curve3D || object instanceof visual.ControlPoint) {
                 snap = this.intersectable2snap(object, db);
             } else if (object instanceof THREE.Points) {
                 snap = snaps.get(object, intersection.index!);
@@ -159,7 +161,8 @@ export class SnapManagerGeometryCache {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
-    readonly resolution = new THREE.Vector2();
+    private readonly material = new BetterRaycastingPointsMaterial();
+    get resolution() { return this.material.resolution }
 
     get enabled() { return this.snaps.enabled }
 
@@ -177,6 +180,7 @@ export class SnapManagerGeometryCache {
         const result = [];
         this.geometrySnaps = [];
         this._points = [];
+
         let i = 0;
         for (const points of geometrySnaps) {
             const pointInfo = new Float32Array(points.size * 3);
@@ -187,8 +191,7 @@ export class SnapManagerGeometryCache {
             }
             const pointsGeometry = new THREE.BufferGeometry();
             pointsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(pointInfo, 3));
-            const picker = new BetterRaycastingPoints(pointsGeometry);
-            picker.resolution = this.resolution;
+            const picker = new BetterRaycastingPoints(pointsGeometry, this.material);
             picker.userData.index = i;
             result.push(picker);
             i++;

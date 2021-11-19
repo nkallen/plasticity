@@ -6,7 +6,8 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import c3d from '../../build/Release/c3d.node';
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
-import { CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, GeometryGroup, Layers, PlaneInstance, PlaneItem, Region, RenderOrder, Solid, SpaceInstance, SpaceItem } from "./VisualModel";
+import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, GeometryGroup, Layers, PlaneInstance, PlaneItem, Region, RenderOrder, Solid, SpaceInstance, SpaceItem } from "./VisualModel";
+import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "./VisualModelRaycasting";
 
 export class SolidBuilder {
     private readonly solid = new Solid();
@@ -197,8 +198,8 @@ export class CurveSegmentGroupBuilder extends CurveBuilder<CurveSegment> {
     get make() { return CurveSegment; }
 }
 
-export class ControlPointGroup extends THREE.Group {
-    static build(item: c3d.SpaceItem, parentId: c3d.SimpleName, material: THREE.PointsMaterial): THREE.Points {
+export class ControlPointGroupBuilder {
+    static build(item: c3d.SpaceItem, parentId: c3d.SimpleName, material: BetterRaycastingPointsMaterial): ControlPointGroup {
         let points: c3d.CartPoint3D[] = [];
         switch (item.Type()) {
             case c3d.SpaceType.PolyCurve3D: {
@@ -219,14 +220,15 @@ export class ControlPointGroup extends THREE.Group {
                 break;
             }
         }
-        return ControlPointGroup.fromCartPoints(points, parentId, material);
+        const better = this.fromCartPoints(points, parentId, material);
+        return new ControlPointGroup(points.length, better);
     }
 
-    private static fromCartPoints(ps: c3d.CartPoint3D[], parentId: c3d.SimpleName, material: THREE.PointsMaterial) {
+    private static fromCartPoints(ps: c3d.CartPoint3D[], parentId: c3d.SimpleName, material: BetterRaycastingPointsMaterial) {
         const info: THREE.Vector3[] = ps.map(p => point2point(p));
         const geometry = this.geometry(info);
         geometry.setAttribute('color', new THREE.Uint8BufferAttribute(new Uint8Array(ps.length * 3), 3, true))
-        const points = new THREE.Points(geometry, material);
+        const points = new BetterRaycastingPoints(geometry, material);
         points.layers.set(Layers.ControlPoint);
         return points;
     }

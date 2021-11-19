@@ -22,7 +22,7 @@ export class GeometryPicker {
         if (!this.viewport.isXRay) {
             intersections = findAllVeryCloseTogether(intersections);
         }
-        return intersections.sort(sort)
+        return intersections.sort(sort);
     }
 
     private viewport!: Viewport;
@@ -51,18 +51,10 @@ function sort(i1: THREE.Intersection<intersectable.Intersectable>, i2: THREE.Int
 }
 
 declare module './VisualModel' {
-    interface ControlPoint {
-        priority: number;
-    }
-    interface TopologyItem {
-        priority: number;        
-    }
-    interface SpaceItem {
-        priority: number;        
-    }
-    interface PlaneItem {
-        priority: number;        
-    }
+    interface ControlPoint { priority: number }
+    interface TopologyItem { priority: number }
+    interface SpaceItem { priority: number }
+    interface PlaneItem { priority: number }
 }
 
 ControlPoint.prototype.priority = 1;

@@ -6,6 +6,7 @@ import { SequentialExecutor } from '../util/SequentialExecutor';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
 import * as build from '../visual_model/VisualModelBuilder';
+import { BetterRaycastingPointsMaterial } from '../visual_model/VisualModelRaycasting';
 import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
@@ -89,7 +90,7 @@ export interface MaterialOverride {
     region?: THREE.Material;
     line?: LineMaterial;
     lineDashed?: LineMaterial;
-    controlPoint?: PointsMaterial;
+    controlPoint?: BetterRaycastingPointsMaterial;
     mesh?: THREE.Material;
     surface?: THREE.Material;
 }
@@ -146,9 +147,9 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             if (t instanceof visual.Face || t instanceof visual.CurveEdge) {
                 if (!(model instanceof c3d.Solid)) throw new Error("invalid precondition");
                 this.addTopologyItem(model, t);
-            } else if (t instanceof visual.Curve3D) {
+            } else if (t instanceof visual.ControlPointGroup) {
                 if (!(model instanceof c3d.SpaceInstance)) throw new Error("invalid precondition");
-                for (const child of t.controlPoints) this.addControlPoint(model, child);
+                for (const child of t) this.addControlPoint(model, child);
             }
         });
         if (agent === 'automatic') this.automatics.add(name);
@@ -343,7 +344,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
                             segments.add(edge, id, materials?.line ?? lineMaterial, materials?.lineDashed ?? this.materials.lineDashed());
                         }
 
-                        const points = build.ControlPointGroup.build(underlying, id, pointMaterial);
+                        const points = build.ControlPointGroupBuilder.build(underlying, id, pointMaterial);
                         const curve = visual.Curve3D.build(segments, points);
                         builder.add(curve, distance);
                         break;
@@ -446,8 +447,8 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
 
     private removeControlPoints(parent: visual.Item) {
         parent.traverse(o => {
-            if (o instanceof visual.Curve3D) {
-                for (const p of o.controlPoints) this.controlPointModel.delete(p.simpleName);
+            if (o instanceof visual.ControlPointGroup) {
+                for (const p of o) this.controlPointModel.delete(p.simpleName);
             }
         })
     }

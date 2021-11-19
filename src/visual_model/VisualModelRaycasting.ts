@@ -4,7 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { point2point, vec2vec } from '../util/Conversion';
-import { Curve3D, CurveEdge, CurveGroup, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
+import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
     interface Face {
@@ -147,25 +147,30 @@ CurveEdge.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: 
     _lineSegments.raycast(raycaster, is);
 
     for (const i of is) {
-        intersects.push({
-            ...i,
-            object: this,
-        })
+        intersects.push({ ...i, object: this, })
     }
 }
 
 SpaceInstance.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    this.underlying.raycast(raycaster, intersects);
+    // FIXME: all layer supporting code needs to be like this:
+    raycaster.intersectObject(this.underlying, false, intersects);
 }
 
 Curve3D.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
     const is: THREE.Intersection[] = [];
-    this.segments.line.raycast(raycaster, is);
+    raycaster.intersectObject(this.segments.line, false, is);
     for (const i of is) {
-        intersects.push({
-            ...i,
-            object: this,
-        })
+        intersects.push({ ...i, object: this, });
+    }
+    raycaster.intersectObject(this.points, false, intersects);
+}
+
+ControlPointGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+    const inst = this.parentItem;
+    const is: THREE.Intersection[] = [];
+    this.points.raycast(raycaster, is);
+    for (const i of is) {
+        intersects.push({ ...i, object: new ControlPoint(inst, this.points, i.index!), });
     }
 }
 
@@ -177,18 +182,17 @@ Region.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THR
     const is: THREE.Intersection[] = [];
     this.mesh.raycast(raycaster, is);
     for (const i of is) {
-        intersects.push({
-            ...i,
-            object: this,
-        })
+        intersects.push({ ...i, object: this, })
     }
 }
 
-export class BetterRaycastingPoints extends THREE.Points {
-    resolution!: THREE.Vector2;
+export class BetterRaycastingPointsMaterial extends THREE.PointsMaterial {
+    readonly resolution = new THREE.Vector2
+}
 
+export class BetterRaycastingPoints extends THREE.Points {
     raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-        const { geometry, matrixWorld, resolution } = this;
+        const { geometry, matrixWorld } = this;
         const camera = raycaster.camera as THREE.PerspectiveCamera | THREE.OrthographicCamera;
         const threshold = raycaster.params.Points?.threshold ?? 0;
         const drawRange = geometry.drawRange;
@@ -205,6 +209,9 @@ export class BetterRaycastingPoints extends THREE.Points {
 
         const start = Math.max(0, drawRange.start);
         const end = Math.min(positionAttribute.count, (drawRange.start + drawRange.count));
+
+        const material = this.material as BetterRaycastingPointsMaterial;
+        const resolution = material.resolution;
 
         const size = 1;
         const ssMaxWidth = size + threshold;

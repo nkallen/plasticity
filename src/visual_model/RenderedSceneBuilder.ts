@@ -1,14 +1,13 @@
 import * as THREE from "three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
-import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
-import matcap from '../img/matcap/ceramic_dark.exr';
-import { ItemSelection } from "../selection/Selection";
-import { HasSelectedAndHovered, Selectable } from "../selection/SelectionManager";
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
+import matcap from '../img/matcap/ceramic_dark.exr';
+import { ItemSelection } from "../selection/Selection";
+import { HasSelectedAndHovered, Selectable } from "../selection/SelectionManager";
 import * as visual from '../visual_model/VisualModel';
 
 export class RenderedSceneBuilder {

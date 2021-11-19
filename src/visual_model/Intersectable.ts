@@ -1,11 +1,10 @@
 import * as THREE from "three";
-import { BetterRaycastingPoint } from '../util/BetterRaycastingPoints';
 import { IntersectableLayers } from "../editor/LayerManager";
 import { ControlPoint, Curve3D, CurveSegment, Layers, Region, Solid, TopologyItem } from "../visual_model/VisualModel";
 
 // It's important to conceptually distinguish intersectable objects from selectable objects
 // Selectable objects are what the user actually stores in a selection (e.g., a SpaceInstance<Curve3D>)
-// whereas the user actually clicks on (intersects) a CurveFragment (and its children).
+// whereas the user actually clicks on (intersects) a CurveSegment (and its children).
 
 export type Intersectable = Curve3D | TopologyItem | ControlPoint | Region;
 
@@ -41,17 +40,13 @@ function isSelectable(object: THREE.Object3D): boolean {
 }
 
 function findIntersectable(object: THREE.Object3D, index?: number): Intersectable {
-    if (object instanceof BetterRaycastingPoint) {
-        throw "broekn";
-    } else {
-        const parent = object.parent!;
-        if (parent instanceof Solid || parent instanceof TopologyItem || parent instanceof Region)
-            return parent as Intersectable;
-        if (parent instanceof CurveSegment)
-            return parent.parent!.parent! as Curve3D;
+    const parent = object.parent!;
+    if (parent instanceof Solid || parent instanceof TopologyItem || parent instanceof Region)
+        return parent as Intersectable;
+    if (parent instanceof CurveSegment)
+        return parent.parent!.parent! as Curve3D;
 
-        throw new Error("invalid precondition: " + parent.constructor.name);
-    }
+    throw new Error("invalid precondition: " + parent.constructor.name);
 }
 
 
