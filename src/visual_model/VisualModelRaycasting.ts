@@ -65,10 +65,10 @@ Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE
 
     const { intersected, crossPoint } = c3d.MeshGrid.LineGridIntersect(grid, line);
     if (intersected) {
-        const point = point2point(crossPoint);
+        const point = point2point(crossPoint, 1).applyMatrix4(matrixWorld);
         intersects.push({
             object: this,
-            distance: _ray.origin.distanceTo(point),
+            distance: raycaster.ray.origin.distanceTo(point),
             point,
         });
     }

@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { EditorSignals } from "../../editor/EditorSignals";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import LayerManager from "../../editor/LayerManager";
+import { GeometryPicker } from "../../visual_model/GeometryPicker";
 import * as intersectable from "../../visual_model/Intersectable";
 import { Viewport } from "./Viewport";
 
@@ -38,7 +39,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     }
 
     private state: State = { tag: 'none' }
-    private readonly raycaster = new THREE.Raycaster();
+    private readonly picker = new GeometryPicker(this.layers, this.raycasterParams);
 
     private readonly normalizedMousePosition = new THREE.Vector2(); // normalized device coordinates
     private readonly onDownPosition = new THREE.Vector2(); // normalized device coordinates
@@ -51,9 +52,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
     ) {
         super();
-
-        this.raycaster.params = this.raycasterParams;
-        this.raycaster.layers = layers.visible;
 
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
@@ -180,8 +178,8 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
     private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersection[] {
-        this.raycaster.setFromCamera(normalizedMousePosition, this.viewport.camera);
-        return this.raycaster.intersectObjects(objects, false);
+        this.picker.setFromViewport(normalizedMousePosition, this.viewport);
+        return this.picker.intersect(objects) as intersectable.Intersection[];
     }
 }
 

@@ -40,7 +40,9 @@ export class SnapPicker {
 
         snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
         const snappers = snaps.points;
-        const additional = pointPicker.snaps.map(s => s.snapper);
+        const additional = pointPicker.snaps.filter(s => s instanceof PointSnap).map(s => s.snapper);
+        if (snappers.length === 0 && additional.length === 0) return [];
+
         const intersections = raycaster.intersectObjects([...snappers, ...additional], false);
         const snap_intersections = this.intersections2snaps(snaps, intersections, db);
         const result: PointSnap[] = [];
@@ -73,9 +75,12 @@ export class SnapPicker {
         }
 
         const result = [];
-        const extremelyCloseIntersections = findAllVeryCloseTogether(intersections);
-        const extremelyCloseSnaps = this.intersections2snaps(snaps, extremelyCloseIntersections, db);
-        prioritize(extremelyCloseSnaps);
+        if (!this.viewport.isXRay) {
+            intersections = findAllVeryCloseTogether(intersections);
+        }
+        const extremelyCloseSnaps = this.intersections2snaps(snaps, intersections, db);
+        extremelyCloseSnaps.sort(sort);
+
         for (const { snap, intersection } of extremelyCloseSnaps) {
             result.push({ snap, ...snap.project(intersection.point) });
         }
@@ -223,11 +228,6 @@ type SnapAndIntersection = {
     snap: Snap;
     intersection: THREE.Intersection;
 };
-
-function prioritize(intersections: SnapAndIntersection[]): SnapAndIntersection[] {
-    if (intersections.length === 0) return [];
-    return intersections.sort(sort)
-}
 
 function sort(i1: SnapAndIntersection, i2: SnapAndIntersection) {
     return i1.snap.priority - i2.snap.priority;
