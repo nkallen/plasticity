@@ -61,8 +61,7 @@ Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE
     _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
     if (!_ray.intersectsBox(boundingBox)) return;
 
-    const axis = new c3d.Axis3D(point2point(_ray.origin, 1), vec2vec(_ray.direction, 1));
-    const line = new c3d.FloatAxis3D(axis);
+    const line = new c3d.FloatAxis3D(point2point(_ray.origin, 1), vec2vec(_ray.direction, 1));
 
     const { intersected, crossPoint } = c3d.MeshGrid.LineGridIntersect(grid, line);
     if (intersected) {

@@ -300,11 +300,11 @@ interface SnapInfo extends PointInfo {
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
 // There are icons, indicators, textual name explanations, etc.
 export class Presentation {
-    static make(picker: SnapPicker, viewport: Viewport, pointPicker: Model, snaps: SnapManager, presenter: SnapPresenter) {
+    static make(picker: SnapPicker, viewport: Viewport, pointPicker: Model, db: DatabaseLike, snapCache: SnapManagerGeometryCache, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
         const nearby = picker.nearby();
-        const snappers = picker.intersect(pointPicker);
+        const snappers = picker.intersect(pointPicker, snapCache, db);
         const actualConstructionPlaneGiven = pointPicker.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
         const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho, presenter);
@@ -364,11 +364,10 @@ export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
     private readonly helper = new PointTarget();
 
-    // FIXME: ensure passed to GPUPicker
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Line: { threshold: 0.1 },
         Line2: { threshold: 20 },
-        Points: { threshold: 1 }
+        Points: { threshold: 25 }
     };
 
     constructor(private readonly editor: EditorLike) { }
@@ -404,7 +403,7 @@ export class PointPicker {
                     () => isNavigating = false));
 
                 const { camera, renderer: { domElement } } = viewport;
-                const picker = new SnapPicker(this.editor.layers, snapCache, viewport, this.editor.db);
+                const picker = new SnapPicker(this.editor.layers, this.raycasterParams);
 
                 viewport.additionalHelpers.add(helpers);
                 disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));
@@ -417,9 +416,9 @@ export class PointPicker {
                     if (isNavigating) return;
 
                     lastMoveEvent = e;
-                    picker.setFromCamera(viewport.getNormalizedMousePosition(e), camera);
+                    picker.setFromViewport(e, viewport);
 
-                    const { presentation, snappers } = Presentation.make(picker, viewport, model, editor.snaps, editor.snapPresenter);
+                    const { presentation, snappers } = Presentation.make(picker, viewport, model, editor.db, snapCache, editor.snapPresenter);
 
                     this.model.activateMutualSnaps(snappers);
 

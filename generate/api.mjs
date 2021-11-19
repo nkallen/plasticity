@@ -664,6 +664,7 @@ export default {
             dependencies: ["Axis3D.h"],
             initializers: [
                 "const MbAxis3D & initAxis",
+                "const MbCartPoint3D &initOrigin, const MbVector3D &initAxisZ",
             ],
         },
         FloatPoint3D: {
