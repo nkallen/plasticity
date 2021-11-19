@@ -21,16 +21,33 @@ import { BetterRaycastingPoints } from "./VisualModelRaycasting";
 export class SnapPicker {
     private readonly raycaster = new THREE.Raycaster();
 
+    private readonly nearbyParams: THREE.RaycasterParameters = {
+        Points: { threshold: 200 }
+    };
+
     constructor(
         private readonly layers: LayerManager,
         private readonly raycasterParams: THREE.RaycasterParameters,
     ) {
         this.raycaster.layers = layers.visible;
-        this.raycaster.params = this.raycasterParams;
     }
 
-    nearby() {
-        return [];
+    nearby(pointPicker: Model, snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
+        const { raycaster, viewport } = this;
+        if (!snaps.enabled) return [];
+
+        this.raycaster.params = this.nearbyParams;
+
+        snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
+        const snappers = snaps.points;
+        const additional = pointPicker.snaps.map(s => s.snapper);
+        const intersections = raycaster.intersectObjects([...snappers, ...additional], false);
+        const snap_intersections = this.intersections2snaps(snaps, intersections, db);
+        const result: PointSnap[] = [];
+        for (const { snap } of snap_intersections) {
+            result.push(snap as PointSnap);
+        }
+        return result;
     }
 
     intersect(pointPicker: Model, snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
@@ -38,6 +55,8 @@ export class SnapPicker {
 
         if (!snaps.enabled) return this.intersectConstructionPlane(pointPicker, viewport);
         if (pointPicker.choice !== undefined) return this.intersectChoice(pointPicker.choice);
+
+        this.raycaster.params = this.raycasterParams;
 
         const restrictions = pointPicker.restrictionSnaps.map(r => r.snapper);
         let intersections: THREE.Intersection[];
@@ -141,12 +160,16 @@ export class SnapManagerGeometryCache {
         this.update();
     }
 
+    private _points: THREE.Points[] = [];
+    get points() { return this._points }
+
     private geometrySnaps: PointSnap[][] = [];
     private _snappers: THREE.Object3D[] = [];
     private update() {
         const { basicSnaps, geometrySnaps, crossSnaps } = this.snaps.all;
         const result = [];
         this.geometrySnaps = [];
+        this._points = [];
         let i = 0;
         for (const points of geometrySnaps) {
             const pointInfo = new Float32Array(points.size * 3);
@@ -163,6 +186,7 @@ export class SnapManagerGeometryCache {
             result.push(picker);
             i++;
             this.geometrySnaps.push([...points]);
+            this._points.push(picker);
         }
         for (const snap of basicSnaps) result.push(snap.snapper);
         for (const snap of crossSnaps) result.push(snap.snapper);

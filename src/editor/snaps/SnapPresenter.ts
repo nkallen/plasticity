@@ -12,14 +12,13 @@ const nearbyGeometry = new THREE.CircleGeometry(0.025, 24);
 const snapGeometry = new LineGeometry();
 snapGeometry.setPositions(CircleGeometry(0.1, 24));
 
-const nearbyMaterial = new THREE.MeshBasicMaterial({ color: 0x333333,  blending: THREE.MultiplyBlending });
+const nearbyMaterial = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide, blending: THREE.MultiplyBlending });
 
 export class SnapPresenter {
     constructor(private readonly materials: GizmoMaterialDatabase) { }
 
     nearbyIndicatorFor(snap: PointSnap): Helper {
         const disc = new SimpleHelper(new THREE.Mesh(nearbyGeometry, nearbyMaterial));
-        disc.renderOrder = RenderOrder.SnapNearbyIndicator;
 
         const { position } = snap;
         const { orientation } = snap.project(position);

@@ -303,7 +303,7 @@ export class Presentation {
     static make(picker: SnapPicker, viewport: Viewport, pointPicker: Model, db: DatabaseLike, snapCache: SnapManagerGeometryCache, presenter: SnapPresenter) {
         const { constructionPlane, isOrtho } = viewport;
 
-        const nearby = picker.nearby();
+        const nearby = picker.nearby(pointPicker, snapCache, db);
         const snappers = picker.intersect(pointPicker, snapCache, db);
         const actualConstructionPlaneGiven = pointPicker.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
