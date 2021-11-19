@@ -94,7 +94,6 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
                 command.controlPoint = this.mode.controlPoint;
                 command.gizmo = this;
                 this.editor.enqueue(command);
-                console.log("idsable");
                 this.viewport.disableControls(this);
 
                 helper.onStart(this.viewport.domElement, center2d);

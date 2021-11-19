@@ -80,8 +80,7 @@ export class RenderedSceneBuilder {
         performance.measure('unhover', 'begin-unhover');
     }
 
-    protected unhoverFace(item: visual.Face) {
-    }
+    protected unhoverFace(item: visual.Face) { }
 
     highlight() {
         performance.mark('begin-highlight');
@@ -123,6 +122,7 @@ export class RenderedSceneBuilder {
         curve.line.material = isSelected ? line_selected : line_unselected;
         curve.line.layers.set(layer);
         curve.occludedLine.layers.set(occludedLayer);
+        curve.layers.set(layer);
         const geometry = curve.points.geometry;
         if (geometry !== undefined) {
             const colors = geometry.attributes.color;
@@ -134,7 +134,6 @@ export class RenderedSceneBuilder {
             }
             colors.needsUpdate = true;
         }
-        curve.layers.set(visual.Layers.Curve);
     }
 
     private highlightControlPoints() {
