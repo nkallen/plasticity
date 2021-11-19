@@ -1,20 +1,21 @@
-import * as visual from "./VisualModel";
-import * as intersectable from "./Intersectable";
+import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
 import { Model } from "../commands/PointPicker";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
 import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap, Snap } from "../editor/snaps/Snap";
-import { inst2curve } from "../util/Conversion";
-import { CompositeDisposable } from "event-kit";
 import { SnapManager } from "../editor/snaps/SnapManager";
+import { inst2curve } from "../util/Conversion";
+import * as intersectable from "./Intersectable";
+import * as visual from "./VisualModel";
+import { BetterRaycastingPoints } from "./VisualModelRaycasting";
 
 export class SnapPicker {
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Line: { threshold: 0.1 },
         Line2: { threshold: 20 },
-        Points: { threshold: 0.1 }
+        Points: { threshold: 10 /*px*/ }
     };
 
     private readonly raycaster = new THREE.Raycaster();
@@ -38,7 +39,7 @@ export class SnapPicker {
     }
 
     intersect(pointPicker: Model): SnapResult[] {
-        const { raycaster, snaps, db } = this;
+        const { raycaster, snaps, db, viewport } = this;
 
         if (!snaps.enabled) return this.intersectConstructionPlane(pointPicker);
         if (pointPicker.choice !== undefined) return this.intersectChoice(pointPicker.choice);
@@ -48,11 +49,12 @@ export class SnapPicker {
         if (restrictions.length > 0) {
             intersections = raycaster.intersectObjects(restrictions);
         } else {
-            const points = snaps.snappers;
+            snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
+            const snappers = snaps.snappers;
             const additional = pointPicker.snaps.map(s => s.snapper);
             const geometry = db.visibleObjects;
             console.time();
-            intersections = raycaster.intersectObjects([...points, ...additional, ...geometry], false);
+            intersections = raycaster.intersectObjects([...snappers, ...additional, ...geometry], false);
             console.timeEnd();
         }
 
@@ -78,7 +80,7 @@ export class SnapPicker {
 
         const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, isOrtho);
         const intersections = raycaster.intersectObject(constructionPlane.snapper);
-        if (intersections.length === 0) throw new Error("Invalid condition: should always be able to intersect with construction plane");
+        if (intersections.length === 0) return [];
         const approximatePosition = intersections[0].point;
         const snap = constructionPlane;
         const { position: precisePosition, orientation } = snap.project(approximatePosition);
@@ -117,6 +119,8 @@ export class SnapManagerGeometryCache {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
+    readonly resolution = new THREE.Vector2();
+
     get enabled() { return this.snaps.enabled }
 
     constructor(private readonly snaps: SnapManager) {
@@ -139,7 +143,8 @@ export class SnapManagerGeometryCache {
             }
             const pointsGeometry = new THREE.BufferGeometry();
             pointsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(pointInfo, 3));
-            const picker = new THREE.Points(pointsGeometry);
+            const picker = new BetterRaycastingPoints(pointsGeometry);
+            picker.resolution = this.resolution;
             picker.userData.index = i;
             result.push(picker);
             i++;
@@ -156,7 +161,7 @@ export class SnapManagerGeometryCache {
 
     get(points: THREE.Points, index: number) {
         const { geometrySnaps } = this;
-        const set = geometrySnaps[points.userData.index as number];
-        return [...set][index];
+        const snaps = geometrySnaps[points.userData.index as number];
+        return snaps[index];
     }
 }

@@ -61,7 +61,7 @@ Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE
     _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
     if (!_ray.intersectsBox(boundingBox)) return;
 
-    const axis = new c3d.Axis3D(point2point(_ray.origin,1), vec2vec(_ray.direction, 1));
+    const axis = new c3d.Axis3D(point2point(_ray.origin, 1), vec2vec(_ray.direction, 1));
     const line = new c3d.FloatAxis3D(axis);
 
     const { intersected, crossPoint } = c3d.MeshGrid.LineGridIntersect(grid, line);
@@ -156,6 +156,55 @@ CurveEdge.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: 
     }
 }
 
+export class BetterRaycastingPoints extends THREE.Points {
+    resolution!: THREE.Vector2;
+
+    raycast(raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const { geometry, matrixWorld, resolution } = this;
+        const camera = raycaster.camera as THREE.PerspectiveCamera | THREE.OrthographicCamera;
+        const threshold = raycaster.params.Points?.threshold ?? 0;
+        const drawRange = geometry.drawRange;
+
+        if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
+        _sphere.copy(geometry.boundingSphere!).applyMatrix4(matrixWorld);
+        _sphere.radius += threshold;
+        if (!raycaster.ray.intersectsSphere(_sphere)) return;
+
+        _inverseMatrix.copy(matrixWorld).invert();
+        _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
+
+        const { attributes: { position: positionAttribute } } = geometry;
+
+        const start = Math.max(0, drawRange.start);
+        const end = Math.min(positionAttribute.count, (drawRange.start + drawRange.count));
+
+        const size = 1;
+        const ssMaxWidth = size + threshold;
+        for (let i = start, l = end; i < l; i++) {
+            _position.fromBufferAttribute(positionAttribute, i);
+            const dist = Math.max(camera.near, _position.distanceTo(_ray.origin));
+            const half = getWorldSpaceHalfWidth(camera, dist, ssMaxWidth, resolution);
+            const halfSq = half * half;
+            const rayPointDistanceSq = _ray.distanceSqToPoint(_position);
+
+            if (rayPointDistanceSq < halfSq) {
+                const intersectPoint = new THREE.Vector3();
+                _ray.closestPointToPoint(_position, intersectPoint);
+                intersectPoint.applyMatrix4(matrixWorld);
+                const distance = raycaster.ray.origin.distanceTo(intersectPoint);
+                if (distance < raycaster.near || distance > raycaster.far) return;
+                intersects.push({
+                    distance: distance,
+                    distanceToRay: Math.sqrt(rayPointDistanceSq),
+                    point: intersectPoint,
+                    index: i,
+                    object: this,
+                });
+            }
+        }
+    }
+}
+
 function getWorldSpaceHalfWidth(camera: THREE.Camera, distance: number, lineWidth: number, resolution: THREE.Vector2) {
     // transform into clip space, adjust the x and y values by the pixel width offset, then
     // transform back into world space to get world offset. Note clip space is [-1, 1] so full
@@ -180,5 +229,6 @@ const _lineSegmentsGeometry = new LineSegmentsGeometry();
 const _instanceBuffer = new THREE.InstancedInterleavedBuffer([], 6, 1); // xyz, xyz
 _lineSegmentsGeometry.setAttribute('instanceStart', new THREE.InterleavedBufferAttribute(_instanceBuffer, 3, 0)); // xyz
 _lineSegmentsGeometry.setAttribute('instanceEnd', new THREE.InterleavedBufferAttribute(_instanceBuffer, 3, 3)); // xyz
+const _position = new THREE.Vector3();
 
 export { };

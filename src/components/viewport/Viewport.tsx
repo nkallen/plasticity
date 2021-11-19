@@ -266,7 +266,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             const resolution = new THREE.Vector2(domElement.offsetWidth, domElement.offsetHeight);
             signals.renderPrepared.dispatch({ camera, resolution });
             helpersScene.traverse(child => { if (child instanceof Helper) child.update(camera) });
-            // FIXME this is inefficient
+            // FIXME: this is inefficient
             scene.traverse(child => { if (child instanceof Helper) child.update(camera) });
 
             camera.layers = VisibleLayers;
