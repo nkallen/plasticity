@@ -2,12 +2,11 @@ import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import c3d from '../../build/Release/c3d.node';
-import { GeometryGPUPickingAdapter } from "../components/viewport/gpu_picking/GeometryGPUPickingAdapter";
-import { IdPointsMaterial, LineVertexColorMaterial, VertexColorMaterial } from "../components/viewport/gpu_picking/GPUPickingMaterial";
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
-import { CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, Layers, PlaneInstance, PlaneItem, Region, RenderOrder, Solid, SpaceInstance, SpaceItem } from "./VisualModel";
+import { CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, GeometryGroup, Layers, PlaneInstance, PlaneItem, Region, RenderOrder, Solid, SpaceInstance, SpaceItem } from "./VisualModel";
 
 export class SolidBuilder {
     private readonly solid = new Solid();
@@ -52,10 +51,8 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
 
 export class FaceGroupBuilder {
     private readonly meshes: THREE.Mesh[] = [];
-    private parentId!: c3d.SimpleName;
 
     add(grid: c3d.MeshBuffer, parentId: c3d.SimpleName, material: THREE.Material) {
-        this.parentId = parentId;
         const geometry = new THREE.BufferGeometry();
         geometry.setIndex(new THREE.BufferAttribute(grid.index, 1));
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
@@ -78,7 +75,7 @@ export class FaceGroupBuilder {
         const meshes = this.meshes;
         for (const mesh of meshes)
             geos.push(mesh.geometry);
-        const merged = VertexColorMaterial.mergeBufferGeometries(geos, id => GeometryGPUPickingAdapter.encoder.encode('face', this.parentId, id));
+        const merged = BufferGeometryUtils.mergeBufferGeometries(geos, true);
         const groups = merged.groups;
 
         const materials = meshes.map(mesh => mesh.material as THREE.Material);
@@ -138,7 +135,7 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
             return new CurveGroup(group, []);
         }
 
-        const geometry = LineVertexColorMaterial.mergePositions(lines, id => GeometryGPUPickingAdapter.encoder.encode('edge', this.parentId, id));
+        const { geometry, groups } = CurveBuilder.mergePositions(lines.map(l => l.position));
         const line = new LineSegments2(geometry, lines[0].material);
         line.scale.setScalar(deunit(1));
 
@@ -153,7 +150,7 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
 
         const edges: T[] = [];
         for (const [i, { userData }] of lines.entries()) {
-            const edge = new this.make(geometry.userData.groups[i], userData);
+            const edge = new this.make(groups[i], userData);
             edges.push(edge);
         }
 
@@ -161,6 +158,35 @@ abstract class CurveBuilder<T extends CurveEdge | CurveSegment> {
     }
 
     protected abstract get make(): GConstructor<T>;
+
+    static mergePositions(positions: Float32Array[]) {
+        const groups: GeometryGroup[] = [];
+        let arrayLength = 0;
+        for (const position of positions) {
+            arrayLength += (position.length - 3) * 2;
+        }
+        const array = new Float32Array(arrayLength);
+        let offset = 0;
+        for (const [i, position] of positions.entries()) {
+            // converts [ x1, y1, z1,  x2, y2, z2, ... ] to pairs format
+            for (let i = 0; i < position.length; i += 3) {
+                array[offset + 2 * i + 0] = position[i + 0];
+                array[offset + 2 * i + 1] = position[i + 1];
+                array[offset + 2 * i + 2] = position[i + 2];
+                array[offset + 2 * i + 3] = position[i + 3];
+                array[offset + 2 * i + 4] = position[i + 4];
+                array[offset + 2 * i + 5] = position[i + 5];
+            }
+            const length = (position.length - 3) * 2;
+            groups.push({ start: offset, count: length, materialIndex: i });
+            offset += length;
+        }
+
+        const geometry = new LineSegmentsGeometry();
+        geometry.setPositions(array);
+
+        return { geometry, array, groups };
+    }
 }
 
 export class CurveEdgeGroupBuilder extends CurveBuilder<CurveEdge> {
@@ -168,7 +194,6 @@ export class CurveEdgeGroupBuilder extends CurveBuilder<CurveEdge> {
 }
 
 export class CurveSegmentGroupBuilder extends CurveBuilder<CurveSegment> {
-    // FIXME: probably don't build colors for curve segments
     get make() { return CurveSegment; }
 }
 
@@ -198,11 +223,24 @@ export class ControlPointGroup extends THREE.Group {
     }
 
     private static fromCartPoints(ps: c3d.CartPoint3D[], parentId: c3d.SimpleName, material: THREE.PointsMaterial) {
-        const info: [number, THREE.Vector3][] = ps.map((p, i) => [GeometryGPUPickingAdapter.encoder.encode('control-point', parentId, i), point2point(p)]);
-        const geometry = IdPointsMaterial.geometry(info);
+        const info: THREE.Vector3[] = ps.map(p => point2point(p));
+        const geometry = this.geometry(info);
         geometry.setAttribute('color', new THREE.Uint8BufferAttribute(new Uint8Array(ps.length * 3), 3, true))
         const points = new THREE.Points(geometry, material);
         points.layers.set(Layers.ControlPoint);
         return points;
+    }
+
+    static geometry(points: THREE.Vector3[]) {
+        const positions = new Float32Array(points.length * 3);
+        for (const [i, point] of points.entries()) {
+            const position = point;
+            positions[i * 3 + 0] = position.x;
+            positions[i * 3 + 1] = position.y;
+            positions[i * 3 + 2] = position.z;
+        }
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        return geometry;
     }
 }

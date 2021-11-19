@@ -8,15 +8,14 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
-import { xray } from "../../visual_model/Intersectable";
 import { VisibleLayers } from "../../editor/LayerManager";
 import { ConstructionPlaneSnap, PlaneSnap } from "../../editor/snaps/Snap";
-import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helper, Helpers } from "../../util/Helpers";
+import { xray } from "../../visual_model/Intersectable";
+import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
 import { Pane } from '../pane/Pane';
-import { GPUPicker } from "./gpu_picking/GPUPicker";
 import { GridHelper } from "./GridHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
@@ -48,7 +47,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly changed = new signals.Signal();
     readonly navigationEnded = new signals.Signal();
     
-    readonly picker = new GPUPicker(this);
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
@@ -149,14 +147,12 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 'viewport:toggle-orthographic': () => this.togglePerspective(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
                 'viewport:toggle-overlays': () => this.toggleOverlays(),
-                'viewport:picker:show': () => this.picker.show(), // FIXME keep?
             })
         );
 
         this.disposable.add(new Disposable(() => {
             this.selector.dispose();
             this.points.dispose();
-            this.picker.dispose
             this.navigationControls.dispose();
         }));
 
@@ -229,8 +225,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         if (!this.started) return;
         requestAnimationFrame(this.render);
 
-        this.picker.render();
-
         if (!this.needsRender) return;
         this.needsRender = false;
 
@@ -302,7 +296,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         composer.setSize(offsetWidth, offsetHeight);
         outlinePassHover.setSize(offsetWidth, offsetHeight);
         outlinePassSelection.setSize(offsetWidth, offsetHeight);
-        this.picker.setSize(offsetWidth, offsetHeight);
         this.setNeedsRender();
     }
 

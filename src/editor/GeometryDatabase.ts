@@ -2,15 +2,14 @@ import * as THREE from 'three';
 import { PointsMaterial } from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
-import { GPUPicker } from '../components/viewport/gpu_picking/GPUPicker';
 import { SequentialExecutor } from '../util/SequentialExecutor';
-import { assertUnreachable, GConstructor } from '../util/Util';
+import { GConstructor } from '../util/Util';
+import * as visual from '../visual_model/VisualModel';
+import * as build from '../visual_model/VisualModelBuilder';
 import { EditorSignals } from './EditorSignals';
 import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { ParallelMeshCreator } from './MeshCreator';
-import * as visual from '../visual_model/VisualModel';
-import * as build from '../visual_model/VisualModelBuilder';
 
 const mesh_precision_distance: [number, number][] = [[5, 1000], [0.15, 1]];
 const other_precision_distance: [number, number][] = [[0.05, 1]];
@@ -110,7 +109,7 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
         private readonly materials: MaterialDatabase,
         private readonly signals: EditorSignals) { }
 
-    private counter = GPUPicker.minimumEntityId;
+    private counter = 0;
     get version() { return this.counter }
 
     async addItem(model: c3d.Solid, agent?: Agent, name?: c3d.SimpleName): Promise<visual.Solid>;

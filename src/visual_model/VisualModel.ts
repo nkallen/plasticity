@@ -3,10 +3,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
-import { GeometryGPUPickingAdapter } from "../components/viewport/gpu_picking/GeometryGPUPickingAdapter";
-import { IdLineMaterial, IdMeshMaterial, IdPointsMaterial, vertexColorLineMaterial, vertexColorLineMaterialXRay, vertexColorMaterial, vertexColorMaterialXRay } from "../components/viewport/gpu_picking/GPUPickingMaterial";
-import { snapPointsMaterial, snapPointsXRayMaterial } from "../components/viewport/gpu_picking/SnapGPUPickingAdapter";
-import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
+import { deunit } from "../util/Conversion";
 import { CurveSegmentGroupBuilder } from "./VisualModelBuilder";
 
 /**
@@ -26,19 +23,16 @@ import { CurveSegmentGroupBuilder } from "./VisualModelBuilder";
 
 export abstract class SpaceItem extends THREE.Object3D {
     private _useNominal: undefined;
-    abstract picker(isXRay: boolean): THREE.Object3D
     abstract dispose(): void;
 }
 
 export abstract class PlaneItem extends THREE.Object3D {
     private _useNominal: undefined;
-    abstract picker(isXRay: boolean): THREE.Object3D
     abstract dispose(): void;
 }
 
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
-    abstract picker(isXRay: boolean): THREE.Object3D
     get simpleName(): c3d.SimpleName { return this.userData.simpleName }
 }
 
@@ -54,31 +48,6 @@ export class Solid extends Item {
     // the higher detail ones are later
     get edges() { return this.lod.children[this.lod.children.length - 1].children[0] as CurveGroup<CurveEdge> }
     get faces() { return this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup }
-
-    picker(isXRay: boolean) {
-        const lod = this.lod.children[this.lod.children.length - 1];
-        // FIXME: use this.lod.getCurrentLevel -- currently returns wrong value
-        const edges = lod.children[0] as CurveGroup<CurveEdge>;
-        const faces = lod.children[1] as FaceGroup;
-        const facePicker = faces.mesh.clone();
-        const edgePicker = edges.line.clone();
-
-        if (isXRay) {
-            facePicker.material = vertexColorMaterialXRay;
-            edgePicker.material = vertexColorLineMaterialXRay;
-        } else {
-            facePicker.material = vertexColorMaterial;
-            edgePicker.material = vertexColorLineMaterial;
-        }
-        edgePicker.renderOrder = edgePicker.material.userData.renderOrder;
-        facePicker.renderOrder = facePicker.material.userData.renderOrder;
-        edgePicker.layers.set(Layers.CurveEdge);
-        facePicker.layers.set(Layers.Face);
-
-        const group = new THREE.Group();
-        group.add(facePicker, edgePicker);
-        return group;
-    }
 
     get outline() {
         if (!this.visible) return [];
@@ -117,14 +86,12 @@ export class Solid extends Item {
 export class SpaceInstance<T extends SpaceItem> extends Item {
     private _useNominal3: undefined;
     get underlying() { return this.children[0] as T }
-    picker(isXRay: boolean) { return this.underlying.picker(isXRay) }
     dispose() { this.underlying.dispose() }
 }
 
 export class PlaneInstance<T extends PlaneItem> extends Item {
     private _useNominal3: undefined;
     get underlying() { return this.children[0] as T }
-    picker(isXRay: boolean) { return this.underlying.picker(isXRay) }
     dispose() { this.underlying.dispose() }
 }
 
@@ -208,28 +175,6 @@ export class Curve3D extends SpaceItem {
         return new ControlPoint(parentItem, this.points, index);
     }
 
-    picker(isXRay: boolean) {
-        const linePicker = this.line.clone();
-        const pointsPicker = this.points.clone();
-
-        const lineMaterialPrototype = isXRay ? vertexColorLineMaterialXRay : vertexColorLineMaterial;
-        const pointsMaterial = isXRay ? snapPointsXRayMaterial : snapPointsMaterial;
-
-        const { stencilWrite, stencilFunc, stencilRef, stencilZPass } = lineMaterialPrototype;
-        linePicker.renderOrder = lineMaterialPrototype.userData.renderOrder;
-
-        // FIXME: gc material
-        const id = GeometryGPUPickingAdapter.encoder.encode('curve', this.parentItem.simpleName);
-        const lineMaterial = new IdLineMaterial(id, { blending: THREE.NoBlending, linewidth: 10, stencilWrite, stencilFunc, stencilRef, stencilZPass });
-        linePicker.material = lineMaterial;
-
-        pointsPicker.material = pointsMaterial;
-
-        const group = new THREE.Group();
-        group.add(linePicker, pointsPicker);
-        return group;
-    }
-
     get line() { return this.segments.line }
     get occludedLine() { return this.segments.occludedLine }
 
@@ -267,13 +212,6 @@ export class Surface extends SpaceItem {
         return result;
     }
 
-    picker(isXRay: boolean) {
-        const picker = this.mesh.clone();
-        // FIXME: cache and dispose();
-        picker.material = new IdMeshMaterial(GeometryGPUPickingAdapter.encoder.encode('surface', this.simpleName));
-        return picker;
-    }
-
     get simpleName() { return this.parentItem.simpleName }
 
     dispose() { this.mesh.geometry.dispose() }
@@ -291,13 +229,6 @@ export class Region extends PlaneItem {
     constructor(private readonly mesh: THREE.Mesh) {
         super()
         this.add(mesh);
-    }
-
-    picker(isXRay: boolean) {
-        const picker = this.mesh.clone();
-        // FIXME: cache and dispose();
-        picker.material = new IdMeshMaterial(GeometryGPUPickingAdapter.encoder.encode('region', this.simpleName));
-        return picker;
     }
 
     get simpleName() { return this.parentItem.simpleName }
