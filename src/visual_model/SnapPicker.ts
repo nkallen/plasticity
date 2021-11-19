@@ -44,8 +44,10 @@ export class SnapPicker {
         const intersections = raycaster.intersectObjects([...snappers, ...additional], false);
         const snap_intersections = this.intersections2snaps(snaps, intersections, db);
         const result: PointSnap[] = [];
+        let i = 0;
         for (const { snap } of snap_intersections) {
             result.push(snap as PointSnap);
+            if (i++ > 20) break;
         }
         return result;
     }
