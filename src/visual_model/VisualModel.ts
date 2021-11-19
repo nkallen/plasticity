@@ -218,15 +218,13 @@ export class Surface extends SpaceItem {
 }
 
 export class Region extends PlaneItem {
-    get child() { return this.mesh };
-
     get parentItem(): PlaneInstance<Region> {
         const result = this.parent as PlaneInstance<Region>;
         if (!(result instanceof PlaneInstance)) throw new Error("Invalid precondition");
         return result;
     }
 
-    constructor(private readonly mesh: THREE.Mesh) {
+    constructor(readonly mesh: THREE.Mesh) {
         super()
         this.add(mesh);
     }
@@ -271,9 +269,9 @@ export class CurveEdge extends Edge {
 
     dispose() { }
 }
+
 export class Vertex {
-    static build(edge: c3d.EdgeBuffer, material: LineMaterial) {
-    }
+    static build(edge: c3d.EdgeBuffer, material: LineMaterial) { }
 }
 
 export type GeometryGroup = { start: number; count: number; materialIndex?: number | undefined };

@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { Viewport } from "../components/viewport/Viewport";
-import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
 import * as intersectable from "./Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from "./VisualModel";

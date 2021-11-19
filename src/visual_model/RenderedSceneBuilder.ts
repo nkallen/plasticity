@@ -44,7 +44,7 @@ export class RenderedSceneBuilder {
     }
 
     private hoverRegion(item: visual.PlaneInstance<visual.Region>) {
-        item.underlying.child.material = region_hovered;
+        item.underlying.mesh.material = region_hovered;
     }
 
     protected hoverFace(item: visual.Face) {
@@ -110,9 +110,9 @@ export class RenderedSceneBuilder {
     private highlightRegion(item: visual.PlaneInstance<visual.Region>) {
         const { selected } = this.selection;
         const region = item.underlying as visual.Region;
-        region.child.material = selected.regionIds.has(region.simpleName) ? region_highlighted : region_unhighlighted;
+        region.mesh.material = selected.regionIds.has(region.simpleName) ? region_highlighted : region_unhighlighted;
         region.layers.set(visual.Layers.Region);
-        region.child.layers.set(visual.Layers.Region);
+        region.mesh.layers.set(visual.Layers.Region);
     }
 
     private highlightCurve(item: visual.SpaceInstance<visual.Curve3D>) {

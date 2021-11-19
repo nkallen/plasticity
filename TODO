@@ -6,3 +6,5 @@ box selection right
 unit Test FaceGroupBuilder
 unit Test CurveEdgeGroupBuilder
 unit Test GPU*
+
+variable fillet broken

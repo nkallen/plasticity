@@ -4,7 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { point2point, vec2vec } from '../util/Conversion';
-import { CurveEdge, CurveGroup, Face, FaceGroup, Solid } from './VisualModel';
+import { Curve3D, CurveEdge, CurveGroup, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
     interface Face {
@@ -111,7 +111,6 @@ CurveGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects:
     }
 
     for (const edge of this) {
-        if (!(edge instanceof CurveEdge)) throw new Error("Invalid edge");
         edge.raycast(raycaster, intersects);
     }
 }
@@ -147,6 +146,36 @@ CurveEdge.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: 
     const is: THREE.Intersection[] = [];
     _lineSegments.raycast(raycaster, is);
 
+    for (const i of is) {
+        intersects.push({
+            ...i,
+            object: this,
+        })
+    }
+}
+
+SpaceInstance.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+    this.underlying.raycast(raycaster, intersects);
+}
+
+Curve3D.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+    const is: THREE.Intersection[] = [];
+    this.segments.line.raycast(raycaster, is);
+    for (const i of is) {
+        intersects.push({
+            ...i,
+            object: this,
+        })
+    }
+}
+
+PlaneInstance.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+    this.underlying.raycast(raycaster, intersects);
+}
+
+Region.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+    const is: THREE.Intersection[] = [];
+    this.mesh.raycast(raycaster, is);
     for (const i of is) {
         intersects.push({
             ...i,
