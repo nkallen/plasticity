@@ -11,6 +11,13 @@ import * as intersectable from "./Intersectable";
 import * as visual from "./VisualModel";
 import { BetterRaycastingPoints } from "./VisualModelRaycasting";
 
+/**
+ * The SnapPicker is a raycaster-like object specifically for Snaps. It finds snaps directly under
+ * as well as "nearby" the mouse cursor, with intersect() and nearby() operations. It performs
+ * sorting/prioritization based on distance as well as snap type. It is optimized for performance,
+ * using a cache for most point snaps and the existing, (optimized) geometry raycasting targets.
+ */
+
 export class SnapPicker {
     private readonly raycaster = new THREE.Raycaster();
 
@@ -20,16 +27,6 @@ export class SnapPicker {
     ) {
         this.raycaster.layers = layers.visible;
         this.raycaster.params = this.raycasterParams;
-    }
-
-    private viewport!: Viewport;
-    setFromViewport(e: PointerEvent, viewport: Viewport) {
-        this.setFromCamera(viewport.getNormalizedMousePosition(e), viewport.camera);
-        this.viewport = viewport;
-    }
-
-    private setFromCamera(normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera) {
-        this.raycaster.setFromCamera(normalizedScreenPoint, camera);
     }
 
     nearby() {
@@ -113,6 +110,16 @@ export class SnapPicker {
         } else {
             throw new Error("invalid snap target");
         }
+    }
+
+    private viewport!: Viewport;
+    setFromViewport(e: PointerEvent, viewport: Viewport) {
+        this.setFromCamera(viewport.getNormalizedMousePosition(e), viewport.camera);
+        this.viewport = viewport;
+    }
+
+    private setFromCamera(normalizedScreenPoint: THREE.Vector2, camera: THREE.Camera) {
+        this.raycaster.setFromCamera(normalizedScreenPoint, camera);
     }
 }
 
