@@ -16,170 +16,176 @@ declare module './VisualModel' {
     }
 }
 
-Solid.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    _v1.setFromMatrixPosition(this.matrixWorld);
-    const distance = raycaster.ray.origin.distanceTo(_v1);
-    const level = this.lod.getObjectForDistance(distance)!;
-    const edges = level.children[0];
-    const faces = level.children[1];
+Solids: {
+    Solid.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        _v1.setFromMatrixPosition(this.matrixWorld);
+        const distance = raycaster.ray.origin.distanceTo(_v1);
+        const level = this.lod.getObjectForDistance(distance)!;
+        const edges = level.children[0];
+        const faces = level.children[1];
 
-    raycaster.intersectObject(faces, false, intersects);
-    raycaster.intersectObject(edges, false, intersects);
-}
-
-FaceGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    const { matrixWorld, geometry } = this.mesh;
-
-    if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
-    _sphere.copy(geometry.boundingSphere!);
-    _sphere.applyMatrix4(matrixWorld);
-    if (!raycaster.ray.intersectsSphere(_sphere)) return;
-
-    _inverseMatrix.copy(matrixWorld).invert();
-    _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
-    if (geometry.boundingBox !== null) {
-        if (!_ray.intersectsBox(geometry.boundingBox)) return;
+        raycaster.intersectObject(faces, false, intersects);
+        raycaster.intersectObject(edges, false, intersects);
     }
 
-    raycaster.intersectObjects([...this], false, intersects);
-}
+    FaceGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const { matrixWorld, geometry } = this.mesh;
 
-Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    const { grid } = this;
-    const parent = this.parent as FaceGroup;
-    const { matrixWorld } = parent.mesh;
-    if (this.boundingBox === undefined) {
-        const cube = grid.GetCube();
-        const { pmin, pmax } = cube;
-        this.boundingBox = new THREE.Box3(point2point(pmin, 1), point2point(pmax, 1));
-    }
-    const boundingBox = this.boundingBox;
-
-    _inverseMatrix.copy(matrixWorld).invert();
-    _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
-    if (!_ray.intersectsBox(boundingBox)) return;
-
-    const line = new c3d.FloatAxis3D(point2point(_ray.origin, 1), vec2vec(_ray.direction, 1));
-
-    const { intersected, crossPoint } = c3d.MeshGrid.LineGridIntersect(grid, line);
-    if (intersected) {
-        const point = point2point(crossPoint, 1).applyMatrix4(matrixWorld);
-        intersects.push({
-            object: this,
-            distance: raycaster.ray.origin.distanceTo(point),
-            point,
-        });
-    }
-}
-
-CurveGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    const { line } = this;
-    const camera = raycaster.camera as THREE.PerspectiveCamera | THREE.OrthographicCamera;
-    const { geometry, matrixWorld } = line;
-    const { resolution, linewidth } = line.material as LineMaterial;
-
-    _inverseMatrix.copy(matrixWorld).invert();
-    _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
-
-    BoundingSphere: {
         if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
         _sphere.copy(geometry.boundingSphere!);
+        _sphere.applyMatrix4(matrixWorld);
+        if (!raycaster.ray.intersectsSphere(_sphere)) return;
 
-        const distanceToSphere = Math.max(camera.near, _sphere.distanceToPoint(_ray.origin)); // increase the sphere bounds by the worst case line screen space width
-        _clipToWorldVector.set(0, 0, - distanceToSphere, 1.0).applyMatrix4(camera.projectionMatrix);
-        _clipToWorldVector.multiplyScalar(1.0 / _clipToWorldVector.w);
-        _clipToWorldVector.applyMatrix4(camera.projectionMatrixInverse); // increase the sphere bounds by the worst case line screen space width
-        const sphereMargin = getWorldSpaceHalfWidth(camera, distanceToSphere, linewidth, resolution);
-        _sphere.radius += sphereMargin;
-        if (!_ray.intersectsSphere(_sphere)) return;
+        _inverseMatrix.copy(matrixWorld).invert();
+        _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
+        if (geometry.boundingBox !== null) {
+            if (!_ray.intersectsBox(geometry.boundingBox)) return;
+        }
+
+        raycaster.intersectObjects([...this], false, intersects);
     }
 
-    BoundingBox: {
-        if (geometry.boundingBox === null) geometry.computeBoundingBox();
-        _box.copy(geometry.boundingBox!);
-        const distanceToBox = Math.max(camera.near, _box.distanceToPoint(_ray.origin)); // increase the box bounds by the worst case line screen space width
-        const boxMargin = getWorldSpaceHalfWidth(camera, distanceToBox, linewidth, resolution);
-        _box.max.x += boxMargin;
-        _box.max.y += boxMargin;
-        _box.max.z += boxMargin;
-        _box.min.x -= boxMargin;
-        _box.min.y -= boxMargin;
-        _box.min.z -= boxMargin;
-        if (!_ray.intersectsBox(geometry.boundingBox!)) return;
-    }
-
-    raycaster.intersectObjects([...this], false, intersects);
-}
-
-CurveEdge.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    const parent = this.parent as CurveGroup<CurveEdge>;
-    const line = parent.line;
-
-    BuildSlice: {
-        const allPoints = line.geometry.attributes.instanceStart.array as Float32Array;
-        const group = this.group;
-        const slice = new Float32Array(allPoints.buffer, group.start * 4, group.count);
-        _instanceBuffer.array = slice;
-        _instanceBuffer.count = slice.length / _instanceBuffer.stride;
-    }
-
-    BuildBoundingBoxOfSlice: {
+    Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const { grid } = this;
+        const parent = this.parent as FaceGroup;
+        const { matrixWorld } = parent.mesh;
         if (this.boundingBox === undefined) {
-            this.boundingBox = new THREE.Box3();
-            _lineSegmentsGeometry.computeBoundingBox();
-            _lineSegmentsGeometry.computeBoundingSphere();
-            this.boundingBox = _lineSegmentsGeometry.boundingBox!.clone();
-            this.boundingSphere = _lineSegmentsGeometry.boundingSphere!.clone();
-        } else {
-            _lineSegmentsGeometry.boundingBox = this.boundingBox!;
-            _lineSegmentsGeometry.boundingSphere = this.boundingSphere!;
+            const cube = grid.GetCube();
+            const { pmin, pmax } = cube;
+            this.boundingBox = new THREE.Box3(point2point(pmin, 1), point2point(pmax, 1));
+        }
+        const boundingBox = this.boundingBox;
+
+        _inverseMatrix.copy(matrixWorld).invert();
+        _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
+        if (!_ray.intersectsBox(boundingBox)) return;
+
+        const line = new c3d.FloatAxis3D(point2point(_ray.origin, 1), vec2vec(_ray.direction, 1));
+
+        const { intersected, crossPoint } = c3d.MeshGrid.LineGridIntersect(grid, line);
+        if (intersected) {
+            const point = point2point(crossPoint, 1).applyMatrix4(matrixWorld);
+            intersects.push({
+                object: this,
+                distance: raycaster.ray.origin.distanceTo(point),
+                point,
+            });
         }
     }
 
-    _lineSegments.material = line.material;
-    _lineSegments.geometry = _lineSegmentsGeometry;
-    _lineSegments.matrixWorld.copy(line.matrixWorld);
-    const is: THREE.Intersection[] = [];
-    raycaster.intersectObject(_lineSegments, false, is);
+    CurveGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const { line } = this;
+        const camera = raycaster.camera as THREE.PerspectiveCamera | THREE.OrthographicCamera;
+        const { geometry, matrixWorld } = line;
+        const { resolution, linewidth } = line.material as LineMaterial;
 
-    for (const i of is) {
-        intersects.push({ ...i, object: this, })
+        _inverseMatrix.copy(matrixWorld).invert();
+        _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
+
+        BoundingSphere: {
+            if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
+            _sphere.copy(geometry.boundingSphere!);
+
+            const distanceToSphere = Math.max(camera.near, _sphere.distanceToPoint(_ray.origin)); // increase the sphere bounds by the worst case line screen space width
+            _clipToWorldVector.set(0, 0, - distanceToSphere, 1.0).applyMatrix4(camera.projectionMatrix);
+            _clipToWorldVector.multiplyScalar(1.0 / _clipToWorldVector.w);
+            _clipToWorldVector.applyMatrix4(camera.projectionMatrixInverse); // increase the sphere bounds by the worst case line screen space width
+            const sphereMargin = getWorldSpaceHalfWidth(camera, distanceToSphere, linewidth, resolution);
+            _sphere.radius += sphereMargin;
+            if (!_ray.intersectsSphere(_sphere)) return;
+        }
+
+        BoundingBox: {
+            if (geometry.boundingBox === null) geometry.computeBoundingBox();
+            _box.copy(geometry.boundingBox!);
+            const distanceToBox = Math.max(camera.near, _box.distanceToPoint(_ray.origin)); // increase the box bounds by the worst case line screen space width
+            const boxMargin = getWorldSpaceHalfWidth(camera, distanceToBox, linewidth, resolution);
+            _box.max.x += boxMargin;
+            _box.max.y += boxMargin;
+            _box.max.z += boxMargin;
+            _box.min.x -= boxMargin;
+            _box.min.y -= boxMargin;
+            _box.min.z -= boxMargin;
+            if (!_ray.intersectsBox(geometry.boundingBox!)) return;
+        }
+
+        raycaster.intersectObjects([...this], false, intersects);
+    }
+
+    CurveEdge.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const parent = this.parent as CurveGroup<CurveEdge>;
+        const line = parent.line;
+
+        BuildSlice: {
+            const allPoints = line.geometry.attributes.instanceStart.array as Float32Array;
+            const group = this.group;
+            const slice = new Float32Array(allPoints.buffer, group.start * 4, group.count);
+            _instanceBuffer.array = slice;
+            _instanceBuffer.count = slice.length / _instanceBuffer.stride;
+        }
+
+        BuildBoundingBoxOfSlice: {
+            if (this.boundingBox === undefined) {
+                this.boundingBox = new THREE.Box3();
+                _lineSegmentsGeometry.computeBoundingBox();
+                _lineSegmentsGeometry.computeBoundingSphere();
+                this.boundingBox = _lineSegmentsGeometry.boundingBox!.clone();
+                this.boundingSphere = _lineSegmentsGeometry.boundingSphere!.clone();
+            } else {
+                _lineSegmentsGeometry.boundingBox = this.boundingBox!;
+                _lineSegmentsGeometry.boundingSphere = this.boundingSphere!;
+            }
+        }
+
+        _lineSegments.material = line.material;
+        _lineSegments.geometry = _lineSegmentsGeometry;
+        _lineSegments.matrixWorld.copy(line.matrixWorld);
+        const is: THREE.Intersection[] = [];
+        raycaster.intersectObject(_lineSegments, false, is);
+
+        for (const i of is) {
+            intersects.push({ ...i, object: this, })
+        }
     }
 }
 
-SpaceInstance.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    raycaster.intersectObject(this.underlying, false, intersects);
-}
-
-Curve3D.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    const is: THREE.Intersection[] = [];
-    raycaster.intersectObject(this.segments.line, false, is);
-    for (const i of is) {
-        intersects.push({ ...i, object: this, });
+Curves: {
+    SpaceInstance.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        raycaster.intersectObject(this.underlying, false, intersects);
     }
-    raycaster.intersectObject(this.points, false, intersects);
-}
 
-ControlPointGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    const inst = this.parentItem;
-    const is: THREE.Intersection[] = [];
-    raycaster.intersectObject(this.points, false, is);
-    for (const i of is) {
-        const object = new ControlPoint(inst, this.points, i.index!);
-        object.position.copy(i.point);
-        intersects.push({ ...i, object });
+    Curve3D.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const is: THREE.Intersection[] = [];
+        raycaster.intersectObject(this.segments.line, false, is);
+        for (const i of is) {
+            intersects.push({ ...i, object: this, });
+        }
+        raycaster.intersectObject(this.points, false, intersects);
+    }
+
+    ControlPointGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const inst = this.parentItem;
+        const is: THREE.Intersection[] = [];
+        raycaster.intersectObject(this.points, false, is);
+        for (const i of is) {
+            const object = new ControlPoint(inst, this.points, i.index!);
+            object.position.copy(i.point);
+            intersects.push({ ...i, object });
+        }
     }
 }
 
-PlaneInstance.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    raycaster.intersectObject(this.underlying, false, intersects);
-}
+Regions: {
+    PlaneInstance.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        raycaster.intersectObject(this.underlying, false, intersects);
+    }
 
-Region.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
-    const is: THREE.Intersection[] = [];
-    raycaster.intersectObject(this.mesh, false, is);
-    for (const i of is) {
-        intersects.push({ ...i, object: this, })
+    Region.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+        const is: THREE.Intersection[] = [];
+        raycaster.intersectObject(this.mesh, false, is);
+        for (const i of is) {
+            intersects.push({ ...i, object: this, })
+        }
     }
 }
 

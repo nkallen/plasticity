@@ -4,8 +4,6 @@ control points, when one selected and another hovered, everything unhighlighted
 make viewport control have a manager that always picks winner so two can't be running simultaneously
 box selection left
 box selection right
-unit Test FaceGroupBuilder
-unit Test CurveEdgeGroupBuilder
-unit Test GPU*
+move all static buuild() methods to builder, using var ts decl
 
 variable fillet broken
