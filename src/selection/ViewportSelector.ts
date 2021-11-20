@@ -4,7 +4,7 @@ import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../comma
 import { Viewport } from "../components/viewport/Viewport";
 import { ViewportControl } from "../components/viewport/ViewportControl";
 import * as intersectable from "../visual_model/Intersectable";
-import { SelectionBox } from "../util/BetterRaycastingPoints";
+import { SelectionBox } from "./SelectionBox";
 
 export interface EditorLike extends cmd.EditorLike {
     enqueue(command: Command, interrupt?: boolean): Promise<void>;
@@ -33,8 +33,8 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionHelper.onSelectMove(moveEvent);
 
-        const selected = this.selectionBox.select();
-        this.processBoxHover(intersectable.filterMeshes(selected));
+        const selected = this.selectionBox.select(this.db.visibleObjects);
+        this.processBoxHover(new Set());
     }
 
     startClick(intersections: intersectable.Intersection[]) {
@@ -49,8 +49,8 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionHelper.onSelectOver();
 
-        const selected = this.selectionBox.select();
-        this.processBoxSelect(intersectable.filterMeshes(selected));
+        const selected = this.selectionBox.select(this.db.visibleObjects);
+        this.processBoxSelect(new Set());
     }
 
     protected abstract processBoxHover(selected: Set<intersectable.Intersectable>): void;

@@ -10,11 +10,9 @@ export class SelectionBox {
     constructor(private readonly camera: ProxyCamera, private readonly deep = Number.MAX_VALUE) {
     }
 
-    select() {
+    select<TIntersected extends THREE.Object3D>(objects: THREE.Object3D[], optionalTarget?: Array<TIntersected>,): Array<TIntersected> {
         this.collection = [];
-
         this.updateFrustum();
-
         return this.collection;
     }
 
