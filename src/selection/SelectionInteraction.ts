@@ -77,7 +77,7 @@ export class SelectionInteractionManager {
     }
 
     onBoxSelect(select: Set<Intersectable>) {
-        this.clickStrategy.box(select);
+       this.clickStrategy.box(select);
     }
 
     onCreatorSelect(topologyItems: visual.TopologyItem[]) {

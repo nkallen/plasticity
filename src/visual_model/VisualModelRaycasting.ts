@@ -8,6 +8,7 @@ import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, Face, 
 
 declare module './VisualModel' {
     interface Face {
+        computeBoundingBox(): void;
         boundingBox?: THREE.Box3;
     }
     interface CurveEdge {
@@ -45,16 +46,19 @@ Solids: {
         raycaster.intersectObjects([...this], false, intersects);
     }
 
+    Face.prototype.computeBoundingBox = function() {
+        const { grid } = this;
+        const cube = grid.GetCube();
+        const { pmin, pmax } = cube;
+        this.boundingBox = new THREE.Box3(point2point(pmin, 1), point2point(pmax, 1));
+    }
+
     Face.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
         const { grid } = this;
         const parent = this.parent as FaceGroup;
         const { matrixWorld } = parent.mesh;
-        if (this.boundingBox === undefined) {
-            const cube = grid.GetCube();
-            const { pmin, pmax } = cube;
-            this.boundingBox = new THREE.Box3(point2point(pmin, 1), point2point(pmax, 1));
-        }
-        const boundingBox = this.boundingBox;
+        if (this.boundingBox === undefined) this.computeBoundingBox();
+        const boundingBox = this.boundingBox!;
 
         _inverseMatrix.copy(matrixWorld).invert();
         _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);

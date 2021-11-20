@@ -30,11 +30,12 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     }
 
     continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2) {
-        this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionHelper.onSelectMove(moveEvent);
-
-        const selected = this.selectionBox.select(this.db.visibleObjects);
-        this.processBoxHover(new Set());
+        this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
+        this.selectionBox.updateFrustum();
+        const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
+        // FIXME: type
+        this.processBoxHover(new Set(selected as any));
     }
 
     startClick(intersections: intersectable.Intersection[]) {
@@ -46,11 +47,13 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     }
 
     protected endDrag(normalizedMousePosition: THREE.Vector2) {
-        this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionHelper.onSelectOver();
 
-        const selected = this.selectionBox.select(this.db.visibleObjects);
-        this.processBoxSelect(new Set());
+        this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
+        this.selectionBox.updateFrustum();
+        const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
+        // FIXME: type
+        this.processBoxSelect(new Set(selected as any));
     }
 
     protected abstract processBoxHover(selected: Set<intersectable.Intersectable>): void;
@@ -120,6 +123,6 @@ class SelectionHelper {
     }
 
     onSelectOver() {
-        this.element.parentElement!.removeChild(this.element);
+        this.element.parentElement?.removeChild(this.element);
     }
 }

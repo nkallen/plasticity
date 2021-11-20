@@ -1,19 +1,38 @@
 import * as THREE from "three";
 import { ProxyCamera } from "../components/viewport/ProxyCamera";
 
+export type IntersectionType = 'not-intersected' | 'intersected' | 'contained';
+
+export interface Boxcastable {
+    boxcast(type: IntersectionType, boxcaster: SelectionBox, selects: Boxcastable[]): void;
+    intersectsBounds(boxcaster: SelectionBox): IntersectionType;
+    containsGeometry(boxcaster: SelectionBox): boolean;
+    intersectsGeometry(boxcaster: SelectionBox): boolean;
+}
+
 export class SelectionBox {
     readonly startPoint = new THREE.Vector3();
     readonly endPoint = new THREE.Vector3();
     private collection = [];
-    private readonly instances = {};
+    readonly frustum = new THREE.Frustum();
 
     constructor(private readonly camera: ProxyCamera, private readonly deep = Number.MAX_VALUE) {
     }
 
-    select<TIntersected extends THREE.Object3D>(objects: THREE.Object3D[], optionalTarget?: Array<TIntersected>,): Array<TIntersected> {
-        this.collection = [];
-        this.updateFrustum();
-        return this.collection;
+    selectObject(object: Boxcastable, optionalTarget: Array<Boxcastable> = []): Array<Boxcastable> {
+        // FIXME: object layers test
+        const bounds = object.intersectsBounds(this);
+        if (bounds == 'not-intersected') optionalTarget;
+
+        object.boxcast(bounds, this, optionalTarget);
+        return optionalTarget;
+    }
+
+    selectObjects(objects: Boxcastable[], optionalTarget: Array<Boxcastable> = []): Array<Boxcastable> {
+        for (const object of objects) {
+            this.selectObject(object, optionalTarget);
+        }
+        return optionalTarget;
     }
 
     updateFrustum() {
@@ -26,6 +45,7 @@ export class SelectionBox {
         this.camera.updateProjectionMatrix();
         this.camera.updateMatrixWorld();
 
+        const planes = this.frustum.planes;
         if (this.camera.isPerspectiveCamera) {
             _tmpPoint.copy(startPoint);
             _tmpPoint.x = Math.min(startPoint.x, endPoint.x);
@@ -58,7 +78,6 @@ export class SelectionBox {
             _vectemp2.add(_vecNear);
             _vectemp3.add(_vecNear);
 
-            const planes = _frustum.planes;
 
             planes[0].setFromCoplanarPoints(_vecNear, _vecTopLeft, _vecTopRight);
             planes[1].setFromCoplanarPoints(_vecNear, _vecTopRight, _vecDownRight);
@@ -93,8 +112,6 @@ export class SelectionBox {
             _vecFarDownRight.unproject(this.camera);
             _vecFarDownLeft.unproject(this.camera);
 
-            const planes = _frustum.planes;
-
             planes[0].setFromCoplanarPoints(_vecTopLeft, _vecFarTopLeft, _vecFarTopRight);
             planes[1].setFromCoplanarPoints(_vecTopRight, _vecFarTopRight, _vecFarDownRight);
             planes[2].setFromCoplanarPoints(_vecFarDownRight, _vecFarDownLeft, _vecDownLeft);
@@ -116,7 +133,6 @@ export class SelectionBox {
 }
 
 
-const _frustum = new THREE.Frustum();
 const _center = new THREE.Vector3();
 const _tmpPoint = new THREE.Vector3();
 

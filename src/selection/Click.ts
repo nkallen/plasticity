@@ -103,7 +103,7 @@ export class ClickStrategy implements SelectionStrategy {
         for (const object of set) {
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
-                if (this.mode.has(SelectionMode.Solid) && !selected.hasSelectedChildren(parentItem)) {
+                if (this.mode.has(SelectionMode.Solid) && !selected.solids.has(parentItem) && !selected.hasSelectedChildren(parentItem)) {
                     selected.addSolid(parentItem);
                 } else if (object instanceof Face) {
                     if (!this.mode.has(SelectionMode.Face)) continue;

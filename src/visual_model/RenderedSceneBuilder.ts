@@ -167,6 +167,7 @@ export class RenderedSceneBuilder {
         const pairs: [visual.CurveEdge[], LineMaterial][] = [[selected, line_selected], [hovered, line_hovered]];
         edgegroup.temp.clear();
         for (const [edges, mat] of pairs) {
+            if (edges.length === 0) continue;
             const sliced = edgegroup.slice(edges);
             sliced.material = mat;
             edgegroup.temp.add(sliced);

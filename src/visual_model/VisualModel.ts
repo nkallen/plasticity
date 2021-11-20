@@ -297,6 +297,7 @@ export class Face extends TopologyItem {
         this.userData = userData;
     }
 
+    // FIXME: delete this 
     makeSnap(): THREE.Mesh {
         const faceGroup = this.parent as FaceGroup;
         const geometry = new THREE.BufferGeometry();
@@ -447,3 +448,4 @@ export enum Layers {
 
 import("./VisualModelRaycasting");
 import("./VisualModelBuilder");
+import("./VisualModelBoxcasting");

@@ -115,8 +115,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 if (intersects.length === 0) {
                     this.endHover();
                     this.state = { tag: 'none' };
-                }
-                else this.continueHover(intersects);
+                } else this.continueHover(intersects);
                 break;
             }
             case 'down': {
@@ -151,17 +150,21 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         switch (this.state.tag) {
             case 'down':
                 const intersects = this.getIntersects(this.normalizedMousePosition, [...this.db.visibleObjects]);
-                this.endClick(intersects);
-
-                this.state.disposable.dispose();
-                this.state = { tag: 'none' };
+                try {
+                    this.endClick(intersects);
+                } finally {
+                    this.state.disposable.dispose();
+                    this.state = { tag: 'none' };
+                }
 
                 break;
             case 'dragging':
-                this.endDrag(this.normalizedMousePosition);
-
-                this.state.disposable.dispose();
-                this.state = { tag: 'none' };
+                try {
+                    this.endDrag(this.normalizedMousePosition);
+                } finally {
+                    this.state.disposable.dispose();
+                    this.state = { tag: 'none' };
+                }
 
                 break;
             default: throw new Error('invalid state: ' + this.state.tag);
