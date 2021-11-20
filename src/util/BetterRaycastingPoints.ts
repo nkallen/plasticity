@@ -2,6 +2,10 @@ import * as THREE from "three";
 import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 
 export class BetterSelectionBox extends SelectionBox {
+    constructor(camera: THREE.Camera) {
+        super(camera, new THREE.Scene());
+    }
+
 //     searchChildInFrustum(frustrum: THREE.Frustum, object: THREE.Object3D) {
 //         if (object instanceof BetterRaycastingPoints) {
 //             const geometry = object.geometry

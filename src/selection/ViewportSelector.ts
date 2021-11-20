@@ -12,7 +12,7 @@ export interface EditorLike extends cmd.EditorLike {
 
 export abstract class AbstractViewportSelector extends ViewportControl {
     private readonly selectionHelper = new SelectionHelper(this.viewport.domElement, 'select-box');
-    private readonly selectionBox = new BetterSelectionBox(this.viewport.camera, new THREE.Scene()); // FIXME
+    private readonly selectionBox = new BetterSelectionBox(this.viewport.camera);
 
     startHover(intersections: intersectable.Intersection[]) {
         this.processHover(intersections);
