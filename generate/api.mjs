@@ -1462,7 +1462,7 @@ export default {
         },
         Grid: {
             extends: "Primitive",
-            dependencies: ["Primitive.h", "StepData.h", "Cube.h"],
+            dependencies: ["Primitive.h", "StepData.h", "Cube.h", "FloatPoint3D.h"],
             rawHeader: "mesh_primitive.h",
             functions: [
                 "void SetStepData(const MbStepData & stData)",
@@ -1760,6 +1760,13 @@ export default {
                 { signature: "void MakeRegions(RPArray<MbContour> & contours, bool useSelfIntCntrs, bool sameContours, RPArray<MbRegion> & regions)", regions: isReturn },
                 // { signature: "bool CreateBooleanResultRegions(RPArray<MbContour> & contours1, RPArray<MbContour> & contours2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
                 { signature: "bool CreateBooleanResultRegions(MbRegion & region1, MbRegion & region2, const MbRegionBooleanParams & operParams, RPArray<MbRegion> & regions, MbResultType * resInfo = NULL)", resInfo: isReturn, regions: isReturn, return: isErrorBool }
+            ]
+        },
+        ActionMesh: {
+            rawHeader: "action_mesh.h",
+            dependencies: ["FloatPoint3D.h", "Mesh.h"],
+            functions: [
+                "MbResultType CreateConvexPolyhedron(const SArray<MbFloatPoint3D> & points, MbMesh *& result)"
             ]
         },
         Mutex: {

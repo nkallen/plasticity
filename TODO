@@ -1,9 +1,13 @@
-test curve fragment works (trim)
-control points, when one selected and another hovered, everything unhighlighted
-
-make viewport control have a manager that always picks winner so two can't be running simultaneously
 box selection left
 box selection right
+
+# render prepared
+control points, when one selected and another hovered, everything unhighlighted
+in xray mode, control points not visible
+
+
+make viewport control have a manager that always picks winner so two can't be running simultaneously
+
 move all static buuild() methods to builder, using var ts decl
 
 variable fillet broken
