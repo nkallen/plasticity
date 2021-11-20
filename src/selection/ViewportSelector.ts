@@ -4,15 +4,15 @@ import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../comma
 import { Viewport } from "../components/viewport/Viewport";
 import { ViewportControl } from "../components/viewport/ViewportControl";
 import * as intersectable from "../visual_model/Intersectable";
-import { BetterSelectionBox } from "../util/BetterRaycastingPoints";
+import { SelectionBox } from "../util/BetterRaycastingPoints";
 
 export interface EditorLike extends cmd.EditorLike {
     enqueue(command: Command, interrupt?: boolean): Promise<void>;
 }
 
 export abstract class AbstractViewportSelector extends ViewportControl {
-    private readonly selectionHelper = new SelectionHelper(this.viewport.domElement, 'select-box');
-    private readonly selectionBox = new BetterSelectionBox(this.viewport.camera);
+    private readonly selectionHelper = new SelectionHelper(this.viewport.renderer.domElement, 'select-box');
+    private readonly selectionBox = new SelectionBox(this.viewport.camera);
 
     startHover(intersections: intersectable.Intersection[]) {
         this.processHover(intersections);
