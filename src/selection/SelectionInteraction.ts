@@ -5,7 +5,7 @@ import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../visual_model/VisualModel';
 import { ClickStrategy } from './Click';
 import { HoverStrategy } from './Hover';
-import { HasSelectedAndHovered } from './SelectionManager';
+import { HasSelectedAndHovered, Selectable } from './SelectionManager';
 
 export enum SelectionMode {
     CurveEdge, Face, Solid, Curve, ControlPoint
@@ -20,6 +20,7 @@ export interface SelectionStrategy {
     controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean;
 }
 
+// FIXME: rename selection interaction executor?
 export class SelectionInteractionManager {
     private readonly clickStrategy: ClickStrategy;
     private readonly hoverStrategy: HoverStrategy;
@@ -31,6 +32,12 @@ export class SelectionInteractionManager {
     ) {
         this.clickStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered);
         this.hoverStrategy = new HoverStrategy(selection.mode, selection.selected, selection.hovered);
+
+        this.onClick = this.wrapFunction(this.onClick);
+        this.onHover = this.wrapFunction(this.onHover);
+        this.onBoxHover = this.wrapFunction(this.onBoxHover);
+        this.onBoxSelect = this.wrapFunction(this.onBoxSelect);
+        this.onCreatorSelect = this.wrapFunction(this.onCreatorSelect);
     }
 
     private onIntersection(intersections: Intersection[], strategy: SelectionStrategy): Intersection | undefined {
@@ -77,7 +84,7 @@ export class SelectionInteractionManager {
     }
 
     onBoxSelect(select: Set<Intersectable>) {
-       this.clickStrategy.box(select);
+        this.clickStrategy.box(select);
     }
 
     onCreatorSelect(topologyItems: visual.TopologyItem[]) {
@@ -85,5 +92,26 @@ export class SelectionInteractionManager {
             if (!this.clickStrategy.solid(topo, topo.parentItem))
                 this.clickStrategy.topologicalItem(topo, topo.parentItem);
         }
+    }
+
+    private aggregateHovers<R>(f: () => R): R {
+        const { signals } = this;
+        const added = new Set<Selectable>(), removed = new Set<Selectable>();
+        const add = (s: Selectable) => added.add(s);
+        const remove = (s: Selectable) => removed.add(s);
+        signals.objectHovered.add(add);
+        signals.objectUnhovered.add(remove);
+        let result: R;
+        try { result = f() }
+        finally {
+            signals.objectHovered.remove(add);
+            signals.objectUnhovered.remove(remove);
+        }
+        this.signals.hoverChanged.dispatch({ added, removed });
+        return result;
+    }
+
+    private wrapFunction<A extends any[], R>(f: (...args: A) => R): (...args: A) => R {
+        return (...args: A): R => this.aggregateHovers(() => f.call(this, ...args));
     }
 }

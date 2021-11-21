@@ -7,7 +7,7 @@ import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
 import matcap from '../img/matcap/ceramic_dark.exr';
 import { ItemSelection } from "../selection/Selection";
-import { HasSelectedAndHovered, Selectable } from "../selection/SelectionManager";
+import { HasSelectedAndHovered, HasSelection, Selectable } from "../selection/SelectionManager";
 import * as visual from '../visual_model/VisualModel';
 
 export class RenderedSceneBuilder {
@@ -22,23 +22,32 @@ export class RenderedSceneBuilder {
         signals.sceneGraphChanged.add(() => this.highlight());
         signals.modifiersLoaded.add(() => this.highlight());
         signals.historyChanged.add(() => this.highlight());
-        signals.objectHovered.add(selectable => this.hover(selectable));
-        signals.objectUnhovered.add(selectable => this.unhover(selectable));
+        signals.hoverChanged.add(({ added, removed }) => {
+            this.unhover(removed);
+            this.hover(added);
+        });
     }
 
-    hover(item: Selectable) {
+    // FIXME: combine hovered and unhovered by combining highlightCurve/etc with hoverCurve/etc.
+    hover(hovered: Set<Selectable>) {
         performance.mark('begin-hover');
-        if (item instanceof visual.SpaceInstance) {
-            this.hoverCurve(item);
-        } else if (item instanceof visual.Face) {
-            this.highlightFaces(item.parentItem);
-        } else if (item instanceof visual.CurveEdge) {
-            this.highlightEdges(item.parentItem);
-        } else if (item instanceof visual.PlaneInstance) {
-            this.hoverRegion(item);
-        } else if (item instanceof visual.ControlPoint) {
-            this.hoverControlPoint(item);
+        const facesChanged = new Set<visual.Solid>();
+        const edgesChanged = new Set<visual.Solid>();
+        for (const item of hovered) {
+            if (item instanceof visual.SpaceInstance) {
+                this.hoverCurve(item);
+            } else if (item instanceof visual.Face) {
+                facesChanged.add(item.parentItem);
+            } else if (item instanceof visual.CurveEdge) {
+                edgesChanged.add(item.parentItem);
+            } else if (item instanceof visual.PlaneInstance) {
+                this.hoverRegion(item);
+            } else if (item instanceof visual.ControlPoint) {
+                this.hoverControlPoint(item);
+            }
         }
+        for (const item of facesChanged) this.highlightFaces(item);
+        for (const item of edgesChanged) this.highlightEdges(item);
         performance.measure('hover', 'begin-hover');
     }
 
@@ -64,19 +73,25 @@ export class RenderedSceneBuilder {
         colors.needsUpdate = true;
     }
 
-    unhover(item: Selectable) {
+    unhover(hovered: Set<Selectable>) {
         performance.mark('begin-unhover');
-        if (item instanceof visual.SpaceInstance) {
-            this.highlightCurve(item);
-        } else if (item instanceof visual.Face) {
-            this.highlightFaces(item.parentItem);
-        } else if (item instanceof visual.CurveEdge) {
-            this.highlightEdges(item.parentItem);
-        } else if (item instanceof visual.PlaneInstance) {
-            this.highlightRegion(item);
-        } else if (item instanceof visual.ControlPoint) {
-            this.highlightCurve(item.parentItem);
+        const facesChanged = new Set<visual.Solid>();
+        const edgesChanged = new Set<visual.Solid>();
+        for (const item of hovered) {
+            if (item instanceof visual.SpaceInstance) {
+                this.highlightCurve(item);
+            } else if (item instanceof visual.Face) {
+                facesChanged.add(item.parentItem);
+            } else if (item instanceof visual.CurveEdge) {
+                edgesChanged.add(item.parentItem);
+            } else if (item instanceof visual.PlaneInstance) {
+                this.highlightRegion(item);
+            } else if (item instanceof visual.ControlPoint) {
+                this.highlightCurve(item.parentItem);
+            }
         }
+        for (const item of facesChanged) this.highlightFaces(item);
+        for (const item of edgesChanged) this.highlightEdges(item);
         performance.measure('unhover', 'begin-unhover');
     }
 

@@ -19,6 +19,7 @@ export class EditorSignals {
     objectHovered: signals.Signal<Selectable> = new signals.Signal();
     objectUnhovered: signals.Signal<Selectable> = new signals.Signal();
     selectionChanged: signals.Signal<{ selection: HasSelection, point?: THREE.Vector3 }> = new signals.Signal();
+    hoverChanged: signals.Signal<{ added: Set<Selectable>,removed: Set<Selectable> }> = new signals.Signal();
     sceneGraphChanged: signals.Signal = new signals.Signal();
     modifiersLoaded: signals.Signal = new signals.Signal();
     snapped: signals.Signal<{ position: THREE.Vector3, names: string[] } | undefined> = new signals.Signal();

@@ -196,7 +196,7 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
     addSolid(solid: visual.Solid) {
         const id = solid.simpleName;
         if (this.solidIds.has(id)) return;
-        
+
         this.solidIds.add(solid.simpleName);
         this.signals.objectAdded.dispatch(solid);
     }
