@@ -282,6 +282,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.outlinePassSelection.selectedObjects = toOutline;
     }
 
+    // FIXME: this needs to be aggregated
     outlineHover() {
         const hover = this.editor.highlighter.outlineHover;
         const toOutline = [...hover].flatMap(item => item.outline);

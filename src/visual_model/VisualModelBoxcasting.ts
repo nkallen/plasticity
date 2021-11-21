@@ -33,7 +33,6 @@ Solids: {
         }
     }
 
-    // FIXME: this could just return a bounding box?
     FaceGroup.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
         const { matrixWorld, geometry } = this.mesh;
 
