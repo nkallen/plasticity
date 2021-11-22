@@ -8,6 +8,7 @@ export interface Boxcastable {
     intersectsBounds(boxcaster: Boxcaster): IntersectionType;
     containsGeometry(boxcaster: Boxcaster): boolean;
     intersectsGeometry(boxcaster: Boxcaster): boolean;
+    layers: THREE.Layers;
 }
 
 type CameraLike = THREE.Camera & {
@@ -17,6 +18,7 @@ type CameraLike = THREE.Camera & {
 };
 
 export class Boxcaster {
+    layers = new THREE.Layers();
     readonly startPoint = new THREE.Vector3();
     readonly endPoint = new THREE.Vector3();
     private collection = [];
@@ -25,13 +27,14 @@ export class Boxcaster {
     constructor(private readonly camera: CameraLike, private readonly deep = Number.MAX_VALUE) {
     }
 
-    selectObject(object: Boxcastable, optionalTarget: Array<Boxcastable> = []): Array<Boxcastable> {
-        // FIXME: object layers test
-        const bounds = object.intersectsBounds(this);
-        if (bounds == 'not-intersected') optionalTarget;
+    selectObject(object: Boxcastable, selected: Array<Boxcastable> = []): Array<Boxcastable> {
+        if (!this.layers.test(object.layers)) return selected;
 
-        object.boxcast(bounds, this, optionalTarget);
-        return optionalTarget;
+        const bounds = object.intersectsBounds(this);
+        if (bounds == 'not-intersected') selected;
+
+        object.boxcast(bounds, this, selected);
+        return selected;
     }
 
     selectObjects(objects: Boxcastable[], optionalTarget: Array<Boxcastable> = []): Array<Boxcastable> {

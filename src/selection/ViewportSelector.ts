@@ -33,6 +33,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.selectionHelper.onSelectMove(moveEvent);
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
+        this.selectionBox.layers = this.layers.visible;
         const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
         // FIXME: type
         this.processBoxHover(new Set(selected as any));
@@ -51,6 +52,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
+        this.selectionBox.layers = this.layers.visible;
         const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
         // FIXME: type
         this.processBoxSelect(new Set(selected as any));

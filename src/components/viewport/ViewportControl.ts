@@ -46,7 +46,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
 
     constructor(
         protected readonly viewport: Viewport,
-        private readonly layers: LayerManager,
+        protected readonly layers: LayerManager,
         protected readonly db: DatabaseLike,
         private readonly signals: EditorSignals,
         readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
