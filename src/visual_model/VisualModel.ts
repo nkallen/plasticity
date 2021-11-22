@@ -408,6 +408,10 @@ export class ControlPointGroup extends THREE.Object3D {
         }
     }
 
+    get(i: number) {
+        return new ControlPoint(this.parentItem, this.points, i);
+    }
+
     get geometry() { return this.points.geometry }
 
     dispose() {

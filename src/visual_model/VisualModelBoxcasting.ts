@@ -273,8 +273,6 @@ class FastFrustum extends THREE.Frustum {
 }
 
 const _frustum = new FastFrustum();
-const _start = new THREE.Vector3();
-const _end = new THREE.Vector3();
 const _v = new THREE.Vector3();
 const _inverseMatrix = new THREE.Matrix4();
 const _box = new THREE.Box3();

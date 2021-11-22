@@ -6,8 +6,8 @@ import { RegionFactory } from '../../src/commands/region/RegionFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { Intersection } from '../../src/editor/Intersectable';
-import * as visual from '../../src/editor/VisualModel';
+import { Intersection } from '../../src/visual_model/Intersectable';
+import * as visual from '../../src/visual_model/VisualModel';
 import { SelectionInteractionManager } from '../../src/selection/SelectionInteraction';
 import { SelectionManager, Selection } from '../../src/selection/SelectionManager';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
@@ -61,7 +61,6 @@ describe('onClick', () => {
     test('clicking on a curve selects the curve', () => {
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: circle.underlying
         });
@@ -77,7 +76,6 @@ describe('onClick', () => {
 
     test('clicking on a curve then a control point selects the control point', () => {
         let intersections = [{
-            distance: 1,
             point: new THREE.Vector3(),
             object: curve.underlying
         }] as Intersection[];
@@ -86,9 +84,8 @@ describe('onClick', () => {
         expect(selectionManager.selected.curves.size).toBe(1);
 
         intersections = [{
-            distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.controlPoints.findByIndex(0)
+            object: curve.underlying.points.get(0)
         }];
 
         interactionManager.onClick(intersections);
@@ -102,7 +99,6 @@ describe('onClick', () => {
 
     test('clicking on a curve then box selecting a control point selects the control point', () => {
         let intersections = [{
-            distance: 1,
             point: new THREE.Vector3(),
             object: curve.underlying
         }] as Intersection[];
@@ -110,7 +106,7 @@ describe('onClick', () => {
         interactionManager.onClick(intersections);
         expect(selectionManager.selected.curves.size).toBe(1);
 
-        const boxed = new Set([curve.underlying.controlPoints.findByIndex(0)]);
+        const boxed = new Set([curve.underlying.points.get(0)]);
 
         interactionManager.onBoxSelect(boxed);
         expect(selectionManager.selected.curves.size).toBe(0);
@@ -123,7 +119,6 @@ describe('onClick', () => {
 
     test("delete curve removes the selection", () => {
         let intersections = [{
-            distance: 1,
             point: new THREE.Vector3(),
             object: curve.underlying
         }] as Intersection[];
@@ -132,9 +127,8 @@ describe('onClick', () => {
         expect(selectionManager.selected.curves.size).toBe(1);
 
         intersections = [{
-            distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.controlPoints.findByIndex(0)
+            object: curve.underlying.points.get(0)
         }];
 
         interactionManager.onClick(intersections);
@@ -148,7 +142,6 @@ describe('onClick', () => {
 
     test.skip("reselecting curve removes control point selection", () => {
         const intersectCurve = [{
-            distance: 1,
             point: new THREE.Vector3(),
             object: curve.underlying
         }];
@@ -157,9 +150,8 @@ describe('onClick', () => {
         expect(selectionManager.selected.curves.size).toBe(1);
 
         const intersectControlPoint = [{
-            distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.controlPoints.findByIndex(0)
+            object: curve.underlying.points.get(0)
         }];
 
         interactionManager.onClick(intersectControlPoint);
@@ -174,7 +166,6 @@ describe('onClick', () => {
     test('clicking on a region selects the region', () => {
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: region.underlying
         });
@@ -191,7 +182,6 @@ describe('onClick', () => {
     test('saveToMemento & restoreFromMemento', () => {
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: circle.underlying
         });
@@ -216,7 +206,6 @@ describe('onClick', () => {
         const face = solid.faces.get(0);
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: face
         });
@@ -234,7 +223,6 @@ describe('onClick', () => {
         const face = solid.faces.get(0);
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: face
         });
@@ -256,7 +244,6 @@ describe('onClick', () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: edge
         });
@@ -281,7 +268,6 @@ describe('onClick', () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: edge
         });
@@ -301,7 +287,6 @@ describe('onClick', () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: edge
         });
@@ -334,7 +319,6 @@ describe('onClick', () => {
         signals.objectDeselected.add(desel);
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: solid.faces.get(0)
         });
@@ -355,7 +339,6 @@ describe('onPointerMove', () => {
     test("hovering in and out sends signals", () => {
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: solid.faces.get(0)
         });
@@ -380,7 +363,6 @@ describe('onPointerMove', () => {
     test('hovering over a curve adds the curve to the hover selection', () => {
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: circle.underlying
         });
@@ -399,7 +381,6 @@ describe('onPointerMove', () => {
 
     test('clicking on a curve then hovering a control point adds the control point to the hover selection', () => {
         let intersections = [{
-            distance: 1,
             point: new THREE.Vector3(),
             object: curve.underlying
         }] as Intersection[];
@@ -408,9 +389,8 @@ describe('onPointerMove', () => {
         expect(selectionManager.selected.curves.size).toBe(1);
 
         intersections = [{
-            distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.controlPoints.findByIndex(0)
+            object: curve.underlying.points.get(0)
         }];
 
         interactionManager.onHover(intersections);
@@ -427,7 +407,6 @@ describe('onPointerMove', () => {
     test('hovering a region adds it to the hover selection', () => {
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: region.underlying
         });
@@ -453,7 +432,6 @@ describe('onPointerMove', () => {
         const face = solid.faces.get(0);
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: face
         });
@@ -497,7 +475,6 @@ describe('onPointerMove', () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: edge
         });
@@ -534,7 +511,6 @@ describe('onPointerMove', () => {
         let intersections = [];
         let edge = solid.edges.get(0);
         intersections = [{
-            distance: 1,
             point: new THREE.Vector3(),
             object: edge
         }];
@@ -552,7 +528,6 @@ describe('onPointerMove', () => {
 
         edge = solid.edges.get(2);
         intersections = [{
-            distance: 1,
             point: new THREE.Vector3(),
             object: edge
         }];
@@ -568,7 +543,6 @@ describe('onPointerMove', () => {
         const intersections = [];
         const edge = solid.edges.get(0);
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: edge
         });
@@ -607,7 +581,6 @@ describe(SelectionManager, () => {
     test('hovering on a curve highlights the curve', () => {
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: circle.underlying
         });
@@ -623,7 +596,6 @@ describe(SelectionManager, () => {
 
     test('if no intersections match, it clears hover', () => {
         const intersectionsCircle = [{
-            distance: 1,
             point: new THREE.Vector3(),
             object: circle.underlying
         }];
@@ -635,20 +607,17 @@ describe(SelectionManager, () => {
         expect(selectionManager.hovered.curves.size).toBe(1);
 
         const intersectionsControlPoint = [{
-            distance: 1,
             point: new THREE.Vector3(),
-            object: curve.underlying.controlPoints.findByIndex(0)
+            object: curve.underlying.points.get(0)
         }];
 
         interactionManager.onHover(intersectionsControlPoint);
         expect(selectionManager.hovered.curves.size).toBe(0);
-        expect(circle.underlying.segments.get(0).line.material).toBe(materials.line());
     });
 
     test("selecting and hovering an item, then highlight/unhighlight, doesn't error", () => {
         const intersections = [];
         intersections.push({
-            distance: 1,
             point: new THREE.Vector3(),
             object: region.underlying
         });
@@ -683,7 +652,7 @@ describe(Selection, () => {
         selection = new Selection(db, sigs as any);
     });
 
-    test.only("add & remove solid", async () => {
+    test("add & remove solid", async () => {
         const objectAdded = jest.spyOn(signals.objectSelected, 'dispatch');
         const objectRemoved = jest.spyOn(signals.objectDeselected, 'dispatch');
 
