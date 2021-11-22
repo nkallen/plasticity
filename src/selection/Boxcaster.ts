@@ -4,10 +4,10 @@ import { ProxyCamera } from "../components/viewport/ProxyCamera";
 export type IntersectionType = 'not-intersected' | 'intersected' | 'contained';
 
 export interface Boxcastable {
-    boxcast(type: IntersectionType, boxcaster: SelectionBox, selects: Boxcastable[]): void;
-    intersectsBounds(boxcaster: SelectionBox): IntersectionType;
-    containsGeometry(boxcaster: SelectionBox): boolean;
-    intersectsGeometry(boxcaster: SelectionBox): boolean;
+    boxcast(type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]): void;
+    intersectsBounds(boxcaster: Boxcaster): IntersectionType;
+    containsGeometry(boxcaster: Boxcaster): boolean;
+    intersectsGeometry(boxcaster: Boxcaster): boolean;
 }
 
 type CameraLike = THREE.Camera & {
@@ -16,7 +16,7 @@ type CameraLike = THREE.Camera & {
     isOrthographicCamera?: boolean;
 };
 
-export class SelectionBox {
+export class Boxcaster {
     readonly startPoint = new THREE.Vector3();
     readonly endPoint = new THREE.Vector3();
     private collection = [];
