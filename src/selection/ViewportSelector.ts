@@ -4,7 +4,7 @@ import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../comma
 import { Viewport } from "../components/viewport/Viewport";
 import { ViewportControl } from "../components/viewport/ViewportControl";
 import * as intersectable from "../visual_model/Intersectable";
-import { SelectionBox } from "./SelectionBox";
+import { Boxcaster } from "./Boxcaster";
 
 export interface EditorLike extends cmd.EditorLike {
     enqueue(command: Command, interrupt?: boolean): Promise<void>;
@@ -12,7 +12,7 @@ export interface EditorLike extends cmd.EditorLike {
 
 export abstract class AbstractViewportSelector extends ViewportControl {
     private readonly selectionHelper = new SelectionHelper(this.viewport.renderer.domElement, 'select-box');
-    private readonly selectionBox = new SelectionBox(this.viewport.camera);
+    private readonly selectionBox = new Boxcaster(this.viewport.camera);
 
     startHover(intersections: intersectable.Intersection[]) {
         this.processHover(intersections);
@@ -33,9 +33,9 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.selectionHelper.onSelectMove(moveEvent);
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
-        // const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
+        const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
         // FIXME: type
-        // this.processBoxHover(new Set(selected as any));
+        this.processBoxHover(new Set(selected as any));
     }
 
     startClick(intersections: intersectable.Intersection[]) {

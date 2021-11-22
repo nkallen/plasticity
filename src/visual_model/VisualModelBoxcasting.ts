@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Boxcastable, IntersectionType, SelectionBox } from "../selection/SelectionBox";
+import { Boxcastable, IntersectionType, Boxcaster } from "../selection/Boxcaster";
 import { CurveEdge, CurveGroup, Face, FaceGroup, PlaneInstance, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
@@ -11,7 +11,7 @@ declare module './VisualModel' {
 }
 
 Solids: {
-    Solid.prototype.boxcast = function (type: IntersectionType, boxcaster: SelectionBox, selects: Boxcastable[]) {
+    Solid.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
         const low = this.lod.levels[1].object; // Lowest detail
         const edges = low.children[0] as CurveGroup<CurveEdge>;
         const faces = low.children[1] as FaceGroup;
@@ -20,14 +20,14 @@ Solids: {
         return selects;
     }
 
-    Solid.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
+    Solid.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
         const low = this.lod.levels[1].object; // Lowest detail
         const edges = low.children[0] as CurveGroup<CurveEdge>;
         const faces = low.children[1] as FaceGroup;
         return faces.intersectsBounds(boxcaster);
     }
 
-    FaceGroup.prototype.boxcast = function (type: IntersectionType, boxcaster: SelectionBox, selects: Boxcastable[]) {
+    FaceGroup.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
         if (type == 'contained') {
             for (const face of this) {
                 selects.push(face);
@@ -37,7 +37,7 @@ Solids: {
         }
     }
 
-    FaceGroup.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
+    FaceGroup.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
         const { matrixWorld, geometry } = this.mesh;
 
         if (geometry.boundingBox === null) geometry.computeBoundingBox();
@@ -53,7 +53,7 @@ Solids: {
         }
     }
 
-    Face.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
+    Face.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
         const parent = this.parent as FaceGroup;
         const { matrixWorld } = parent.mesh;
         if (this.boundingBox === undefined) this.computeBoundingBox();
@@ -69,7 +69,7 @@ Solids: {
         }
     }
 
-    Face.prototype.boxcast = function (type: IntersectionType, boxcaster: SelectionBox, selects: Boxcastable[]) {
+    Face.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
         if (type == 'contained') {
             selects.push(this);
         } else if (type == 'intersected') {
@@ -79,7 +79,7 @@ Solids: {
         }
     }
 
-    Face.prototype.containsGeometry = function (boxcaster: SelectionBox) {
+    Face.prototype.containsGeometry = function (boxcaster: Boxcaster) {
         const parent = this.parent as FaceGroup;
         const { matrixWorld, geometry } = parent.mesh;
         const { group } = this;
@@ -103,7 +103,7 @@ Solids: {
         return true;
     }
 
-    Face.prototype.intersectsGeometry = function (boxcaster: SelectionBox) {
+    Face.prototype.intersectsGeometry = function (boxcaster: Boxcaster) {
         const parent = this.parent as FaceGroup;
         const { matrixWorld, geometry } = parent.mesh;
         const { group } = this;
@@ -127,7 +127,7 @@ Solids: {
         return false;
     }
 
-    CurveGroup.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
+    CurveGroup.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
         const { mesh: { matrixWorld }, line: { geometry } } = this;
 
         if (geometry.boundingBox === null) geometry.computeBoundingBox();
@@ -143,7 +143,7 @@ Solids: {
         }
     }
 
-    CurveGroup.prototype.boxcast = function (type: IntersectionType, boxcaster: SelectionBox, selects: Boxcastable[]) {
+    CurveGroup.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
         if (type == 'contained') {
             for (const edge of this) {
                 selects.push(edge);
@@ -153,7 +153,7 @@ Solids: {
         }
     }
 
-    CurveEdge.prototype.boxcast = function (type: IntersectionType, boxcaster: SelectionBox, selects: Boxcastable[]) {
+    CurveEdge.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
         if (type == 'contained') {
             selects.push(this);
         } else if (type == 'intersected') {
@@ -163,7 +163,7 @@ Solids: {
         }
     }
 
-    CurveEdge.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
+    CurveEdge.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
         const parent = this.parent as CurveGroup<CurveEdge>;
         const { line: { matrixWorld, geometry } } = parent;
         const { group } = this;
@@ -180,7 +180,7 @@ Solids: {
         }
     }
 
-    CurveEdge.prototype.containsGeometry = function (boxcaster: SelectionBox) {
+    CurveEdge.prototype.containsGeometry = function (boxcaster: Boxcaster) {
         const parent = this.parent as CurveGroup<CurveEdge>;
         const { line: { geometry, matrixWorld } } = parent;
         const { group } = this;
@@ -204,13 +204,13 @@ Solids: {
 }
 
 Curves: {
-    SpaceInstance.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
+    SpaceInstance.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
         return 'intersected';
     }
 }
 
 Regions: {
-    PlaneInstance.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
+    PlaneInstance.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
         return 'intersected';
     }
 }
