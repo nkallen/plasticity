@@ -11,8 +11,8 @@ export interface EditorLike extends cmd.EditorLike {
 }
 
 export abstract class AbstractViewportSelector extends ViewportControl {
-    private readonly selectionHelper = new SelectionHelper(this.viewport.renderer.domElement, 'select-box');
-    private readonly selectionBox = new Boxcaster(this.viewport.camera);
+    private readonly selectionHelper = new BoxSelectionHelper(this.viewport.renderer.domElement, 'select-box');
+    private readonly selectionBox = new Boxcaster(this.viewport.camera, this.layers.visible);
 
     startHover(intersections: intersectable.Intersection[]) {
         this.processHover(intersections);
@@ -31,12 +31,11 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
     continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2) {
         this.selectionHelper.onSelectMove(moveEvent);
+
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
-        this.selectionBox.layers = this.layers.visible;
-        const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
-        // FIXME: type
-        this.processBoxHover(new Set(selected as any));
+        const selected = this.selectionBox.selectObjects(this.db.visibleObjects) as unknown as intersectable.Intersectable[];
+        this.processBoxHover(new Set(selected));
     }
 
     startClick(intersections: intersectable.Intersection[]) {
@@ -52,10 +51,8 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
-        this.selectionBox.layers = this.layers.visible;
-        const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
-        // FIXME: type
-        this.processBoxSelect(new Set(selected as any));
+        const selected = this.selectionBox.selectObjects(this.db.visibleObjects) as unknown as intersectable.Intersectable[];
+        this.processBoxSelect(new Set(selected));
     }
 
     protected abstract processBoxHover(selected: Set<intersectable.Intersectable>): void;
@@ -89,7 +86,7 @@ export class ViewportSelector extends AbstractViewportSelector {
     }
 }
 
-class SelectionHelper {
+class BoxSelectionHelper {
     private readonly element: HTMLElement;
     private readonly startPoint = new THREE.Vector2();
     private readonly pointTopLeft = new THREE.Vector2();
@@ -122,6 +119,15 @@ class SelectionHelper {
         this.element.style.top = this.pointTopLeft.y + 'px';
         this.element.style.width = (this.pointBottomRight.x - this.pointTopLeft.x) + 'px';
         this.element.style.height = (this.pointBottomRight.y - this.pointTopLeft.y) + 'px';
+
+        const classList = this.element.classList;
+        if (this.startPoint.x > event.clientX) {
+            classList.remove('contains');
+            classList.add('intersects');
+        } else {
+            classList.remove('intersects');
+            classList.add('contains');
+        }
     }
 
     onSelectOver() {

@@ -73,9 +73,7 @@ Solids: {
         if (type == 'contained') {
             selects.push(this);
         } else if (type == 'intersected') {
-            if (this.containsGeometry(boxcaster)) {
-                selects.push(this);
-            }
+            boxcaster.selectGeometry(this, selects);
         }
     }
 
@@ -157,9 +155,7 @@ Solids: {
         if (type == 'contained') {
             selects.push(this);
         } else if (type == 'intersected') {
-            if (this.containsGeometry(boxcaster)) {
-                selects.push(this);
-            }
+            boxcaster.selectGeometry(this, selects);
         }
     }
 
@@ -200,6 +196,28 @@ Solids: {
             if (!_frustum.containsPoint(_v)) return false;
         }
         return true;
+    }
+
+    CurveEdge.prototype.intersectsGeometry = function (boxcaster: Boxcaster) {
+        const parent = this.parent as CurveGroup<CurveEdge>;
+        const { line: { geometry, matrixWorld } } = parent;
+        const { group } = this;
+
+        const instanceStart = geometry.attributes.instanceStart as THREE.InterleavedBufferAttribute;
+        const array = instanceStart.data.array as Float32Array;
+
+        _frustum.copy(boxcaster.frustum);
+        _inverseMatrix.copy(matrixWorld).invert();
+        _frustum.applyMatrix4(_inverseMatrix);
+
+        const start = group.start / 3;
+        const end = (group.start + group.count) / 3;
+
+        for (let i = start; i <= end; i++) {
+            _v.set(array[3 * i + 0], array[3 * i + 1], array[3 * i + 2]);
+            if (_frustum.containsPoint(_v)) return true;
+        }
+        return false;
     }
 }
 

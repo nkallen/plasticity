@@ -137,9 +137,17 @@ ispace-viewport {
     }
 
     div.select-box {
-        border: 1px solid #55aaff;
-        background-color: rgba(75, 160, 255, 0.3);
         position: fixed;
+
+        &.contains {
+            border: 1px solid #55aaff;
+            background-color: rgba(75, 160, 255, 0.3);
+        }
+
+        &.intersects {
+            border: 1px dashed #aa55ff;
+            background-color: rgba(205, 63, 162, 0.3);
+        }
     }
 
     svg.gizmo-helper {
