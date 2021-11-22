@@ -108,8 +108,6 @@ Solids: {
         const { drawRange } = geometry;
         const index = geometry.index!;
 
-        if (this.simpleName != 'face,1,5') return false;
-
         const position = geometry.attributes.position;
 
         _frustum.copy(boxcaster.frustum);
@@ -119,12 +117,28 @@ Solids: {
         const start = Math.max(group.start, drawRange.start);
         const end = Math.min(index.count, Math.min((group.start + group.count), (drawRange.start + drawRange.count)));
 
-        for (let i = start; i < end; i++) {
-            const j = index.getX(i);
-            _v.fromBufferAttribute(position, j);
-            if (_frustum.containsPoint(_v)) {
-                return true;
-            }
+        for (let i = start; i < end; i += 3) {
+            const a = index.getX(i + 0);
+            const b = index.getX(i + 1);
+            const c = index.getX(i + 2);
+            _v.fromBufferAttribute(position, a);
+            if (_frustum.containsPoint(_v)) return true;
+            _v.fromBufferAttribute(position, b);
+            if (_frustum.containsPoint(_v)) return true;
+            _v.fromBufferAttribute(position, c);
+            if (_frustum.containsPoint(_v)) return true;
+
+            _line.start.fromBufferAttribute(position, a);
+            _line.end.fromBufferAttribute(position, b);
+            if (_frustum.intersectsLine(_line)) return true;
+
+            _line.start.fromBufferAttribute(position, a);
+            _line.end.fromBufferAttribute(position, c);
+            if (_frustum.intersectsLine(_line)) return true;
+
+            _line.start.fromBufferAttribute(position, b);
+            _line.end.fromBufferAttribute(position, c);
+            if (_frustum.intersectsLine(_line)) return true;
         }
         return false;
     }
