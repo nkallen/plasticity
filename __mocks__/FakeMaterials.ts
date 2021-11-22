@@ -1,3 +1,4 @@
+import { BetterRaycastingPointsMaterial } from "../src/visual_model/VisualModelRaycasting";
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../build/Release/c3d.node';
@@ -10,7 +11,7 @@ const hover = new LineMaterial();
 const mesh = new THREE.Material();
 const surface = new THREE.Material();
 const region = new THREE.Material();
-const controlPoint = new THREE.PointsMaterial();
+const controlPoint = new BetterRaycastingPointsMaterial();
 controlPoint.userData.resolution = new THREE.Vector2(1, 1);
 
 export class FakeMaterials implements MaterialDatabase {

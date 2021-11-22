@@ -83,7 +83,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         const size = this.renderer.getSize(new THREE.Vector2());
         const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false });
-        renderTarget.samples = 8;
+        renderTarget.samples = 1;
 
         EffectComposer: {
             this.composer = new EffectComposer(this.renderer, renderTarget);

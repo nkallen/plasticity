@@ -10,13 +10,19 @@ export interface Boxcastable {
     intersectsGeometry(boxcaster: SelectionBox): boolean;
 }
 
+type CameraLike = THREE.Camera & {
+    updateProjectionMatrix: () => void;
+    isPerspectiveCamera?: boolean;
+    isOrthographicCamera?: boolean;
+};
+
 export class SelectionBox {
     readonly startPoint = new THREE.Vector3();
     readonly endPoint = new THREE.Vector3();
     private collection = [];
     readonly frustum = new THREE.Frustum();
 
-    constructor(private readonly camera: ProxyCamera, private readonly deep = Number.MAX_VALUE) {
+    constructor(private readonly camera: CameraLike, private readonly deep = Number.MAX_VALUE) {
     }
 
     selectObject(object: Boxcastable, optionalTarget: Array<Boxcastable> = []): Array<Boxcastable> {

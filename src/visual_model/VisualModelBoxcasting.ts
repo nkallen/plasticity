@@ -5,6 +5,8 @@ import { CurveEdge, CurveGroup, Face, FaceGroup, PlaneInstance, Solid, SpaceInst
 declare module './VisualModel' {
     interface Item extends Boxcastable { }
     interface FaceGroup extends Boxcastable { }
+    interface CurveGroup<T> extends Boxcastable { }
+    interface CurveEdge extends Boxcastable { }
     interface Face extends Boxcastable { }
 }
 
@@ -13,7 +15,9 @@ Solids: {
         const low = this.lod.levels[1].object; // Lowest detail
         const edges = low.children[0] as CurveGroup<CurveEdge>;
         const faces = low.children[1] as FaceGroup;
-        return faces.boxcast(type, boxcaster, selects);
+        faces.boxcast(type, boxcaster, selects);
+        edges.boxcast(type, boxcaster, selects);
+        return selects;
     }
 
     Solid.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
@@ -75,29 +79,6 @@ Solids: {
         }
     }
 
-    // FaceGroup.prototype.intersectsGeometry = function (boxcaster: SelectionBox) {
-    //     const { matrixWorld, geometry } = this.mesh;
-
-    //     const index = geometry.index;
-    //     const position = geometry.attributes.position;
-
-    //     const drawRange = geometry.drawRange;
-    //     const start = Math.max(0, drawRange.start);
-    //     const end = Math.min(position.count, (drawRange.start + drawRange.count));
-
-    //     _frustum.copy(boxcaster.frustum);
-    //     _inverseMatrix.copy(matrixWorld).invert();
-    //     _frustum.applyMatrix4(_inverseMatrix);
-
-    //     for (let i = start; i < end; i++) {
-    //         _v.fromBufferAttribute(position, i);
-
-    //         if (_frustum.containsPoint(_v)) return true;
-    //     }
-
-    //     return false;
-    // }
-
     Face.prototype.containsGeometry = function (boxcaster: SelectionBox) {
         const parent = this.parent as FaceGroup;
         const { matrixWorld, geometry } = parent.mesh;
@@ -117,6 +98,105 @@ Solids: {
         for (let i = start; i < end; i++) {
             const j = index.getX(i);
             _v.fromBufferAttribute(position, j);
+            if (!_frustum.containsPoint(_v)) return false;
+        }
+        return true;
+    }
+
+    Face.prototype.intersectsGeometry = function (boxcaster: SelectionBox) {
+        const parent = this.parent as FaceGroup;
+        const { matrixWorld, geometry } = parent.mesh;
+        const { group } = this;
+        const { drawRange } = geometry;
+        const index = geometry.index!;
+
+        const position = geometry.attributes.position;
+
+        _frustum.copy(boxcaster.frustum);
+        _inverseMatrix.copy(matrixWorld).invert();
+        _frustum.applyMatrix4(_inverseMatrix);
+
+        const start = Math.max(group.start, drawRange.start);
+        const end = Math.min(index.count, Math.min((group.start + group.count), (drawRange.start + drawRange.count)));
+
+        for (let i = start; i < end; i++) {
+            const j = index.getX(i);
+            _v.fromBufferAttribute(position, j);
+            if (_frustum.containsPoint(_v)) return true;
+        }
+        return false;
+    }
+
+    CurveGroup.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
+        const { mesh: { matrixWorld }, line: { geometry } } = this;
+
+        if (geometry.boundingBox === null) geometry.computeBoundingBox();
+        _box.copy(geometry.boundingBox!);
+        _box.applyMatrix4(matrixWorld);
+
+        if (boxcaster.frustum.containsPoint(_box.min) && boxcaster.frustum.containsPoint(_box.max)) {
+            return 'contained';
+        } else if (boxcaster.frustum.intersectsBox(_box)) {
+            return 'intersected';
+        } else {
+            return 'not-intersected';
+        }
+    }
+
+    CurveGroup.prototype.boxcast = function (type: IntersectionType, boxcaster: SelectionBox, selects: Boxcastable[]) {
+        if (type == 'contained') {
+            for (const edge of this) {
+                selects.push(edge);
+            }
+        } else if (type == 'intersected') {
+            boxcaster.selectObjects([...this], selects);
+        }
+    }
+
+    CurveEdge.prototype.boxcast = function (type: IntersectionType, boxcaster: SelectionBox, selects: Boxcastable[]) {
+        if (type == 'contained') {
+            selects.push(this);
+        } else if (type == 'intersected') {
+            if (this.containsGeometry(boxcaster)) {
+                selects.push(this);
+            }
+        }
+    }
+
+    CurveEdge.prototype.intersectsBounds = function (boxcaster: SelectionBox) {
+        const parent = this.parent as CurveGroup<CurveEdge>;
+        const { line: { matrixWorld, geometry } } = parent;
+        const { group } = this;
+        if (this.boundingBox === undefined) this.computeBoundingBox();
+        _box.copy(this.boundingBox!);
+        _box.applyMatrix4(matrixWorld);
+
+        if (boxcaster.frustum.containsPoint(_box.min) && boxcaster.frustum.containsPoint(_box.max)) {
+            return 'contained';
+        } else if (boxcaster.frustum.intersectsBox(_box)) {
+            return 'intersected';
+        } else {
+            return 'not-intersected';
+        }
+    }
+
+    CurveEdge.prototype.containsGeometry = function (boxcaster: SelectionBox) {
+        const parent = this.parent as CurveGroup<CurveEdge>;
+        const { line: { geometry, matrixWorld } } = parent;
+        const { group } = this;
+
+        const instanceStart = geometry.attributes.instanceStart as THREE.InterleavedBufferAttribute;
+        const array = instanceStart.data.array as Float32Array;
+
+        _frustum.copy(boxcaster.frustum);
+        _inverseMatrix.copy(matrixWorld).invert();
+        _frustum.applyMatrix4(_inverseMatrix);
+
+        const start = group.start / 3;
+        const end = (group.start + group.count) / 3;
+
+        for (let i = start; i <= end; i++) {
+            _v.set(array[3 * i + 0], array[3 * i + 1], array[3 * i + 2]);
             if (!_frustum.containsPoint(_v)) return false;
         }
         return true;

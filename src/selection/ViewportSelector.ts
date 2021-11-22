@@ -33,9 +33,9 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.selectionHelper.onSelectMove(moveEvent);
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
-        const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
+        // const selected = this.selectionBox.selectObjects(this.db.visibleObjects);
         // FIXME: type
-        this.processBoxHover(new Set(selected as any));
+        // this.processBoxHover(new Set(selected as any));
     }
 
     startClick(intersections: intersectable.Intersection[]) {
