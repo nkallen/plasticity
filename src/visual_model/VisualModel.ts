@@ -82,6 +82,10 @@ export class Solid extends Item {
             faces.dispose();
         }
     }
+
+    clone(recursive?: boolean): this {
+        return new THREE.Object3D().copy(this, recursive) as this;
+    }
 }
 
 export class SpaceInstance<T extends SpaceItem> extends Item {
@@ -366,6 +370,10 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
             child.geometry.dispose();
         }
     }
+
+    clone(recursive?: boolean): this {
+        return new THREE.Object3D().copy(this) as this;
+    }
 }
 
 export class FaceGroup extends THREE.Group {
@@ -386,6 +394,10 @@ export class FaceGroup extends THREE.Group {
     dispose() {
         for (const face of this.faces) face.dispose();
         this.mesh.geometry.dispose();
+    }
+
+    clone(recursive?: boolean): this {
+        return new THREE.Object3D().copy(this) as this;
     }
 }
 

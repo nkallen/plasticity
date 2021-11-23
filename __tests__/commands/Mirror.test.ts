@@ -78,17 +78,17 @@ const Z = new THREE.Vector3(0, 0, 1);
 
 describe(SymmetryFactory, () => {
     let symmetry: SymmetryFactory;
+    let sphere: visual.Solid;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         symmetry = new SymmetryFactory(db, materials, signals);
-    })
-
-    test('commit', async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3(0.5, 0, 0);
         makeSphere.radius = 1;
-        const sphere = await makeSphere.commit() as visual.Solid;
+        sphere = await makeSphere.commit() as visual.Solid;
+    })
 
+    test('commit', async () => {
         symmetry.solid = sphere;
         symmetry.origin = new THREE.Vector3();
         symmetry.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
@@ -105,11 +105,6 @@ describe(SymmetryFactory, () => {
     });
 
     test('update', async () => {
-        const makeSphere = new SphereFactory(db, materials, signals);
-        makeSphere.center = new THREE.Vector3(0.5, 0, 0);
-        makeSphere.radius = 1;
-        const sphere = await makeSphere.commit() as visual.Solid;
-
         symmetry.solid = sphere;
         symmetry.origin = new THREE.Vector3();
         symmetry.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);

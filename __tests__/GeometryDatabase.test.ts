@@ -193,12 +193,12 @@ test("lookupControlPointById", async () => {
     })
     expect(controlPoints.length).toBe(1);
 
-    const { index, views } = db.lookupControlPointById(controlPoints[0].findByIndex(0).simpleName);
+    const { index, views } = db.lookupControlPointById(controlPoints[0].get(0).simpleName);
     expect(views.size).toBe(1);
     expect(index).toBe(0);
 
     db.removeItem(instance);
-    expect(() => db.lookupControlPointById(controlPoints[0].findByIndex(0).simpleName)).toThrow();
+    expect(() => db.lookupControlPointById(controlPoints[0].get(0).simpleName)).toThrow();
 });
 
 test("find", async () => {

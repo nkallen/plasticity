@@ -36,7 +36,9 @@ beforeEach(() => {
 })
 
 test("initial state", () => {
-    expect(snaps.all.length).toBe(4);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
 });
 
 test("adding & removing solid", async () => {
@@ -47,11 +49,16 @@ test("adding & removing solid", async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
 
-    expect(snaps.all.length).toBe(34);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(30);
 
     db.removeItem(box);
 
-    expect(snaps.all.length).toBe(4);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
 });
 
 test("adding & hiding & unhiding solid", async () => {
@@ -61,19 +68,33 @@ test("adding & hiding & unhiding solid", async () => {
     makeBox.p3 = new THREE.Vector3(1, 1, 0);
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     const box = await makeBox.commit() as visual.Solid;
-    expect(snaps.all.length).toBe(34);
+
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(30);
 
     db.hide(box);
-    expect(snaps.all.length).toBe(4);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
 
     db.unhide(box);
-    expect(snaps.all.length).toBe(34);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(30);
 
     db.hide(box);
-    expect(snaps.all.length).toBe(4);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
 
     db.unhideAll();
-    expect(snaps.all.length).toBe(34);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(30);
 });
 
 test("adding & removing curve", async () => {
@@ -82,11 +103,16 @@ test("adding & removing curve", async () => {
     makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps.all.length).toBe(6);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(2);
 
     db.removeItem(line);
 
-    expect(snaps.all.length).toBe(4);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
 });
 
 test("adding & removing polyline points", async () => {
@@ -95,9 +121,14 @@ test("adding & removing polyline points", async () => {
     makeLine.points.push(new THREE.Vector3(), new THREE.Vector3(1, 0, 0), new THREE.Vector3(2, 1, 0), new THREE.Vector3(3, 0, 0));
     const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-    expect(snaps.all.length).toBe(11);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(1);
+    expect(snaps.all.geometrySnaps[0].size).toBe(7);
 
     db.removeItem(line);
 
-    expect(snaps.all.length).toBe(4);
+    expect(snaps.all.basicSnaps.size).toBe(4);
+    expect(snaps.all.crossSnaps.length).toBe(0);
+    expect(snaps.all.geometrySnaps.length).toBe(0);
 });

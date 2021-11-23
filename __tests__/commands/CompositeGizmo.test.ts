@@ -1,22 +1,19 @@
 /**
  * @jest-environment jsdom
  */
-import KeymapManager from "atom-keymap-plasticity";
 import { Disposable } from "event-kit";
 import * as THREE from "three";
 import { AbstractGizmo, EditorLike, Intersector, Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { CompositeGizmo } from "../../src/commands/CompositeGizmo";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
-import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { Viewport } from "../../src/components/viewport/Viewport";
+import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { SelectionInteractionManager } from "../../src/selection/SelectionInteraction";
 import { SelectionManager } from "../../src/selection/SelectionManager";
 import { CancellablePromise } from "../../src/util/Cancellable";
 import { Helpers } from "../../src/util/Helpers";
-import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 
@@ -25,25 +22,18 @@ let materials: MaterialDatabase;
 let gizmos: GizmoMaterialDatabase;
 let signals: EditorSignals;
 let helpers: Helpers;
-let editor: EditorLike;
+let editor: Editor;
 let viewport: Viewport;
 let selection: SelectionManager;
 
 beforeEach(() => {
-    signals = new EditorSignals();
-    materials = new FakeMaterials();
-    gizmos = new GizmoMaterialDatabase(signals);
-    db = new GeometryDatabase(materials, signals);
-    helpers = new Helpers(signals);
-    selection = new SelectionManager(db, materials, signals);
-    const keymaps = new KeymapManager();
-    const selectionInteraction = new SelectionInteractionManager(selection, materials, signals);
-    const registry = new CommandRegistry();
-    editor = {
-        selectionInteraction, keymaps, gizmos, helpers, signals, db, registry, viewports: [],
-    } as unknown as EditorLike;
+    editor = new Editor();
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
+    db = editor._db;
+    selection = editor._selection;
+    signals = editor.signals;
+    helpers = editor.helpers;
 })
 
 class Params {
