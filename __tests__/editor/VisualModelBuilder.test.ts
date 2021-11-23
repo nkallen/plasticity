@@ -6,8 +6,9 @@ import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import * as visual from "../../src/editor/VisualModel";
-import { RenderedSceneBuilder } from "../../src/editor/RenderedSceneBuilder";
+import * as visual from "../../src/visual_model/VisualModel";
+import * as builder from "../../src/visual_model/VisualModelBuilder";
+import { RenderedSceneBuilder } from "../../src/visual_model/RenderedSceneBuilder";
 import { SelectionManager } from "../../src/selection/SelectionManager";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 
@@ -33,26 +34,4 @@ beforeEach(() => {
     highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
 });
 
-describe(visual.SolidBuilder, () => {
-    test('compactTopologyId', () => {
-        let edgeId, faceId;
-        edgeId = visual.SolidBuilder.compactTopologyId('edge', 1, 2);
-        faceId = visual.SolidBuilder.compactTopologyId('face', 1, 2);
-        expect(visual.SolidBuilder.compact2full(edgeId)).toEqual('edge,1,2');
-        expect(visual.SolidBuilder.compact2full(faceId)).toEqual('face,1,2');
-
-        edgeId = visual.SolidBuilder.compactTopologyId('edge', 1024, 2048);
-        faceId = visual.SolidBuilder.compactTopologyId('face', 1024, 2048);
-        expect(visual.SolidBuilder.compact2full(edgeId)).toEqual('edge,1024,2048');
-        expect(visual.SolidBuilder.compact2full(faceId)).toEqual('face,1024,2048');
-
-    });
-});
-
-describe(visual.FaceGroupBuilder, () => {
-
-});
-
-describe(visual.CurveEdgeGroupBuilder, () => {
-
-});
+test('ok', () => {});

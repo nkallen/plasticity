@@ -8,7 +8,7 @@ import { ProjectCurveFactory } from "../src/commands/translate/ProjectCurveFacto
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import * as visual from '../src/editor/VisualModel';
+import * as visual from '../src/visual_model/VisualModel';
 import { composeMainName, curve3d2curve2d, decomposeMainName, inst2curve, mat2mat, normalizeCurve, normalizePlacement, point2point, polyline2contour, unit } from "../src/util/Conversion";
 import { Redisposable, RefCounter, WeakValueMap } from "../src/util/Util";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";

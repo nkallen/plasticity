@@ -6,12 +6,13 @@ import SphereFactory from "../src/commands/sphere/SphereFactory";
 import { EditorSignals } from "../src/editor/EditorSignals";
 import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { RenderedSceneBuilder } from "../src/editor/RenderedSceneBuilder";
-import { CurveEdge, CurveEdgeGroupBuilder, CurveGroup, GeometryGroupUtils } from '../src/editor/VisualModel';
+import { RenderedSceneBuilder } from "../src/visual_model/RenderedSceneBuilder";
+import { CurveEdge, CurveGroup, GeometryGroupUtils } from '../src/visual_model/VisualModel';
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
+import { CurveEdgeGroupBuilder } from '../src/visual_model/VisualModelBuilder';
 
 let materials: MaterialDatabase;
 let makeSphere: SphereFactory;

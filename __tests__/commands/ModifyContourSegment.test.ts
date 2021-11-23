@@ -9,7 +9,7 @@ import { CornerRectangleFactory } from "../../src/commands/rect/RectangleFactory
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import * as visual from '../../src/editor/VisualModel';
+import * as visual from '../../src/visual_model/VisualModel';
 import { inst2curve, polyline2contour } from "../../src/util/Conversion";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';

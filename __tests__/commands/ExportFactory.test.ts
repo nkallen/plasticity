@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import * as visual from '../../src/editor/VisualModel';
+import * as visual from '../../src/visual_model/VisualModel';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { ExportFactory } from "../../src/commands/export/ExportFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';

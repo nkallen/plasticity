@@ -13,7 +13,7 @@ import { Viewport } from "../../src/components/viewport/Viewport";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
-import * as visual from '../../src/editor/VisualModel';
+import * as visual from '../../src/visual_model/VisualModel';
 import { Cancel, CancellablePromise } from "../../src/util/Cancellable";
 import { Helpers } from "../../src/util/Helpers";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";

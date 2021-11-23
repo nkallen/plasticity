@@ -13,7 +13,7 @@ import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { AxisAxisCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
-import * as visual from '../../src/editor/VisualModel';
+import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import c3d from '../build/Release/c3d.node';

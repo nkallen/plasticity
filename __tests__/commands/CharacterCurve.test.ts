@@ -3,7 +3,7 @@ import { EditorSignals } from '../../src/editor/EditorSignals';
 import CharacterCurveFactory from '../../src/commands/character-curve/CharacterCurveFactory';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import * as visual from '../../src/editor/VisualModel';
+import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 

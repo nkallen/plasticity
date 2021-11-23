@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import * as THREE from 'three';
-import * as visual from '../src/editor/VisualModel';
+import * as visual from '../src/visual_model/VisualModel';
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import { GizmoMaterialDatabase } from '../src/commands/GizmoMaterials';
 import { EditorSignals } from '../src/editor/EditorSignals';

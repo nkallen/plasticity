@@ -14,8 +14,8 @@ import { EditorOriginator } from "../src/editor/History";
 import LayerManager, { IntersectableLayers, VisibleLayers } from "../src/editor/LayerManager";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
 import { PlaneSnap } from "../src/editor/snaps/Snap";
-import * as visual from '../src/editor/VisualModel';
-import { RenderedSceneBuilder } from "../src/editor/RenderedSceneBuilder";
+import * as visual from '../src/visual_model/VisualModel';
+import { RenderedSceneBuilder } from "../src/visual_model/RenderedSceneBuilder";
 import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";
 import { SelectionManager } from "../src/selection/SelectionManager";
 import { Helpers } from "../src/util/Helpers";
@@ -75,7 +75,7 @@ afterEach(async () => {
 test("item selected", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
-    interaction.onClick([{ object: sphere.faces.get(0), distance: 1, point }]);
+    interaction.onClick([{ object: sphere.faces.get(0), point }]);
     signals.selectionChanged.dispatch({ selection: selection.selected, point });
     expect(viewport.outlinePassSelection.selectedObjects).toEqual(sphere.outline);
     interaction.onClick([]);
@@ -86,7 +86,7 @@ test("item selected", () => {
 test.only("item hovered", () => {
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
-    interaction.onHover([{ object: sphere.faces.get(0), distance: 1, point }]);
+    interaction.onHover([{ object: sphere.faces.get(0), point }]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual([sphere.outline]);
     interaction.onHover([]);
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
