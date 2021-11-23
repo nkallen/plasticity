@@ -4,41 +4,39 @@
 import * as THREE from 'three';
 import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from '../../src/commands/CommandLike';
-import { EditorLike } from '../../src/components/viewport/Viewport';
+import { Viewport } from '../../src/components/viewport/Viewport';
+import { Editor } from '../../src/editor/Editor';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import * as visual from '../../src/visual_model/VisualModel';
-import { SelectionInteractionManager } from '../../src/selection/SelectionInteraction';
 import { SelectionManager } from '../../src/selection/SelectionManager';
 import { ViewportSelector } from '../../src/selection/ViewportSelector';
-import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import * as visual from '../../src/visual_model/VisualModel';
+import { MakeViewport } from '../../__mocks__/FakeViewport';
 import '../matchers';
 
+let editor: Editor;
+let viewport: Viewport;
+let camera: THREE.Camera;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
-let signals: EditorSignals;
 let selector: ViewportSelector;
-let camera: THREE.Camera;
-let domElement: HTMLElement;
-let editor: EditorLike
-let enqueue: jest.Mock;
-let selectionInteraction: SelectionInteractionManager;
 let selection: SelectionManager;
+let enqueue: jest.SpyInstance;
+let signals: EditorSignals;
+let domElement: HTMLElement;
 
 beforeEach(() => {
-    materials = new FakeMaterials();
-    signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
-    enqueue = jest.fn();
-    selection = new SelectionManager(db, materials, signals);
-    selectionInteraction = new SelectionInteractionManager(selection, materials, signals);
-    editor = { db, enqueue, selectionInteraction } as unknown as EditorLike;
-    domElement = document.createElement('canvas');
-    const parent = document.createElement('div');
-    parent.appendChild(domElement);
-    camera = new THREE.PerspectiveCamera();
-    selector = new ViewportSelector(camera, domElement, editor);
+    editor = new Editor();
+    viewport = MakeViewport(editor);
+    editor.viewports.push(viewport);
+    db = editor._db;
+    camera = viewport.camera;
+    selector = viewport.selector;
+    selection = editor._selection;
+    signals = editor.signals;
+    domElement = viewport.renderer.domElement;
+    enqueue = jest.spyOn(editor, 'enqueue');
 });
 
 let solid: visual.Solid;
@@ -52,7 +50,6 @@ beforeEach(async () => {
     makeBox.p4 = new THREE.Vector3(1, 1, 1);
     solid = await makeBox.commit() as visual.Solid;
     solid.updateMatrixWorld();
-    db.rebuildScene();
 });
 
 beforeEach(() => {
@@ -60,14 +57,11 @@ beforeEach(() => {
     camera.lookAt(0, 0, 0);
 
     solid.lod.update(camera);
-
-    // @ts-expect-error
-    domElement.getBoundingClientRect = () => { return { left: 0, top: 0, width: 100, height: 100 } }
 })
 
-const pointermove = new MouseEvent('pointermove', { button: 0, clientX: 0, clientY: 0 });
-const pointerdown = new MouseEvent('pointerdown', { button: 0, clientX: 0, clientY: 0 });
-const pointerup = new MouseEvent('pointerup', { button: 0, clientX: 0, clientY: 0 });
+const pointermove = new MouseEvent('pointermove', { button: 0, clientX: 50, clientY: 50 });
+const pointerdown = new MouseEvent('pointerdown', { button: 0, clientX: 50, clientY: 50 });
+const pointerup = new MouseEvent('pointerup', { button: 0, clientX: 50, clientY: 50 });
 
 test('hover and click on viewport will enqueue a change selection command', async () => {
     const start = jest.fn(), end = jest.fn();

@@ -33,12 +33,14 @@ export function MakeViewport(editor: EditorLike) {
     const canvas = document.createElement('canvas');
     // @ts-expect-error('Cannot mock DomRect')
     canvas.getBoundingClientRect = () => { return { left: 0, top: 0, width: 100, height: 100 } };
+    canvas.setPointerCapture = (pointerId: number) => { };
     const camera = new ProxyCamera();
     camera.position.set(0, 0, 1);
     camera.lookAt(0, 0, 0);
     const domElement = document.createElement('ispace-viewport');
     // @ts-expect-error('Cannot mock DomRect')
     domElement.getBoundingClientRect = () => { return { left: 0, top: 0, width: 100, height: 100 } };
+    domElement.appendChild(canvas);
     const viewport = new Viewport(
         editor,
         new FakeWebGLRenderer(canvas) as unknown as THREE.WebGLRenderer,
