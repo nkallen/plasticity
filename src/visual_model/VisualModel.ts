@@ -37,18 +37,35 @@ export abstract class Item extends SpaceItem {
     get simpleName(): c3d.SimpleName { return this.userData.simpleName }
 }
 
+class SolidLOD extends THREE.LOD {
+    get low() { return this.children[0] as SolidLevel }
+    get high() { return this.children[this.children.length - 1] as SolidLevel }
+    get all() { return this.children as SolidLevel[] }
+}
+
+export class SolidLevel extends THREE.Group {
+    constructor(readonly edges: CurveGroup<CurveEdge>, readonly faces: FaceGroup) {
+        super();
+        this.add(edges);
+        this.add(faces);
+    }
+
+    clone(recursive?: boolean): this {
+        return new THREE.Object3D().copy(this, recursive) as this;
+    }
+}
+
 export class Solid extends Item {
     private _useNominal3: undefined;
-    readonly lod = new THREE.LOD();
+    readonly lod = new SolidLOD();
 
     constructor() {
         super();
         this.add(this.lod);
     }
 
-    // the higher detail ones are later
-    get edges() { return this.lod.children[this.lod.children.length - 1].children[0] as CurveGroup<CurveEdge> }
-    get faces() { return this.lod.children[this.lod.children.length - 1].children[1] as FaceGroup }
+    get edges() { return this.lod.high.edges }
+    get faces() { return this.lod.high.faces }
 
     get outline() {
         if (!this.visible) return [];
@@ -57,8 +74,8 @@ export class Solid extends Item {
 
     get allEdges() {
         let result: CurveEdge[] = [];
-        for (const lod of this.lod.children) {
-            const edges = lod.children[0] as CurveGroup<CurveEdge>;
+        for (const lod of this.lod.all) {
+            const edges = lod.edges;
             result = result.concat([...edges]);
         }
         return result;
@@ -66,17 +83,16 @@ export class Solid extends Item {
 
     get allFaces() {
         let result: Face[] = [];
-        for (const lod of this.lod.children) {
-            const faces = lod.children[1] as FaceGroup;
+        for (const lod of this.lod.all) {
+            const faces = lod.faces;
             result = result.concat([...faces]);
         }
         return result;
     }
 
     dispose() {
-        for (const level of this.lod.children) {
-            const edges = level.children[0] as CurveGroup<CurveEdge>;
-            const faces = level.children[1] as FaceGroup;
+        for (const level of this.lod.all) {
+            const { edges, faces } = level;
 
             edges.dispose();
             faces.dispose();

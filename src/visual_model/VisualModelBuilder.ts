@@ -6,16 +6,14 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import c3d from '../../build/Release/c3d.node';
 import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
-import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, GeometryGroup, Layers, PlaneInstance, PlaneItem, Region, RenderOrder, Solid, SpaceInstance, SpaceItem } from "./VisualModel";
+import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, GeometryGroup, Layers, PlaneInstance, PlaneItem, Region, RenderOrder, Solid, SolidLevel, SpaceInstance, SpaceItem } from "./VisualModel";
 import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "./VisualModelRaycasting";
 
 export class SolidBuilder {
     private readonly solid = new Solid();
 
     add(edges: CurveEdgeGroupBuilder, faces: FaceGroupBuilder, distance?: number) {
-        const level = new THREE.Group();
-        level.add(edges.build());
-        level.add(faces.build());
+        const level = new SolidLevel(edges.build(), faces.build());
         this.solid.lod.addLevel(level, distance);
     }
 
