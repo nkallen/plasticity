@@ -58,17 +58,11 @@ export class Model {
         this.crosses = new CrossPointDatabase(originalCrosses);
     }
 
-    snapsFor(constructionPlane: PlaneSnap, isOrtho: boolean): Snap[] {
-        const result = [...this.snaps];
-        result.push(this.actualConstructionPlaneGiven(constructionPlane, isOrtho));
-        return result;
-    }
-
     get restrictionSnaps(): Snap[] {
         return this._restrictionSnaps;
     }
 
-    actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap, isOrtho: boolean) {
+    actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap, isOrtho: boolean): PlaneSnap {
         const { pickedPointSnaps, restrictionPlane, restrictionPoint } = this;
         let constructionPlane = baseConstructionPlane;
         if (restrictionPlane !== undefined) {
@@ -100,7 +94,7 @@ export class Model {
             }
         }
         this.snapsForLastPickedPoint = results;
-        this.activatedSnaps.clear();
+        this.alreadyActivatedSnaps.clear();
         this.choice = undefined;
         this.mutualSnaps.clear();
     }
@@ -251,11 +245,11 @@ export class Model {
     }
 
     // Sometimes additional snaps are "activated" when the user mouses over an existing snap
-    private readonly activatedSnaps = new Set<Snap>();
+    private readonly alreadyActivatedSnaps = new Set<Snap>();
     activateSnapped(snaps: Snap[]) {
         for (const snap of snaps) {
-            if (this.activatedSnaps.has(snap)) continue;
-            this.activatedSnaps.add(snap); // idempotent
+            if (this.alreadyActivatedSnaps.has(snap)) continue;
+            this.alreadyActivatedSnaps.add(snap); // idempotent
 
             if (snap instanceof CurvePointSnap && !snap.model.IsClosed()) {
                 this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
@@ -273,7 +267,7 @@ export class Model {
     // Activate snaps like tan/tan and perp/perp which only make sense when the previously selected point and the
     // current nearby snaps match certain conditions.
     private readonly mutualSnaps = new Set<Snap>();
-    activateMutualSnaps(nearby: SnapResult[]) {
+    activateMutualSnaps(nearby: Snap[]) {
         const { mutualSnaps: pointActivatedSnaps, pickedPointSnaps } = this;
         if (pickedPointSnaps.length === 0) return;
 
@@ -281,7 +275,7 @@ export class Model {
         const lastPickedSnap = last.info.snap;
         if (lastPickedSnap === undefined) return;
 
-        for (const { snap } of nearby) {
+        for (const snap of nearby) {
             if (pointActivatedSnaps.has(snap)) continue;
             pointActivatedSnaps.add(snap); // idempotent
 
@@ -420,7 +414,7 @@ export class PointPicker {
 
                     const { presentation, snappers } = Presentation.make(picker, viewport, model, editor.db, snapCache, editor.snapPresenter);
 
-                    this.model.activateMutualSnaps(snappers);
+                    this.model.activateMutualSnaps(snappers.map(s => s.snap));
 
                     helpers.clear();
                     const { names, helpers: newHelpers, nearby: indicators } = presentation;
