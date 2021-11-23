@@ -56,7 +56,7 @@ describe(MoveContourPointFactory, () => {
         });
 
         test('controlPointInfo', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0)];
+            changePoint.controlPoints = [curve.underlying.points.get(0)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
@@ -74,7 +74,7 @@ describe(MoveContourPointFactory, () => {
         })
 
         test('moving last point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(2)];
+            changePoint.controlPoints = [curve.underlying.points.get(2)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -90,7 +90,7 @@ describe(MoveContourPointFactory, () => {
         });
 
         test('moving first point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0)];
+            changePoint.controlPoints = [curve.underlying.points.get(0)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -107,7 +107,7 @@ describe(MoveContourPointFactory, () => {
 
         test('moving middle point', async () => {
             changePoint.originalItem = curve;
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, 0, 0);
@@ -123,7 +123,7 @@ describe(MoveContourPointFactory, () => {
 
         test('moving two points', async () => {
             changePoint.originalItem = curve;
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0), curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(0), curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, 0, 0);
@@ -161,7 +161,7 @@ describe(MoveContourPointFactory, () => {
 
         it('changes first/last point', async () => {
             changePoint.originalItem = curve;
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0)];
+            changePoint.controlPoints = [curve.underlying.points.get(0)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-1, -1, 0);
@@ -211,7 +211,7 @@ describe(MoveContourPointFactory, () => {
 
         it('changes the line/arc junction', async () => {
             changePoint.originalItem = curve;
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-1, 0, 0);
@@ -251,7 +251,7 @@ describe(MoveContourPointFactory, () => {
         });
 
         test('moving a middle point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -267,7 +267,7 @@ describe(MoveContourPointFactory, () => {
         })
 
         test('controlPointInfo', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0)];
+            changePoint.controlPoints = [curve.underlying.points.get(0)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
@@ -317,7 +317,7 @@ describe(MoveContourPointFactory, () => {
         });
 
         test('moving a junction point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(2)];
+            changePoint.controlPoints = [curve.underlying.points.get(2)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -336,7 +336,7 @@ describe(MoveContourPointFactory, () => {
         })
 
         test('controlPointInfo', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0)];
+            changePoint.controlPoints = [curve.underlying.points.get(0)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
@@ -389,7 +389,7 @@ describe(MoveContourPointFactory, () => {
         });
 
         test('moving a junction point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -408,7 +408,7 @@ describe(MoveContourPointFactory, () => {
         })
 
         test('controlPointInfo', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0)];
+            changePoint.controlPoints = [curve.underlying.points.get(0)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.move = new THREE.Vector3(-2, -2, 0);
@@ -459,7 +459,7 @@ describe(RemoveContourPointFactory, () => {
         });
 
         test('remove first point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(2)];
+            changePoint.controlPoints = [curve.underlying.points.get(2)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -474,7 +474,7 @@ describe(RemoveContourPointFactory, () => {
         });
 
         test('remove middle point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -489,7 +489,7 @@ describe(RemoveContourPointFactory, () => {
         });
 
         test('remove last point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0)];
+            changePoint.controlPoints = [curve.underlying.points.get(0)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -504,7 +504,7 @@ describe(RemoveContourPointFactory, () => {
         });
 
         test('remove two adjacent points', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0), curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(0), curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -519,7 +519,7 @@ describe(RemoveContourPointFactory, () => {
         });
 
         test('remove two staggered points', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1), curve.underlying.controlPoints.findByIndex(3)];
+            changePoint.controlPoints = [curve.underlying.points.get(1), curve.underlying.points.get(3)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -534,7 +534,7 @@ describe(RemoveContourPointFactory, () => {
         });
 
         test('remove all but one point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0), curve.underlying.controlPoints.findByIndex(1), curve.underlying.controlPoints.findByIndex(2)];
+            changePoint.controlPoints = [curve.underlying.points.get(0), curve.underlying.points.get(1), curve.underlying.points.get(2)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -576,7 +576,7 @@ describe(RemoveContourPointFactory, () => {
         });
 
         test('removing a junction point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(2)];
+            changePoint.controlPoints = [curve.underlying.points.get(2)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -591,7 +591,7 @@ describe(RemoveContourPointFactory, () => {
         })
 
         test('removing a mid point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -606,7 +606,7 @@ describe(RemoveContourPointFactory, () => {
         })
 
         test('removing all points in polycurve removes its segment', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0), curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(0), curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             expect(contour.GetSegmentsCount()).toBe(2);
 
@@ -656,7 +656,7 @@ describe(RemoveContourPointFactory, () => {
         });
 
         test('removing a junction point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -701,7 +701,7 @@ describe(ScaleContourPointFactory, () => {
 
 
         test('scale second point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -717,7 +717,7 @@ describe(ScaleContourPointFactory, () => {
         });
 
         test('scale all points', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0), curve.underlying.controlPoints.findByIndex(1), curve.underlying.controlPoints.findByIndex(2)];
+            changePoint.controlPoints = [curve.underlying.points.get(0), curve.underlying.points.get(1), curve.underlying.points.get(2)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -763,7 +763,7 @@ describe(RotateContourPointFactory, () => {
 
 
         test('rotate second point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -780,7 +780,7 @@ describe(RotateContourPointFactory, () => {
         });
 
         test('rotate all points', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(0), curve.underlying.controlPoints.findByIndex(1), curve.underlying.controlPoints.findByIndex(2)];
+            changePoint.controlPoints = [curve.underlying.points.get(0), curve.underlying.points.get(1), curve.underlying.points.get(2)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
@@ -826,7 +826,7 @@ describe(FreestyleScaleContourPointFactory, () => {
 
 
         test('scale second point', async () => {
-            changePoint.controlPoints = [curve.underlying.controlPoints.findByIndex(1)];
+            changePoint.controlPoints = [curve.underlying.points.get(1)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;
             changePoint.originalItem = curve;
