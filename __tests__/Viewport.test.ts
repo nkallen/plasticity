@@ -72,18 +72,18 @@ afterEach(async () => {
     viewport.dispose();
 });
 
-test("item selected", () => {
+test("item selected outlines", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
     interaction.onClick([{ object: sphere.faces.get(0), point }]);
     signals.selectionChanged.dispatch({ selection: selection.selected, point });
-    expect(viewport.outlinePassSelection.selectedObjects).toEqual(sphere.outline);
+    expect(viewport.outlinePassSelection.selectedObjects).toEqual([sphere.outline]);
     interaction.onClick([]);
     signals.selectionChanged.dispatch({ selection: selection.selected, point });
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
 });
 
-test("item hovered", () => {
+test("item hovered outlines", () => {
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
     interaction.onHover([{ object: sphere.faces.get(0), point }]);

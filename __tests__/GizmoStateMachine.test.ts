@@ -1,20 +1,16 @@
 /**
  * @jest-environment jsdom
  */
-import KeymapManager from "atom-keymap-plasticity";
 import { Disposable } from "event-kit";
 import * as THREE from "three";
 import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
 import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
-import CommandRegistry from "../src/components/atom/CommandRegistry";
 import { EditorLike, Viewport } from "../src/components/viewport/Viewport";
+import { Editor } from "../src/editor/Editor";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";
 import { SelectionManager } from "../src/selection/SelectionManager";
-import { Helpers } from "../src/util/Helpers";
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import { MakeViewport } from "../__mocks__/FakeViewport";
 
 class FakeGizmo extends AbstractGizmo<() => void> {
@@ -41,26 +37,18 @@ let db: GeometryDatabase;
 let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 let viewport: Viewport;
-let editor: EditorLike;
+let editor: Editor;
 let gizmo: FakeGizmo;
 let selection: SelectionManager;
 let gizmos: GizmoMaterialDatabase;
 
 beforeEach(() => {
-    materials = new FakeMaterials();
-    signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
-    selection = new SelectionManager(db, materials, signals);
-    const keymaps = new KeymapManager();
-    const selectionInteraction = new SelectionInteractionManager(selection, materials, signals);
-    editor = {
-        viewports: [],
-        helpers: new Helpers(signals),
-        registry: new CommandRegistry(),
-        signals, gizmos, db, keymaps, selectionInteraction,
-    } as unknown as EditorLike;
+    editor = new Editor();
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
+    db = editor._db;
+    selection = editor._selection;
+    signals = editor.signals;
 })
 
 let start: number, end: number, interrupt: number;

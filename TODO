@@ -5,7 +5,7 @@ parentId of edge and face should be set directly and not actually in the tree?
 # render prepared
 control points, when one selected and another hovered, everything unhighlighted
 in xray mode, control points not visible
-
+axes snap points don't work always
 
 make viewport control have a manager that always picks winner so two can't be running simultaneously
 
