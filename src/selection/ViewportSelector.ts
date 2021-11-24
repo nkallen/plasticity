@@ -46,7 +46,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.processClick(intersections);
     }
 
-    protected endDrag(normalizedMousePosition: THREE.Vector2) {
+    endDrag(normalizedMousePosition: THREE.Vector2) {
         this.selectionHelper.onSelectOver();
 
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);

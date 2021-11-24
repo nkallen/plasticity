@@ -38,12 +38,12 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         this._raycaster.layers.enableAll();
     }
 
-    protected startHover(intersections: Intersection[]) { }
-    protected continueHover(intersections: Intersection[]): void { }
-    protected endHover(): void { }
+    startHover(intersections: Intersection[]) { }
+    continueHover(intersections: Intersection[]): void { }
+    endHover(): void { }
 
     private mode: Mode = { tag: 'none' };
-    protected startClick(intersections: Intersection[]): boolean {
+    startClick(intersections: Intersection[]): boolean {
         if (intersections.length === 0) return false;
         const first = intersections[0].object;
         if (!(first instanceof visual.ControlPoint)) return false;
@@ -69,7 +69,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         return true;
     }
 
-    protected endClick(intersections: Intersection[]): void {
+    endClick(intersections: Intersection[]): void {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start':
@@ -82,7 +82,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         }
     }
 
-    protected startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void {
+    startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start':
@@ -100,7 +100,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         }
     }
 
-    protected continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void {
+    continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start': break;
@@ -123,7 +123,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         }
     }
 
-    protected endDrag(normalizedMousePosition: THREE.Vector2): void {
+    endDrag(normalizedMousePosition: THREE.Vector2): void {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start': throw new Error("invalid state");

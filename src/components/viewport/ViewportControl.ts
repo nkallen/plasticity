@@ -17,7 +17,7 @@ const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: 
 };
 
 export abstract class ViewportControl extends THREE.EventDispatcher {
-    private readonly disposable = new CompositeDisposable();
+    protected readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
     private _enabled = true;
@@ -171,14 +171,14 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         }
     }
 
-    protected abstract startHover(intersections: intersectable.Intersection[]): void;
-    protected abstract continueHover(intersections: intersectable.Intersection[]): void;
-    protected abstract endHover(): void;
-    protected abstract startClick(intersections: intersectable.Intersection[]): boolean;
-    protected abstract endClick(intersections: intersectable.Intersection[]): void;
-    protected abstract startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
-    protected abstract continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
-    protected abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
+    abstract startHover(intersections: intersectable.Intersection[]): void;
+    abstract continueHover(intersections: intersectable.Intersection[]): void;
+    abstract endHover(): void;
+    abstract startClick(intersections: intersectable.Intersection[]): boolean;
+    abstract endClick(intersections: intersectable.Intersection[]): void;
+    abstract startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
+    abstract continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
+    abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
     private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersection[] {
         this.picker.setFromViewport(normalizedMousePosition, this.viewport);
@@ -186,6 +186,6 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     }
 }
 
-// Time thresholds are in milliseconds, distance thresholds are in pixels.
+// Time thresholds are in milliseconds,\ distance thresholds are in pixels.
 const consummationTimeThreshold = 200; // once the mouse is down at least this long the drag is consummated
 const consummationDistanceThreshold = 4; // once the mouse moves at least this distance the drag is consummated
