@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] boxcasting not working with control points, curves, regions  
 - [ ] in xray mode, control points not visible  
 - [ ] bug: variable fillet broken  
 - [ ] move all static buuild() methods to builder, using var ts decl  

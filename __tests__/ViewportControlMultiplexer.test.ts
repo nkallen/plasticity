@@ -117,7 +117,7 @@ describe(ViewportControlMultiplexer, () => {
             expect(startClick1).toHaveBeenCalledTimes(1);
             expect(startClick2).toHaveBeenCalledTimes(1);
 
-            expect(() => multiplexer.endClick([])).toThrow();
+            multiplexer.endClick([]);
             expect(endClick1).toHaveBeenCalledTimes(0);
             expect(endClick2).toHaveBeenCalledTimes(0);
         });

@@ -20,6 +20,7 @@ import { GridHelper } from "./GridHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
 import { ProxyCamera } from "./ProxyCamera";
+import { ViewportControlMultiplexer } from "./ViewportControlMultiplexer";
 import { Orientation, ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
 import { ViewportPointControl } from "./ViewportPointControl";
 
@@ -52,8 +53,11 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     readonly outlinePassHover: OutlinePass;
     readonly phantomsPass: RenderPass;
     readonly helpersPass: RenderPass;
+
     readonly points = new ViewportPointControl(this, this.editor);
     readonly selector = new ViewportSelector(this, this.editor);
+    readonly multiplexer = new ViewportControlMultiplexer(this, this.editor.layers, this.editor.db, this.editor.signals);
+
     lastPointerEvent?: PointerEvent;
 
     private readonly scene = new THREE.Scene();
@@ -135,8 +139,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.navigationStart = this.navigationStart.bind(this);
         this.navigationEnd = this.navigationEnd.bind(this);
         this.navigationChange = this.navigationChange.bind(this);
-        this.selectionStart = this.selectionStart.bind(this);
-        this.selectionEnd = this.selectionEnd.bind(this);
+        this.controlStart = this.controlStart.bind(this);
+        this.controlEnd = this.controlEnd.bind(this);
 
         this.disposable.add(
             this.editor.registry.add(this.domElement, {
@@ -184,8 +188,10 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);
 
-        this.selector.addEventListener('start', this.selectionStart);
-        this.selector.addEventListener('end', this.selectionEnd);
+        this.multiplexer.add(this.points, this.selector);
+        this.multiplexer.addEventListener('start', this.controlStart);
+        this.multiplexer.addEventListener('end', this.controlEnd);
+        this.multiplexer.addEventLiseners();
 
         this.started = true;
         this.render(-1);
@@ -210,8 +216,12 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
             this.navigationControls.removeEventListener('change', this.setNeedsRender);
             this.navigationControls.removeEventListener('start', this.navigationStart);
-            this.selector.removeEventListener('start', this.selectionStart);
-            this.selector.removeEventListener('end', this.selectionEnd);
+            this.multiplexer.removeEventListener('start', this.controlStart);
+            this.multiplexer.removeEventListener('end', this.controlEnd);
+
+            this.multiplexer.dispose();
+            this.selector.dispose();
+            this.points.dispose();
 
             this.started = false;
         }));
@@ -300,7 +310,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.setNeedsRender();
     }
 
-    private readonly controls = [this.selector, this.navigationControls, this.points];
+    private readonly controls = [this.multiplexer, this.selector, this.points, this.navigationControls];
     disableControls(except?: { set enabled(e: boolean) }) {
         for (const control of this.controls) {
             if (control === except) continue;
@@ -309,7 +319,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     enableControls() {
-        this.selector.enabled = this.navigationControls.enabled = this.points.enabled = true;
+        this.multiplexer.enabled = this.selector.enabled = this.navigationControls.enabled = this.points.enabled = true;
     }
 
     private navigationState: NavigationState = { tag: 'none' }
@@ -319,7 +329,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             case 'none':
                 this.navigationControls.addEventListener('change', this.navigationChange);
                 this.navigationControls.addEventListener('end', this.navigationEnd);
-                this.navigationState = { tag: 'navigating', selectorEnabled: this.selector.enabled, quaternion: this.camera.quaternion.clone() };
+                this.navigationState = { tag: 'navigating', multiplexerEnabled: this.multiplexer.enabled, quaternion: this.camera.quaternion.clone() };
                 this.disableControls(this.navigationControls);
                 this.editor.signals.viewportActivated.dispatch(this);
                 break;
@@ -349,7 +359,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             case 'navigating':
                 this.navigationControls.removeEventListener('change', this.navigationChange);
                 this.navigationControls.removeEventListener('end', this.navigationEnd);
-                this.selector.enabled = this.navigationState.selectorEnabled;
+                this.multiplexer.enabled = this.navigationState.multiplexerEnabled;
                 this.navigationEnded.dispatch();
                 this.navigationState = { tag: 'none' };
                 break;
@@ -357,11 +367,11 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         }
     }
 
-    private selectionStart() {
+    private controlStart() {
         this.editor.signals.viewportActivated.dispatch(this);
     }
 
-    private selectionEnd() { }
+    private controlEnd() { }
 
     private _constructionPlane!: PlaneSnap;
     get constructionPlane() { return this._constructionPlane }
@@ -478,7 +488,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 }
 
-type NavigationState = { tag: 'none' } | { tag: 'navigating', selectorEnabled: boolean, quaternion: THREE.Quaternion }
+type NavigationState = { tag: 'none' } | { tag: 'navigating', multiplexerEnabled: boolean, quaternion: THREE.Quaternion }
 
 export interface ViewportElement {
     readonly model: Viewport;

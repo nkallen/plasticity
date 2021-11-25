@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import { ViewportControlMultiplexer } from 'src/components/viewport/ViewportControlMultiplexer';
 import * as THREE from 'three';
 import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from '../../src/commands/CommandLike';
@@ -25,6 +26,7 @@ let selection: SelectionManager;
 let enqueue: jest.SpyInstance;
 let signals: EditorSignals;
 let domElement: HTMLElement;
+let multiplex: ViewportControlMultiplexer;
 
 beforeEach(() => {
     editor = new Editor();
@@ -36,8 +38,17 @@ beforeEach(() => {
     selection = editor._selection;
     signals = editor.signals;
     domElement = viewport.renderer.domElement;
+    multiplex = viewport.multiplexer;
     enqueue = jest.spyOn(editor, 'enqueue');
 });
+
+beforeEach(() => {
+    viewport.start();
+});
+
+afterEach(() => {
+    viewport.dispose();
+})
 
 let solid: visual.Solid;
 
@@ -65,8 +76,8 @@ const pointerup = new MouseEvent('pointerup', { button: 0, clientX: 50, clientY:
 
 test('hover and click on viewport will enqueue a change selection command', async () => {
     const start = jest.fn(), end = jest.fn();
-    selector.addEventListener('start', start);
-    selector.addEventListener('end', end);
+    multiplex.addEventListener('start', start);
+    multiplex.addEventListener('end', end);
 
     expect(start).toHaveBeenCalledTimes(0);
     expect(end).toHaveBeenCalledTimes(0);
@@ -97,8 +108,8 @@ test('hover and click on viewport will enqueue a change selection command', asyn
 
 test('click and drag makes a box selection', async () => {
     const start = jest.fn(), end = jest.fn();
-    selector.addEventListener('start', start);
-    selector.addEventListener('end', end);
+    multiplex.addEventListener('start', start);
+    multiplex.addEventListener('end', end);
 
     let pointerdown, pointermove, pointerup;
 

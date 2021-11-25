@@ -6,11 +6,13 @@ export class ViewportControlMultiplexer extends ViewportControl {
     private readonly controls: Set<ViewportControl> = new Set();
     private winner?: ViewportControl;
 
-    add(control: ViewportControl) {
-        this.controls.add(control);
-        // this.disposable.add(new Disposable(() => {
-        //     control.dispose();
-        // }))
+    add(...controls: ViewportControl[]) {
+        for (const control of controls) {
+            this.controls.add(control);
+            // this.disposable.add(new Disposable(() => {
+            //     control.dispose();
+            // }))
+        }
     }
 
     remove(control: ViewportControl) {
@@ -44,7 +46,7 @@ export class ViewportControlMultiplexer extends ViewportControl {
         if (this.winner === undefined) throw new Error("invalid state");
         this.winner.continueDrag(moveEvent, normalizedMousePosition);
     }
-    
+
     endDrag(normalizedMousePosition: THREE.Vector2) {
         if (this.winner === undefined) throw new Error("invalid state");
         this.winner.endDrag(normalizedMousePosition);
@@ -61,7 +63,7 @@ export class ViewportControlMultiplexer extends ViewportControl {
     }
 
     endClick(intersections: intersectable.Intersection[]) {
-        if (this.winner === undefined) throw new Error("invalid state");
+        if (this.winner === undefined) return;
         this.winner.endClick(intersections);
     }
 

@@ -56,8 +56,10 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
+    }
 
-        const domElement = viewport.renderer.domElement;
+    addEventLiseners() {
+        const domElement = this.viewport.renderer.domElement;
         domElement.addEventListener('pointerdown', this.onPointerDown);
         domElement.addEventListener('pointermove', this.onPointerMove);
         this.disposable.add(new Disposable(() => domElement.removeEventListener('pointerdown', this.onPointerDown)));
