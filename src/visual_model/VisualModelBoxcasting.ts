@@ -43,10 +43,11 @@ Solids: {
         if (geometry.boundingBox === null) geometry.computeBoundingBox();
         _box.copy(geometry.boundingBox!);
         _box.applyMatrix4(matrixWorld);
+        _frustum.copy(boxcaster.frustum);
 
-        if (boxcaster.frustum.containsPoint(_box.min) && boxcaster.frustum.containsPoint(_box.max)) {
+        if (_frustum.containsBox(_box)) {
             return 'contained';
-        } else if (boxcaster.frustum.intersectsBox(_box)) {
+        } else if (_frustum.intersectsBox(_box)) {
             return 'intersected';
         } else {
             return 'not-intersected';
@@ -59,10 +60,11 @@ Solids: {
         if (this.boundingBox === undefined) this.computeBoundingBox();
         _box.copy(this.boundingBox!);
         _box.applyMatrix4(matrixWorld);
+        _frustum.copy(boxcaster.frustum);
 
-        if (boxcaster.frustum.containsPoint(_box.min) && boxcaster.frustum.containsPoint(_box.max)) {
+        if (_frustum.containsBox(_box)) {
             return 'contained';
-        } else if (boxcaster.frustum.intersectsBox(_box)) {
+        } else if (_frustum.intersectsBox(_box)) {
             return 'intersected';
         } else {
             return 'not-intersected';
@@ -149,10 +151,11 @@ Solids: {
         if (geometry.boundingBox === null) geometry.computeBoundingBox();
         _box.copy(geometry.boundingBox!);
         _box.applyMatrix4(matrixWorld);
+        _frustum.copy(boxcaster.frustum);
 
-        if (boxcaster.frustum.containsPoint(_box.min) && boxcaster.frustum.containsPoint(_box.max)) {
+        if (_frustum.containsBox(_box)) {
             return 'contained';
-        } else if (boxcaster.frustum.intersectsBox(_box)) {
+        } else if (_frustum.intersectsBox(_box)) {
             return 'intersected';
         } else {
             return 'not-intersected';
@@ -270,6 +273,21 @@ class FastFrustum extends THREE.Frustum {
         }
         return false;
     }
+
+    containsBox(box: THREE.Box3): boolean {
+        _points[0].set(box.min.x, box.min.y, box.min.z);
+        _points[1].set(box.min.x, box.min.y, box.max.z);
+        _points[2].set(box.min.x, box.max.y, box.min.z);
+        _points[3].set(box.min.x, box.max.y, box.max.z);
+        _points[4].set(box.max.x, box.min.y, box.min.z);
+        _points[5].set(box.max.x, box.min.y, box.max.z);
+        _points[6].set(box.max.x, box.max.y, box.min.z);
+        _points[7].set(box.max.x, box.max.y, box.max.z);
+        for (const point of _points) {
+            if (!this.containsPoint(point)) return false;
+        }
+        return true;
+    }
 }
 
 const _frustum = new FastFrustum();
@@ -278,4 +296,14 @@ const _inverseMatrix = new THREE.Matrix4();
 const _box = new THREE.Box3();
 const _line = new THREE.Line3();
 
+const _points = [
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    new THREE.Vector3()
+];
 export { };
