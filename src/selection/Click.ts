@@ -100,10 +100,14 @@ export class ClickStrategy implements SelectionStrategy {
         const { hovered, selected } = this;
         hovered.removeAll();
 
+        const parentsAdded = new Set<Solid>();
         for (const object of set) {
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
+                if (parentsAdded.has(parentItem)) continue;
+                
                 if (this.mode.has(SelectionMode.Solid) && !selected.solids.has(parentItem) && !selected.hasSelectedChildren(parentItem)) {
+                    parentsAdded.add(parentItem);
                     selected.addSolid(parentItem);
                 } else if (object instanceof Face) {
                     if (!this.mode.has(SelectionMode.Face)) continue;
