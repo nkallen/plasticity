@@ -229,7 +229,7 @@ function findAllVeryCloseTogether(intersections: THREE.Intersection[]) {
     const nearest = intersections[0];
     const result = [];
     for (const intersection of intersections) {
-        if (Math.abs(nearest.distance - intersection.distance) < 10e-2) {
+        if (Math.abs(nearest.distance - intersection.distance) < 10e-3) {
             result.push(intersection);
         }
     }
