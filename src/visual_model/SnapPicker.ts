@@ -4,7 +4,7 @@ import { Model } from "../commands/PointPicker";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
-import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, PointSnap, Snap } from "../editor/snaps/Snap";
+import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceSnap, PointSnap, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from "../editor/snaps/SnapManager";
 import { inst2curve } from "../util/Conversion";
 import * as intersectable from "./Intersectable";
@@ -24,7 +24,6 @@ const defaultNearbyParams: THREE.RaycasterParameters = {
 
 export class SnapPicker {
     private readonly raycaster = new THREE.Raycaster();
-
 
     constructor(
         layers: LayerManager,
@@ -62,7 +61,7 @@ export class SnapPicker {
         if (!snaps.enabled) return this.intersectConstructionPlane(pointPicker, viewport);
         if (pointPicker.choice !== undefined) return this.intersectChoice(pointPicker.choice);
 
-        this.raycaster.params = this.intersectParams;
+        raycaster.params = this.intersectParams;
 
         const restrictions = pointPicker.restrictionSnaps.map(r => r.snapper);
         let intersections: THREE.Intersection[];
@@ -97,8 +96,10 @@ export class SnapPicker {
             let snap: Snap;
             if (object instanceof visual.Region) {
                 continue; // FIXME:
-            } else if (object instanceof visual.TopologyItem || object instanceof visual.Curve3D || object instanceof visual.ControlPoint) {
+            } else if (object instanceof visual.TopologyItem || object instanceof visual.Curve3D) {
                 snap = this.intersectable2snap(object, db);
+            } else if (object instanceof visual.ControlPoint) {
+                continue; // FIXME:
             } else if (object instanceof THREE.Points) {
                 snap = snaps.get(object, intersection.index!);
             } else {
@@ -138,7 +139,7 @@ export class SnapPicker {
             const model = db.lookup(intersectable.parentItem);
             return new CurveSnap(intersectable.parentItem, inst2curve(model)!);
         } else {
-            throw new Error("invalid snap target");
+            throw new Error("invalid snap target: " + intersectable.constructor.name);
         }
     }
 

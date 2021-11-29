@@ -45,6 +45,7 @@ export function MakeViewport(editor: EditorLike) {
         offsetWidth: { get() { return 100 } },
         offsetHeight: { get() { return 100 } }
     });
+    editor.signals.renderPrepared.dispatch({ camera, resolution: new THREE.Vector2(100, 100) })
 
     domElement.appendChild(canvas);
     const viewport = new Viewport(
