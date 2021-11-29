@@ -58,7 +58,7 @@ describe(EditorOriginator, () => {
         const keymaps = new KeymapManager();
         const registry = new CommandRegistry();
         const layers = new LayerManager(selection.selected, signals);
-        const editor = { keymaps, db, registry, layers } as unknown as Editor;
+        const editor = { keymaps, db, registry, layers, signals } as unknown as Editor;
         viewports = [MakeViewport(editor)];
         originator = new EditorOriginator(db, selected, snaps, crosses, curves, contours, modifiers, viewports);
     });

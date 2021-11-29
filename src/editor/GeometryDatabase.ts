@@ -55,6 +55,7 @@ export interface DatabaseLike {
 
     lookupItemById(id: c3d.SimpleName): { view: visual.Item, model: c3d.Item };
 
+    hasTopologyItem(id: string): boolean;
     lookupTopologyItemById(id: string): TopologyData;
     lookupTopologyItem(object: visual.Face): c3d.Face;
     lookupTopologyItem(object: visual.CurveEdge): c3d.CurveEdge;
@@ -234,6 +235,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
     lookup(object: visual.Item): c3d.Item;
     lookup(object: visual.Item): c3d.Item {
         return this.lookupItemById(object.simpleName).model;
+    }
+
+    hasTopologyItem(id: string): boolean {
+        return this.topologyModel.has(id);
     }
 
     lookupTopologyItemById(id: string): TopologyData {

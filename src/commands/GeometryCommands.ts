@@ -1126,7 +1126,8 @@ abstract class BooleanCommand extends Command {
 
         await this.finished;
 
-        await factory.commit();
+        const result = await factory.commit() as visual.Solid;
+        editor.selection.selected.addSolid(result);
     }
 }
 

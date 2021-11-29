@@ -71,6 +71,10 @@ export class DatabaseProxy implements DatabaseLike {
         return this.db.lookupItemById(id);
     }
 
+    hasTopologyItem(id: string): boolean {
+        return this.db.hasTopologyItem(id);
+    }
+
     lookupTopologyItemById(id: string): TopologyData {
         return this.db.lookupTopologyItemById(id);
     }

@@ -150,17 +150,19 @@ export default {
         "mouse2": "command:finish",
     },
 
-    "body:not([gizmo]) ispace-viewport": {
+    "body:not([gizmo])": {
         "1": "selection:set-control-point",
         "2": "selection:set-edge",
         "3": "selection:set-face",
         "4": "selection:set-solid",
-
+    
         "!": "selection:toggle-control-point",
         "@": "selection:toggle-edge",
         "#": "selection:toggle-face",
         "$": "selection:toggle-solid",
+    },
 
+    "body:not([gizmo]) ispace-viewport": {
         "/": "viewport:focus",
 
         "alt-z": "viewport:toggle-x-ray",

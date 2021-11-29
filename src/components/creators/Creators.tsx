@@ -4,16 +4,11 @@ import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
 import { EditorLike } from '../../commands/Command';
 import { CreatorChangeSelectionCommand, RebuildCommand } from '../../commands/CommandLike';
-import { RebuildFactory } from '../../commands/rebuild/RebuildFactory';
 import { Editor } from '../../editor/Editor';
-import { TemporaryObject } from '../../editor/GeometryDatabase';
 import * as visual from '../../visual_model/VisualModel';
 import { icons } from '../toolbar/icons';
 
-type State = { tag: 'none' } | { tag: 'updating', temp?: TemporaryObject, factory: RebuildFactory }
 export class Model {
-    private state: State = { tag: 'none' };
-
     constructor(
         private readonly editor: EditorLike,
     ) { }
@@ -42,7 +37,7 @@ export class Model {
         const solid = item as visual.Solid;
         const model = db.lookup(solid);
         const name = creator.GetYourNameMaker();
-        const result = [];
+        const result: visual.TopologyItem[] = [];
 
         for (const topo of model.GetItems()) {
             if (name.IsChild(topo)) {
@@ -54,13 +49,17 @@ export class Model {
                     result.push(view);
                 } else if (topo.IsA() === c3d.TopologyType.CurveEdge) {
                     const index = model.GetEdgeIndex(topo.Cast<c3d.CurveEdge>(c3d.TopologyType.CurveEdge));
-                    const { views } = db.lookupTopologyItemById(visual.CurveEdge.simpleName(solid.simpleName, index))
-                    const view = views.values().next().value as visual.CurveEdge;
-                    hovered.addEdge(view, solid);
-                    result.push(view);
+                    const id = visual.CurveEdge.simpleName(solid.simpleName, index);
+                    if (db.hasTopologyItem(id)) {
+                        const { views } = db.lookupTopologyItemById(id)
+                        const view = views.values().next().value as visual.CurveEdge;
+                        hovered.addEdge(view, solid);
+                        result.push(view);
+                    }
                 }
             }
         }
+        this.editor.selectionInteraction.onBoxHover(new Set(result));
         return result;
     }
 
