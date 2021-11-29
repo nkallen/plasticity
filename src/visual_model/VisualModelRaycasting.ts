@@ -4,14 +4,21 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { point2point, vec2vec } from '../util/Conversion';
-import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
+import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
     interface Face {
         computeBoundingBox(): void;
         boundingBox?: THREE.Box3;
     }
+
     interface CurveEdge {
+        computeBoundingBox(): void;
+        boundingBox?: THREE.Box3;
+        boundingSphere?: THREE.Sphere;
+    }
+
+    interface CurveSegment {
         computeBoundingBox(): void;
         boundingBox?: THREE.Box3;
         boundingSphere?: THREE.Sphere;
@@ -188,6 +195,27 @@ Curves: {
             intersects.push({ ...i, object: this, });
         }
         raycaster.intersectObject(this.points, false, intersects);
+    }
+
+    CurveSegment.prototype.computeBoundingBox = function () {
+        const parent = this.parent as CurveGroup<CurveEdge>;
+        const line = parent.line;
+
+        BuildSlice: {
+            const allPoints = line.geometry.attributes.instanceStart.array as Float32Array;
+            const group = this.group;
+            const slice = new Float32Array(allPoints.buffer, group.start * 4, group.count);
+            _instanceBuffer.array = slice;
+            _instanceBuffer.count = slice.length / _instanceBuffer.stride;
+        }
+
+        BuildBoundingBoxOfSlice: {
+            this.boundingBox = new THREE.Box3();
+            _lineSegmentsGeometry.computeBoundingBox();
+            _lineSegmentsGeometry.computeBoundingSphere();
+            this.boundingBox = _lineSegmentsGeometry.boundingBox!.clone();
+            this.boundingSphere = _lineSegmentsGeometry.boundingSphere!.clone();
+        }
     }
     
     ControlPointGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {

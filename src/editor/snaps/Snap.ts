@@ -1,11 +1,9 @@
 import * as THREE from "three";
-import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
 import { PointPicker } from "../../commands/PointPicker";
-import { curve3d2curve2d, deunit, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
-import { CrossPoint } from "../curves/CrossPointDatabase";
+import { curve3d2curve2d, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
-import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
+import { CrossPoint } from "../curves/CrossPointDatabase";
 
 export interface Restriction {
     isValid(pt: THREE.Vector3): boolean;

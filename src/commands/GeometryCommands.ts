@@ -1404,13 +1404,11 @@ export class MirrorCommand extends Command {
     async execute(): Promise<void> {
         const solid = this.editor.selection.selected.solids.first;
         const curve = this.editor.selection.selected.curves.first;
-        const mirror = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        mirror.solid = solid ?? curve;
+        const mirror = new MirrorOrSymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        mirror.item = solid ?? curve;
         mirror.origin = new THREE.Vector3();
 
-        // @ts-ignore
         const gizmo = new MirrorGizmo(mirror, this.editor);
-        // @ts-ignore
         const dialog = new MirrorDialog(mirror, this.editor.signals);
         const keyboard = new MirrorKeyboardGizmo(this.editor);
 

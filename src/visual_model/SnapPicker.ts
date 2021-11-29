@@ -1,5 +1,6 @@
 import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
+import { Layers } from "three";
 import { Model } from "../commands/PointPicker";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/GeometryDatabase";
@@ -26,18 +27,20 @@ export class SnapPicker {
     private readonly raycaster = new THREE.Raycaster();
 
     constructor(
-        layers: LayerManager,
+        private readonly layers: LayerManager,
         private readonly intersectParams: THREE.RaycasterParameters,
         private readonly nearbyParams: THREE.RaycasterParameters = defaultNearbyParams,
     ) {
-        this.raycaster.layers = layers.visible;
     }
 
     nearby(pointPicker: Model, snaps: SnapManagerGeometryCache, db: DatabaseLike): PointSnap[] {
-        const { raycaster, viewport } = this;
+        const { raycaster, viewport, layers } = this;
         if (!snaps.enabled) return [];
 
         this.raycaster.params = this.nearbyParams;
+        raycaster.layers.mask = layers.visible.mask
+        if (viewport.isOrtho) raycaster.layers.disable(visual.Layers.Face);
+        else raycaster.layers.enable(visual.Layers.Face);
 
         snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
         const snappers = snaps.points;
@@ -56,12 +59,15 @@ export class SnapPicker {
     }
 
     intersect(pointPicker: Model, snaps: SnapManagerGeometryCache, db: DatabaseLike): SnapResult[] {
-        const { raycaster, viewport } = this;
+        const { raycaster, viewport, layers } = this;
 
         if (!snaps.enabled) return this.intersectConstructionPlane(pointPicker, viewport);
         if (pointPicker.choice !== undefined) return this.intersectChoice(pointPicker.choice);
 
         raycaster.params = this.intersectParams;
+        raycaster.layers.mask = layers.visible.mask
+        if (viewport.isOrtho) raycaster.layers.disable(visual.Layers.Face);
+        else raycaster.layers.enable(visual.Layers.Face);
 
         const restrictions = pointPicker.restrictionSnaps.map(r => r.snapper);
         let intersections: THREE.Intersection[];

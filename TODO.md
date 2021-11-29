@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] Investigate bridge curves  
 - [ ] Trim doesn't work  
 - [ ] PointSnap resolution for nearby seems wrong  
 - [ ] boxcasting not working with control points, curves, regions  

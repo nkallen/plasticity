@@ -315,6 +315,7 @@ export class Face extends TopologyItem {
     constructor(readonly group: Readonly<GeometryGroup>, readonly grid: c3d.Grid, userData: any) {
         super();
         this.userData = userData;
+        this.layers.set(Layers.Face);
     }
 
     // FIXME: delete this 
