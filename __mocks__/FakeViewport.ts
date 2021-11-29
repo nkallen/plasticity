@@ -13,7 +13,7 @@ class FakeWebGLRenderer implements THREE.Renderer {
     getPixelRatio() { return 1 };
 
     getViewport() { return new THREE.Vector4() }
-    setViewport(v: THREE.Vector4 ) { }
+    setViewport(v: THREE.Vector4) { }
 
     setPixelRatio(value: number) { }
 
@@ -40,6 +40,12 @@ export function MakeViewport(editor: EditorLike) {
     const domElement = document.createElement('ispace-viewport');
     // @ts-expect-error('Cannot mock DomRect')
     domElement.getBoundingClientRect = () => { return { left: 0, top: 0, width: 100, height: 100 } };
+
+    Object.defineProperties(canvas, {
+        offsetWidth: { get() { return 100 } },
+        offsetHeight: { get() { return 100 } }
+    });
+
     domElement.appendChild(canvas);
     const viewport = new Viewport(
         editor,

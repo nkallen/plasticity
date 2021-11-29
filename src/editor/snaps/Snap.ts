@@ -5,6 +5,7 @@ import { PointPicker } from "../../commands/PointPicker";
 import { curve3d2curve2d, deunit, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
 import { CrossPoint } from "../curves/CrossPointDatabase";
 import * as visual from '../../visual_model/VisualModel';
+import { BetterRaycastingPoints } from "../../visual_model/VisualModelRaycasting";
 
 export interface Restriction {
     isValid(pt: THREE.Vector3): boolean;

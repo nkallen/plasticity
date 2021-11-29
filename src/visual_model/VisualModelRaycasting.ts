@@ -251,7 +251,7 @@ export class BetterRaycastingPoints extends THREE.Points {
             const half = getWorldSpaceHalfWidth(camera, dist, ssMaxWidth, resolution);
             const halfSq = half * half;
             const rayPointDistanceSq = _ray.distanceSqToPoint(_position);
-
+            
             if (rayPointDistanceSq < halfSq) {
                 const intersectPoint = new THREE.Vector3();
                 _ray.closestPointToPoint(_position, intersectPoint);

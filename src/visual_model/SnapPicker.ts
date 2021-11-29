@@ -18,16 +18,18 @@ import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "./Visual
  * using a cache for most point snaps and the existing, (optimized) geometry raycasting targets.
  */
 
+const defaultNearbyParams: THREE.RaycasterParameters = {
+    Points: { threshold: 200 }
+};
+
 export class SnapPicker {
     private readonly raycaster = new THREE.Raycaster();
 
-    private readonly nearbyParams: THREE.RaycasterParameters = {
-        Points: { threshold: 200 }
-    };
 
     constructor(
-        private readonly layers: LayerManager,
-        private readonly raycasterParams: THREE.RaycasterParameters,
+        layers: LayerManager,
+        private readonly intersectParams: THREE.RaycasterParameters,
+        private readonly nearbyParams: THREE.RaycasterParameters = defaultNearbyParams,
     ) {
         this.raycaster.layers = layers.visible;
     }
@@ -48,8 +50,8 @@ export class SnapPicker {
         const result: PointSnap[] = [];
         let i = 0;
         for (const { snap } of snap_intersections) {
+            if (i++ >= 20) break;
             result.push(snap as PointSnap);
-            if (i++ > 20) break;
         }
         return result;
     }
@@ -60,7 +62,7 @@ export class SnapPicker {
         if (!snaps.enabled) return this.intersectConstructionPlane(pointPicker, viewport);
         if (pointPicker.choice !== undefined) return this.intersectChoice(pointPicker.choice);
 
-        this.raycaster.params = this.raycasterParams;
+        this.raycaster.params = this.intersectParams;
 
         const restrictions = pointPicker.restrictionSnaps.map(r => r.snapper);
         let intersections: THREE.Intersection[];
@@ -141,7 +143,7 @@ export class SnapPicker {
     }
 
     private viewport!: Viewport;
-    setFromViewport(e: PointerEvent, viewport: Viewport) {
+    setFromViewport(e: MouseEvent, viewport: Viewport) {
         this.setFromCamera(viewport.getNormalizedMousePosition(e), viewport.camera);
         this.viewport = viewport;
     }
@@ -175,7 +177,7 @@ export class SnapManagerGeometryCache {
 
     private geometrySnaps: PointSnap[][] = [];
     private _snappers: THREE.Object3D[] = [];
-    private update() {
+    update() {
         const { basicSnaps, geometrySnaps, crossSnaps } = this.snaps.all;
         const result = [];
         this.geometrySnaps = [];
@@ -245,6 +247,6 @@ declare module '../editor/snaps/Snap' {
 Snap.prototype.priority = 10;
 PointSnap.prototype.priority = 1;
 CurveSnap.prototype.priority = 2;
+AxisSnap.prototype.priority = 2;
 CurveEdgeSnap.prototype.priority = 2;
 FaceSnap.prototype.priority = 3;
-AxisSnap.prototype.priority = 4;

@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] PointSnap resolution for nearby seems wrong  
 - [ ] boxcasting not working with control points, curves, regions  
 - [ ] in xray mode, control points not visible  
 - [ ] bug: variable fillet broken  

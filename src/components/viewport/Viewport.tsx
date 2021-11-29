@@ -68,7 +68,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
     private grid = new GridHelper(300, 300, gridColor, gridColor);
 
-
     constructor(
         private readonly editor: EditorLike,
         readonly renderer: THREE.WebGLRenderer,
@@ -87,7 +86,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         const size = this.renderer.getSize(new THREE.Vector2());
         const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false });
-        renderTarget.samples = 1;
+        renderTarget.samples = 6;
 
         EffectComposer: {
             this.composer = new EffectComposer(this.renderer, renderTarget);
@@ -456,7 +455,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     debug(): void { }
 
     // top left is 0,0, bottom right is width,height
-    getMousePosition(event: PointerEvent, to = new THREE.Vector2()): THREE.Vector2 {
+    getMousePosition(event: MouseEvent, to = new THREE.Vector2()): THREE.Vector2 {
         const [x, y] = [event.clientX, event.clientY];
         const rect = this.domElement.getBoundingClientRect();
         to.set((x - rect.left), rect.height - (y - rect.top));
@@ -481,7 +480,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         return position;
     }
 
-    getNormalizedMousePosition(event: PointerEvent, to = new THREE.Vector2()): THREE.Vector2 {
+    getNormalizedMousePosition(event: MouseEvent, to = new THREE.Vector2()): THREE.Vector2 {
         const result = this.getMousePosition(event, to);
         this.normalizeScreenPosition(result);
         return result;
