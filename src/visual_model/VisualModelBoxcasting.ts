@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Boxcastable, Boxcaster, IntersectionType } from "../selection/Boxcaster";
-import { Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Solid, SpaceInstance } from './VisualModel';
+import { Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
     interface Item extends Boxcastable { }
@@ -10,6 +10,7 @@ declare module './VisualModel' {
     interface Face extends Boxcastable { }
     interface Curve3D extends Boxcastable { }
     interface CurveSegment extends Boxcastable { }
+    interface Region extends Boxcastable { }
 }
 
 Solids: {
@@ -342,8 +343,100 @@ Curves: {
 }
 
 Regions: {
+    PlaneInstance.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
+        const underlying = this.underlying as Region;
+        return underlying.boxcast(type, boxcaster, selects);
+    }
+
     PlaneInstance.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
-        return 'intersected';
+        const underlying = this.underlying as Region;
+        return underlying.intersectsBounds(boxcaster);
+    }
+
+    Region.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
+        const { matrixWorld, geometry } = this.mesh;
+        if (geometry.boundingBox === null) geometry.computeBoundingBox();
+        _box.copy(geometry.boundingBox!);
+        _box.applyMatrix4(matrixWorld);
+        _frustum.copy(boxcaster.frustum);
+
+        if (_frustum.containsBox(_box)) {
+            return 'contained';
+        } else if (_frustum.intersectsBox(_box)) {
+            return 'intersected';
+        } else {
+            return 'not-intersected';
+        }
+    }
+
+    Region.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
+        if (type == 'contained') {
+            selects.push(this);
+        } else if (type == 'intersected') {
+            boxcaster.selectGeometry(this, selects);
+        }
+    }
+
+    Region.prototype.containsGeometry = function (boxcaster: Boxcaster) {
+        const { matrixWorld, geometry } = this.mesh;
+        const { drawRange } = geometry;
+        const index = geometry.index!;
+
+        const position = geometry.attributes.position;
+
+        _frustum.copy(boxcaster.frustum);
+        _inverseMatrix.copy(matrixWorld).invert();
+        _frustum.applyMatrix4(_inverseMatrix);
+
+        const start = drawRange.start;
+        const end = Math.min(index.count, drawRange.start + drawRange.count);
+
+        for (let i = start; i < end; i++) {
+            const j = index.getX(i);
+            _v.fromBufferAttribute(position, j);
+            if (!_frustum.containsPoint(_v)) return false;
+        }
+        return true;
+    }
+
+    Region.prototype.intersectsGeometry = function (boxcaster: Boxcaster) {
+        const { matrixWorld, geometry } = this.mesh;
+        const { drawRange } = geometry;
+        const index = geometry.index!;
+
+        const position = geometry.attributes.position;
+
+        _frustum.copy(boxcaster.frustum);
+        _inverseMatrix.copy(matrixWorld).invert();
+        _frustum.applyMatrix4(_inverseMatrix);
+
+        const start = drawRange.start;
+        const end = Math.min(index.count, drawRange.start + drawRange.count);
+        
+        for (let i = start; i < end; i += 3) {
+            const a = index.getX(i + 0);
+            const b = index.getX(i + 1);
+            const c = index.getX(i + 2);
+            _v.fromBufferAttribute(position, a);
+            if (_frustum.containsPoint(_v)) return true;
+            _v.fromBufferAttribute(position, b);
+            if (_frustum.containsPoint(_v)) return true;
+            _v.fromBufferAttribute(position, c);
+            if (_frustum.containsPoint(_v)) return true;
+
+            _line.start.fromBufferAttribute(position, a);
+            _line.end.fromBufferAttribute(position, b);
+            if (_frustum.intersectsLine(_line)) return true;
+
+            _line.start.fromBufferAttribute(position, a);
+            _line.end.fromBufferAttribute(position, c);
+            if (_frustum.intersectsLine(_line)) return true;
+
+            _line.start.fromBufferAttribute(position, b);
+            _line.end.fromBufferAttribute(position, c);
+            if (_frustum.intersectsLine(_line)) return true;
+        }
+        return false;
     }
 }
 

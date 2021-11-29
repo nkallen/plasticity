@@ -9,6 +9,8 @@ import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import c3d from '../../build/Release/c3d.node';
 import '../matchers';
+import { RegionFactory } from "../../src/commands/region/RegionFactory";
+import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -59,6 +61,15 @@ describe(visual.CurveEdge, () => {
         boxcaster.endPoint.set(0.1, 0.1, 0);
         boxcaster.updateFrustum();
         expect(edge.containsGeometry(boxcaster)).toBe(false);
+    });
+
+    test('intersectsGeometry only intersection', async () => {
+        const edge = box.edges.get(0);
+
+        boxcaster.startPoint.set(-0.1, -0.1, 0);
+        boxcaster.endPoint.set(0.1, 0.1, 0);
+        boxcaster.updateFrustum();
+        expect(edge.intersectsGeometry(boxcaster)).toBe(true);
     });
 });
 
@@ -123,5 +134,83 @@ describe('visual.SpaceInstance<visual.Curve3D>', () => {
         boxcaster.endPoint.set(0.1, 0.1, 0);
         boxcaster.updateFrustum();
         expect(segment.containsGeometry(boxcaster)).toBe(false);
+    });
+
+    test('intersectsGeometry only intersection', async () => {
+        const segment = curve.underlying.segments.get(0);
+
+        boxcaster.startPoint.set(-0.1, -0.1, 0);
+        boxcaster.endPoint.set(0.1, 0.1, 0);
+        boxcaster.updateFrustum();
+        expect(segment.intersectsGeometry(boxcaster)).toBe(true);
+    });
+})
+
+describe('visual.PlaneInstance<visual.Region>', () => {
+    let region: visual.PlaneInstance<visual.Region>;
+
+    beforeEach(async () => {
+        const makeCircle = new CenterCircleFactory(db, materials, signals);
+        makeCircle.center = new THREE.Vector3();
+        makeCircle.radius = 1;
+        const curve = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const makeRegion = new RegionFactory(db, materials, signals);
+        makeRegion.contours = [curve];
+        const regions = await makeRegion.commit() as visual.PlaneInstance<visual.Region>[];
+        region = regions[0];
+        region.updateMatrixWorld();
+    })
+
+    let camera: THREE.OrthographicCamera;
+    let boxcaster: Boxcaster;
+
+    beforeEach(() => {
+        camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.001);
+        camera.up.set(0, 0, 1);
+        camera.position.set(0, 0, 10);
+        camera.lookAt(0, 0, 0);
+        camera.updateMatrixWorld();
+        boxcaster = new Boxcaster(camera);
+        boxcaster.startPoint.set(-1, -1, 0);
+        boxcaster.endPoint.set(1, 1, 0);
+        boxcaster.updateFrustum();
+    })
+
+    test('intersectsBounds', () => {
+        expect(region.intersectsBounds(boxcaster)).toBe('contained');
+    })
+
+    test('boxcast contains', () => {
+        const selects: Boxcastable[] = [];
+        expect(region.boxcast('contained', boxcaster, selects));
+        expect(selects).toHaveLength(1);
+    })
+
+    test('boxcast intersected', () => {
+        const selects: Boxcastable[] = [];
+        expect(region.boxcast('intersected', boxcaster, selects));
+        expect(selects).toHaveLength(1);
+    })
+
+    test('containsGeometry full containment', async () => {
+        boxcaster.startPoint.set(-1, -1, 0);
+        boxcaster.endPoint.set(1, 1, 0);
+        boxcaster.updateFrustum();
+        expect(region.underlying.containsGeometry(boxcaster)).toBe(true);
+    });
+
+    test('containsGeometry only intersection', async () => {
+        boxcaster.startPoint.set(-0.1, -0.1, 0);
+        boxcaster.endPoint.set(0.1, 0.1, 0);
+        boxcaster.updateFrustum();
+        expect(region.underlying.containsGeometry(boxcaster)).toBe(false);
+    });
+
+    test('intersectsGeometry only intersection', async () => {
+        boxcaster.startPoint.set(-0.1, -0.1, 0);
+        boxcaster.endPoint.set(0.1, 0.1, 0);
+        boxcaster.updateFrustum();
+        expect(region.underlying.intersectsGeometry(boxcaster)).toBe(true);
     });
 })

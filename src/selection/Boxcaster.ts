@@ -32,7 +32,6 @@ export class Boxcaster {
         const bounds = object.intersectsBounds(this);
         if (bounds == 'not-intersected') selected;
 
-        console.log(object);
         object.boxcast(bounds, this, selected);
         return selected;
     }
