@@ -252,8 +252,6 @@ describe('addAxesAt', () => {
 });
 
 describe('activateSnapped', () => {
-    const constructionPlane = new PlaneSnap();
-    let circle1: visual.SpaceInstance<visual.Curve3D>;
     let curve: visual.SpaceInstance<visual.Curve3D>;
 
     beforeEach(async () => {
@@ -263,22 +261,32 @@ describe('activateSnapped', () => {
         curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>
     });
 
-    test("for endpoints on polycurves, activateSnapped adds axes as well as tangent/etc", async () => {
+    beforeEach(() => {
         let snaps;
         snaps = pointPicker.snaps;
         expect(snaps.length).toBe(0);
+    })
 
+    test("for pointsnaps, adds axes", () => {
+        const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
+        pointPicker.activateSnapped([snap]);
+        const snaps = pointPicker.snaps;
+        expect(snaps.length).toBe(3);
+        expect(snaps[0]).toBeInstanceOf(PointAxisSnap);
+        expect(snaps[1]).toBeInstanceOf(PointAxisSnap);
+        expect(snaps[2]).toBeInstanceOf(PointAxisSnap);
+    });
+
+    test("for endpoints on polycurves, activateSnapped adds axes as well as tangent/etc", async () => {
         const inst = db.lookup(curve) as c3d.SpaceInstance;
         const item = inst.GetSpaceItem()!;
         const model = item.Cast<c3d.Curve3D>(item.IsA());
         const curveSnap = new CurveSnap(curve, model);
         const snap = new CurveEndPointSnap(undefined, new THREE.Vector3(2, 2, 0), curveSnap, model.GetTMin());
 
-        const position = new THREE.Vector3(2, 2, 0);
-        const orientation = new THREE.Quaternion();
         pointPicker.activateSnapped([snap]);
 
-        snaps = pointPicker.snaps;
+        const snaps = pointPicker.snaps;
         expect(snaps.length).toBe(4);
         expect(snaps[0]).toBeInstanceOf(PointAxisSnap);
         expect(snaps[1]).toBeInstanceOf(PointAxisSnap);
@@ -288,21 +296,15 @@ describe('activateSnapped', () => {
     });
 
     test("activateSnapped respects undo", async () => {
-        let snaps;
-        snaps = pointPicker.snaps;
-        expect(snaps.length).toBe(0);
-
         const inst = db.lookup(curve) as c3d.SpaceInstance;
         const item = inst.GetSpaceItem()!;
         const model = item.Cast<c3d.Curve3D>(item.IsA());
         const curveSnap = new CurveSnap(curve, model);
         const snap = new CurveEndPointSnap(undefined, new THREE.Vector3(2, 2, 0), curveSnap, model.GetTMin());
 
-        const position = new THREE.Vector3(2, 2, 0);
-        const orientation = new THREE.Quaternion();
         pointPicker.activateSnapped([snap]);
 
-        snaps = pointPicker.snaps;
+        let snaps = pointPicker.snaps;
         expect(snaps.length).toBe(4);
         expect(snaps[0]).toBeInstanceOf(PointAxisSnap);
         expect(snaps[1]).toBeInstanceOf(PointAxisSnap);

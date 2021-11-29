@@ -1,5 +1,6 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
+import { Points } from 'three';
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
 import { OrbitControls } from '../components/viewport/OrbitControls';
@@ -251,14 +252,14 @@ export class Model {
             if (this.alreadyActivatedSnaps.has(snap)) continue;
             this.alreadyActivatedSnaps.add(snap); // idempotent
 
-            if (snap instanceof CurvePointSnap && !snap.model.IsClosed()) {
+            if (snap instanceof CurveEndPointSnap) {
                 this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
-            }
-            if (snap instanceof FaceCenterPointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
-            }
-            if (snap instanceof CurveEndPointSnap && !snap.model.IsClosed()) {
                 this.addAxis(snap.tangentSnap, this.snapsForLastPickedPoint)
+            } else if (snap instanceof FaceCenterPointSnap) {
+                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
+                this.addAxis(snap.normalSnap, this.snapsForLastPickedPoint);
+            } else if (snap instanceof PointSnap) {
+                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
             }
         }
     }

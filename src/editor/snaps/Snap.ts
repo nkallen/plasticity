@@ -154,6 +154,10 @@ export class FaceCenterPointSnap extends PointSnap {
     additionalSnapsFor(point: THREE.Vector3) {
         return this.faceSnap.additionalSnapsFor(point);
     }
+
+    get normalSnap(): PointAxisSnap {
+        return this.faceSnap.additionalSnapsFor(this.position)[0];
+    }
 }
 
 export class CurveEdgeSnap extends Snap {
