@@ -12,7 +12,6 @@
 - [ ] bug: control points, when one selected and another hovered, everything unhighlighted  
 - [ ] Redesign set resolution of line2 etc  
 - [ ] parentId of edge and face should be set directly and not actually in the tree?  
-- [ ] make occluded lines/edges use geometry groups  
 - [ ] Helper for center (of arc) point snap  
 - [ ] See if we can get rid of get child() in visualmodel  
 - [ ] get rid of all snappers in snap  
@@ -53,13 +52,13 @@
 
 ### Todo
 
-- [ ] make viewport control have a manager that always picks winner so two can't be running simultaneously  
 
 ### In Progress
 
 
 ### Done ✓
 
+- [x] make viewport control have a manager that always picks winner so two can't be running simultaneously  
 - [x] boolean needs movement  
 - [x] Allow gettings edge selection from creators  
 - [x] line2 raycasting bad in ortho camera  
