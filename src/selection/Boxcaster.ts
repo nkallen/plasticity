@@ -29,9 +29,7 @@ export class Boxcaster {
     }
 
     selectObject<T extends Boxcastable>(object: T, selected: T[] = []): T[] {
-        console.log(object.layers, object.constructor.name);
         if (!this.layers.test(object.layers)) return selected;
-        console.log("pass");
 
         const bounds = object.intersectsBounds(this);
         if (bounds == 'not-intersected') return selected;

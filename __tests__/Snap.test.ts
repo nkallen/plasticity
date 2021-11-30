@@ -9,10 +9,10 @@ import { CrossPointDatabase } from "../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, Layers, LineSnap, OrRestriction, PlaneSnap, PointSnap, TanTanSnap } from "../src/editor/snaps/Snap";
+import { AxisSnap, CurveEdgeSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointSnap, TanTanSnap } from "../src/editor/snaps/Snap";
 import { SnapManager } from "../src/editor/snaps/SnapManager";
-import * as visual from '../src/visual_model/VisualModel';
 import { point2point, vec2vec } from "../src/util/Conversion";
+import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 
@@ -103,31 +103,6 @@ describe(AxisSnap, () => {
         expect(axis.isValid(new THREE.Vector3(1, 0, 1))).toBe(true);
         expect(axis.isValid(new THREE.Vector3(1, 0, 10))).toBe(true);
         expect(axis.isValid(new THREE.Vector3(1, 1, 10))).toBe(false);
-    });
-})
-
-describe(LineSnap, () => {
-    test("isValid", () => {
-        let line: LineSnap;
-        line = LineSnap.make(undefined, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
-        expect(line.isValid(new THREE.Vector3(0, 0, 0))).toBe(true);
-        expect(line.isValid(new THREE.Vector3(1, 0, 0))).toBe(false);
-        expect(line.isValid(new THREE.Vector3(0, 0, 1))).toBe(true);
-        expect(line.isValid(new THREE.Vector3(0, 1, 0))).toBe(false);
-
-        line = LineSnap.make(undefined, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
-        expect(line.isValid(new THREE.Vector3(0, 1, 0))).toBe(true);
-        expect(line.isValid(new THREE.Vector3(1, 1, 0))).toBe(false);
-        expect(line.isValid(new THREE.Vector3(0, 1, 1))).toBe(true);
-        expect(line.isValid(new THREE.Vector3(0, 0, 0))).toBe(false);
-    });
-
-    test("project", () => {
-        let line: LineSnap;
-        line = LineSnap.make(undefined, new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0));
-        expect(line.project(new THREE.Vector3(0, 0, 0)).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(line.project(new THREE.Vector3(1, 0, 0)).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(line.project(new THREE.Vector3(0, 0, 1)).position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
     });
 })
 

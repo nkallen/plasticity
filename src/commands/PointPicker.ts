@@ -1,6 +1,5 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
-import { Points } from 'three';
 import c3d from '../../build/Release/c3d.node';
 import CommandRegistry from '../components/atom/CommandRegistry';
 import { OrbitControls } from '../components/viewport/OrbitControls';
@@ -9,7 +8,7 @@ import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatab
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import LayerManager from '../editor/LayerManager';
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import { CancellablePromise } from '../util/Cancellable';
@@ -191,9 +190,10 @@ export class Model {
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
-        const line = LineSnap.make(undefined, direction, origin);
+        const line = new AxisSnap(undefined, direction, origin);
         this.restrictions.push(line);
         this._restrictionSnaps.push(line);
+        this.choice = line;
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {

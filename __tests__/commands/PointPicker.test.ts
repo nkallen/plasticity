@@ -1,4 +1,3 @@
-import { inst2curve } from "../../src/util/Conversion";
 import * as THREE from "three";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
@@ -10,9 +9,10 @@ import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisAxisCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, LineSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
+import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
+import { inst2curve } from "../../src/util/Conversion";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import c3d from '../build/Release/c3d.node';
@@ -162,11 +162,15 @@ describe('restrictToLine', () => {
     test("restrictionsFor", () => {
         const restrictions = pointPicker.restrictionSnaps;
         expect(restrictions.length).toBe(1);
-        expect(restrictions[0]).toBeInstanceOf(LineSnap);
+        expect(restrictions[0]).toBeInstanceOf(AxisSnap);
     })
 
     test("snaps", () => {
         expect(pointPicker.snaps.length).toBe(0);
+    })
+
+    test("choice", () => {
+        expect(pointPicker.choice).toBeInstanceOf(AxisSnap);
     })
 });
 

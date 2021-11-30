@@ -476,44 +476,6 @@ export class NormalAxisSnap extends PointAxisSnap {
     }
 }
 
-// A line snap looks like an axis snap (it has a Line helper) but valid click targets are actually
-// any where other than the line's origin. It's used mainly for extruding, where you want to limit
-// the direction of extrusion but allow the user to move the mouse wherever.
-
-export class LineSnap extends Snap {
-    readonly snapper = new THREE.Group().add(this.plane1.snapper, this.plane2.snapper);
-    readonly helper = this.axis.helper.clone();
-
-    static make(name: string | undefined, direction: THREE.Vector3, origin: THREE.Vector3) {
-        const p = new THREE.Vector3(1, 0, 0);
-        p.cross(direction);
-        if (p.lengthSq() < 10e-5) {
-            const p = new THREE.Vector3(0, 1, 0);
-            p.cross(direction);
-        }
-
-        const axis = new AxisSnap(name, direction, origin);
-        const plane1 = new PlaneSnap(p, origin);
-
-        const p2 = new THREE.Vector3().copy(p).cross(direction);
-        const plane2 = new PlaneSnap(p2, origin);
-
-        return new LineSnap(name, axis, plane1, plane2);
-    }
-
-    private constructor(readonly name: string | undefined, private readonly axis: AxisSnap, readonly plane1: PlaneSnap, readonly plane2: PlaneSnap) {
-        super();
-        this.init();
-    }
-
-    project(point: THREE.Vector3) {
-        return this.axis.project(point);
-    }
-
-    isValid(pt: THREE.Vector3): boolean {
-        return this.axis.isValid(pt);
-    }
-}
 const mat = new THREE.MeshBasicMaterial();
 mat.side = THREE.DoubleSide;
 
