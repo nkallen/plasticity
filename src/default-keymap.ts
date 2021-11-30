@@ -142,6 +142,10 @@ export default {
         "numpad1": "viewport:front",
         "numpad3": "viewport:right",
         "numpad7": "viewport:top",
+
+        "shift-numpad1": "viewport:back",
+        "shift-numpad3": "viewport:left",
+        "shift-numpad7": "viewport:bottom",
     },
 
     "body[command] ispace-viewport": {
