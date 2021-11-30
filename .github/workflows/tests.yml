@@ -14,7 +14,27 @@ jobs:
       - run: 7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
       - run: yarn install
       - run: yarn generate
-      - run: npm install -g node-gyp
-      - run: node-gyp configure
-      - run: yarn build
+      - run: yarn run node-gyp rebuild -j max
+      - run: echo "${{ secrets.C3D_LICENSE_KEY_WIN }}" > "license-key.json"
       - run: yarn test
+      - run: yarn make
+
+      - run: choco install curl
+      - name: Tests ✅
+        if: ${{ success() }}
+        run: |
+          curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{
+            "context": "tests",
+            "state": "success",
+            "description": "Tests passed",
+            "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }'
+      - name: Tests 🚨
+        if: ${{ failure() }}
+        run: |
+          curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{
+            "context": "tests",
+            "state": "failure",
+            "description": "Tests failed",
+            "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }'
