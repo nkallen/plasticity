@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Boxcastable, Boxcaster, IntersectionType } from "../selection/Boxcaster";
+import { Intersectable } from "./Intersectable";
 import { Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
@@ -14,8 +15,8 @@ declare module './VisualModel' {
 }
 
 Solids: {
-    Solid.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
-        const low = this.lod.low; // Lowest detail
+    Solid.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
+        const low = this.lod.low;
         const edges = low.edges;
         const faces = low.faces
         faces.boxcast(type, boxcaster, selects);
@@ -24,13 +25,12 @@ Solids: {
     }
 
     Solid.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
-        const low = this.lod.low; // Lowest detail
-        const edges = low.edges;
+        const low = this.lod.low;
         const faces = low.faces;
         return faces.intersectsBounds(boxcaster);
     }
 
-    FaceGroup.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
+    FaceGroup.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
         if (type == 'contained') {
             for (const face of this) {
                 selects.push(face);
@@ -74,7 +74,7 @@ Solids: {
         }
     }
 
-    Face.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
+    Face.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
         if (type == 'contained') {
             selects.push(this);
         } else if (type == 'intersected') {
@@ -149,7 +149,7 @@ Solids: {
     }
 
     CurveGroup.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
-        const { mesh: { matrixWorld }, line: { geometry } } = this;
+        const { line: { geometry, matrixWorld } } = this;
 
         if (geometry.boundingBox === null) geometry.computeBoundingBox();
         _box.copy(geometry.boundingBox!);
@@ -165,17 +165,17 @@ Solids: {
         }
     }
 
-    CurveGroup.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
+    CurveGroup.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
         if (type == 'contained') {
-            for (const edge of this) {
-                selects.push(edge);
+            for (const element of this) {
+                selects.push(element);
             }
         } else if (type == 'intersected') {
             boxcaster.selectObjects([...this], selects);
         }
     }
 
-    CurveEdge.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
+    CurveEdge.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
         if (type == 'contained') {
             selects.push(this);
         } else if (type == 'intersected') {
@@ -250,9 +250,10 @@ Solids: {
 }
 
 Curves: {
-    SpaceInstance.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
+    SpaceInstance.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
         const underlying = this.underlying as Curve3D;
-        return underlying.boxcast(type, boxcaster, selects);
+        if (type == 'contained') selects.push(underlying);
+        else boxcaster.selectObject(underlying, selects);
     }
 
     SpaceInstance.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
@@ -260,20 +261,36 @@ Curves: {
         return underlying.intersectsBounds(boxcaster);
     }
 
-    Curve3D.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
-        return this.segments.boxcast(type, boxcaster, selects);
+    Curve3D.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
+        if (type == 'contained') {
+            selects.push(this);
+        } else if (type == 'intersected') {
+            boxcaster.selectGeometry(this, selects);
+        }
     }
 
     Curve3D.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
         return this.segments.intersectsBounds(boxcaster);
     }
 
-    CurveSegment.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
-        if (type == 'contained') {
-            selects.push(this);
-        } else if (type == 'intersected') {
-            boxcaster.selectGeometry(this, selects);
+    Curve3D.prototype.containsGeometry = function (boxcaster: Boxcaster) {
+        for (const segment of this.segments) {
+            const i = segment.intersectsBounds(boxcaster);
+            if (i == 'not-intersected') return false;
+            if (i == 'contained') continue;
+            if (!segment.containsGeometry(boxcaster)) return false;
         }
+        return true;
+    }
+
+    Curve3D.prototype.intersectsGeometry = function (boxcaster: Boxcaster) {
+        for (const segment of this.segments) {
+            const i = segment.intersectsBounds(boxcaster);
+            if (i == 'not-intersected') continue;
+            if (i == 'contained') return true;
+            if (segment.intersectsGeometry(boxcaster)) return true;
+        }
+        return false;
     }
 
     CurveSegment.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
@@ -343,9 +360,9 @@ Curves: {
 }
 
 Regions: {
-    PlaneInstance.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
+    PlaneInstance.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
         const underlying = this.underlying as Region;
-        return underlying.boxcast(type, boxcaster, selects);
+        return boxcaster.selectObject(underlying, selects);
     }
 
     PlaneInstance.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
@@ -369,7 +386,7 @@ Regions: {
         }
     }
 
-    Region.prototype.boxcast = function (type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]) {
+    Region.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
         if (type == 'contained') {
             selects.push(this);
         } else if (type == 'intersected') {
@@ -412,7 +429,7 @@ Regions: {
 
         const start = drawRange.start;
         const end = Math.min(index.count, drawRange.start + drawRange.count);
-        
+
         for (let i = start; i < end; i += 3) {
             const a = index.getX(i + 0);
             const b = index.getX(i + 1);

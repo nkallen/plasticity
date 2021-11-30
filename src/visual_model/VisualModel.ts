@@ -143,6 +143,12 @@ export class CurveSegment extends THREE.Object3D {
         this.userData = userData;
     }
 
+    get parentItem(): SpaceInstance<Curve3D> {
+        const result = this.parent!.parent!.parent;
+        if (!(result instanceof SpaceInstance)) throw new Error("Invalid precondition");
+        return result;
+    }
+
     dispose() { }
 }
 

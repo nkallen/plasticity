@@ -3,7 +3,7 @@ import * as THREE from "three";
 export type IntersectionType = 'not-intersected' | 'intersected' | 'contained';
 
 export interface Boxcastable {
-    boxcast(type: IntersectionType, boxcaster: Boxcaster, selects: Boxcastable[]): void;
+    boxcast(type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]): void;
     intersectsBounds(boxcaster: Boxcaster): IntersectionType;
     containsGeometry(boxcaster: Boxcaster): boolean;
     intersectsGeometry(boxcaster: Boxcaster): boolean;
@@ -19,6 +19,7 @@ type CameraLike = THREE.Camera & {
 export class Boxcaster {
     readonly startPoint = new THREE.Vector3();
     readonly endPoint = new THREE.Vector3();
+    private collection = [];
     readonly frustum = new THREE.Frustum();
     private mode: 'contains' | 'intersects' = 'contains';
     private readonly deep = Number.MAX_VALUE;
@@ -30,7 +31,7 @@ export class Boxcaster {
         if (!this.layers.test(object.layers)) return selected;
 
         const bounds = object.intersectsBounds(this);
-        if (bounds == 'not-intersected') selected;
+        if (bounds == 'not-intersected') return selected;
 
         object.boxcast(bounds, this, selected);
         return selected;

@@ -38,8 +38,8 @@ export class OrbitControls extends THREE.EventDispatcher {
     rotateSpeed = 1;
     panSpeed = 1;
 
-    minDistance = 0;
-    maxDistance = Infinity;
+    minDistance = 50;
+    maxDistance = 200;
     minZoom = 0;
     maxZoom = Infinity;
     minPolarAngle = 0;

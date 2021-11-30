@@ -103,19 +103,19 @@ describe('visual.SpaceInstance<visual.Curve3D>', () => {
     })
 
     test('intersectsBounds', () => {
-        expect(curve.intersectsBounds(boxcaster)).toBe('intersected');
+        expect(curve.intersectsBounds(boxcaster)).toBe('contained');
     })
 
     test('boxcast contains', () => {
         const selects: Boxcastable[] = [];
         expect(curve.boxcast('contained', boxcaster, selects));
-        expect(selects).toHaveLength(1);
+        expect(selects).toEqual([curve.underlying]);
     })
 
     test('boxcast intersected', () => {
         const selects: Boxcastable[] = [];
         expect(curve.boxcast('intersected', boxcaster, selects));
-        expect(selects).toHaveLength(1);
+        expect(selects).toEqual([curve.underlying]);
     })
 
     test('containsGeometry full containment', async () => {
