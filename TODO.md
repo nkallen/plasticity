@@ -4,10 +4,6 @@
 
 ### Backlog
 
-- [ ] Investigate bridge curves  
-- [ ] Trim doesn't work  
-- [ ] PointSnap resolution for nearby seems wrong  
-- [ ] boxcasting not working with control points, curves, regions  
 - [ ] in xray mode, control points not visible  
 - [ ] bug: variable fillet broken  
 - [ ] move all static buuild() methods to builder, using var ts decl  
@@ -55,9 +51,14 @@
 
 ### Todo
 
+- [ ] boxcasting not working with control points, curves, regions  
+- [ ] PointSnap resolution for nearby seems wrong  
+- [ ] Trim doesn't work  
+- [ ] Investigate bridge curves  
 
 ### In Progress
 
+- [ ] Add settings for loft  
 
 ### Done ✓
 

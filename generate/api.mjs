@@ -1186,6 +1186,8 @@ export default {
             initializers: [""],
             fields: [
                 "bool closed",
+                "double derFactor1",
+                "double derFactor2",
             ]
         },
         EvolutionValues: {

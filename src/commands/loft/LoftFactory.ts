@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
-import { point2point, curve3d2curve2d, vec2vec, composeMainName } from '../../util/Conversion';
+import { point2point, curve3d2curve2d, vec2vec, composeMainName, unit, inst2curve } from '../../util/Conversion';
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
 export default class LoftFactory extends GeometryFactory {
@@ -16,8 +16,7 @@ export default class LoftFactory extends GeometryFactory {
 
         for (const curve of curves) {
             const instance = this.db.lookup(curve);
-            const item = instance.GetSpaceItem()!;
-            const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+            const curve3d = inst2curve(instance)!;
             const planar = curve3d2curve2d(curve3d, new c3d.Placement3D());
             if (planar === undefined) throw new ValidationError("Curve cannot be converted to planar");
             const contour = new c3d.Contour([planar.curve], true);
@@ -45,8 +44,8 @@ export default class LoftFactory extends GeometryFactory {
             ns.push(maker);
         }
         const params = new c3d.LoftedValues();
-        params.thickness1 = thickness;
-        params.thickness2 = thickness;
+        params.thickness1 = unit(thickness);
+        params.thickness2 = unit(thickness);
         params.shellClosed = true;
         const placements = models.map(m => m.placement);
         const contours = models.map(m => m.contour);
