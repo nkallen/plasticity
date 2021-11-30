@@ -9,10 +9,11 @@ jobs:
         with:
           node-version: '16'
       - run: choco install wget --no-progress 
+      - run: choco install astyle
       - run: wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
       - run: 7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
       - run: yarn install
       - run: yarn generate
-      - run: node-gyp generate
+      - run: node-gyp configure
       - run: yarn build
       - run: yarn test
