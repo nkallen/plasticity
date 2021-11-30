@@ -15,7 +15,7 @@ jobs:
       - run: yarn install
       - run: yarn generate
       - run: yarn run node-gyp rebuild -j max
-      - run: echo "${{ secrets.C3D_LICENSE_KEY_WIN }}" > "license-key.json"
+      - run: echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
       - run: yarn test
       - run: yarn make
 
