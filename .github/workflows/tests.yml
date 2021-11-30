@@ -8,7 +8,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
-      - run: wget --user='${{ secrets.C3D_DOWNLOAD_USER }} --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
+      - run: wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
       - run: 7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
       - run: yarn install
       - run: yarn generate
