@@ -14,6 +14,7 @@ jobs:
       - run: 7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
       - run: yarn install
       - run: yarn generate
+      - run: npm install -g node-gyp
       - run: node-gyp configure
       - run: yarn build
       - run: yarn test
