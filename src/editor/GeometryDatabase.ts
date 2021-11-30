@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { PointsMaterial } from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
 import { SequentialExecutor } from '../util/SequentialExecutor';
