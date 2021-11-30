@@ -97,6 +97,7 @@ describe('visual.SpaceInstance<visual.Curve3D>', () => {
         camera.lookAt(0, 0, 0);
         camera.updateMatrixWorld();
         boxcaster = new Boxcaster(camera);
+        boxcaster.layers.enable(visual.Layers.Curve);
         boxcaster.startPoint.set(-1, -1, 0);
         boxcaster.endPoint.set(1, 1, 0);
         boxcaster.updateFrustum();
@@ -213,4 +214,51 @@ describe('visual.PlaneInstance<visual.Region>', () => {
         boxcaster.updateFrustum();
         expect(region.underlying.intersectsGeometry(boxcaster)).toBe(true);
     });
+})
+
+describe(visual.ControlPoint, () => {
+    let curve: visual.SpaceInstance<visual.Curve3D>;
+
+    beforeEach(async () => {
+        const makeCurve = new CurveFactory(db, materials, signals);
+        makeCurve.type = c3d.SpaceType.Polyline3D;
+
+        makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
+        makeCurve.points.push(new THREE.Vector3(1, 0, 0));
+        makeCurve.points.push(new THREE.Vector3(2, 2, 0));
+        curve = await makeCurve.commit() as visual.SpaceInstance<visual.Curve3D>;
+        curve.updateMatrixWorld();
+    })
+
+    let camera: THREE.OrthographicCamera;
+    let boxcaster: Boxcaster;
+
+    beforeEach(() => {
+        camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.001);
+        camera.up.set(0, 0, 1);
+        camera.position.set(0, 0, 10);
+        camera.lookAt(0, 0, 0);
+        camera.updateMatrixWorld();
+        boxcaster = new Boxcaster(camera);
+        boxcaster.layers.set(visual.Layers.ControlPoint);
+        boxcaster.startPoint.set(-1, -1, 0);
+        boxcaster.endPoint.set(1, 1, 0);
+        boxcaster.updateFrustum();
+    })
+
+    test('intersectsBounds', () => {
+        expect(curve.underlying.points.intersectsBounds(boxcaster)).toBe('contained');
+    })
+
+    test('boxcast contains', () => {
+        const selects: visual.ControlPoint[] = [];
+        expect(curve.boxcast('contained', boxcaster, selects));
+        expect(selects.map(s => s.simpleName)).toEqual([...curve.underlying.points].map(s => s.simpleName));
+    })
+
+    test('boxcast intersected', () => {
+        const selects: visual.ControlPoint[] = [];
+        expect(curve.underlying.points.boxcast('intersected', boxcaster, selects));
+        expect(selects.map(s => s.simpleName)).toEqual([...curve.underlying.points].map(s => s.simpleName));
+    })
 })

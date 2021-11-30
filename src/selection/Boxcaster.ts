@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { Layers } from "three";
 
 export type IntersectionType = 'not-intersected' | 'intersected' | 'contained';
 
@@ -28,7 +29,9 @@ export class Boxcaster {
     }
 
     selectObject<T extends Boxcastable>(object: T, selected: T[] = []): T[] {
+        console.log(object.layers, object.constructor.name);
         if (!this.layers.test(object.layers)) return selected;
+        console.log("pass");
 
         const bounds = object.intersectsBounds(this);
         if (bounds == 'not-intersected') return selected;
@@ -139,15 +142,6 @@ export class Boxcaster {
             planes[5].setFromCoplanarPoints(_vecFarDownRight, _vecFarTopRight, _vecFarTopLeft);
             planes[5].normal.multiplyScalar(- 1);
         }
-    }
-
-    searchChildInFrustum(frustum: THREE.Frustum, object: { isInFrustrum(): boolean }) {
-        // if (object.geometry.boundingSphere === null) object.geometry.computeBoundingSphere();
-        // _center.copy(object.geometry.boundingSphere.center);
-        // _center.applyMatrix4(object.matrixWorld);
-        // if (frustum.containsPoint(_center)) {
-        //     this.collection.push(object);
-        // }
     }
 }
 

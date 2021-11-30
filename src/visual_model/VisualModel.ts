@@ -160,6 +160,7 @@ export class Curve3D extends SpaceItem {
     constructor(readonly segments: CurveGroup<CurveSegment>, readonly points: ControlPointGroup) {
         super();
         this.add(segments, points);
+        this.layers.set(Layers.Curve);
     }
 
     get parentItem(): SpaceInstance<Curve3D> {
@@ -271,6 +272,7 @@ export class CurveEdge extends Edge {
     constructor(readonly group: Readonly<GeometryGroup>, userData: any) {
         super();
         this.userData = userData;
+        this.layers.set(Layers.CurveEdge);
     }
 
     slice() {
@@ -428,6 +430,7 @@ export class ControlPointGroup extends THREE.Object3D {
     constructor(readonly length = 0, readonly points: BetterRaycastingPoints) {
         super();
         this.add(points);
+        this.layers.set(Layers.ControlPoint);
     }
 
     get parentItem(): SpaceInstance<Curve3D> {

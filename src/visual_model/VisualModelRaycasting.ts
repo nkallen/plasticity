@@ -253,7 +253,6 @@ export class BetterRaycastingPoints extends THREE.Points {
         const { geometry, matrixWorld } = this;
         const camera = raycaster.camera as THREE.PerspectiveCamera | THREE.OrthographicCamera;
         const threshold = raycaster.params.Points?.threshold ?? 0;
-        const drawRange = geometry.drawRange;
 
         if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
         _sphere.copy(geometry.boundingSphere!).applyMatrix4(matrixWorld);
@@ -263,7 +262,7 @@ export class BetterRaycastingPoints extends THREE.Points {
         _inverseMatrix.copy(matrixWorld).invert();
         _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
 
-        const { attributes: { position: positionAttribute } } = geometry;
+        const { attributes: { position: positionAttribute }, drawRange } = geometry;
 
         const start = Math.max(0, drawRange.start);
         const end = Math.min(positionAttribute.count, (drawRange.start + drawRange.count));

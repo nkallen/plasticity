@@ -1,7 +1,6 @@
 import * as THREE from "three";
-import { Boxcastable, Boxcaster, IntersectionType } from "../selection/Boxcaster";
-import { Intersectable } from "./Intersectable";
-import { Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
+import { Boxcastable, Boxcaster } from "../selection/Boxcaster";
+import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
     interface Item extends Boxcastable { }
@@ -12,6 +11,8 @@ declare module './VisualModel' {
     interface Curve3D extends Boxcastable { }
     interface CurveSegment extends Boxcastable { }
     interface Region extends Boxcastable { }
+    interface ControlPointGroup extends Boxcastable { }
+    interface ControlPoint extends Boxcastable { }
 }
 
 Solids: {
@@ -252,8 +253,8 @@ Solids: {
 Curves: {
     SpaceInstance.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
         const underlying = this.underlying as Curve3D;
-        if (type == 'contained') selects.push(underlying);
-        else boxcaster.selectObject(underlying, selects);
+        boxcaster.selectObject(underlying, selects);
+        boxcaster.selectObject(underlying.points, selects);
     }
 
     SpaceInstance.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
@@ -356,6 +357,44 @@ Curves: {
             if (_frustum.intersectsLine(_line)) return true;
         }
         return false;
+    }
+
+    ControlPointGroup.prototype.intersectsBounds = function (boxcaster: Boxcaster) {
+        const parent = this.parentItem.underlying;
+        const { points: { matrixWorld, geometry } } = parent;
+        if (geometry.boundingBox === null) geometry.computeBoundingBox();
+        _box.copy(geometry.boundingBox!);
+        _box.applyMatrix4(matrixWorld);
+
+        if (boxcaster.frustum.containsPoint(_box.min) && boxcaster.frustum.containsPoint(_box.max)) {
+            return 'contained';
+        } else if (boxcaster.frustum.intersectsBox(_box)) {
+            return 'intersected';
+        } else {
+            return 'not-intersected';
+        }
+    }
+
+    ControlPointGroup.prototype.boxcast = function (type: 'intersected' | 'contained', boxcaster: Boxcaster, selects: Boxcastable[]) {
+        if (type == 'contained') {
+            for (const point of this) selects.push(point);
+        } else if (type == 'intersected') {
+            const parent = this.parentItem.underlying;
+            const { points: { matrixWorld, geometry } } = parent;
+            const { attributes: { position: positionAttribute }, drawRange } = geometry;
+    
+            _frustum.copy(boxcaster.frustum);
+            _inverseMatrix.copy(matrixWorld).invert();
+            _frustum.applyMatrix4(_inverseMatrix);
+    
+            const start = Math.max(0, drawRange.start);
+            const end = Math.min(positionAttribute.count, (drawRange.start + drawRange.count));
+    
+            for (let i = start, l = end; i < l; i++) {
+                _v.fromBufferAttribute(positionAttribute, i);
+                if (_frustum.containsPoint(_v)) selects.push(this.get(i));
+            }
+        }
     }
 }
 
