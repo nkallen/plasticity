@@ -1,41 +1,44 @@
 name: CI
 on: [push]
 jobs:
-  ci:
+  setup-server:
     runs-on: windows-latest
-    setup-server:
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '16.10.0'
-      - run: choco install wget --no-progress 
-      - run: choco install astyle
-    setup-repo:
-      needs: setup-server
-      - uses: actions/checkout@v2
-      - run: wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
-      - run: 7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
-      - run: yarn install
-    build:
-      needs: setup-repo
-      - run: yarn generate
-      - run: yarn run node-gyp rebuild -j max
-      - run: echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
-    test:
-      needs: build
-      - run: yarn test
-    publish:
-      needs: test
-      - run: yarn electron-rebuild
-      - run: yarn publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16.10.0'
+    - run: choco install wget --no-progress 
+    - run: choco install astyle
+  setup-repo:
+    runs-on: windows-latest
+    needs: setup-server
+    - uses: actions/checkout@v2
+    - run: wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
+    - run: 7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
+    - run: yarn install
+  build:
+    runs-on: windows-latest
+    needs: setup-repo
+    - run: yarn generate
+    - run: yarn run node-gyp rebuild -j max
+    - run: echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
+  test:
+    runs-on: windows-latest
+    needs: build
+    - run: yarn test
+  publish:
+    runs-on: windows-latest
+    needs: test
+    - run: yarn electron-rebuild
+    - run: yarn publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - run: choco install curl
-      # - name: Tests ✅
-      #   if: ${{ success() }}
-      #   run: |
-      #     curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{ "context": "tests", "state": "success", "description": "Tests passed", "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" }'
-      # - name: Tests 🚨
-      #   if: ${{ failure() }}
-      #   run: |
-      #     curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{ "context": "tests", "state": "failure", "description": "Tests failed", "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" }'
+    # - run: choco install curl
+    # - name: Tests ✅
+    #   if: ${{ success() }}
+    #   run: |
+    #     curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{ "context": "tests", "state": "success", "description": "Tests passed", "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" }'
+    # - name: Tests 🚨
+    #   if: ${{ failure() }}
+    #   run: |
+    #     curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{ "context": "tests", "state": "failure", "description": "Tests failed", "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" }'
