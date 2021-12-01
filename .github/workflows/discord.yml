@@ -10,4 +10,4 @@ jobs:
           node-version: '16.10.0'
           cache: 'yarn'
       - run: |
-        curl -H "Content-Type: application/json" -d '{"username":"test", "content":"hello"}' '${{ secrets.DISCORD_WEBOOK_URL }}'
+        echo "hello"
