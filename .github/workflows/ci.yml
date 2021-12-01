@@ -8,7 +8,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '16.10.0'
-          # cache: 'yarn'
+          cache: 'yarn'
       - name: Setup Repo
         run: |
           choco install wget --no-progress 
