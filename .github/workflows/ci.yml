@@ -28,6 +28,9 @@ jobs:
       - name: Run tests
         run: |
           yarn test
+      - name: Increment version
+        run: |
+          yarn version --prerelease
       - name: Publish canary release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
