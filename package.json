@@ -1,7 +1,7 @@
 {
     "name": "plasticity",
     "productName": "plasticity",
-    "version": "0.1.12-0",
+    "version": "0.1.13",
     "description": "Plasticity",
     "main": ".webpack/main",
     "scripts": {
@@ -167,6 +167,5 @@
         "three": "^0.135.0",
         "underscore-plus": "^1.7.0"
     },
-    "packageManager": "yarn@3.1.1",
-    "stableVersion": "0.1.11"
+    "packageManager": "yarn@3.1.1"
 }
