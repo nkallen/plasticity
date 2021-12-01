@@ -24,7 +24,7 @@ jobs:
           yarn install
       - name: Codegen C++ and build
         run: |
-          choco install astyle
+          choco install astyle --no-progress 
           yarn generate
           yarn run node-gyp rebuild -j max
       - name: Run tests
@@ -46,6 +46,6 @@ jobs:
           yarn publish
       - name: Post
         run: |
-          choco install curl
+          choco install curl --no-progress
           yarn echo-version
-          curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'
+          curl -H "Content-Type: application/json" -d "{`"username`": `"GitHub`", `"content`": `"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)`"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'

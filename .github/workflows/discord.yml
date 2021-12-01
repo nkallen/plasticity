@@ -1,8 +1,8 @@
 name: Discord
-on: [release]
+on: [push]
 jobs:
   notify:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -14,5 +14,6 @@ jobs:
           yarn install
       - name: Post
         run: |
+          choco install curl --no-progress
           yarn echo-version
-          curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v`yarn echo-version`\"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'
+          curl -H "Content-Type: application/json" -d "{`"username`": `"GitHub`", `"content`": `"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)`"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'

@@ -516,7 +516,6 @@ export class FastFrustum extends THREE.Frustum {
             if (entering) line.start.copy(_i);
             else if (leaving) line.end.copy(_i);
         }
-        // TODO: Investigate where this has floating point precision issues
         return this.containsPoint(line.start) || this.containsPoint(line.end);
     }
 
