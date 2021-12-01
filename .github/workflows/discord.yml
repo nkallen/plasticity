@@ -10,4 +10,5 @@ jobs:
           node-version: '16.10.0'
       - name: next
         run: |
+          yarn echo-version
           curl -H "Content-Type: application/json" -d "{\"username\": \"test\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v`yarn echo-version`\"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'

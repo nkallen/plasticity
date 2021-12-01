@@ -30,14 +30,14 @@ jobs:
       # - name: Run tests
       #   run: |
       #     yarn test
-      - name: Increment version
-        run: |
-          yarn plugin import version
-          yarn version patch
-          git config user.email "mr@roboto.com"
-          git config user.name "GitHub Action"
-          git commit -am "Update version"
-          git push
+      # - name: Increment version
+      #   run: |
+      #     yarn plugin import version
+      #     yarn version patch
+      #     git config user.email "mr@roboto.com"
+      #     git config user.name "GitHub Action"
+      #     git commit -am "Update version"
+      #     git push
       # - name: Publish canary release
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
