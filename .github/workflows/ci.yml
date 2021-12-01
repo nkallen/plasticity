@@ -44,3 +44,8 @@ jobs:
         run: |
           yarn electron-rebuild
           yarn publish
+      - name: Post
+        run: |
+          choco install curl
+          yarn echo-version
+          curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'
