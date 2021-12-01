@@ -25,11 +25,11 @@ jobs:
           choco install astyle
           yarn generate
           yarn run node-gyp rebuild -j max
-      - name: Run tests
-        run: yarn test
-      - name: Publish canary release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        - run: |
-          yarn electron-rebuild
-          yarn publish
+      # - name: Run tests
+      #   run: yarn test
+      # - name: Publish canary release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   - run: |
+      #     yarn electron-rebuild
+      #     yarn publish
