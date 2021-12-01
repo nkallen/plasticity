@@ -10,4 +10,4 @@ jobs:
           node-version: '16.10.0'
           cache: 'yarn'
       - run: |
-        curl -H "Content-Type: application/json" -d "{\"username\": \"test\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v`yarn echo-version`\"}" '${{ secrets.DISCORD_WEBOOK_URL }}'
+        curl -H "Content-Type: application/json" -d "{\"username\": \"test\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v\"}" '${{ secrets.DISCORD_WEBOOK_URL }}'
