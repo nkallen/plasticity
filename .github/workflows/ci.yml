@@ -10,7 +10,7 @@ jobs:
           node-version: '16.10.0'
           # cache: 'yarn'
       - name: Setup Repo
-        - run: |
+        run: |
           choco install wget --no-progress 
           wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
           7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
