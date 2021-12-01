@@ -5,6 +5,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v2
         with:
           node-version: '16.10.0'
@@ -30,9 +32,12 @@ jobs:
           yarn test
       - name: Increment version
         run: |
-          yarn --version
           yarn plugin import version
           yarn version patch
+          git config user.email "mr@roboto.com"
+          git config user.name "GitHub Action"
+          git commit -am "Update version"
+          git push
       - name: Publish canary release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
