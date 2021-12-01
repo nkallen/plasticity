@@ -34,6 +34,8 @@ jobs:
           yarn plugin import version
           yarn version patch
           git commit -am "Update version"
+          git config user.email "mr@roboto.com"
+          git config user.name "Github Action"
           git push
       # - name: Publish canary release
       #   env:
