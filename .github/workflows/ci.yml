@@ -3,35 +3,40 @@ on: [push]
 jobs:
   setup-server:
     runs-on: windows-latest
-    - uses: actions/setup-node@v2
-      with:
-        node-version: '16.10.0'
-    - run: choco install wget --no-progress 
-    - run: choco install astyle
+    steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16.10.0'
+      - run: choco install wget --no-progress 
+      - run: choco install astyle
   setup-repo:
     runs-on: windows-latest
     needs: setup-server
-    - uses: actions/checkout@v2
-    - run: wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
-    - run: 7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
-    - run: yarn install
+    steps:
+      - uses: actions/checkout@v2
+      - run: wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
+      - run: 7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
+      - run: yarn install
   build:
     runs-on: windows-latest
     needs: setup-repo
-    - run: yarn generate
-    - run: yarn run node-gyp rebuild -j max
-    - run: echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
+    steps:
+      - run: yarn generate
+      - run: yarn run node-gyp rebuild -j max
+      - run: echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
   test:
     runs-on: windows-latest
     needs: build
-    - run: yarn test
+    steps:
+      - run: yarn test
   publish:
     runs-on: windows-latest
     needs: test
-    - run: yarn electron-rebuild
-    - run: yarn publish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - run: yarn electron-rebuild
+      - run: yarn publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # - run: choco install curl
     # - name: Tests ✅
