@@ -5,6 +5,7 @@
     "description": "Plasticity",
     "main": ".webpack/main",
     "scripts": {
+        "echo-version": "echo $npm_package_version",
         "electron-rebuild": "electron-rebuild",
         "start": "electron-forge start",
         "package": "electron-forge package",
