@@ -11,6 +11,7 @@ import c3d from '../../build/Release/c3d.node';
 import '../matchers';
 import { RegionFactory } from "../../src/commands/region/RegionFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
+import { FastFrustum } from "../../src/visual_model/VisualModelBoxcasting";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -260,5 +261,36 @@ describe(visual.ControlPoint, () => {
         const selects: visual.ControlPoint[] = [];
         expect(curve.underlying.points.boxcast('intersected', boxcaster, selects));
         expect(selects.map(s => s.simpleName)).toEqual([...curve.underlying.points].map(s => s.simpleName));
+    })
+})
+
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+
+const _X = new THREE.Vector3(-1, 0, 0);
+const _Y = new THREE.Vector3(0, -1, 0);
+const _Z = new THREE.Vector3(0, 0, -1);
+
+describe(FastFrustum, () => {
+    const frustum = new FastFrustum(
+        new THREE.Plane(X, 1),
+        new THREE.Plane(Y, 1),
+        new THREE.Plane(Z, 1),
+        new THREE.Plane(_X, 1),
+        new THREE.Plane(_Y, 1),
+        new THREE.Plane(_Z, 1),
+    );
+
+    test('containsPoint', () => {
+        expect(frustum.containsPoint(new THREE.Vector3())).toBe(true);
+        expect(frustum.containsPoint(new THREE.Vector3(1, 1, 1))).toBe(true);
+        expect(frustum.containsPoint(new THREE.Vector3(10, 10, 10))).toBe(false);
+    })
+
+    test('intersectsLine', () => {
+        expect(frustum.intersectsLine(new THREE.Line3(_X, X))).toBe(true);
+        expect(frustum.intersectsLine(new THREE.Line3(new THREE.Vector3(-10, -10, -10), new THREE.Vector3(10, 10, 10)))).toBe(true);
+        expect(frustum.intersectsLine(new THREE.Line3(new THREE.Vector3(-10, -10, 0), new THREE.Vector3(-10, 10, 0)))).toBe(false);
     })
 })

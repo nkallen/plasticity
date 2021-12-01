@@ -496,7 +496,7 @@ Regions: {
     }
 }
 
-class FastFrustum extends THREE.Frustum {
+export class FastFrustum extends THREE.Frustum {
     applyMatrix4(matrix: THREE.Matrix4) {
         for (const plane of this.planes) {
             plane.applyMatrix4(matrix);
@@ -506,9 +506,18 @@ class FastFrustum extends THREE.Frustum {
 
     intersectsLine(line: THREE.Line3): boolean {
         for (const plane of this.planes) {
-            if (plane.intersectsLine(line)) return true;
+            const p1 = plane.distanceToPoint(line.start);
+            const p2 = plane.distanceToPoint(line.end);
+            const inside = p1 >= 0 && p2 >= 0;
+            if (inside) continue;
+            const entering = p1 < 0 && p2 >= 0;
+            const leaving = p1 >= 0 && p2 < 0;
+            plane.intersectLine(line, _i);
+            if (entering) line.start.copy(_i);
+            else if (leaving) line.end.copy(_i);
         }
-        return false;
+        // TODO: Investigate where this has floating point precision issues
+        return this.containsPoint(line.start) || this.containsPoint(line.end);
     }
 
     containsBox(box: THREE.Box3): boolean {
@@ -529,6 +538,7 @@ class FastFrustum extends THREE.Frustum {
 
 const _frustum = new FastFrustum();
 const _v = new THREE.Vector3();
+const _i = new THREE.Vector3();
 const _inverseMatrix = new THREE.Matrix4();
 const _box = new THREE.Box3();
 const _line = new THREE.Line3();
