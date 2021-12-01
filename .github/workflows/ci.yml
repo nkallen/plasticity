@@ -7,6 +7,6 @@ jobs:
       - name: Post
         run: |
           choco install curl --no-progress
-          curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"test\"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'
-          curl -H "Content-Type: application/json" -d "{`"username`": `"GitHub`", `"content`": `"https://github.com/nkallen/plasticity/releases/tag/v0`"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'
-          curl -H "Content-Type: application/json" -d '{"username": "GitHub", "content": "https://github.com/nkallen/plasticity/releases/tag/v1"}' '${{ secrets.DISCORD_WEBHOOK_URL }}'
+          curl -H "Content-Type: application/json" -d `{\"username\": \"GitHub\", \"content\": \"test\"}` '${{ secrets.DISCORD_WEBHOOK_URL }}'
+          # curl -H "Content-Type: application/json" -d "{`"username`": `"GitHub`", `"content`": `"https://github.com/nkallen/plasticity/releases/tag/v0`"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'
+          # curl -H "Content-Type: application/json" -d '{"username": "GitHub", "content": "https://github.com/nkallen/plasticity/releases/tag/v1"}' '${{ secrets.DISCORD_WEBHOOK_URL }}'
