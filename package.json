@@ -57,6 +57,18 @@
                     "config": {}
                 }
             ],
+            "publishers": [
+                {
+                    "name": "@electron-forge/publisher-github",
+                    "config": {
+                        "repository": {
+                            "owner": "nkallen",
+                            "name": "plasticity"
+                        },
+                        "prerelease": true
+                    }
+                }
+            ],
             "plugins": [
                 [
                     "@electron-forge/plugin-webpack",
@@ -93,6 +105,7 @@
         "@electron-forge/maker-zip": "^6.0.0-beta.61",
         "@electron-forge/plugin-auto-unpack-natives": "^6.0.0-beta.61",
         "@electron-forge/plugin-webpack": "^6.0.0-beta.61",
+        "@electron-forge/publisher-github": "^6.0.0-beta.61",
         "@types/event-kit": "^2.4.0",
         "@types/jest": "^26.0.22",
         "@types/signals": "^1.0.1",

@@ -17,24 +17,16 @@ jobs:
       - run: yarn run node-gyp rebuild -j max
       - run: echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
       - run: yarn test
-      - run: yarn make
+      - run: yarn publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - run: choco install curl
       - name: Tests ✅
         if: ${{ success() }}
         run: |
-          curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{
-            "context": "tests",
-            "state": "success",
-            "description": "Tests passed",
-            "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          }'
+          curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{ "context": "tests", "state": "success", "description": "Tests passed", "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" }'
       - name: Tests 🚨
         if: ${{ failure() }}
         run: |
-          curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{
-            "context": "tests",
-            "state": "failure",
-            "description": "Tests failed",
-            "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          }'
+          curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{ "context": "tests", "state": "failure", "description": "Tests failed", "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" }'
