@@ -30,6 +30,8 @@ jobs:
           yarn test
       - name: Increment version
         run: |
+          yarn --version
+          yarn plugin import version
           yarn version --prerelease
       - name: Publish canary release
         env:
