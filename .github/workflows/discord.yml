@@ -4,7 +4,7 @@ jobs:
   notify:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      # - uses: actions/checkout@v2
       # - uses: actions/setup-node@v2
       #   with:
       #     node-version: '16.10.0'
@@ -17,3 +17,5 @@ jobs:
       #     choco install curl --no-progress
       #     yarn echo-version
       #     curl -H "Content-Type: application/json" -d "{`"username`": `"GitHub`", `"content`": `"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)`"}" '${{ secrets.DISCORD_WEBHOOK_URL }}'
+      #     curl --% -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://gi0thub.com/nkallen/plasticity/releases/tag/v$(echo 1)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
+
