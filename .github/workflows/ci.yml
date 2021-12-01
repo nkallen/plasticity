@@ -9,23 +9,28 @@ jobs:
         with:
           node-version: '16.10.0'
           cache: 'yarn'
-      - name: Setup repo
+      - name: Download c3d libraries
         run: |
           choco install wget --no-progress 
           wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
           7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
-          yarn install
+      - name: Setup license key
+        run: |
           echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
+      - name: Yarn install
+        run: |
+          yarn install
       - name: Codegen C++ and build
         run: |
           choco install astyle
           yarn generate
           yarn run node-gyp rebuild -j max
       - name: Run tests
-        run: yarn test
-      # - name: Publish canary release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   - run: |
-      #     yarn electron-rebuild
-      #     yarn publish
+        run: |
+          yarn test
+      - name: Publish canary release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        - run: |
+          yarn electron-rebuild
+          yarn publish
