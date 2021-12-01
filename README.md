@@ -1,1 +1,1 @@
-![example workflow](https://github.com/github/docs/actions/workflows/ci.yml/badge.svg)
+![ci workflow](https://github.com/nkallen/plasticity/actions/workflows/ci.yml/badge.svg)
