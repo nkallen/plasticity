@@ -9,5 +9,3 @@ jobs:
         with:
           node-version: '16.10.0'
           cache: 'yarn'
-      - run: |
-        echo "hello"
