@@ -1,49 +1,32 @@
 name: CI
 on: [push]
 jobs:
-  setup-server:
+  test:
     runs-on: windows-latest
     steps:
+      - name: setup-server
       - uses: actions/setup-node@v2
         with:
           node-version: '16.10.0'
-  setup-repo:
-    runs-on: windows-latest
-    needs: setup-server
-    steps:
-      - run: choco install wget --no-progress 
-      - uses: actions/checkout@v2
-      - run: wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
-      - run: 7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
-      - run: yarn install
-  build:
-    runs-on: windows-latest
-    needs: setup-repo
-    steps:
-      - run: choco install astyle
-      - run: yarn generate
-      - run: yarn run node-gyp rebuild -j max
-      - run: echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
-  test:
-    runs-on: windows-latest
-    needs: build
-    steps:
-      - run: yarn test
-  publish:
-    runs-on: windows-latest
-    needs: test
-    steps:
-      - run: yarn electron-rebuild
-      - run: yarn publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    # - run: choco install curl
-    # - name: Tests ✅
-    #   if: ${{ success() }}
-    #   run: |
-    #     curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{ "context": "tests", "state": "success", "description": "Tests passed", "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" }'
-    # - name: Tests 🚨
-    #   if: ${{ failure() }}
-    #   run: |
-    #     curl --request POST           --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }}           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}'           --header 'content-type: application/json'           --data '{ "context": "tests", "state": "failure", "description": "Tests failed", "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" }'
+          cache: 'yarn'
+      - name: setup-repo
+        - uses: actions/checkout@v2
+        - run: |
+          choco install wget --no-progress 
+          wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
+          7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
+          yarn install
+          echo '${{ secrets.C3D_LICENSE_KEY_WIN }}' > "license-key.json"
+      - name: build
+        - run: |
+          choco install astyle
+          yarn generate
+          yarn run node-gyp rebuild -j max
+      - name: test
+        - run: yarn test
+      - name: canary-release
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        - run: |
+          yarn electron-rebuild
+          yarn publish
