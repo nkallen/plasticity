@@ -4,7 +4,6 @@
 
 ### Backlog
 
-- [ ] moving circle point doesn't work (drag and g)  
 - [ ] in xray mode, control points not visible  
 - [ ] PointSnap resolution for nearby seems wrong  
 - [ ] bug: variable fillet broken  
@@ -53,15 +52,16 @@
 
 ### Todo
 
-- [ ] dragging points seems broken  
 - [ ] Investigate bridge curves  
 
 ### In Progress
 
-- [ ] Trim doesn't work  
+- [ ] moving circle point doesn't work (drag and g)  
 
 ### Done ✓
 
+- [x] Trim doesn't work  
+- [x] dragging points seems broken  
 - [x] boxcasting not working with control points, curves, regions  
 - [x] make viewport control have a manager that always picks winner so two can't be running simultaneously  
 - [x] boolean needs movement  

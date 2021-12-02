@@ -223,8 +223,7 @@ Curves: {
         const is: THREE.Intersection[] = [];
         raycaster.intersectObject(this.points, false, is);
         for (const i of is) {
-            const object = new ControlPoint(inst, this.points, i.index!);
-            object.position.copy(i.point);
+            const object = this.get(i.index!);
             intersects.push({ ...i, object });
         }
     }

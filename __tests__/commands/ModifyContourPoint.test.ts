@@ -12,6 +12,7 @@ import * as visual from '../../src/visual_model/VisualModel';
 import { inst2curve } from "../../src/util/Conversion";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
@@ -24,7 +25,6 @@ beforeEach(async () => {
     db = new GeometryDatabase(materials, signals);
 })
 
-
 const center = new THREE.Vector3();
 const bbox = new THREE.Box3();
 
@@ -34,6 +34,31 @@ describe(MoveContourPointFactory, () => {
     beforeEach(() => {
         changePoint = new MoveContourPointFactory(db, materials, signals);
     })
+
+    describe.skip('Arc3D', () => {
+        beforeEach(async () => {
+            const makeCircle = new CenterCircleFactory(db, materials, signals);
+            makeCircle.center = new THREE.Vector3();
+            makeCircle.radius = 1;
+            curve = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+        });
+
+        test.only('moving point', async () => {
+            changePoint.controlPoints = [curve.underlying.points.get(0)];
+            const contour = await changePoint.prepare(curve);
+            changePoint.contour = contour;
+            changePoint.originalItem = curve;
+            changePoint.move = new THREE.Vector3(2, 0, 0);
+            const newCurve = await changePoint.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+            bbox.setFromObject(newCurve);
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-3, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(3, 0, 0));
+            expect(db.visibleObjects.length).toBe(1);
+        });
+    });
 
     describe('Polyline3D', () => {
         beforeEach(async () => {

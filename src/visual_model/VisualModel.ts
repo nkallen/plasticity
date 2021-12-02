@@ -440,14 +440,15 @@ export class ControlPointGroup extends THREE.Object3D {
     }
 
     *[Symbol.iterator]() {
-        const parentItem = this.parentItem;
         for (let i = 0; i < this.length; i++) {
-            yield new ControlPoint(parentItem, this.points, i);
+            yield this.get(i);
         }
     }
 
-    get(i: number) {
-        return new ControlPoint(this.parentItem, this.points, i);
+    get(i: number): ControlPoint {
+        const point = new ControlPoint(this.parentItem, this.points, i);
+        point.position.fromBufferAttribute(this.points.geometry.attributes.position, i);
+        return point;
     }
 
     get geometry() { return this.points.geometry }

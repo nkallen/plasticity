@@ -7,7 +7,7 @@ import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { RenderedSceneBuilder } from "../../src/visual_model/RenderedSceneBuilder";
-import { CurveEdge, CurveGroup, GeometryGroupUtils } from '../../src/visual_model/VisualModel';
+import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, GeometryGroupUtils, SpaceInstance } from '../../src/visual_model/VisualModel';
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import * as THREE from "three";
@@ -121,3 +121,18 @@ describe(CurveGroup, () => {
         });
     });
 });
+
+describe(ControlPointGroup, () => {
+    let circle: SpaceInstance<Curve3D>;
+
+    beforeEach(async () => {
+        makeCircle.center = new THREE.Vector3(0, 0, 0);
+        makeCircle.radius = 1;
+        circle = await makeCircle.commit() as SpaceInstance<Curve3D>;
+    })
+
+    test('get sets position', () => {
+        const point = circle.underlying.points.get(0);
+        expect(point.position).toEqual(new THREE.Vector3(1, 0, 0));
+    })
+})
