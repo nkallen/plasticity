@@ -5,7 +5,7 @@ import ContourManager from "../editor/curves/ContourManager";
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import { EditorOriginator, History } from "../editor/History";
-import { HasSelectedAndHovered } from "../selection/SelectionManager";
+import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { Cancel, Finish, Interrupt } from "../util/Cancellable";
 import { GConstructor } from "../util/Util";
 import Command from "./Command";
@@ -14,7 +14,7 @@ import { SelectionCommandManager } from "./SelectionCommandManager";
 
 export interface EditorLike {
     db: DatabaseLike;
-    selectionGizmo: SelectionCommandManager;
+    commandForSelection: SelectionCommandManager;
     registry: CommandRegistry;
     signals: EditorSignals;
     originator: EditorOriginator;
@@ -59,7 +59,7 @@ export class CommandExecutor {
             try {
                 await this.execute(next);
                 if (this.next === undefined) {
-                    const command = this.editor.selectionGizmo.commandFor(next);
+                    const command = this.editor.commandForSelection.commandFor(next);
                     if (command !== undefined) await this.enqueue(command, false, false);
                 }
             } catch (e) {
@@ -115,7 +115,7 @@ export class CommandExecutor {
     }
 
     async enqueueDefaultCommand() {
-        const command = this.editor.selectionGizmo.commandFor();
+        const command = this.editor.commandForSelection.commandFor();
         if (command) await this.enqueue(command, false, false);
     }
 

@@ -11,8 +11,8 @@ import TooltipManager from "../components/atom/tooltip-manager";
 import KeyboardEventManager from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { ModifierHighlightManager } from "../visual_model/RenderedSceneBuilder";
-import { SelectionInteractionManager, SelectionMode } from "../selection/SelectionInteraction";
-import { SelectionManager } from "../selection/SelectionManager";
+import { ChangeSelectionExecutor, SelectionMode } from "../selection/ChangeSelectionExecutor";
+import { SelectionDatabase } from "../selection/SelectionDatabase";
 import { Helpers } from "../util/Helpers";
 import { CreateMutable } from "../util/Util";
 import { Backup } from "./Backup";
@@ -47,7 +47,7 @@ export class Editor {
     readonly regions = new RegionManager(this._db, this.curves);
     readonly contours = new ContourManager(this._db, this.curves, this.regions);
 
-    readonly _selection = new SelectionManager(this._db, this.materials, this.signals);
+    readonly _selection = new SelectionDatabase(this._db, this.materials, this.signals);
 
     readonly modifiers = new ModifierManager(this.contours, this._selection, this.materials, this.signals);
     readonly selection = this.modifiers;
@@ -60,8 +60,8 @@ export class Editor {
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals);
-    readonly selectionInteraction = new SelectionInteractionManager(this.modifiers, this.materials, this.signals);
-    readonly selectionGizmo = new SelectionCommandManager(this);
+    readonly changeSelection = new ChangeSelectionExecutor(this.modifiers, this.materials, this.signals);
+    readonly commandForSelection = new SelectionCommandManager(this);
     readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.modifiers, this.viewports);
     readonly history = new History(this.originator, this.signals);
     readonly executor = new CommandExecutor(this);

@@ -2,7 +2,7 @@ import c3d from '../build/Release/c3d.node';
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import * as visual from '../visual_model/VisualModel';
 
-abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem | visual.ControlPoint, S extends c3d.SimpleName | string> {
+abstract class AbstractTypedSelection<T extends visual.Item | visual.TopologyItem | visual.ControlPoint, S extends c3d.SimpleName | string> {
     size: number;
 
     constructor(
@@ -30,19 +30,19 @@ abstract class AbstractSelection<T extends visual.Item | visual.TopologyItem | v
     abstract lookupById(id: S): T;
 }
 
-export class ItemSelection<T extends visual.Item> extends AbstractSelection<T, c3d.SimpleName> {
+export class ItemSelection<T extends visual.Item> extends AbstractTypedSelection<T, c3d.SimpleName> {
     lookupById(id: c3d.SimpleName) {
         return this.db.lookupItemById(id).view as T;
     }
 }
 
-export class TopologyItemSelection<T extends visual.TopologyItem> extends AbstractSelection<T, string> {
+export class TopologyItemSelection<T extends visual.TopologyItem> extends AbstractTypedSelection<T, string> {
     lookupById(id: string) {
         const views = [...this.db.lookupTopologyItemById(id).views];
         return views[views.length - 1] as T;
     }
 }
-export class ControlPointSelection extends AbstractSelection<visual.ControlPoint, string> {
+export class ControlPointSelection extends AbstractTypedSelection<visual.ControlPoint, string> {
     lookupById(id: string) {
         return this.db.lookupControlPointById(id).views.values().next().value;
     }

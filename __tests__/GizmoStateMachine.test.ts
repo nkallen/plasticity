@@ -10,7 +10,7 @@ import { Editor } from "../src/editor/Editor";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { SelectionManager } from "../src/selection/SelectionManager";
+import { SelectionDatabase } from "../src/selection/SelectionDatabase";
 import { MakeViewport } from "../__mocks__/FakeViewport";
 
 class FakeGizmo extends AbstractGizmo<() => void> {
@@ -39,7 +39,7 @@ let signals: EditorSignals;
 let viewport: Viewport;
 let editor: Editor;
 let gizmo: FakeGizmo;
-let selection: SelectionManager;
+let selection: SelectionDatabase;
 let gizmos: GizmoMaterialDatabase;
 
 beforeEach(() => {

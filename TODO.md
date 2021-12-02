@@ -5,6 +5,7 @@
 ### Backlog
 
 - [ ] in xray mode, control points not visible  
+- [ ] PointSnap resolution for nearby seems wrong  
 - [ ] bug: variable fillet broken  
 - [ ] move all static buuild() methods to builder, using var ts decl  
 - [ ] Refactor curve extension code  
@@ -25,6 +26,7 @@
 - [ ] camera near plane sucks with ortho now  
 - [ ] Redo titlebar to save space  
 - [ ] crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196  
+- [ ] Add settings for loft  
 - [ ] performance audit hit testing and snaps - use gpu picking #performance  
 - [ ] memoize and discretize calculations like fillet #performance  
 - [ ] memoize mesh generation of faces in mesh creator (for the duration of a command). #performance  
@@ -41,7 +43,6 @@
 - [ ] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
 - [ ] currently FINISH is always available, even at step 1 of 3 points box. #bug - registry.add(command:finish) should maybe not happen in command executor but in await this.finished  
 - [ ] ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909  
-- #bug  
 - [ ] rename Id() .id  
 - [ ] audit array conversion is reserving and freeing elements:  
 - ::AddRefItems( curveArray );  
@@ -51,17 +52,16 @@
 
 ### Todo
 
-- [ ] boxcasting not working with control points, curves, regions  
-- [ ] PointSnap resolution for nearby seems wrong  
-- [ ] Trim doesn't work  
+- [ ] dragging points seems broken  
 - [ ] Investigate bridge curves  
 
 ### In Progress
 
-- [ ] Add settings for loft  
+- [ ] Trim doesn't work  
 
 ### Done ✓
 
+- [x] boxcasting not working with control points, curves, regions  
 - [x] make viewport control have a manager that always picks winner so two can't be running simultaneously  
 - [x] boolean needs movement  
 - [x] Allow gettings edge selection from creators  

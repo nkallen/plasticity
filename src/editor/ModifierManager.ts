@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
-import { ItemSelection } from "../selection/Selection";
-import { HasSelectedAndHovered, ModifiesSelection } from "../selection/SelectionManager";
+import { ItemSelection } from "../selection/TypedSelection";
+import { HasSelectedAndHovered, ModifiesSelection } from "../selection/SelectionDatabase";
 import { SelectionProxy } from "../selection/SelectionProxy";
 import { GConstructor } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";

@@ -8,7 +8,7 @@ import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import MaterialDatabase from '../src/editor/MaterialDatabase';
 import { RenderedSceneBuilder } from "../src/visual_model/RenderedSceneBuilder";
 import { CurveEdge, CurveGroup, GeometryGroupUtils } from '../src/visual_model/VisualModel';
-import { SelectionManager } from "../src/selection/SelectionManager";
+import { SelectionDatabase } from "../src/selection/SelectionDatabase";
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import * as THREE from "three";
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
@@ -22,7 +22,7 @@ let db: GeometryDatabase;
 let signals: EditorSignals;
 let makeRegion: RegionFactory;
 let highlighter: RenderedSceneBuilder;
-let selection: SelectionManager;
+let selection: SelectionDatabase;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -32,7 +32,7 @@ beforeEach(() => {
     makeLine = new LineFactory(db, materials, signals);
     makeCircle = new CenterCircleFactory(db, materials, signals);
     makeRegion = new RegionFactory(db, materials, signals);
-    selection = new SelectionManager(db, materials, signals);
+    selection = new SelectionDatabase(db, materials, signals);
     highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
 });
 

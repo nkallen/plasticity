@@ -68,7 +68,7 @@ export class ViewportSelector extends AbstractViewportSelector {
     }
 
     protected processBoxHover(selected: Set<intersectable.Intersectable>) {
-        this.editor.selectionInteraction.onBoxHover(selected);
+        this.editor.changeSelection.onBoxHover(selected);
     }
 
     protected processBoxSelect(selected: Set<intersectable.Intersectable>) {
@@ -82,7 +82,7 @@ export class ViewportSelector extends AbstractViewportSelector {
     }
 
     protected processHover(intersects: intersectable.Intersection[]) {
-        this.editor.selectionInteraction.onHover(intersects);
+        this.editor.changeSelection.onHover(intersects);
     }
 }
 

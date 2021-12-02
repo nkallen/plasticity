@@ -59,7 +59,7 @@ export class Model {
                 }
             }
         }
-        this.editor.selectionInteraction.onBoxHover(new Set(result));
+        this.editor.changeSelection.onBoxHover(new Set(result));
         return result;
     }
 

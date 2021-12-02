@@ -7,6 +7,7 @@ import { ViewportControlMultiplexer } from "../src/components/viewport/ViewportC
 import { ViewportPointControl } from "../src/components/viewport/ViewportPointControl";
 import { Editor } from "../src/editor/Editor";
 import { ViewportSelector } from "../src/selection/ViewportSelector";
+import { Intersection } from "../src/visual_model/Intersectable";
 import { MakeViewport } from "../__mocks__/FakeViewport";
 import './matchers';
 
@@ -37,15 +38,15 @@ describe(ViewportControlMultiplexer, () => {
     })
 
     test('add & remove', () => {
-        multiplexer.add(selector);
-        multiplexer.add(pointControl);
-        multiplexer.remove(selector);
-        multiplexer.remove(pointControl);
+        multiplexer.push(selector);
+        multiplexer.push(pointControl);
+        multiplexer.delete(selector);
+        multiplexer.delete(pointControl);
     });
 
     test('hover multiplexes', () => {
-        multiplexer.add(selector);
-        multiplexer.add(pointControl);
+        multiplexer.push(selector);
+        multiplexer.push(pointControl);
 
         const startHover1 = jest.spyOn(selector, 'startHover');
         const continueHover1 = jest.spyOn(selector, 'continueHover');
@@ -67,11 +68,11 @@ describe(ViewportControlMultiplexer, () => {
         expect(endHover1).toBeCalledTimes(1);
         expect(endHover2).toBeCalledTimes(1);
     });
-    
+
     describe('click picks a winner and delegates all subsequent commands', () => {
         beforeEach(() => {
-            multiplexer.add(selector);
-            multiplexer.add(pointControl);
+            multiplexer.push(selector);
+            multiplexer.push(pointControl);
         });
 
         test('when the first control returns true', () => {
@@ -128,12 +129,12 @@ describe(ViewportControlMultiplexer, () => {
                 const startDrag1 = jest.spyOn(selector, 'startDrag');
                 const continueDrag1 = jest.spyOn(selector, 'continueDrag');
                 const endDrag1 = jest.spyOn(selector, 'endDrag');
-    
+
                 const startClick2 = jest.spyOn(pointControl, 'startClick').mockReturnValue(true);
                 const startDrag2 = jest.spyOn(pointControl, 'startDrag');
                 const continueDrag2 = jest.spyOn(pointControl, 'continueDrag');
                 const endDrag2 = jest.spyOn(pointControl, 'endDrag');
-    
+
                 multiplexer.startClick([]);
                 expect(startClick1).toHaveBeenCalledTimes(1);
                 expect(startClick2).toHaveBeenCalledTimes(0);
@@ -152,4 +153,58 @@ describe(ViewportControlMultiplexer, () => {
             });
         });
     });
+
+    describe('unshift adds something of highest priority', () => {
+        let priority: ViewportSelector;
+
+        beforeEach(() => {
+            multiplexer.push(selector);
+            multiplexer.push(pointControl);
+        });
+
+        beforeEach(() => {
+            priority = new ViewportSelector(viewport, editor);
+            multiplexer.unshift(priority);
+        })
+
+        let startClick1: jest.SpyInstance<boolean, [intersections: Intersection[]]>, startClick2: jest.SpyInstance<boolean, [intersections: Intersection[]]>, startClick3: jest.SpyInstance<boolean, [intersections: Intersection[]]>;
+        let endClick1: jest.SpyInstance<void, [intersections: Intersection[]]>, endClick2: jest.SpyInstance<void, [intersections: Intersection[]]>, endClick3: jest.SpyInstance<void, [intersections: Intersection[]]>;
+
+        beforeEach(() => {
+            startClick1 = jest.spyOn(selector, 'startClick').mockReturnValue(true);
+            endClick1 = jest.spyOn(selector, 'endClick');
+
+            startClick2 = jest.spyOn(pointControl, 'startClick').mockReturnValue(true);
+            endClick2 = jest.spyOn(pointControl, 'endClick');
+
+            startClick3 = jest.spyOn(priority, 'startClick').mockReturnValue(true);
+            endClick3 = jest.spyOn(priority, 'endClick');
+        })
+
+        test('when the first control returns true', () => {
+            multiplexer.startClick([]);
+            expect(startClick1).toHaveBeenCalledTimes(0);
+            expect(startClick2).toHaveBeenCalledTimes(0);
+            expect(startClick3).toHaveBeenCalledTimes(1);
+
+            multiplexer.endClick([]);
+            expect(endClick1).toHaveBeenCalledTimes(0);
+            expect(endClick2).toHaveBeenCalledTimes(0);
+            expect(endClick3).toHaveBeenCalledTimes(1);
+        });
+
+        test('remove goes back to normal', () => {
+            multiplexer.delete(priority);
+
+            multiplexer.startClick([]);
+            expect(startClick1).toHaveBeenCalledTimes(1);
+            expect(startClick2).toHaveBeenCalledTimes(0);
+            expect(startClick3).toHaveBeenCalledTimes(0);
+
+            multiplexer.endClick([]);
+            expect(endClick1).toHaveBeenCalledTimes(1);
+            expect(endClick2).toHaveBeenCalledTimes(0);
+            expect(endClick3).toHaveBeenCalledTimes(0);
+        })
+    })
 });

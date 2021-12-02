@@ -9,8 +9,8 @@ import ModifierManager from "../editor/ModifierManager";
 import { PlanarCurveDatabase } from "../editor/curves/PlanarCurveDatabase";
 import { SnapManager } from "../editor/snaps/SnapManager";
 import { SnapPresenter } from "../editor/snaps/SnapPresenter";
-import { SelectionInteractionManager } from "../selection/SelectionInteraction";
-import { HasSelectedAndHovered } from "../selection/SelectionManager";
+import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
+import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { CancellableRegistor } from "../util/Cancellable";
 import { Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
@@ -49,7 +49,7 @@ export interface EditorLike {
     registry: CommandRegistry,
     selection: HasSelectedAndHovered & ModifierManager,
     gizmos: GizmoMaterialDatabase,
-    selectionInteraction: SelectionInteractionManager,
+    changeSelection: ChangeSelectionExecutor,
     layers: LayerManager,
     activeViewport?: Viewport,
     enqueue(command: Command, interrupt?: boolean): Promise<void>,

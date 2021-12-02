@@ -30,7 +30,7 @@ export class ClickChangeSelectionCommand extends CommandLike {
 
 
     async execute(): Promise<void> {
-        this.point = this.editor.selectionInteraction.onClick(this.intersection)?.point;
+        this.point = this.editor.changeSelection.onClick(this.intersection)?.point;
     }
 
     shouldAddToHistory(selectionChanged: boolean) {
@@ -45,7 +45,7 @@ export class BoxChangeSelectionCommand extends CommandLike {
     ) { super(editor) }
 
     async execute(): Promise<void> {
-        this.editor.selectionInteraction.onBoxSelect(this.intersected);
+        this.editor.changeSelection.onBoxSelect(this.intersected);
     }
 
     shouldAddToHistory(selectionChanged: boolean) {
@@ -73,7 +73,7 @@ export class CreatorChangeSelectionCommand extends CommandLike {
 
     async execute(): Promise<void> {
         const { topologyItems } = this;
-        this.editor.selectionInteraction.onCreatorSelect(topologyItems);
+        this.editor.changeSelection.onCreatorSelect(topologyItems);
     }
 }
 

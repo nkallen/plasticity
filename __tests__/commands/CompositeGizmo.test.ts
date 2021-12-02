@@ -11,7 +11,7 @@ import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { SelectionManager } from "../../src/selection/SelectionManager";
+import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { CancellablePromise } from "../../src/util/Cancellable";
 import { Helpers } from "../../src/util/Helpers";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
@@ -24,7 +24,7 @@ let signals: EditorSignals;
 let helpers: Helpers;
 let editor: Editor;
 let viewport: Viewport;
-let selection: SelectionManager;
+let selection: SelectionDatabase;
 
 beforeEach(() => {
     editor = new Editor();

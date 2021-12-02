@@ -6,8 +6,8 @@ import { DatabaseLike } from '../editor/GeometryDatabase';
 import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { SelectionInteractionManager, SelectionMode } from '../selection/SelectionInteraction';
-import { HasSelection, Selectable, SelectionManager, ToggleableSet } from '../selection/SelectionManager';
+import { ChangeSelectionExecutor, SelectionMode } from '../selection/ChangeSelectionExecutor';
+import { HasSelection, Selectable, SelectionDatabase, ToggleableSet } from '../selection/SelectionDatabase';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from '../util/Cancellable';
 
@@ -16,42 +16,43 @@ interface EditorLike {
     viewports: Viewport[];
     signals: EditorSignals;
     materials: MaterialDatabase;
-    selectionInteraction: SelectionInteractionManager;
+    changeSelection: ChangeSelectionExecutor;
     layers: LayerManager;
 }
 
-class MyViewportSelector extends AbstractViewportSelector {
-    private interaction = new SelectionInteractionManager(this.selection, this.editor.materials, this.editor.signals);
+export class ObjectPickerViewportSelector extends AbstractViewportSelector {
+    private changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.materials, this.editor.signals);
 
     constructor(
         viewport: Viewport,
         private readonly editor: EditorLike,
-        private readonly selection: SelectionManager,
+        private readonly selection: SelectionDatabase,
         private readonly onEmptyIntersection = () => { },
         raycasterParams: THREE.RaycasterParameters,
     ) {
         super(viewport, editor.layers, editor.db, editor.signals, raycasterParams);
-        this.selection.mode.add(SelectionMode.Curve);
+        this.selection.mode.add(SelectionMode.Curve); // FIXME: obviously not desirable
     }
 
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands temporarily modify the selection
-    protected processClick(intersections: Intersection[]) {
-        this.interaction.onClick(intersections);
+    processClick(intersections: Intersection[]) {
+        this.changeSelection.onClick(intersections);
         if (intersections.length === 0) this.onEmptyIntersection();
     }
 
-    protected processHover(intersects: Intersection[]) {
-        this.editor.selectionInteraction.onHover(intersects);
-    }
-
-    protected processBoxHover(selected: Set<Intersectable>): void {
-        this.editor.selectionInteraction.onBoxHover(selected);
-    }
-
-    protected processBoxSelect(selected: Set<Intersectable>): void {
-        this.interaction.onBoxSelect(selected);
+    processBoxSelect(selected: Set<Intersectable>): void {
+        this.changeSelection.onBoxSelect(selected);
         if (selected.size === 0) this.onEmptyIntersection();
+    }
+
+    // That said, hover works as normal
+    processHover(intersects: Intersection[]) {
+        this.editor.changeSelection.onHover(intersects);
+    }
+
+    processBoxHover(selected: Set<Intersectable>): void {
+        this.editor.changeSelection.onBoxHover(selected);
     }
 }
 
@@ -76,7 +77,7 @@ export class ObjectPicker {
             editor.signals.objectRemoved.add(signals.objectRemoved.dispatch);
             disposables.add(new Disposable(() => editor.signals.objectRemoved.remove(signals.objectRemoved.dispatch)));
 
-            const selection = new SelectionManager(editor.db, editor.materials, signals, this.mode);
+            const selection = new SelectionDatabase(editor.db, editor.materials, signals, this.mode);
 
             if (cb !== undefined) {
                 signals.objectSelected.add(cb);
@@ -87,10 +88,11 @@ export class ObjectPicker {
             disposables.add(new Disposable(() => signals.objectSelected.remove(finish)));
 
             for (const viewport of this.editor.viewports) {
-                viewport.selector.enabled = false;
+                viewport.disableControls(viewport.navigationControls);
                 disposables.add(new Disposable(() => viewport.enableControls()));
 
-                const selector = new MyViewportSelector(viewport, editor, selection, finish, this.raycasterParams);
+                const selector = new ObjectPickerViewportSelector(viewport, editor, selection, finish, this.raycasterParams);
+                selector.addEventLiseners();
 
                 disposables.add(new Disposable(() => selector.dispose()));
             }

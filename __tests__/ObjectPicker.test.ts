@@ -3,56 +3,94 @@
  */
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
-import { ObjectPicker } from "../src/commands/ObjectPicker";
-import { EditorSignals } from '../src/editor/EditorSignals';
+import { ObjectPicker, ObjectPickerViewportSelector } from "../src/commands/ObjectPicker";
+import { Viewport } from "../src/components/viewport/Viewport";
+import { Editor } from "../src/editor/Editor";
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
-import MaterialDatabase from '../src/editor/MaterialDatabase';
+import { ChangeSelectionExecutor } from "../src/selection/ChangeSelectionExecutor";
+import { SelectionDatabase } from "../src/selection/SelectionDatabase";
 import * as visual from '../src/visual_model/VisualModel';
-import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";
-import { SelectionManager } from "../src/selection/SelectionManager";
-import { FakeMaterials } from "../__mocks__/FakeMaterials";
+import { MakeViewport } from "../__mocks__/FakeViewport";
 import './matchers';
 
 let db: GeometryDatabase;
-let materials: Required<MaterialDatabase>;
-let signals: EditorSignals;
-let makeCircle: CenterCircleFactory;
-let interaction: SelectionInteractionManager;
-let selection: SelectionManager;
+let changeSelection: ChangeSelectionExecutor;
+let selection: SelectionDatabase;
+let editor: Editor;
+let viewport: Viewport;
 
 beforeEach(() => {
-    materials = new FakeMaterials();
-    signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
-    makeCircle = new CenterCircleFactory(db, materials, signals);
-    selection = new SelectionManager(db, materials, signals);
-    interaction = new SelectionInteractionManager(selection, materials, signals);
+    editor = new Editor();
+    viewport = MakeViewport(editor);
+    editor.viewports.push(viewport);
+
+    db = editor._db;
+    selection = editor._selection;
+    changeSelection = editor.changeSelection;
 })
 
-test("selecting, deleting, then deselectAll works", async () => {
+let item: visual.SpaceInstance<visual.Curve3D>;
+beforeEach(async () => {
+    const makeCircle = new CenterCircleFactory(editor.db, editor.materials, editor.signals);
     makeCircle.center = new THREE.Vector3();
     makeCircle.radius = 1;
-    const item = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+    item = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
+});
 
-    const objectPicker = new ObjectPicker({
-        db,
-        viewports: [],
-        signals,
-        materials,
-        selectionInteraction: interaction,
+describe(ObjectPicker, () => {
+    test('execute disabled & re-enables viewport controls', async () => {
+        expect(viewport.multiplexer.enabled).toBe(true);
+        expect(viewport.navigationControls.enabled).toBe(true);
+
+        const objectPicker = new ObjectPicker(editor);
+        const promise = objectPicker.execute(() => { });
+
+        expect(viewport.multiplexer.enabled).toBe(false);
+        expect(viewport.navigationControls.enabled).toBe(true);
+
+        promise.finish();
+        await promise;
+
+        expect(viewport.multiplexer.enabled).toBe(true);
+        expect(viewport.navigationControls.enabled).toBe(true);
+    })
+
+    test('adds and removes event listeners', async () => {
+        const objectPicker = new ObjectPicker(editor);
+
+        const addEventListener = jest.spyOn(viewport.renderer.domElement, 'addEventListener');
+        const promise = objectPicker.execute(() => { });
+        expect(addEventListener).toBeCalledTimes(2);
+
+        const removeEventListener = jest.spyOn(viewport.renderer.domElement, 'removeEventListener');
+        promise.finish();
+        expect(removeEventListener).toBeCalledTimes(2);
+        await promise;
+    })
+});
+
+describe(ObjectPickerViewportSelector, () => {
+    let selector: ObjectPickerViewportSelector;
+    let selection: SelectionDatabase;
+    let onEmptyIntersection: jest.Mock<any, any>;
+
+    beforeEach(() => {
+        selection = new SelectionDatabase(db, editor.materials, editor.signals);
+        onEmptyIntersection = jest.fn();
+        selector = new ObjectPickerViewportSelector(viewport, editor, selection, onEmptyIntersection, {});
     });
-    const promise = objectPicker.execute(() => {});
 
-    interaction.onClick([{ object: item.underlying, point: new THREE.Vector3(), distance: 0 }]);
-    expect(selection.selected.curves.size).toBe(1);
+    test('processClick empty', () => {
+        expect(onEmptyIntersection).toBeCalledTimes(0);
+        selector.processClick([]);
+        expect(onEmptyIntersection).toBeCalledTimes(1);
+    });
 
-    await db.removeItem(item);
-
-    expect(selection.selected.curves.size).toBe(0);
-
-    promise.finish();
-
-    selection.selected.removeAll();
-
-    expect(selection.selected.curves.size).toBe(0);
+    test('processClick non-empty', () => {
+        expect(selection.selected.curves.size).toBe(0);
+        expect(onEmptyIntersection).toBeCalledTimes(0);
+        selector.processClick([{ object: item.underlying, point: new THREE.Vector3() }]);
+        expect(onEmptyIntersection).toBeCalledTimes(0);
+        expect(selection.selected.curves.size).toBe(1);
+    });
 });

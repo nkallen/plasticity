@@ -1,5 +1,5 @@
 import { ControlPoint, Curve3D, CurveEdge, Face, Item, PlaneInstance, Region, Solid, SpaceInstance } from "../visual_model/VisualModel";
-import { ModifiesSelection, Selectable } from "./SelectionManager";
+import { ModifiesSelection, Selectable } from "./SelectionDatabase";
 
 export class SelectionProxy implements ModifiesSelection {
     constructor(protected readonly selection: ModifiesSelection) { }

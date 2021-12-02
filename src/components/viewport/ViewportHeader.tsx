@@ -5,7 +5,7 @@ import grid from './img/ortho.svg';
 import perspective from './img/perspective.svg';
 import xray from './img/xray.svg';
 import * as THREE from "three";
-import { SelectionMode } from '../../selection/SelectionInteraction';
+import { SelectionMode } from '../../selection/ChangeSelectionExecutor';
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);

@@ -12,7 +12,7 @@ import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
 import ModifierManager, { ModifierStack } from '../../editor/ModifierManager';
 import * as visual from '../../visual_model/VisualModel';
-import { HasSelection } from '../../selection/SelectionManager';
+import { HasSelection } from '../../selection/SelectionDatabase';
 import { icons } from '../toolbar/icons';
 
 const emptyStack = {

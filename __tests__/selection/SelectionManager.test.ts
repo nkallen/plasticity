@@ -8,23 +8,23 @@ import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { Intersection } from '../../src/visual_model/Intersectable';
 import * as visual from '../../src/visual_model/VisualModel';
-import { SelectionInteractionManager } from '../../src/selection/SelectionInteraction';
-import { SelectionManager, Selection } from '../../src/selection/SelectionManager';
+import { ChangeSelectionExecutor } from '../../src/selection/ChangeSelectionExecutor';
+import { SelectionDatabase, Selection } from '../../src/selection/SelectionDatabase';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
-let selectionManager: SelectionManager;
-let interactionManager: SelectionInteractionManager;
+let selectionManager: SelectionDatabase;
+let interactionManager: ChangeSelectionExecutor;
 
 beforeEach(() => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    selectionManager = new SelectionManager(db, materials, signals);
-    interactionManager = new SelectionInteractionManager(selectionManager, materials, signals);
+    selectionManager = new SelectionDatabase(db, materials, signals);
+    interactionManager = new ChangeSelectionExecutor(selectionManager, materials, signals);
 });
 
 let solid: visual.Solid;
@@ -577,7 +577,7 @@ describe('onPointerMove', () => {
     });
 })
 
-describe(SelectionManager, () => {
+describe(SelectionDatabase, () => {
     test('hovering on a curve highlights the curve', () => {
         const intersections = [];
         intersections.push({

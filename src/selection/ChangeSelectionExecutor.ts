@@ -5,7 +5,7 @@ import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../visual_model/VisualModel';
 import { ClickStrategy } from './Click';
 import { HoverStrategy } from './Hover';
-import { HasSelectedAndHovered, Selectable } from './SelectionManager';
+import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
 
 export enum SelectionMode {
     CurveEdge, Face, Solid, Curve, ControlPoint
@@ -20,8 +20,7 @@ export interface SelectionStrategy {
     controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean;
 }
 
-// FIXME: rename selection interaction executor?
-export class SelectionInteractionManager {
+export class ChangeSelectionExecutor {
     private readonly clickStrategy: ClickStrategy;
     private readonly hoverStrategy: HoverStrategy;
 

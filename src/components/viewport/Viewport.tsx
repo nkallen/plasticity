@@ -190,7 +190,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.navigationControls.addEventListener('change', this.setNeedsRender);
         this.navigationControls.addEventListener('start', this.navigationStart);
 
-        this.multiplexer.add(this.points, this.selector);
+        this.multiplexer.push(this.points, this.selector);
         this.multiplexer.addEventListener('start', this.controlStart);
         this.multiplexer.addEventListener('end', this.controlEnd);
         this.multiplexer.addEventLiseners();

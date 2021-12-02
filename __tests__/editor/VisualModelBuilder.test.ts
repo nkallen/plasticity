@@ -9,7 +9,7 @@ import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import * as visual from "../../src/visual_model/VisualModel";
 import * as builder from "../../src/visual_model/VisualModelBuilder";
 import { RenderedSceneBuilder } from "../../src/visual_model/RenderedSceneBuilder";
-import { SelectionManager } from "../../src/selection/SelectionManager";
+import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 
 let materials: MaterialDatabase;
@@ -20,7 +20,7 @@ let db: GeometryDatabase;
 let signals: EditorSignals;
 let makeRegion: RegionFactory;
 let highlighter: RenderedSceneBuilder;
-let selection: SelectionManager;
+let selection: SelectionDatabase;
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -30,7 +30,7 @@ beforeEach(() => {
     makeLine = new LineFactory(db, materials, signals);
     makeCircle = new CenterCircleFactory(db, materials, signals);
     makeRegion = new RegionFactory(db, materials, signals);
-    selection = new SelectionManager(db, materials, signals);
+    selection = new SelectionDatabase(db, materials, signals);
     highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
 });
 

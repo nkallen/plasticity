@@ -3,7 +3,7 @@ import { render } from 'preact';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
-import { HasSelection } from '../../selection/SelectionManager';
+import { HasSelection } from '../../selection/SelectionDatabase';
 import { icons, tooltips } from './icons';
 
 export class Model {

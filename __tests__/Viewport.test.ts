@@ -11,8 +11,8 @@ import { GeometryDatabase } from "../src/editor/GeometryDatabase";
 import { IntersectableLayers, VisibleLayers } from "../src/editor/LayerManager";
 import MaterialDatabase from "../src/editor/MaterialDatabase";
 import { PlaneSnap } from "../src/editor/snaps/Snap";
-import { SelectionInteractionManager } from "../src/selection/SelectionInteraction";
-import { SelectionManager } from "../src/selection/SelectionManager";
+import { ChangeSelectionExecutor } from "../src/selection/ChangeSelectionExecutor";
+import { SelectionDatabase } from "../src/selection/SelectionDatabase";
 import * as visual from '../src/visual_model/VisualModel';
 import { MakeViewport } from "../__mocks__/FakeViewport";
 import './matchers';
@@ -24,8 +24,8 @@ let signals: EditorSignals;
 let viewport: Viewport;
 let editor: Editor;
 let sphere: visual.Solid;
-let selection: SelectionManager;
-let interaction: SelectionInteractionManager;
+let selection: SelectionDatabase;
+let interaction: ChangeSelectionExecutor;
 
 beforeEach(() => {
     editor = new Editor();
@@ -35,7 +35,7 @@ beforeEach(() => {
     materials = editor.materials;
     signals = editor.signals;
     selection = editor._selection;
-    interaction = editor.selectionInteraction;
+    interaction = editor.changeSelection;
 });
 
 beforeEach(async () => {

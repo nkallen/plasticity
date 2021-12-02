@@ -49,7 +49,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         protected readonly layers: LayerManager,
         protected readonly db: DatabaseLike,
         private readonly signals: EditorSignals,
-        readonly raycasterParams: THREE.RaycasterParameters = Object.assign({}, defaultRaycasterParams),
+        readonly raycasterParams: THREE.RaycasterParameters = {...defaultRaycasterParams},
     ) {
         super();
 
@@ -178,8 +178,8 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     abstract endHover(): void;
     abstract startClick(intersections: intersectable.Intersection[]): boolean;
     abstract endClick(intersections: intersectable.Intersection[]): void;
-    abstract startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
-    abstract continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void;
+    abstract startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void;
+    abstract continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void;
     abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
 
     private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersection[] {

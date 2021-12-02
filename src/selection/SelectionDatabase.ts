@@ -7,8 +7,8 @@ import { MementoOriginator, SelectionMemento } from '../editor/History';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../visual_model/VisualModel';
 import { Redisposable, RefCounter } from '../util/Util';
-import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './Selection';
-import { SelectionMode } from './SelectionInteraction';
+import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
+import { SelectionMode } from './ChangeSelectionExecutor';
 
 export type Selectable = visual.Item | visual.TopologyItem | visual.ControlPoint;
 
@@ -356,7 +356,7 @@ export interface HasSelectedAndHovered {
     readonly hovered: ModifiesSelection;
 }
 
-export class SelectionManager implements HasSelectedAndHovered {
+export class SelectionDatabase implements HasSelectedAndHovered {
     private readonly disposable = new CompositeDisposable();
     private readonly selectedSignals: SignalLike = {
         objectRemovedFromDatabase: this.signals.objectRemoved,

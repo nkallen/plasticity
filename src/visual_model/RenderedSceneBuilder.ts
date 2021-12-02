@@ -6,8 +6,8 @@ import { DatabaseLike } from "../editor/GeometryDatabase";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
 import matcap from '../img/matcap/ceramic_dark.exr';
-import { ItemSelection } from "../selection/Selection";
-import { HasSelectedAndHovered, HasSelection, Selectable } from "../selection/SelectionManager";
+import { ItemSelection } from "../selection/TypedSelection";
+import { HasSelectedAndHovered, HasSelection, Selectable } from "../selection/SelectionDatabase";
 import * as visual from '../visual_model/VisualModel';
 
 export class RenderedSceneBuilder {

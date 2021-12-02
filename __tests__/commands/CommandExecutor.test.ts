@@ -18,7 +18,7 @@ import { EditorOriginator, History } from "../../src/editor/History";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import ModifierManager from "../../src/editor/ModifierManager";
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
-import { Selection, SelectionManager } from "../../src/selection/SelectionManager";
+import { Selection, SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { Delay } from "../../src/util/SequentialExecutor";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -47,7 +47,7 @@ describe(CommandExecutor, () => {
         gizmos = new GizmoMaterialDatabase(signals);
         db = new GeometryDatabase(materials, signals);
         registry = new CommandRegistry();
-        const selection = new SelectionManager(db, materials, signals);
+        const selection = new SelectionDatabase(db, materials, signals);
         crosses = new CrossPointDatabase();
         snaps = new SnapManager(db, crosses, signals);
         curves = new PlanarCurveDatabase(db, materials, signals);

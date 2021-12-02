@@ -12,7 +12,7 @@ import MaterialDatabase from '../src/editor/MaterialDatabase';
 import ModifierManager, { ModifierStack } from '../src/editor/ModifierManager';
 import { PlanarCurveDatabase } from '../src/editor/curves/PlanarCurveDatabase';
 import { SnapManager } from '../src/editor/snaps/SnapManager';
-import { Selection, SelectionManager } from '../src/selection/SelectionManager';
+import { Selection, SelectionDatabase } from '../src/selection/SelectionDatabase';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
 import { SymmetryFactory } from '../src/commands/mirror/MirrorFactory';
@@ -37,7 +37,7 @@ describe(EditorOriginator, () => {
     let curves: PlanarCurveDatabase;
     let modifiers: ModifierManager;
     let contours: ContourManager;
-    let selection: SelectionManager;
+    let selection: SelectionDatabase;
     let regions: RegionManager;
     let crosses: CrossPointDatabase;
     let viewports: Viewport[];
@@ -49,7 +49,7 @@ describe(EditorOriginator, () => {
         gizmos = new GizmoMaterialDatabase(signals);
         crosses = new CrossPointDatabase();
         snaps = new SnapManager(db, crosses, signals);
-        selection = new SelectionManager(db, materials, signals);
+        selection = new SelectionDatabase(db, materials, signals);
         selected = selection.selected;
         curves = new PlanarCurveDatabase(db, materials, signals);
         modifiers = new ModifierManager(db, selection, materials, signals);

@@ -1,8 +1,8 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import * as visual from '../visual_model/VisualModel';
-import { SelectionMode } from "../selection/SelectionInteraction";
-import { HasSelection, ToggleableSet } from '../selection/SelectionManager';
+import { SelectionMode } from "../selection/ChangeSelectionExecutor";
+import { HasSelection, ToggleableSet } from '../selection/SelectionDatabase';
 import { EditorSignals } from './EditorSignals';
 
 // FIXME: make instance variables of LayerManager, and DI LayerManager where necessary

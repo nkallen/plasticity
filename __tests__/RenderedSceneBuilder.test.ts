@@ -11,12 +11,12 @@ import { RenderedSceneBuilder } from '../src/visual_model/RenderedSceneBuilder';
 import * as visual from '../src/visual_model/VisualModel';
 import { FakeMaterials } from "../__mocks__/FakeMaterials";
 import './matchers';
-import { SelectionManager } from '../src/selection/SelectionManager';
+import { SelectionDatabase } from '../src/selection/SelectionDatabase';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
-let selection: SelectionManager;
+let selection: SelectionDatabase;
 
 let solid: visual.Solid;
 let circle: visual.SpaceInstance<visual.Curve3D>;
@@ -26,7 +26,7 @@ beforeEach(async () => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    selection = new SelectionManager(db, materials, signals);
+    selection = new SelectionDatabase(db, materials, signals);
     highlighter = new RenderedSceneBuilder(db, materials, selection, signals);
 
     const makeBox = new ThreePointBoxFactory(db, materials, signals);

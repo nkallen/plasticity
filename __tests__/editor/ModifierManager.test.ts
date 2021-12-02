@@ -8,14 +8,14 @@ import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import ModifierManager, { ModifierStack } from "../../src/editor/ModifierManager";
 import * as visual from '../../src/visual_model/VisualModel';
-import { SelectionManager } from "../../src/selection/SelectionManager";
+import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
 
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
-let selection: SelectionManager;
+let selection: SelectionDatabase;
 let manager: ModifierManager;
 
 const X = new THREE.Vector3(1, 0, 0);
@@ -26,7 +26,7 @@ beforeEach(async () => {
     materials = new FakeMaterials();
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
-    selection = new SelectionManager(db, materials, signals);
+    selection = new SelectionDatabase(db, materials, signals);
 });
 
 beforeEach(() => {
