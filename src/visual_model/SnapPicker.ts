@@ -38,7 +38,7 @@ export class SnapPicker {
         if (!snaps.enabled) return [];
 
         this.raycaster.params = this.nearbyParams;
-        raycaster.layers.mask = layers.visible.mask
+        raycaster.layers.mask = layers.visible.mask; // FIXME: particularly with bridge, this needs to change
         if (viewport.isOrtho) raycaster.layers.disable(visual.Layers.Face);
         else raycaster.layers.enable(visual.Layers.Face);
 

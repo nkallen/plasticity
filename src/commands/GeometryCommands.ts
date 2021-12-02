@@ -1801,13 +1801,13 @@ export class BridgeCurvesCommand extends Command {
         if (!(snap1 instanceof CurveSnap || snap1 instanceof CurvePointSnap)) throw new ValidationError();
 
         line.push(p1);
-        line.push(p1);
         factory.curve1 = snap1.view;
         factory.t1 = snap1.t;
-
+        
+        line.push(p1);
         const { info: { snap: snap2 } } = await pointPicker.execute(({ point: p2, info: { snap: snap2 } }) => {
             line.last = p2;
-            line.update();
+            if (line.hasEnoughPoints) line.update();
 
             if (!(snap2 instanceof CurveSnap || snap2 instanceof CurvePointSnap)) return;
             factory.curve2 = snap2.view;

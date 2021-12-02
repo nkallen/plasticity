@@ -1,7 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName } from '../../util/Conversion';
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 
 export interface BridgeCurvesParams {
     t1: number;
@@ -48,6 +48,7 @@ export class BridgeCurvesFactory extends AbstractBridgeCurvesFactory {
 
     async calculate() {
         const { model1: curve1, model2: curve2, names, t1, t2, sense1, sense2 } = this;
+        if (curve1.Id() === curve2.Id() && t1 === t2) throw new NoOpError();
 
         const result = c3d.ActionSurfaceCurve.BridgeCurve(curve1, t1, sense1, curve2, t2, sense2, names);
         const curves = result.GetCurves();
@@ -65,6 +66,7 @@ export class ConnectingSplineFactory extends AbstractBridgeCurvesFactory {
 
     async calculate() {
         const { model1: curve1, model2: curve2, names, t1, t2, mating1, mating2, tension1, tension2 } = this;
+        if (curve1.Id() === curve2.Id() && t1 === t2) throw new NoOpError();
 
         const result = c3d.ActionSurfaceCurve.ConnectingSpline(curve1, t1, mating1, curve2, t2, mating2, tension1, tension2, names)
         const curves = result.GetCurves();

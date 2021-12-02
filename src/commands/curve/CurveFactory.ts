@@ -5,7 +5,7 @@ import { DatabaseLike } from "../../editor/GeometryDatabase";
 import MaterialDatabase from "../../editor/MaterialDatabase";
 import { Snap, TanTanSnap } from "../../editor/snaps/Snap";
 import { point2point } from "../../util/Conversion";
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 
 const curveMinimumPoints = new Map<c3d.SpaceType, number>();
 curveMinimumPoints.set(c3d.SpaceType.Polyline3D, 2);
@@ -26,6 +26,7 @@ export default class CurveFactory extends GeometryFactory {
         const { points, type, style } = this;
 
         if (!this.hasEnoughPoints) throw new ValidationError(`${points.length} points is too few points for ${c3d.SpaceType[type]}`);
+        if (points.length === 2 && this.points[1].manhattanDistanceTo(this.startPoint) < 10e-6) throw new NoOpError();
 
         const cartPoints = points.map(p => point2point(p));
         const curve = c3d.ActionCurve3D.SplineCurve(cartPoints, this.closed, type);

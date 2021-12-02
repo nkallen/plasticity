@@ -519,8 +519,8 @@ export class PointPicker {
     addAxesAt(pt: THREE.Vector3, orientation = new THREE.Quaternion()) { this.model.addAxesAt(pt, orientation) }
     addSnap(...snaps: Snap[]) { this.model.addSnap(...snaps) }
     clearAddedSnaps() { this.model.clearAddedSnaps() }
-    undo() { this.model.undo() }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
     restrictToCurves(curves: visual.SpaceInstance<visual.Curve3D>[]) { return this.model.restrictToCurves(curves) }
     set restrictToConstructionPlane(v: boolean) { this.model.restrictToConstructionPlane = v }
+    undo() { this.model.undo() }
 }
