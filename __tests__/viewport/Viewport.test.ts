@@ -2,20 +2,20 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
-import SphereFactory from "../src/commands/sphere/SphereFactory";
-import { Viewport } from "../src/components/viewport/Viewport";
-import { Orientation } from "../src/components/viewport/ViewportHelper";
-import { Editor } from "../src/editor/Editor";
-import { EditorSignals } from "../src/editor/EditorSignals";
-import { GeometryDatabase } from "../src/editor/GeometryDatabase";
-import { IntersectableLayers, VisibleLayers } from "../src/editor/LayerManager";
-import MaterialDatabase from "../src/editor/MaterialDatabase";
-import { PlaneSnap } from "../src/editor/snaps/Snap";
-import { ChangeSelectionExecutor } from "../src/selection/ChangeSelectionExecutor";
-import { SelectionDatabase } from "../src/selection/SelectionDatabase";
-import * as visual from '../src/visual_model/VisualModel';
-import { MakeViewport } from "../__mocks__/FakeViewport";
-import './matchers';
+import SphereFactory from "../../src/commands/sphere/SphereFactory";
+import { Viewport } from "../../src/components/viewport/Viewport";
+import { Orientation } from "../../src/components/viewport/ViewportHelper";
+import { Editor } from "../../src/editor/Editor";
+import { EditorSignals } from "../../src/editor/EditorSignals";
+import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
+import { IntersectableLayers, VisibleLayers } from "../../src/editor/LayerManager";
+import MaterialDatabase from "../../src/editor/MaterialDatabase";
+import { PlaneSnap } from "../../src/editor/snaps/Snap";
+import { ChangeSelectionExecutor } from "../../src/selection/ChangeSelectionExecutor";
+import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
+import * as visual from '../../src/visual_model/VisualModel';
+import { MakeViewport } from "../../__mocks__/FakeViewport";
+import '../matchers';
 jest.mock('three/examples/jsm/loaders/EXRLoader.js');
 
 let db: GeometryDatabase;

@@ -6,9 +6,9 @@ import Command, * as cmd from "../../commands/Command";
 import { ClickChangeSelectionCommand, CommandLike } from "../../commands/CommandLike";
 import { DashedLineMagnitudeHelper } from "../../commands/MiniGizmos";
 import { MoveContourPointFactory } from "../../commands/modify_contour/ModifyContourPointFactory";
-import { Intersectable, Intersection } from "../../visual_model/Intersectable";
-import * as visual from '../../visual_model/VisualModel';
 import { CancellablePromise } from "../../util/Cancellable";
+import { Intersection } from "../../visual_model/Intersectable";
+import * as visual from '../../visual_model/VisualModel';
 import { Viewport } from "./Viewport";
 import { ViewportControl } from "./ViewportControl";
 
@@ -53,15 +53,10 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         switch (this.mode.tag) {
             case 'none':
                 const controlPoint = first;
-                domElement.ownerDocument.body.setAttribute("gizmo", "point-control");
-                const disposable = new Disposable(() => {
-                    this.viewport.enableControls();
-                    domElement.ownerDocument.body.removeAttribute("gizmo");
-                })
 
                 this.pointStart3d.copy(first.position);
                 this.cameraPlane.position.copy(this.pointStart3d);
-                this.mode = { tag: 'start', controlPoint, disposable };
+                this.mode = { tag: 'start', controlPoint, disposable: new Disposable() };
 
                 break;
             default: throw new Error("invalid state");
@@ -82,7 +77,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         }
     }
 
-    startDrag(downEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void {
+    startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start':
@@ -94,13 +89,12 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
                 command.controlPoint = this.mode.controlPoint;
                 command.gizmo = this;
                 this.editor.enqueue(command);
-                this.viewport.disableControls(this);
 
                 helper.onStart(this.viewport.domElement, center2d);
         }
     }
 
-    continueDrag(moveEvent: PointerEvent, normalizedMousePosition: THREE.Vector2): void {
+    continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void {
         switch (this.mode.tag) {
             case 'none': break;
             case 'start': break;
@@ -151,7 +145,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
     }
 }
 
-class MoveControlPointCommand extends CommandLike {
+export class MoveControlPointCommand extends CommandLike {
     controlPoint!: visual.ControlPoint;
     gizmo!: GizmoLike<(delta: THREE.Vector3) => void>;
 

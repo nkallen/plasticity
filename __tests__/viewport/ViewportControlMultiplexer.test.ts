@@ -2,14 +2,14 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
-import { Viewport } from "../src/components/viewport/Viewport";
-import { ViewportControlMultiplexer } from "../src/components/viewport/ViewportControlMultiplexer";
-import { ViewportPointControl } from "../src/components/viewport/ViewportPointControl";
-import { Editor } from "../src/editor/Editor";
-import { ViewportSelector } from "../src/selection/ViewportSelector";
-import { Intersection } from "../src/visual_model/Intersectable";
-import { MakeViewport } from "../__mocks__/FakeViewport";
-import './matchers';
+import { Viewport } from "../../src/components/viewport/Viewport";
+import { ViewportControlMultiplexer } from "../../src/components/viewport/ViewportControlMultiplexer";
+import { ViewportPointControl } from "../../src/components/viewport/ViewportPointControl";
+import { Editor } from "../../src/editor/Editor";
+import { ViewportSelector } from "../../src/selection/ViewportSelector";
+import { Intersection } from "../../src/visual_model/Intersectable";
+import { MakeViewport } from "../../__mocks__/FakeViewport";
+import '../matchers';
 
 describe(ViewportControlMultiplexer, () => {
     let multiplexer: ViewportControlMultiplexer;

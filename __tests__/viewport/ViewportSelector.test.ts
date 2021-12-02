@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { ViewportControlMultiplexer } from 'src/components/viewport/ViewportControlMultiplexer';
+import { ViewportControlMultiplexer } from '../../src/components/viewport/ViewportControlMultiplexer';
 import * as THREE from 'three';
 import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from '../../src/commands/CommandLike';

@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] moving circle point doesn't work (drag and g)  
 - [ ] in xray mode, control points not visible  
 - [ ] PointSnap resolution for nearby seems wrong  
 - [ ] bug: variable fillet broken  
