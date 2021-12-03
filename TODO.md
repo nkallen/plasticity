@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] Audit re-used icons  
 - [ ] moving circle point doesn't work (drag and g)  
 - [ ] in xray mode, control points not visible  
 - [ ] PointSnap resolution for nearby seems wrong  
@@ -11,18 +12,16 @@
 - [ ] move all static buuild() methods to builder, using var ts decl  
 - [ ] Refactor curve extension code  
 - [ ] bug: control points, when one selected and another hovered, everything unhighlighted  
+- [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - [ ] Redesign set resolution of line2 etc  
 - [ ] parentId of edge and face should be set directly and not actually in the tree?  
 - [ ] Helper for center (of arc) point snap  
 - [ ] See if we can get rid of get child() in visualmodel  
 - [ ] get rid of all snappers in snap  
-- [ ] optimize hide/unhide in snapman  
 - [ ] refactor IntersectableLayers  
 - [ ] Snap points should always be before their geometry if they're visible  
 - [ ] panning and release mouse outside of window errors #bug  
 - [ ] Incorporate parcel https://github.com/parcel-bundler/watcher  
-- [ ] Audit re-used icons  
-- [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - [ ] outline for e.g., mirror command is strange - only outline visible items  
 - [ ] camera near plane sucks with ortho now  
 - [ ] Redo titlebar to save space  
@@ -53,13 +52,14 @@
 
 ### Todo
 
-- [ ] Investigate bridge curves  
 
 ### In Progress
 
 
 ### Done ✓
 
+- [x] optimize hide/unhide in snapman  
+- [x] Investigate bridge curves  
 - [x] Trim doesn't work  
 - [x] dragging points seems broken  
 - [x] boxcasting not working with control points, curves, regions  

@@ -143,7 +143,8 @@ export class ViewportMemento {
 
 export class SnapMemento {
     constructor(
-        readonly id2snaps: Map<c3d.SimpleName, Set<PointSnap>>
+        readonly id2snaps: Map<c3d.SimpleName, Set<PointSnap>>,
+        readonly hidden: Map<c3d.SimpleName, Set<PointSnap>>
     ) { }
 }
 

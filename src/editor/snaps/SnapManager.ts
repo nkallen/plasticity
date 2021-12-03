@@ -8,11 +8,11 @@ import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../../visual_model/VisualModel';
 import { AxisSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
 
-
 export class SnapManager implements MementoOriginator<SnapMemento> {
     enabled = true;
     private readonly basicSnaps = new Set<Snap>();
     private readonly id2snaps = new Map<c3d.SimpleName, Set<PointSnap>>();
+    private readonly hidden = new Map<c3d.SimpleName, Set<PointSnap>>()
 
     constructor(
         private readonly db: DatabaseLike,
@@ -31,8 +31,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         signals.objectRemoved.add(([item, agent]) => {
             if (agent === 'user') this.delete(item);
         });
-        signals.objectUnhidden.add(item => this.add(item));
-        signals.objectHidden.add(item => this.delete(item));
+        signals.objectUnhidden.add(item => this.unhide(item));
+        signals.objectHidden.add(item => this.hide(item));
     }
 
     get all(): { basicSnaps: Set<Snap>, geometrySnaps: readonly Set<PointSnap>[], crossSnaps: readonly CrossPointSnap[] } {
@@ -171,17 +171,34 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         }
     }
 
-    private delete(item: visual.Item): void {
+    private delete(item: visual.Item) {
         this.id2snaps.delete(item.simpleName);
         if (item instanceof visual.SpaceInstance) this.crosses.remove(item.simpleName);
     }
 
+    private hide(item: visual.Item) {
+        const id = item.simpleName;
+        const info = this.id2snaps.get(id)!;
+        this.id2snaps.delete(id);
+        this.hidden.set(id, info);
+    }
+
+    private unhide(item: visual.Item) {
+        const id = item.simpleName;
+        const info = this.hidden.get(id)!;
+        this.id2snaps.set(id, info);
+        this.hidden.delete(id);
+    }
+
     saveToMemento(): SnapMemento {
-        return new SnapMemento(new Map(this.id2snaps));
+        return new SnapMemento(
+            new Map(this.id2snaps),
+            new Map(this.hidden));
     }
 
     restoreFromMemento(m: SnapMemento) {
         (this.id2snaps as SnapManager['id2snaps']) = m.id2snaps;
+        (this.hidden as SnapManager['hidden']) = m.hidden;
     }
 
     serialize(): Promise<Buffer> {
