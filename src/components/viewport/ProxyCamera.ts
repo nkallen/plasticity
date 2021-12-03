@@ -1,17 +1,19 @@
 import * as THREE from "three";
 import { CameraMemento, MementoOriginator } from "../../editor/History";
 
-export const near = 0.001;
-export const far = 10000;
+export const near = 10e-3;
+export const far = 10e5;
 export const frustumSize = 6;
 export const fov = 50;
 export const aspect = 1;
 
 type Mode = 'orthographic' | 'perspective';
 
+const ZZZ = new THREE.Vector3(0, 0, 1).multiplyScalar(100); // FIXME: this should be a function of the GeometryDatabase LOD (mesh_precision_distance)
+
 export class ProxyCamera extends THREE.Camera implements MementoOriginator<CameraMemento> {
-     readonly orthographic = makeOrthographicCamera();
-     readonly perspective = makePerspectiveCamera();
+    readonly orthographic = makeOrthographicCamera();
+    readonly perspective = makePerspectiveCamera();
 
     static isPerspective(camera: THREE.Camera): camera is THREE.PerspectiveCamera {
         if (camera instanceof THREE.PerspectiveCamera) return true;
@@ -121,10 +123,24 @@ export class ProxyCamera extends THREE.Camera implements MementoOriginator<Camer
         this.updateProjectionMatrix();
     }
 
+    readonly spherical = new THREE.Spherical();
+
     serialize(): Promise<Buffer> { throw new Error("Method not implemented.") }
     deserialize(data: Buffer): Promise<void> { throw new Error("Method not implemented.") }
     validate(): void { throw new Error("Method not implemented.") }
     debug(): void { throw new Error("Method not implemented.") }
+
+    readonly target = new THREE.Vector3();
+    private readonly _z = new THREE.Vector3();
+    updateMatrixWorld(force?: boolean) {
+        const { _z, quaternion, target, matrixWorld, matrixWorldInverse } = this;
+        super.updateMatrixWorld(force);
+        if (this.isOrthographicCamera) {
+            const pos = _z.copy(ZZZ).applyQuaternion(quaternion).add(target);
+            matrixWorld.setPosition(pos);
+        }
+        matrixWorldInverse.copy(matrixWorld).invert();
+    }
 }
 
 export function makeOrthographicCamera() {

@@ -1,22 +1,12 @@
 import * as THREE from "three";
 import { pointerEvent2keyboardEvent } from "./KeyboardEventManager";
+import { ProxyCamera } from "./ProxyCamera";
 
 const twoPI = 2 * Math.PI;
 
 const changeEvent = { type: 'change' };
 const startEvent = { type: 'start' };
 const endEvent = { type: 'end' };
-
-type Camera = THREE.Camera & {
-    zoom: number,
-    updateProjectionMatrix: () => void,
-    getEffectiveFOV: () => number,
-    aspect: number,
-    left: number, right: number, top: number, bottom: number,
-    isPerspectiveCamera: boolean,
-    isOrthographicCamera: boolean,
-    fov: number,
-};
 
 type State = 'none' | 'rotate' | 'dolly' | 'pan' | 'touch-rotate' | 'touch-dolly-pan' | 'touch-pan' | 'touch-dolly-rotate';
 
@@ -58,7 +48,7 @@ export class OrbitControls extends THREE.EventDispatcher {
     private readonly position0 = this.object.position.clone();
     private zoom0 = this.object.zoom;
 
-    constructor(readonly object: Camera, private readonly domElement: HTMLElement, private readonly keymaps: AtomKeymap.KeymapManager) {
+    constructor(readonly object: ProxyCamera, private readonly domElement: HTMLElement, private readonly keymaps: AtomKeymap.KeymapManager) {
         super();
         domElement.style.touchAction = 'none';
 
@@ -174,10 +164,9 @@ export class OrbitControls extends THREE.EventDispatcher {
     private readonly lastPosition = new THREE.Vector3();
     private readonly lastQuaternion = new THREE.Quaternion();
     update() {
-        const { object, target, offset, spherical, sphericalDelta, quat, quatInverse, lastPosition, lastQuaternion, minAzimuthAngle, maxAzimuthAngle, minPolarAngle, maxPolarAngle, minDistance, maxDistance, scale, panOffset, zoomChanged } = this;
+        const { object: camera, target, offset, spherical, sphericalDelta, quat, quatInverse, lastPosition, lastQuaternion, minAzimuthAngle, maxAzimuthAngle, minPolarAngle, maxPolarAngle, minDistance, maxDistance, scale, panOffset, zoomChanged } = this;
 
-        const position = object.position;
-        offset.copy(position).sub(target);
+        offset.copy(camera.position).sub(target);
 
         // rotate offset to "y-axis-is-up" space
         offset.applyQuaternion(quat);
@@ -220,8 +209,9 @@ export class OrbitControls extends THREE.EventDispatcher {
 
         // rotate offset back to "camera-up-vector-is-up" space
         offset.applyQuaternion(quatInverse);
-        position.copy(target).add(offset);
-        object.lookAt(target);
+        camera.position.copy(target).add(offset);
+        camera.lookAt(target);
+        camera.target.copy(target);
 
         sphericalDelta.set(0, 0, 0);
         panOffset.set(0, 0, 0);
@@ -233,12 +223,12 @@ export class OrbitControls extends THREE.EventDispatcher {
         // using small-angle approximation cos(x/2) = 1 - x^2 / 8
 
         if (zoomChanged ||
-            lastPosition.distanceToSquared(object.position) > 10e-6 ||
-            8 * (1 - lastQuaternion.dot(object.quaternion)) > 10e-6) {
+            lastPosition.distanceToSquared(camera.position) > 10e-6 ||
+            8 * (1 - lastQuaternion.dot(camera.quaternion)) > 10e-6) {
             this.dispatchEvent(changeEvent);
 
-            lastPosition.copy(object.position);
-            lastQuaternion.copy(object.quaternion);
+            lastPosition.copy(camera.position);
+            lastQuaternion.copy(camera.quaternion);
             this.zoomChanged = false;
 
             return true;

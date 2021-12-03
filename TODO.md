@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
 - [ ] Audit re-used icons  
 - [ ] moving circle point doesn't work (drag and g)  
 - [ ] in xray mode, control points not visible  
@@ -23,7 +24,6 @@
 - [ ] panning and release mouse outside of window errors #bug  
 - [ ] Incorporate parcel https://github.com/parcel-bundler/watcher  
 - [ ] outline for e.g., mirror command is strange - only outline visible items  
-- [ ] camera near plane sucks with ortho now  
 - [ ] Redo titlebar to save space  
 - [ ] crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196  
 - [ ] Add settings for loft  
@@ -58,14 +58,5 @@
 
 ### Done ✓
 
-- [x] optimize hide/unhide in snapman  
-- [x] Investigate bridge curves  
-- [x] Trim doesn't work  
-- [x] dragging points seems broken  
-- [x] boxcasting not working with control points, curves, regions  
-- [x] make viewport control have a manager that always picks winner so two can't be running simultaneously  
-- [x] boolean needs movement  
-- [x] Allow gettings edge selection from creators  
-- [x] line2 raycasting bad in ortho camera  
-- [x] Minimize draw calls  
+- [x] camera near plane sucks with ortho now  
 
