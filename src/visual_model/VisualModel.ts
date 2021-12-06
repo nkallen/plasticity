@@ -279,6 +279,7 @@ export class CurveEdge extends Edge {
         super();
         this.userData = userData;
         this.layers.set(Layers.CurveEdge);
+        this.visible = false; // FIXME: this is just a performance optimization; we really need to remove CurveEdge and Face from the scene
     }
 
     slice() {
@@ -330,6 +331,7 @@ export class Face extends TopologyItem {
         super();
         this.userData = userData;
         this.layers.set(Layers.Face);
+        this.visible = false;  // FIXME: this is just a performance optimization; we really need to remove CurveEdge and Face from the scene
     }
 
     // FIXME: delete this 

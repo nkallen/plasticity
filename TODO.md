@@ -52,6 +52,8 @@
 
 ### Todo
 
+- [ ] Verify fastupdate (like move/etc) are updateMatrix()  
+- [ ] Fix box snap points  
 
 ### In Progress
 

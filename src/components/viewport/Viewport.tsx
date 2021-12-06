@@ -161,6 +161,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         }));
 
         this.scene.background = backgroundColor;
+        this.scene.autoUpdate = false;
     }
 
     private started = false;
@@ -247,10 +248,12 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 const visibleObjects = db.visibleObjects;
                 if (visibleObjects.length > 0) scene.add(...visibleObjects);
                 scene.add(db.temporaryObjects);
-                grid.position.set(0, 0, -0.001);
-                grid.quaternion.setFromUnitVectors(Y, constructionPlane.n);
-                grid.update(camera);
                 if (this.showOverlays) {
+                    grid.position.set(0, 0, -0.001);
+                    grid.quaternion.setFromUnitVectors(Y, constructionPlane.n);
+                    grid.update(camera);
+                    grid.updateMatrixWorld();
+                    helpers.axes.updateMatrixWorld();
                     scene.add(helpers.axes);
                     scene.add(grid);
                 }

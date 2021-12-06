@@ -107,6 +107,7 @@ export class RenderedSceneBuilder {
             } else if (item instanceof visual.PlaneInstance) {
                 this.highlightRegion(item);
             } else throw new Error("invalid type: " + item.constructor.name);
+            item.updateMatrixWorld();
         }
         this.highlightControlPoints();
         performance.measure('highlight', 'begin-highlight');
