@@ -111,6 +111,7 @@ export class ModifierStack {
             underlying: temp.underlying,
             show() {
                 temp.show();
+                temp.underlying.updateMatrixWorld();
                 modified.visible = false;
                 premodified.visible = false;
             },

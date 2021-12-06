@@ -149,6 +149,7 @@ export class SymmetryFactory extends GeometryFactory {
                 this.temp?.cancel();
                 this.temp = temp;
                 temp.show();
+                temp.underlying.updateMatrixWorld();
                 mirrored.visible = true;
 
                 return [temp];

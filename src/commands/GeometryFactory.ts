@@ -130,6 +130,7 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
         for (const p of finished) {
             const temp = p;
             temp.show();
+            temp.underlying.updateMatrixWorld();
             temps.push(temp);
         }
         this.temps = temps;
