@@ -167,7 +167,7 @@ export class RenderedSceneBuilder {
     protected highlightEdges(solid: visual.Solid) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
-        const edgegroup = solid.lod.children[1].children[0] as visual.CurveGroup<visual.CurveEdge>;
+        const edgegroup = solid.lod.high.edges;
         let hovered: visual.CurveEdge[] = [];
         let selected: visual.CurveEdge[] = [];
 
@@ -192,7 +192,7 @@ export class RenderedSceneBuilder {
     protected highlightFaces(solid: visual.Solid, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
-        const facegroup = solid.lod.children[1].children[1] as visual.FaceGroup;
+        const facegroup = solid.lod.high.faces;
         let hovered: visual.GeometryGroup[] = [];
         let selected: visual.GeometryGroup[] = [];
         let unselected: visual.GeometryGroup[] = [];

@@ -4,7 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import c3d from '../../build/Release/c3d.node';
-import { computeControlPointInfo, deunit, point2point } from "../util/Conversion";
+import { computeControlPointInfo, deunit, point2point, unit } from "../util/Conversion";
 import { GConstructor } from "../util/Util";
 import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, GeometryGroup, Layers, PlaneInstance, PlaneItem, Region, RenderOrder, Solid, SolidLevel, SpaceInstance, SpaceItem } from "./VisualModel";
 import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "./VisualModelRaycasting";
@@ -39,7 +39,7 @@ export class PlaneInstanceBuilder<T extends PlaneItem> {
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
 
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.scale.setScalar(0.01);
+        mesh.scale.setScalar(deunit(1));
         const region = new Region(mesh);
         region.renderOrder = RenderOrder.Face;
         this.instance.add(region);
@@ -57,7 +57,7 @@ export class FaceGroupBuilder {
         geometry.setAttribute('position', new THREE.BufferAttribute(grid.position, 3));
         geometry.setAttribute('normal', new THREE.BufferAttribute(grid.normal, 3));
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.scale.setScalar(0.01);
+        mesh.scale.setScalar(deunit(1));
         const userData = {
             name: grid.name,
             simpleName: Face.simpleName(parentId, grid.i),

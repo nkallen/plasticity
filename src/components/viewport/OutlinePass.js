@@ -24,9 +24,7 @@ import { FullScreenQuad, Pass } from 'three/examples/jsm/postprocessing/Pass.js'
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
 class OutlinePass extends Pass {
-
     constructor(resolution, camera, selectedObjects) {
-
         super();
 
         this.renderScene = new Scene();
@@ -34,7 +32,6 @@ class OutlinePass extends Pass {
         this.selectedObjects = selectedObjects !== undefined ? selectedObjects : [];
         this.visibleEdgeColor = new Color(1, 1, 1);
         this.hiddenEdgeColor = new Color(0.1, 0.04, 0.02);
-        this.edgeGlow = 0.0;
         this.usePatternTexture = false;
         this.edgeThickness = 1.0;
         this.edgeStrength = 3.0;
@@ -43,13 +40,9 @@ class OutlinePass extends Pass {
 
         this._visibilityCache = new Map();
 
-
         this.resolution = (resolution !== undefined) ? new Vector2(resolution.x, resolution.y) : new Vector2(256, 256);
 
         const pars = { minFilter: LinearFilter, magFilter: LinearFilter, format: RGBAFormat };
-
-        const resx = Math.round(this.resolution.x / this.downSampleRatio);
-        const resy = Math.round(this.resolution.y / this.downSampleRatio);
 
         this.maskBufferMaterial = new MeshBasicMaterial({ color: 0xffffff });
         this.maskBufferMaterial.side = DoubleSide;
@@ -71,15 +64,9 @@ class OutlinePass extends Pass {
         this.renderTargetDepthBuffer.texture.generateMipmaps = false;
 
         this.edgeDetectionMaterial = this.getEdgeDetectionMaterial();
-        this.renderTargetEdgeBuffer1 = new WebGLMultisampleRenderTarget(resx, resy, pars);
+        this.renderTargetEdgeBuffer1 = new WebGLMultisampleRenderTarget(this.resolution.x, this.resolution.y, pars);
         this.renderTargetEdgeBuffer1.texture.name = 'OutlinePass.edge1';
         this.renderTargetEdgeBuffer1.texture.generateMipmaps = false;
-        this.renderTargetEdgeBuffer2 = new WebGLMultisampleRenderTarget(Math.round(resx / 2), Math.round(resy / 2), pars);
-        this.renderTargetEdgeBuffer2.texture.name = 'OutlinePass.edge2';
-        this.renderTargetEdgeBuffer2.texture.generateMipmaps = false;
-
-        const MAX_EDGE_THICKNESS = 4;
-        const MAX_EDGE_GLOW = 4;
 
         // Overlay material
         this.overlayMaterial = this.getOverlayMaterial();
@@ -129,24 +116,14 @@ class OutlinePass extends Pass {
         this.renderTargetMaskBuffer.dispose();
         this.renderTargetDepthBuffer.dispose();
         this.renderTargetEdgeBuffer1.dispose();
-        this.renderTargetEdgeBuffer2.dispose();
 
     }
 
     setSize(width, height) {
-
         this.renderTargetMaskBuffer.setSize(width, height);
         this.renderTargetDepthBuffer.setSize(width, height);
 
-        let resx = Math.round(width / this.downSampleRatio);
-        let resy = Math.round(height / this.downSampleRatio);
-        this.renderTargetEdgeBuffer1.setSize(resx, resy);
-
-        resx = Math.round(resx / 2);
-        resy = Math.round(resy / 2);
-
-        this.renderTargetEdgeBuffer2.setSize(resx, resy);
-
+        this.renderTargetEdgeBuffer1.setSize(width, height);
     }
 
     updateTextureMatrix() {
@@ -161,7 +138,6 @@ class OutlinePass extends Pass {
     }
 
     render(renderer, writeBuffer, readBuffer, deltaTime, maskActive) {
-
         if (this.selectedObjects.length > 0) {
 
             renderer.getClearColor(this._oldClearColor);
@@ -205,11 +181,7 @@ class OutlinePass extends Pass {
             this.fsQuad.material = this.overlayMaterial;
             this.overlayMaterial.uniforms['maskTexture'].value = this.renderTargetMaskBuffer.texture;
             this.overlayMaterial.uniforms['edgeTexture1'].value = this.renderTargetEdgeBuffer1.texture;
-            this.overlayMaterial.uniforms['edgeTexture2'].value = this.renderTargetEdgeBuffer2.texture;
-            this.overlayMaterial.uniforms['patternTexture'].value = this.patternTexture;
             this.overlayMaterial.uniforms['edgeStrength'].value = this.edgeStrength;
-            this.overlayMaterial.uniforms['edgeGlow'].value = this.edgeGlow;
-            this.overlayMaterial.uniforms['usePatternTexture'].value = this.usePatternTexture;
 
 
             if (maskActive) renderer.state.buffers.stencil.setTest(true);
@@ -235,12 +207,13 @@ class OutlinePass extends Pass {
 
     getPrepareMaskMaterial() {
 
-        return new ShaderMaterial({
+        const result = new ShaderMaterial({
 
             uniforms: {
                 'depthTexture': { value: null },
                 'cameraNearFar': { value: new Vector2(0.5, 0.5) },
-                'textureMatrix': { value: null }
+                'textureMatrix': { value: null },
+                'id': { value: null }
             },
 
             vertexShader:
@@ -266,15 +239,24 @@ class OutlinePass extends Pass {
 				varying vec4 projTexCoord;
 				uniform sampler2D depthTexture;
 				uniform vec2 cameraNearFar;
+                uniform float id;
 				void main() {
 					float depth = unpackRGBAToDepth(texture2DProj( depthTexture, projTexCoord ));
 					float viewZ = - DEPTH_TO_VIEW_Z( depth, cameraNearFar.x, cameraNearFar.y );
 					float depthTest = (-vPosition.z > viewZ) ? 1.0 : 0.0;
-					gl_FragColor = vec4(0.0, depthTest, 1.0, 1.0);
+					gl_FragColor = vec4(id/255.0, depthTest, 1.0, 1.0);
 				}`
 
         });
 
+        let idCounter = 0;
+        result.onBeforeRender = (renderer, scene, camera, geometry, object, group) => {
+            result.uniforms.id.value = idCounter;
+            result.uniformsNeedUpdate = true;
+            idCounter += 100;
+            idCounter %= 255;
+        }
+        return result;
     }
 
     getEdgeDetectionMaterial() {
@@ -302,7 +284,7 @@ class OutlinePass extends Pass {
 				uniform vec3 visibleEdgeColor;
 				uniform vec3 hiddenEdgeColor;
 				void main() {
-					vec2 invSize = 1.0 / texSize;
+					vec2 invSize = 1. / texSize;
 					vec4 uvOffset = vec4(1.0, 0.0, 0.0, 1.0) * vec4(invSize, invSize);
 					vec4 c1 = texture2D( maskTexture, vUv + uvOffset.xy);
 					vec4 c2 = texture2D( maskTexture, vUv - uvOffset.xy);
@@ -315,7 +297,7 @@ class OutlinePass extends Pass {
 					float a2 = min(c3.g, c4.g);
 					float visibilityFactor = min(a1, a2);
 					vec3 edgeColor = 1.0 - visibilityFactor > 0.001 ? visibleEdgeColor : hiddenEdgeColor;
-					gl_FragColor = vec4(edgeColor, 1.0) * vec4(d);
+					gl_FragColor = vec4(edgeColor, 1.0) * vec4(d > 0. ? 1. : 0.);
 				}`
         });
 
@@ -328,11 +310,8 @@ class OutlinePass extends Pass {
             uniforms: {
                 'maskTexture': { value: null },
                 'edgeTexture1': { value: null },
-                'edgeTexture2': { value: null },
                 'patternTexture': { value: null },
                 'edgeStrength': { value: 1.0 },
-                'edgeGlow': { value: 1.0 },
-                'usePatternTexture': { value: 0.0 }
             },
 
             vertexShader:
@@ -346,21 +325,13 @@ class OutlinePass extends Pass {
                 `varying vec2 vUv;
 				uniform sampler2D maskTexture;
 				uniform sampler2D edgeTexture1;
-				uniform sampler2D edgeTexture2;
 				uniform sampler2D patternTexture;
 				uniform float edgeStrength;
-				uniform float edgeGlow;
-				uniform bool usePatternTexture;
 				void main() {
-					vec4 edgeValue1 = texture2D(edgeTexture1, vUv);
-					vec4 edgeValue2 = texture2D(edgeTexture2, vUv);
+					vec4 edgeValue = texture2D(edgeTexture1, vUv);
 					vec4 maskColor = texture2D(maskTexture, vUv);
-					vec4 patternColor = texture2D(patternTexture, 6.0 * vUv);
 					float visibilityFactor = 1.0 - maskColor.g > 0.0 ? 1.0 : 0.5;
-					vec4 edgeValue = edgeValue1 + edgeValue2 * edgeGlow;
-					vec4 finalColor = edgeStrength * maskColor.r * edgeValue;
-					if(usePatternTexture)
-						finalColor += + visibilityFactor * (1.0 - maskColor.r) * (1.0 - patternColor.r);
+					vec4 finalColor = edgeStrength * edgeValue;
 					gl_FragColor = finalColor;
 				}`,
             blending: AdditiveBlending,

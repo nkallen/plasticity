@@ -67,9 +67,15 @@ export class Solid extends Item {
     get edges() { return this.lod.high.edges }
     get faces() { return this.lod.high.faces }
 
-    get outline() {
+    get outline(): THREE.Mesh[] {
         if (!this.visible) return [];
-        return this.faces;
+        const mesh = this.faces.mesh;
+        const faces = mesh.clone();
+        const material = faces.material as THREE.Material[];
+        faces.material = material[0];
+        faces.geometry = faces.geometry.clone();
+        faces.geometry.clearGroups();
+        return [faces];
     }
 
     get allEdges() {

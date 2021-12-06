@@ -103,7 +103,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
             const outlinePassSelection = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), this.camera);
             outlinePassSelection.edgeStrength = 3;
-            outlinePassSelection.edgeGlow = 0;
             outlinePassSelection.edgeThickness = 1;
             outlinePassSelection.visibleEdgeColor.setHex(0xfffff00);
             outlinePassSelection.hiddenEdgeColor.setHex(0xfffff00);
@@ -112,7 +111,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
             const outlinePassHover = new OutlinePass(new THREE.Vector2(this.domElement.offsetWidth, this.domElement.offsetHeight), this.camera);
             outlinePassHover.edgeStrength = 3;
-            outlinePassHover.edgeGlow = 0;
             outlinePassHover.edgeThickness = 1;
             outlinePassHover.visibleEdgeColor.setHex(0xfffffff);
             outlinePassHover.hiddenEdgeColor.setHex(0xfffffff);
@@ -307,8 +305,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         renderer.setSize(offsetWidth, offsetHeight);
         composer.setSize(offsetWidth, offsetHeight);
-        outlinePassHover.setSize(offsetWidth, offsetHeight);
-        outlinePassSelection.setSize(offsetWidth, offsetHeight);
         this.setNeedsRender();
     }
 
