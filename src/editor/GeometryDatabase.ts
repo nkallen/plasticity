@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import c3d from '../../build/Release/c3d.node';
+import { unit } from '../util/Conversion';
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { GConstructor } from '../util/Util';
 import * as visual from '../visual_model/VisualModel';
@@ -11,9 +12,9 @@ import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { ParallelMeshCreator } from './MeshCreator';
 
-const mesh_precision_distance: [number, number][] = [[5, 1000], [0.15, 1]];
-const other_precision_distance: [number, number][] = [[0.05, 1]];
-const temporary_precision_distance: [number, number][] = [[0.4, 1]];
+const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.0015), 1]];
+const other_precision_distance: [number, number][] = [[unit(0.0005), 1]];
+const temporary_precision_distance: [number, number][] = [[unit(0.004), 1]];
 
 export type Agent = 'user' | 'automatic';
 
@@ -508,6 +509,10 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             const cast = item.Cast<c3d.Item>(item.IsA());
             if (cast instanceof c3d.Assembly) {
                 this.load(cast);
+            } else if (cast instanceof c3d.Instance) {
+                const underlying = cast.GetItem()!;
+                console.log(underlying!.Cast<c3d.Item>(underlying.IsA()))
+                promises.push(this.addItem(cast.GetItem()!, 'user', item.GetItemName()));
             } else {
                 promises.push(this.addItem(cast, 'user', item.GetItemName()));
             }

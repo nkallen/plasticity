@@ -493,6 +493,14 @@ export default {
                 "const MbCartPoint3D & centre, double r"
             ]
         },
+        Instance: {
+            rawHeader: "instance.h",
+            extends: "Item",
+            dependencies: ["Item.h"],
+            functions: [
+                "const MbItem * GetItem()"
+            ]
+        },
         SpaceInstance: {
             rawHeader: "space_instance.h",
             extends: "Item",

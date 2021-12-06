@@ -29,6 +29,7 @@
 #include "../include/Assembly.h"
 #include "../include/PlaneCurve.h"
 #include "../include/SurfaceCurve.h"
+#include "../include/Instance.h"
 
 Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
 {
@@ -126,6 +127,8 @@ Napi::Value cast(MbSpaceItem *_underlying, const Napi::CallbackInfo &info)
         return Plane::NewInstance(env, (MbPlane *)(_underlying));
     case st_SurfaceIntersectionCurve:
         return SurfaceIntersectionCurve::NewInstance(env, (MbSurfaceIntersectionCurve *)(_underlying));
+    case st_Instance:
+        return Instance::NewInstance(env, (MbInstance *)(_underlying));
     default:
         std::ostringstream msg;
         msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << "\n";
