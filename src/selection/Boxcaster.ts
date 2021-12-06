@@ -20,7 +20,6 @@ type CameraLike = THREE.Camera & {
 export class Boxcaster {
     readonly startPoint = new THREE.Vector3();
     readonly endPoint = new THREE.Vector3();
-    private collection = [];
     readonly frustum = new THREE.Frustum();
     private mode: 'contains' | 'intersects' = 'contains';
     private readonly deep = Number.MAX_VALUE;
