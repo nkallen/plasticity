@@ -12,7 +12,7 @@ import { GeometryMemento, MementoOriginator } from './History';
 import MaterialDatabase from './MaterialDatabase';
 import { ParallelMeshCreator } from './MeshCreator';
 
-const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.0015), 1]];
+const mesh_precision_distance: [number, number][] = [[unit(0.05), 1000], [unit(0.001), 1]];
 const other_precision_distance: [number, number][] = [[unit(0.0005), 1]];
 const temporary_precision_distance: [number, number][] = [[unit(0.004), 1]];
 

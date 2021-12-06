@@ -39,7 +39,7 @@ export class SnapPicker {
 
         this.raycaster.params = this.nearbyParams;
         raycaster.layers.mask = layers.visible.mask; // FIXME: particularly with bridge, this needs to change
-        if (viewport.isOrtho) raycaster.layers.disable(visual.Layers.Face);
+        if (viewport.isOrtho) raycaster.layers.disable(visual.Layers.Face); // FIXME: this is wrong, should be FaceCenterPointSnap?
         else raycaster.layers.enable(visual.Layers.Face);
 
         snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);

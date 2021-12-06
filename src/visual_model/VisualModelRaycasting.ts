@@ -118,7 +118,7 @@ Solids: {
             _box.min.x -= boxMargin;
             _box.min.y -= boxMargin;
             _box.min.z -= boxMargin;
-            if (!_ray.intersectsBox(geometry.boundingBox!)) return;
+            if (!_ray.intersectsBox(_box)) return;
         }
 
         raycaster.intersectObjects([...this], false, intersects);
@@ -217,7 +217,7 @@ Curves: {
             this.boundingSphere = _lineSegmentsGeometry.boundingSphere!.clone();
         }
     }
-    
+
     ControlPointGroup.prototype.raycast = function (raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
         const inst = this.parentItem;
         const is: THREE.Intersection[] = [];
@@ -253,10 +253,34 @@ export class BetterRaycastingPoints extends THREE.Points {
         const camera = raycaster.camera as THREE.PerspectiveCamera | THREE.OrthographicCamera;
         const threshold = raycaster.params.Points?.threshold ?? 0;
 
-        if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
-        _sphere.copy(geometry.boundingSphere!).applyMatrix4(matrixWorld);
-        _sphere.radius += threshold;
-        if (!raycaster.ray.intersectsSphere(_sphere)) return;
+        const size = 1; // px
+        const ssMaxWidth = size + threshold;
+        const material = this.material as BetterRaycastingPointsMaterial;
+        const resolution = material.resolution;
+
+        BoundingSphere: {
+            if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
+            _sphere.copy(geometry.boundingSphere!).applyMatrix4(matrixWorld);
+            const distanceToSphere = Math.max(camera.near, _sphere.distanceToPoint(_ray.origin)); // increase the sphere bounds by the worst case line screen space width
+            const sphereMargin = getWorldSpaceHalfWidth(camera, distanceToSphere + _sphere.radius, ssMaxWidth, resolution);
+
+            _sphere.radius += sphereMargin;
+            if (!raycaster.ray.intersectsSphere(_sphere)) return;
+        }
+
+        BoundingBox: {
+            if (geometry.boundingBox === null) geometry.computeBoundingBox();
+            _box.copy(geometry.boundingBox!).applyMatrix4(matrixWorld);
+            const distanceToBox = Math.max(camera.near, _box.distanceToPoint(_ray.origin));
+            const boxMargin = getWorldSpaceHalfWidth(camera, distanceToBox, ssMaxWidth, resolution);
+            _box.max.x += boxMargin;
+            _box.max.y += boxMargin;
+            _box.max.z += boxMargin;
+            _box.min.x -= boxMargin;
+            _box.min.y -= boxMargin;
+            _box.min.z -= boxMargin;
+            if (!raycaster.ray.intersectsBox(_box)) return;
+        }
 
         _inverseMatrix.copy(matrixWorld).invert();
         _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
@@ -266,18 +290,13 @@ export class BetterRaycastingPoints extends THREE.Points {
         const start = Math.max(0, drawRange.start);
         const end = Math.min(positionAttribute.count, (drawRange.start + drawRange.count));
 
-        const material = this.material as BetterRaycastingPointsMaterial;
-        const resolution = material.resolution;
-
-        const size = 1;
-        const ssMaxWidth = size + threshold;
         for (let i = start, l = end; i < l; i++) {
             _position.fromBufferAttribute(positionAttribute, i);
             const dist = Math.max(camera.near, _position.distanceTo(_ray.origin));
             const half = getWorldSpaceHalfWidth(camera, dist, ssMaxWidth, resolution);
             const halfSq = half * half;
             const rayPointDistanceSq = _ray.distanceSqToPoint(_position);
-            
+
             if (rayPointDistanceSq < halfSq) {
                 const intersectPoint = new THREE.Vector3();
                 _ray.closestPointToPoint(_position, intersectPoint);
