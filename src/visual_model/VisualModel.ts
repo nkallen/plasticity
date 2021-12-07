@@ -35,6 +35,11 @@ export abstract class PlaneItem extends THREE.Object3D {
 export abstract class Item extends SpaceItem {
     private _useNominal2: undefined;
     get simpleName(): c3d.SimpleName { return this.userData.simpleName }
+
+    private readonly identity = new THREE.Matrix4();
+    get isTemporaryOptimization() {
+        return !this.matrixWorld.equals(this.identity);
+    }
 }
 
 class SolidLOD extends THREE.LOD {
@@ -72,11 +77,6 @@ export class Solid extends Item {
         if (!this.visible || this.isTemporaryOptimization) return [];
         if (this._outline === undefined) this._outline = this.computeOutline();
         return this._outline!;
-    }
-
-    private readonly identity = new THREE.Matrix4();
-    get isTemporaryOptimization() {
-        return !this.matrixWorld.equals(this.identity);
     }
 
     private computeOutline() {

@@ -77,7 +77,9 @@ export class SnapPicker {
             snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
             const snappers = snaps.snappers;
             const additional = pointPicker.snaps.map(s => s.snapper);
-            const geometry = db.visibleObjects;
+            let geometry = db.visibleObjects;
+            // FIXME: I dislike this approach; make TranslateFact generate real TemporaryObjects rather than reusing the actual Items
+            geometry = geometry.filter(item => !item.isTemporaryOptimization);
             intersections = raycaster.intersectObjects([...snappers, ...additional, ...geometry], false);
         }
 

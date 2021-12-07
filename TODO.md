@@ -6,6 +6,7 @@
 
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
 - [ ] Audit re-used icons  
+- [ ] making circle on corner box top or side face (needs to stick)  
 - [ ] moving circle point doesn't work (drag and g)  
 - [ ] in xray mode, control points not visible  
 - [ ] PointSnap resolution for nearby seems wrong  
@@ -54,7 +55,6 @@
 - [ ] rotate face sucks  
 - [ ] icons for 1234  
 - [ ] set uniq for toolbar  
-- [ ] making circle on corner box top or side face (needs to stick)  
 
 ### In Progress
 
