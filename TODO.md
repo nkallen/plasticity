@@ -52,7 +52,6 @@
 ### Todo
 
 - [ ] Verify fastupdate (like move/etc) are updateMatrix()  
-- [ ] highlight outline stays when moving/etc object  
 - [ ] rotate face sucks  
 - [ ] icons for 1234  
 - [ ] set uniq for toolbar  
@@ -65,4 +64,5 @@
 
 ### Done ✓
 
+- [x] highlight outline stays when moving/etc object  
 

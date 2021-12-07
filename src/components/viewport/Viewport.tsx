@@ -171,6 +171,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.editor.signals.selectionChanged.add(this.outlineSelection);
         this.editor.signals.historyChanged.add(this.outlineSelection);
         this.editor.signals.factoryUpdated.add(this.outlineSelection);
+        this.editor.signals.factoryCancelled.add(this.outlineSelection);
+        this.editor.signals.factoryCommitted.add(this.outlineSelection);
         this.editor.signals.hoverChanged.add(this.outlineHover);
 
         this.editor.signals.selectionChanged.add(this.setNeedsRender);
@@ -200,6 +202,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.editor.signals.historyChanged.remove(this.outlineSelection);
             this.editor.signals.hoverChanged.remove(this.outlineHover);
             this.editor.signals.factoryUpdated.remove(this.outlineSelection);
+            this.editor.signals.factoryCancelled.remove(this.outlineSelection);
+            this.editor.signals.factoryCommitted.remove(this.outlineSelection);
 
             this.editor.signals.selectionChanged.remove(this.setNeedsRender);
             this.editor.signals.sceneGraphChanged.remove(this.setNeedsRender);
@@ -291,7 +295,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.outlinePassSelection.selectedObjects = toOutline;
     }
 
-    // FIXME: this needs to be aggregated
     outlineHover() {
         const hover = this.editor.highlighter.outlineHover;
         const toOutline = [...hover].flatMap(item => item.outline);

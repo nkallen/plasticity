@@ -51,7 +51,7 @@ export class Backup {
 
     async tempFilePath() {
         await this.makeTempDir();
-        return path.join(this.dir, 'backup.plasticity');
+        return path.join(this.dir, `backup.${process.env.NODE_ENV ?? 'env'}.plasticity`);
     }
 
     async c3dTempFilePath() {
