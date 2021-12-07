@@ -29,13 +29,18 @@ beforeEach(async () => {
     box = await makeBox.commit() as visual.Solid;
 });
 
-test('update when optimizations are possible', async () => {
+test("update when optimizations are possible, and updates position matrix world", async () => {
     move.items = [box];
     move.pivot = new THREE.Vector3();
     move.move = new THREE.Vector3(1, 0, 0);
     expect(box.position).toEqual(new THREE.Vector3(0, 0, 0));
     await move.update();
     expect(box.position).toEqual(new THREE.Vector3(1, 0, 0));
+    expect(box.matrixWorld).toEqual(new THREE.Matrix4().set(
+        1, 0, 0, 1,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1));
     expect(db.temporaryObjects.children.length).toBe(0);
 });
 
@@ -75,6 +80,22 @@ test('commit', async () => {
     expect(center).toApproximatelyEqual(new THREE.Vector3(1, 0, 0.5));
 });
 
+test('update & cancel resets position of original visual item', async () => {
+    move.items = [box];
+    move.pivot = new THREE.Vector3();
+    move.move = new THREE.Vector3(1, 0, 0);
+    await move.update();
+    expect(box.position).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
+
+    move.cancel();
+    expect(box.position).toApproximatelyEqual(new THREE.Vector3());
+    expect(box.matrixWorld).toEqual(new THREE.Matrix4().set(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1));
+})
+
 test('update & commit resets position of original visual item', async () => {
     move.items = [box];
     move.pivot = new THREE.Vector3();
@@ -84,6 +105,11 @@ test('update & commit resets position of original visual item', async () => {
 
     await move.commit() as visual.Solid[];
     expect(box.position).toApproximatelyEqual(new THREE.Vector3());
+    expect(box.matrixWorld).toEqual(new THREE.Matrix4().set(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1));
 })
 
 describe("when no values given it doesn't fail", () => {

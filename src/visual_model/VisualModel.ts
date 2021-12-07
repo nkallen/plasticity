@@ -69,9 +69,14 @@ export class Solid extends Item {
 
     private _outline?: THREE.Mesh[];
     get outline(): THREE.Mesh[] {
-        if (!this.visible) return [];
+        if (!this.visible || this.isTemporaryOptimization) return [];
         if (this._outline === undefined) this._outline = this.computeOutline();
         return this._outline!;
+    }
+
+    private readonly identity = new THREE.Matrix4();
+    get isTemporaryOptimization() {
+        return !this.matrixWorld.equals(this.identity);
     }
 
     private computeOutline() {

@@ -37,7 +37,6 @@
 - [ ] Trim command should allow points  
 - [ ] Trim should allow box selecting  
 - [ ] Move/Translate allows face selection #bug  
-- [ ] making circle on corner box top or side face (needs to stick)  
 - [ ] Box select during active command allows selecting faces that will be deleted #bug  
 - [ ] PointPicker: Restrictions are ignored with choice -  
 - [ ] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
@@ -52,16 +51,18 @@
 
 ### Todo
 
-- [ ] escape canceling an operation and the outline is invisible  
 - [ ] Verify fastupdate (like move/etc) are updateMatrix()  
-- [ ] Fix box snap points  
 - [ ] highlight outline stays when moving/etc object  
+- [ ] rotate face sucks  
+- [ ] icons for 1234  
+- [ ] set uniq for toolbar  
+- [ ] making circle on corner box top or side face (needs to stick)  
+- [ ] Fix box snap points  
 
 ### In Progress
 
+- [ ] escape canceling an operation and the outline is invisible  
 
 ### Done ✓
 
-- [x] angle gizmo at wrong angle  
-- [x] camera near plane sucks with ortho now  
 
