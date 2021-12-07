@@ -91,7 +91,8 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         if (underlying !== null) {
             if (underlying.IsA() === c3d.SpaceType.Arc3D) {
                 const cast = underlying.Cast<c3d.Arc3D>(underlying.IsA());
-                const centerSnap = new PointSnap("Center", point2point(cast.GetCentre()))
+                const { placement } = cast.GetPlaneCurve(false);
+                const centerSnap = new PointSnap("Center", point2point(cast.GetCentre()), vec2vec(placement.GetAxisZ(), 1));
                 into.add(centerSnap);
             }
         }

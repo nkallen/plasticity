@@ -61,14 +61,6 @@ export class RebuildFactory extends GeometryFactory {
     }
 
     get originalItem() { return this._item }
-
-    get shouldHideOriginalItemDuringUpdate() {
-        return true;
-    }
-
-    get shouldRemoveOriginalItemOnCommit() {
-        return false;
-    }
 }
 
 const mesh_blue = new THREE.MeshBasicMaterial();
