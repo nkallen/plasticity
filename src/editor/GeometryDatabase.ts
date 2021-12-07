@@ -510,8 +510,6 @@ export class GeometryDatabase implements DatabaseLike, MementoOriginator<Geometr
             if (cast instanceof c3d.Assembly) {
                 this.load(cast);
             } else if (cast instanceof c3d.Instance) {
-                const underlying = cast.GetItem()!;
-                console.log(underlying!.Cast<c3d.Item>(underlying.IsA()))
                 promises.push(this.addItem(cast.GetItem()!, 'user', item.GetItemName()));
             } else {
                 promises.push(this.addItem(cast, 'user', item.GetItemName()));

@@ -1446,8 +1446,9 @@ export class FreestyleMirrorCommand extends Command {
         mirror.item = solid ?? curve;
 
         const pointPicker = new PointPicker(this.editor);
+        pointPicker.straightSnaps.delete(AxisSnap.Z);
         const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
-        // pointPicker.restrictToPlaneThroughPoint(p1);
+        pointPicker.restrictToPlaneThroughPoint(p1);
 
         mirror.origin = p1;
 
