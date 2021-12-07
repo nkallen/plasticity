@@ -43,7 +43,6 @@ export class Model {
 
     private readonly restrictions = new Array<Restriction>();
     private readonly _restrictionSnaps = new Array<Snap>(); // Snap targets for the restrictions
-    restrictToConstructionPlane = false;
     private restrictionPoint?: THREE.Vector3;
     restrictionPlane?: PlaneSnap;
 
@@ -58,8 +57,12 @@ export class Model {
         this.crosses = new CrossPointDatabase(originalCrosses);
     }
 
-    get restrictionSnaps(): Snap[] {
-        return this._restrictionSnaps;
+    restrictionSnapsFor(baseConstructionPlane: PlaneSnap): Snap[] {
+        const result = [...this._restrictionSnaps];
+        if (this.restrictionPoint !== undefined || this.restrictionPlane !== undefined) {
+            result.push(this.actualConstructionPlaneGiven(baseConstructionPlane, false));
+        }
+        return result;
     }
 
     actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap, isOrtho: boolean): PlaneSnap {
@@ -521,6 +524,5 @@ export class PointPicker {
     clearAddedSnaps() { this.model.clearAddedSnaps() }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
     restrictToCurves(curves: visual.SpaceInstance<visual.Curve3D>[]) { return this.model.restrictToCurves(curves) }
-    set restrictToConstructionPlane(v: boolean) { this.model.restrictToConstructionPlane = v }
     undo() { this.model.undo() }
 }

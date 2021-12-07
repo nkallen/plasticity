@@ -69,7 +69,7 @@ export class SnapPicker {
         if (viewport.isOrtho) raycaster.layers.disable(visual.Layers.Face);
         else raycaster.layers.enable(visual.Layers.Face);
 
-        const restrictions = pointPicker.restrictionSnaps.map(r => r.snapper);
+        const restrictions = pointPicker.restrictionSnapsFor(viewport.constructionPlane).map(r => r.snapper);
         let intersections: THREE.Intersection[];
         if (restrictions.length > 0) {
             intersections = raycaster.intersectObjects(restrictions);

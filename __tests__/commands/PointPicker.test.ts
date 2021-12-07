@@ -9,7 +9,7 @@ import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
 import { inst2curve } from "../../src/util/Conversion";
@@ -22,7 +22,6 @@ let pointPicker: Model;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
-let snaps: SnapManager;
 let presenter: SnapPresenter;
 
 beforeEach(() => {
@@ -32,21 +31,24 @@ beforeEach(() => {
     const gizmos = new GizmoMaterialDatabase(signals);
     presenter = new SnapPresenter(gizmos);
     const crosses = new CrossPointDatabase();
-    snaps = new SnapManager(db, crosses, signals);
     const registry = new CommandRegistry();
     pointPicker = new Model(db, crosses, registry, signals);
 });
 
-describe('restrictToPlaneThroughPoint', () => {
-    const constructionPlane = new PlaneSnap();
+const constructionPlane = new PlaneSnap();
 
+describe('restrictToPlaneThroughPoint', () => {
     beforeEach(() => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
         pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3(1, 1, 1));
     })
 
     test("restrictionSnaps", () => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(1);
+        const snap = pointPicker.restrictionSnapsFor(constructionPlane)[0] as PlaneSnap;
+        expect(snap).toBeInstanceOf(PlaneSnap);
+        expect(snap.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(snap.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
 
     test("actualContructionPlaneGiven", () => {
@@ -62,15 +64,14 @@ describe('restrictToPlaneThroughPoint', () => {
 
 describe('addSnap', () => {
     const pointSnap = new PointSnap(undefined, new THREE.Vector3(1, 1, 1));
-    const constructionPlane = new PlaneSnap();
 
     beforeEach(() => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
         pointPicker.addSnap(pointSnap);
     })
 
     test("restrictionSnaps", () => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
     })
 
     test("actualContructionPlaneGiven", () => {
@@ -113,12 +114,12 @@ describe('restrictToEdges', () => {
     });
 
     beforeEach(() => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
         or = pointPicker.restrictToEdges([box.edges.get(0), box.edges.get(1)]);
     })
 
     test("restrictionSnaps", () => {
-        const restrictions = pointPicker.restrictionSnaps;
+        const restrictions = pointPicker.restrictionSnapsFor(new PlaneSnap());
         expect(restrictions.length).toBe(2);
         expect(restrictions[0]).toBeInstanceOf(CurveEdgeSnap);
         expect(restrictions[1]).toBeInstanceOf(CurveEdgeSnap);
@@ -137,12 +138,16 @@ describe('restrictToPlane', () => {
     });
 
     beforeEach(() => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
         pointPicker.restrictToPlane(planeSnap);
     })
 
     test("restrictionSnaps", () => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(1);
+        const snap = pointPicker.restrictionSnapsFor(constructionPlane)[0] as PlaneSnap;
+        expect(snap).toBeInstanceOf(PlaneSnap);
+        expect(snap.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(snap.p).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
     })
 
     test("actualContructionPlaneGiven", () => {
@@ -155,12 +160,12 @@ describe('restrictToPlane', () => {
 
 describe('restrictToLine', () => {
     beforeEach(() => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
         pointPicker.restrictToLine(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1));
     })
 
     test("restrictionsFor", () => {
-        const restrictions = pointPicker.restrictionSnaps;
+        const restrictions = pointPicker.restrictionSnapsFor(new PlaneSnap());
         expect(restrictions.length).toBe(1);
         expect(restrictions[0]).toBeInstanceOf(AxisSnap);
     })
@@ -175,7 +180,6 @@ describe('restrictToLine', () => {
 });
 
 describe('addPickedPoint', () => {
-    const constructionPlane = new PlaneSnap();
     let circle1: visual.SpaceInstance<visual.Curve3D>;
     let model1: c3d.Curve3D;
 
@@ -196,7 +200,7 @@ describe('addPickedPoint', () => {
     })
 
     test("restrictionsFor", () => {
-        const restrictions = pointPicker.restrictionSnaps;
+        const restrictions = pointPicker.restrictionSnapsFor(constructionPlane);
         expect(restrictions.length).toBe(0);
     })
 
@@ -215,15 +219,13 @@ describe('addPickedPoint', () => {
 const Y = new THREE.Vector3(0, 1, 0);
 
 describe('addAxesAt', () => {
-    const constructionPlane = new PlaneSnap();
-
     beforeEach(() => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
         pointPicker.addAxesAt(new THREE.Vector3(0, 0, 0), new THREE.Quaternion().setFromUnitVectors(Y, new THREE.Vector3(1, 1, 1)));
     })
 
     test("restrictionSnaps", () => {
-        expect(pointPicker.restrictionSnaps.length).toBe(0);
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
     })
 
     test("actualContructionPlaneGiven", () => {
@@ -323,7 +325,6 @@ describe('activateSnapped', () => {
 });
 
 describe('for curves', () => {
-    const constructionPlane = new PlaneSnap();
     let circle1: visual.SpaceInstance<visual.Curve3D>;
     let model1: c3d.Curve3D;
 

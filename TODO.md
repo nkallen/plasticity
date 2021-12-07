@@ -58,11 +58,11 @@
 
 ### In Progress
 
-- [ ] Fix box snap points  
 - [ ] Verify fastupdate (like move/etc) are updateMatrix()  
 
 ### Done ✓
 
+- [x] Fix box snap points  
 - [x] escape canceling an operation and the outline is invisible  
 - [x] highlight outline stays when moving/etc object  
 
