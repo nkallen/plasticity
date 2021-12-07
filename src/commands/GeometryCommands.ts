@@ -719,7 +719,9 @@ export class CenterBoxCommand extends Command {
             box.update();
             keyboard.toggle(box.isOverlapping);
         }).resource(this);
-        await box.commit();
+
+        const result = await box.commit() as visual.Solid;
+        selection.addSolid(result);
     }
 }
 
@@ -1803,7 +1805,7 @@ export class BridgeCurvesCommand extends Command {
         line.push(p1);
         factory.curve1 = snap1.view;
         factory.t1 = snap1.t;
-        
+
         line.push(p1);
         const { info: { snap: snap2 } } = await pointPicker.execute(({ point: p2, info: { snap: snap2 } }) => {
             line.last = p2;

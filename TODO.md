@@ -51,18 +51,18 @@
 
 ### Todo
 
-- [ ] Verify fastupdate (like move/etc) are updateMatrix()  
 - [ ] rotate face sucks  
 - [ ] icons for 1234  
 - [ ] set uniq for toolbar  
 - [ ] making circle on corner box top or side face (needs to stick)  
-- [ ] Fix box snap points  
 
 ### In Progress
 
-- [ ] escape canceling an operation and the outline is invisible  
+- [ ] Fix box snap points  
+- [ ] Verify fastupdate (like move/etc) are updateMatrix()  
 
 ### Done ✓
 
+- [x] escape canceling an operation and the outline is invisible  
 - [x] highlight outline stays when moving/etc object  
 
