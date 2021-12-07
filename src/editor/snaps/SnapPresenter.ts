@@ -29,8 +29,8 @@ export class SnapPresenter {
     snapIndicatorFor(intersection: SnapResult): Helper {
         const circle = new SimpleHelper(new Line2(snapGeometry, this.materials.darkGray.line2));
 
-        const { position, orientation } = intersection;
-        circle.position.copy(position);
+        const { cursorPosition, orientation } = intersection;
+        circle.position.copy(cursorPosition);
         circle.quaternion.copy(orientation);
         return circle;
     }

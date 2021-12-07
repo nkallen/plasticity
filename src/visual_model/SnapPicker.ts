@@ -69,19 +69,16 @@ export class SnapPicker {
         if (viewport.isOrtho) raycaster.layers.disable(visual.Layers.Face);
         else raycaster.layers.enable(visual.Layers.Face);
 
-        const restrictions = pointPicker.restrictionSnapsFor(viewport.constructionPlane).map(r => r.snapper);
+        const restrictionSnaps = pointPicker.restrictionSnapsFor(viewport.constructionPlane).map(r => r.snapper);
         let intersections: THREE.Intersection[];
-        if (restrictions.length > 0) {
-            intersections = raycaster.intersectObjects(restrictions);
-        } else {
-            snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
-            const snappers = snaps.snappers;
-            const additional = pointPicker.snaps.map(s => s.snapper);
-            let geometry = db.visibleObjects;
-            // FIXME: I dislike this approach; make TranslateFact generate real TemporaryObjects rather than reusing the actual Items
-            geometry = geometry.filter(item => !item.isTemporaryOptimization);
-            intersections = raycaster.intersectObjects([...snappers, ...additional, ...geometry], false);
-        }
+
+        snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
+        const snappers = snaps.snappers;
+        const additional = pointPicker.snaps.map(s => s.snapper);
+        let geometry = db.visibleObjects;
+        // FIXME: I dislike this approach; make TranslateFact generate real TemporaryObjects rather than reusing the actual Items
+        geometry = geometry.filter(item => !item.isTemporaryOptimization);
+        intersections = raycaster.intersectObjects([...snappers, ...additional, ...geometry, ...restrictionSnaps], false);
 
         const result = [];
         if (!this.viewport.isXRay) {
@@ -90,8 +87,17 @@ export class SnapPicker {
         const extremelyCloseSnaps = this.intersections2snaps(snaps, intersections, db);
         extremelyCloseSnaps.sort(sort);
 
-        for (const { snap, intersection } of extremelyCloseSnaps) {
-            result.push({ snap, ...snap.project(intersection.point) });
+        const restrictions = pointPicker.restrictionsFor(viewport.constructionPlane);
+        if (restrictions.length > 0) {
+            for (const { snap, intersection } of extremelyCloseSnaps) {
+                const { position: cursorPosition } = snap.project(intersection.point);
+                result.push({ snap, ...restrictions[0].project(cursorPosition), cursorPosition });
+            }
+        } else {
+            for (const { snap, intersection } of extremelyCloseSnaps) {
+                const { position, orientation } = snap.project(intersection.point);
+                result.push({ snap, position, orientation, cursorPosition: position });
+            }
         }
         if (result.length === 0) return this.intersectConstructionPlane(pointPicker, viewport);
         else return result;
@@ -127,13 +133,13 @@ export class SnapPicker {
         const approximatePosition = intersections[0].point;
         const snap = constructionPlane;
         const { position: precisePosition, orientation } = snap.project(approximatePosition);
-        return [{ snap, position: precisePosition, orientation }];
+        return [{ snap, position: precisePosition, cursorPosition: precisePosition, orientation }];
     }
 
     private intersectChoice(choice: AxisSnap): SnapResult[] {
         const position = choice.intersect(this.raycaster);
         if (position === undefined) return [];
-        else return [{ snap: choice!, orientation: choice.orientation, position }];
+        else return [{ snap: choice!, orientation: choice.orientation, position, cursorPosition: position }];
     }
 
     private intersectable2snap(intersectable: intersectable.Intersectable, db: DatabaseLike): Snap {
@@ -165,6 +171,7 @@ export class SnapPicker {
 export interface SnapResult {
     snap: Snap;
     position: THREE.Vector3;
+    cursorPosition: THREE.Vector3;
     orientation: THREE.Quaternion;
 }
 

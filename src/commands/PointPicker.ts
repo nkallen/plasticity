@@ -58,6 +58,10 @@ export class Model {
     }
 
     restrictionSnapsFor(baseConstructionPlane: PlaneSnap): Snap[] {
+        return this._restrictionSnaps;
+    }
+
+    restrictionsFor(baseConstructionPlane: PlaneSnap): Snap[] {
         const result = [...this._restrictionSnaps];
         if (this.restrictionPoint !== undefined || this.restrictionPlane !== undefined) {
             result.push(this.actualConstructionPlaneGiven(baseConstructionPlane, false));
@@ -212,21 +216,6 @@ export class Model {
         return restriction;
     }
 
-    restrictToCurves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
-        const restrictions = [];
-        for (const curve of curves) {
-            const inst = this.db.lookup(curve);
-            const item = inst.GetSpaceItem()!;
-            const model = item.Cast<c3d.Curve3D>(item.IsA());
-            const restriction = new CurveSnap(curve, model);
-            this._restrictionSnaps.push(restriction);
-            restrictions.push(restriction);
-        }
-        const restriction = new OrRestriction(restrictions);
-        this.restrictions.push(restriction);
-        return restriction;
-    }
-
     addPickedPoint(pointResult: PointResult) {
         this.pickedPointSnaps.push(pointResult);
         this.makeSnapsForLastPickedPoint();
@@ -293,6 +282,7 @@ export class Model {
 
 interface SnapInfo extends PointInfo {
     position: THREE.Vector3;
+    cursorPosition: THREE.Vector3;
 }
 
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
@@ -325,7 +315,7 @@ export class Presentation {
 
         // First match is assumed best
         const first = snaps[0];
-        const { snap, position } = first;
+        const { snap, position, cursorPosition } = first;
         const indicator = presenter.snapIndicatorFor(first);
 
         // Collect indicators, etc. as feedback for the user
@@ -335,12 +325,12 @@ export class Presentation {
         if (snapHelper !== undefined) helpers.push(snapHelper);
         this.helpers = helpers;
 
-        this.info = { snap, position, constructionPlane };
+        this.info = { snap, position, constructionPlane, cursorPosition };
 
         // Collect names of other matches to display to user
         let names = [];
         const pos = first.position;
-        for (const { snap, position } of new Set(snaps)) {
+        for (const { snap, position } of new Set(snaps)) { // FIXME: should this be a set?
             if (position.manhattanDistanceTo(pos) > 10e-6) continue;
             names.push(snap.name);
         }
@@ -360,7 +350,7 @@ export class PointTarget extends Helper {
 
 export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
-    private readonly helper = new PointTarget();
+    private readonly cursorHelper = new PointTarget();
 
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Line: { threshold: 0.1 },
@@ -373,15 +363,15 @@ export class PointPicker {
     execute<T>(cb?: (pt: PointResult) => T): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
-            const { helper: pointTarget, editor, model } = this;
+            const { cursorHelper, editor, model } = this;
 
             disposables.add(model.start());
 
             document.body.setAttribute("gizmo", "point-picker");
             disposables.add(new Disposable(() => document.body.removeAttribute('gizmo')));
 
-            editor.helpers.add(pointTarget);
-            disposables.add(new Disposable(() => editor.helpers.remove(pointTarget)));
+            editor.helpers.add(cursorHelper);
+            disposables.add(new Disposable(() => editor.helpers.remove(cursorHelper)));
             disposables.add(new Disposable(() => editor.signals.snapped.dispatch(undefined)));
             const helpers = new THREE.Scene();
 
@@ -428,10 +418,10 @@ export class PointPicker {
                     if (info === undefined) return;
 
                     lastSnap = info.snap;
-                    const { position } = info;
+                    const { position, cursorPosition } = info;
 
                     helpers.add(...newHelpers);
-                    pointTarget.position.copy(position);
+                    cursorHelper.position.copy(cursorPosition);
                     if (cb !== undefined) cb({ point: position, info });
 
                     editor.signals.snapped.dispatch(
@@ -493,8 +483,9 @@ export class PointPicker {
                 editor.signals.pointPickerChanged.dispatch();
             }
             const finish = () => {
-                const point = pointTarget.position.clone();
-                const pointResult = { point, info: info! };
+                if (info === undefined) throw new Error("invalid state");
+                const point = info.position.clone();
+                const pointResult = { point, info };
                 model.addPickedPoint(pointResult);
                 resolve(pointResult);
             }
@@ -523,6 +514,5 @@ export class PointPicker {
     addSnap(...snaps: Snap[]) { this.model.addSnap(...snaps) }
     clearAddedSnaps() { this.model.clearAddedSnaps() }
     restrictToEdges(edges: visual.CurveEdge[]) { return this.model.restrictToEdges(edges) }
-    restrictToCurves(curves: visual.SpaceInstance<visual.Curve3D>[]) { return this.model.restrictToCurves(curves) }
     undo() { this.model.undo() }
 }

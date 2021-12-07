@@ -13,6 +13,7 @@ import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveEndPointSnap, Curv
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
 import { inst2curve } from "../../src/util/Conversion";
+import { SnapResult } from "../../src/visual_model/SnapPicker";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import c3d from '../build/Release/c3d.node';
@@ -44,11 +45,7 @@ describe('restrictToPlaneThroughPoint', () => {
     })
 
     test("restrictionSnaps", () => {
-        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(1);
-        const snap = pointPicker.restrictionSnapsFor(constructionPlane)[0] as PlaneSnap;
-        expect(snap).toBeInstanceOf(PlaneSnap);
-        expect(snap.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(snap.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
     })
 
     test("actualContructionPlaneGiven", () => {
@@ -143,11 +140,7 @@ describe('restrictToPlane', () => {
     })
 
     test("restrictionSnaps", () => {
-        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(1);
-        const snap = pointPicker.restrictionSnapsFor(constructionPlane)[0] as PlaneSnap;
-        expect(snap).toBeInstanceOf(PlaneSnap);
-        expect(snap.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
-        expect(snap.p).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
     })
 
     test("actualContructionPlaneGiven", () => {
@@ -381,9 +374,9 @@ describe(Presentation, () => {
         const orientation = new THREE.Quaternion();
         const startPoint = new PointSnap("startpoint", new THREE.Vector3(1, 1, 1));
         const endPoint = new PointSnap("endpoint", new THREE.Vector3(1, 1, 1));
-        const snapResults = [
-            { snap: endPoint, position: hitPosition, orientation },
-            { snap: startPoint, position: hitPosition, orientation }
+        const snapResults: SnapResult[] = [
+            { snap: endPoint, position: hitPosition, cursorPosition: hitPosition, orientation },
+            { snap: startPoint, position: hitPosition, cursorPosition: hitPosition, orientation }
         ];
         const presentation = new Presentation([], snapResults, new PlaneSnap(), false, presenter);
 
