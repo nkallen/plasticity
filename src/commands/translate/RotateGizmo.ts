@@ -40,6 +40,7 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
         x.quaternion.setFromUnitVectors(Z, X);
         y.quaternion.setFromUnitVectors(Z, Y);
         z.quaternion.setFromUnitVectors(Z, Z);
+        this.add(x, y, z, screen);
     }
 
     private readonly cameraZ = new THREE.Vector3();
@@ -49,8 +50,6 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
 
         const state = new QuaternionStateMachine(new THREE.Quaternion());
         state.start();
-
-        this.add(x, y, z, screen);
 
         for (const i of [x, y, z, screen]) {
             i.addEventListener('end', () => state.push());
