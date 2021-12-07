@@ -642,7 +642,7 @@ export class CornerBoxCommand extends Command {
         if (selection.solids.size > 0) box.solid = selection.solids.first;
 
         let pointPicker = new PointPicker(this.editor);
-        const { point: p1 } = await pointPicker.execute().resource(this);
+        const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
 
         pointPicker.restrictToPlaneThroughPoint(p1);
         pointPicker.straightSnaps.delete(AxisSnap.X);
@@ -650,6 +650,7 @@ export class CornerBoxCommand extends Command {
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, 1, 0)));
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
+        snap.addAdditionalRestrictionsTo(pointPicker, p1)
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
