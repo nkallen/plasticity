@@ -7,6 +7,7 @@ import { CrossPoint } from "../curves/CrossPointDatabase";
 
 export interface Restriction {
     isValid(pt: THREE.Vector3): boolean;
+    project(point: THREE.Vector3): { position: THREE.Vector3; orientation: THREE.Quaternion; };
 }
 
 export abstract class Snap implements Restriction {
@@ -358,6 +359,11 @@ export class OrRestriction<R extends Restriction> implements Restriction {
             }
         }
         return false;
+    }
+
+    project(point: THREE.Vector3): { position: THREE.Vector3; orientation: THREE.Quaternion } {
+        this.isValid(point);
+        return this.match.project(point);
     }
 }
 const axisGeometry = new THREE.BufferGeometry();

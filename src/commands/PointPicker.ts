@@ -61,8 +61,8 @@ export class Model {
         return this._restrictionSnaps;
     }
 
-    restrictionsFor(baseConstructionPlane: PlaneSnap): Snap[] {
-        const result = [...this._restrictionSnaps];
+    restrictionsFor(baseConstructionPlane: PlaneSnap): Restriction[] {
+        const result = [...this.restrictions];
         if (this.restrictionPoint !== undefined || this.restrictionPlane !== undefined) {
             result.push(this.actualConstructionPlaneGiven(baseConstructionPlane, false));
         }
