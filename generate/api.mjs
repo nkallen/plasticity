@@ -227,6 +227,7 @@ export default {
                 "void SetBasisPoints(const MbControlData3D & cd)",
                 { signature: "void GetItems(RPArray<MbTopologyItem> items)", items: isReturn },
                 "bool IsClosed()",
+                "const MbCube GetCube()",
             ]
         },
         Assembly: {

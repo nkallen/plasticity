@@ -55,6 +55,7 @@ abstract class TranslateFactory extends GeometryFactory {
                 item.matrixAutoUpdate = false;
                 item.matrix.copy(mat);
                 item.matrix.decompose(item.position, item.quaternion, item.scale);
+                item.updateMatrixWorld(true);
 
                 const temp = { underlying: item, show() { }, cancel() { } } as TemporaryObject;
                 return [temp];
@@ -191,6 +192,7 @@ export class RotateFactory extends TranslateFactory implements RotateFactoryLike
                 if (angle === 0) {
                     item.position.set(0, 0, 0);
                     item.quaternion.set(0, 0, 0, 1);
+                    item.updateMatrixWorld();
                     const temp = { underlying: item, show() { }, cancel() { } } as TemporaryObject;
                     return [temp];
                 }
@@ -200,6 +202,7 @@ export class RotateFactory extends TranslateFactory implements RotateFactoryLike
                 item.position.applyAxisAngle(axis, angle);
                 item.position.add(point);
                 item.quaternion.setFromAxisAngle(axis, angle);
+                item.updateMatrixWorld();
 
                 const temp = { underlying: item, show() { }, cancel() { } };
                 return [temp];

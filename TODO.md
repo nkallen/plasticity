@@ -52,6 +52,7 @@
 
 ### Todo
 
+- [ ] escape canceling an operation and the outline is invisible  
 - [ ] Verify fastupdate (like move/etc) are updateMatrix()  
 - [ ] Fix box snap points  
 - [ ] highlight outline stays when moving/etc object  

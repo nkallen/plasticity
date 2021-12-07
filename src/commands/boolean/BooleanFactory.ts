@@ -370,7 +370,8 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
             this.isOverlapping = false;
             this.isSurface = false;
         } else {
-            const { isIntersection, intData } = c3d.Action.IsSolidsIntersection(this.model!, new c3d.Matrix3D(), phantom, new c3d.Matrix3D(), true, false, false);
+            // FIXME: use MinimumSolidDistance which is faster
+            const { isIntersection, intData } = await c3d.Action.IsSolidsIntersection_async(this.model!, new c3d.Matrix3D(), phantom, new c3d.Matrix3D(), true, false, false);
             this.isOverlapping = isIntersection;
             if (intData.length === 0) {
                 this.isSurface = false;
