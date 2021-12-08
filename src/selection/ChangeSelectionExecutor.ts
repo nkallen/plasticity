@@ -11,6 +11,8 @@ export enum SelectionMode {
     CurveEdge, Face, Solid, Curve, ControlPoint
 }
 
+export const SelectionModeAll = [SelectionMode.CurveEdge, SelectionMode.Face, SelectionMode.Solid, SelectionMode.Curve, SelectionMode.ControlPoint];
+
 export interface SelectionStrategy {
     emptyIntersection(): void;
     solid(object: TopologyItem, parentItem: Solid): boolean;

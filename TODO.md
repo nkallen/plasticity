@@ -60,6 +60,7 @@
 
 ### Done ✓
 
+- [x] hitting 11 should enable all selections  
 - [x] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
 - [x] unify restrictionFor / addAdditional  
 - [x] restrict to plane through point should allow better box creation when using corners or edges  

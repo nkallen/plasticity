@@ -8,7 +8,7 @@ import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../visual_model/VisualModel';
 import { Redisposable, RefCounter } from '../util/Util';
 import { ControlPointSelection, ItemSelection, TopologyItemSelection } from './TypedSelection';
-import { SelectionMode } from './ChangeSelectionExecutor';
+import { SelectionMode, SelectionModeAll } from './ChangeSelectionExecutor';
 
 export type Selectable = visual.Item | visual.TopologyItem | visual.ControlPoint;
 
@@ -342,12 +342,21 @@ export class ToggleableSet extends Set<SelectionMode> {
     }
 
     set(...elements: SelectionMode[]) {
+        if (eqSet(new Set(elements), this)) {
+            elements = SelectionModeAll;
+        }
         this.clear();
         for (const element of elements) {
             this.add(element);
         }
         this.signals.selectionModeChanged.dispatch(this);
     }
+}
+
+function eqSet<A>(as: Set<A>, bs: Set<A>) {
+    if (as.size !== bs.size) return false;
+    for (var a of as) if (!bs.has(a)) return false;
+    return true;
 }
 
 export interface HasSelectedAndHovered {
@@ -377,7 +386,7 @@ export class SelectionDatabase implements HasSelectedAndHovered {
         readonly db: DatabaseLike,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
-        readonly mode = new ToggleableSet([SelectionMode.Solid, SelectionMode.CurveEdge, SelectionMode.Curve, SelectionMode.Face, SelectionMode.ControlPoint], signals)
+        readonly mode = new ToggleableSet(SelectionModeAll, signals)
     ) {
         this.clearHovered = this.clearHovered.bind(this);
         signals.historyChanged.add(this.clearHovered);
