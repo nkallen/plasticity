@@ -10,7 +10,7 @@ export enum Mode { Horizontal, Vertical }
 export class CenterCircleFactory extends GeometryFactory {
     center!: THREE.Vector3;
     point!: THREE.Vector3;
-    constructionPlane = new PlaneSnap();
+    orientation = new THREE.Quaternion()
     mode = Mode.Horizontal;
 
     get radius() {
@@ -23,11 +23,11 @@ export class CenterCircleFactory extends GeometryFactory {
     }
 
     async calculate() {
-        const { mode, center, radius, point, constructionPlane: { n } } = this;
+        const { mode, center, radius, point, normal } = this;
 
         const Y = point.clone().sub(center).normalize();
 
-        const [x, y, z] = CenterCircleFactory.orientHorizontalOrVertical(point, center, n, mode);
+        const [x, y, z] = CenterCircleFactory.orientHorizontalOrVertical(point, center, normal, mode);
         const placement = new c3d.Placement3D();
         placement.SetAxisX(vec2vec(x, 1));
         placement.SetAxisY(vec2vec(y, 1));
@@ -38,6 +38,11 @@ export class CenterCircleFactory extends GeometryFactory {
         const circle = new c3d.Arc3D(placement, unit(radius), unit(radius), 0);
 
         return new c3d.SpaceInstance(circle);
+    }
+
+    private readonly _normal = new THREE.Vector3();
+    private get normal() {
+        return this._normal.copy(Z).applyQuaternion(this.orientation);
     }
 
     private static localY = new THREE.Vector3();
@@ -55,6 +60,8 @@ export class CenterCircleFactory extends GeometryFactory {
         }
     }
 }
+
+const Z = new THREE.Vector3(0, 0, 1);
 
 export class TwoPointCircleFactory extends CenterCircleFactory {
     p1!: THREE.Vector3

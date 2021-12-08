@@ -1,11 +1,10 @@
 import { CompositeDisposable } from "event-kit";
 import * as THREE from "three";
-import { Layers } from "three";
 import { Model } from "../commands/PointPicker";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
-import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "../editor/snaps/Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from "../editor/snaps/SnapManager";
 import { inst2curve } from "../util/Conversion";
 import * as intersectable from "./Intersectable";
@@ -276,3 +275,5 @@ CurveSnap.prototype.priority = 2;
 AxisSnap.prototype.priority = 2;
 CurveEdgeSnap.prototype.priority = 2;
 FaceSnap.prototype.priority = 3;
+PlaneSnap.prototype.priority = 4;
+ConstructionPlaneSnap.prototype.priority = 5;

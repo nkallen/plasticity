@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
 - [ ] Audit re-used icons  
 - [ ] moving circle point doesn't work (drag and g)  
@@ -50,19 +51,19 @@
 ### Todo
 
 - [ ] make box on side of selected box defaults to subtraction when it should be add  
-- [ ] making circle on corner box top or side face (needs to stick)  
-- [ ] unify restrictionFor / addAdditional  
-- [ ] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
 - [ ] circle angle gizmo when far off from center not facing camera  
 - [ ] icons for 1234  
 - [ ] set uniq for toolbar  
 
 ### In Progress
 
-- [ ] restrict to plane through point should allow better box creation when using corners or edges  
 
 ### Done ✓
 
+- [x] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
+- [x] unify restrictionFor / addAdditional  
+- [x] restrict to plane through point should allow better box creation when using corners or edges  
+- [x] making circle on corner box top or side face (needs to stick)  
 - [x] bug: variable fillet broken  
 - [x] DraftSolid Freestyle  
 - [x] Make freestyle rotate be quaternion  

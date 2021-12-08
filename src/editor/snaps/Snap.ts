@@ -38,9 +38,6 @@ export abstract class Snap implements Restriction {
     abstract project(point: THREE.Vector3): { position: THREE.Vector3; orientation: THREE.Quaternion; };
     abstract isValid(pt: THREE.Vector3): boolean;
 
-    // FIXME: deprecated, remove
-    addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
-
     restrictionFor(point: THREE.Vector3): Restriction | undefined { return }
     additionalSnapsFor(point: THREE.Vector3): Snap[] { return [] }
     additionalSnapsForLast(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] { return [] }
@@ -162,10 +159,6 @@ export class FaceCenterPointSnap extends PointSnap {
 
     restrictionFor(point: THREE.Vector3) {
         return this.faceSnap.restrictionFor(point);
-    }
-
-    addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {
-        this.faceSnap.addAdditionalRestrictionsTo(pointPicker, point);
     }
 
     additionalSnapsFor(point: THREE.Vector3) {
@@ -372,12 +365,6 @@ export class FaceSnap extends Snap {
         const { normal } = this.model.NearPointProjection(point2point(point));
         const plane = new PlaneSnap(vec2vec(normal, 1), point);
         return plane;
-    }
-
-    addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {
-        const { normal } = this.model.NearPointProjection(point2point(point));
-        const plane = new PlaneSnap(vec2vec(normal, 1), point);
-        pointPicker.restrictToPlane(plane);
     }
 
     additionalSnapsFor(point: THREE.Vector3) {
