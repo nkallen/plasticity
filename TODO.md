@@ -40,7 +40,6 @@
 - [ ] Move/Translate allows face selection #bug  
 - [ ] Box select during active command allows selecting faces that will be deleted #bug  
 - [ ] PointPicker: Restrictions are ignored with choice -  
-- [ ] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
 - [ ] currently FINISH is always available, even at step 1 of 3 points box. #bug - registry.add(command:finish) should maybe not happen in command executor but in await this.finished  
 - [ ] ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909  
 - [ ] rename Id() .id  
@@ -52,17 +51,19 @@
 
 ### Todo
 
+- [ ] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
 - [ ] circle angle gizmo when far off from center not facing camera  
-- [ ] restrict to plane through point should allow better box creation when using corners or edges  
 - [ ] icons for 1234  
 - [ ] set uniq for toolbar  
 
 ### In Progress
 
-- [ ] Make freestyle rotate be quaternion  
+- [ ] restrict to plane through point should allow better box creation when using corners or edges  
 
 ### Done ✓
 
+- [x] DraftSolid Freestyle  
+- [x] Make freestyle rotate be quaternion  
 - [x] rotate face sucks  
 - [x] Verify fastupdate (like move/etc) are updateMatrix()  
 - [x] Fix box snap points  
