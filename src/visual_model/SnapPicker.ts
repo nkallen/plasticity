@@ -92,15 +92,15 @@ export class SnapPicker {
             result.push({ snap, position, orientation, cursorPosition: position });
         }
 
-        const restrictions = pointPicker.restrictionsFor(viewport.constructionPlane);
-        if (restrictions.length > 0) {
+        const restriction = pointPicker.restrictionFor(viewport.constructionPlane);
+        if (restriction !== undefined) {
             for (const info of result) {
-                const { position, orientation } = restrictions[0].project(info.position);
+                const { position, orientation } = restriction.project(info.position);
                 info.position = position;
                 info.orientation = orientation;
             }
         }
-        
+
         if (result.length === 0) return this.intersectConstructionPlane(pointPicker, viewport);
         else return result;
     }

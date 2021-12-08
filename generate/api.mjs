@@ -946,6 +946,7 @@ export default {
                 "MbLoop * GetLoop(size_t index)",
                 "bool IsSameSense()",
                 "MbFace * DataDuplicate(MbRegDuplicate * dup = NULL)",
+                "bool IsPlanar()",
             ]
         },
         Vertex: {

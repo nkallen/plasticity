@@ -9,7 +9,7 @@ import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
 import { SnapManager } from "../../src/editor/snaps/SnapManager";
 import { SnapPresenter } from "../../src/editor/snaps/SnapPresenter";
 import { inst2curve } from "../../src/util/Conversion";
@@ -38,7 +38,7 @@ beforeEach(() => {
 
 const constructionPlane = new PlaneSnap();
 
-describe('restrictToPlaneThroughPoint', () => {
+describe('restrictToPlaneThroughPoint(no snap)', () => {
     beforeEach(() => {
         expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
         pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3(1, 1, 1));
@@ -48,9 +48,58 @@ describe('restrictToPlaneThroughPoint', () => {
         expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
     })
 
+
+    test("restriction", () => {
+        const restriction = pointPicker.restrictionFor(constructionPlane) as PlaneSnap;
+        expect(restriction).toBeInstanceOf(PlaneSnap);
+        expect(restriction.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(restriction.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    })
+
     test("actualContructionPlaneGiven", () => {
         const plane = pointPicker.actualConstructionPlaneGiven(constructionPlane, false);
         expect(plane.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
+        expect(plane.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    })
+
+    test("snaps", () => {
+        expect(pointPicker.snaps.length).toBe(0);
+    })
+});
+
+describe('restrictToPlaneThroughPoint(with snap)', () => {
+    let box: visual.Solid;
+
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box = await makeBox.commit() as visual.Solid;
+    });
+
+    beforeEach(() => {
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
+        const face = box.faces.get(0);
+        const snap = new FaceSnap(face, db.lookupTopologyItem(face));
+        pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3(1, 1, 1), snap);
+    })
+
+    test("restrictionSnaps", () => {
+        expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
+    })
+
+    test("restriction", () => {
+        const restriction = pointPicker.restrictionFor(constructionPlane) as PlaneSnap;
+        expect(restriction).toBeInstanceOf(PlaneSnap);
+        expect(restriction.n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
+        expect(restriction.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
+    })
+
+    test("actualContructionPlaneGiven", () => {
+        const plane = pointPicker.actualConstructionPlaneGiven(constructionPlane, false);
+        expect(plane.n).toApproximatelyEqual(new THREE.Vector3(0, 0, -1));
         expect(plane.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
 
@@ -209,7 +258,9 @@ describe('addPickedPoint', () => {
     })
 })
 
+const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
 
 describe('addAxesAt', () => {
     beforeEach(() => {
@@ -385,3 +436,4 @@ describe(Presentation, () => {
         expect(presentation.info!.snap).toBe(endPoint);
     });
 });
+

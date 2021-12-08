@@ -52,7 +52,7 @@ test("adding & removing solid", async () => {
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(1);
-    expect(snaps.all.geometrySnaps[0].size).toBe(30);
+    expect(snaps.all.geometrySnaps[0].size).toBe(42);
 
     db.removeItem(box);
 
@@ -72,7 +72,7 @@ test("adding & hiding & unhiding solid", async () => {
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(1);
-    expect(snaps.all.geometrySnaps[0].size).toBe(30);
+    expect(snaps.all.geometrySnaps[0].size).toBe(42);
 
     db.hide(box);
     expect(snaps.all.basicSnaps.size).toBe(4);
@@ -83,7 +83,7 @@ test("adding & hiding & unhiding solid", async () => {
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(1);
-    expect(snaps.all.geometrySnaps[0].size).toBe(30);
+    expect(snaps.all.geometrySnaps[0].size).toBe(42);
 
     db.hide(box);
     expect(snaps.all.basicSnaps.size).toBe(4);
@@ -94,7 +94,7 @@ test("adding & hiding & unhiding solid", async () => {
     expect(snaps.all.basicSnaps.size).toBe(4);
     expect(snaps.all.crossSnaps.length).toBe(0);
     expect(snaps.all.geometrySnaps.length).toBe(1);
-    expect(snaps.all.geometrySnaps[0].size).toBe(30);
+    expect(snaps.all.geometrySnaps[0].size).toBe(42);
 });
 
 test("adding & removing curve", async () => {

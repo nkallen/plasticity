@@ -41,10 +41,9 @@ export class Model {
     straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]); // Snaps going straight off the last picked point
     private readonly otherAddedSnaps = new Array<Snap>();
 
-    private readonly restrictions = new Array<Restriction>();
+    private _restriction?: Restriction;
     private readonly _restrictionSnaps = new Array<Snap>(); // Snap targets for the restrictions
     private restrictionPoint?: THREE.Vector3;
-    restrictionPlane?: PlaneSnap;
 
     private crosses: CrossPointDatabase;
 
@@ -61,19 +60,17 @@ export class Model {
         return this._restrictionSnaps;
     }
 
-    restrictionsFor(baseConstructionPlane: PlaneSnap): Restriction[] {
-        const result = [...this.restrictions];
-        if (this.restrictionPoint !== undefined || this.restrictionPlane !== undefined) {
-            result.push(this.actualConstructionPlaneGiven(baseConstructionPlane, false));
-        }
-        return result;
+    restrictionFor(baseConstructionPlane: PlaneSnap): Restriction | undefined {
+        if (this._restriction === undefined && this.restrictionPoint !== undefined) {
+            return baseConstructionPlane.move(this.restrictionPoint);
+        } else return this._restriction;
     }
 
     actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap, isOrtho: boolean): PlaneSnap {
-        const { pickedPointSnaps, restrictionPlane, restrictionPoint } = this;
+        const { pickedPointSnaps, restrictionPoint } = this;
         let constructionPlane = baseConstructionPlane;
-        if (restrictionPlane !== undefined) {
-            constructionPlane = restrictionPlane;
+        if (this._restriction instanceof PlaneSnap) {
+            constructionPlane = this._restriction;
         } else if (restrictionPoint !== undefined) {
             constructionPlane = constructionPlane.move(restrictionPoint);
         } else if (isOrtho && pickedPointSnaps.length > 0) {
@@ -188,17 +185,18 @@ export class Model {
         return this.snapsForLastPickedPoint.concat(this.otherAddedSnaps);
     }
 
-    restrictToPlaneThroughPoint(point: THREE.Vector3) {
+    restrictToPlaneThroughPoint(point: THREE.Vector3, snap?: Snap) {
         this.restrictionPoint = point;
+        if (snap !== undefined) this._restriction = snap.restrictionFor(point);
     }
 
     restrictToPlane(plane: PlaneSnap) {
-        this.restrictionPlane = plane;
+        this._restriction = plane;
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
         const line = new AxisSnap(undefined, direction, origin);
-        this.restrictions.push(line);
+        this._restriction = line;
         this._restrictionSnaps.push(line);
         this.choice = line;
     }
@@ -212,7 +210,7 @@ export class Model {
             restrictions.push(restriction);
         }
         const restriction = new OrRestriction(restrictions);
-        this.restrictions.push(restriction);
+        this._restriction = restriction;
         return restriction;
     }
 
@@ -507,7 +505,7 @@ export class PointPicker {
     }
 
     get straightSnaps() { return this.model.straightSnaps }
-    restrictToPlaneThroughPoint(pt: THREE.Vector3) { this.model.restrictToPlaneThroughPoint(pt) }
+    restrictToPlaneThroughPoint(pt: THREE.Vector3, snap?: Snap) { this.model.restrictToPlaneThroughPoint(pt, snap) }
     restrictToPlane(plane: PlaneSnap) { return this.model.restrictToPlane(plane) }
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) { this.model.restrictToLine(origin, direction) }
     addAxesAt(pt: THREE.Vector3, orientation = new THREE.Quaternion()) { this.model.addAxesAt(pt, orientation) }

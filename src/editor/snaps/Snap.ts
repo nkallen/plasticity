@@ -38,7 +38,10 @@ export abstract class Snap implements Restriction {
     abstract project(point: THREE.Vector3): { position: THREE.Vector3; orientation: THREE.Quaternion; };
     abstract isValid(pt: THREE.Vector3): boolean;
 
+    // FIXME: deprecated, remove
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) { }
+
+    restrictionFor(point: THREE.Vector3): Restriction | undefined { return }
     additionalSnapsFor(point: THREE.Vector3): Snap[] { return [] }
     additionalSnapsForLast(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] { return [] }
 }
@@ -133,9 +136,23 @@ export class CurveEndPointSnap extends CurvePointSnap {
     }
 }
 
-export class EdgePointSnap extends PointSnap {
+export class EdgeMidPointSnap extends PointSnap {
+    constructor(position: THREE.Vector3, readonly edgeSnap: CurveEdgeSnap) {
+        super("Mid", position);
+    }
+
+    restrictionFor(point: THREE.Vector3) {
+        return this.edgeSnap.restrictionFor(point);
+    }
 }
 export class EdgeEndPointSnap extends PointSnap {
+    constructor(position: THREE.Vector3, readonly edgeSnap: CurveEdgeSnap) {
+        super("Beginning", position);
+    }
+
+    restrictionFor(point: THREE.Vector3) {
+        return this.edgeSnap.restrictionFor(point);
+    }
 }
 
 export class FaceCenterPointSnap extends PointSnap {
@@ -145,6 +162,10 @@ export class FaceCenterPointSnap extends PointSnap {
 
     get view() { return this.faceSnap.view }
     get model() { return this.faceSnap.model }
+
+    restrictionFor(point: THREE.Vector3) {
+        return this.faceSnap.restrictionFor(point);
+    }
 
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {
         this.faceSnap.addAdditionalRestrictionsTo(pointPicker, point);
@@ -186,6 +207,23 @@ export class CurveEdgeSnap extends Snap {
         const on = this.model.Point(t);
         const result = pt.manhattanDistanceTo(point2point(on)) < 10e-4;
         return result;
+    }
+
+    restrictionFor(point: THREE.Vector3) {
+        const facePlus = this.model.GetFacePlus();
+        const faceMinus = this.model.GetFaceMinus();
+        const planar = [];
+        if (facePlus !== null && facePlus.IsPlanar()) {
+            const { point, normal } = facePlus.GetAnyPointOn();
+            planar.push(new PlaneSnap(vec2vec(normal, 1), point2point(point)));
+        }
+        if (faceMinus !== null && faceMinus.IsPlanar()) {
+            const { point, normal } = faceMinus.GetAnyPointOn();
+            planar.push(new PlaneSnap(vec2vec(normal, 1), point2point(point)));
+        }
+        if (planar.length === 0) return undefined;
+        else if (planar.length === 1) return planar[0];
+        else return new OrRestriction(planar);
     }
 }
 
@@ -331,6 +369,12 @@ export class FaceSnap extends Snap {
         const projected = point2point(model.Point(faceU, faceV));
         const result = point.manhattanDistanceTo(projected) < 10e-4;
         return result;
+    }
+
+    restrictionFor(point: THREE.Vector3) {
+        const { normal } = this.model.NearPointProjection(point2point(point));
+        const plane = new PlaneSnap(vec2vec(normal, 1), point);
+        return plane;
     }
 
     addAdditionalRestrictionsTo(pointPicker: PointPicker, point: THREE.Vector3) {
@@ -511,7 +555,7 @@ export class PlaneSnap extends Snap {
 
         this.init();
     }
-    
+
     project(intersection: THREE.Vector3 | THREE.Intersection) {
         const point = intersection instanceof THREE.Vector3 ? intersection : intersection.point;
         const { n, p, orientation } = this;

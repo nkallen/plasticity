@@ -6,7 +6,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../../visual_model/VisualModel';
-import { AxisSnap, CrossPointSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
+import { AxisSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgeMidPointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
     enabled = true;
@@ -82,10 +82,13 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     private addEdge(edge: visual.CurveEdge, model: c3d.CurveEdge, into: Set<Snap>) {
+        const edgeSnap = new CurveEdgeSnap(edge, model);
         const begPt = model.GetBegPoint();
+        const endPt = model.GetEndPoint();
         const midPt = model.Point(0.5);
-        const begSnap = new EdgeEndPointSnap("Beginning", point2point(begPt));
-        const midSnap = new EdgePointSnap("Middle", point2point(midPt));
+        const begSnap = new EdgeEndPointSnap(point2point(begPt), edgeSnap);
+        const endSnap = new EdgeEndPointSnap(point2point(endPt), edgeSnap);
+        const midSnap = new EdgeMidPointSnap(point2point(midPt), edgeSnap);
 
         const underlying = model.GetSpaceCurve();
         if (underlying !== null) {
@@ -99,6 +102,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 
         into.add(begSnap);
         into.add(midSnap);
+        into.add(endSnap);
     }
 
     private addCurve(view: visual.SpaceInstance<visual.Curve3D>, into: Set<Snap>) {
