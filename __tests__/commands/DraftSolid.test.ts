@@ -35,16 +35,18 @@ describe('commit', () => {
     test('invokes the appropriate c3d commands', async () => {
         expect(db.temporaryObjects.children.length).toBe(0);
         expect(db.visibleObjects.length).toBe(1);
-        const face = solid.faces.get(2);
+        expect(solid).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5))
+
+        const face = solid.faces.get(5);
         draftSolid.solid = solid;
         draftSolid.faces = [face];
-        draftSolid.angle = 4.75;
-        draftSolid.axis = new THREE.Vector3(0, 0, 1);
-        draftSolid.pivot = new THREE.Vector3(0.5, 1, 0.5);
+        draftSolid.degrees = 45;
+        draftSolid.axis = new THREE.Vector3(0, 1, 0);
+        draftSolid.pivot = new THREE.Vector3(0.5, 0.5, 0.5);
+        draftSolid.normal = new THREE.Vector3(1, 0, 0);
         expect(solid).toHaveCentroidNear(new THREE.Vector3(0.5, 0.5, 0.5));
-        await draftSolid.update();
-        const offsetted = await draftSolid.commit();
-        expect(offsetted).toHaveCentroidNear(new THREE.Vector3(0.5, -6.14, 0.73))
+        const drafted = await draftSolid.commit();
+        expect(drafted).toHaveCentroidNear(new THREE.Vector3(0.25, 0.5, 0.5))
         expect(db.temporaryObjects.children.length).toBe(0);
         expect(db.visibleObjects.length).toBe(1);
     })

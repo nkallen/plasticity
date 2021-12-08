@@ -1,14 +1,22 @@
-import { composeMainName, point2point } from '../../util/Conversion';
+import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { GeometryFactory } from '../GeometryFactory';
 import { RotateParams } from '../translate/TranslateFactory';
 
+const X = new THREE.Vector3(1, 0, 0);
+const Y = new THREE.Vector3(0, 1, 0);
+
+const X_ = new c3d.Vector3D(1, 0, 0);
+const Y_ = new c3d.Vector3D(0, 1, 0);
+const Z_ = new c3d.Vector3D(0, 0, 1);
+
 export class DraftSolidFactory extends GeometryFactory implements RotateParams {
     angle!: number;
     pivot!: THREE.Vector3;
     axis!: THREE.Vector3;
+    normal!: THREE.Vector3;
 
     get degrees() { return THREE.MathUtils.radToDeg(this.angle) }
     set degrees(degrees: number) {
@@ -39,18 +47,14 @@ export class DraftSolidFactory extends GeometryFactory implements RotateParams {
         this.facesModel = facesModel;
     }
 
+    private readonly z = new THREE.Vector3();
+    private readonly x = new THREE.Vector3();
     async calculate() {
-        const { solidModel: solid, facesModel: faces, pivot, axis, angle, names } = this;
+        const { solidModel: solid, facesModel: faces, pivot, axis, angle, names, normal, x, z } = this;
 
-        const placement = new c3d.Placement3D();
-        placement.SetOrigin(point2point(pivot));
-        if (axis.dot(new THREE.Vector3(1, 0, 0)) > 1e-6) {
-            placement.SetAxisZ(new c3d.Vector3D(0, 1, 0));
-        } else if (axis.dot(new THREE.Vector3(0, 1, 0)) > 1e-6) {
-            placement.SetAxisZ(new c3d.Vector3D(1, 0, 0));
-            placement.SetAxisX(new c3d.Vector3D(0, 1, 0));
-        }
-        placement.Reset();
+        z.crossVectors(axis, normal);
+        x.crossVectors(z, axis);
+        const placement = new c3d.Placement3D(point2point(pivot), vec2vec(z, 1), vec2vec(x, 1), false);
 
         return await c3d.ActionSolid.DraftSolid_async(solid, c3d.CopyMode.Copy, placement, angle, faces, c3d.FacePropagation.All, false, names);
     }

@@ -52,12 +52,15 @@
 
 ### Todo
 
-- [ ] rotate face sucks  
+- [ ] Make freestyle rotate be quaternion  
+- [ ] circle angle gizmo when far off from center not facing camera  
+- [ ] restrict to plane through point should allow better box creation when using corners or edges  
 - [ ] icons for 1234  
 - [ ] set uniq for toolbar  
 
 ### In Progress
 
+- [ ] rotate face sucks  
 
 ### Done ✓
 

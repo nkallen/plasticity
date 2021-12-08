@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, CurvePointSnap, CurveSnap, PointSnap } from "../editor/snaps/Snap";
 import { Finish } from "../util/Cancellable";
-import { decomposeMainName, point2point } from "../util/Conversion";
+import { decomposeMainName, point2point, vec2vec } from "../util/Conversion";
 import * as visual from "../visual_model/VisualModel";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
@@ -1282,19 +1282,16 @@ export class DraftSolidCommand extends Command {
         const face = faces[0];
         const faceModel = this.editor.db.lookupTopologyItem(face);
         const point = point2point(faceModel.Point(0.5, 0.5));
-
+        const normal = vec2vec(faceModel.Normal(0.5, 0.5), 1);
+        
         const draftSolid = new DraftSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         draftSolid.solid = parent;
         draftSolid.faces = faces;
         draftSolid.pivot = point;
+        draftSolid.normal = normal;
 
         const gizmo = new RotateGizmo(draftSolid, this.editor);
-
-        const bbox = new THREE.Box3();
-        for (const face of faces) bbox.expandByObject(face);
-        const centroid = new THREE.Vector3();
-        bbox.getCenter(centroid);
-        gizmo.position.copy(centroid);
+        gizmo.position.copy(point);
 
         await gizmo.execute(params => {
             draftSolid.update();
