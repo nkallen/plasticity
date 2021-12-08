@@ -73,6 +73,8 @@ export abstract class AbstractGizmo<CB> extends Helper {
     abstract onPointerDown(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onInterrupt(cb: CB): void;
+    onDeactivate() {}
+    onActivate() {}
 
     execute(cb: CB, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const disposables = new CompositeDisposable();
@@ -168,7 +170,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
         });
     }
 
-    static getPointer(domElement: HTMLElement, event: PointerEvent): Pointer {
+    static getPointer(domElement: HTMLElement, event: MouseEvent): Pointer {
         const rect = domElement.getBoundingClientRect();
 
         return {
@@ -227,7 +229,7 @@ export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
 }
 
 export interface Pointer {
-    x: number; y: number, button: number, event: PointerEvent
+    x: number; y: number, button: number, event: MouseEvent
 }
 
 export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) => THREE.Intersection | undefined
@@ -260,9 +262,19 @@ export interface MovementInfo {
 // gizmo user interaction. It deals with the hover->click->drag->unclick case (the traditional
 // gizmo interactions) as well as the keyboardCommand->move->click->unclick case (blender modal-style).
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'dragging', clearEventHandlers: Disposable } | { tag: 'command', clearEventHandlers: Disposable, text: string }
+
 export class GizmoStateMachine<T> implements MovementInfo {
-    isActive = true;
+    // NOTE: isActive and isEnabled differ only slightly. When !isEnabled, the gizmo is COMPLETELY disabled.
+    // However, when !isActive, the gizmo will not respond to mouse input, but will respond to keyboard input; ie, the keyboard will interrupt other active gizmos and activate this one.
+    private _isActive = true;
+    get isActive() { return this._isActive }
+    set isActive(isActive: boolean) {
+        this._isActive = isActive;
+        if (isActive) this.gizmo.onActivate();
+        else this.gizmo.onDeactivate();
+    }
     isEnabled = true;
+
     state: State = { tag: 'none' };
     pointer!: Pointer;
 
@@ -289,7 +301,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
     get viewport() { return this._viewport }
 
     private camera!: THREE.Camera;
-    update(viewport: Viewport, event: PointerEvent) {
+    update(viewport: Viewport, event: MouseEvent) {
         const pointer = AbstractGizmo.getPointer(viewport.domElement, event);
         const camera = viewport.camera;
         this._viewport = viewport;

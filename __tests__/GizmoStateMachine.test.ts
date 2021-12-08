@@ -4,13 +4,9 @@
 import { Disposable } from "event-kit";
 import * as THREE from "three";
 import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
-import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
 import { EditorLike, Viewport } from "../src/components/viewport/Viewport";
 import { Editor } from "../src/editor/Editor";
 import { EditorSignals } from '../src/editor/EditorSignals';
-import { GeometryDatabase } from '../src/editor/GeometryDatabase';
-import MaterialDatabase from '../src/editor/MaterialDatabase';
-import { SelectionDatabase } from "../src/selection/SelectionDatabase";
 import { MakeViewport } from "../__mocks__/FakeViewport";
 
 class FakeGizmo extends AbstractGizmo<() => void> {
@@ -33,21 +29,15 @@ class FakeGizmo extends AbstractGizmo<() => void> {
     onPointerUp(cb: () => void, intersect: Intersector, info: MovementInfo): void { }
 }
 
-let db: GeometryDatabase;
-let materials: Required<MaterialDatabase>;
 let signals: EditorSignals;
 let viewport: Viewport;
 let editor: Editor;
 let gizmo: FakeGizmo;
-let selection: SelectionDatabase;
-let gizmos: GizmoMaterialDatabase;
 
 beforeEach(() => {
     editor = new Editor();
     viewport = MakeViewport(editor);
     editor.viewports.push(viewport);
-    db = editor._db;
-    selection = editor._selection;
     signals = editor.signals;
 })
 
@@ -178,4 +168,18 @@ test("commands are registered", done => {
     expect(gizmo.fakeCommand).toHaveBeenCalledTimes(1);
 });
 
-const PointerEvent = MouseEvent;
+test("isActive", () => {
+    const onActivate = jest.spyOn(gizmo, 'onActivate');
+    expect(onActivate).toHaveBeenCalledTimes(0);
+
+    const onDeactivate = jest.spyOn(gizmo, 'onDeactivate');
+    expect(onDeactivate).toHaveBeenCalledTimes(0);
+
+    sm.isActive = false;
+    expect(onActivate).toHaveBeenCalledTimes(0);
+    expect(onDeactivate).toHaveBeenCalledTimes(1);
+
+    sm.isActive = true;
+    expect(onActivate).toHaveBeenCalledTimes(1);
+    expect(onDeactivate).toHaveBeenCalledTimes(1);
+})

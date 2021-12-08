@@ -52,7 +52,6 @@
 
 ### Todo
 
-- [ ] Make freestyle rotate be quaternion  
 - [ ] circle angle gizmo when far off from center not facing camera  
 - [ ] restrict to plane through point should allow better box creation when using corners or edges  
 - [ ] icons for 1234  
@@ -60,10 +59,11 @@
 
 ### In Progress
 
-- [ ] rotate face sucks  
+- [ ] Make freestyle rotate be quaternion  
 
 ### Done ✓
 
+- [x] rotate face sucks  
 - [x] Verify fastupdate (like move/etc) are updateMatrix()  
 - [x] Fix box snap points  
 - [x] escape canceling an operation and the outline is invisible  

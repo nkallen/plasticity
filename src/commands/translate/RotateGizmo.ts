@@ -3,7 +3,7 @@ import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";
-import { AngleGizmo, QuaternionStateMachine } from "../MiniGizmos";
+import { AngleGizmo, AxisHelper, CompositeHelper, DashedLineMagnitudeHelper, QuaternionStateMachine } from "../MiniGizmos";
 import { RotateParams } from "./TranslateFactory";
 
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
@@ -33,7 +33,7 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
     }
 
     prepare() {
-        const { x, y, z, screen, editor: { viewports } } = this;
+        const { x, y, z, screen } = this;
         for (const o of [x, y, z]) o.relativeScale.setScalar(0.7);
         screen.relativeScale.setScalar(0.8);
 
@@ -106,10 +106,14 @@ const localZ = new THREE.Vector3();
 
 export class AxisAngleGizmo extends AngleGizmo {
     private sign: number;
+    private readonly lineHelper = new AxisHelper(this.material.line);
+    readonly helper = new CompositeHelper([new DashedLineMagnitudeHelper(), this.lineHelper]);
 
     constructor(name: string, editor: EditorLike, material: GizmoMaterial) {
         super(name, editor, material);
         this.sign = 1;
+        this.add(this.lineHelper);
+        this.lineHelper.quaternion.setFromUnitVectors(Y, Z);
     }
 
     onPointerDown(cb: (angle: number) => void, intersect: Intersector, info: MovementInfo) {
