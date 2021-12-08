@@ -1,21 +1,15 @@
-import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
+import { TemporaryObject } from '../../editor/GeometryDatabase';
+import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 import { GeometryFactory } from '../GeometryFactory';
-import { RotateParams } from '../translate/TranslateFactory';
+import { RotateFactoryLike } from '../translate/TranslateFactory';
 
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-
-const X_ = new c3d.Vector3D(1, 0, 0);
-const Y_ = new c3d.Vector3D(0, 1, 0);
-const Z_ = new c3d.Vector3D(0, 0, 1);
-
-export class DraftSolidFactory extends GeometryFactory implements RotateParams {
+export class DraftSolidFactory extends GeometryFactory implements RotateFactoryLike {
     angle!: number;
     pivot!: THREE.Vector3;
-    axis!: THREE.Vector3;
+    axis = new THREE.Vector3(1, 0, 0);
     normal!: THREE.Vector3;
 
     get degrees() { return THREE.MathUtils.radToDeg(this.angle) }
@@ -60,4 +54,25 @@ export class DraftSolidFactory extends GeometryFactory implements RotateParams {
     }
 
     protected get originalItem() { return this.solid }
+
+    private _phantom?: TemporaryObject;
+    async showPhantoms() {
+        const phantom = await this.db.addPhantom(this.solidModel, { mesh: mesh_blue, line: this.materials.lineDashed() });
+        phantom.show();
+        this._phantom = phantom;
+    }
+
+    protected cleanupTempsOnFinishOrCancel() {
+        super.cleanupTempsOnFinishOrCancel();
+        this._phantom?.cancel();
+    }
 }
+
+const mesh_blue = new THREE.MeshBasicMaterial();
+mesh_blue.color.setHex(0xff00ff);
+mesh_blue.opacity = 0.01;
+mesh_blue.transparent = true;
+mesh_blue.fog = false;
+mesh_blue.polygonOffset = true;
+mesh_blue.polygonOffsetFactor = 0.1;
+mesh_blue.polygonOffsetUnits = 1;

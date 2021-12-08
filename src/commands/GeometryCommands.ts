@@ -1098,16 +1098,8 @@ export class FreestyleRotateItemCommand extends AbstractFreestyleRotateCommand {
         const { editor } = this;
         const objects = [...editor.selection.selected.solids, ...editor.selection.selected.curves];
 
-        if (objects.length === 0) throw new ValidationError("Select something first");
-
-        const bbox = new THREE.Box3();
-        for (const object of objects) bbox.expandByObject(object);
-        const centroid = new THREE.Vector3();
-        bbox.getCenter(centroid);
-
         const rotate = new RotateFactory(editor.db, editor.materials, editor.signals).resource(this);
         rotate.items = objects;
-        rotate.pivot = centroid;
         return rotate;
     }
 }
@@ -1309,19 +1301,38 @@ export class DraftSolidCommand extends Command {
         const keyboard = new RotateKeyboardGizmo(this.editor);
 
         gizmo.position.copy(point);
-        await gizmo.execute(params => {
+        gizmo.execute(params => {
             draftSolid.update();
-        }, Mode.Persistent).resource(this);
+        }).resource(this);
 
         keyboard.execute(async s => {
             switch (s) {
                 case 'free':
                     this.finish();
-                    this.editor.enqueue(new FreestyleRotateControlPointCommand(this.editor), false);
+                    this.editor.enqueue(new FreestyleDraftSolidCommand(this.editor), false);
             }
         }).resource(this);
 
+        await this.finished;
+
         await draftSolid.commit();
+    }
+}
+
+export class FreestyleDraftSolidCommand extends AbstractFreestyleRotateCommand {
+    protected async makeFactory(): Promise<DraftSolidFactory> {
+        const faces = [...this.editor.selection.selected.faces];
+        const parent = faces[0].parentItem as visual.Solid
+
+        const face = faces[0];
+        const faceModel = this.editor.db.lookupTopologyItem(face);
+        const normal = vec2vec(faceModel.Normal(0.5, 0.5), 1);
+
+        const draftSolid = new DraftSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        draftSolid.solid = parent;
+        draftSolid.faces = faces;
+        draftSolid.normal = normal;
+        return draftSolid;
     }
 }
 
@@ -1724,15 +1735,10 @@ export class FreestyleRotateControlPointCommand extends AbstractFreestyleRotateC
         const points = [...selected.controlPoints];
         const curve = points[0].parentItem;
 
-        const centroid = new THREE.Vector3();
-        for (const point of points) centroid.add(point.position);
-        centroid.divideScalar(points.length);
-
         const rotate = new RotateContourPointFactory(editor.db, editor.materials, editor.signals).resource(this);
         rotate.controlPoints = points;
         rotate.originalItem = curve;
         rotate.contour = await rotate.prepare(curve);
-        rotate.pivot = centroid;
 
         return rotate;
     }
