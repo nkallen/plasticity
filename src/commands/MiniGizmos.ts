@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
+import { CancellableRegisterable, CancellableRegistor } from "../util/Cancellable";
 import { CircleGeometry } from "../util/Util";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 import { GizmoMaterial } from "./GizmoMaterials";
@@ -501,10 +502,10 @@ points.push(new THREE.Vector3(0, -100_000, 0));
 points.push(new THREE.Vector3(0, 100_000, 0));
 axisGeometry.setFromPoints(points);
 
-export class AxisHelper extends THREE.Line implements GizmoHelper {
-    constructor(material: THREE.LineBasicMaterial) {
+export class AxisHelper extends THREE.Line implements GizmoHelper, CancellableRegisterable {
+    constructor(material: THREE.LineBasicMaterial, stateless = false) {
         super(axisGeometry, material);
-        this.visible = false;
+        this.visible = stateless;
     }
     onStart(parentElement: HTMLElement, position: THREE.Vector2): void {
         this.visible = true;
@@ -513,6 +514,15 @@ export class AxisHelper extends THREE.Line implements GizmoHelper {
     onEnd(): void {
         this.visible = false;
     }
+
+    resource(reg: CancellableRegistor): this {
+        reg.resource(this);
+        return this;
+    }
+
+    cancel() { this.removeFromParent() }
+    finish() { this.removeFromParent() }
+    interrupt() { this.removeFromParent() }
 }
 
 export class CompositeHelper extends THREE.Object3D implements GizmoHelper {

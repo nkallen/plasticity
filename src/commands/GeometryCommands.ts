@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { AxisSnap, CurvePointSnap, CurveSnap, PointSnap } from "../editor/snaps/Snap";
+import { AxisSnap, CurvePointSnap, CurveSnap, PlaneSnap, PointSnap } from "../editor/snaps/Snap";
 import { Finish } from "../util/Cancellable";
 import { decomposeMainName, point2point, vec2vec } from "../util/Conversion";
 import * as visual from "../visual_model/VisualModel";
@@ -40,6 +40,7 @@ import { ChamferAndFilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
 import { ValidationError } from "./GeometryFactory";
 import LineFactory, { PhantomLineFactory } from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
+import { AxisHelper } from "./MiniGizmos";
 import { MirrorDialog } from "./mirror/MirrorDialog";
 import { MirrorOrSymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
@@ -1029,44 +1030,58 @@ abstract class AbstractFreestyleRotateCommand extends Command {
             await rotate.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        const referenceLine = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        const axisLine = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
         let pointPicker = new PointPicker(editor);
-        const { point: p1, info: { constructionPlane } } = await pointPicker.execute().resource(this);
-        referenceLine.p1 = p1;
+        const { point: p1 } = await pointPicker.execute().resource(this);
+        axisLine.p1 = p1;
         rotate.pivot = p1;
-        rotate.axis = constructionPlane.n;
-        pointPicker.restrictToPlaneThroughPoint(p1);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
 
-        const quat = new THREE.Quaternion().setFromUnitVectors(constructionPlane.n, Z);
+        const { point: p2 } = await pointPicker.execute(({ point: p2 }) => {
+            axisLine.p2 = p2;
+            axisLine.update();
+        }).resource(this);
+        rotate.axis = p2.clone().sub(p1).normalize();
 
-        const { point: p2, info: { constructionPlane: constructionPlane2 } } = await pointPicker.execute(({ point: p2 }) => {
-            referenceLine.p2 = p2;
+        const axisHelper = new AxisHelper(this.editor.gizmos.default.line, true).resource(this);
+        axisHelper.position.copy(p1);
+        axisHelper.quaternion.setFromUnitVectors(Y, rotate.axis);
+        this.editor.helpers.add(axisHelper);
+
+        const referenceLine = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        referenceLine.p1 = p1;
+        const { point: p3 } = await pointPicker.execute(({ point: p3 }) => {
+            referenceLine.p2 = p3;
             referenceLine.update();
         }).resource(this);
-        const reference = p2.clone().sub(p1).applyQuaternion(quat).normalize();
-
-        const transformationLine = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
-        transformationLine.p1 = p1;
-
+        referenceLine.cancel();
+        const reference = p3.clone().sub(p1).normalize();
+        
+        const angleLine = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
+        angleLine.p1 = p1;
+        
         pointPicker = new PointPicker(this.editor);
-        pointPicker.addSnap(new AxisSnap(undefined, reference, p1));
-        pointPicker.restrictToPlane(constructionPlane2.move(p2));
+        pointPicker.restrictToPlane(new PlaneSnap(rotate.axis, p1));
+        pointPicker.addSnap(new AxisSnap("180", reference, p1));
+        pointPicker.addSnap(new AxisSnap("90", reference.clone().cross(rotate.axis).normalize(), p1));
+        
         const transformation = new THREE.Vector3();
+        const quat = new THREE.Quaternion().setFromUnitVectors(rotate.axis, Z);
+        const referenceOnZ = reference.applyQuaternion(quat).normalize();
         await pointPicker.execute(({ point: p3 }) => {
-            transformationLine.p2 = p3;
-            transformationLine.update();
+            angleLine.p2 = p3;
+            angleLine.update();
             transformation.copy(p3).sub(p1).applyQuaternion(quat);
 
-            const angle = Math.atan2(transformation.y, transformation.x) - Math.atan2(reference.y, reference.x);
+            const angle = Math.atan2(transformation.y, transformation.x) - Math.atan2(referenceOnZ.y, referenceOnZ.x);
             rotate.angle = angle;
             rotate.update();
             dialog.render();
             gizmo.render(rotate);
         }).resource(this);
 
-        transformationLine.cancel();
-        referenceLine.cancel();
+        angleLine.cancel();
+        axisLine.cancel();
         dialog.finish();
 
         const selection = await rotate.commit();
@@ -1283,7 +1298,7 @@ export class DraftSolidCommand extends Command {
         const faceModel = this.editor.db.lookupTopologyItem(face);
         const point = point2point(faceModel.Point(0.5, 0.5));
         const normal = vec2vec(faceModel.Normal(0.5, 0.5), 1);
-        
+
         const draftSolid = new DraftSolidFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         draftSolid.solid = parent;
         draftSolid.faces = faces;
@@ -1291,11 +1306,20 @@ export class DraftSolidCommand extends Command {
         draftSolid.normal = normal;
 
         const gizmo = new RotateGizmo(draftSolid, this.editor);
-        gizmo.position.copy(point);
+        const keyboard = new RotateKeyboardGizmo(this.editor);
 
+        gizmo.position.copy(point);
         await gizmo.execute(params => {
             draftSolid.update();
         }, Mode.Persistent).resource(this);
+
+        keyboard.execute(async s => {
+            switch (s) {
+                case 'free':
+                    this.finish();
+                    this.editor.enqueue(new FreestyleRotateControlPointCommand(this.editor), false);
+            }
+        }).resource(this);
 
         await draftSolid.commit();
     }
@@ -1668,6 +1692,7 @@ export class RotateControlPointCommand extends Command {
         const gizmo = new RotateGizmo(rotate, editor);
         const dialog = new RotateDialog(rotate, editor.signals);
         const keyboard = new RotateKeyboardGizmo(editor);
+
         dialog.execute(async params => {
             await rotate.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
