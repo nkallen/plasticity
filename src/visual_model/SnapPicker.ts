@@ -62,7 +62,10 @@ export class SnapPicker {
         const { raycaster, viewport, layers } = this;
 
         if (!snaps.enabled) return this.intersectConstructionPlane(pointPicker, viewport);
-        if (pointPicker.choice !== undefined) return this.intersectChoice(pointPicker.choice);
+        if (pointPicker.choice !== undefined) {
+            const chosen = this.intersectChoice(pointPicker.choice);
+            return this.applyRestrictions(pointPicker, viewport, chosen);
+        }
 
         raycaster.params = this.intersectParams;
         raycaster.layers.mask = layers.visible.mask
@@ -86,12 +89,17 @@ export class SnapPicker {
         const extremelyCloseSnaps = this.intersections2snaps(snaps, intersections, db);
         extremelyCloseSnaps.sort(sort);
         
-        const result: SnapResult[] = [];
+        let result: SnapResult[] = [];
         for (const { snap, intersection } of extremelyCloseSnaps) {
             const { position, orientation } = snap.project(intersection.point);
-            result.push({ snap, position, orientation, cursorPosition: position });
+            result.push({ snap, position, orientation, cursorPosition: position, cursorOrientation: orientation });
         }
+        if (result.length === 0) result = this.intersectConstructionPlane(pointPicker, viewport);
 
+        return this.applyRestrictions(pointPicker, viewport, result);
+    }
+
+    private applyRestrictions(pointPicker: Model, viewport: Viewport, result: SnapResult[]) {
         const restriction = pointPicker.restrictionFor(viewport.constructionPlane);
         if (restriction !== undefined) {
             for (const info of result) {
@@ -100,9 +108,7 @@ export class SnapPicker {
                 info.orientation = orientation;
             }
         }
-
-        if (result.length === 0) return this.intersectConstructionPlane(pointPicker, viewport);
-        else return result;
+        return result;
     }
 
     private intersections2snaps(snaps: SnapManagerGeometryCache, intersections: THREE.Intersection[], db: DatabaseLike): { snap: Snap, intersection: THREE.Intersection }[] {
@@ -135,19 +141,19 @@ export class SnapPicker {
         const approximatePosition = intersections[0].point;
         const snap = constructionPlane;
         const { position: precisePosition, orientation } = snap.project(approximatePosition);
-        return [{ snap, position: precisePosition, cursorPosition: precisePosition, orientation }];
+        return [{ snap, position: precisePosition, cursorPosition: precisePosition, orientation, cursorOrientation: orientation }];
     }
 
     private intersectChoice(choice: AxisSnap): SnapResult[] {
         const position = choice.intersect(this.raycaster);
         if (position === undefined) return [];
-        else return [{ snap: choice!, orientation: choice.orientation, position, cursorPosition: position }];
+        else return [{ snap: choice!, orientation: choice.orientation, position, cursorPosition: position, cursorOrientation: choice.orientation }];
     }
 
     private intersectable2snap(intersectable: intersectable.Intersectable, db: DatabaseLike): Snap {
         if (intersectable instanceof visual.Face) {
             const model = db.lookupTopologyItem(intersectable);
-            return new FaceSnap(intersectable, model);
+            return new FaceSnap(model);
         } else if (intersectable instanceof visual.CurveEdge) {
             const model = db.lookupTopologyItem(intersectable);
             return new CurveEdgeSnap(intersectable, model);
@@ -173,8 +179,9 @@ export class SnapPicker {
 export interface SnapResult {
     snap: Snap;
     position: THREE.Vector3;
-    cursorPosition: THREE.Vector3;
     orientation: THREE.Quaternion;
+    cursorPosition: THREE.Vector3;
+    cursorOrientation: THREE.Quaternion;
 }
 
 export class SnapManagerGeometryCache {

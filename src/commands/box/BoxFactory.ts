@@ -68,16 +68,16 @@ export class ThreePointBoxFactory extends BoxFactory {
 }
 
 interface DiagonalBoxParams extends BoxParams {
-    constructionPlane: PlaneSnap;
+    orientation: THREE.Quaternion;
     get heightNormal(): THREE.Vector3;
 }
 
 abstract class DiagonalBoxFactory extends BoxFactory implements DiagonalBoxParams {
-    constructionPlane = new PlaneSnap();
+    orientation = new THREE.Quaternion();
 
     protected orthogonal() {
-        const { corner1, p2: corner2, p3: upper, constructionPlane } = this;
-        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, constructionPlane.n);
+        const { corner1, p2: corner2, p3: upper, normal } = this;
+        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, normal);
 
         return ThreePointBoxFactory.reorientHeight(p1, p2, p3, upper);
     }
@@ -85,12 +85,19 @@ abstract class DiagonalBoxFactory extends BoxFactory implements DiagonalBoxParam
     abstract get corner1(): THREE.Vector3;
 
     get heightNormal() {
-        const { corner1, p2: corner2, constructionPlane } = this;
-        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, constructionPlane.n);
+        const { corner1, p2: corner2, normal } = this;
+        const { p1, p2, p3 } = DiagonalRectangleFactory.orthogonal(corner1, corner2, normal);
 
         return BoxFactory.heightNormal(p1, p2, p3);
     }
+
+    private readonly _normal = new THREE.Vector3();
+    private get normal() {
+        return this._normal.copy(Z).applyQuaternion(this.orientation)
+    }
 }
+
+const Z = new THREE.Vector3(0, 0, 1);
 
 export class CornerBoxFactory extends DiagonalBoxFactory {
     get corner1() { return this.p1 }
@@ -134,10 +141,10 @@ export class PossiblyBooleanThreePointBoxFactory extends PossiblyBooleanBoxFacto
 }
 
 abstract class PossiblyBooleanDiagonalBoxFactory extends PossiblyBooleanBoxFactory<DiagonalBoxFactory> implements DiagonalBoxParams {
-    get constructionPlane() { return this.fantom.constructionPlane }
+    get orientation() { return this.fantom.orientation }
     get heightNormal() { return this.fantom.heightNormal }
 
-    set constructionPlane(constructionPlane: PlaneSnap) { this.fantom.constructionPlane = constructionPlane }
+    set orientation(orientation: THREE.Quaternion) { this.fantom.orientation = orientation }
 }
 
 export class PossiblyBooleanCenterBoxFactory extends PossiblyBooleanDiagonalBoxFactory implements DiagonalBoxParams {

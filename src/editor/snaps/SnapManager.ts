@@ -76,7 +76,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
     }
 
     private addFace(face: visual.Face, model: c3d.Face, into: Set<Snap>) {
-        const faceSnap = new FaceSnap(face, model);
+        const faceSnap = new FaceSnap(model);
         const centerSnap = new FaceCenterPointSnap(point2point(model.Point(0.5, 0.5)), vec2vec(model.Normal(0.5, 0.5), 1), faceSnap);
         into.add(centerSnap);
     }

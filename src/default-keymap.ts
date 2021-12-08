@@ -222,5 +222,6 @@ export default {
         "x": "snaps:set-x",
         "y": "snaps:set-y",
         "z": "snaps:set-z",
+        "s": "snaps:set-square",
     },
 }

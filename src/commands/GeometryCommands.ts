@@ -558,9 +558,9 @@ export class CornerRectangleCommand extends Command {
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+        await pointPicker.execute(({ point: p2, info: { orientation } }) => {
             rect.p2 = p2;
-            rect.constructionPlane = constructionPlane;
+            rect.orientation = orientation;
             rect.update();
         }).resource(this);
 
@@ -585,9 +585,9 @@ export class CenterRectangleCommand extends Command {
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
         snap.addAdditionalRestrictionsTo(pointPicker, p1);
 
-        await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+        await pointPicker.execute(({ point: p2, info: { orientation } }) => {
             rect.p2 = p2;
-            rect.constructionPlane = constructionPlane;
+            rect.orientation = orientation;
             rect.update();
         }).resource(this);
 
@@ -645,25 +645,27 @@ export class CornerBoxCommand extends Command {
         let pointPicker = new PointPicker(this.editor);
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
 
-        pointPicker.restrictToPlaneThroughPoint(p1, snap);
+        pointPicker = new PointPicker(this.editor);
         pointPicker.straightSnaps.delete(AxisSnap.X);
         pointPicker.straightSnaps.delete(AxisSnap.Y);
         pointPicker.straightSnaps.delete(AxisSnap.Z);
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, 1, 0)));
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
+        pointPicker.addAxesAt(p1);
+        pointPicker.restrictToPlaneThroughPoint(p1, snap);
 
         const rect = new CornerRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        const { point: p2, info: { constructionPlane } } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+        const { point: p2, info: { orientation } } = await pointPicker.execute(({ point: p2, info: { orientation } }) => {
             rect.p2 = p2;
-            rect.constructionPlane = constructionPlane;
+            rect.orientation = orientation;
             rect.update();
         }).resource(this);
         rect.cancel();
 
         box.p1 = p1;
         box.p2 = p2;
-        box.constructionPlane = constructionPlane;
+        box.orientation = orientation;
 
         const keyboard = new BooleanKeyboardGizmo("box", this.editor);
         keyboard.prepare(box).resource(this);
@@ -699,16 +701,16 @@ export class CenterBoxCommand extends Command {
 
         const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
-        const { point: p2, info: { constructionPlane } } = await pointPicker.execute(({ point: p2, info: { constructionPlane } }) => {
+        const { point: p2, info: { orientation } } = await pointPicker.execute(({ point: p2, info: { orientation } }) => {
             rect.p2 = p2;
-            rect.constructionPlane = constructionPlane;
+            rect.orientation = orientation;
             rect.update();
         }).resource(this);
         rect.cancel();
 
         box.p1 = p1;
         box.p2 = p2;
-        box.constructionPlane = constructionPlane;
+        box.orientation = orientation;
 
         const keyboard = new BooleanKeyboardGizmo("box", this.editor);
         keyboard.prepare(box).resource(this);

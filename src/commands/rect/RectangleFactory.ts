@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from "../../editor/snaps/Snap";
 import { point2point } from "../../util/Conversion";
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../GeometryFactory';
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 };
 
@@ -55,7 +55,7 @@ export class ThreePointRectangleFactory extends RectangleFactory {
 }
 
 export abstract class DiagonalRectangleFactory extends RectangleFactory {
-    constructionPlane = new PlaneSnap();
+    orientation = new THREE.Quaternion();
 
     private static readonly quat = new THREE.Quaternion();
     private static readonly inv = new THREE.Quaternion();
@@ -80,12 +80,20 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     }
 
     protected orthogonal(): FourCorners {
-        const { corner1, p2, constructionPlane } = this;
-        return DiagonalRectangleFactory.orthogonal(corner1, p2, constructionPlane.n);
+        const { corner1, p2, normal } = this;
+        if (corner1.manhattanDistanceTo(p2) < 10e-5) throw new NoOpError();
+        return DiagonalRectangleFactory.orthogonal(corner1, p2, normal);
+    }
+
+    private readonly _normal = new THREE.Vector3();
+    private get normal() {
+        return this._normal.copy(Z).applyQuaternion(this.orientation)
     }
 
     abstract get corner1(): THREE.Vector3;
 }
+
+const Z = new THREE.Vector3(0, 0, 1);
 
 export class CornerRectangleFactory extends DiagonalRectangleFactory {
     get corner1() { return this.p1 }

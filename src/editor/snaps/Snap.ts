@@ -160,9 +160,6 @@ export class FaceCenterPointSnap extends PointSnap {
         super("Center", position, normal);
     }
 
-    get view() { return this.faceSnap.view }
-    get model() { return this.faceSnap.model }
-
     restrictionFor(point: THREE.Vector3) {
         return this.faceSnap.restrictionFor(point);
     }
@@ -345,9 +342,9 @@ export class TanTanSnap extends PointSnap {
 
 export class FaceSnap extends Snap {
     readonly name = "Face";
-    readonly snapper = this.view.makeSnap();
+    readonly snapper = new THREE.Object3D(); // FIXME: FaceSnap and other geometry doesn't actually have a snapper ... disentangle interfaces
 
-    constructor(readonly view: visual.Face, readonly model: c3d.Face) {
+    constructor(private readonly model: c3d.Face) {
         super();
         this.init();
     }
@@ -585,5 +582,10 @@ export class PlaneSnap extends Snap {
 export class ConstructionPlaneSnap extends PlaneSnap {
     move(pt: THREE.Vector3): PlaneSnap {
         return new ConstructionPlaneSnap(this.n, pt);
+    }
+
+    // NOTE: A construction plane accepts all points, projecting them
+    isValid() {
+        return true;
     }
 }

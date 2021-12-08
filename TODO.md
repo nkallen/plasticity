@@ -6,11 +6,9 @@
 
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
 - [ ] Audit re-used icons  
-- [ ] making circle on corner box top or side face (needs to stick)  
 - [ ] moving circle point doesn't work (drag and g)  
 - [ ] in xray mode, control points not visible  
 - [ ] PointSnap resolution for nearby seems wrong  
-- [ ] bug: variable fillet broken  
 - [ ] move all static buuild() methods to builder, using var ts decl  
 - [ ] Refactor curve extension code  
 - [ ] bug: control points, when one selected and another hovered, everything unhighlighted  
@@ -51,6 +49,9 @@
 
 ### Todo
 
+- [ ] make box on side of selected box defaults to subtraction when it should be add  
+- [ ] making circle on corner box top or side face (needs to stick)  
+- [ ] unify restrictionFor / addAdditional  
 - [ ] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
 - [ ] circle angle gizmo when far off from center not facing camera  
 - [ ] icons for 1234  
@@ -62,6 +63,7 @@
 
 ### Done ✓
 
+- [x] bug: variable fillet broken  
 - [x] DraftSolid Freestyle  
 - [x] Make freestyle rotate be quaternion  
 - [x] rotate face sucks  

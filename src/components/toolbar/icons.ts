@@ -24,6 +24,7 @@ import loft from './img/loft.svg';
 import mirror from './img/mirror.svg';
 import move from './img/move.svg';
 import offsetFace from './img/offset-face.svg';
+import radialArray from './img/radial-array.svg';
 import regularPolygon from './img/regular-polygon.svg';
 import { default as draftSolid, default as rotate } from './img/rotate.svg';
 import scale from './img/scale.svg';
@@ -34,7 +35,6 @@ import threePointCircle from './img/three-point-circle.svg';
 import threePointEllipse from './img/three-point-ellipse.svg';
 import threePointRectangle from './img/three-point-rectangle.svg';
 import trim from './img/trim.svg';
-import radialArray from './img/radial-array.svg';
 import twoPointCircle from './img/two-point-circle.svg';
 import { default as changePoint, default as union } from './img/union.svg';
 
@@ -224,6 +224,7 @@ keybindings.set("snaps:set-z", "Z axis");
 keybindings.set("snaps:set-normal", "Normal");
 keybindings.set("snaps:set-binormal", "Binormal");
 keybindings.set("snaps:set-tangent", "Tangent");
+keybindings.set("snaps:set-square", "Square");
 keybindings.set("gizmo:shell", "Thickness");
 
 export default (editor: Editor): void => {

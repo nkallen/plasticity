@@ -31,7 +31,7 @@ export interface EditorLike {
     layers: LayerManager,
 }
 
-export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap }
+export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap, orientation: THREE.Quaternion }
 export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
 type Choices = 'Normal' | 'Binormal' | 'Tangent' | 'x' | 'y' | 'z';
@@ -44,6 +44,7 @@ export class Model {
     private _restriction?: Restriction;
     private readonly _restrictionSnaps = new Array<Snap>(); // Snap targets for the restrictions
     private restrictionPoint?: THREE.Vector3;
+    private restrictionPlane?: PlaneSnap;
 
     private crosses: CrossPointDatabase;
 
@@ -63,14 +64,16 @@ export class Model {
     restrictionFor(baseConstructionPlane: PlaneSnap): Restriction | undefined {
         if (this._restriction === undefined && this.restrictionPoint !== undefined) {
             return baseConstructionPlane.move(this.restrictionPoint);
+        } else if (this._restriction !== undefined && this.restrictionPoint !== undefined) {
+            return new OrRestriction([this._restriction, baseConstructionPlane.move(this.restrictionPoint)]);
         } else return this._restriction;
     }
 
     actualConstructionPlaneGiven(baseConstructionPlane: PlaneSnap, isOrtho: boolean): PlaneSnap {
         const { pickedPointSnaps, restrictionPoint } = this;
         let constructionPlane = baseConstructionPlane;
-        if (this._restriction instanceof PlaneSnap) {
-            constructionPlane = this._restriction;
+        if (this.restrictionPlane !== undefined) {
+            constructionPlane = this.restrictionPlane;
         } else if (restrictionPoint !== undefined) {
             constructionPlane = constructionPlane.move(restrictionPoint);
         } else if (isOrtho && pickedPointSnaps.length > 0) {
@@ -187,11 +190,14 @@ export class Model {
 
     restrictToPlaneThroughPoint(point: THREE.Vector3, snap?: Snap) {
         this.restrictionPoint = point;
-        if (snap !== undefined) this._restriction = snap.restrictionFor(point);
+        if (snap !== undefined) {
+            this._restriction = snap.restrictionFor(point);
+        }
     }
 
     restrictToPlane(plane: PlaneSnap) {
         this._restriction = plane;
+        this.restrictionPlane = plane;
     }
 
     restrictToLine(origin: THREE.Vector3, direction: THREE.Vector3) {
@@ -281,6 +287,7 @@ export class Model {
 interface SnapInfo extends PointInfo {
     position: THREE.Vector3;
     cursorPosition: THREE.Vector3;
+    cursorOrientation: THREE.Quaternion;
 }
 
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
@@ -290,11 +297,11 @@ export class Presentation {
         const { constructionPlane, isOrtho } = viewport;
 
         const nearby = picker.nearby(pointPicker, snapCache, db);
-        const snappers = picker.intersect(pointPicker, snapCache, db);
+        const intersections = picker.intersect(pointPicker, snapCache, db);
         const actualConstructionPlaneGiven = pointPicker.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
-        const presentation = new Presentation(nearby, snappers, actualConstructionPlaneGiven, isOrtho, presenter);
-        return { presentation, snappers, nearby };
+        const presentation = new Presentation(nearby, intersections, actualConstructionPlaneGiven, isOrtho, presenter);
+        return { presentation, snappers: intersections, nearby };
     }
 
     readonly helpers: THREE.Object3D[];
@@ -302,18 +309,18 @@ export class Presentation {
     readonly names: string[];
     readonly nearby: Helper[];
 
-    constructor(nearby: PointSnap[], snaps: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapPresenter) {
+    constructor(nearby: PointSnap[], intersections: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapPresenter) {
         this.nearby = nearby.map(n => presenter.nearbyIndicatorFor(n));
 
-        if (snaps.length === 0) {
+        if (intersections.length === 0) {
             this.names = [];
             this.helpers = [];
             return;
         }
 
         // First match is assumed best
-        const first = snaps[0];
-        const { snap, position, cursorPosition } = first;
+        const first = intersections[0];
+        const { snap } = first;
         const indicator = presenter.snapIndicatorFor(first);
 
         // Collect indicators, etc. as feedback for the user
@@ -323,12 +330,12 @@ export class Presentation {
         if (snapHelper !== undefined) helpers.push(snapHelper);
         this.helpers = helpers;
 
-        this.info = { snap, position, constructionPlane, cursorPosition };
+        this.info = { ...first, constructionPlane };
 
         // Collect names of other matches to display to user
         let names = [];
         const pos = first.position;
-        for (const { snap, position } of new Set(snaps)) { // FIXME: should this be a set?
+        for (const { snap, position } of new Set(intersections)) { // FIXME: should this be a set?
             if (position.manhattanDistanceTo(pos) > 10e-6) continue;
             names.push(snap.name);
         }
