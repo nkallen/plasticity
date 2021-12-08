@@ -80,25 +80,27 @@ export class SnapPicker {
         geometry = geometry.filter(item => !item.isTemporaryOptimization);
         intersections = raycaster.intersectObjects([...snappers, ...additional, ...geometry, ...restrictionSnaps], false);
 
-        const result = [];
         if (!this.viewport.isXRay) {
             intersections = findAllVeryCloseTogether(intersections);
         }
         const extremelyCloseSnaps = this.intersections2snaps(snaps, intersections, db);
         extremelyCloseSnaps.sort(sort);
+        
+        const result: SnapResult[] = [];
+        for (const { snap, intersection } of extremelyCloseSnaps) {
+            const { position, orientation } = snap.project(intersection.point);
+            result.push({ snap, position, orientation, cursorPosition: position });
+        }
 
         const restrictions = pointPicker.restrictionsFor(viewport.constructionPlane);
         if (restrictions.length > 0) {
-            for (const { snap, intersection } of extremelyCloseSnaps) {
-                const { position: cursorPosition } = snap.project(intersection.point);
-                result.push({ snap, ...restrictions[0].project(cursorPosition), cursorPosition });
-            }
-        } else {
-            for (const { snap, intersection } of extremelyCloseSnaps) {
-                const { position, orientation } = snap.project(intersection.point);
-                result.push({ snap, position, orientation, cursorPosition: position });
+            for (const info of result) {
+                const { position, orientation } = restrictions[0].project(info.position);
+                info.position = position;
+                info.orientation = orientation;
             }
         }
+        
         if (result.length === 0) return this.intersectConstructionPlane(pointPicker, viewport);
         else return result;
     }
