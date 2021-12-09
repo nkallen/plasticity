@@ -4,7 +4,6 @@
 
 ### Backlog
 
-- [ ] verify mem limit  
 - [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
 - [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
@@ -53,13 +52,14 @@
 ### Todo
 
 - [ ] circle angle gizmo when far off from center not facing camera  
-- [ ] icons for 1234  
 
 ### In Progress
 
 
 ### Done ✓
 
+- [x] verify mem limit  
+- [x] icons for 1234  
 - [x] set uniq for toolbar  
 - [x] make box on side of selected box defaults to subtraction when it should be add  
 - [x] hitting 11 should enable all selections  
