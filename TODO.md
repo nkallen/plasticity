@@ -54,13 +54,13 @@
 
 - [ ] circle angle gizmo when far off from center not facing camera  
 - [ ] icons for 1234  
-- [ ] set uniq for toolbar  
 
 ### In Progress
 
 
 ### Done ✓
 
+- [x] set uniq for toolbar  
 - [x] make box on side of selected box defaults to subtraction when it should be add  
 - [x] hitting 11 should enable all selections  
 - [x] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  

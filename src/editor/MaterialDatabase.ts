@@ -4,7 +4,7 @@ import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 import c3d from '../../build/Release/c3d.node';
 import controlPointIcon from '../components/viewport/img/control-point.svg';
 import matcap from '../img/matcap/ceramic_dark.exr';
-import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "../visual_model/VisualModelRaycasting";
+import { BetterRaycastingPointsMaterial } from "../visual_model/VisualModelRaycasting";
 import { EditorSignals } from "./EditorSignals";
 
 export default interface MaterialDatabase {

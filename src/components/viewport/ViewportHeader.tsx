@@ -1,11 +1,15 @@
 import { render } from 'preact';
-import { Editor } from '../../editor/Editor';
-import { ViewportElement } from './Viewport';
-import grid from './img/ortho.svg';
-import perspective from './img/perspective.svg';
-import xray from './img/xray.svg';
 import * as THREE from "three";
+import { Editor } from '../../editor/Editor';
 import { SelectionMode } from '../../selection/ChangeSelectionExecutor';
+import edge from './img/edge.svg';
+import face from './img/face.svg';
+import grid from './img/ortho.svg';
+import point from './img/point.svg';
+import perspective from './img/perspective.svg';
+import solid from './img/solid.svg';
+import xray from './img/xray.svg';
+import { ViewportElement } from './Viewport';
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -65,29 +69,29 @@ export default (editor: Editor) => {
                             onClick={e => editor.selection.mode.toggle(SelectionMode.ControlPoint)}
                         />
                         <label class="btn" for="control-point">
-                            <img src={perspective}></img>
-                            <ispace-tooltip placement="bottom" command="selection:toggle-control-point">Control-Point select</ispace-tooltip>
+                            <img src={point}></img>
+                            <ispace-tooltip placement="bottom" command="selection:set-control-point">Control-Point select</ispace-tooltip>
                         </label>
                         <input type="checkbox" class="btn" id="edge" checked={editor.selection.mode.has(SelectionMode.CurveEdge)}
                             onClick={e => editor.selection.mode.toggle(SelectionMode.CurveEdge, SelectionMode.Curve)}
                         />
                         <label class="btn" for="edge">
-                            <img src={perspective}></img>
-                            <ispace-tooltip placement="bottom" command="selection:toggle-edge">Edge select</ispace-tooltip>
+                            <img src={edge}></img>
+                            <ispace-tooltip placement="bottom" command="selection:set-edge">Edge select</ispace-tooltip>
                         </label>
                         <input type="checkbox" class="btn" id="face" checked={editor.selection.mode.has(SelectionMode.Face)}
                             onClick={e => editor.selection.mode.toggle(SelectionMode.Face)}
                         />
                         <label class="btn" for="face">
-                            <img src={perspective}></img>
-                            <ispace-tooltip placement="bottom" command="selection:toggle-face">Face select</ispace-tooltip>
+                            <img src={face}></img>
+                            <ispace-tooltip placement="bottom" command="selection:set-face">Face select</ispace-tooltip>
                         </label>
                         <input type="checkbox" class="btn" id="solid" checked={editor.selection.mode.has(SelectionMode.Solid)}
                             onClick={e => editor.selection.mode.toggle(SelectionMode.Solid)}
                         />
                         <label class="btn" for="solid">
-                            <img src={perspective}></img>
-                            <ispace-tooltip placement="bottom" command="selection:toggle-solid">Solid select</ispace-tooltip>
+                            <img src={solid}></img>
+                            <ispace-tooltip placement="bottom" command="selection:set-solid">Solid select</ispace-tooltip>
                         </label>
                     </div>
                     <div class="info">
