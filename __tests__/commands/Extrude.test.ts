@@ -424,13 +424,24 @@ describe(PossiblyBooleanExtrudeFactory, () => {
             box = await makeBox.commit() as visual.Solid;
         });
 
-        test('face direction operation type delegates all the way', async () => {
+        test('face direction positive is union', async () => {
             extrude.face = box.faces.get(1);
             extrude.solid = box;
             extrude.distance1 = 0.2;
-            expect(extrude.operationType).toBe(c3d.OperationType.Union);
+            const result = await extrude.commit() as visual.SpaceItem;
+
+            const bbox = new THREE.Box3().setFromObject(result);
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.6));
+            expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
+            expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1.2));
+        });
+
+        test('face direction negative is difference', async () => {
+            extrude.face = box.faces.get(1);
+            extrude.solid = box;
             extrude.distance1 = -0.2;
-            expect(extrude.operationType).toBe(c3d.OperationType.Difference);
             const result = await extrude.commit() as visual.SpaceItem;
 
             const bbox = new THREE.Box3().setFromObject(result);

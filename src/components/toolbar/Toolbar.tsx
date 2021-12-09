@@ -1,9 +1,11 @@
 import { Disposable } from 'event-kit';
 import { render } from 'preact';
+import Command from '../../commands/Command';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
 import { HasSelection } from '../../selection/SelectionDatabase';
+import { GConstructor } from '../../util/Util';
 import { icons, tooltips } from './icons';
 
 export class Model {
@@ -12,53 +14,53 @@ export class Model {
         private readonly db: DatabaseLike
     ) { }
 
-    get commands() {
-        const result = [];
+    get commands(): (typeof Command & GConstructor<Command>)[] {
+        const result = new Set<typeof Command & GConstructor<Command>>();
         const { selection } = this;
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0 || selection.controlPoints.size > 0) {
-            result.push(cmd.DeleteCommand);
-            result.push(cmd.RotateCommand);
+            result.add(cmd.DeleteCommand);
+            result.add(cmd.RotateCommand);
         }
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0) {
-            result.push(cmd.ShellCommand);
+            result.add(cmd.ShellCommand);
         }
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.faces.size > 0 || selection.controlPoints.size > 0) {
-            result.push(cmd.MoveCommand);
+            result.add(cmd.MoveCommand);
         }
         if (selection.curves.size > 0 || selection.solids.size > 0 || selection.controlPoints.size > 0) {
-            result.push(cmd.ScaleCommand);
+            result.add(cmd.ScaleCommand);
         }
         if (selection.curves.size > 0 || selection.solids.size > 0) {
-            result.push(cmd.MirrorCommand);
+            result.add(cmd.MirrorCommand);
         }
         if (selection.regions.size > 0) {
-            result.push(cmd.ExtrudeCommand);
+            result.add(cmd.ExtrudeCommand);
         }
         if (selection.solids.size > 0) {
-            result.push(cmd.RadialArrayCommand);
+            result.add(cmd.RadialArrayCommand);
         }
         if (selection.solids.size > 1) {
-            result.push(cmd.UnionCommand);
-            result.push(cmd.IntersectionCommand);
-            result.push(cmd.DifferenceCommand);
+            result.add(cmd.UnionCommand);
+            result.add(cmd.IntersectionCommand);
+            result.add(cmd.DifferenceCommand);
         }
         if (selection.faces.size > 0) {
-            result.push(cmd.OffsetCurveCommand);
-            result.push(cmd.ExtrudeCommand);
+            result.add(cmd.OffsetCurveCommand);
+            result.add(cmd.ExtrudeCommand);
         }
         if ((selection.faces.size > 0 || selection.solids.size > 0) && selection.curves.size > 0) {
-            result.push(cmd.CutCommand);
+            result.add(cmd.CutCommand);
         }
         if (selection.curves.size > 0) {
-            result.push(cmd.ExtrudeCommand);
-            result.push(cmd.RevolutionCommand);
-            result.push(cmd.OffsetCurveCommand);
+            result.add(cmd.ExtrudeCommand);
+            result.add(cmd.RevolutionCommand);
+            result.add(cmd.OffsetCurveCommand);
         }
         if (selection.curves.size > 1) {
-            result.push(cmd.LoftCommand);
-            result.push(cmd.JoinCurvesCommand);
+            result.add(cmd.LoftCommand);
+            result.add(cmd.JoinCurvesCommand);
         }
-        return result;
+        return [...result];
     }
 }
 
@@ -107,7 +109,8 @@ export default (editor: Editor) => {
                     {this.model.commands.map(command => {
                         const tooltip = tooltips.get(command);
                         if (!tooltip) throw "invalid tooltip for " + command;
-                        return <button onClick={_ => editor.enqueue(new command(editor))} name={command.identifier} tabIndex={-1}>
+                        const constructor = command as GConstructor<Command>;
+                        return <button onClick={_ => editor.enqueue(new constructor(editor))} name={command.identifier} tabIndex={-1}>
                             <img src={icons.get(command)}></img>
                             <ispace-tooltip placement="top" command={`command:${command.identifier}`}>{tooltip}</ispace-tooltip>
                         </button>

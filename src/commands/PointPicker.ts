@@ -381,9 +381,8 @@ export class PointPicker {
             const helpers = new THREE.Scene();
 
             let info: SnapInfo | undefined = undefined;
-            console.time();
+            // FIXME: build elsewhere for higher performance
             const snapCache = new SnapManagerGeometryCache(editor.snaps);
-            console.timeEnd();
             disposables.add(new Disposable(() => snapCache.dispose));
 
             for (const viewport of this.editor.viewports) {

@@ -335,8 +335,10 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
 
     newBody = false;
 
-    get operationType() { return this.bool.operationType }
-    set operationType(operationType: c3d.OperationType) { this.bool.operationType = operationType }
+    protected _operationType?: c3d.OperationType;
+    get operationType() { return this._operationType ?? this.defaultOperationType }
+    set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
+    get defaultOperationType() { return this.isSurface ? c3d.OperationType.Union : c3d.OperationType.Difference }
 
     protected _solid?: visual.Solid;
     protected model?: c3d.Solid;
@@ -384,6 +386,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
     async calculate() {
         await this.precomputeGeometry();
         if (this.isOverlapping && !this.newBody) {
+            this.bool.operationType = this.operationType;
             const result = await this.bool.calculate() as c3d.Solid;
             return result;
         } else {
