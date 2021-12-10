@@ -1,6 +1,6 @@
 import { Intersectable } from "../visual_model/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
-import { SelectionMode, SelectionStrategy } from "./ChangeSelectionExecutor";
+import { ChangeSelectionModifier, SelectionMode, SelectionStrategy } from "./ChangeSelectionExecutor";
 import { ModifiesSelection } from "./SelectionDatabase";
 
 export class ClickStrategy implements SelectionStrategy {
@@ -10,13 +10,14 @@ export class ClickStrategy implements SelectionStrategy {
         private readonly hovered: ModifiesSelection
     ) { }
 
-    emptyIntersection(): void {
+    emptyIntersection(modifier: ChangeSelectionModifier): void {
         this.selected.removeAll();
         this.hovered.removeAll();
     }
 
-    curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean {
+    curve3D(object: Curve3D, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.Curve)) return false;
+        const parentItem = object.parentItem;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
         if (this.selected.curves.has(parentItem)) {
@@ -28,11 +29,12 @@ export class ClickStrategy implements SelectionStrategy {
         return true;
     }
 
-    solid(object: TopologyItem, parentItem: Solid): boolean {
+    solid(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.Solid)) return false;
+        const parentItem = object.parentItem;
 
         if (this.selected.solids.has(parentItem)) {
-            if (this.topologicalItem(object, parentItem)) {
+            if (this.topologicalItem(object, modifier)) {
                 this.selected.removeSolid(parentItem);
                 this.hovered.removeAll();
                 return true;
@@ -47,7 +49,9 @@ export class ClickStrategy implements SelectionStrategy {
         return false;
     }
 
-    topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
+    topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
+        const parentItem = object.parentItem;
+
         if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
             if (this.selected.faces.has(object)) {
                 this.selected.removeFace(object, parentItem);
@@ -68,8 +72,9 @@ export class ClickStrategy implements SelectionStrategy {
         return false;
     }
 
-    region(object: Region, parentItem: PlaneInstance<Region>): boolean {
+    region(object: Region, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.Face)) return false;
+        const parentItem = object.parentItem;
 
         if (this.selected.regions.has(parentItem)) {
             this.selected.removeRegion(parentItem);
@@ -80,9 +85,9 @@ export class ClickStrategy implements SelectionStrategy {
         return true;
     }
 
-    controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean {
+    controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.ControlPoint)) return false;
-        if (!this.selected.curves.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) return false;
+        const parentItem = object.parentItem;
 
         if (this.selected.controlPoints.has(object)) {
             this.selected.removeControlPoint(object, parentItem);
@@ -96,7 +101,7 @@ export class ClickStrategy implements SelectionStrategy {
         return true;
     }
 
-    box(set: Set<Intersectable>) {
+    box(set: Set<Intersectable>, modifier: ChangeSelectionModifier): void{
         const { hovered, selected } = this;
         hovered.removeAll();
 

@@ -1,6 +1,6 @@
 import { Intersectable } from "../visual_model/Intersectable"
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
-import { SelectionMode, SelectionStrategy } from "./ChangeSelectionExecutor";
+import { ChangeSelectionModifier, SelectionMode, SelectionStrategy } from "./ChangeSelectionExecutor";
 import { ModifiesSelection } from "./SelectionDatabase";
 
 export class HoverStrategy implements SelectionStrategy {
@@ -10,12 +10,13 @@ export class HoverStrategy implements SelectionStrategy {
         private readonly hovered: ModifiesSelection
     ) { }
 
-    emptyIntersection(): void {
+    emptyIntersection(modifier: ChangeSelectionModifier): void {
         this.hovered.removeAll();
     }
 
-    curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean {
+    curve3D(object: Curve3D, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.Curve)) return false;
+        const parentItem = object.parentItem;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
         this.hovered.removeAll();
@@ -23,8 +24,9 @@ export class HoverStrategy implements SelectionStrategy {
         return true;
     }
 
-    solid(object: TopologyItem, parentItem: Solid): boolean {
+    solid(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.Solid)) return false;
+        const parentItem = object.parentItem;
 
         if (!this.selected.solids.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) {
             if (!this.hovered.solids.has(parentItem)) {
@@ -36,7 +38,8 @@ export class HoverStrategy implements SelectionStrategy {
         return false;
     }
 
-    topologicalItem(object: TopologyItem, parentItem: Solid): boolean {
+    topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
+        const parentItem = object.parentItem;
         if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
             if (!this.hovered.faces.has(object)) {
                 this.hovered.removeAll();
@@ -53,8 +56,9 @@ export class HoverStrategy implements SelectionStrategy {
         return false;
     }
 
-    region(object: Region, parentItem: PlaneInstance<Region>): boolean {
+    region(object: Region, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.Face)) return false;
+        const parentItem = object.parentItem;
         if (!this.hovered.regions.has(parentItem)) {
             this.hovered.removeAll();
             this.hovered.addRegion(parentItem);
@@ -63,8 +67,9 @@ export class HoverStrategy implements SelectionStrategy {
         return true;
     }
 
-    controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean {
+    controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.ControlPoint)) return false;
+        const parentItem = object.parentItem;
         if (!this.selected.curves.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) return false;
 
         if (!this.selected.controlPoints.has(object)) {
@@ -75,7 +80,7 @@ export class HoverStrategy implements SelectionStrategy {
         return false;
     }
 
-    box(set: Set<Intersectable>) {
+    box(set: Set<Intersectable>, modifier: ChangeSelectionModifier) {
         const { hovered, selected } = this;
         hovered.removeAll();
 

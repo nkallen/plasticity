@@ -22,15 +22,15 @@ export class ViewportControlMultiplexer extends ViewportControl {
         this.controls.delete(control);
     }
 
-    startHover(intersections: intersectable.Intersection[]) {
+    startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
         for (const control of this.controls) {
-            control.startHover(intersections);
+            control.startHover(intersections, moveEvent);
         }
     }
 
-    continueHover(intersections: intersectable.Intersection[]) {
+    continueHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
         for (const control of this.controls) {
-            control.continueHover(intersections);
+            control.continueHover(intersections, moveEvent);
         }
     }
 
@@ -50,9 +50,9 @@ export class ViewportControlMultiplexer extends ViewportControl {
         this.winner.continueDrag(moveEvent, normalizedMousePosition);
     }
 
-    endDrag(normalizedMousePosition: THREE.Vector2) {
+    endDrag(normalizedMousePosition: THREE.Vector2, upEvent: MouseEvent) {
         if (this.winner === undefined) throw new Error("invalid state");
-        this.winner.endDrag(normalizedMousePosition);
+        this.winner.endDrag(normalizedMousePosition, upEvent);
     }
 
     startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent) {

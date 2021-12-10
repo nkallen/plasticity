@@ -15,12 +15,12 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     private readonly selectionHelper = new BoxSelectionHelper(this.viewport.renderer.domElement, 'select-box');
     private readonly selectionBox = new Boxcaster(this.viewport.camera, this.layers.visible);
 
-    startHover(intersections: intersectable.Intersection[]) {
-        this.processHover(intersections);
+    startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
+        this.processHover(intersections, moveEvent);
     }
 
-    continueHover(intersections: intersectable.Intersection[]) {
-        this.processHover(intersections);
+    continueHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
+        this.processHover(intersections, moveEvent);
     }
 
     endHover() { this.processHover([]) }
@@ -36,7 +36,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
         const selected = this.selectionBox.selectObjects(this.db.visibleObjects) as unknown as intersectable.Intersectable[];
-        this.processBoxHover(new Set(selected));
+        this.processBoxHover(new Set(selected), moveEvent);
     }
 
     startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent) {
@@ -47,20 +47,20 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.processClick(intersections, upEvent);
     }
 
-    endDrag(normalizedMousePosition: THREE.Vector2) {
+    endDrag(normalizedMousePosition: THREE.Vector2, upEvent: MouseEvent) {
         this.selectionHelper.onSelectOver();
 
         this.selectionBox.endPoint.set(normalizedMousePosition.x, normalizedMousePosition.y, 0.5);
         this.selectionBox.updateFrustum();
         const selected = this.selectionBox.selectObjects(this.db.visibleObjects) as unknown as intersectable.Intersectable[];
-        this.processBoxSelect(new Set(selected));
+        this.processBoxSelect(new Set(selected), upEvent);
     }
 
-    protected abstract processBoxHover(selected: Set<intersectable.Intersectable>): void;
-    protected abstract processBoxSelect(selected: Set<intersectable.Intersectable>): void;
+    protected abstract processBoxHover(selected: Set<intersectable.Intersectable>, moveEvent: MouseEvent): void;
+    protected abstract processBoxSelect(selected: Set<intersectable.Intersectable>, upEvent: MouseEvent): void;
 
     protected abstract processClick(intersects: intersectable.Intersection[], upEvent: MouseEvent): void;
-    protected abstract processHover(intersects: intersectable.Intersection[]): void;
+    protected abstract processHover(intersects: intersectable.Intersection[], moveEvent?: MouseEvent): void;
 }
 
 export class ViewportSelector extends AbstractViewportSelector {
@@ -68,12 +68,12 @@ export class ViewportSelector extends AbstractViewportSelector {
         super(viewport, editor.layers, editor.db, editor.signals);
     }
 
-    protected processBoxHover(selected: Set<intersectable.Intersectable>) {
-        this.editor.changeSelection.onBoxHover(selected);
+    protected processBoxHover(selected: Set<intersectable.Intersectable>, moveEvent: MouseEvent) {
+        this.editor.changeSelection.onBoxHover(selected, ChangeSelectionModifier.Replace);
     }
 
-    protected processBoxSelect(selected: Set<intersectable.Intersectable>) {
-        const command = new BoxChangeSelectionCommand(this.editor, selected);
+    protected processBoxSelect(selected: Set<intersectable.Intersectable>, upEvent: MouseEvent) {
+        const command = new BoxChangeSelectionCommand(this.editor, selected, ChangeSelectionModifier.Replace);
         this.editor.enqueue(command, true);
     }
 
@@ -82,8 +82,8 @@ export class ViewportSelector extends AbstractViewportSelector {
         this.editor.enqueue(command, true);
     }
 
-    protected processHover(intersects: intersectable.Intersection[]) {
-        this.editor.changeSelection.onHover(intersects);
+    protected processHover(intersects: intersectable.Intersection[], event?: MouseEvent) {
+        this.editor.changeSelection.onHover(intersects, ChangeSelectionModifier.Replace);
     }
 }
 

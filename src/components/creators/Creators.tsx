@@ -5,6 +5,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { EditorLike } from '../../commands/Command';
 import { CreatorChangeSelectionCommand, RebuildCommand } from '../../commands/CommandLike';
 import { Editor } from '../../editor/Editor';
+import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import * as visual from '../../visual_model/VisualModel';
 import { icons } from '../toolbar/icons';
 
@@ -59,7 +60,7 @@ export class Model {
                 }
             }
         }
-        this.editor.changeSelection.onBoxHover(new Set(result));
+        this.editor.changeSelection.onBoxHover(new Set(result), ChangeSelectionModifier.Add);
         return result;
     }
 
@@ -72,7 +73,7 @@ export class Model {
     selectCreator(creator: c3d.Creator) {
         const selected = this.hoverCreator(creator);
         const editor = this.editor;
-        editor.enqueue(new CreatorChangeSelectionCommand(editor, selected));
+        editor.enqueue(new CreatorChangeSelectionCommand(editor, selected, ChangeSelectionModifier.Remove));
     }
 
     private get solid(): visual.Solid | undefined {

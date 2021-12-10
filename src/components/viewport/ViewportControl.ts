@@ -108,7 +108,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             case 'none': {
                 const intersects = this.getIntersects(this.normalizedMousePosition, this.db.visibleObjects);
                 if (intersects.length === 0) break;
-                this.startHover(intersects);
+                this.startHover(intersects, moveEvent);
                 this.state = { tag: 'hover' };
                 break;
             }
@@ -117,7 +117,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 if (intersects.length === 0) {
                     this.endHover();
                     this.state = { tag: 'none' };
-                } else this.continueHover(intersects);
+                } else this.continueHover(intersects, moveEvent);
                 break;
             }
             case 'down': {
@@ -162,7 +162,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 break;
             case 'dragging':
                 try {
-                    this.endDrag(this.normalizedMousePosition);
+                    this.endDrag(this.normalizedMousePosition, upEvent);
                 } finally {
                     this.state.disposable.dispose();
                     this.state = { tag: 'none' };
@@ -173,14 +173,14 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         }
     }
 
-    abstract startHover(intersections: intersectable.Intersection[]): void;
-    abstract continueHover(intersections: intersectable.Intersection[]): void;
+    abstract startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent): void;
+    abstract continueHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent): void;
     abstract endHover(): void;
     abstract startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent): boolean;
     abstract endClick(intersections: intersectable.Intersection[], upEvent: MouseEvent): void;
     abstract startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void;
     abstract continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void;
-    abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
+    abstract endDrag(normalizedMousePosition: THREE.Vector2, upEvent: MouseEvent): void;
 
     private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersection[] {
         this.picker.setFromViewport(normalizedMousePosition, this.viewport);

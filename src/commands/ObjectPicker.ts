@@ -41,18 +41,18 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
         if (intersections.length === 0) this.onEmptyIntersection();
     }
 
-    processBoxSelect(selected: Set<Intersectable>): void {
-        this.changeSelection.onBoxSelect(selected);
+    processBoxSelect(selected: Set<Intersectable>, upEvent: MouseEvent): void {
+        this.changeSelection.onBoxSelect(selected, ChangeSelectionModifier.Replace);
         if (selected.size === 0) this.onEmptyIntersection();
     }
 
     // That said, hover works as normal
-    processHover(intersects: Intersection[]) {
-        this.editor.changeSelection.onHover(intersects);
+    processHover(intersects: Intersection[], moveEvent: MouseEvent) {
+        this.editor.changeSelection.onHover(intersects, ChangeSelectionModifier.Replace);
     }
 
-    processBoxHover(selected: Set<Intersectable>): void {
-        this.editor.changeSelection.onBoxHover(selected);
+    processBoxHover(selected: Set<Intersectable>, moveEvent: MouseEvent): void {
+        this.editor.changeSelection.onBoxHover(selected, ChangeSelectionModifier.Replace);
     }
 }
 

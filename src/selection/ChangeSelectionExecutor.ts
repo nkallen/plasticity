@@ -2,7 +2,7 @@ import { EditorSignals } from '../editor/EditorSignals';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
-import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from '../visual_model/VisualModel';
+import { ControlPoint, Curve3D, CurveEdge, Face, Region, TopologyItem } from '../visual_model/VisualModel';
 import { ClickStrategy } from './Click';
 import { HoverStrategy } from './Hover';
 import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
@@ -18,12 +18,13 @@ export enum ChangeSelectionModifier {
 }
 
 export interface SelectionStrategy {
-    emptyIntersection(): void;
-    solid(object: TopologyItem, parentItem: Solid): boolean;
-    topologicalItem(object: TopologyItem, parentItem: Solid): boolean;
-    curve3D(object: Curve3D, parentItem: SpaceInstance<Curve3D>): boolean;
-    region(object: Region, parentItem: PlaneInstance<Region>): boolean;
-    controlPoint(object: ControlPoint, parentItem: SpaceInstance<Curve3D>): boolean;
+    emptyIntersection(modifier: ChangeSelectionModifier): void;
+    solid(object: TopologyItem, modifier: ChangeSelectionModifier): boolean;
+    topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier): boolean;
+    curve3D(object: Curve3D, modifier: ChangeSelectionModifier): boolean;
+    region(object: Region, modifier: ChangeSelectionModifier): boolean;
+    controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier): boolean;
+    box(set: Set<Intersectable>, modifier: ChangeSelectionModifier): void;
 }
 
 export class ChangeSelectionExecutor {
@@ -47,32 +48,28 @@ export class ChangeSelectionExecutor {
 
     private onIntersection(intersections: Intersection[], strategy: SelectionStrategy, modifier: ChangeSelectionModifier): Intersection | undefined {
         if (intersections.length == 0) {
-            strategy.emptyIntersection();
+            strategy.emptyIntersection(modifier);
             return;
         }
 
         for (const intersection of intersections) {
             const object = intersection.object;
             if (object instanceof Face || object instanceof CurveEdge) {
-                const parentItem = object.parentItem;
-                if (strategy.solid(object, parentItem)) return intersection;
-                if (strategy.topologicalItem(object, parentItem)) return intersection;
+                if (strategy.solid(object, modifier)) return intersection;
+                if (strategy.topologicalItem(object, modifier)) return intersection;
             } else if (object instanceof Curve3D) {
-                const parentItem = object.parentItem;
-                if (strategy.curve3D(object, parentItem)) return intersection;
+                if (strategy.curve3D(object, modifier)) return intersection;
             } else if (object instanceof Region) {
-                const parentItem = object.parentItem;
-                if (strategy.region(object, parentItem)) return intersection;
+                if (strategy.region(object, modifier)) return intersection;
             } else if (object instanceof ControlPoint) {
-                const parentItem = object.parentItem;
-                if (strategy.controlPoint(object, parentItem)) return intersection;
+                if (strategy.controlPoint(object, modifier)) return intersection;
             } else {
                 console.error(object);
                 throw new Error("Invalid precondition");
             }
         }
 
-        strategy.emptyIntersection();
+        strategy.emptyIntersection(modifier);
         return;
     }
 
@@ -80,22 +77,22 @@ export class ChangeSelectionExecutor {
         return this.onIntersection(intersections, this.clickStrategy, modifier);
     }
 
-    onHover(intersections: Intersection[]): void {
+    onHover(intersections: Intersection[], modifier: ChangeSelectionModifier): void {
         this.onIntersection(intersections, this.hoverStrategy, ChangeSelectionModifier.Replace);
     }
 
-    onBoxHover(hover: Set<Intersectable>) {
-        this.hoverStrategy.box(hover);
+    onBoxHover(hover: Set<Intersectable>, modifier: ChangeSelectionModifier) {
+        this.hoverStrategy.box(hover, modifier);
     }
 
-    onBoxSelect(select: Set<Intersectable>) {
-        this.clickStrategy.box(select);
+    onBoxSelect(select: Set<Intersectable>, modifier: ChangeSelectionModifier) {
+        this.clickStrategy.box(select, modifier);
     }
 
-    onCreatorSelect(topologyItems: visual.TopologyItem[]) {
+    onCreatorSelect(topologyItems: visual.TopologyItem[], modifier: ChangeSelectionModifier) {
         for (const topo of topologyItems) {
-            if (!this.clickStrategy.solid(topo, topo.parentItem))
-                this.clickStrategy.topologicalItem(topo, topo.parentItem);
+            if (!this.clickStrategy.solid(topo, modifier))
+                this.clickStrategy.topologicalItem(topo, modifier);
         }
     }
 

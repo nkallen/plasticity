@@ -43,11 +43,12 @@ export class ClickChangeSelectionCommand extends CommandLike {
 export class BoxChangeSelectionCommand extends CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly intersected: Set<Intersectable>
+        private readonly intersected: Set<Intersectable>,
+        private readonly modifier: ChangeSelectionModifier,
     ) { super(editor) }
 
     async execute(): Promise<void> {
-        this.editor.changeSelection.onBoxSelect(this.intersected);
+        this.editor.changeSelection.onBoxSelect(this.intersected, this.modifier);
     }
 
     shouldAddToHistory(selectionChanged: boolean) {
@@ -68,14 +69,15 @@ export class DeselectAllCommand extends CommandLike {
 export class CreatorChangeSelectionCommand extends CommandLike {
     constructor(
         editor: cmd.EditorLike,
-        private readonly topologyItems: visual.TopologyItem[]
+        private readonly topologyItems: visual.TopologyItem[],
+        private readonly modifier: ChangeSelectionModifier
     ) {
         super(editor);
     }
 
     async execute(): Promise<void> {
         const { topologyItems } = this;
-        this.editor.changeSelection.onCreatorSelect(topologyItems);
+        this.editor.changeSelection.onCreatorSelect(topologyItems, this.modifier);
     }
 }
 
