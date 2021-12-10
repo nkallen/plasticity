@@ -13,6 +13,10 @@ export enum SelectionMode {
 
 export const SelectionModeAll = [SelectionMode.CurveEdge, SelectionMode.Face, SelectionMode.Solid, SelectionMode.Curve, SelectionMode.ControlPoint];
 
+export enum ChangeSelectionModifier {
+    Replace, Add, Remove
+}
+
 export interface SelectionStrategy {
     emptyIntersection(): void;
     solid(object: TopologyItem, parentItem: Solid): boolean;
@@ -41,7 +45,7 @@ export class ChangeSelectionExecutor {
         this.onCreatorSelect = this.wrapFunction(this.onCreatorSelect);
     }
 
-    private onIntersection(intersections: Intersection[], strategy: SelectionStrategy): Intersection | undefined {
+    private onIntersection(intersections: Intersection[], strategy: SelectionStrategy, modifier: ChangeSelectionModifier): Intersection | undefined {
         if (intersections.length == 0) {
             strategy.emptyIntersection();
             return;
@@ -72,12 +76,12 @@ export class ChangeSelectionExecutor {
         return;
     }
 
-    onClick(intersections: Intersection[]): Intersection | undefined {
-        return this.onIntersection(intersections, this.clickStrategy);
+    onClick(intersections: Intersection[], modifier: ChangeSelectionModifier): Intersection | undefined {
+        return this.onIntersection(intersections, this.clickStrategy, modifier);
     }
 
     onHover(intersections: Intersection[]): void {
-        this.onIntersection(intersections, this.hoverStrategy);
+        this.onIntersection(intersections, this.hoverStrategy, ChangeSelectionModifier.Replace);
     }
 
     onBoxHover(hover: Set<Intersectable>) {

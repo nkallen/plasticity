@@ -5,6 +5,7 @@ import { Viewport } from "../components/viewport/Viewport";
 import { ViewportControl } from "../components/viewport/ViewportControl";
 import * as intersectable from "../visual_model/Intersectable";
 import { Boxcaster } from "./Boxcaster";
+import { ChangeSelectionModifier } from "./ChangeSelectionExecutor";
 
 export interface EditorLike extends cmd.EditorLike {
     enqueue(command: Command, interrupt?: boolean): Promise<void>;
@@ -38,12 +39,12 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.processBoxHover(new Set(selected));
     }
 
-    startClick(intersections: intersectable.Intersection[]) {
+    startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent) {
         return true;
     }
 
-    endClick(intersections: intersectable.Intersection[]) {
-        this.processClick(intersections);
+    endClick(intersections: intersectable.Intersection[], upEvent: MouseEvent) {
+        this.processClick(intersections, upEvent);
     }
 
     endDrag(normalizedMousePosition: THREE.Vector2) {
@@ -58,7 +59,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     protected abstract processBoxHover(selected: Set<intersectable.Intersectable>): void;
     protected abstract processBoxSelect(selected: Set<intersectable.Intersectable>): void;
 
-    protected abstract processClick(intersects: intersectable.Intersection[]): void;
+    protected abstract processClick(intersects: intersectable.Intersection[], upEvent: MouseEvent): void;
     protected abstract processHover(intersects: intersectable.Intersection[]): void;
 }
 
@@ -76,8 +77,8 @@ export class ViewportSelector extends AbstractViewportSelector {
         this.editor.enqueue(command, true);
     }
 
-    protected processClick(intersects: intersectable.Intersection[]) {
-        const command = new ClickChangeSelectionCommand(this.editor, intersects);
+    protected processClick(intersects: intersectable.Intersection[], upEvent: MouseEvent) {
+        const command = new ClickChangeSelectionCommand(this.editor, intersects, ChangeSelectionModifier.Replace);
         this.editor.enqueue(command, true);
     }
 

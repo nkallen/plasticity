@@ -55,9 +55,9 @@ export class ViewportControlMultiplexer extends ViewportControl {
         this.winner.endDrag(normalizedMousePosition);
     }
 
-    startClick(intersections: intersectable.Intersection[]) {
+    startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent) {
         for (const control of this.controls) {
-            if (control.startClick(intersections)) {
+            if (control.startClick(intersections, downEvent)) {
                 this.winner = control;
                 return true;
             }
@@ -65,9 +65,9 @@ export class ViewportControlMultiplexer extends ViewportControl {
         return false;
     }
 
-    endClick(intersections: intersectable.Intersection[]) {
+    endClick(intersections: intersectable.Intersection[], upEvent: MouseEvent) {
         if (this.winner === undefined) return;
-        this.winner.endClick(intersections);
+        this.winner.endClick(intersections, upEvent);
     }
 
 }

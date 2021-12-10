@@ -4,21 +4,30 @@
 
 ### Backlog
 
+- Fusion-like multigizmo  
+- Align camera and construction plane (with space)  
+- Split body by picking faces  
+- Mirror around plane  
+- When offsetting face, offset should match snap pt with ctrl  
 - [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
 - [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
 - [ ] Audit re-used icons  
 - [ ] moving circle point doesn't work (drag and g)  
 - [ ] in xray mode, control points not visible  
+- [ ] currently FINISH is always available, even at step 1 of 3 points box. #bug - registry.add(command:finish) should maybe not happen in command executor but in await this.finished  
 - [ ] PointSnap resolution for nearby seems wrong  
 - [ ] move all static buuild() methods to builder, using var ts decl  
 - [ ] Refactor curve extension code  
 - [ ] bug: control points, when one selected and another hovered, everything unhighlighted  
+- [ ] PointPicker: Restrictions are ignored with choice -  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - [ ] Redesign set resolution of line2 etc  
 - [ ] parentId of edge and face should be set directly and not actually in the tree?  
+- [ ] fillet face  
 - [ ] Helper for center (of arc) point snap  
 - [ ] See if we can get rid of get child() in visualmodel  
+- [ ] Move/Translate allows face selection #bug  
 - [ ] get rid of all snappers in snap  
 - [ ] refactor IntersectableLayers  
 - [ ] Snap points should always be before their geometry if they're visible  
@@ -28,7 +37,6 @@
 - [ ] Redo titlebar to save space  
 - [ ] crash https://discord.com/channels/893157887847845908/894216409188565012/896502833057243196  
 - [ ] Add settings for loft  
-- [ ] performance audit hit testing and snaps - use gpu picking #performance  
 - [ ] memoize and discretize calculations like fillet #performance  
 - [ ] memoize mesh generation of faces in mesh creator (for the duration of a command). #performance  
 - [ ] in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?  
@@ -37,17 +45,12 @@
 - [ ] Trim command should allow splitting segments  
 - [ ] Trim command should allow points  
 - [ ] Trim should allow box selecting  
-- [ ] Move/Translate allows face selection #bug  
 - [ ] Box select during active command allows selecting faces that will be deleted #bug  
-- [ ] PointPicker: Restrictions are ignored with choice -  
-- [ ] currently FINISH is always available, even at step 1 of 3 points box. #bug - registry.add(command:finish) should maybe not happen in command executor but in await this.finished  
-- [ ] ctrl while point picking not working - https://discord.com/channels/893157887847845908/893157887847845913/896493308992421909  
 - [ ] rename Id() .id  
 - [ ] audit array conversion is reserving and freeing elements:  
 - ::AddRefItems( curveArray );  
 - ::ReleaseItems( curveArray );  
 - and especially check if instantiated RPArray/etc. is freed altogether - convert MbCartPoint3D and Vector to isPOD  
-- [ ] fillet face  
 
 ### Todo
 
@@ -58,21 +61,4 @@
 
 ### Done ✓
 
-- [x] verify mem limit  
-- [x] icons for 1234  
-- [x] set uniq for toolbar  
-- [x] make box on side of selected box defaults to subtraction when it should be add  
-- [x] hitting 11 should enable all selections  
-- [x] PointPicker: Restrictions should allow points to be projected even if they don't strictly match the restriction  
-- [x] unify restrictionFor / addAdditional  
-- [x] restrict to plane through point should allow better box creation when using corners or edges  
-- [x] making circle on corner box top or side face (needs to stick)  
-- [x] bug: variable fillet broken  
-- [x] DraftSolid Freestyle  
-- [x] Make freestyle rotate be quaternion  
-- [x] rotate face sucks  
-- [x] Verify fastupdate (like move/etc) are updateMatrix()  
-- [x] Fix box snap points  
-- [x] escape canceling an operation and the outline is invisible  
-- [x] highlight outline stays when moving/etc object  
 

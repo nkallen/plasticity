@@ -6,7 +6,7 @@ import { DatabaseLike } from '../editor/GeometryDatabase';
 import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
-import { ChangeSelectionExecutor, SelectionMode } from '../selection/ChangeSelectionExecutor';
+import { ChangeSelectionExecutor, ChangeSelectionModifier, SelectionMode } from '../selection/ChangeSelectionExecutor';
 import { HasSelection, Selectable, SelectionDatabase, ToggleableSet } from '../selection/SelectionDatabase';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from '../util/Cancellable';
@@ -36,8 +36,8 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
 
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands temporarily modify the selection
-    processClick(intersections: Intersection[]) {
-        this.changeSelection.onClick(intersections);
+    processClick(intersections: Intersection[], upEvent: MouseEvent) {
+        this.changeSelection.onClick(intersections, ChangeSelectionModifier.Replace);
         if (intersections.length === 0) this.onEmptyIntersection();
     }
 

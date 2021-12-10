@@ -9,6 +9,7 @@ import { MirrorOrSymmetryFactory, SymmetryFactory } from './mirror/MirrorFactory
 import { MirrorGizmo } from './mirror/MirrorGizmo';
 import { RebuildFactory } from "./rebuild/RebuildFactory";
 import { RebuildKeyboardGizmo } from './rebuild/RebuildKeyboardGizmo';
+import { ChangeSelectionModifier } from '../selection/ChangeSelectionExecutor';
 
 /**
  * These aren't typical commands, with a set of steps and gizmos to perform a geometrical operation.
@@ -25,12 +26,13 @@ export class ClickChangeSelectionCommand extends CommandLike {
 
     constructor(
         editor: cmd.EditorLike,
-        private readonly intersection: Intersection[]
+        private readonly intersection: Intersection[],
+        private readonly modifier: ChangeSelectionModifier
     ) { super(editor) }
 
 
     async execute(): Promise<void> {
-        this.point = this.editor.changeSelection.onClick(this.intersection)?.point;
+        this.point = this.editor.changeSelection.onClick(this.intersection, this.modifier)?.point;
     }
 
     shouldAddToHistory(selectionChanged: boolean) {

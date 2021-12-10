@@ -78,7 +78,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                 this.normalizedMousePosition.copy(this.onDownPosition);
 
                 const intersects = this.getIntersects(this.normalizedMousePosition, this.db.visibleObjects);
-                if (!this.startClick(intersects)) return;
+                if (!this.startClick(intersects, downEvent)) return;
 
                 const disposable = new CompositeDisposable();
 
@@ -153,7 +153,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             case 'down':
                 const intersects = this.getIntersects(this.normalizedMousePosition, [...this.db.visibleObjects]);
                 try {
-                    this.endClick(intersects);
+                    this.endClick(intersects, upEvent);
                 } finally {
                     this.state.disposable.dispose();
                     this.state = { tag: 'none' };
@@ -176,8 +176,8 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     abstract startHover(intersections: intersectable.Intersection[]): void;
     abstract continueHover(intersections: intersectable.Intersection[]): void;
     abstract endHover(): void;
-    abstract startClick(intersections: intersectable.Intersection[]): boolean;
-    abstract endClick(intersections: intersectable.Intersection[]): void;
+    abstract startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent): boolean;
+    abstract endClick(intersections: intersectable.Intersection[], upEvent: MouseEvent): void;
     abstract startDrag(downEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void;
     abstract continueDrag(moveEvent: MouseEvent, normalizedMousePosition: THREE.Vector2): void;
     abstract endDrag(normalizedMousePosition: THREE.Vector2): void;
