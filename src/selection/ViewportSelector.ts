@@ -1,19 +1,46 @@
 import * as THREE from "three";
 import Command, * as cmd from "../commands/Command";
 import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
+import { pointerEvent2keyboardEvent } from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
-import { ViewportControl } from "../components/viewport/ViewportControl";
+import { defaultRaycasterParams, ViewportControl } from "../components/viewport/ViewportControl";
+import { EditorSignals } from "../editor/EditorSignals";
+import { DatabaseLike } from "../editor/GeometryDatabase";
+import LayerManager from "../editor/LayerManager";
 import * as intersectable from "../visual_model/Intersectable";
 import { Boxcaster } from "./Boxcaster";
 import { ChangeSelectionModifier } from "./ChangeSelectionExecutor";
 
 export interface EditorLike extends cmd.EditorLike {
     enqueue(command: Command, interrupt?: boolean): Promise<void>;
+    keymaps: AtomKeymap.KeymapManager;
 }
 
 export abstract class AbstractViewportSelector extends ViewportControl {
+    private readonly mouseButtons: Record<string, ChangeSelectionModifier>;
     private readonly selectionHelper = new BoxSelectionHelper(this.viewport.renderer.domElement, 'select-box');
     private readonly selectionBox = new Boxcaster(this.viewport.camera, this.layers.visible);
+
+    constructor(
+        viewport: Viewport,
+        layers: LayerManager,
+        db: DatabaseLike,
+        private readonly keymaps: AtomKeymap.KeymapManager,
+        signals: EditorSignals,
+        raycasterParams: THREE.RaycasterParameters = { ...defaultRaycasterParams },
+    ) {
+        super(viewport, layers, db, signals, raycasterParams);
+        let bindings = keymaps.getKeyBindings();
+        bindings = bindings.filter(b => b.selector == 'viewport-selector');
+        const repl = bindings.filter(b => b.command == 'selection:replace').sort((a, b) => a.compare(b))[0];
+        const add = bindings.filter(b => b.command == 'selection:add').sort((a, b) => a.compare(b))[0];
+        const rem = bindings.filter(b => b.command == 'selection:remove').sort((a, b) => a.compare(b))[0];
+        const mouseButtons: Record<string, ChangeSelectionModifier> = {};
+        if (repl !== undefined) mouseButtons[repl.keystrokes] = command2modifier(repl.command);
+        if (add !== undefined) mouseButtons[add.keystrokes] = command2modifier(add.command);
+        if (rem !== undefined) mouseButtons[rem.keystrokes] = command2modifier(rem.command);
+        this.mouseButtons = mouseButtons;
+    }
 
     startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
         this.processHover(intersections, moveEvent);
@@ -61,29 +88,49 @@ export abstract class AbstractViewportSelector extends ViewportControl {
 
     protected abstract processClick(intersects: intersectable.Intersection[], upEvent: MouseEvent): void;
     protected abstract processHover(intersects: intersectable.Intersection[], moveEvent?: MouseEvent): void;
+
+    protected event2modifier(event: MouseEvent): ChangeSelectionModifier {
+        const keyboard = pointerEvent2keyboardEvent(event);
+        const keystroke = this.keymaps.keystrokeForKeyboardEvent(keyboard);
+        return this.mouseButtons[keystroke];
+    }
+}
+
+function command2modifier(command: string): ChangeSelectionModifier {
+    switch (command) {
+        case 'selection:replace':
+            return ChangeSelectionModifier.Replace;
+        case 'selection:add':
+            return ChangeSelectionModifier.Add;
+        case 'selection:remove':
+            return ChangeSelectionModifier.Remove;
+        default:
+            throw new Error("invalid configuration");
+    }
 }
 
 export class ViewportSelector extends AbstractViewportSelector {
     constructor(viewport: Viewport, private readonly editor: EditorLike,) {
-        super(viewport, editor.layers, editor.db, editor.signals);
+        super(viewport, editor.layers, editor.db, editor.keymaps, editor.signals);
     }
 
     protected processBoxHover(selected: Set<intersectable.Intersectable>, moveEvent: MouseEvent) {
-        this.editor.changeSelection.onBoxHover(selected, ChangeSelectionModifier.Replace);
+        this.editor.changeSelection.onBoxHover(selected, this.event2modifier(moveEvent));
     }
 
     protected processBoxSelect(selected: Set<intersectable.Intersectable>, upEvent: MouseEvent) {
-        const command = new BoxChangeSelectionCommand(this.editor, selected, ChangeSelectionModifier.Replace);
+        const command = new BoxChangeSelectionCommand(this.editor, selected, this.event2modifier(upEvent));
         this.editor.enqueue(command, true);
     }
 
     protected processClick(intersects: intersectable.Intersection[], upEvent: MouseEvent) {
-        const command = new ClickChangeSelectionCommand(this.editor, intersects, ChangeSelectionModifier.Replace);
+        const command = new ClickChangeSelectionCommand(this.editor, intersects, this.event2modifier(upEvent));
         this.editor.enqueue(command, true);
     }
 
     protected processHover(intersects: intersectable.Intersection[], event?: MouseEvent) {
-        this.editor.changeSelection.onHover(intersects, ChangeSelectionModifier.Replace);
+        const modifier = event !== undefined ? this.event2modifier(event) : ChangeSelectionModifier.Replace;
+        this.editor.changeSelection.onHover(intersects, modifier);
     }
 }
 

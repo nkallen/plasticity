@@ -18,6 +18,7 @@ interface EditorLike {
     materials: MaterialDatabase;
     changeSelection: ChangeSelectionExecutor;
     layers: LayerManager;
+    keymaps: AtomKeymap.KeymapManager;
 }
 
 export class ObjectPickerViewportSelector extends AbstractViewportSelector {
@@ -30,7 +31,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
         private readonly onEmptyIntersection = () => { },
         raycasterParams: THREE.RaycasterParameters,
     ) {
-        super(viewport, editor.layers, editor.db, editor.signals, raycasterParams);
+        super(viewport, editor.layers, editor.db, editor.keymaps, editor.signals, raycasterParams);
         this.selection.mode.add(SelectionMode.Curve); // FIXME: obviously not desirable
     }
 

@@ -41,8 +41,8 @@ export class OrbitControls extends THREE.EventDispatcher {
     enableRotate = true;
     enablePan = true;
 
-    mouseButtons: Record<string, string>;
-    touches: Record<string, string>;
+    private readonly mouseButtons: Record<string, string>;
+    private readonly touches: Record<string, string>;
 
     private readonly target0 = this.target.clone();
     private readonly position0 = this.object.position.clone();

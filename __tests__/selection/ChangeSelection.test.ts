@@ -69,9 +69,6 @@ describe('onClick', () => {
 
         changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
         expect(selectionDb.selected.curves.size).toBe(1);
-
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
-        expect(selectionDb.selected.curves.size).toBe(0);
     });
 
     test('clicking on a curve then a control point selects the control point', () => {
@@ -174,9 +171,6 @@ describe('onClick', () => {
 
         changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
         expect(selectionDb.selected.regions.size).toBe(1);
-
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
-        expect(selectionDb.selected.regions.size).toBe(0);
     });
 
     test('saveToMemento & restoreFromMemento', () => {
@@ -193,7 +187,7 @@ describe('onClick', () => {
 
         const memento = selectionDb.selected.saveToMemento();
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Remove);
         expect(selectionDb.selected.curves.size).toBe(0);
 
         selectionDb.selected.restoreFromMemento(memento);
@@ -261,7 +255,7 @@ describe('onClick', () => {
 
         changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
         expect(selectionDb.selected.solids.size).toBe(0);
-        expect(selectionDb.selected.edges.size).toBe(0);
+        expect(selectionDb.selected.edges.size).toBe(1);
     });
 
     test("delete solid removes the selection", () => {

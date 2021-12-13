@@ -21,12 +21,24 @@ export class ClickStrategy implements SelectionStrategy {
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
         if (this.selected.curves.has(parentItem)) {
-            this.selected.removeCurve(parentItem);
+            return this.modify(modifier,
+                () => {
+                    return true;
+                },
+                () => {
+                    this.selected.removeCurve(parentItem);
+                    return true;
+                });
         } else {
-            this.selected.addCurve(parentItem);
+            return this.modify(modifier,
+                () => {
+                    this.selected.addCurve(parentItem);
+                    return true;
+                },
+                () => {
+                    return true;
+                });
         }
-        this.hovered.removeAll();
-        return true;
     }
 
     solid(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
@@ -34,18 +46,28 @@ export class ClickStrategy implements SelectionStrategy {
         const parentItem = object.parentItem;
 
         if (this.selected.solids.has(parentItem)) {
-            if (this.topologicalItem(object, modifier)) {
-                this.selected.removeSolid(parentItem);
-                this.hovered.removeAll();
-                return true;
-            }
-            return false;
+            return this.modify(modifier,
+                () => {
+                    if (this.topologicalItem(object, modifier)) {
+                        this.selected.removeSolid(parentItem);
+                        return true;
+                    }
+                    return true;
+                },
+                () => {
+                    this.selected.removeSolid(parentItem);
+                    return true;
+                });
         } else if (!this.selected.hasSelectedChildren(parentItem)) {
-            this.selected.addSolid(parentItem);
-            this.hovered.removeAll();
-            return true;
+            return this.modify(modifier,
+                () => {
+                    this.selected.addSolid(parentItem);
+                    return true;
+                },
+                () => {
+                    return true;
+                });
         }
-
         return false;
     }
 
@@ -53,36 +75,40 @@ export class ClickStrategy implements SelectionStrategy {
         const parentItem = object.parentItem;
 
         if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
-            if (this.selected.faces.has(object)) {
-                this.selected.removeFace(object, parentItem);
-            } else {
-                this.selected.addFace(object, parentItem);
-            }
-            this.hovered.removeAll();
+            this.modify(modifier, () => this.selected.addFace(object, parentItem), () => this.selected.removeFace(object, parentItem));
             return true;
         } else if (this.mode.has(SelectionMode.CurveEdge) && object instanceof CurveEdge) {
-            if (this.selected.edges.has(object)) {
-                this.selected.removeEdge(object, parentItem);
-            } else {
-                this.selected.addEdge(object, parentItem);
-            }
-            this.hovered.removeAll();
+            this.modify(modifier, () => this.selected.addEdge(object, parentItem), () => this.selected.removeEdge(object, parentItem));
             return true;
         }
         return false;
+    }
+
+    private modify<T>(modifier: ChangeSelectionModifier, add: () => T, remove: () => T): T {
+        this.hovered.removeAll();
+        if (modifier === ChangeSelectionModifier.Remove) {
+            return remove();
+        } else if (modifier === ChangeSelectionModifier.Add) {
+            return add();
+        } else {
+            this.selected.removeAll();
+            return add();
+        }
     }
 
     region(object: Region, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.Face)) return false;
         const parentItem = object.parentItem;
 
-        if (this.selected.regions.has(parentItem)) {
-            this.selected.removeRegion(parentItem);
-        } else {
-            this.selected.addRegion(parentItem);
-        }
-        this.hovered.removeAll();
-        return true;
+        return this.modify(modifier,
+            () => {
+                this.selected.addRegion(parentItem);
+                return true;
+            },
+            () => {
+                this.selected.removeRegion(parentItem);
+                return true;
+            })
     }
 
     controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier): boolean {
@@ -101,7 +127,7 @@ export class ClickStrategy implements SelectionStrategy {
         return true;
     }
 
-    box(set: Set<Intersectable>, modifier: ChangeSelectionModifier): void{
+    box(set: Set<Intersectable>, modifier: ChangeSelectionModifier): void {
         const { hovered, selected } = this;
         hovered.removeAll();
 
@@ -110,7 +136,7 @@ export class ClickStrategy implements SelectionStrategy {
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
                 if (parentsAdded.has(parentItem)) continue;
-                
+
                 if (this.mode.has(SelectionMode.Solid) && !selected.solids.has(parentItem) && !selected.hasSelectedChildren(parentItem)) {
                     parentsAdded.add(parentItem);
                     selected.addSolid(parentItem);

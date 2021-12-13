@@ -4,12 +4,13 @@
 
 ### Backlog
 
+- extrude multiple regions at once  
 - Fusion-like multigizmo  
-- Align camera and construction plane (with space)  
 - Split body by picking faces  
 - Mirror around plane  
 - When offsetting face, offset should match snap pt with ctrl  
 - [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
+- [ ] circle angle gizmo when far off from center not facing camera  
 - [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
 - [ ] Audit re-used icons  
@@ -54,7 +55,10 @@
 
 ### Todo
 
-- [ ] circle angle gizmo when far off from center not facing camera  
+- Selection become conventional  
+- speed of gizmos tempered by zoom  
+- rr ss gg for screenspace  
+- Align camera and construction plane (with space)  
 
 ### In Progress
 

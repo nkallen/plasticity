@@ -215,6 +215,12 @@ export default {
         "mouse2": "orbit:pan",
     },
 
+    "viewport-selector": {
+        "mouse0": "selection:replace",
+        "shift-mouse0": "selection:add",
+        "ctrl-mouse0": "selection:remove",
+    },
+
     "body[gizmo=point-picker]": {
         "n": "snaps:set-normal",
         "b": "snaps:set-binormal",

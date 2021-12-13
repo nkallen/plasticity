@@ -9,7 +9,7 @@ import { Viewport } from "./Viewport";
 
 type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'down', downEvent: PointerEvent, disposable: Disposable } | { tag: 'dragging', downEvent: PointerEvent, startEvent: PointerEvent, disposable: Disposable }
 
-const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+export const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
     Mesh: { threshold: 0 },
     Line: { threshold: 0.1 },
     Line2: { threshold: 15 },

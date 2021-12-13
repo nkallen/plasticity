@@ -132,7 +132,7 @@ export default class KeyboardEventManager {
     }
 }
 
-export function pointerEvent2keyboardEvent(event: PointerEvent) {
+export function pointerEvent2keyboardEvent(event: MouseEvent) {
     const build = {
         ctrl: event.ctrlKey,
         alt: event.altKey,
@@ -140,6 +140,6 @@ export function pointerEvent2keyboardEvent(event: PointerEvent) {
         cmd: event.metaKey,
         target: event.target as Element | undefined,
     }
-    const name = "mouse" + event.button;
+    const name = event.button !== -1 ? "mouse" + event.button : "mouse";
     return KeymapManager.buildKeydownEvent(name, build) as unknown as KeyboardEvent;
 }

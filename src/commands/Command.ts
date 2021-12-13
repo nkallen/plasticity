@@ -56,6 +56,7 @@ export interface EditorLike {
     modifiers: ModifierManager,
     snapPresenter: SnapPresenter,
     crosses: CrossPointDatabase,
+    keymaps: AtomKeymap.KeymapManager,
 }
 
 export default abstract class Command extends CancellableRegistor {

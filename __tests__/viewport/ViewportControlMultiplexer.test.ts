@@ -11,6 +11,9 @@ import { Intersection } from "../../src/visual_model/Intersectable";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
 
+const moveEvent = new MouseEvent('move');
+const downEvent = new MouseEvent('down');
+const upEvent = new MouseEvent('up');
 describe(ViewportControlMultiplexer, () => {
     let multiplexer: ViewportControlMultiplexer;
     let pointControl: ViewportPointControl;
@@ -56,11 +59,11 @@ describe(ViewportControlMultiplexer, () => {
         const continueHover2 = jest.spyOn(pointControl, 'continueHover');
         const endHover2 = jest.spyOn(pointControl, 'endHover');
 
-        multiplexer.startHover([]);
+        multiplexer.startHover([], moveEvent);
         expect(startHover1).toBeCalledTimes(1);
         expect(startHover2).toBeCalledTimes(1);
 
-        multiplexer.continueHover([]);
+        multiplexer.continueHover([], moveEvent);
         expect(continueHover1).toBeCalledTimes(1);
         expect(continueHover2).toBeCalledTimes(1);
 
@@ -82,11 +85,11 @@ describe(ViewportControlMultiplexer, () => {
             const startClick2 = jest.spyOn(pointControl, 'startClick').mockReturnValue(true);
             const endClick2 = jest.spyOn(pointControl, 'endClick');
 
-            multiplexer.startClick([]);
+            multiplexer.startClick([], downEvent);
             expect(startClick1).toHaveBeenCalledTimes(1);
             expect(startClick2).toHaveBeenCalledTimes(0);
 
-            multiplexer.endClick([]);
+            multiplexer.endClick([], upEvent);
             expect(endClick1).toHaveBeenCalledTimes(1);
             expect(endClick2).toHaveBeenCalledTimes(0);
         });
@@ -98,11 +101,11 @@ describe(ViewportControlMultiplexer, () => {
             const startClick2 = jest.spyOn(pointControl, 'startClick').mockReturnValue(true);
             const endClick2 = jest.spyOn(pointControl, 'endClick');
 
-            multiplexer.startClick([]);
+            multiplexer.startClick([], downEvent);
             expect(startClick1).toHaveBeenCalledTimes(1);
             expect(startClick2).toHaveBeenCalledTimes(1);
 
-            multiplexer.endClick([]);
+            multiplexer.endClick([], upEvent);
             expect(endClick1).toHaveBeenCalledTimes(0);
             expect(endClick2).toHaveBeenCalledTimes(1);
         });
@@ -114,11 +117,11 @@ describe(ViewportControlMultiplexer, () => {
             const startClick2 = jest.spyOn(pointControl, 'startClick').mockReturnValue(false);
             const endClick2 = jest.spyOn(pointControl, 'endClick');
 
-            multiplexer.startClick([]);
+            multiplexer.startClick([], downEvent);
             expect(startClick1).toHaveBeenCalledTimes(1);
             expect(startClick2).toHaveBeenCalledTimes(1);
 
-            multiplexer.endClick([]);
+            multiplexer.endClick([], upEvent);
             expect(endClick1).toHaveBeenCalledTimes(0);
             expect(endClick2).toHaveBeenCalledTimes(0);
         });
@@ -135,7 +138,7 @@ describe(ViewportControlMultiplexer, () => {
                 const continueDrag2 = jest.spyOn(pointControl, 'continueDrag');
                 const endDrag2 = jest.spyOn(pointControl, 'endDrag');
 
-                multiplexer.startClick([]);
+                multiplexer.startClick([], downEvent);
                 expect(startClick1).toHaveBeenCalledTimes(1);
                 expect(startClick2).toHaveBeenCalledTimes(0);
 
@@ -147,7 +150,7 @@ describe(ViewportControlMultiplexer, () => {
                 expect(continueDrag1).toHaveBeenCalledTimes(1);
                 expect(continueDrag2).toHaveBeenCalledTimes(0);
 
-                multiplexer.endDrag(new THREE.Vector2());
+                multiplexer.endDrag(new THREE.Vector2(), upEvent);
                 expect(endDrag1).toHaveBeenCalledTimes(1);
                 expect(endDrag2).toHaveBeenCalledTimes(0);
             });
@@ -167,8 +170,8 @@ describe(ViewportControlMultiplexer, () => {
             multiplexer.unshift(priority);
         })
 
-        let startClick1: jest.SpyInstance<boolean, [intersections: Intersection[]]>, startClick2: jest.SpyInstance<boolean, [intersections: Intersection[]]>, startClick3: jest.SpyInstance<boolean, [intersections: Intersection[]]>;
-        let endClick1: jest.SpyInstance<void, [intersections: Intersection[]]>, endClick2: jest.SpyInstance<void, [intersections: Intersection[]]>, endClick3: jest.SpyInstance<void, [intersections: Intersection[]]>;
+        let startClick1: any, startClick2: any, startClick3: any;
+        let endClick1: any, endClick2: any, endClick3: any;
 
         beforeEach(() => {
             startClick1 = jest.spyOn(selector, 'startClick').mockReturnValue(true);
@@ -182,12 +185,12 @@ describe(ViewportControlMultiplexer, () => {
         })
 
         test('when the first control returns true', () => {
-            multiplexer.startClick([]);
+            multiplexer.startClick([], downEvent);
             expect(startClick1).toHaveBeenCalledTimes(0);
             expect(startClick2).toHaveBeenCalledTimes(0);
             expect(startClick3).toHaveBeenCalledTimes(1);
 
-            multiplexer.endClick([]);
+            multiplexer.endClick([], upEvent);
             expect(endClick1).toHaveBeenCalledTimes(0);
             expect(endClick2).toHaveBeenCalledTimes(0);
             expect(endClick3).toHaveBeenCalledTimes(1);
@@ -196,12 +199,12 @@ describe(ViewportControlMultiplexer, () => {
         test('remove goes back to normal', () => {
             multiplexer.delete(priority);
 
-            multiplexer.startClick([]);
+            multiplexer.startClick([], downEvent);
             expect(startClick1).toHaveBeenCalledTimes(1);
             expect(startClick2).toHaveBeenCalledTimes(0);
             expect(startClick3).toHaveBeenCalledTimes(0);
 
-            multiplexer.endClick([]);
+            multiplexer.endClick([], upEvent);
             expect(endClick1).toHaveBeenCalledTimes(1);
             expect(endClick2).toHaveBeenCalledTimes(0);
             expect(endClick3).toHaveBeenCalledTimes(0);
