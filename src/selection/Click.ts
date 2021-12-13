@@ -7,11 +7,12 @@ export class ClickStrategy implements SelectionStrategy {
     constructor(
         private readonly mode: Set<SelectionMode>,
         private readonly selected: ModifiesSelection,
-        private readonly hovered: ModifiesSelection
+        private readonly hovered: ModifiesSelection,
+        private readonly writeable: ModifiesSelection
     ) { }
 
     emptyIntersection(modifier: ChangeSelectionModifier): void {
-        this.selected.removeAll();
+        this.writeable.removeAll();
         this.hovered.removeAll();
     }
 
@@ -22,11 +23,11 @@ export class ClickStrategy implements SelectionStrategy {
 
         return this.modify(modifier,
             () => {
-                this.selected.addCurve(parentItem);
+                this.writeable.addCurve(parentItem);
                 return true;
             },
             () => {
-                this.selected.removeCurve(parentItem);
+                this.writeable.removeCurve(parentItem);
                 return true;
             });
     }
@@ -38,13 +39,13 @@ export class ClickStrategy implements SelectionStrategy {
             () => {
                 const parentItem = object.parentItem;
                 if (this.selected.curves.has(parentItem)) {
-                    this.selected.removeCurve(parentItem);
+                    this.writeable.removeCurve(parentItem);
                 }
-                this.selected.addControlPoint(object);
+                this.writeable.addControlPoint(object);
                 return true;
             },
             () => {
-                this.selected.removeControlPoint(object);
+                this.writeable.removeControlPoint(object);
                 return true;
             });
     }
@@ -58,19 +59,19 @@ export class ClickStrategy implements SelectionStrategy {
             return this.modify(modifier,
                 () => {
                     if (this.topologicalItem(object, modifier)) {
-                        this.selected.removeSolid(parentItem);
+                        this.writeable.removeSolid(parentItem);
                         return true;
                     }
                     return true;
                 },
                 () => {
-                    this.selected.removeSolid(parentItem);
+                    this.writeable.removeSolid(parentItem);
                     return true;
                 });
         } else if (!this.selected.hasSelectedChildren(parentItem)) {
             return this.modify(modifier,
                 () => {
-                    this.selected.addSolid(parentItem);
+                    this.writeable.addSolid(parentItem);
                     return true;
                 },
                 () => {
@@ -82,10 +83,14 @@ export class ClickStrategy implements SelectionStrategy {
 
     topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
         if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
-            this.modify(modifier, () => this.selected.addFace(object), () => this.selected.removeFace(object));
+            this.modify(modifier,
+                () => this.writeable.addFace(object),
+                () => this.writeable.removeFace(object));
             return true;
         } else if (this.mode.has(SelectionMode.CurveEdge) && object instanceof CurveEdge) {
-            this.modify(modifier, () => this.selected.addEdge(object), () => this.selected.removeEdge(object));
+            this.modify(modifier,
+                () => this.writeable.addEdge(object),
+                () => this.writeable.removeEdge(object));
             return true;
         }
         return false;
@@ -98,7 +103,7 @@ export class ClickStrategy implements SelectionStrategy {
         } else if (modifier === ChangeSelectionModifier.Add) {
             return add();
         } else {
-            this.selected.removeAll();
+            this.writeable.removeAll();
             return add();
         }
     }
@@ -109,16 +114,16 @@ export class ClickStrategy implements SelectionStrategy {
 
         return this.modify(modifier,
             () => {
-                this.selected.addRegion(parentItem);
+                this.writeable.addRegion(parentItem);
                 return true;
             },
             () => {
-                this.selected.removeRegion(parentItem);
+                this.writeable.removeRegion(parentItem);
                 return true;
             });
     }
 
-    box(set: Set<Intersectable>, modifier: ChangeSelectionModifier): void {
+    box(set: Set<Intersectable | Solid>, modifier: ChangeSelectionModifier): void {
         const { hovered } = this;
         hovered.removeAll();
 
@@ -132,17 +137,17 @@ export class ClickStrategy implements SelectionStrategy {
         const changedPoints = new Set<ControlPoint>();
 
         for (const object of set) {
-            if (object instanceof Face || object instanceof CurveEdge) {
+            if (object instanceof Solid) {
+                if (!this.mode.has(SelectionMode.Solid)) continue;
+                if (parentsVisited.has(object)) continue;
+                parentsVisited.add(object);
+                changedSolids.add(object);
+            } else if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
                 if (parentsVisited.has(parentItem)) continue;
+                if (this.mode.has(SelectionMode.Solid) && !this.selected.solids.has(parentItem) && !this.selected.hasSelectedChildren(parentItem)) continue;
 
-                if (this.mode.has(SelectionMode.Solid) && !this.selected.solids.has(parentItem) && modifier !== ChangeSelectionModifier.Remove) {
-                    parentsVisited.add(parentItem);
-                    changedSolids.add(parentItem);
-                } else if (this.mode.has(SelectionMode.Solid) && this.selected.solids.has(parentItem) && modifier === ChangeSelectionModifier.Remove) {
-                    parentsVisited.add(parentItem);
-                    changedSolids.add(parentItem);
-                } else if (object instanceof Face) {
+                if (object instanceof Face) {
                     if (!this.mode.has(SelectionMode.Face)) continue;
                     changedFaces.add(object);
                     changedParents.add(object.parentItem);
@@ -171,22 +176,22 @@ export class ClickStrategy implements SelectionStrategy {
 
         this.modify(modifier,
             () => {
-                for (const solid of changedSolids) this.selected.addSolid(solid);
-                for (const face of changedFaces) this.selected.addFace(face);
-                for (const edge of changedEdges) this.selected.addEdge(edge);
-                for (const curve of changedCurves) this.selected.addCurve(curve);
-                for (const region of changedRegions) this.selected.addRegion(region);
-                for (const point of changedPoints) this.selected.addControlPoint(point);
+                for (const solid of changedSolids) this.writeable.addSolid(solid);
+                for (const face of changedFaces) this.writeable.addFace(face);
+                for (const edge of changedEdges) this.writeable.addEdge(edge);
+                for (const curve of changedCurves) this.writeable.addCurve(curve);
+                for (const region of changedRegions) this.writeable.addRegion(region);
+                for (const point of changedPoints) this.writeable.addControlPoint(point);
 
-                for (const parent of changedParents) this.selected.remove(parent);
+                for (const parent of changedParents) this.writeable.remove(parent);
             },
             () => {
-                for (const solid of changedSolids) this.selected.removeSolid(solid);
-                for (const face of changedFaces) this.selected.removeFace(face);
-                for (const edge of changedEdges) this.selected.removeEdge(edge);
-                for (const curve of changedCurves) this.selected.removeCurve(curve);
-                for (const region of changedRegions) this.selected.removeRegion(region);
-                for (const point of changedPoints) this.selected.removeControlPoint(point);
+                for (const solid of changedSolids) this.writeable.removeSolid(solid);
+                for (const face of changedFaces) this.writeable.removeFace(face);
+                for (const edge of changedEdges) this.writeable.removeEdge(edge);
+                for (const curve of changedCurves) this.writeable.removeCurve(curve);
+                for (const region of changedRegions) this.writeable.removeRegion(region);
+                for (const point of changedPoints) this.writeable.removeControlPoint(point);
             });
     }
 }

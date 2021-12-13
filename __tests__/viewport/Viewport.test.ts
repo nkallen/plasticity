@@ -11,7 +11,7 @@ import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import { IntersectableLayers, VisibleLayers } from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { PlaneSnap } from "../../src/editor/snaps/Snap";
-import { ChangeSelectionExecutor } from "../../src/selection/ChangeSelectionExecutor";
+import { ChangeSelectionExecutor, ChangeSelectionModifier } from "../../src/selection/ChangeSelectionExecutor";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
@@ -55,12 +55,12 @@ afterEach(async () => {
 test("item selected outlines", () => {
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
-    interaction.onClick([{ object: sphere.faces.get(0), point }]);
+    interaction.onClick([{ object: sphere.faces.get(0), point }], ChangeSelectionModifier.Add);
     signals.selectionChanged.dispatch({ selection: selection.selected, point });
     expect(viewport.outlinePassSelection.selectedObjects).toHaveLength(1);
     expect(viewport.outlinePassSelection.selectedObjects[0].geometry.attributes).toEqual(sphere.outline[0].geometry.attributes);
     expect(viewport.outlinePassSelection.selectedObjects[0].geometry.groups).toEqual([]);
-    interaction.onClick([]);
+    interaction.onClick([], ChangeSelectionModifier.Add);
     signals.selectionChanged.dispatch({ selection: selection.selected, point });
     expect(viewport.outlinePassSelection.selectedObjects).toEqual([]);
 });
@@ -68,11 +68,11 @@ test("item selected outlines", () => {
 test("item hovered outlines", () => {
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
     const point = new THREE.Vector3();
-    interaction.onHover([{ object: sphere.faces.get(0), point }]);
+    interaction.onHover([{ object: sphere.faces.get(0), point }], ChangeSelectionModifier.Add);
     expect(viewport.outlinePassHover.selectedObjects).toHaveLength(1);
     expect(viewport.outlinePassHover.selectedObjects[0].geometry.attributes).toEqual(sphere.outline[0].geometry.attributes);
     expect(viewport.outlinePassHover.selectedObjects[0].geometry.groups).toEqual([]);
-    interaction.onHover([]);
+    interaction.onHover([], ChangeSelectionModifier.Add);
     expect(viewport.outlinePassHover.selectedObjects).toEqual([]);
 });
 

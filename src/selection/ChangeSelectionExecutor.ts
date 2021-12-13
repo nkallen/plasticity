@@ -4,7 +4,6 @@ import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, Region, TopologyItem } from '../visual_model/VisualModel';
 import { ClickStrategy } from './Click';
-import { HoverStrategy } from './Hover';
 import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
 
 export enum SelectionMode {
@@ -29,15 +28,15 @@ export interface SelectionStrategy {
 
 export class ChangeSelectionExecutor {
     private readonly clickStrategy: ClickStrategy;
-    private readonly hoverStrategy: HoverStrategy;
+    private readonly hoverStrategy: ClickStrategy;
 
     constructor(
         readonly selection: HasSelectedAndHovered,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals
     ) {
-        this.clickStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered);
-        this.hoverStrategy = new HoverStrategy(selection.mode, selection.selected, selection.hovered);
+        this.clickStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered, selection.selected);
+        this.hoverStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered, selection.hovered);
 
         this.onClick = this.wrapFunction(this.onClick);
         this.onHover = this.wrapFunction(this.onHover);
@@ -81,11 +80,11 @@ export class ChangeSelectionExecutor {
         this.onIntersection(intersections, this.hoverStrategy, modifier);
     }
 
-    onBoxHover(hover: Set<Intersectable>, modifier: ChangeSelectionModifier) {
+    onBoxHover(hover: Set<Intersectable | visual.Solid>, modifier: ChangeSelectionModifier) {
         this.hoverStrategy.box(hover, modifier);
     }
 
-    onBoxSelect(select: Set<Intersectable>, modifier: ChangeSelectionModifier) {
+    onBoxSelect(select: Set<Intersectable | visual.Solid>, modifier: ChangeSelectionModifier) {
         this.clickStrategy.box(select, modifier);
     }
 

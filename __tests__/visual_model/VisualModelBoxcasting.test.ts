@@ -23,6 +23,108 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
 })
 
+describe(visual.FaceGroup, () => {
+    let box: visual.Solid;
+
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box = await makeBox.commit() as visual.Solid;
+        box.updateMatrixWorld();
+    })
+
+    let camera: THREE.OrthographicCamera;
+    let boxcaster: Boxcaster;
+    beforeEach(() => {
+        camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.001);
+        camera.position.set(0, -10, 0);
+        camera.lookAt(0, 0, 0);
+        camera.updateMatrixWorld();
+        boxcaster = new Boxcaster(camera);
+    })
+
+    test('containsGeometry full containment', async () => {
+        const faces = box.faces;
+
+        boxcaster.startPoint.set(-1, -1, 0);
+        boxcaster.endPoint.set(1, 1, 0);
+        boxcaster.updateFrustum();
+        expect(faces.containsGeometry(boxcaster)).toBe(true);
+    });
+
+    test('containsGeometry only intersection', async () => {
+        const faces = box.faces;
+
+        boxcaster.startPoint.set(-0.1, -0.1, 0);
+        boxcaster.endPoint.set(0.1, 0.1, 0);
+        boxcaster.updateFrustum();
+        expect(faces.containsGeometry(boxcaster)).toBe(false);
+    });
+
+    test('intersectsGeometry only intersection', async () => {
+        const faces = box.faces;
+
+        boxcaster.startPoint.set(-0.1, -0.1, 0);
+        boxcaster.endPoint.set(0.1, 0.1, 0);
+        boxcaster.updateFrustum();
+        expect(faces.intersectsGeometry(boxcaster)).toBe(true);
+    });
+});
+
+describe(visual.Face, () => {
+    let box: visual.Solid;
+
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box = await makeBox.commit() as visual.Solid;
+        box.updateMatrixWorld();
+    })
+
+    let camera: THREE.OrthographicCamera;
+    let boxcaster: Boxcaster;
+    beforeEach(() => {
+        camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.001);
+        camera.position.set(0, -10, 0);
+        camera.lookAt(0, 0, 0);
+        camera.updateMatrixWorld();
+        boxcaster = new Boxcaster(camera);
+    })
+
+    test('containsGeometry full containment', async () => {
+        const faec = box.faces.get(0);
+
+        boxcaster.startPoint.set(-1, -1, 0);
+        boxcaster.endPoint.set(1, 1, 0);
+        boxcaster.updateFrustum();
+        expect(faec.containsGeometry(boxcaster)).toBe(true);
+    });
+
+    test('containsGeometry only intersection', async () => {
+        const face = box.faces.get(0);
+
+        boxcaster.startPoint.set(-0.1, -0.1, 0);
+        boxcaster.endPoint.set(0.1, 0.1, 0);
+        boxcaster.updateFrustum();
+        expect(face.containsGeometry(boxcaster)).toBe(false);
+    });
+
+    test('intersectsGeometry only intersection', async () => {
+        const face = box.faces.get(0);
+
+        boxcaster.startPoint.set(-0.1, -0.1, 0);
+        boxcaster.endPoint.set(0.1, 0.1, 0);
+        boxcaster.updateFrustum();
+        expect(face.intersectsGeometry(boxcaster)).toBe(true);
+    });
+});
+
 describe(visual.CurveEdge, () => {
     let box: visual.Solid;
 
