@@ -338,4 +338,71 @@ describe('ChangeSelectionModifier.Remove', () => {
         expect(selectionDb.selected.faces.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
     })
+});
+
+describe('box', () => {
+    test('selecting multiple solids', () => {
+        click.box(new Set([solid1.faces.get(0), solid2.faces.get(0)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(2);
+    })
+
+    test('selecting multiple faces of a unselected solid', () => {
+        click.box(new Set([solid1.faces.get(0), solid1.faces.get(1)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.faces.size).toBe(0);
+    })
+
+    test('selecting a solid then adding its face', () => {
+        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.faces.size).toBe(0);
+
+        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(0);
+        expect(selectionDb.selected.faces.size).toBe(1);
+    })
+
+    test('selecting a solid then replacing w/ its face', () => {
+        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.faces.size).toBe(0);
+
+        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Replace);
+        expect(selectionDb.selected.solids.size).toBe(0);
+        expect(selectionDb.selected.faces.size).toBe(1);
+    })
+
+    test('selecting one solid, adding another', () => {
+        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        click.box(new Set([solid2.faces.get(0)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(2);
+    })
+
+    test('selecting one solid, removing it', () => {
+        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        click.box(new Set([solid1.faces.get(0)]), ChangeSelectionModifier.Remove);
+        expect(selectionDb.selected.solids.size).toBe(0);
+    })
+
+    test('selecting a curve', () => {
+        click.box(new Set([curve.underlying]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.curves.size).toBe(1);
+    })
+
+    test('selecting a curve and its control point simultaneously', () => {
+        click.box(new Set([curve.underlying, curve.underlying.points.get(0)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.curves.size).toBe(1);
+        expect(selectionDb.selected.controlPoints.size).toBe(0);
+    })
+
+    test('selecting a curve and then its control point', () => {
+        click.box(new Set([curve.underlying]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.curves.size).toBe(1);
+        click.box(new Set([curve.underlying.points.get(0)]), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.curves.size).toBe(0);
+        expect(selectionDb.selected.controlPoints.size).toBe(1);
+    })
+
 })

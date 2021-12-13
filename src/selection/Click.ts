@@ -20,15 +20,15 @@ export class ClickStrategy implements SelectionStrategy {
         const parentItem = object.parentItem;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
-        return this.modify(modifier, 
+        return this.modify(modifier,
             () => {
                 this.selected.addCurve(parentItem);
                 return true;
-        },
+            },
             () => {
                 this.selected.removeCurve(parentItem);
                 return true;
-        });
+            });
     }
 
     controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier): boolean {
@@ -81,8 +81,6 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
-        const parentItem = object.parentItem;
-
         if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
             this.modify(modifier, () => this.selected.addFace(object), () => this.selected.removeFace(object));
             return true;
@@ -121,36 +119,74 @@ export class ClickStrategy implements SelectionStrategy {
     }
 
     box(set: Set<Intersectable>, modifier: ChangeSelectionModifier): void {
-        const { hovered, selected } = this;
+        const { hovered } = this;
         hovered.removeAll();
 
-        const parentsAdded = new Set<Solid>();
+        const parentsVisited = new Set<Solid | SpaceInstance<Curve3D>>();
+        const changedParents = new Set<Solid | SpaceInstance<Curve3D>>();
+        const changedSolids = new Set<Solid>();
+        const changedFaces = new Set<Face>();
+        const changedEdges = new Set<CurveEdge>();
+        const changedCurves = new Set<SpaceInstance<Curve3D>>();
+        const changedRegions = new Set<PlaneInstance<Region>>();
+        const changedPoints = new Set<ControlPoint>();
+
         for (const object of set) {
             if (object instanceof Face || object instanceof CurveEdge) {
                 const parentItem = object.parentItem;
-                if (parentsAdded.has(parentItem)) continue;
+                if (parentsVisited.has(parentItem)) continue;
 
-                if (this.mode.has(SelectionMode.Solid) && !selected.solids.has(parentItem) && !selected.hasSelectedChildren(parentItem)) {
-                    parentsAdded.add(parentItem);
-                    selected.addSolid(parentItem);
+                if (this.mode.has(SelectionMode.Solid) && !this.selected.solids.has(parentItem) && modifier !== ChangeSelectionModifier.Remove) {
+                    parentsVisited.add(parentItem);
+                    changedSolids.add(parentItem);
+                } else if (this.mode.has(SelectionMode.Solid) && this.selected.solids.has(parentItem) && modifier === ChangeSelectionModifier.Remove) {
+                    parentsVisited.add(parentItem);
+                    changedSolids.add(parentItem);
                 } else if (object instanceof Face) {
                     if (!this.mode.has(SelectionMode.Face)) continue;
-                    selected.addFace(object);
+                    changedFaces.add(object);
+                    changedParents.add(object.parentItem);
                 } else if (object instanceof CurveEdge) {
                     if (!this.mode.has(SelectionMode.CurveEdge)) continue;
-                    selected.addEdge(object);
+                    changedEdges.add(object);
+                    changedParents.add(object.parentItem);
                 }
             } else if (object instanceof Curve3D) {
                 if (!this.mode.has(SelectionMode.Curve)) continue;
-                selected.addCurve(object.parentItem);
+                const parentItem = object.parentItem;
+                changedCurves.add(object.parentItem);
+                parentsVisited.add(parentItem);
             } else if (object instanceof ControlPoint) {
+                const parentItem = object.parentItem;
+                if (parentsVisited.has(parentItem)) continue;
+
                 if (!this.mode.has(SelectionMode.ControlPoint)) continue;
-                selected.addControlPoint(object);
-                selected.removeCurve(object.parentItem);
+                changedPoints.add(object);
+                changedParents.add(parentItem);
             } else if (object instanceof Region) {
                 if (!this.mode.has(SelectionMode.Face)) continue;
-                selected.addRegion(object.parentItem);
+                changedRegions.add(object.parentItem);
             }
         }
+
+        this.modify(modifier,
+            () => {
+                for (const solid of changedSolids) this.selected.addSolid(solid);
+                for (const face of changedFaces) this.selected.addFace(face);
+                for (const edge of changedEdges) this.selected.addEdge(edge);
+                for (const curve of changedCurves) this.selected.addCurve(curve);
+                for (const region of changedRegions) this.selected.addRegion(region);
+                for (const point of changedPoints) this.selected.addControlPoint(point);
+
+                for (const parent of changedParents) this.selected.remove(parent);
+            },
+            () => {
+                for (const solid of changedSolids) this.selected.removeSolid(solid);
+                for (const face of changedFaces) this.selected.removeFace(face);
+                for (const edge of changedEdges) this.selected.removeEdge(edge);
+                for (const curve of changedCurves) this.selected.removeCurve(curve);
+                for (const region of changedRegions) this.selected.removeRegion(region);
+                for (const point of changedPoints) this.selected.removeControlPoint(point);
+            });
     }
 }
