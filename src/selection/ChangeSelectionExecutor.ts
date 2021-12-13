@@ -89,10 +89,7 @@ export class ChangeSelectionExecutor {
     }
 
     onCreatorSelect(topologyItems: visual.TopologyItem[], modifier: ChangeSelectionModifier) {
-        for (const topo of topologyItems) {
-            if (!this.clickStrategy.solid(topo, modifier))
-                this.clickStrategy.topologicalItem(topo, modifier);
-        }
+        this.clickStrategy.box(new Set(topologyItems), modifier);
     }
 
     private aggregateHovers<R>(f: () => R): R {

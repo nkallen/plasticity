@@ -43,7 +43,7 @@ describe(MoveContourPointFactory, () => {
             curve = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
         });
 
-        test.only('moving point', async () => {
+        test('moving point', async () => {
             changePoint.controlPoints = [curve.underlying.points.get(0)];
             const contour = await changePoint.prepare(curve);
             changePoint.contour = contour;

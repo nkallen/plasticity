@@ -6,16 +6,18 @@ import { EditorLike } from '../../commands/Command';
 import { CreatorChangeSelectionCommand, RebuildCommand } from '../../commands/CommandLike';
 import { Editor } from '../../editor/Editor';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
+import { AbstractViewportSelector } from '../../selection/ViewportSelector';
 import * as visual from '../../visual_model/VisualModel';
 import { icons } from '../toolbar/icons';
+import { pointerEvent2keyboardEvent } from '../viewport/KeyboardEventManager';
 
 export class Model {
+    private readonly mouseButtons: Record<string, ChangeSelectionModifier>;
+
     constructor(
         private readonly editor: EditorLike,
-    ) { }
-
-    get item() {
-        return this.editor.selection.selected.solids.first;
+    ) { 
+        this.mouseButtons = AbstractViewportSelector.getMouseButtons(editor.keymaps);
     }
 
     get creators() {
@@ -32,10 +34,10 @@ export class Model {
         return result;
     }
 
-    hoverCreator(creator: c3d.Creator) {
-        const { item, editor: { db, selection: { hovered } } } = this;
+    hoverCreator(creator: c3d.Creator, e: MouseEvent) {
+        const { solid, editor: { db, selection: { hovered } } } = this;
+        if (solid === undefined) throw new Error("invalid precondition");
 
-        const solid = item as visual.Solid;
         const model = db.lookup(solid);
         const name = creator.GetYourNameMaker();
         const result: visual.TopologyItem[] = [];
@@ -60,7 +62,7 @@ export class Model {
                 }
             }
         }
-        this.editor.changeSelection.onBoxHover(new Set(result), ChangeSelectionModifier.Add);
+        this.editor.changeSelection.onBoxHover(new Set(result), this.event2modifier(e));
         return result;
     }
 
@@ -70,18 +72,23 @@ export class Model {
         this.editor.enqueue(command);
     }
 
-    selectCreator(creator: c3d.Creator) {
-        const selected = this.hoverCreator(creator);
+    selectCreator(creator: c3d.Creator, e: MouseEvent) {
+        const selected = this.hoverCreator(creator, e);
         const editor = this.editor;
-        editor.enqueue(new CreatorChangeSelectionCommand(editor, selected, ChangeSelectionModifier.Remove));
+        editor.enqueue(new CreatorChangeSelectionCommand(editor, selected, this.event2modifier(e)));
     }
 
-    private get solid(): visual.Solid | undefined {
-        const { editor: { db, selection } } = this;
-        if (selection.selected.solids.size == 0) return undefined;
+    get solid(): visual.Solid | undefined {
+        const selected = this.editor.selection.selected;
+        if (selected.solids.size > 0) return selected.solids.first;
+        if (selected.faces.size > 0) return selected.faces.first.parentItem;
+        if (selected.edges.size > 0) return selected.edges.first.parentItem;
+    }
 
-        const solid = selection.selected.solids.first!
-        return solid;
+    protected event2modifier(event: MouseEvent): ChangeSelectionModifier {
+        const keyboard = pointerEvent2keyboardEvent(event);
+        const keystroke = this.editor.keymaps.keystrokeForKeyboardEvent(keyboard);
+        return this.mouseButtons[keystroke];
     }
 }
 
@@ -101,9 +108,13 @@ export default (editor: Editor) => {
             this.render();
         }
 
+        disconnectedCallback() {
+            this.dispose.dispose();
+        }
+
         render() {
-            const { model, model: { creators, item } } = this;
-            if (item === undefined) {
+            const { model, model: { creators, solid } } = this;
+            if (solid === undefined) {
                 render(<></>, this);
                 return;
             }
@@ -112,14 +123,10 @@ export default (editor: Editor) => {
                 {creators.map((creator, index) => {
                     const Z = `ispace-creator-${_.dasherize(c3d.CreatorType[creator.IsA()])}`;
                     // @ts-expect-error("not sure how to type this")
-                    return <li><Z creator={creator} index={index} item={item} model={model}></Z></li>
+                    return <li><Z creator={creator} index={index} item={solid} model={model}></Z></li>
                 })}
             </ol>;
             render(result, this);
-        }
-
-        disconnectedCallback() {
-            this.dispose.dispose();
         }
     }
     customElements.define('ispace-creators', Creators);
@@ -162,7 +169,7 @@ export default (editor: Editor) => {
 
         pointerEnter(e: PointerEvent) {
             if (!e.altKey) {
-                this.model.hoverCreator(this.creator);
+                this.model.hoverCreator(this.creator, e);
             }
         }
 
@@ -174,7 +181,7 @@ export default (editor: Editor) => {
             if (e.altKey) {
                 this.model.startRebuild(this.index);
             } else {
-                this.model.selectCreator(this.creator)
+                this.model.selectCreator(this.creator, e)
             }
         }
     }
