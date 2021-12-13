@@ -232,6 +232,13 @@ describe('ChangeSelectionModifier.Add', () => {
         expect(click.curve3D(curve.underlying, ChangeSelectionModifier.Add)).toBe(true);
         expect(selectionDb.selected.curves.size).toBe(2);
     })
+
+    test('it selects multiple points', () => {
+        click.controlPoint(curve.underlying.points.get(0), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.controlPoints.size).toBe(1);
+        click.controlPoint(curve.underlying.points.get(1), ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.controlPoints.size).toBe(2);
+    })
 })
 
 describe('ChangeSelectionModifier.Replace', () => {
@@ -276,7 +283,7 @@ describe('ChangeSelectionModifier.Replace', () => {
         expect(selectionDb.selected.curves.first).toBe(curve);
     })
 
-    test('it selects on region at a time', () => {
+    test('it selects one region at a time', () => {
         expect(click.curve3D(circle.underlying, ChangeSelectionModifier.Replace)).toBe(true);
         expect(selectionDb.selected.curves.size).toBe(1);
         expect(selectionDb.selected.curves.first).toBe(circle);
@@ -284,6 +291,16 @@ describe('ChangeSelectionModifier.Replace', () => {
         expect(click.region(region.underlying, ChangeSelectionModifier.Replace)).toBe(true);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.regions.size).toBe(1);
+    })
+
+    test('it selects one point at a time', () => {
+        click.controlPoint(curve.underlying.points.get(0), ChangeSelectionModifier.Replace);
+        expect(selectionDb.selected.controlPoints.size).toBe(1);
+        expect(selectionDb.selected.controlPoints.first.simpleName).toBe(curve.underlying.points.get(0).simpleName);
+        click.controlPoint(curve.underlying.points.get(1), ChangeSelectionModifier.Replace);
+        expect(selectionDb.selected.controlPoints.size).toBe(1);
+        expect(selectionDb.selected.controlPoints.first.simpleName).toBe(curve.underlying.points.get(1).simpleName);
+
     })
 })
 

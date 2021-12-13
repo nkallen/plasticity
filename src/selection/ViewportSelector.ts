@@ -30,6 +30,10 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         raycasterParams: THREE.RaycasterParameters = { ...defaultRaycasterParams },
     ) {
         super(viewport, layers, db, signals, raycasterParams);
+        this.mouseButtons = AbstractViewportSelector.getMouseButtons(keymaps);
+    }
+
+    static getMouseButtons(keymaps: AtomKeymap.KeymapManager) {
         let bindings = keymaps.getKeyBindings();
         bindings = bindings.filter(b => b.selector == 'viewport-selector');
         const repl = bindings.filter(b => b.command == 'selection:replace').sort((a, b) => a.compare(b))[0];
@@ -39,7 +43,7 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         if (repl !== undefined) mouseButtons[repl.keystrokes] = command2modifier(repl.command);
         if (add !== undefined) mouseButtons[add.keystrokes] = command2modifier(add.command);
         if (rem !== undefined) mouseButtons[rem.keystrokes] = command2modifier(rem.command);
-        this.mouseButtons = mouseButtons;
+        return mouseButtons;
     }
 
     startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {

@@ -20,26 +20,35 @@ export class ClickStrategy implements SelectionStrategy {
         const parentItem = object.parentItem;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
-        if (this.selected.curves.has(parentItem)) {
-            return this.modify(modifier,
-                () => {
-                    return true;
-                },
-                () => {
-                    this.selected.removeCurve(parentItem);
-                    return true;
-                });
-        } else {
-            return this.modify(modifier,
-                () => {
-                    this.selected.addCurve(parentItem);
-                    return true;
-                },
-                () => {
-                    return true;
-                });
-        }
+        return this.modify(modifier, 
+            () => {
+                this.selected.addCurve(parentItem);
+                return true;
+        },
+            () => {
+                this.selected.removeCurve(parentItem);
+                return true;
+        });
     }
+
+    controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier): boolean {
+        if (!this.mode.has(SelectionMode.ControlPoint)) return false;
+
+        return this.modify(modifier,
+            () => {
+                const parentItem = object.parentItem;
+                if (this.selected.curves.has(parentItem)) {
+                    this.selected.removeCurve(parentItem);
+                }
+                this.selected.addControlPoint(object);
+                return true;
+            },
+            () => {
+                this.selected.removeControlPoint(object);
+                return true;
+            });
+    }
+
 
     solid(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
         if (!this.mode.has(SelectionMode.Solid)) return false;
@@ -75,10 +84,10 @@ export class ClickStrategy implements SelectionStrategy {
         const parentItem = object.parentItem;
 
         if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
-            this.modify(modifier, () => this.selected.addFace(object, parentItem), () => this.selected.removeFace(object, parentItem));
+            this.modify(modifier, () => this.selected.addFace(object), () => this.selected.removeFace(object));
             return true;
         } else if (this.mode.has(SelectionMode.CurveEdge) && object instanceof CurveEdge) {
-            this.modify(modifier, () => this.selected.addEdge(object, parentItem), () => this.selected.removeEdge(object, parentItem));
+            this.modify(modifier, () => this.selected.addEdge(object), () => this.selected.removeEdge(object));
             return true;
         }
         return false;
@@ -108,23 +117,7 @@ export class ClickStrategy implements SelectionStrategy {
             () => {
                 this.selected.removeRegion(parentItem);
                 return true;
-            })
-    }
-
-    controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier): boolean {
-        if (!this.mode.has(SelectionMode.ControlPoint)) return false;
-        const parentItem = object.parentItem;
-
-        if (this.selected.controlPoints.has(object)) {
-            this.selected.removeControlPoint(object, parentItem);
-        } else {
-            if (this.selected.curves.has(parentItem)) {
-                this.selected.removeCurve(parentItem);
-            }
-            this.selected.addControlPoint(object, parentItem);
-        }
-        this.hovered.removeAll();
-        return true;
+            });
     }
 
     box(set: Set<Intersectable>, modifier: ChangeSelectionModifier): void {
@@ -142,17 +135,17 @@ export class ClickStrategy implements SelectionStrategy {
                     selected.addSolid(parentItem);
                 } else if (object instanceof Face) {
                     if (!this.mode.has(SelectionMode.Face)) continue;
-                    selected.addFace(object, object.parentItem);
+                    selected.addFace(object);
                 } else if (object instanceof CurveEdge) {
                     if (!this.mode.has(SelectionMode.CurveEdge)) continue;
-                    selected.addEdge(object, object.parentItem);
+                    selected.addEdge(object);
                 }
             } else if (object instanceof Curve3D) {
                 if (!this.mode.has(SelectionMode.Curve)) continue;
                 selected.addCurve(object.parentItem);
             } else if (object instanceof ControlPoint) {
                 if (!this.mode.has(SelectionMode.ControlPoint)) continue;
-                selected.addControlPoint(object, object.parentItem);
+                selected.addControlPoint(object);
                 selected.removeCurve(object.parentItem);
             } else if (object instanceof Region) {
                 if (!this.mode.has(SelectionMode.Face)) continue;

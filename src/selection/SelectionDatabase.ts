@@ -34,14 +34,14 @@ export interface ModifiesSelection extends HasSelection {
     add(items: visual.Item | visual.Item[]): void;
     remove(selectables: Selectable | Selectable[]): void;
 
-    removeFace(object: visual.Face, parentItem: visual.Solid): void;
-    addFace(object: visual.Face, parentItem: visual.Solid): void;
+    removeFace(object: visual.Face): void;
+    addFace(object: visual.Face): void;
 
     removeRegion(object: visual.PlaneInstance<visual.Region>): void;
     addRegion(object: visual.PlaneInstance<visual.Region>): void;
 
-    removeEdge(object: visual.CurveEdge, parentItem: visual.Solid): void;
-    addEdge(object: visual.CurveEdge, parentItem: visual.Solid): void;
+    removeEdge(object: visual.CurveEdge): void;
+    addEdge(object: visual.CurveEdge): void;
 
     removeSolid(solid: visual.Solid): void;
     addSolid(solid: visual.Solid): void;
@@ -49,8 +49,8 @@ export interface ModifiesSelection extends HasSelection {
     removeCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
     addCurve(curve: visual.SpaceInstance<visual.Curve3D>): void;
 
-    removeControlPoint(index: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
-    addControlPoint(index: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>): void;
+    removeControlPoint(index: visual.ControlPoint): void;
+    addControlPoint(index: visual.ControlPoint): void;
 
     removeAll(): void;
 }
@@ -121,27 +121,29 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
             } else if (selectable instanceof visual.PlaneInstance) {
                 this.removeRegion(selectable);
             } else if (selectable instanceof visual.Face) {
-                this.removeFace(selectable, selectable.parentItem);
+                this.removeFace(selectable);
             } else if (selectable instanceof visual.CurveEdge) {
-                this.removeEdge(selectable, selectable.parentItem);
+                this.removeEdge(selectable);
             } else if (selectable instanceof visual.ControlPoint) {
-                this.removeControlPoint(selectable, selectable.parentItem);
+                this.removeControlPoint(selectable);
             }
         }
     }
 
-    removeFace(object: visual.Face, parentItem: visual.Solid) {
+    removeFace(object: visual.Face) {
         const id = object.simpleName;
         if (!this.faceIds.has(id)) return;
+        const parentItem = object.parentItem;
 
         this.faceIds.delete(object.simpleName);
         this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectRemoved.dispatch(object);
     }
 
-    addFace(object: visual.Face, parentItem: visual.Solid) {
+    addFace(object: visual.Face) {
         const id = object.simpleName;
         if (this.faceIds.has(id)) return;
+        const parentItem = object.parentItem;
 
         this.faceIds.add(id);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
@@ -165,18 +167,20 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.signals.objectAdded.dispatch(object);
     }
 
-    removeEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
+    removeEdge(object: visual.CurveEdge) {
         const id = object.simpleName;
         if (!this.edgeIds.has(id)) return;
+        const parentItem = object.parentItem;
 
         this.edgeIds.delete(object.simpleName);
         this.parentsWithSelectedChildren.decr(parentItem.simpleName);
         this.signals.objectRemoved.dispatch(object);
     }
 
-    addEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
+    addEdge(object: visual.CurveEdge) {
         const id = object.simpleName;
         if (this.edgeIds.has(id)) return;
+        const parentItem = object.parentItem;
 
         this.edgeIds.add(object.simpleName);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
@@ -217,9 +221,10 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.signals.objectAdded.dispatch(curve);
     }
 
-    addControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
+    addControlPoint(point: visual.ControlPoint) {
         const id = point.simpleName;
         if (this.controlPointIds.has(id)) return;
+        const parentItem = point.parentItem;
 
         this.controlPointIds.add(id);
         this.parentsWithSelectedChildren.incr(parentItem.simpleName,
@@ -227,9 +232,10 @@ export class Selection implements HasSelection, ModifiesSelection, MementoOrigin
         this.signals.objectAdded.dispatch(point);
     }
 
-    removeControlPoint(point: visual.ControlPoint, parentItem: visual.SpaceInstance<visual.Curve3D>) {
+    removeControlPoint(point: visual.ControlPoint) {
         const id = point.simpleName;
         if (!this.controlPointIds.has(id)) return;
+        const parentItem = point.parentItem;
 
         this.controlPointIds.delete(point.simpleName);
         this.parentsWithSelectedChildren.decr(parentItem.simpleName);

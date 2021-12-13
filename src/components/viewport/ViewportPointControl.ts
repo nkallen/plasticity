@@ -7,9 +7,11 @@ import { ClickChangeSelectionCommand, CommandLike } from "../../commands/Command
 import { DashedLineMagnitudeHelper } from "../../commands/MiniGizmos";
 import { MoveContourPointFactory } from "../../commands/modify_contour/ModifyContourPointFactory";
 import { ChangeSelectionModifier } from "../../selection/ChangeSelectionExecutor";
+import { AbstractViewportSelector } from "../../selection/ViewportSelector";
 import { CancellablePromise } from "../../util/Cancellable";
 import { Intersection } from "../../visual_model/Intersectable";
 import * as visual from '../../visual_model/VisualModel';
+import { pointerEvent2keyboardEvent } from "./KeyboardEventManager";
 import { Viewport } from "./Viewport";
 import { ViewportControl } from "./ViewportControl";
 
@@ -19,11 +21,15 @@ import { ViewportControl } from "./ViewportControl";
 
 export interface EditorLike extends cmd.EditorLike {
     enqueue(command: Command, interrupt?: boolean): Promise<void>;
+    keymaps: AtomKeymap.KeymapManager;
 }
 
 type Mode = { tag: 'none' } | { tag: 'start', controlPoint: visual.ControlPoint, disposable: Disposable } | { tag: 'executing', cb: (delta: THREE.Vector3) => void, cancellable: CancellablePromise<void>, disposable: Disposable }
 
 export class ViewportPointControl extends ViewportControl implements GizmoLike<(delta: THREE.Vector3) => void> {
+    private readonly mouseButtons: Record<string, ChangeSelectionModifier>;
+    private readonly keymaps: AtomKeymap.KeymapManager;
+
     private readonly helper = new DashedLineMagnitudeHelper();
     private readonly delta = new THREE.Vector3();
     private readonly pointStart3d = new THREE.Vector3();
@@ -37,6 +43,8 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
     constructor(viewport: Viewport, private readonly editor: EditorLike) {
         super(viewport, editor.layers, editor.db, editor.signals);
         this._raycaster.layers.enableAll();
+        this.keymaps = editor.keymaps;
+        this.mouseButtons = AbstractViewportSelector.getMouseButtons(editor.keymaps);
     }
 
     startHover(intersections: Intersection[]) { }
@@ -69,7 +77,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         switch (this.mode.tag) {
             case 'none': break;
             case 'start':
-                const command = new ClickChangeSelectionCommand(this.editor, intersections, ChangeSelectionModifier.Replace);
+                const command = new ClickChangeSelectionCommand(this.editor, intersections, this.event2modifier(upEvent));
                 this.editor.enqueue(command, true);
                 this.mode.disposable.dispose();
                 this.mode = { tag: 'none' };
@@ -143,6 +151,13 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
                 return result;
             default: throw new Error('invalid state');
         }
+    }
+
+
+    protected event2modifier(event: MouseEvent): ChangeSelectionModifier {
+        const keyboard = pointerEvent2keyboardEvent(event);
+        const keystroke = this.keymaps.keystrokeForKeyboardEvent(keyboard);
+        return this.mouseButtons[keystroke];
     }
 }
 

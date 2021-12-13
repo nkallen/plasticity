@@ -78,7 +78,7 @@ export class ChangeSelectionExecutor {
     }
 
     onHover(intersections: Intersection[], modifier: ChangeSelectionModifier): void {
-        this.onIntersection(intersections, this.hoverStrategy, ChangeSelectionModifier.Replace);
+        this.onIntersection(intersections, this.hoverStrategy, modifier);
     }
 
     onBoxHover(hover: Set<Intersectable>, modifier: ChangeSelectionModifier) {

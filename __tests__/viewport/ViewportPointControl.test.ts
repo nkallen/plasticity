@@ -26,6 +26,8 @@ beforeEach(async () => {
     item = await makeCircle.commit() as visual.SpaceInstance<visual.Curve3D>;
 });
 
+const downEvent = new MouseEvent('down');
+const upEvent = new MouseEvent('up');
 describe(ViewportPointControl, () => {
     let points: ViewportPointControl;
     beforeEach(() => {
@@ -36,26 +38,26 @@ describe(ViewportPointControl, () => {
     })
 
     test('startClick []', () => {
-        expect(points.startClick([])).toBe(false);
+        expect(points.startClick([], downEvent)).toBe(false);
     })
 
     test('startClick [not control point]', () => {
-        expect(points.startClick([])).toBe(false);
+        expect(points.startClick([], downEvent)).toBe(false);
     })
 
     test('startClick [control point]', () => {
-        expect(points.startClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }])).toBe(true);
+        expect(points.startClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }], downEvent)).toBe(true);
     })
 
     test('startClick & endClick changes selection', () => {
-        expect(points.startClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }])).toBe(true);
+        expect(points.startClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }], downEvent)).toBe(true);
         const enqueue = jest.spyOn(editor, 'enqueue');
-        points.endClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }]);
+        points.endClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }], upEvent);
         expect(enqueue).toBeCalledTimes(1);
     })
 
     test('startClick & startDrag enqueues move command', async () => {
-        expect(points.startClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }])).toBe(true);
+        expect(points.startClick([{ object: item.underlying.points.get(0), point: new THREE.Vector3() }], downEvent)).toBe(true);
         let command: any;
         const enqueue = jest.spyOn(editor, 'enqueue').mockImplementation((c, _) => {
             command = c;

@@ -39,17 +39,16 @@ export class HoverStrategy implements SelectionStrategy {
     }
 
     topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
-        const parentItem = object.parentItem;
         if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
             if (!this.hovered.faces.has(object)) {
                 this.hovered.removeAll();
-                this.hovered.addFace(object, parentItem);
+                this.hovered.addFace(object);
             }
             return true;
         } else if (this.mode.has(SelectionMode.CurveEdge) && object instanceof CurveEdge) {
             if (!this.hovered.edges.has(object)) {
                 this.hovered.removeAll();
-                this.hovered.addEdge(object, parentItem);
+                this.hovered.addEdge(object);
             }
             return true;
         }
@@ -74,7 +73,7 @@ export class HoverStrategy implements SelectionStrategy {
 
         if (!this.selected.controlPoints.has(object)) {
             this.hovered.removeAll();
-            this.hovered.addControlPoint(object, parentItem)
+            this.hovered.addControlPoint(object)
             return true;
         }
         return false;
@@ -94,17 +93,17 @@ export class HoverStrategy implements SelectionStrategy {
                     hovered.addSolid(parentItem);
                 } else if (object instanceof Face) {
                     if (!this.mode.has(SelectionMode.Face)) continue;
-                    hovered.addFace(object, object.parentItem);
+                    hovered.addFace(object);
                 } else if (object instanceof CurveEdge) {
                     if (!this.mode.has(SelectionMode.CurveEdge)) continue;
-                    hovered.addEdge(object, object.parentItem);
+                    hovered.addEdge(object);
                 }
             } else if (object instanceof Curve3D) {
                 if (!this.mode.has(SelectionMode.Curve)) continue;
                 hovered.addCurve(object.parentItem);
             } else if (object instanceof ControlPoint) {
                 if (!this.mode.has(SelectionMode.ControlPoint)) continue;
-                hovered.addControlPoint(object, object.parentItem);
+                hovered.addControlPoint(object);
             } else if (object instanceof Region) {
                 if (!this.mode.has(SelectionMode.Face)) continue;
                 hovered.addRegion(object.parentItem);

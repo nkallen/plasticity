@@ -1870,7 +1870,7 @@ export class OffsetCurveCommand extends Command {
             offsetContour.update();
         }, Mode.Persistent).resource(this);
 
-        if (face !== undefined) this.editor.selection.selected.removeFace(face, face.parentItem);
+        if (face !== undefined) this.editor.selection.selected.removeFace(face);
         if (curve !== undefined) this.editor.selection.selected.removeCurve(curve);
 
         const offset = await offsetContour.commit() as visual.SpaceInstance<visual.Curve3D>;
@@ -2024,8 +2024,8 @@ export class DuplicateCommand extends Command {
 
         for (const solid of solids) selected.removeSolid(solid);
         for (const curve of curves) selected.removeCurve(curve);
-        for (const edge of edges) selected.removeEdge(edge, edge.parentItem);
-        for (const face of faces) selected.removeFace(face, face.parentItem);
+        for (const edge of edges) selected.removeEdge(edge);
+        for (const face of faces) selected.removeFace(face);
 
         this.editor.selection.selected.add(selection);
     }

@@ -46,7 +46,7 @@ export class Model {
                     const index = model.GetFaceIndex(topo.Cast<c3d.Face>(c3d.TopologyType.Face));
                     const { views } = db.lookupTopologyItemById(visual.Face.simpleName(solid.simpleName, index))
                     const view = views.values().next().value as visual.Face;
-                    hovered.addFace(view, solid);
+                    hovered.addFace(view);
                     result.push(view);
                 } else if (topo.IsA() === c3d.TopologyType.CurveEdge) {
                     const index = model.GetEdgeIndex(topo.Cast<c3d.CurveEdge>(c3d.TopologyType.CurveEdge));
@@ -54,7 +54,7 @@ export class Model {
                     if (db.hasTopologyItem(id)) {
                         const { views } = db.lookupTopologyItemById(id)
                         const view = views.values().next().value as visual.CurveEdge;
-                        hovered.addEdge(view, solid);
+                        hovered.addEdge(view);
                         result.push(view);
                     }
                 }

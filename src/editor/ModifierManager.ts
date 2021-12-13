@@ -473,13 +473,14 @@ class ModifierSelection extends SelectionProxy {
         }
     }
 
-    removeFace(object: visual.Face, parentItem: visual.Solid) {
+    removeFace(object: visual.Face) {
+        const parentItem = object.parentItem;
         switch (this.stateOf(parentItem)) {
             case 'unmodified':
-                this.selection.removeFace(object, parentItem);
+                this.selection.removeFace(object);
                 break;
             case 'premodified':
-                this.selection.removeFace(object, parentItem);
+                this.selection.removeFace(object);
                 this.unselectModifiedIfNoMoreSelectedTopology(parentItem);
                 break;
             case 'modified':
@@ -487,13 +488,14 @@ class ModifierSelection extends SelectionProxy {
         }
     }
 
-    removeEdge(object: visual.CurveEdge, parentItem: visual.Solid) {
+    removeEdge(object: visual.CurveEdge) {
+        const parentItem = object.parentItem;
         switch (this.stateOf(parentItem)) {
             case 'unmodified':
-                this.selection.removeEdge(object, parentItem);
+                this.selection.removeEdge(object);
                 break;
             case 'premodified':
-                this.selection.removeEdge(object, parentItem);
+                this.selection.removeEdge(object);
                 this.unselectModifiedIfNoMoreSelectedTopology(parentItem);
                 break;
             case 'modified':

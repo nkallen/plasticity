@@ -10,11 +10,11 @@ export class SelectionProxy implements ModifiesSelection {
     remove(selectables: Selectable[]): void {
         this.selection.remove(selectables);
     }
-    removeFace(object: Face, parentItem: Solid): void {
-        this.selection.removeFace(object, parentItem);
+    removeFace(object: Face): void {
+        this.selection.removeFace(object);
     }
-    addFace(object: Face, parentItem: Solid): void {
-        this.selection.addFace(object, parentItem);
+    addFace(object: Face): void {
+        this.selection.addFace(object);
     }
     removeRegion(object: PlaneInstance<Region>): void {
         this.selection.removeRegion(object);
@@ -22,11 +22,11 @@ export class SelectionProxy implements ModifiesSelection {
     addRegion(object: PlaneInstance<Region>): void {
         this.selection.addRegion(object);
     }
-    removeEdge(object: CurveEdge, parentItem: Solid): void {
-        this.selection.removeEdge(object, parentItem);
+    removeEdge(object: CurveEdge): void {
+        this.selection.removeEdge(object);
     }
-    addEdge(object: CurveEdge, parentItem: Solid): void {
-        this.selection.addEdge(object, parentItem);
+    addEdge(object: CurveEdge): void {
+        this.selection.addEdge(object);
     }
     removeSolid(solid: Solid): void {
         this.selection.removeSolid(solid);
@@ -40,11 +40,11 @@ export class SelectionProxy implements ModifiesSelection {
     addCurve(curve: SpaceInstance<Curve3D>): void {
         this.selection.addCurve(curve);
     }
-    removeControlPoint(index: ControlPoint, parentItem: SpaceInstance<Curve3D>): void {
-        this.selection.removeControlPoint(index, parentItem);
+    removeControlPoint(index: ControlPoint): void {
+        this.selection.removeControlPoint(index);
     }
-    addControlPoint(index: ControlPoint, parentItem: SpaceInstance<Curve3D>): void {
-        this.selection.addControlPoint(index, parentItem);
+    addControlPoint(index: ControlPoint): void {
+        this.selection.addControlPoint(index);
     }
     removeAll(): void {
         this.selection.removeAll();
