@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- bug: box selected, while mouse down, zoom  
 - extrude multiple regions at once  
 - Fusion-like multigizmo  
 - Split body by picking faces  
