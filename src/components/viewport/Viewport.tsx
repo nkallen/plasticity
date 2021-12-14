@@ -15,13 +15,15 @@ import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helper, Helpers } from "../../util/Helpers";
 import { xray } from "../../visual_model/Intersectable";
 import { RenderedSceneBuilder } from "../../visual_model/RenderedSceneBuilder";
+import * as visual from '../../visual_model/VisualModel';
 import { Pane } from '../pane/Pane';
 import { GridHelper } from "./GridHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
 import { ProxyCamera } from "./ProxyCamera";
 import { ViewportControlMultiplexer } from "./ViewportControlMultiplexer";
-import { Orientation, ViewportNavigator, ViewportNavigatorPass } from "./ViewportHelper";
+import { ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
+import { Orientation, ViewportNavigatorPass } from "./ViewportHelper";
 import { ViewportPointControl } from "./ViewportPointControl";
 
 const gridColor = new THREE.Color(0x666666).convertGammaToLinear();
@@ -65,7 +67,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private readonly helpersScene = new THREE.Scene(); // Things like gizmos
 
     readonly additionalHelpers = new Set<THREE.Object3D>();
-    private navigator = new ViewportNavigator(this.navigationControls, this.domElement, 128);
+    private navigator = new ViewportGeometryNavigator(this.editor.db, this.navigationControls, this.domElement, 128);
     private grid = new GridHelper(300, 300, gridColor, gridColor);
 
     constructor(
@@ -73,7 +75,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         readonly renderer: THREE.WebGLRenderer,
         readonly domElement: HTMLElement,
         readonly camera: ProxyCamera,
-        constructionPlane: PlaneSnap,
+        constructionPlane: ConstructionPlaneSnap,
         readonly navigationControls: OrbitControls,
     ) {
         this.constructionPlane = constructionPlane;
@@ -140,12 +142,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         this.disposable.add(
             this.editor.registry.add(this.domElement, {
-                'viewport:front': () => this.navigate(Orientation.negY),
-                'viewport:right': () => this.navigate(Orientation.posX),
-                'viewport:top': () => this.navigate(Orientation.posZ),
-                'viewport:back': () => this.navigate(Orientation.posY),
-                'viewport:left': () => this.navigate(Orientation.negX),
-                'viewport:bottom': () => this.navigate(Orientation.negZ),
+                'viewport:navigate:front': () => this.navigate(Orientation.negY),
+                'viewport:navigate:right': () => this.navigate(Orientation.posX),
+                'viewport:navigate:top': () => this.navigate(Orientation.posZ),
+                'viewport:navigate:back': () => this.navigate(Orientation.posY),
+                'viewport:navigate:left': () => this.navigate(Orientation.negX),
+                'viewport:navigate:bottom': () => this.navigate(Orientation.negZ),
+                'viewport:navigate:face': () => this.navigate(this.editor.selection.selected.faces.first),
                 'viewport:focus': () => this.focus(),
                 'viewport:toggle-orthographic': () => this.togglePerspective(),
                 'viewport:toggle-x-ray': () => this.toggleXRay(),
@@ -245,15 +248,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
                 const visibleObjects = db.visibleObjects;
                 if (visibleObjects.length > 0) scene.add(...visibleObjects);
                 scene.add(db.temporaryObjects);
-                if (this.showOverlays) {
-                    grid.position.set(0, 0, -0.001);
-                    grid.quaternion.setFromUnitVectors(Y, constructionPlane.n);
-                    grid.update(camera);
-                    grid.updateMatrixWorld();
-                    helpers.axes.updateMatrixWorld();
-                    scene.add(helpers.axes);
-                    scene.add(grid);
-                }
+                this.addOverlays(scene);
 
                 helpersScene.add(helpers.scene);
                 phantomsScene.add(db.phantomObjects);
@@ -286,9 +281,26 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         }
     }
 
-	private readonly clock = new THREE.Clock();
+    private addOverlays(scene: THREE.Scene) {
+        if (!this.showOverlays) return;
+        const { grid, constructionPlane, camera, editor: { helpers } } = this;
+
+        grid.position.copy(constructionPlane.p);
+        grid.quaternion.setFromUnitVectors(Z, constructionPlane.n);
+        if (this.isOrtho) {
+            grid.quaternion.copy(camera.quaternion);
+        }
+        
+        grid.update(camera);
+        grid.updateMatrixWorld();
+        helpers.axes.updateMatrixWorld();
+        scene.add(helpers.axes);
+        scene.add(grid);
+    }
+
+    private readonly clock = new THREE.Clock();
     private animate(frameNumber: number) {
-		const delta = this.clock.getDelta();
+        const delta = this.clock.getDelta();
         if (this.navigator.update(delta)) this.setNeedsRender();
         this.render(frameNumber);
     }
@@ -377,9 +389,9 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     private controlEnd() { }
 
-    private _constructionPlane!: PlaneSnap;
+    private _constructionPlane!: ConstructionPlaneSnap;
     get constructionPlane() { return this._constructionPlane }
-    set constructionPlane(plane: PlaneSnap) {
+    set constructionPlane(plane: ConstructionPlaneSnap) {
         this._constructionPlane = plane;
         this.setNeedsRender();
     }
@@ -405,17 +417,16 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.changed.dispatch();
     }
 
-    private _showOverlays = true;
-    get showOverlays() { return this._showOverlays }
+    private _shouldShowOverlays = true;
+    get showOverlays() { return this._shouldShowOverlays }
     toggleOverlays() {
-        this._showOverlays = !this._showOverlays;
+        this._shouldShowOverlays = !this._shouldShowOverlays;
         this.setNeedsRender();
         this.changed.dispatch();
     }
 
-    navigate(to: Orientation) {
-        const n = this.navigator.prepareAnimationData(to);
-        const constructionPlane = new ConstructionPlaneSnap(n);
+    navigate(to: Orientation | visual.Face) {
+        const constructionPlane = this.navigator.navigate(to);
         this.constructionPlane = constructionPlane;
         this._isOrtho = true;
         this.changed.dispatch();

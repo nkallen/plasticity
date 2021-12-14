@@ -12,7 +12,7 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly interactiveObjects: THREE.Object3D[];
     private animating = false;
 
-    constructor(private readonly controls: OrbitControls, private readonly container: HTMLElement, readonly dim: number) {
+    constructor(protected readonly controls: OrbitControls, private readonly container: HTMLElement, readonly dim: number) {
         super();
 
         this.camera.position.set(0, 0, 2);
@@ -78,35 +78,18 @@ export class ViewportNavigator extends THREE.Object3D {
             posYAxisHelper.userData.type = Orientation.posY;
             const posZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3, 'Z'));
             posZAxisHelper.userData.type = Orientation.posZ;
-            // const negXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1));
-            // negXAxisHelper.userData.type = Orientation.negX;
-            // const negYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2));
-            // negYAxisHelper.userData.type = Orientation.negY;
-            // const negZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3));
-            // negZAxisHelper.userData.type = Orientation.negZ;
 
             posXAxisHelper.position.set(1, -halfSize, -halfSize);
             posYAxisHelper.position.set(-halfSize, 1, -halfSize);
             posZAxisHelper.position.set(-halfSize, -halfSize, 1);
-            // negXAxisHelper.scale.setScalar(2 * halfSize);
-            // negYAxisHelper.position.y = - 1;
-            // negYAxisHelper.scale.setScalar(2 * halfSize);
-            // negZAxisHelper.position.z = - 1;
-            // negZAxisHelper.scale.setScalar(2 * halfSize);
 
             this.add(posXAxisHelper);
             this.add(posYAxisHelper);
             this.add(posZAxisHelper);
-            // this.add(negXAxisHelper);
-            // this.add(negYAxisHelper);
-            // this.add(negZAxisHelper);
 
             interactiveObjects.push(posXAxisHelper);
             interactiveObjects.push(posYAxisHelper);
             interactiveObjects.push(posZAxisHelper);
-            // interactiveObjects.push(negXAxisHelper);
-            // interactiveObjects.push(negYAxisHelper);
-            // interactiveObjects.push(negZAxisHelper);
         }
         this.interactiveObjects = interactiveObjects;
     }
@@ -132,7 +115,7 @@ export class ViewportNavigator extends THREE.Object3D {
             const intersection = intersects[0];
             const object = intersection.object;
 
-            this.prepareAnimationData(object.userData.type);
+            this.animateToOrientation(object.userData.type);
             return true;
         } else {
             return false;
@@ -145,11 +128,10 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly q2 = new THREE.Quaternion();
     private readonly dummy = new THREE.Object3D();
     private radius = 0;
-    prepareAnimationData(type: Orientation) {
-        const { targetPosition, targetQuaternion, controls, q1, q2, dummy } = this;
-        const { object: viewportCamera, target } = controls;
+    animateToOrientation(orientation: Orientation) {
+        const { targetPosition, targetQuaternion } = this;
 
-        switch (type) {
+        switch (orientation) {
             case Orientation.posX:
                 targetPosition.set(1, 0, 0);
                 targetQuaternion.setFromEuler(new THREE.Euler(0, Math.PI * 0.5, 0));
@@ -176,6 +158,13 @@ export class ViewportNavigator extends THREE.Object3D {
                 break;
             default: console.error('ViewHelper: Invalid axis.');
         }
+
+        return this.animateToPositionAndQuaternion(targetPosition, targetQuaternion);
+    }
+
+    animateToPositionAndQuaternion(targetPosition: THREE.Vector3, targetQuaternion: THREE.Quaternion) {
+        const { controls, q1, q2, dummy } = this;
+        const { object: viewportCamera, target } = controls;
 
         const result = targetPosition.clone();
         this.radius = viewportCamera.position.distanceTo(target);

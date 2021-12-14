@@ -64,6 +64,7 @@
 
 ### Done ✓
 
+- Animated box navigation  
 - speed of gizmos tempered by zoom  
 - Selection become conventional  
 

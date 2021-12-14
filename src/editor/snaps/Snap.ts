@@ -572,7 +572,5 @@ export class ConstructionPlaneSnap extends PlaneSnap {
     }
 
     // NOTE: A construction plane accepts all points, projecting them
-    isValid() {
-        return true;
-    }
+    isValid() { return true; }
 }

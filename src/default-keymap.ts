@@ -137,15 +137,15 @@ export default {
     },
 
     "ispace-viewport": {
-        "ctrl-alt-cmd-z": "viewport:picker:show",
+        "numpad1": "viewport:navigate:front",
+        "numpad3": "viewport:navigate:right",
+        "numpad7": "viewport:navigate:top",
+        
+        "shift-numpad1": "viewport:navigate:back",
+        "shift-numpad3": "viewport:navigate:left",
+        "shift-numpad7": "viewport:navigate:bottom",
 
-        "numpad1": "viewport:front",
-        "numpad3": "viewport:right",
-        "numpad7": "viewport:top",
-
-        "shift-numpad1": "viewport:back",
-        "shift-numpad3": "viewport:left",
-        "shift-numpad7": "viewport:bottom",
+        "space": "viewport:navigate:face",
     },
 
     "body[command] ispace-viewport": {

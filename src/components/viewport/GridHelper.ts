@@ -4,6 +4,7 @@ import * as visual from "../../visual_model/VisualModel";
 export class GridHelper extends THREE.GridHelper {
     constructor(size?: number, divisions?: number, color1?: THREE.Color | string | number, color2?: THREE.Color | string | number) {
         super(size, divisions, color1, color2);
+        this.geometry.rotateX(Math.PI / 2);
         const material = this.material as THREE.LineBasicMaterial;
         material.transparent = true;
         this.renderOrder = -2;
@@ -15,7 +16,7 @@ export class GridHelper extends THREE.GridHelper {
     update(camera: THREE.Camera) {
         const { grid, eye } = this;
 
-        grid.set(0, 1, 0).applyQuaternion(this.quaternion);
+        grid.set(0, 0, 1).applyQuaternion(this.quaternion);
         eye.set(0, 0, 1).applyQuaternion(camera.quaternion);
         const dot = grid.dot(eye);
         const material = this.material as THREE.LineBasicMaterial;
