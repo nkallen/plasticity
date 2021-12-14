@@ -23,7 +23,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         super(params, editor);
     }
 
-    execute(cb: (params: FilletParams) => void, mode: Mode = Mode.Persistent): CancellablePromise<void> {
+    execute(cb: (params: FilletParams) => void): CancellablePromise<void> {
         const { main, params, angle } = this;
 
         const { point, normal } = this.placement(this.hint);
@@ -50,8 +50,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
             params.distance2 = params.distance1 * Math.tan(angle);
         });
 
-
-        const result = super.execute(cb, mode);
+        const result = super.execute(cb, Mode.Persistent);
         this.toggle(this.mode);
         return result;
     }
