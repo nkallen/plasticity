@@ -5,10 +5,12 @@ import { OrbitControls } from "./OrbitControls";
 export enum Orientation { posX, posY, posZ, negX, negY, negZ };
 
 const halfSize = 0.5;
+const turnRate = 2 * Math.PI; // turn rate in angles per second
 
 export class ViewportNavigator extends THREE.Object3D {
     readonly camera = new THREE.OrthographicCamera(- 2, 2, 2, - 2, 0, 4);
     private readonly interactiveObjects: THREE.Object3D[];
+    private animating = false;
 
     constructor(private readonly controls: OrbitControls, private readonly container: HTMLElement, readonly dim: number) {
         super();
@@ -47,13 +49,13 @@ export class ViewportNavigator extends THREE.Object3D {
         Box: {
             const boxGeometry = new THREE.BoxGeometry(2 * halfSize, 2 * halfSize, 2 * halfSize);
             const box = new THREE.Mesh(boxGeometry, ViewportNavigator.getBoxMaterial(new THREE.Color('#AAAAAA')));
-            
+
             const planeGeometry = new THREE.PlaneBufferGeometry(1.5 * halfSize, 1.5 * halfSize);
             const front = new THREE.Mesh(planeGeometry, ViewportNavigator.getPlaneMaterial(new THREE.Color('#777777')));
             front.rotation.x = Math.PI / 2;
             front.position.set(0, -halfSize, 0);
             front.userData.type = Orientation.negY;
-            
+
             const left = new THREE.Mesh(planeGeometry, ViewportNavigator.getPlaneMaterial(new THREE.Color('#777777')));
             left.rotation.y = -Math.PI / 2;
             left.position.set(-halfSize, 0, 0);
@@ -76,12 +78,12 @@ export class ViewportNavigator extends THREE.Object3D {
             posYAxisHelper.userData.type = Orientation.posY;
             const posZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3, 'Z'));
             posZAxisHelper.userData.type = Orientation.posZ;
-            const negXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1));
-            negXAxisHelper.userData.type = Orientation.negX;
-            const negYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2));
-            negYAxisHelper.userData.type = Orientation.negY;
-            const negZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3));
-            negZAxisHelper.userData.type = Orientation.negZ;
+            // const negXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1));
+            // negXAxisHelper.userData.type = Orientation.negX;
+            // const negYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2));
+            // negYAxisHelper.userData.type = Orientation.negY;
+            // const negZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3));
+            // negZAxisHelper.userData.type = Orientation.negZ;
 
             posXAxisHelper.position.set(1, -halfSize, -halfSize);
             posYAxisHelper.position.set(-halfSize, 1, -halfSize);
@@ -114,6 +116,7 @@ export class ViewportNavigator extends THREE.Object3D {
 
     private onMouseUp(event: PointerEvent) {
         event.stopPropagation();
+        if (this.animating) return false;
 
         const { mouse, container, dim, raycaster, camera, interactiveObjects } = this;
         const rect = container.getBoundingClientRect();
@@ -130,7 +133,6 @@ export class ViewportNavigator extends THREE.Object3D {
             const object = intersection.object;
 
             this.prepareAnimationData(object.userData.type);
-
             return true;
         } else {
             return false;
@@ -143,7 +145,7 @@ export class ViewportNavigator extends THREE.Object3D {
     private readonly q2 = new THREE.Quaternion();
     private readonly dummy = new THREE.Object3D();
     private radius = 0;
-    prepareAnimationData(type: Orientation): THREE.Vector3 {
+    prepareAnimationData(type: Orientation) {
         const { targetPosition, targetQuaternion, controls, q1, q2, dummy } = this;
         const { object: viewportCamera, target } = controls;
 
@@ -180,22 +182,34 @@ export class ViewportNavigator extends THREE.Object3D {
         targetPosition.multiplyScalar(this.radius).add(target);
 
         dummy.position.copy(target);
-        // dummy.lookAt(viewportCamera.position);
-        // q1.copy(dummy.quaternion);
+        dummy.lookAt(viewportCamera.position);
+        q1.copy(dummy.quaternion);
 
         dummy.lookAt(targetPosition);
         q2.copy(dummy.quaternion);
 
-        this.update();
+        this.animating = true;
         return result;
     }
 
-    private update() {
-        const { controls, q2 } = this;
-        const { object: viewportCamera, target } = controls;
+    update(delta: number): boolean {
+        if (!this.animating) return false;
 
-        viewportCamera.position.copy(this.targetPosition);
+        const { controls, q1, q2, radius } = this;
+        const { object: viewportCamera, target } = controls;
+        const step = delta * turnRate;
+
+        // animate position by doing a slerp and then scaling the position on the unit sphere
+        q1.rotateTowards(q2, step);
+        viewportCamera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(radius).add(target);
+
+        if (q1.angleTo(q2) < 10e-7) {
+            q1.copy(q2);
+            viewportCamera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(radius).add(target);
+            this.animating = false;
+        }
         controls.update();
+        return true;
     }
 
     static getAxisMaterial(color: THREE.Color) {

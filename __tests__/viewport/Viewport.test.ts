@@ -104,6 +104,7 @@ test("navigate(to)", () => {
     expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
     expect(viewport.camera.quaternion.dot(new THREE.Quaternion())).toBeCloseTo(1);
     viewport.navigate(Orientation.posX);
+    viewport.navigator.update(1000000000);
     expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
     expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0.5, 0.5, 0.5, 0.5))).toBeCloseTo(1);
 });
@@ -118,6 +119,7 @@ test("navigation start & end turns off isOrtho", () => {
     expect(viewport.isOrtho).toBe(false);
     viewport.navigate(Orientation.posX);
     expect(viewport.isOrtho).toBe(true);
+    viewport.navigator.update(1000000000);
     expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0.5, 0.5, 0.5, 0.5))).toBeCloseTo(1);
 
     viewport.navigationControls.dispatchEvent({ type: 'start', target: null });

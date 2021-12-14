@@ -47,7 +47,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     readonly changed = new signals.Signal();
     readonly navigationEnded = new signals.Signal();
-    
+
     readonly composer: EffectComposer;
     readonly outlinePassSelection: OutlinePass;
     readonly outlinePassHover: OutlinePass;
@@ -77,19 +77,18 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         readonly navigationControls: OrbitControls,
     ) {
         this.constructionPlane = constructionPlane;
-        const rendererDomElement = this.renderer.domElement;
 
-        rendererDomElement.addEventListener('pointermove', e => {
+        renderer.domElement.addEventListener('pointermove', e => {
             this.lastPointerEvent = e;
         });
 
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        const size = this.renderer.getSize(new THREE.Vector2());
+        renderer.setPixelRatio(window.devicePixelRatio);
+        const size = renderer.getSize(new THREE.Vector2());
         const renderTarget = new THREE.WebGLMultisampleRenderTarget(size.width, size.height, { type: THREE.FloatType, generateMipmaps: false });
         renderTarget.samples = 4;
 
         EffectComposer: {
-            this.composer = new EffectComposer(this.renderer, renderTarget);
+            this.composer = new EffectComposer(renderer, renderTarget);
             this.composer.setPixelRatio(window.devicePixelRatio);
 
             const renderPass = new RenderPass(this.scene, this.camera);
@@ -167,6 +166,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private started = false;
     start() {
         if (this.started) return;
+        this.started = true;
 
         this.editor.signals.selectionChanged.add(this.outlineSelection);
         this.editor.signals.historyChanged.add(this.outlineSelection);
@@ -194,8 +194,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.multiplexer.addEventListener('end', this.controlEnd);
         this.multiplexer.addEventLiseners();
 
-        this.started = true;
-        this.render(-1);
+        this.renderer.setAnimationLoop(clock => this.animate(clock));
 
         this.disposable.add(new Disposable(() => {
             this.editor.signals.selectionChanged.remove(this.outlineSelection);
@@ -224,6 +223,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             this.selector.dispose();
             this.points.dispose();
 
+            this.renderer.setAnimationLoop(null);
             this.started = false;
         }));
     }
@@ -233,9 +233,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     private lastFrameNumber = -1; // FIXME: move to editor so that when there are multiple viewports, we don't redo work
     render(frameNumber: number) {
-        if (!this.started) return;
-        requestAnimationFrame(this.render);
-
         if (!this.needsRender) return;
         this.needsRender = false;
 
@@ -287,6 +284,13 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         } finally {
             this.lastFrameNumber = frameNumber;
         }
+    }
+
+	private readonly clock = new THREE.Clock();
+    private animate(frameNumber: number) {
+		const delta = this.clock.getDelta();
+        if (this.navigator.update(delta)) this.setNeedsRender();
+        this.render(frameNumber);
     }
 
     outlineSelection() {
