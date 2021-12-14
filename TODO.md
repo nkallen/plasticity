@@ -4,11 +4,10 @@
 
 ### Backlog
 
+- Split body by picking faces  
 - bug: box selected, while mouse down, zoom  
 - extrude multiple regions at once  
 - Fusion-like multigizmo  
-- Split body by picking faces  
-- Mirror around plane  
 - When offsetting face, offset should match snap pt with ctrl  
 - [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
 - [ ] circle angle gizmo when far off from center not facing camera  
@@ -56,14 +55,15 @@
 
 ### Todo
 
-- speed of gizmos tempered by zoom  
 - rr ss gg for screenspace  
-- Align camera and construction plane (with space)  
+- Mirror around plane  
 
 ### In Progress
 
+- Align camera and construction plane (with space)  
 
 ### Done ✓
 
+- speed of gizmos tempered by zoom  
 - Selection become conventional  
 

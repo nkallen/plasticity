@@ -4,6 +4,8 @@ import { OrbitControls } from "./OrbitControls";
 
 export enum Orientation { posX, posY, posZ, negX, negY, negZ };
 
+const halfSize = 0.5;
+
 export class ViewportNavigator extends THREE.Object3D {
     readonly camera = new THREE.OrthographicCamera(- 2, 2, 2, - 2, 0, 4);
     private readonly interactiveObjects: THREE.Object3D[];
@@ -23,56 +25,87 @@ export class ViewportNavigator extends THREE.Object3D {
         const color2 = new THREE.Color('#8adb00').convertGammaToLinear();
         const color3 = new THREE.Color('#2c8fff').convertGammaToLinear();
 
-        const geometry = new THREE.BoxGeometry(0.8, 0.05, 0.05).translate(0.4, 0, 0);
+        const interactiveObjects: THREE.Object3D[] = [];
 
-        const xAxis = new THREE.Mesh(geometry, ViewportNavigator.getAxisMaterial(color1));
-        const yAxis = new THREE.Mesh(geometry, ViewportNavigator.getAxisMaterial(color2));
-        const zAxis = new THREE.Mesh(geometry, ViewportNavigator.getAxisMaterial(color3));
+        Axes: {
+            const axisGeometry = new THREE.BoxGeometry(2 * halfSize, 0.05, 0.05).translate(halfSize, 0, 0);
+            const xAxis = new THREE.Mesh(axisGeometry, ViewportNavigator.getAxisMaterial(color1));
+            const yAxis = new THREE.Mesh(axisGeometry, ViewportNavigator.getAxisMaterial(color2));
+            const zAxis = new THREE.Mesh(axisGeometry, ViewportNavigator.getAxisMaterial(color3));
+            xAxis.position.set(-halfSize, -halfSize, -halfSize);
+            yAxis.position.set(-halfSize, -halfSize, -halfSize);
+            zAxis.position.set(-halfSize, -halfSize, -halfSize);
 
-        yAxis.rotation.z = Math.PI / 2;
-        zAxis.rotation.y = - Math.PI / 2;
+            yAxis.rotation.z = Math.PI / 2;
+            zAxis.rotation.y = - Math.PI / 2;
 
-        this.add(xAxis);
-        this.add(zAxis);
-        this.add(yAxis);
+            this.add(xAxis);
+            this.add(zAxis);
+            this.add(yAxis);
+        }
 
-        const posXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1, 'X'));
-        posXAxisHelper.userData.type = Orientation.posX;
-        const posYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2, 'Y'));
-        posYAxisHelper.userData.type = Orientation.posY;
-        const posZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3, 'Z'));
-        posZAxisHelper.userData.type = Orientation.posZ;
-        const negXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1));
-        negXAxisHelper.userData.type = Orientation.negX;
-        const negYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2));
-        negYAxisHelper.userData.type = Orientation.negY;
-        const negZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3));
-        negZAxisHelper.userData.type = Orientation.negZ;
+        Box: {
+            const boxGeometry = new THREE.BoxGeometry(2 * halfSize, 2 * halfSize, 2 * halfSize);
+            const box = new THREE.Mesh(boxGeometry, ViewportNavigator.getBoxMaterial(new THREE.Color('#AAAAAA')));
+            
+            const planeGeometry = new THREE.PlaneBufferGeometry(1.5 * halfSize, 1.5 * halfSize);
+            const front = new THREE.Mesh(planeGeometry, ViewportNavigator.getPlaneMaterial(new THREE.Color('#777777')));
+            front.rotation.x = Math.PI / 2;
+            front.position.set(0, -halfSize, 0);
+            front.userData.type = Orientation.negY;
+            
+            const left = new THREE.Mesh(planeGeometry, ViewportNavigator.getPlaneMaterial(new THREE.Color('#777777')));
+            left.rotation.y = -Math.PI / 2;
+            left.position.set(-halfSize, 0, 0);
+            left.userData.type = Orientation.posX;
 
-        posXAxisHelper.position.x = 1;
-        posYAxisHelper.position.y = 1;
-        posZAxisHelper.position.z = 1;
-        negXAxisHelper.position.x = - 1;
-        negXAxisHelper.scale.setScalar(0.8);
-        negYAxisHelper.position.y = - 1;
-        negYAxisHelper.scale.setScalar(0.8);
-        negZAxisHelper.position.z = - 1;
-        negZAxisHelper.scale.setScalar(0.8);
+            const bottom = new THREE.Mesh(planeGeometry, ViewportNavigator.getPlaneMaterial(new THREE.Color('#777777')));
+            bottom.rotation.y = Math.PI;
+            bottom.position.set(0, 0, -halfSize);
+            bottom.userData.type = Orientation.posZ;
 
-        this.add(posXAxisHelper);
-        this.add(posYAxisHelper);
-        this.add(posZAxisHelper);
-        this.add(negXAxisHelper);
-        this.add(negYAxisHelper);
-        this.add(negZAxisHelper);
+            this.add(box);
+            this.add(front, left, bottom);
+            interactiveObjects.push(front, left, bottom);
+        }
 
-        const interactiveObjects = [];
-        interactiveObjects.push(posXAxisHelper);
-        interactiveObjects.push(posYAxisHelper);
-        interactiveObjects.push(posZAxisHelper);
-        interactiveObjects.push(negXAxisHelper);
-        interactiveObjects.push(negYAxisHelper);
-        interactiveObjects.push(negZAxisHelper);
+        AxisText: {
+            const posXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1, 'X'));
+            posXAxisHelper.userData.type = Orientation.posX;
+            const posYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2, 'Y'));
+            posYAxisHelper.userData.type = Orientation.posY;
+            const posZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3, 'Z'));
+            posZAxisHelper.userData.type = Orientation.posZ;
+            const negXAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color1));
+            negXAxisHelper.userData.type = Orientation.negX;
+            const negYAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color2));
+            negYAxisHelper.userData.type = Orientation.negY;
+            const negZAxisHelper = new THREE.Sprite(ViewportNavigator.getSpriteMaterial(color3));
+            negZAxisHelper.userData.type = Orientation.negZ;
+
+            posXAxisHelper.position.set(1, -halfSize, -halfSize);
+            posYAxisHelper.position.set(-halfSize, 1, -halfSize);
+            posZAxisHelper.position.set(-halfSize, -halfSize, 1);
+            // negXAxisHelper.scale.setScalar(2 * halfSize);
+            // negYAxisHelper.position.y = - 1;
+            // negYAxisHelper.scale.setScalar(2 * halfSize);
+            // negZAxisHelper.position.z = - 1;
+            // negZAxisHelper.scale.setScalar(2 * halfSize);
+
+            this.add(posXAxisHelper);
+            this.add(posYAxisHelper);
+            this.add(posZAxisHelper);
+            // this.add(negXAxisHelper);
+            // this.add(negYAxisHelper);
+            // this.add(negZAxisHelper);
+
+            interactiveObjects.push(posXAxisHelper);
+            interactiveObjects.push(posYAxisHelper);
+            interactiveObjects.push(posZAxisHelper);
+            // interactiveObjects.push(negXAxisHelper);
+            // interactiveObjects.push(negYAxisHelper);
+            // interactiveObjects.push(negZAxisHelper);
+        }
         this.interactiveObjects = interactiveObjects;
     }
 
@@ -83,13 +116,12 @@ export class ViewportNavigator extends THREE.Object3D {
         event.stopPropagation();
 
         const { mouse, container, dim, raycaster, camera, interactiveObjects } = this;
-
         const rect = container.getBoundingClientRect();
         const offsetX = rect.left + (container.offsetWidth - dim);
-        const offsetY = rect.top + (container.offsetHeight - dim);
+        const offsetY = rect.top;
 
         mouse.x = ((event.clientX - offsetX) / dim) * 2 - 1;
-        mouse.y = - (event.clientY / dim) * 2 + 1;
+        mouse.y = - ((event.clientY - offsetY) / dim) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(interactiveObjects);
@@ -167,6 +199,18 @@ export class ViewportNavigator extends THREE.Object3D {
     }
 
     static getAxisMaterial(color: THREE.Color) {
+        return new THREE.MeshBasicMaterial({ color: color, toneMapped: false });
+    }
+
+    static getPlaneMaterial(color: THREE.Color) {
+        const material = new THREE.MeshBasicMaterial({ color: color, toneMapped: false });
+        material.polygonOffset = true;
+        material.polygonOffsetFactor = -1;
+        material.polygonOffsetUnits = -1
+        return material;
+    }
+
+    static getBoxMaterial(color: THREE.Color) {
         return new THREE.MeshBasicMaterial({ color: color, toneMapped: false });
     }
 
