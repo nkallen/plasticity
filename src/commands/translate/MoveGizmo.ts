@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
+import { ProxyCamera } from "../../components/viewport/ProxyCamera";
 import { CancellablePromise } from "../../util/Cancellable";
 import { EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
@@ -133,7 +134,7 @@ export class MoveAxisGizmo extends AbstractAxisGizmo {
 
     render(length: number) { }
 
-    update(camera: THREE.Camera) {
+    update(camera: ProxyCamera) {
         super.update(camera);
 
         const { eye, worldQuaternion } = this;

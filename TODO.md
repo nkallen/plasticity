@@ -56,7 +56,6 @@
 
 ### Todo
 
-- Selection become conventional  
 - speed of gizmos tempered by zoom  
 - rr ss gg for screenspace  
 - Align camera and construction plane (with space)  
@@ -66,4 +65,5 @@
 
 ### Done ✓
 
+- Selection become conventional  
 

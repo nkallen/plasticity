@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
+import { ProxyCamera } from "../components/viewport/ProxyCamera";
 import { CancellableRegisterable, CancellableRegistor } from "../util/Cancellable";
 import { CircleGeometry } from "../util/Util";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
@@ -204,7 +205,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
         const dist = planeIntersect.point.sub(this.startMousePosition).dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion));
-        let length = this.accumulate(this.state.original, this.sign, dist);
+        const length = this.accumulate(this.state.original, this.sign, dist);
         this.state.current = length;
         this.render(this.state.current);
         cb(this.state.current);
@@ -227,7 +228,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     private localY = new THREE.Vector3();
     private dir = new THREE.Vector3();
     private align = new THREE.Vector3();
-    update(camera: THREE.Camera) {
+    update(camera: ProxyCamera) {
         super.update(camera);
 
         const { eye, worldPosition, worldQuaternion, plane, localY, align, dir } = this;
@@ -243,6 +244,26 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         plane.quaternion.setFromRotationMatrix(matrix);
         plane.position.copy(worldPosition);
         plane.updateMatrixWorld();
+
+        this.cameraFactor = AbstractAxisGizmo.cameraFactor(camera, this.position)
+    }
+    protected cameraFactor = 1;
+
+    private static readonly o = new THREE.Vector3();
+    static cameraFactor(camera: ProxyCamera, target: THREE.Vector3): number {
+        const { o } = this;
+        if (camera.isPerspectiveCamera) {
+            o.copy(camera.position).sub(target);
+            let targetDistance = o.length();
+
+            // half of the fov is center to top of screen
+            targetDistance *= Math.tan((camera.fov / 2) * Math.PI / 180.0);
+
+            return 2 * targetDistance;
+        } else if (camera.isOrthographicCamera) {
+            const magicSlowDownToFeelGood = 1.5;
+            return Math.min((camera.top - camera.bottom), -(camera.left - camera.right)) / camera.zoom / magicSlowDownToFeelGood;
+        } else throw new Error("invalid precondition");
     }
 }
 
@@ -407,7 +428,7 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
         start2center.copy(pointStart2d).sub(center2d);
         const sign = Math.sign(end2center.dot(start2center));
 
-        const magnitude = this.accumulate(this.state.original, end2center.length(), this.denominator, sign);
+        const magnitude = this.accumulate(this.state.original, end2center.length() * this.cameraFactor, this.denominator * this.cameraFactor, sign);
         this.state.current = magnitude;
         this.render(this.state.current);
         cb(this.state.current);

@@ -138,7 +138,6 @@ export class FilletMagnitudeGizmo extends AbstractAxialScaleGizmo {
 
     get shouldRescaleOnZoom() { return true }
 
-
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
     }

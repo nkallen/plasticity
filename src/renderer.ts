@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import c3d from '../build/Release/c3d.node';
 import '../lib/c3d/enums';
 import license from '../license-key.json';
-import { ThreePointBoxFactory } from './commands/box/BoxFactory';
 import * as cmd from './commands/GeometryCommands';
 import Creators from './components/creators/Creators';
 import Dialog from './components/dialog/Dialog';
@@ -73,11 +72,3 @@ NumberScrubber(editor);
 Dialog(editor);
 ViewportHeader(editor);
 SnapOverlay(editor);
-
-// const makeBox = new ThreePointBoxFactory(editor.db, editor.materials, editor.signals);
-// makeBox.p1 = new THREE.Vector3();
-// makeBox.p2 = new THREE.Vector3(1, 0, 0);
-// makeBox.p3 = new THREE.Vector3(1, 1, 0);
-// makeBox.p4 = new THREE.Vector3(1, 1, 1);
-
-// makeBox.commit();

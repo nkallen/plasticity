@@ -241,8 +241,7 @@ export class OrbitControls extends THREE.EventDispatcher {
     pan(delta: THREE.Vector3) {
         const { object, domElement, target, o, normalMatrix, panOffset } = this;
         if (object.isPerspectiveCamera) {
-            const position = object.position;
-            o.copy(position).sub(target);
+            o.copy(object.position).sub(target);
             let targetDistance = o.length();
 
             // half of the fov is center to top of screen
@@ -512,11 +511,6 @@ export class OrbitControls extends THREE.EventDispatcher {
     private handleTouchStartDollyPan() {
         if (this.enableZoom) this.handleTouchStartDolly();
         if (this.enablePan) this.handleTouchStartPan();
-    }
-
-    private handleTouchStartDollyRotate() {
-        if (this.enableZoom) this.handleTouchStartDolly();
-        if (this.enableRotate) this.handleTouchStartRotate();
     }
 
     private handleTouchMoveRotate(event: PointerEvent) {
