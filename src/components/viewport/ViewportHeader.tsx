@@ -43,7 +43,7 @@ export default (editor: Editor) => {
 
         get description() {
             const { viewport } = this;
-            if (!viewport.isOrtho) return "";
+            if (!viewport.isOrthoMode) return "";
             const n = viewport.constructionPlane.n;
             if (n.equals(X)) {
                 return "Right";

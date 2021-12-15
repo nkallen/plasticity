@@ -38,7 +38,7 @@ export class SnapPicker {
 
         this.raycaster.params = this.nearbyParams;
         raycaster.layers.mask = layers.visible.mask; // FIXME: particularly with bridge, this needs to change
-        if (viewport.isOrtho) raycaster.layers.disable(visual.Layers.Face); // FIXME: this is wrong, should be FaceCenterPointSnap?
+        if (viewport.isOrthoMode) raycaster.layers.disable(visual.Layers.Face); // FIXME: this is wrong, should be FaceCenterPointSnap?
         else raycaster.layers.enable(visual.Layers.Face);
 
         snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
@@ -68,7 +68,7 @@ export class SnapPicker {
 
         raycaster.params = this.intersectParams;
         raycaster.layers.mask = layers.visible.mask
-        if (viewport.isOrtho) raycaster.layers.disable(visual.Layers.Face);
+        if (viewport.isOrthoMode) raycaster.layers.disable(visual.Layers.Face);
         else raycaster.layers.enable(visual.Layers.Face);
 
         const restrictionSnaps = pointPicker.restrictionSnapsFor(viewport.constructionPlane).map(r => r.snapper);
@@ -99,7 +99,7 @@ export class SnapPicker {
     }
 
     private applyRestrictions(pointPicker: Model, viewport: Viewport, result: SnapResult[]) {
-        const restriction = pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrtho);
+        const restriction = pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrthoMode);
         if (restriction !== undefined) {
             for (const info of result) {
                 const { position, orientation } = restriction.project(info.position);
@@ -134,7 +134,7 @@ export class SnapPicker {
     private intersectConstructionPlane(pointPicker: Model, viewport: Viewport): SnapResult[] {
         const { raycaster } = this;
 
-        const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, viewport.isOrtho);
+        const constructionPlane = pointPicker.actualConstructionPlaneGiven(viewport.constructionPlane, viewport.isOrthoMode);
         const intersections = raycaster.intersectObject(constructionPlane.snapper);
         if (intersections.length === 0) return [];
         const approximatePosition = intersections[0].point;

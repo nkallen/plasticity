@@ -145,13 +145,13 @@ describe('intersect', () => {
 
             test('it returns snap points for the geometry', () => {
                 const actual = picker.intersect(pointPicker, snaps, db);
-                expect(viewport.isOrtho).toBe(false);
+                expect(viewport.isOrthoMode).toBe(false);
                 expect(actual.length).toBe(51);
             })
 
             test('when isOrtho is true, face snaps are turned off', () => {
                 viewport.navigate(Orientation.posZ);
-                expect(viewport.isOrtho).toBe(true);
+                expect(viewport.isOrthoMode).toBe(true);
                 picker.setFromViewport(event, viewport);
                 const actual = picker.intersect(pointPicker, snaps, db);
                 expect(actual.filter(a => a.snap instanceof FaceSnap)).toHaveLength(0);

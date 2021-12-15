@@ -296,7 +296,7 @@ interface SnapInfo extends PointInfo {
 // There are icons, indicators, textual name explanations, etc.
 export class Presentation {
     static make(picker: SnapPicker, viewport: Viewport, pointPicker: Model, db: DatabaseLike, snapCache: SnapManagerGeometryCache, presenter: SnapPresenter) {
-        const { constructionPlane, isOrtho } = viewport;
+        const { constructionPlane, isOrthoMode: isOrtho } = viewport;
 
         const nearby = picker.nearby(pointPicker, snapCache, db);
         const intersections = picker.intersect(pointPicker, snapCache, db);

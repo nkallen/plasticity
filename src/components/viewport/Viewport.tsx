@@ -20,7 +20,7 @@ import { Pane } from '../pane/Pane';
 import { GridHelper } from "./GridHelper";
 import { OrbitControls } from "./OrbitControls";
 import { OutlinePass } from "./OutlinePass";
-import { ProxyCamera } from "./ProxyCamera";
+import { CameraMode, ProxyCamera } from "./ProxyCamera";
 import { ViewportControlMultiplexer } from "./ViewportControlMultiplexer";
 import { ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
 import { Orientation, ViewportNavigatorPass } from "./ViewportNavigator";
@@ -287,10 +287,10 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
         grid.position.copy(constructionPlane.p);
         grid.quaternion.setFromUnitVectors(Z, constructionPlane.n);
-        if (this.isOrtho) {
+        if (this.isOrthoMode) {
             grid.quaternion.copy(camera.quaternion);
         }
-        
+
         grid.update(camera);
         grid.updateMatrixWorld();
         helpers.axes.updateMatrixWorld();
@@ -356,18 +356,37 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     private navigationChange() {
         switch (this.navigationState.tag) {
             case 'navigating':
-                const dot = this.navigationState.quaternion.dot(this.camera.quaternion);
-                if (Math.abs(dot - 1) > 10e-3) {
-                    if (this._isOrtho) {
-                        this._isOrtho = false;
-                        this.constructionPlane = new ConstructionPlaneSnap(Z);
-                        this.changed.dispatch();
-                    }
-                }
+                this.transitionFromOrthoModeIfOrbitted(this.navigationState.quaternion);
                 this.constructionPlane.update(this.camera);
                 break;
             default: throw new Error("invalid state");
         }
+    }
+
+    // NOTE: ortho mode is not the same as an ortho camera; in ortho mode you have an ortho camera but there are also special snapping behaviors, etc.
+    private orthoState?: { oldCameraMode: CameraMode } = undefined;
+    get isOrthoMode(): boolean { return this.orthoState !== undefined }
+
+    private transitionToOrthoMode() {
+        if (this.orthoState !== undefined) return;
+        const oldCameraMode = this.camera.setOrtho();
+        this.orthoState = { oldCameraMode };
+    }
+
+    private transitionFromOrthoModeIfOrbitted(quaternion: THREE.Quaternion) {
+        if (this.orthoState === undefined) return;
+        const dot = quaternion.dot(this.camera.quaternion);
+        if (Math.abs(dot - 1) > 10e-5) {
+            this.transitionFromOrthoMode();
+        }
+    }
+
+    private transitionFromOrthoMode() {
+        if (this.orthoState === undefined) return;
+        this.camera.setMode(this.orthoState.oldCameraMode);
+        this.orthoState = undefined;
+        this.constructionPlane = new ConstructionPlaneSnap(Z);
+        this.changed.dispatch();
     }
 
     private navigationEnd() {
@@ -398,9 +417,9 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     togglePerspective() {
         this.camera.toggle();
+        this.transitionFromOrthoMode();
         this.navigationControls.update();
         this.setNeedsRender();
-        this.changed.dispatch();
     }
 
     // FIXME: xray should be a viewport-only property
@@ -428,7 +447,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     navigate(to: Orientation | visual.Face) {
         const constructionPlane = this.navigator.navigate(to);
         this.constructionPlane = constructionPlane;
-        this._isOrtho = true;
+        this.transitionToOrthoMode();
         this.changed.dispatch();
     }
 
@@ -436,9 +455,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         const { solids, curves, regions, controlPoints } = this.editor.selection.selected;
         this.navigationControls.focus([...solids, ...curves, ...regions, ...controlPoints], this.editor.db.visibleObjects);
     }
-
-    private _isOrtho = false;
-    get isOrtho() { return this._isOrtho }
 
     validate() {
         console.assert(this.selector.enabled, "this.selector.enabled");

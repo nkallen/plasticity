@@ -7,7 +7,7 @@ export const frustumSize = 6;
 export const fov = 50;
 export const aspect = 1;
 
-type Mode = 'orthographic' | 'perspective';
+export type CameraMode = 'orthographic' | 'perspective';
 
 const ZZZ = new THREE.Vector3(0, 0, 1).multiplyScalar(100); // FIXME: this should be a function of the GeometryDatabase LOD (mesh_precision_distance)
 
@@ -28,7 +28,7 @@ export class ProxyCamera extends THREE.Camera implements MementoOriginator<Camer
     get isPerspectiveCamera() { return this.mode === 'perspective' }
     get isOrthographicCamera() { return this.mode === 'orthographic' }
 
-    constructor(private mode: Mode = 'orthographic') {
+    constructor(private mode: CameraMode = 'orthographic') {
         super();
         this.updateProjectionMatrix();
     }
@@ -82,10 +82,20 @@ export class ProxyCamera extends THREE.Camera implements MementoOriginator<Camer
         }
     }
 
-    toggle() {
-        this.mode = this.mode === 'perspective' ? 'orthographic' : 'perspective';
-
+    setMode(mode: CameraMode) {
+        this.mode = mode;
         this.updateProjectionMatrix();
+    }
+
+    setOrtho(): CameraMode {
+        const old = this.mode;
+        this.setMode('orthographic');
+        return old;
+    }
+
+    toggle() {
+        const mode = this.mode === 'perspective' ? 'orthographic' : 'perspective';
+        this.setMode(mode);
     }
 
     get zoom() { return this.orthographic.zoom; }

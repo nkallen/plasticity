@@ -10,7 +10,7 @@ import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import { IntersectableLayers, VisibleLayers } from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
-import { PlaneSnap } from "../../src/editor/snaps/Snap";
+import { ConstructionPlaneSnap, PlaneSnap } from "../../src/editor/snaps/Snap";
 import { ChangeSelectionExecutor, ChangeSelectionModifier } from "../../src/selection/ChangeSelectionExecutor";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import * as visual from '../../src/visual_model/VisualModel';
@@ -44,7 +44,7 @@ beforeEach(async () => {
     makeSphere.radius = 1;
     sphere = await makeSphere.commit() as visual.Solid;
     viewport = MakeViewport(editor);
-    viewport.constructionPlane = new PlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3());
+    viewport.constructionPlane = new ConstructionPlaneSnap(new THREE.Vector3(1, 0, 0), new THREE.Vector3());
     viewport.start();
 });
 
@@ -104,30 +104,53 @@ test("navigate(to)", () => {
     expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
     expect(viewport.camera.quaternion.dot(new THREE.Quaternion())).toBeCloseTo(1);
     viewport.navigate(Orientation.posX);
+    // @ts-ignore
     viewport.navigator.update(1000000000);
     expect(viewport.camera.position).toApproximatelyEqual(new THREE.Vector3(1, 0, 0));
     expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0.5, 0.5, 0.5, 0.5))).toBeCloseTo(1);
 });
 
 test("isOrtho", () => {
-    expect(viewport.isOrtho).toBe(false);
+    expect(viewport.isOrthoMode).toBe(false);
     viewport.navigate(Orientation.posX);
-    expect(viewport.isOrtho).toBe(true);
+    expect(viewport.isOrthoMode).toBe(true);
 });
 
 test("navigation start & end turns off isOrtho", () => {
-    expect(viewport.isOrtho).toBe(false);
+    expect(viewport.isOrthoMode).toBe(false);
     viewport.navigate(Orientation.posX);
-    expect(viewport.isOrtho).toBe(true);
+    expect(viewport.isOrthoMode).toBe(true);
+    // @ts-ignore
     viewport.navigator.update(1000000000);
     expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0.5, 0.5, 0.5, 0.5))).toBeCloseTo(1);
 
     viewport.navigationControls.dispatchEvent({ type: 'start', target: null });
-    expect(viewport.isOrtho).toBe(true);
+    expect(viewport.isOrthoMode).toBe(true);
 
     viewport.camera.quaternion.copy(new THREE.Quaternion());
     viewport.navigationControls.dispatchEvent({ type: 'change', target: null });
-    expect(viewport.isOrtho).toBe(false);
+    expect(viewport.isOrthoMode).toBe(false);
+});
+
+test("navigation start & end restores perspective/orthographic camera state", () => {
+    viewport.togglePerspective();
+    expect(viewport.camera.isPerspectiveCamera).toBe(true);
+
+    expect(viewport.isOrthoMode).toBe(false);
+    viewport.navigate(Orientation.posX);
+    expect(viewport.isOrthoMode).toBe(true);
+    expect(viewport.camera.isOrthographicCamera).toBe(true);
+    // @ts-ignore
+    viewport.navigator.update(1000000000);
+    expect(viewport.camera.quaternion.dot(new THREE.Quaternion(0.5, 0.5, 0.5, 0.5))).toBeCloseTo(1);
+
+    viewport.navigationControls.dispatchEvent({ type: 'start', target: null });
+    expect(viewport.isOrthoMode).toBe(true);
+
+    viewport.camera.quaternion.copy(new THREE.Quaternion());
+    viewport.navigationControls.dispatchEvent({ type: 'change', target: null });
+    expect(viewport.isOrthoMode).toBe(false);
+    expect(viewport.camera.isPerspectiveCamera).toBe(true);
 });
 
 test("togglePerspective", () => {
