@@ -347,6 +347,9 @@ function unmask(child: THREE.Object3D) {
 }
 
 const line_unselected = new LineMaterial({ color: 0x000000, linewidth: 1.4 });
+line_unselected.polygonOffset = true;
+line_unselected.polygonOffsetFactor = -20;
+line_unselected.polygonOffsetUnits = -20;
 
 const line_edge = new LineMaterial({ linewidth: 1.4, vertexColors: true });
 
@@ -364,23 +367,23 @@ face_unhighlighted.fog = false;
 face_unhighlighted.matcap = matcapTexture;
 face_unhighlighted.polygonOffset = true;
 face_unhighlighted.polygonOffsetFactor = 1;
-face_unhighlighted.polygonOffsetUnits = 1;
+face_unhighlighted.polygonOffsetUnits = 2;
 
 const face_highlighted = new THREE.MeshMatcapMaterial();
 face_highlighted.color.setHex(0xffff00).convertGammaToLinear();
 face_highlighted.fog = false;
 face_highlighted.matcap = matcapTexture;
 face_highlighted.polygonOffset = true;
-face_highlighted.polygonOffsetFactor = -1;
-face_highlighted.polygonOffsetUnits = -1;
+face_highlighted.polygonOffsetFactor = 1;
+face_highlighted.polygonOffsetUnits = 1;
 
 const face_hovered = new THREE.MeshMatcapMaterial();
 face_hovered.color.setHex(0xffffcc).convertGammaToLinear();
 face_hovered.fog = false;
 face_hovered.matcap = matcapTexture;
 face_hovered.polygonOffset = true;
-face_hovered.polygonOffsetFactor = -1;
-face_hovered.polygonOffsetUnits = -1;
+face_hovered.polygonOffsetFactor = 1;
+face_hovered.polygonOffsetUnits = 1;
 
 const region_hovered = new THREE.MeshBasicMaterial();
 region_hovered.fog = false;
@@ -388,6 +391,9 @@ region_hovered.color.setHex(0x8dd9f2).convertGammaToLinear();
 region_hovered.opacity = 0.5;
 region_hovered.transparent = true;
 region_hovered.side = THREE.DoubleSide;
+region_hovered.polygonOffset = true;
+region_hovered.polygonOffsetFactor = -10;
+region_hovered.polygonOffsetUnits = -1;
 
 const region_highlighted = new THREE.MeshBasicMaterial();
 region_highlighted.fog = false;
@@ -395,13 +401,21 @@ region_highlighted.color.setHex(0x8dd9f2).convertGammaToLinear();
 region_highlighted.opacity = 0.9;
 region_highlighted.transparent = true;
 region_highlighted.side = THREE.DoubleSide;
+region_highlighted.polygonOffset = true;
+region_highlighted.polygonOffsetFactor = -10;
+region_highlighted.polygonOffsetUnits = -1;
 
 const region_unhighlighted = new THREE.MeshBasicMaterial();
 region_unhighlighted.fog = false;
+region_unhighlighted.color.setHex(0xff000).convertGammaToLinear();
 region_unhighlighted.color.setHex(0x8dd9f2).convertGammaToLinear();
 region_unhighlighted.opacity = 0.1;
 region_unhighlighted.transparent = true;
 region_unhighlighted.side = THREE.DoubleSide;
+region_unhighlighted.polygonOffset = true;
+region_unhighlighted.polygonOffsetFactor = -10;
+region_unhighlighted.polygonOffsetUnits = -1;
+
 
 const controlPoint_hovered = new THREE.Color(0xffff88);
 const controlPoint_highlighted = new THREE.Color(0xffff00);
