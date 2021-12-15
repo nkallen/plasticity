@@ -23,6 +23,7 @@ export class ViewportGeometryNavigator extends ViewportNavigator {
             const model = db.lookupTopologyItem(to);
             const placement = model.GetControlPlacement();
             model.OrientPlacement(placement);
+            placement.Normalize(); // FIXME: a bug in c3d? necessary with curved faces
             const normal = vec2vec(placement.GetAxisY(), 1);
             const target = point2point(placement.GetOrigin());
             this.controls.target.copy(target);
