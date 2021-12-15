@@ -931,6 +931,7 @@ export default {
                 { signature: "bool GetPlacement(MbPlacement3D * result)", result: isReturn, return: isErrorBool },
                 { signature: "bool GetControlPlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
                 { signature: "bool GetSurfacePlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
+                { signature: "bool OrientPlacement(MbPlacement3D & result)", return: isErrorBool },
                 { signature: "MbeItemLocation NearPointProjection(const MbCartPoint3D & point, double & u, double & v, MbVector3D & normal, c3d::IndicesPair & edgeLoc, ptrdiff_t & corner)", u: isReturn, v: isReturn, normal: isReturn, edgeLoc: isReturn, corner: isReturn, return: { name: "location" } },
                 { signature: "void GetFaceParam(const double surfaceU, const double surfaceV, double & faceU, double & faceV)", faceU: isReturn, faceV: isReturn },
                 { signature: "void GetSurfaceParam(const double faceU, const double faceV, double & surfaceU, double & surfaceV)", surfaceU: isReturn, surfaceV: isReturn },

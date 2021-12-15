@@ -55,7 +55,6 @@
 
 ### Todo
 
-- when isOrtho, all things project  
 - rr ss gg for screenspace  
 - Mirror around plane  
 
@@ -65,6 +64,7 @@
 
 ### Done ✓
 
+- when isOrtho, all things project  
 - Animated box navigation  
 - speed of gizmos tempered by zoom  
 - Selection become conventional  

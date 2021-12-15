@@ -18,17 +18,18 @@ export class ViewportGeometryNavigator extends ViewportNavigator {
 
     navigate(to: Orientation | visual.Face) {
         const { db } = this;
-        let n, constructionPlane;
+        let constructionPlane;
         if (to instanceof visual.Face) {
             const model = db.lookupTopologyItem(to);
-            const { normal, point } = model.GetAnyPointOn();
-            const target = point2point(point);
+            const placement = model.GetControlPlacement();
+            model.OrientPlacement(placement);
+            const normal = vec2vec(placement.GetAxisY(), 1);
+            const target = point2point(placement.GetOrigin());
             this.controls.target.copy(target);
-            const pos = vec2vec(normal, 1);
-            n = this.animateToPositionAndQuaternion(pos, new THREE.Quaternion());
+            const n = this.animateToPositionAndQuaternion(normal, new THREE.Quaternion());
             constructionPlane = new ConstructionPlaneSnap(n, target);
         } else {
-            n = this.animateToOrientation(to);
+            const n = this.animateToOrientation(to);
             constructionPlane = new ConstructionPlaneSnap(n);
         }
         return constructionPlane;
