@@ -1,14 +1,14 @@
 import { Intersectable } from "../visual_model/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
-import { ChangeSelectionModifier, SelectionMode, SelectionStrategy } from "./ChangeSelectionExecutor";
+import { ChangeSelectionModifier, SelectionMode } from "./ChangeSelectionExecutor";
 import { ModifiesSelection } from "./SelectionDatabase";
 
-export class ClickStrategy implements SelectionStrategy {
+export class ClickStrategy {
     constructor(
-        private readonly mode: Set<SelectionMode>,
-        private readonly selected: ModifiesSelection,
-        private readonly hovered: ModifiesSelection,
-        private readonly writeable: ModifiesSelection
+        protected readonly mode: Set<SelectionMode>,
+        protected readonly selected: ModifiesSelection,
+        protected readonly hovered: ModifiesSelection,
+        protected readonly writeable: ModifiesSelection
     ) { }
 
     emptyIntersection(modifier: ChangeSelectionModifier): void {
@@ -96,7 +96,7 @@ export class ClickStrategy implements SelectionStrategy {
         return false;
     }
 
-    private modify<T>(modifier: ChangeSelectionModifier, add: () => T, remove: () => T): T {
+    protected modify<T>(modifier: ChangeSelectionModifier, add: () => T, remove: () => T): T {
         this.hovered.removeAll();
         if (modifier === ChangeSelectionModifier.Remove) {
             return remove();
@@ -140,6 +140,10 @@ export class ClickStrategy implements SelectionStrategy {
             if (object instanceof Solid) {
                 if (!this.mode.has(SelectionMode.Solid)) continue;
                 if (parentsVisited.has(object)) continue;
+                if (this.selected.hasSelectedChildren(object)) continue;
+                if (modifier === ChangeSelectionModifier.Add && this.selected.solids.has(object)) continue;
+                if (modifier === ChangeSelectionModifier.Remove && !this.selected.solids.has(object)) continue;
+
                 parentsVisited.add(object);
                 changedSolids.add(object);
             } else if (object instanceof Face || object instanceof CurveEdge) {
@@ -149,23 +153,30 @@ export class ClickStrategy implements SelectionStrategy {
 
                 if (object instanceof Face) {
                     if (!this.mode.has(SelectionMode.Face)) continue;
+                    if (modifier === ChangeSelectionModifier.Add && this.selected.faces.has(object)) continue;
+                    if (modifier === ChangeSelectionModifier.Remove && !this.selected.faces.has(object)) continue;
                     changedFaces.add(object);
-                    changedParents.add(object.parentItem);
                 } else if (object instanceof CurveEdge) {
                     if (!this.mode.has(SelectionMode.CurveEdge)) continue;
+                    if (modifier === ChangeSelectionModifier.Add && this.selected.edges.has(object)) continue;
+                    if (modifier === ChangeSelectionModifier.Remove && !this.selected.edges.has(object)) continue;
                     changedEdges.add(object);
-                    changedParents.add(object.parentItem);
                 }
+                changedParents.add(object.parentItem);
             } else if (object instanceof Curve3D) {
                 if (!this.mode.has(SelectionMode.Curve)) continue;
                 const parentItem = object.parentItem;
+                if (modifier === ChangeSelectionModifier.Add && this.selected.curves.has(parentItem)) continue;
+                if (modifier === ChangeSelectionModifier.Remove && !this.selected.curves.has(parentItem)) continue;
                 changedCurves.add(object.parentItem);
                 parentsVisited.add(parentItem);
             } else if (object instanceof ControlPoint) {
                 const parentItem = object.parentItem;
                 if (parentsVisited.has(parentItem)) continue;
-
                 if (!this.mode.has(SelectionMode.ControlPoint)) continue;
+                if (modifier === ChangeSelectionModifier.Add && this.selected.controlPoints.has(object)) continue;
+                if (modifier === ChangeSelectionModifier.Remove && !this.selected.controlPoints.has(object)) continue;
+
                 changedPoints.add(object);
                 changedParents.add(parentItem);
             } else if (object instanceof Region) {
@@ -193,5 +204,19 @@ export class ClickStrategy implements SelectionStrategy {
                 for (const region of changedRegions) this.writeable.removeRegion(region);
                 for (const point of changedPoints) this.writeable.removeControlPoint(point);
             });
+    }
+}
+
+export class HoverStrategy extends ClickStrategy {
+    protected modify<T>(modifier: ChangeSelectionModifier, add: () => T, remove: () => T): T {
+        this.hovered.removeAll();
+        if (modifier === ChangeSelectionModifier.Remove) {
+            return add();
+        } else if (modifier === ChangeSelectionModifier.Add) {
+            return add();
+        } else {
+            this.writeable.removeAll();
+            return add();
+        }
     }
 }

@@ -23,7 +23,7 @@ import { OutlinePass } from "./OutlinePass";
 import { ProxyCamera } from "./ProxyCamera";
 import { ViewportControlMultiplexer } from "./ViewportControlMultiplexer";
 import { ViewportGeometryNavigator } from "./ViewportGeometryNavigator";
-import { Orientation, ViewportNavigatorPass } from "./ViewportHelper";
+import { Orientation, ViewportNavigatorPass } from "./ViewportNavigator";
 import { ViewportPointControl } from "./ViewportPointControl";
 
 const gridColor = new THREE.Color(0x666666).convertGammaToLinear();

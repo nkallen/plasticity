@@ -8,7 +8,7 @@ import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ChangeSelectionModifier, SelectionMode, SelectionModeAll } from "../../src/selection/ChangeSelectionExecutor";
-import { ClickStrategy } from "../../src/selection/Click";
+import { ClickStrategy, HoverStrategy } from "../../src/selection/Click";
 import { SelectionDatabase, ToggleableSet } from "../../src/selection/SelectionDatabase";
 import { Intersection } from '../../src/visual_model/Intersectable';
 import * as visual from '../../src/visual_model/VisualModel';
@@ -404,5 +404,62 @@ describe('box', () => {
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
     })
+})
 
+describe(HoverStrategy, () => {
+    let hover: HoverStrategy;
+
+    beforeEach(() => {
+        hover = new HoverStrategy(modes, selectionDb.selected, selectionDb.hovered, selectionDb.hovered);
+    });
+
+    describe('box', () => {
+        test('selecting then selecting more faces ONLY hovers the faces that will be newly selected', () => {
+            modes.set(SelectionMode.Face);
+            click.box(new Set([solid1.faces.get(0), solid1.faces.get(1)]), ChangeSelectionModifier.Add);
+            expect(selectionDb.selected.faces.size).toBe(2);
+            expect(selectionDb.hovered.faces.size).toBe(0);
+
+            hover.box(new Set([solid1.faces.get(0), solid1.faces.get(2)]), ChangeSelectionModifier.Add);
+            expect(selectionDb.selected.faces.size).toBe(2);
+            expect(selectionDb.hovered.faces.size).toBe(1);
+            expect(selectionDb.hovered.faces.first).toBe(solid1.faces.get(2));
+        })
+
+        test('selecting then unselecting faces ONLY hovers the faces that will be unselected', () => {
+            modes.set(SelectionMode.Face);
+            click.box(new Set([solid1.faces.get(0), solid1.faces.get(1)]), ChangeSelectionModifier.Add);
+            expect(selectionDb.selected.faces.size).toBe(2);
+            expect(selectionDb.hovered.faces.size).toBe(0);
+
+            hover.box(new Set([solid1.faces.get(0), solid1.faces.get(2)]), ChangeSelectionModifier.Remove);
+            expect(selectionDb.selected.faces.size).toBe(2);
+            expect(selectionDb.hovered.faces.size).toBe(1);
+            expect(selectionDb.hovered.faces.first).toBe(solid1.faces.get(0));
+        })
+
+        test('selecting then selecting more edges ONLY hovers the edges that will be newly selected', () => {
+            modes.set(SelectionMode.CurveEdge);
+            click.box(new Set([solid1.edges.get(0), solid1.edges.get(1)]), ChangeSelectionModifier.Add);
+            expect(selectionDb.selected.edges.size).toBe(2);
+            expect(selectionDb.hovered.edges.size).toBe(0);
+
+            hover.box(new Set([solid1.edges.get(0), solid1.edges.get(2)]), ChangeSelectionModifier.Add);
+            expect(selectionDb.selected.edges.size).toBe(2);
+            expect(selectionDb.hovered.edges.size).toBe(1);
+            expect(selectionDb.hovered.edges.first).toBe(solid1.edges.get(2));
+        })
+
+        test('selecting then unselecting edges ONLY hovers the edges that will be unselected', () => {
+            modes.set(SelectionMode.CurveEdge);
+            click.box(new Set([solid1.edges.get(0), solid1.edges.get(1)]), ChangeSelectionModifier.Add);
+            expect(selectionDb.selected.edges.size).toBe(2);
+            expect(selectionDb.hovered.edges.size).toBe(0);
+
+            hover.box(new Set([solid1.edges.get(0), solid1.edges.get(2)]), ChangeSelectionModifier.Remove);
+            expect(selectionDb.selected.edges.size).toBe(2);
+            expect(selectionDb.hovered.edges.size).toBe(1);
+            expect(selectionDb.hovered.edges.first).toBe(solid1.edges.get(0));
+        })
+    })
 })

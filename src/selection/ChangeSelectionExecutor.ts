@@ -3,7 +3,7 @@ import MaterialDatabase from '../editor/MaterialDatabase';
 import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, Region, TopologyItem } from '../visual_model/VisualModel';
-import { ClickStrategy } from './Click';
+import { ClickStrategy, HoverStrategy } from './Click';
 import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
 
 export enum SelectionMode {
@@ -16,16 +16,6 @@ export enum ChangeSelectionModifier {
     Replace, Add, Remove
 }
 
-export interface SelectionStrategy {
-    emptyIntersection(modifier: ChangeSelectionModifier): void;
-    solid(object: TopologyItem, modifier: ChangeSelectionModifier): boolean;
-    topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier): boolean;
-    curve3D(object: Curve3D, modifier: ChangeSelectionModifier): boolean;
-    region(object: Region, modifier: ChangeSelectionModifier): boolean;
-    controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier): boolean;
-    box(set: Set<Intersectable>, modifier: ChangeSelectionModifier): void;
-}
-
 export class ChangeSelectionExecutor {
     private readonly clickStrategy: ClickStrategy;
     private readonly hoverStrategy: ClickStrategy;
@@ -36,7 +26,7 @@ export class ChangeSelectionExecutor {
         readonly signals: EditorSignals
     ) {
         this.clickStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered, selection.selected);
-        this.hoverStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered, selection.hovered);
+        this.hoverStrategy = new HoverStrategy(selection.mode, selection.selected, selection.hovered, selection.hovered);
 
         this.onClick = this.wrapFunction(this.onClick);
         this.onHover = this.wrapFunction(this.onHover);
@@ -45,7 +35,7 @@ export class ChangeSelectionExecutor {
         this.onCreatorSelect = this.wrapFunction(this.onCreatorSelect);
     }
 
-    private onIntersection(intersections: Intersection[], strategy: SelectionStrategy, modifier: ChangeSelectionModifier): Intersection | undefined {
+    private onIntersection(intersections: Intersection[], strategy: ClickStrategy, modifier: ChangeSelectionModifier): Intersection | undefined {
         if (intersections.length == 0) {
             strategy.emptyIntersection(modifier);
             return;

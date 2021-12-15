@@ -140,6 +140,12 @@ export function pointerEvent2keyboardEvent(event: MouseEvent) {
         cmd: event.metaKey,
         target: event.target as Element | undefined,
     }
-    const name = event.button !== -1 ? "mouse" + event.button : "mouse";
+    let name = "mouse";
+    if (event.button !== -1) name += event.button;
+    else if (event.type == 'pointermove' && event.buttons != 0) {
+        if (event.buttons === 1) name += '0';
+        else if (event.buttons === 2) name += '2';
+        else if (event.buttons === 4) name += '1';
+    }
     return KeymapManager.buildKeydownEvent(name, build) as unknown as KeyboardEvent;
 }

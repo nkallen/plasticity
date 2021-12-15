@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ViewportNavigator, Orientation } from "./ViewportHelper";
+import { ViewportNavigator, Orientation } from "./ViewportNavigator";
 import * as visual from '../../visual_model/VisualModel';
 import { OrbitControls } from "./OrbitControls";
 import { DatabaseLike } from "../../editor/GeometryDatabase";
@@ -15,7 +15,7 @@ export class ViewportGeometryNavigator extends ViewportNavigator {
     ) {
         super(controls, container, dim);
     }
-    
+
     navigate(to: Orientation | visual.Face) {
         const { db } = this;
         let n, constructionPlane;

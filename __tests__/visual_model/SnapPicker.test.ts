@@ -20,7 +20,7 @@ import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import c3d from '../../build/Release/c3d.node';
 import '../matchers';
-import { Orientation } from '../../src/components/viewport/ViewportHelper';
+import { Orientation } from '../../src/components/viewport/ViewportNavigator';
 
 let editor: Editor;
 let layers: LayerManager;

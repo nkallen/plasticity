@@ -4,7 +4,7 @@
 import * as THREE from "three";
 import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { Viewport } from "../../src/components/viewport/Viewport";
-import { Orientation } from "../../src/components/viewport/ViewportHelper";
+import { Orientation } from "../../src/components/viewport/ViewportNavigator";
 import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";

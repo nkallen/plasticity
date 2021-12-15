@@ -55,6 +55,7 @@
 
 ### Todo
 
+- when isOrtho, all things project  
 - rr ss gg for screenspace  
 - Mirror around plane  
 

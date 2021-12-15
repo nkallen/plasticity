@@ -5,7 +5,7 @@ import { OrbitControls } from "./OrbitControls";
 export enum Orientation { posX, posY, posZ, negX, negY, negZ };
 
 const halfSize = 0.5;
-const turnRate = 2 * Math.PI; // turn rate in angles per second
+const turnRate = 3 * Math.PI; // turn rate in angles per second
 
 export class ViewportNavigator extends THREE.Object3D {
     readonly camera = new THREE.OrthographicCamera(- 2, 2, 2, - 2, 0, 4);
