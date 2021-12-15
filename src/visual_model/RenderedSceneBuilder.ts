@@ -422,7 +422,6 @@ const invisible_highlighted = new THREE.MeshBasicMaterial({
     depthTest: false,
 });
 
-
 const invisible_hovered = new THREE.MeshBasicMaterial({
     color: new THREE.Color(0xffffcc).convertGammaToLinear(),
     transparent: true,

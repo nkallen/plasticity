@@ -49,7 +49,7 @@ describe('restrictToPlaneThroughPoint(no snap)', () => {
 
 
     test("restriction", () => {
-        const restriction = pointPicker.restrictionFor(constructionPlane) as PlaneSnap;
+        const restriction = pointPicker.restrictionFor(constructionPlane, false) as PlaneSnap;
         expect(restriction).toBeInstanceOf(PlaneSnap);
         expect(restriction.n).toApproximatelyEqual(new THREE.Vector3(0, 0, 1));
         expect(restriction.p).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
@@ -90,7 +90,7 @@ describe('restrictToPlaneThroughPoint(with snap)', () => {
     })
 
     test("restriction", () => {
-        const restriction = pointPicker.restrictionFor(constructionPlane) as OrRestriction<PlaneSnap>;
+        const restriction = pointPicker.restrictionFor(constructionPlane, false) as OrRestriction<PlaneSnap>;
         expect(restriction).toBeInstanceOf(OrRestriction);
         const plane = restriction['underlying'][0];
         expect(plane).toBeInstanceOf(PlaneSnap);
@@ -419,6 +419,18 @@ describe('for curves', () => {
         expect(snaps[11]).toBeInstanceOf(TanTanSnap);
     });
 });
+
+describe('restrictionFor', () => {
+    test('isOrtho=false', () => {
+        const restriction = pointPicker.restrictionFor(constructionPlane, false) as OrRestriction<PlaneSnap>;
+        expect(restriction).toBe(undefined);
+    })
+
+    test('isOrtho=true, all points snap to construction plane', () => {
+        const restriction = pointPicker.restrictionFor(constructionPlane, true) as OrRestriction<PlaneSnap>;
+        expect(restriction).toBe(constructionPlane);
+    })
+})
 
 describe(Presentation, () => {
     test("it gives info for best snap and names other possible snaps", () => {

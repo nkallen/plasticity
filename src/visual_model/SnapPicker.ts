@@ -99,7 +99,7 @@ export class SnapPicker {
     }
 
     private applyRestrictions(pointPicker: Model, viewport: Viewport, result: SnapResult[]) {
-        const restriction = pointPicker.restrictionFor(viewport.constructionPlane);
+        const restriction = pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrtho);
         if (restriction !== undefined) {
             for (const info of result) {
                 const { position, orientation } = restriction.project(info.position);

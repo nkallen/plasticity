@@ -61,11 +61,13 @@ export class Model {
         return this._restrictionSnaps;
     }
 
-    restrictionFor(baseConstructionPlane: PlaneSnap): Restriction | undefined {
+    restrictionFor(baseConstructionPlane: PlaneSnap, isOrtho: boolean): Restriction | undefined {
         if (this._restriction === undefined && this.restrictionPoint !== undefined) {
             return baseConstructionPlane.move(this.restrictionPoint);
         } else if (this._restriction !== undefined && this.restrictionPoint !== undefined) {
             return new OrRestriction([this._restriction, baseConstructionPlane.move(this.restrictionPoint)]);
+        } else if (this._restriction === undefined && isOrtho) {
+            return baseConstructionPlane;
         } else return this._restriction;
     }
 
