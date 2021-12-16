@@ -95,6 +95,8 @@ describe(SymmetryFactory, () => {
         mirror.solid = sphere;
         mirror.origin = new THREE.Vector3();
         mirror.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        mirror.shouldCut = true;
+        mirror.shouldUnion = true;
 
         const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
         const bbox = new THREE.Box3().setFromObject(item);

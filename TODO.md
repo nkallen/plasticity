@@ -56,14 +56,14 @@
 ### Todo
 
 - rr ss gg for screenspace  
-- Mirror around plane  
 
 ### In Progress
 
-- Align camera and construction plane (with space)  
 
 ### Done ✓
 
+- Mirror around plane  
+- Align camera and construction plane (with space)  
 - when isOrtho, all things project  
 - Animated box navigation  
 - speed of gizmos tempered by zoom  

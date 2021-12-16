@@ -180,9 +180,11 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
     get mode() { return this.selection.mode }
 
     add(object: visual.Solid, klass: GConstructor<SymmetryFactory>): { stack: ModifierStack, factory: SymmetryFactory } {
-        const { version2name, name2stack, modified2name } = this;
+        const { version2name, name2stack } = this;
 
         const factory = new klass(this.db, this.materials, this.signals);
+        factory.shouldCut = true;
+        factory.shouldUnion = true;
         switch (this.stateOf(object)) {
             case 'unmodified': {
                 const name = version2name.get(object.simpleName)!;

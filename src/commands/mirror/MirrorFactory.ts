@@ -26,7 +26,7 @@ export class MirrorFactory extends GeometryFactory implements MirrorParams {
     origin!: THREE.Vector3;
     normal!: THREE.Vector3;
     shouldCut = true;
-    shouldUnion = true;
+    shouldUnion = false;
 
     set quaternion(orientation: THREE.Quaternion) {
         this.normal = Z.clone().applyQuaternion(orientation);
@@ -68,7 +68,7 @@ export class SymmetryFactory extends GeometryFactory {
     origin = new THREE.Vector3();
     quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
     shouldCut = true;
-    shouldUnion = true;
+    shouldUnion = false;
 
     set normal(normal: THREE.Vector3) {
         normal = normal.clone().normalize();
@@ -104,7 +104,7 @@ export class SymmetryFactory extends GeometryFactory {
     private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.SymmetrySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
-        const { model, origin, quaternion, names, shouldCut, shouldUnion } = this;
+        const { model, origin, quaternion, names } = this;
 
         const { X, Y, Z } = this;
         Z.set(0, 0, -1).applyQuaternion(quaternion);
@@ -205,13 +205,13 @@ export class SymmetryFactory extends GeometryFactory {
     }
 
     get shellCuttingParams() {
-        const { solid, model, origin, quaternion: quaternion, names } = this;
+        const { origin, quaternion: quaternion, names } = this;
 
         const point1 = new c3d.CartPoint(0, -1000);
         const point2 = new c3d.CartPoint(0, 1000);
         const line = c3d.ActionCurve.Segment(point1, point2);
 
-        const { X, Y, Z } = this;
+        const { X, Z } = this;
         Z.set(0, 0, -1).applyQuaternion(quaternion);
         X.set(1, 0, 0).applyQuaternion(quaternion);
         const z = vec2vec(Z, 1);
@@ -233,6 +233,8 @@ export class SymmetryFactory extends GeometryFactory {
             params: {
                 origin: this.origin,
                 quaternion: this.quaternion,
+                shouldCut: this.shouldCut,
+                shouldUnion: this.shouldUnion,
             },
         }
     }
@@ -244,6 +246,8 @@ export class SymmetryFactory extends GeometryFactory {
         Object.assign(quaternion, json.quaternion);
         this.origin = origin;
         this.quaternion = quaternion;
+        this.shouldCut = json.shouldCut;
+        this.shouldUnion = json.shouldUnion;
     }
 }
 
@@ -261,7 +265,7 @@ export class MultiSymmetryFactory extends GeometryFactory implements MirrorParam
     }
 
     _shouldCut = true;
-    _shouldUnion = true;
+    _shouldUnion = false;
 
     get shouldCut() { return this._shouldCut }
     set shouldCut(shouldCut: boolean) {
