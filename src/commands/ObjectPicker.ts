@@ -59,6 +59,8 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
 }
 
 export class ObjectPicker {
+    min = 1;
+    max = 1;
     readonly mode = new ToggleableSet([], this.editor.signals);
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
         Mesh: { threshold: 0 },
@@ -83,7 +85,13 @@ export class ObjectPicker {
 
         const cancellable = new CancellablePromise<HasSelection>((resolve, reject) => {
             const finish = () => cancellable.finish();
-            signals.objectSelected.add(finish);
+            const { min, max } = this;
+
+            let count = 0;
+            signals.objectSelected.add(() => {
+                count++;
+                if (count >= min && count >= max) finish();
+            });
             disposables.add(new Disposable(() => signals.objectSelected.remove(finish)));
 
             for (const viewport of this.editor.viewports) {

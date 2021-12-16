@@ -1459,6 +1459,7 @@ export class MirrorCommand extends Command {
             }
         }).resource(this);
 
+        picker.max = Number.POSITIVE_INFINITY;
         picker.mode.set(SelectionMode.Face);
         picker.execute(async face => {
             mirror.face = face as visual.Face;

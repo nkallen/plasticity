@@ -93,6 +93,7 @@ export class MirrorOrSymmetryFactory extends GeometryFactory implements MirrorPa
 
 }
 
+// NOTE: This class works with more than just solids, whereas the others don't.
 export class MirrorFactory extends GeometryFactory {
     item!: visual.Item;
     origin!: THREE.Vector3;
