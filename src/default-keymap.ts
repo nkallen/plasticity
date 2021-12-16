@@ -145,6 +145,8 @@ export default {
         "shift-numpad3": "viewport:navigate:left",
         "shift-numpad7": "viewport:navigate:bottom",
 
+        "numpad5": "viewport:toggle-orthographic",
+        
         "space": "viewport:navigate:face",
     },
 
@@ -171,8 +173,6 @@ export default {
 
         "alt-z": "viewport:toggle-x-ray",
         "shift-alt-z": "viewport:toggle-overlays",
-
-        "numpad5": "viewport:toggle-orthographic",
     },
 
     "body:not([gizmo]) ispace-workspace": {

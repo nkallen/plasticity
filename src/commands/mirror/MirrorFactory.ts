@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { TemporaryObject } from '../../editor/GeometryDatabase';
-import * as visual from '../../visual_model/VisualModel';
+import { MaterialOverride, TemporaryObject } from '../../editor/GeometryDatabase';
 import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
-import { GeometryFactory, NoOpError } from '../GeometryFactory';
+import * as visual from '../../visual_model/VisualModel';
+import { GeometryFactory, NoOpError, PhantomInfo } from '../GeometryFactory';
 
 export interface MirrorParams {
     clipping: boolean;
@@ -32,14 +32,21 @@ export class MirrorOrSymmetryFactory extends GeometryFactory implements MirrorPa
         this.symmetry.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, normal);
     }
 
+    get quaternion() { return this.symmetry.quaternion }
     set quaternion(orientation: THREE.Quaternion) {
         this.mirror.normal = Z.clone().applyQuaternion(orientation);
         this.symmetry.quaternion = orientation;
     }
 
+    get origin() { return this.mirror.origin }
     set origin(origin: THREE.Vector3) {
         this.mirror.origin = origin;
         this.symmetry.origin = origin;
+    }
+
+    set face(face: visual.Face) {
+        this.mirror.face = face;
+        this.symmetry.face = face;
     }
 
     calculate() {
@@ -51,12 +58,26 @@ export class MirrorOrSymmetryFactory extends GeometryFactory implements MirrorPa
         if (this.clipping && this.mirror.item instanceof visual.Solid) return this.mirror.item;
         else return [];
     }
+
+    get phantoms() {
+        if (this.clipping && this.mirror.item instanceof visual.Solid) return this.symmetry.phantoms;
+        else return [];
+    }
 }
 
 export class MirrorFactory extends GeometryFactory {
     item!: visual.Item;
     origin!: THREE.Vector3;
     normal!: THREE.Vector3;
+
+    set face(face: visual.Face) {
+        const model = this.db.lookupTopologyItem(face);
+        const placement = model.GetControlPlacement();
+        model.OrientPlacement(placement);
+        placement.Normalize(); // FIXME: a bug in c3d? necessary with curved faces
+        this.origin = point2point(placement.GetOrigin());
+        this.normal = vec2vec(placement.GetAxisY(), 1);
+    }
 
     async calculate() {
         const { origin, normal } = this;
@@ -88,6 +109,16 @@ export class SymmetryFactory extends GeometryFactory {
         }
     }
 
+    set face(face: visual.Face) {
+        const model = this.db.lookupTopologyItem(face);
+        const placement = model.GetControlPlacement();
+        model.OrientPlacement(placement);
+        placement.Normalize(); // FIXME: a bug in c3d? necessary with curved faces
+        this.origin = point2point(placement.GetOrigin());
+        const normal = vec2vec(placement.GetAxisY(), 1);
+        this.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, normal);
+    }
+
     private readonly X = new THREE.Vector3(1, 0, 0);
     private readonly Y = new THREE.Vector3(0, 1, 0);
     private readonly Z = new THREE.Vector3(0, 0, 1);
@@ -95,14 +126,16 @@ export class SymmetryFactory extends GeometryFactory {
     private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.SymmetrySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
-        const { model, origin, quaternion: orientation, names } = this;
+        const { model, origin, quaternion, names } = this;
 
         const { X, Y, Z } = this;
-        Z.set(0, 0, -1).applyQuaternion(orientation);
-        X.set(1, 0, 0).applyQuaternion(orientation);
+        Z.set(0, 0, -1).applyQuaternion(quaternion);
+        X.set(1, 0, 0).applyQuaternion(quaternion);
         const z = vec2vec(Z, 1);
         const x = vec2vec(X, 1);
         const placement = new c3d.Placement3D(point2point(origin), z, x, false);
+
+        this.computePhantom(placement);
 
         try {
             this._isOverlapping = true;
@@ -115,27 +148,36 @@ export class SymmetryFactory extends GeometryFactory {
         }
     }
 
+    private _phantom!: c3d.Solid;
+    private computePhantom(placement: c3d.Placement3D) {
+        const { model, names } = this;
+        const { params } = this.shellCuttingParams;
+        let cut = model;
+        try {
+            const results = c3d.ActionSolid.SolidCutting(cut, c3d.CopyMode.Copy, params);
+            cut = results[0];
+        } catch { }
+        const mirrored = c3d.ActionSolid.MirrorSolid(cut, placement, names);
+        this._phantom = mirrored;
+    }
+
+    get phantoms(): PhantomInfo[] {
+        const phantom = this._phantom;
+        const material = phantom_blue;
+        return [{ phantom, material }];
+    }
+
+    // protected get shouldHideOriginalItemDuringUpdate(): boolean {
+    //     return false;
+    // }
+
     private temp?: TemporaryObject;
 
     async doUpdate() {
-        const { solid, model, origin, quaternion: orientation, names } = this;
+        const { solid, model } = this;
 
         return this.db.optimization(solid, async () => {
-            const point1 = new c3d.CartPoint(0, -1000);
-            const point2 = new c3d.CartPoint(0, 1000);
-            const line = c3d.ActionCurve.Segment(point1, point2);
-
-            const { X, Y, Z } = this;
-            Z.set(0, 0, -1).applyQuaternion(orientation);
-            X.set(1, 0, 0).applyQuaternion(orientation);
-            const z = vec2vec(Z, 1);
-            const x = vec2vec(X, 1);
-            const placement = new c3d.Placement3D(point2point(origin), x, z, false);
-
-            const contour = new c3d.Contour([line], true);
-            const direction = new c3d.Vector3D(0, 0, 0);
-            const flags = new c3d.MergingFlags(true, true);
-            const params = new c3d.ShellCuttingParams(placement, contour, false, direction, 1, flags, true, names);
+            const { Z, params } = this.shellCuttingParams;
             try {
                 const results = c3d.ActionSolid.SolidCutting(model, c3d.CopyMode.Copy, params);
                 const result = results[0];
@@ -160,6 +202,27 @@ export class SymmetryFactory extends GeometryFactory {
         }, () => super.doUpdate());
     }
 
+    get shellCuttingParams() {
+        const { solid, model, origin, quaternion: quaternion, names } = this;
+
+        const point1 = new c3d.CartPoint(0, -1000);
+        const point2 = new c3d.CartPoint(0, 1000);
+        const line = c3d.ActionCurve.Segment(point1, point2);
+
+        const { X, Y, Z } = this;
+        Z.set(0, 0, -1).applyQuaternion(quaternion);
+        X.set(1, 0, 0).applyQuaternion(quaternion);
+        const z = vec2vec(Z, 1);
+        const x = vec2vec(X, 1);
+        const placement = new c3d.Placement3D(point2point(origin), x, z, false);
+
+        const contour = new c3d.Contour([line], true);
+        const direction = new c3d.Vector3D(0, 0, 0);
+        const flags = new c3d.MergingFlags(true, true);
+        const params = new c3d.ShellCuttingParams(placement, contour, false, direction, 1, flags, true, names);
+        return { Z, params };
+    }
+
     get originalItem() { return this.solid }
     protected _isOverlapping = false;
 
@@ -172,7 +235,7 @@ export class SymmetryFactory extends GeometryFactory {
             dataType: 'SymmetryFactory',
             params: {
                 origin: this.origin,
-                orientation: this.quaternion,
+                quaternion: this.quaternion,
             },
         }
     }
@@ -180,9 +243,22 @@ export class SymmetryFactory extends GeometryFactory {
     fromJSON(json: any) {
         const origin = new THREE.Vector3();
         Object.assign(origin, json.origin);
-        const orientation = new THREE.Quaternion();
-        Object.assign(orientation, json.orientation);
+        const quaternion = new THREE.Quaternion();
+        Object.assign(quaternion, json.quaternion);
         this.origin = origin;
-        this.quaternion = orientation;
+        this.quaternion = quaternion;
     }
+}
+
+const mesh_blue = new THREE.MeshBasicMaterial();
+mesh_blue.color.setHex(0x0000ff);
+mesh_blue.opacity = 0.1;
+mesh_blue.transparent = true;
+mesh_blue.fog = false;
+mesh_blue.polygonOffset = true;
+mesh_blue.polygonOffsetFactor = 0.1;
+mesh_blue.polygonOffsetUnits = 1;
+
+const phantom_blue: MaterialOverride = {
+    mesh: mesh_blue
 }

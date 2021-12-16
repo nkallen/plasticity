@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, CurvePointSnap, CurveSnap, PlaneSnap, PointSnap } from "../editor/snaps/Snap";
+import { SelectionMode } from "../selection/ChangeSelectionExecutor";
 import { Finish } from "../util/Cancellable";
 import { decomposeMainName, point2point, vec2vec } from "../util/Conversion";
 import * as visual from "../visual_model/VisualModel";
@@ -1441,7 +1442,7 @@ export class MirrorCommand extends Command {
         const gizmo = new MirrorGizmo(mirror, this.editor);
         const dialog = new MirrorDialog(mirror, this.editor.signals);
         const keyboard = new MirrorKeyboardGizmo(this.editor);
-
+        const picker = new ObjectPicker(this.editor);
         dialog.execute(async params => {
             await mirror.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
@@ -1458,9 +1459,16 @@ export class MirrorCommand extends Command {
             }
         }).resource(this);
 
+        picker.mode.set(SelectionMode.Face);
+        picker.execute(async face => {
+            mirror.face = face as visual.Face;
+            mirror.update();
+        }).resource(this);
+
         await this.finished;
 
-        await mirror.commit();
+        const result = await mirror.commit();
+        this.editor.selection.selected.add(result);
     }
 }
 
@@ -1580,7 +1588,7 @@ export class TrimCommand extends Command {
         this.ensure(() => this.editor.layers.hideFragments());
 
         const picker = new ObjectPicker(this.editor);
-        picker.allowCurves();
+        picker.mode.set(SelectionMode.CurveEdge);
         picker.raycasterParams.Line2.threshold = 30;
         const selection = await picker.execute().resource(this);
         const fragment = selection.curves.first;
@@ -1805,13 +1813,6 @@ export class BridgeCurvesCommand extends Command {
     async execute(): Promise<void> {
         const factory = new BridgeCurvesFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const selected = this.editor.selection.selected;
-
-        // const mask = this.editor.snaps.layers.mask;
-        // this.editor.snaps.layers.disableAll();
-        // this.editor.snaps.layers.enable(Layers.Curve);
-        // this.editor.snaps.layers.enable(Layers.Plane);
-        // this.editor.snaps.layers.enable(Layers.CurvePoint);
-        // this.ensure(() => this.editor.snaps.layers.mask = mask);
 
         const dialog = new BridgeCurvesDialog(factory, this.editor.signals);
         dialog.execute(params => {

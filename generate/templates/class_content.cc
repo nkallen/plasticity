@@ -9,10 +9,10 @@ Napi::Object <%- klass.cppClassName %>::Init(const Napi::Env env, Napi::Object e
     Napi::Function func = DefineClass(env, "<%- klass.jsClassName %>", {
         <%_ for (const func of klass.functions) { _%>
             <%_ if (func.isStatic) { _%>
-        StaticMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),
+        StaticMethod<&<%- klass.cppClassName %>::<%- func.jsName %>>("<%- func.name %>"),
             <%_ } else { _%>
-        InstanceMethod<&<%- klass.cppClassName %>::<%- func.name %>>("<%- func.name %>"),
-        InstanceMethod<&<%- klass.cppClassName %>::<%- func.name %>_async>("<%- func.name %>_async"),
+        InstanceMethod<&<%- klass.cppClassName %>::<%- func.jsName %>>("<%- func.jsName %>"),
+        InstanceMethod<&<%- klass.cppClassName %>::<%- func.jsName %>_async>("<%- func.jsName %>_async"),
             <%_ } _%>
         <%_ } _%>
         <%_ if (!klass.isPOD) { _%>

@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { SymmetryFactory } from "../commands/mirror/MirrorFactory";
 import { ItemSelection } from "../selection/TypedSelection";
-import { HasSelectedAndHovered, ModifiesSelection } from "../selection/SelectionDatabase";
+import { HasSelectedAndHovered, ModifiesSelection, SelectionDatabase, ToggleableSet } from "../selection/SelectionDatabase";
 import { SelectionProxy } from "../selection/SelectionProxy";
 import { GConstructor } from "../util/Util";
 import { DatabaseProxy } from "./DatabaseProxy";
@@ -368,6 +368,10 @@ export default class ModifierManager extends DatabaseProxy implements HasSelecte
         if (this.getByPremodified(item) !== undefined) return 'premodified';
         else if (this.getByModified(item) !== undefined) return 'modified';
         else return 'unmodified';
+    }
+
+    makeTemporary(mode: ToggleableSet, signals: EditorSignals): SelectionDatabase {
+        return this.selection.makeTemporary(mode, signals);
     }
 
     saveToMemento(): ModifierMemento {

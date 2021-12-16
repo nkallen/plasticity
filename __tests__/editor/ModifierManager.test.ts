@@ -360,7 +360,7 @@ describe(ModifierManager, () => {
             expect(manager.selected.solidIds.has(premodified.simpleName)).toBe(true);
 
             const edge = premodified.edges.get(0)
-            manager.selected.addEdge(edge, premodified);
+            manager.selected.addEdge(edge);
             expect(manager.selected.solidIds.has(modified.simpleName)).toBe(true);
             expect(manager.selected.solidIds.has(premodified.simpleName)).toBe(true);
             expect(manager.selected.edgeIds.has(edge.simpleName)).toBe(true);

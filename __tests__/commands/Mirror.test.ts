@@ -1,5 +1,5 @@
-import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import * as THREE from "three";
+import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import LineFactory from "../../src/commands/line/LineFactory";
 import { MirrorFactory, MirrorOrSymmetryFactory, SymmetryFactory } from "../../src/commands/mirror/MirrorFactory";
 import SphereFactory from "../../src/commands/sphere/SphereFactory";

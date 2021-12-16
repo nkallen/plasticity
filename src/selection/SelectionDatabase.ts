@@ -369,10 +369,13 @@ export interface HasSelectedAndHovered {
     readonly mode: ToggleableSet;
     readonly selected: ModifiesSelection;
     readonly hovered: ModifiesSelection;
+    makeTemporary(mode: ToggleableSet, signals: EditorSignals): SelectionDatabase;
 }
 
 export class SelectionDatabase implements HasSelectedAndHovered {
     private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+
     private readonly selectedSignals: SignalLike = {
         objectRemovedFromDatabase: this.signals.objectRemoved,
         objectAdded: this.signals.objectSelected,
@@ -386,26 +389,26 @@ export class SelectionDatabase implements HasSelectedAndHovered {
         selectionChanged: this.signals.selectionChanged
     }
     readonly selected = new Selection(this.db, this.selectedSignals);
-    readonly hovered = new Selection(this.db, this.hoveredSignals);
+    readonly hovered: Selection;
 
     constructor(
         readonly db: DatabaseLike,
         readonly materials: MaterialDatabase,
         readonly signals: EditorSignals,
-        readonly mode = new ToggleableSet(SelectionModeAll, signals)
+        readonly mode = new ToggleableSet(SelectionModeAll, signals),
+        hovered?: Selection
     ) {
         this.clearHovered = this.clearHovered.bind(this);
         signals.historyChanged.add(this.clearHovered);
+        this.hovered = hovered ?? new Selection(this.db, this.hoveredSignals);
     }
 
     // Hover state is not preserved in undo history. So when the user performs undo/redo
     // the data could potentially be invalid. Hover state is volatile. Just clear it without
     // any notifications.
-    private clearHovered() {
-        this.hovered.clearSilently();
-    }
+    private clearHovered() { this.hovered.clearSilently() }
 
-    dispose() {
-        this.disposable.dispose();
+    makeTemporary(mode: ToggleableSet, signals: EditorSignals): SelectionDatabase {
+        return new SelectionDatabase(this.db, this.materials, signals, mode, this.hovered)
     }
 }

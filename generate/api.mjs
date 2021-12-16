@@ -693,6 +693,10 @@ export default {
                 "void ConvertAllToTriangles()",
                 "bool IsClosed()",
                 "MbGrid * AddGrid()",
+                {
+                    signature: "void AddGrid(MbGrid & gr)",
+                    jsName: "AddExistingGrid",
+                },
                 { signature: "void GetGrids(RPArray<MbGrid> & result)", result: isReturn },
                 "void CreateGridSearchTrees(bool forcedNew = false)",
                 {
