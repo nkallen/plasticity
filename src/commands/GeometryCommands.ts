@@ -43,7 +43,7 @@ import LineFactory, { PhantomLineFactory } from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
 import { AxisHelper } from "./MiniGizmos";
 import { MirrorDialog } from "./mirror/MirrorDialog";
-import { MirrorOrSymmetryFactory } from "./mirror/MirrorFactory";
+import { MirrorFactory, MirrorFactoryLike, MultiSymmetryFactory, SymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { MirrorKeyboardGizmo } from "./mirror/MirrorKeyboardGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
@@ -1433,10 +1433,20 @@ export class ExtrudeCommand extends Command {
 
 export class MirrorCommand extends Command {
     async execute(): Promise<void> {
-        const solid = this.editor.selection.selected.solids.first;
-        const curve = this.editor.selection.selected.curves.first;
-        const mirror = new MirrorOrSymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        mirror.item = solid ?? curve;
+        const selected = this.editor.selection.selected;
+        if (selected.solids.size > 0) {
+            const command = new MirrorSolidCommand(this.editor);
+            this.editor.enqueue(command, false)
+        } else if (selected.curves.size > 0) {
+            const command = new MirrorItemCommand(this.editor);
+            this.editor.enqueue(command, false)
+        }
+    }
+}
+
+abstract class AbstractMirrorCommand extends Command {
+    async execute(): Promise<void> {
+        const mirror = await this.makeFactory();
         mirror.origin = new THREE.Vector3();
 
         const gizmo = new MirrorGizmo(mirror, this.editor);
@@ -1462,7 +1472,8 @@ export class MirrorCommand extends Command {
         picker.max = Number.POSITIVE_INFINITY;
         picker.mode.set(SelectionMode.Face);
         picker.execute(async face => {
-            mirror.face = face as visual.Face;
+            if (!(face instanceof visual.Face)) throw new Error("invalid state");
+            mirror.face = face;
             mirror.update();
         }).resource(this);
 
@@ -1471,14 +1482,35 @@ export class MirrorCommand extends Command {
         const result = await mirror.commit();
         this.editor.selection.selected.add(result);
     }
+
+    protected abstract makeFactory(): Promise<MirrorFactoryLike>;
+}
+
+export class MirrorSolidCommand extends AbstractMirrorCommand {
+    protected async makeFactory(): Promise<MirrorFactoryLike> {
+        const { editor } = this;
+        const mirror = new MultiSymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        mirror.solids = [...editor.selection.selected.solids];
+
+        return mirror;
+    }
+}
+
+export class MirrorItemCommand extends AbstractMirrorCommand {
+    protected async makeFactory(): Promise<MirrorFactoryLike> {
+        const { editor } = this;
+        const mirror = new MirrorFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        mirror.item = editor.selection.selected.curves.first;
+
+        return mirror;
+    }
 }
 
 export class FreestyleMirrorCommand extends Command {
     async execute(): Promise<void> {
         const solid = this.editor.selection.selected.solids.first;
-        const curve = this.editor.selection.selected.curves.first;
-        const mirror = new MirrorOrSymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        mirror.item = solid ?? curve;
+        const mirror = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        mirror.solid = solid;
 
         const pointPicker = new PointPicker(this.editor);
         pointPicker.straightSnaps.delete(AxisSnap.Z);

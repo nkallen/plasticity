@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import LineFactory from "../../src/commands/line/LineFactory";
-import { MirrorFactory, MirrorOrSymmetryFactory, SymmetryFactory } from "../../src/commands/mirror/MirrorFactory";
+import { MirrorFactory, MultiSymmetryFactory, SymmetryFactory } from "../../src/commands/mirror/MirrorFactory";
 import SphereFactory from "../../src/commands/sphere/SphereFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -190,17 +190,18 @@ describe(SymmetryFactory, () => {
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, 0, -1));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
     })
-
 });
 
-describe(MirrorOrSymmetryFactory, () => {
-    let mirror: MirrorOrSymmetryFactory;
 
-    beforeEach(() => {
-        mirror = new MirrorOrSymmetryFactory(db, materials, signals);
+describe(MultiSymmetryFactory, () => {
+    let mirror: MultiSymmetryFactory;
+
+    beforeEach(async () => {
+        mirror = new MultiSymmetryFactory(db, materials, signals);
     })
 
     let box: visual.Solid;
+    let sphere: visual.Solid;
 
     beforeEach(async () => {
         const makeBox = new ThreePointBoxFactory(db, materials, signals);
@@ -209,45 +210,32 @@ describe(MirrorOrSymmetryFactory, () => {
         makeBox.p3 = new THREE.Vector3(1, 1, 0);
         makeBox.p4 = new THREE.Vector3(1, 1, 1);
         box = await makeBox.commit() as visual.Solid;
-
-        bbox.setFromObject(box);
-        bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
-    });
-
-
-    test('solids cut=false, union=false', async () => {
-        mirror.origin = new THREE.Vector3();
-        mirror.item = box;
-        mirror.normal = new THREE.Vector3(0, 1, 0);
-        mirror.shouldCut = false;
-        mirror.shouldUnion = false;
-
-        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(2);
-        bbox.setFromObject(item);
-        bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, -0.5, 0.5));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 0, 1));
+        const makeSphere = new SphereFactory(db, materials, signals);
+        makeSphere.center = new THREE.Vector3(0.5, 0, 0);
+        makeSphere.radius = 1;
+        sphere = await makeSphere.commit() as visual.Solid;
     })
 
-    test('solids cut=true, union=true', async () => {
+    test('multiple items (solids cut=true, union=true)', async () => {
+        mirror.solids = [sphere, box];
         mirror.origin = new THREE.Vector3();
-        mirror.item = box;
         mirror.normal = new THREE.Vector3(0, 1, 0);
         mirror.shouldCut = true;
         mirror.shouldUnion = true;
 
-        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(1);
-        bbox.setFromObject(item);
+        const items = await mirror.commit() as visual.Solid[];
+        expect(items.length).toBe(2);
+        expect(db.visibleObjects.length).toBe(2);
+        bbox.setFromObject(items[0]);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, -1, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
+
+        bbox.setFromObject(items[1]);
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0.5));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
     })
-
-})
+});

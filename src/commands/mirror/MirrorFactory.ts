@@ -10,93 +10,27 @@ export interface MirrorParams {
     shouldUnion: boolean;
     origin: THREE.Vector3;
     quaternion: THREE.Quaternion;
+    normal: THREE.Vector3;
+    face: visual.Face;
+}
+
+export interface MirrorFactoryLike extends GeometryFactory, MirrorParams {
 }
 
 const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
-export class MirrorOrSymmetryFactory extends GeometryFactory implements MirrorParams {
-    private readonly mirror = new MirrorFactory(this.db, this.materials, this.signals);
-    private readonly symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
-    private _shouldCut = true;
-    private _shouldUnion = true;
-
-    set item(item: visual.Item) {
-        this.mirror.item = item;
-        if (item instanceof visual.Solid) {
-            this.symmetry.solid = item;
-        }
-    }
-
-    get shouldCut() { return this._shouldCut }
-    set shouldCut(shouldCut: boolean) {
-        this._shouldCut = shouldCut;
-        this.symmetry.shouldCut = shouldCut;
-    }
-
-    get shouldUnion() { return this._shouldUnion }
-    set shouldUnion(shouldUnion: boolean) {
-        this._shouldUnion = shouldUnion;
-        this.symmetry.shouldUnion = shouldUnion;
-    }
-
-    set normal(normal: THREE.Vector3) {
-        normal = normal.clone().normalize();
-        this.mirror.normal = normal;
-        this.symmetry.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, normal);
-    }
-
-    get quaternion() { return this.symmetry.quaternion }
-    set quaternion(orientation: THREE.Quaternion) {
-        this.mirror.normal = Z.clone().applyQuaternion(orientation);
-        this.symmetry.quaternion = orientation;
-    }
-
-    get origin() { return this.mirror.origin }
-    set origin(origin: THREE.Vector3) {
-        this.mirror.origin = origin;
-        this.symmetry.origin = origin;
-    }
-
-    set face(face: visual.Face) {
-        this.mirror.face = face;
-        this.symmetry.face = face;
-    }
-
-    calculate() {
-        if (this.shouldSymmetry) return this.symmetry.calculate();
-        else return this.mirror.calculate();
-    }
-
-    get originalItem() {
-        if (this.shouldSymmetry) return this.mirror.item;
-        else return [];
-    }
-
-    get phantoms() {
-        if (this.shouldSymmetry) return this.symmetry.phantoms;
-        else return [];
-    }
-
-    protected get shouldHideOriginalItemDuringUpdate(): boolean {
-        return this.shouldSymmetry ? this.symmetry.shouldHideOriginalItemDuringUpdate : this.mirror.shouldHideOriginalItemDuringUpdate;
-    }
-
-    protected get shouldRemoveOriginalItemOnCommit(): boolean {
-        return this.shouldSymmetry ? this.symmetry.shouldRemoveOriginalItemOnCommit : this.mirror.shouldRemoveOriginalItemOnCommit;
-    }
-
-    
-    get shouldSymmetry() {
-        return (this.shouldCut || this.shouldUnion) && this.mirror.item instanceof visual.Solid;
-    }
-}
-
 // NOTE: This class works with more than just solids, whereas the others don't.
-export class MirrorFactory extends GeometryFactory {
+export class MirrorFactory extends GeometryFactory implements MirrorParams {
     item!: visual.Item;
     origin!: THREE.Vector3;
     normal!: THREE.Vector3;
+    shouldCut = true;
+    shouldUnion = true;
+
+    set quaternion(orientation: THREE.Quaternion) {
+        this.normal = Z.clone().applyQuaternion(orientation);
+    }
 
     set face(face: visual.Face) {
         const model = this.db.lookupTopologyItem(face);
@@ -125,7 +59,7 @@ export class MirrorFactory extends GeometryFactory {
         return super.shouldHideOriginalItemDuringUpdate;
     }
 
-     get shouldRemoveOriginalItemOnCommit(): boolean {
+    get shouldRemoveOriginalItemOnCommit(): boolean {
         return super.shouldRemoveOriginalItemOnCommit;
     }
 }
@@ -197,9 +131,9 @@ export class SymmetryFactory extends GeometryFactory {
             if (this.shouldCut) {
                 const { params } = this.shellCuttingParams;
                 try {
-                const results = c3d.ActionSolid.SolidCutting(result, c3d.CopyMode.Copy, params);
-                result = results[0];
-                original = result;
+                    const results = c3d.ActionSolid.SolidCutting(result, c3d.CopyMode.Copy, params);
+                    result = results[0];
+                    original = result;
                 } catch { }
             }
             if (this.shouldUnion) {
@@ -231,11 +165,11 @@ export class SymmetryFactory extends GeometryFactory {
         return [{ phantom, material }];
     }
 
-     get shouldHideOriginalItemDuringUpdate(): boolean {
+    get shouldHideOriginalItemDuringUpdate(): boolean {
         return this.shouldUnion;
     }
 
-     get shouldRemoveOriginalItemOnCommit(): boolean {
+    get shouldRemoveOriginalItemOnCommit(): boolean {
         return this.shouldUnion;
     }
 
@@ -293,7 +227,6 @@ export class SymmetryFactory extends GeometryFactory {
 
     get originalItem() { return this.solid }
 
-
     toJSON() {
         return {
             dataType: 'SymmetryFactory',
@@ -312,6 +245,59 @@ export class SymmetryFactory extends GeometryFactory {
         this.origin = origin;
         this.quaternion = quaternion;
     }
+}
+
+export class MultiSymmetryFactory extends GeometryFactory implements MirrorParams {
+    private individuals!: SymmetryFactory[];
+
+    set solids(solids: visual.Solid[]) {
+        const individuals = [];
+        for (const solid of solids) {
+            const individual = new SymmetryFactory(this.db, this.materials, this.signals);
+            individual.solid = solid;
+            individuals.push(individual);
+        }
+        this.individuals = individuals;
+    }
+
+    _shouldCut = true;
+    _shouldUnion = true;
+
+    get shouldCut() { return this._shouldCut }
+    set shouldCut(shouldCut: boolean) {
+        this._shouldCut = shouldCut;
+        this.individuals.forEach(i => i.shouldCut = shouldCut)
+    }
+
+    get shouldUnion() { return this._shouldUnion }
+    set shouldUnion(shouldUnion: boolean) {
+        this._shouldUnion = shouldUnion;
+        this.individuals.forEach(i => i.shouldUnion = shouldUnion)
+    }
+    set origin(origin: THREE.Vector3) { this.individuals.forEach(i => i.origin = origin) }
+    set quaternion(quaternion: THREE.Quaternion) { this.individuals.forEach(i => i.quaternion = quaternion) }
+    set normal(normal: THREE.Vector3) { this.individuals.forEach(i => i.normal = normal) }
+    set face(face: visual.Face) { this.individuals.forEach(i => i.face = face) }
+
+    async calculate() {
+        const { individuals } = this;
+        const result = [];
+        for (const individual of individuals) {
+            result.push(individual.calculate());
+        }
+        return Promise.all(result);
+    }
+
+    protected get phantoms(): PhantomInfo[] {
+        return this.individuals.map(i => i.phantoms).flat();
+    }
+    
+    protected get originalItem() {
+        return this.individuals.map(i => i.originalItem);
+    }
+
+    get shouldHideOriginalItemDuringUpdate() { return this._shouldUnion }
+    get shouldRemoveOriginalItemOnCommit() { return this._shouldUnion }
 }
 
 const mesh_blue = new THREE.MeshBasicMaterial();

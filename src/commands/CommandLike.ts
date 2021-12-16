@@ -1,15 +1,15 @@
 import * as THREE from 'three';
-import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import { ModifierStack } from '../editor/ModifierManager';
+import { ChangeSelectionModifier } from '../selection/ChangeSelectionExecutor';
+import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import * as visual from "../visual_model/VisualModel";
 import Command, * as cmd from "./Command";
 import { ExportDialog } from './export/ExportDialog';
 import { ExportFactory } from './export/ExportFactory';
-import { MirrorOrSymmetryFactory, SymmetryFactory } from './mirror/MirrorFactory';
+import { SymmetryFactory } from './mirror/MirrorFactory';
 import { MirrorGizmo } from './mirror/MirrorGizmo';
 import { RebuildFactory } from "./rebuild/RebuildFactory";
 import { RebuildKeyboardGizmo } from './rebuild/RebuildKeyboardGizmo';
-import { ChangeSelectionModifier } from '../selection/ChangeSelectionExecutor';
 
 /**
  * These aren't typical commands, with a set of steps and gizmos to perform a geometrical operation.
@@ -146,8 +146,8 @@ export class AddModifierCommand extends CommandLike {
         const { modifiers, selection } = this.editor;
         const solid = selection.selected.solids.first;
 
-        const preview = new MirrorOrSymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        preview.item = solid;
+        const preview = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        preview.solid = solid;
         preview.origin = new THREE.Vector3();
 
         const gizmo = new MirrorGizmo(preview, this.editor);
@@ -155,7 +155,6 @@ export class AddModifierCommand extends CommandLike {
             preview.update();
         }).resource(this);
         preview.cancel();
-
 
         const stack_factory = modifiers.add(solid, SymmetryFactory);
         let stack = stack_factory.stack;
