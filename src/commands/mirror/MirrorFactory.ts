@@ -90,7 +90,6 @@ export class MirrorOrSymmetryFactory extends GeometryFactory implements MirrorPa
     get shouldSymmetry() {
         return (this.shouldCut || this.shouldUnion) && this.mirror.item instanceof visual.Solid;
     }
-
 }
 
 // NOTE: This class works with more than just solids, whereas the others don't.
@@ -136,6 +135,11 @@ export class SymmetryFactory extends GeometryFactory {
     quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
     shouldCut = true;
     shouldUnion = true;
+
+    set normal(normal: THREE.Vector3) {
+        normal = normal.clone().normalize();
+        this.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, normal);
+    }
 
     private model!: c3d.Solid;
     private _solid!: visual.Solid;

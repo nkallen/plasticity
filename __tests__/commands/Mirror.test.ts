@@ -20,6 +20,9 @@ beforeEach(() => {
     db = new GeometryDatabase(materials, signals);
 })
 
+const bbox = new THREE.Box3();
+const center = new THREE.Vector3();
+
 describe(MirrorFactory, () => {
     let mirror: MirrorFactory;
 
@@ -77,11 +80,11 @@ const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 
 describe(SymmetryFactory, () => {
-    let symmetry: SymmetryFactory;
+    let mirror: SymmetryFactory;
     let sphere: visual.Solid;
 
     beforeEach(async () => {
-        symmetry = new SymmetryFactory(db, materials, signals);
+        mirror = new SymmetryFactory(db, materials, signals);
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3(0.5, 0, 0);
         makeSphere.radius = 1;
@@ -89,11 +92,11 @@ describe(SymmetryFactory, () => {
     })
 
     test('commit', async () => {
-        symmetry.solid = sphere;
-        symmetry.origin = new THREE.Vector3();
-        symmetry.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        mirror.solid = sphere;
+        mirror.origin = new THREE.Vector3();
+        mirror.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
 
-        const item = await symmetry.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
@@ -105,11 +108,11 @@ describe(SymmetryFactory, () => {
     });
 
     test('update', async () => {
-        symmetry.solid = sphere;
-        symmetry.origin = new THREE.Vector3();
-        symmetry.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
+        mirror.solid = sphere;
+        mirror.origin = new THREE.Vector3();
+        mirror.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
 
-        await symmetry.update();
+        await mirror.update();
         expect(db.temporaryObjects.children.length).toBe(1);
 
         const item = db.temporaryObjects.children[0];
@@ -123,6 +126,71 @@ describe(SymmetryFactory, () => {
 
         expect(db.visibleObjects.length).toBe(1);
     });
+
+    test('solids cut=false, union=false', async () => {
+        mirror.origin = new THREE.Vector3();
+        mirror.solid = sphere;
+        mirror.normal = new THREE.Vector3(0, 1, 0);
+        mirror.shouldCut = false;
+        mirror.shouldUnion = false;
+
+        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(2);
+        bbox.setFromObject(item);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, -1, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
+    })
+
+    test('solids cut=true, union=true', async () => {
+        mirror.origin = new THREE.Vector3();
+        mirror.solid = sphere;
+        mirror.normal = new THREE.Vector3(0, 1, 0);
+        mirror.shouldCut = true;
+        mirror.shouldUnion = true;
+
+        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(1);
+        bbox.setFromObject(item);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, -1, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
+    })
+
+    test('solids cut=false, union=true', async () => {
+        mirror.origin = new THREE.Vector3();
+        mirror.solid = sphere;
+        mirror.normal = new THREE.Vector3(0, 1, 0);
+        mirror.shouldCut = false;
+        mirror.shouldUnion = true;
+
+        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(1);
+        bbox.setFromObject(item);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, -1, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
+    })
+
+    test('solids cut=true, union=false', async () => {
+        mirror.origin = new THREE.Vector3();
+        mirror.solid = sphere;
+        mirror.normal = new THREE.Vector3(0, 1, 0);
+        mirror.shouldCut = true;
+        mirror.shouldUnion = false;
+
+        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        expect(db.visibleObjects.length).toBe(2);
+        bbox.setFromObject(item);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-0.5, 0, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
+    })
+
 });
 
 describe(MirrorOrSymmetryFactory, () => {
@@ -133,8 +201,6 @@ describe(MirrorOrSymmetryFactory, () => {
     })
 
     let box: visual.Solid;
-    const bbox = new THREE.Box3();
-    const center = new THREE.Vector3();
 
     beforeEach(async () => {
         const makeBox = new ThreePointBoxFactory(db, materials, signals);
@@ -149,8 +215,8 @@ describe(MirrorOrSymmetryFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0.5, 0.5));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, 0, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
-
     });
+
 
     test('solids cut=false, union=false', async () => {
         mirror.origin = new THREE.Vector3();
@@ -182,38 +248,6 @@ describe(MirrorOrSymmetryFactory, () => {
         expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0.5));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
         expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
-    })
-
-    test('solids cut=false, union=true', async () => {
-        mirror.origin = new THREE.Vector3();
-        mirror.item = box;
-        mirror.normal = new THREE.Vector3(0, 1, 0);
-        mirror.shouldCut = false;
-        mirror.shouldUnion = true;
-
-        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(1);
-        bbox.setFromObject(item);
-        bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, 0, 0.5));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 1, 1));
-    })
-
-    test('solids cut=true, union=false', async () => {
-        mirror.origin = new THREE.Vector3();
-        mirror.item = box;
-        mirror.normal = new THREE.Vector3(0, 1, 0);
-        mirror.shouldCut = true;
-        mirror.shouldUnion = false;
-
-        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
-        expect(db.visibleObjects.length).toBe(2);
-        bbox.setFromObject(item);
-        bbox.getCenter(center);
-        expect(center).toApproximatelyEqual(new THREE.Vector3(0.5, -0.5, 0.5));
-        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, 0));
-        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1, 0, 1));
     })
 
 })
