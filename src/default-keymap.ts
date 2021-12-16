@@ -146,7 +146,7 @@ export default {
         "shift-numpad7": "viewport:navigate:bottom",
 
         "numpad5": "viewport:toggle-orthographic",
-        
+
         "space": "viewport:navigate:face",
     },
 
@@ -190,7 +190,11 @@ export default {
         "x": "command:delete",
         "delete": "command:delete",
         "backspace": "command:delete",
-        "q": "command:rebuild",
+        "shift-q": "command:rebuild",
+
+        "q q": "command:union",
+        "q w": "command:difference",
+        "q e": "command:intersect",
 
         "h": "command:hide-selected",
         "shift-h": "command:hide-unselected",

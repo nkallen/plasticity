@@ -6,7 +6,8 @@ import * as visual from '../../visual_model/VisualModel';
 import { GeometryFactory, NoOpError, PhantomInfo } from '../GeometryFactory';
 
 export interface MirrorParams {
-    clipping: boolean;
+    shouldCut: boolean;
+    shouldUnion: boolean;
     origin: THREE.Vector3;
     quaternion: THREE.Quaternion;
 }
@@ -17,13 +18,26 @@ const Z = new THREE.Vector3(0, 0, 1);
 export class MirrorOrSymmetryFactory extends GeometryFactory implements MirrorParams {
     private readonly mirror = new MirrorFactory(this.db, this.materials, this.signals);
     private readonly symmetry = new SymmetryFactory(this.db, this.materials, this.signals);
-    clipping = true;
+    private _shouldCut = true;
+    private _shouldUnion = true;
 
     set item(item: visual.Item) {
         this.mirror.item = item;
         if (item instanceof visual.Solid) {
             this.symmetry.solid = item;
         }
+    }
+
+    get shouldCut() { return this._shouldCut }
+    set shouldCut(shouldCut: boolean) {
+        this._shouldCut = shouldCut;
+        this.symmetry.shouldCut = shouldCut;
+    }
+
+    get shouldUnion() { return this._shouldUnion }
+    set shouldUnion(shouldUnion: boolean) {
+        this._shouldUnion = shouldUnion;
+        this.symmetry.shouldUnion = shouldUnion;
     }
 
     set normal(normal: THREE.Vector3) {
@@ -50,19 +64,33 @@ export class MirrorOrSymmetryFactory extends GeometryFactory implements MirrorPa
     }
 
     calculate() {
-        if (this.clipping && this.mirror.item instanceof visual.Solid) return this.symmetry.calculate();
+        if (this.shouldSymmetry) return this.symmetry.calculate();
         else return this.mirror.calculate();
     }
 
     get originalItem() {
-        if (this.clipping && this.mirror.item instanceof visual.Solid) return this.mirror.item;
+        if (this.shouldSymmetry) return this.mirror.item;
         else return [];
     }
 
     get phantoms() {
-        if (this.clipping && this.mirror.item instanceof visual.Solid) return this.symmetry.phantoms;
+        if (this.shouldSymmetry) return this.symmetry.phantoms;
         else return [];
     }
+
+    protected get shouldHideOriginalItemDuringUpdate(): boolean {
+        return this.shouldSymmetry ? this.symmetry.shouldHideOriginalItemDuringUpdate : this.mirror.shouldHideOriginalItemDuringUpdate;
+    }
+
+    protected get shouldRemoveOriginalItemOnCommit(): boolean {
+        return this.shouldSymmetry ? this.symmetry.shouldRemoveOriginalItemOnCommit : this.mirror.shouldRemoveOriginalItemOnCommit;
+    }
+
+    
+    get shouldSymmetry() {
+        return (this.shouldCut || this.shouldUnion) && this.mirror.item instanceof visual.Solid;
+    }
+
 }
 
 export class MirrorFactory extends GeometryFactory {
@@ -91,11 +119,22 @@ export class MirrorFactory extends GeometryFactory {
 
         return transformed;
     }
+
+
+    get shouldHideOriginalItemDuringUpdate(): boolean {
+        return super.shouldHideOriginalItemDuringUpdate;
+    }
+
+     get shouldRemoveOriginalItemOnCommit(): boolean {
+        return super.shouldRemoveOriginalItemOnCommit;
+    }
 }
 
 export class SymmetryFactory extends GeometryFactory {
     origin = new THREE.Vector3();
     quaternion = new THREE.Quaternion().setFromUnitVectors(Z, X);
+    shouldCut = true;
+    shouldUnion = true;
 
     private model!: c3d.Solid;
     private _solid!: visual.Solid;
@@ -126,7 +165,7 @@ export class SymmetryFactory extends GeometryFactory {
     private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.SymmetrySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
-        const { model, origin, quaternion, names } = this;
+        const { model, origin, quaternion, names, shouldCut, shouldUnion } = this;
 
         const { X, Y, Z } = this;
         Z.set(0, 0, -1).applyQuaternion(quaternion);
@@ -137,13 +176,31 @@ export class SymmetryFactory extends GeometryFactory {
 
         this.computePhantom(placement);
 
-        try {
-            this._isOverlapping = true;
-            return c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names);
-        } catch (e) {
-            this._isOverlapping = false;
+        if (this.shouldCut && this.shouldUnion) {
+            try {
+                return c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names);
+            } catch (e) {
+                const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
+                const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
+                return result;
+            }
+        } else {
+            let original = model;
+            let result = model;
             const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
-            const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
+            result = mirrored;
+            if (this.shouldCut) {
+                const { params } = this.shellCuttingParams;
+                try {
+                const results = c3d.ActionSolid.SolidCutting(result, c3d.CopyMode.Copy, params);
+                result = results[0];
+                original = result;
+                } catch { }
+            }
+            if (this.shouldUnion) {
+                const { result: unioned } = c3d.ActionSolid.UnionResult(result, c3d.CopyMode.Copy, [original], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
+                result = unioned;
+            }
             return result;
         }
     }
@@ -153,10 +210,12 @@ export class SymmetryFactory extends GeometryFactory {
         const { model, names } = this;
         const { params } = this.shellCuttingParams;
         let cut = model;
-        try {
-            const results = c3d.ActionSolid.SolidCutting(cut, c3d.CopyMode.Copy, params);
-            cut = results[0];
-        } catch { }
+        if (this.shouldCut) {
+            try {
+                const results = c3d.ActionSolid.SolidCutting(cut, c3d.CopyMode.Copy, params);
+                cut = results[0];
+            } catch { }
+        }
         const mirrored = c3d.ActionSolid.MirrorSolid(cut, placement, names);
         this._phantom = mirrored;
     }
@@ -167,9 +226,13 @@ export class SymmetryFactory extends GeometryFactory {
         return [{ phantom, material }];
     }
 
-    // protected get shouldHideOriginalItemDuringUpdate(): boolean {
-    //     return false;
-    // }
+     get shouldHideOriginalItemDuringUpdate(): boolean {
+        return this.shouldUnion;
+    }
+
+     get shouldRemoveOriginalItemOnCommit(): boolean {
+        return this.shouldUnion;
+    }
 
     private temp?: TemporaryObject;
 
@@ -224,11 +287,7 @@ export class SymmetryFactory extends GeometryFactory {
     }
 
     get originalItem() { return this.solid }
-    protected _isOverlapping = false;
 
-    // get shouldRemoveOriginalItem() {
-    //     return this._isOverlapping;
-    // }
 
     toJSON() {
         return {

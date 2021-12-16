@@ -9,15 +9,19 @@ export class MirrorDialog extends AbstractDialog<MirrorParams> {
     }
 
     render() {
-        const { clipping } = this.params;
+        const { shouldUnion, shouldCut } = this.params;
 
         render(
             <>
                 <h4>Mirror</h4>
                 <ul>
                     <li>
-                        <label for="clipping">Clipping </label>
-                        <input type="checkbox" name="clipping" checked={clipping} onClick={this.onChange}></input>
+                        <label for="shouldCut">shouldCut</label>
+                        <input type="checkbox" name="shouldCut" checked={shouldCut} onClick={this.onChange}></input>
+                    </li>
+                    <li>
+                        <label for="shouldUnion">Union</label>
+                        <input type="checkbox" name="shouldUnion" checked={shouldUnion} onClick={this.onChange}></input>
                     </li>
                 </ul>
 
