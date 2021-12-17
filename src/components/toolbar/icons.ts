@@ -83,6 +83,7 @@ icons.set(cmd.RevolutionCommand, line);
 icons.set(cmd.ModifyContourCommand, changePoint);
 icons.set(cmd.ShellCommand, changePoint);
 icons.set(cmd.RadialArrayCommand, radialArray);
+icons.set(cmd.ExtensionSolidCommand, radialArray);
 
 icons.set(c3d.ElementarySolid, box);
 icons.set(c3d.FilletSolid, fillet);
@@ -139,6 +140,7 @@ tooltips.set(cmd.RevolutionCommand, "Revolve");
 tooltips.set(cmd.ModifyContourCommand, "ModifyCurve");
 tooltips.set(cmd.ShellCommand, "Shell (thicken) solid or stroke (thicken) curve");
 tooltips.set(cmd.RadialArrayCommand, "Radial array");
+tooltips.set(cmd.ExtensionSolidCommand, "Extend face");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");

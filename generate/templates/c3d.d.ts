@@ -502,4 +502,20 @@ declare module "*c3d.node" {
         SmoothG3 =  4, ///< \ru Гладкое сопряжение по второй производной касательной.               \en The smooth conjugation by the second derivative of the tangent.                    //-V112 
       };
     
+    declare enum ExtensionType {
+        same = 0,           ///< \ru По той же поверхности. \en Along the same surface.
+        tangent,            ///< \ru По касательной к краю. \en Along tangent to the edge.
+        direction,          ///< \ru По направлению. \en Along the direction.
+    };
+    
+    declare enum ExtensionWay {
+        distance = -2,      ///< \ru Продолжить на расстояние. \en Prolong on the distance.
+        vertex = -1,      ///< \ru Продолжить до вершины. \en Prolong to the vertex.
+        shell = 0,      ///< \ru Продолжить до оболочки. \en Prolong to the shell.
+    };
+    
+    declare enum LateralKind {
+        normal = 0,         ///< \ru По нормали к кромке. \en Along the normal to boundary.
+        prolong,            ///< \ru Продлить исходные рёбра. \en Extend the initial edges.
+    };
 }

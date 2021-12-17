@@ -700,6 +700,23 @@ enum MatingType {
     SmoothG3 = 4, ///< \ru Гладкое сопряжение по второй производной касательной.               \en The smooth conjugation by the second derivative of the tangent.                    //-V112 
 };
 
+enum ExtensionType {
+    same = 0,           ///< \ru По той же поверхности. \en Along the same surface.
+    tangent,            ///< \ru По касательной к краю. \en Along tangent to the edge.
+    direction,          ///< \ru По направлению. \en Along the direction.
+};
+
+enum ExtensionWay {
+    distance = -2,      ///< \ru Продолжить на расстояние. \en Prolong on the distance.
+    vertex = -1,      ///< \ru Продолжить до вершины. \en Prolong to the vertex.
+    shell = 0,      ///< \ru Продолжить до оболочки. \en Prolong to the shell.
+};
+
+enum LateralKind {
+    normal = 0,         ///< \ru По нормали к кромке. \en Along the normal to boundary.
+    prolong,            ///< \ru Продлить исходные рёбра. \en Extend the initial edges.
+};
+
 Object.assign(c3d, {
     ESides,
     StepType,
@@ -728,5 +745,8 @@ Object.assign(c3d, {
     MLTipType,
     SweptWay,
     MatingType,
-    SurfaceProlongType
+    SurfaceProlongType,
+    ExtensionType,
+    ExtensionWay,
+    LateralKind
 });

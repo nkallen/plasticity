@@ -77,6 +77,7 @@ import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
 import { FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './translate/TranslateFactory';
+import ExtensionShellFactory from "./extend/ExtensionShellFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -580,7 +581,7 @@ export class CenterRectangleCommand extends Command {
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         rect.p1 = p1;
         pointPicker.restrictToPlaneThroughPoint(p1, snap);
-        
+
         await pointPicker.execute(({ point: p2, info: { orientation } }) => {
             rect.p2 = p2;
             rect.orientation = orientation;
@@ -693,7 +694,7 @@ export class CenterBoxCommand extends Command {
         pointPicker.straightSnaps.add(new AxisSnap("Square", new THREE.Vector3(1, -1, 0)));
         const { point: p1, info: { snap } } = await pointPicker.execute().resource(this);
         pointPicker.restrictToPlaneThroughPoint(p1, snap);
-        
+
         const rect = new CenterRectangleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         rect.p1 = p1;
         const { point: p2, info: { orientation } } = await pointPicker.execute(({ point: p2, info: { orientation } }) => {
@@ -1052,15 +1053,15 @@ abstract class AbstractFreestyleRotateCommand extends Command {
         }).resource(this);
         referenceLine.cancel();
         const reference = p3.clone().sub(p1).normalize();
-        
+
         const angleLine = new PhantomLineFactory(editor.db, editor.materials, editor.signals).resource(this);
         angleLine.p1 = p1;
-        
+
         pointPicker = new PointPicker(this.editor);
         pointPicker.restrictToPlane(new PlaneSnap(rotate.axis, p1));
         pointPicker.addSnap(new AxisSnap("180", reference, p1));
         pointPicker.addSnap(new AxisSnap("90", reference.clone().cross(rotate.axis).normalize(), p1));
-        
+
         const transformation = new THREE.Vector3();
         const quat = new THREE.Quaternion().setFromUnitVectors(rotate.axis, Z);
         const referenceOnZ = reference.applyQuaternion(quat).normalize();
@@ -1179,6 +1180,16 @@ export class CutCommand extends Command {
 
         const results = await cut.commit() as visual.Solid[];
         this.editor.selection.selected.addSolid(results[0]);
+    }
+}
+
+export class ExtensionSolidCommand extends Command {
+    async execute(): Promise<void> {
+        const extension = new ExtensionShellFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        extension.face = this.editor.selection.selected.faces.first;
+        extension.edges = [...this.editor.selection.selected.edges];
+
+        extension.commit();
     }
 }
 

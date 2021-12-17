@@ -4,6 +4,9 @@
 
 ### Backlog
 
+- Napi::Promise::Deferred const &d rename _deferred  
+- ensure all commands have a binding  
+- dialog keybindings  
 - copy fillet radius by clicking on another fillet surface  
 - bug: box selected, while mouse down, zoom  
 - extrude multiple regions at once  
@@ -55,15 +58,16 @@
 
 ### Todo
 
-- rr ss gg for screenspace  
+- Add extension body command  
 
 ### In Progress
 
-- Split body by picking faces  
-- bug: trim is broken  
+- rr ss gg for screenspace  
 
 ### Done ✓
 
+- bug: trim is broken  
+- Split body by picking faces  
 - Mirror around plane  
 - Align camera and construction plane (with space)  
 - when isOrtho, all things project  

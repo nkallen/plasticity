@@ -1603,6 +1603,32 @@ export default {
                 "bool isPolar, const MbVector3D & dir1, const double step1, const uint num1, const MbVector3D &dir2, const double step2, const uint num2, const MbCartPoint3D * center = NULL, bool isAlongAxis = false"
             ]
         },
+        ExtensionValues: {
+            rawHeader: "op_shell_parameter.h",
+            dependencies: ["CartPoint3D.h", "Vector3D.h", "FaceShell.h", "Face.h", "Solid.h"],
+            cppClassName: "_ExtensionValues",
+            rawClassName: "ExtensionValues",
+            jsClassName: "ExtensionValues",
+            initializers: [
+                "",
+                // "ExtensionValues::ExtensionType t, ExtensionValues::ExtensionWay w, ExtensionValues::LateralKind k, const MbCartPoint3D &p, const MbVector3D &dir, double d, bool pro, bool comb, const MbFaceShell *s, const MbItemIndex &fIndex",
+            ],
+            functions: [
+                "void InitByDistance(ExtensionValues::ExtensionType t, ExtensionValues::LateralKind k, const MbVector3D & v, double dist)",
+                "void InitByVertex(ExtensionValues::ExtensionType t, ExtensionValues::LateralKind k, const MbCartPoint3D & v)",
+                "void InitByShell(ExtensionValues::ExtensionType t, ExtensionValues::LateralKind k, const MbFace * f, const MbSolid * s)"
+            ],
+            fields: [
+                "ExtensionValues::ExtensionType type",
+                "ExtensionValues::ExtensionWay way",
+                "ExtensionValues::LateralKind kind",
+                "MbCartPoint3D point",
+                "MbVector3D direction",
+                "double distance",
+                "bool prolong",
+                "bool combine"
+            ]
+        }
     },
     modules: {
         Enabler: {
@@ -1793,6 +1819,13 @@ export default {
                 "MbResultType CreateConvexPolyhedron(const SArray<MbFloatPoint3D> & points, MbMesh *& result)"
             ]
         },
+        ActionShell: {
+            rawHeader: "action_shell.h",
+            dependencies: ["Solid.h", "Face.h", "CurveEdge.h", "SNameMaker.h", "_ExtensionValues.h"],
+            functions: [
+                "MbResultType ExtensionShell(MbSolid & solid, MbeCopyMode sameShell, MbFace & face, const RPArray<MbCurveEdge> & edges, const ExtensionValues & params, const MbSNameMaker & operNames, MbSolid *& result)",
+            ],
+        },
         Mutex: {
             rawHeader: "tool_mutex.h",
             functions: [
@@ -1917,5 +1950,8 @@ export default {
         "EnMLTipType",
         "MbSweptWay",
         "MbeMatingType",
+        "ExtensionValues::ExtensionType",
+        "ExtensionValues::ExtensionWay",
+        "ExtensionValues::LateralKind",
     ]
 }
