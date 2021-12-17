@@ -1021,8 +1021,11 @@ export default {
             initializers: [
                 "const MbPlacement3D & place, const MbContour & contour, bool sameContour, const MbVector3D & dir, const MbMergingFlags & mergingFlags, bool cutAsClosed, const MbSNameMaker & snMaker",
                 "const MbPlacement3D & place, const MbContour & contour, bool sameContour, const MbVector3D & dir, int part, const MbMergingFlags & mergingFlags, bool cutAsClosed, const MbSNameMaker & snMaker",
+                "const MbSurface & surface, bool sameSurface, const MbMergingFlags & mergingFlags, bool cutAsClosed, const MbSNameMaker & snMaker",
+                "const MbSurface & surface, bool sameSurface, int part, const MbMergingFlags & mergingFlags, bool cutAsClosed, const MbSNameMaker & snMaker",
             ],
             functions: [
+                "void SetSurfaceProlongType(MbeSurfaceProlongType pt)",
                 "void AddSurfaceProlongType(MbeSurfaceProlongType pt)"
             ]
         },
@@ -1674,6 +1677,10 @@ export default {
                 "MbResultType DraftSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & neutralPlace, double angle, const RPArray<MbFace> & faces, MbeFacePropagation fp, bool reverse, const MbSNameMaker & names, MbSolid *& result)",
                 { signature: "MbResultType SolidCutting(MbSolid & solid, MbeCopyMode sameShell, const MbShellCuttingParams & cuttingParams, RPArray<MbSolid> & results)", results: isReturn },
                 { signature: "MbResultType SplitSolid(MbSolid & solid, MbeCopyMode sameShell, const MbPlacement3D & spPlace, MbeSenseValue spType, const RPArray<MbContour> & spContours, bool spSame, RPArray<MbFace> & selFaces, const MbMergingFlags & flags, const MbSNameMaker & names, MbSolid *& result)" },
+                {
+                    signature: "MbResultType SplitSolid(MbSolid & solid, MbeCopyMode sameShell, const RPArray<MbSpaceItem> & spItems, bool spSame, RPArray<MbFace> & selFaces, const MbMergingFlags & flags, const MbSNameMaker & names, MbSolid *& result)",
+                    jsName: "SplitSolidBySpaceItem",
+                },
                 { signature: "size_t DetachParts(MbSolid & solid, RPArray<MbSolid> & parts, bool sort, const MbSNameMaker & names)", parts: isReturn, return: { name: "count" } },
                 { signature: "MbResultType LoftedSolid(SArray<MbPlacement3D> & pl, RPArray<MbContour> & c, const MbCurve3D * spine, const LoftedValues & params, SArray<MbCartPoint3D> * ps, const MbSNameMaker & names, RPArray<MbSNameMaker> & ns, MbSolid *& result)", spine: isNullable, ps: isNullable },
                 { signature: "MbResultType ExtrusionSolid(const MbSweptData & sweptData, const MbVector3D & direction, const MbSolid * solid1, const MbSolid * solid2, bool checkIntersection, const ExtrusionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)", solid1: isNullable, solid2: isNullable },

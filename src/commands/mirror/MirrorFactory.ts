@@ -11,7 +11,7 @@ export interface MirrorParams {
     origin: THREE.Vector3;
     quaternion: THREE.Quaternion;
     normal: THREE.Vector3;
-    face: visual.Face;
+    plane: visual.Face;
 }
 
 export interface MirrorFactoryLike extends GeometryFactory, MirrorParams {
@@ -32,7 +32,7 @@ export class MirrorFactory extends GeometryFactory implements MirrorParams {
         this.normal = Z.clone().applyQuaternion(orientation);
     }
 
-    set face(face: visual.Face) {
+    set plane(face: visual.Face) {
         const model = this.db.lookupTopologyItem(face);
         const placement = model.GetControlPlacement();
         model.OrientPlacement(placement);
@@ -87,7 +87,7 @@ export class SymmetryFactory extends GeometryFactory {
         }
     }
 
-    set face(face: visual.Face) {
+    set plane(face: visual.Face) {
         const model = this.db.lookupTopologyItem(face);
         const placement = model.GetControlPlacement();
         model.OrientPlacement(placement);
@@ -106,13 +106,14 @@ export class SymmetryFactory extends GeometryFactory {
     async calculate() {
         const { model, origin, quaternion, names } = this;
 
-        const { X, Y, Z } = this;
+        const { X, Z } = this;
         Z.set(0, 0, -1).applyQuaternion(quaternion);
         X.set(1, 0, 0).applyQuaternion(quaternion);
         const z = vec2vec(Z, 1);
         const x = vec2vec(X, 1);
         const placement = new c3d.Placement3D(point2point(origin), z, x, false);
 
+        const { params } = this.shellCuttingParams;
         this.computePhantom(placement);
 
         if (this.shouldCut && this.shouldUnion) {
@@ -129,7 +130,6 @@ export class SymmetryFactory extends GeometryFactory {
             const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
             result = mirrored;
             if (this.shouldCut) {
-                const { params } = this.shellCuttingParams;
                 try {
                     const results = c3d.ActionSolid.SolidCutting(result, c3d.CopyMode.Copy, params);
                     result = results[0];
@@ -222,7 +222,7 @@ export class SymmetryFactory extends GeometryFactory {
         const direction = new c3d.Vector3D(0, 0, 0);
         const flags = new c3d.MergingFlags(true, true);
         const params = new c3d.ShellCuttingParams(placement, contour, false, direction, 1, flags, true, names);
-        return { Z, params };
+        return { Z, placement, params };
     }
 
     get originalItem() { return this.solid }
@@ -281,7 +281,7 @@ export class MultiSymmetryFactory extends GeometryFactory implements MirrorParam
     set origin(origin: THREE.Vector3) { this.individuals.forEach(i => i.origin = origin) }
     set quaternion(quaternion: THREE.Quaternion) { this.individuals.forEach(i => i.quaternion = quaternion) }
     set normal(normal: THREE.Vector3) { this.individuals.forEach(i => i.normal = normal) }
-    set face(face: visual.Face) { this.individuals.forEach(i => i.face = face) }
+    set plane(face: visual.Face) { this.individuals.forEach(i => i.plane = face) }
 
     async calculate() {
         const { individuals } = this;
@@ -295,7 +295,7 @@ export class MultiSymmetryFactory extends GeometryFactory implements MirrorParam
     protected get phantoms(): PhantomInfo[] {
         return this.individuals.map(i => i.phantoms).flat();
     }
-    
+
     protected get originalItem() {
         return this.individuals.map(i => i.originalItem);
     }

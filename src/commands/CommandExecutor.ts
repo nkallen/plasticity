@@ -86,7 +86,7 @@ export class CommandExecutor {
             signals.objectDeselected.addOnce(() => selectionChanged = true);
             await contours.transaction(async () => {
                 await command.execute();
-                command.finish(); // FIXME I'm not sure this is necessary
+                command.finish(); // FIXME: I'm not sure this is necessary
             })
             if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
             if (command.shouldAddToHistory(selectionChanged)) history.add("Command", state);

@@ -1,7 +1,8 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
 import { AbstractDialog } from "../AbstractDialog";
-import { BooleanParams, CutParams } from "./BooleanFactory";
+import { BooleanParams } from "./BooleanFactory";
+import { CutParams } from "./CutFactory";
 import c3d from '../../../build/Release/c3d.node';
 
 export class BooleanDialog extends AbstractDialog<BooleanParams> {

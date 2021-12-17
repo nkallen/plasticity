@@ -4,7 +4,6 @@
 
 ### Backlog
 
-- Split body by picking faces  
 - bug: box selected, while mouse down, zoom  
 - extrude multiple regions at once  
 - Fusion-like multigizmo  
@@ -59,6 +58,8 @@
 
 ### In Progress
 
+- Split body by picking faces  
+- bug: trim is broken  
 
 ### Done ✓
 

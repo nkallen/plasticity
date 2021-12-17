@@ -16,7 +16,7 @@ export class MirrorDialog extends AbstractDialog<MirrorParams> {
                 <h4>Mirror</h4>
                 <ul>
                     <li>
-                        <label for="shouldCut">shouldCut</label>
+                        <label for="shouldCut">Cut</label>
                         <input type="checkbox" name="shouldCut" checked={shouldCut} onClick={this.onChange}></input>
                     </li>
                     <li>

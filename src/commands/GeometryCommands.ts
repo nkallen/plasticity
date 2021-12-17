@@ -10,7 +10,8 @@ import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { ArrayFactory } from "./array/ArrayFactory";
 import { RadialArrayDialog } from "./array/RadialArrayDialog";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
-import { CutAndSplitFactory, MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './boolean/BooleanFactory';
+import { MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './boolean/BooleanFactory';
+import { CutAndSplitFactory } from "./boolean/CutFactory";
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
@@ -1153,14 +1154,28 @@ export class CutCommand extends Command {
         const cut = new CutAndSplitFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
         cut.solid = this.editor.selection.selected.solids.first;
-        cut.curve = this.editor.selection.selected.curves.first;
         cut.faces = [...this.editor.selection.selected.faces];
-        await cut.update();
+        if (this.editor.selection.selected.curves.size > 0) {
+            cut.curve = this.editor.selection.selected.curves.first;
+            await cut.update();
+        }
 
         const dialog = new CutDialog(cut, this.editor.signals);
-        await dialog.execute(async params => {
+        const picker = new ObjectPicker(this.editor);
+
+        dialog.execute(async params => {
             await cut.update();
         }).resource(this);
+
+        picker.max = Number.POSITIVE_INFINITY;
+        picker.mode.set(SelectionMode.Face);
+        picker.execute(async face => {
+            if (!(face instanceof visual.Face)) throw new Error("invalid state");
+            cut.plane = face;
+            cut.update();
+        }).resource(this);
+
+        await this.finished;
 
         const results = await cut.commit() as visual.Solid[];
         this.editor.selection.selected.addSolid(results[0]);
@@ -1473,7 +1488,7 @@ abstract class AbstractMirrorCommand extends Command {
         picker.mode.set(SelectionMode.Face);
         picker.execute(async face => {
             if (!(face instanceof visual.Face)) throw new Error("invalid state");
-            mirror.face = face;
+            mirror.plane = face;
             mirror.update();
         }).resource(this);
 
@@ -1621,7 +1636,7 @@ export class TrimCommand extends Command {
         this.ensure(() => this.editor.layers.hideFragments());
 
         const picker = new ObjectPicker(this.editor);
-        picker.mode.set(SelectionMode.CurveEdge);
+        picker.mode.set(SelectionMode.Curve);
         picker.raycasterParams.Line2.threshold = 30;
         const selection = await picker.execute().resource(this);
         const fragment = selection.curves.first;

@@ -48,7 +48,7 @@ export class Model {
             result.add(cmd.OffsetCurveCommand);
             result.add(cmd.ExtrudeCommand);
         }
-        if ((selection.faces.size > 0 || selection.solids.size > 0) && selection.curves.size > 0) {
+        if (selection.faces.size > 0 || selection.solids.size > 0) {
             result.add(cmd.CutCommand);
         }
         if (selection.curves.size > 0) {

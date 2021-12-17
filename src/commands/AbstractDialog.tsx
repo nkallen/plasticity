@@ -80,6 +80,6 @@ export abstract class AbstractDialog<T> extends HTMLElement {
         }
     }
 
-    connectedCallback() { this.render(); }
+    connectedCallback() { this.render() }
     disconnectedCallback() { }
 }

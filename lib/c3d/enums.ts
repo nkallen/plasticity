@@ -728,4 +728,5 @@ Object.assign(c3d, {
     MLTipType,
     SweptWay,
     MatingType,
+    SurfaceProlongType
 });
