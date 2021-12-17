@@ -58,11 +58,11 @@
 
 ### Todo
 
-- Add extension body command  
+- rr ss gg for screenspace  
 
 ### In Progress
 
-- rr ss gg for screenspace  
+- Add extension body command  
 
 ### Done ✓
 

@@ -2,7 +2,6 @@ import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
 import c3d from '../../../build/Release/c3d.node';
 import Command from '../../commands/Command';
-import { DeselectAllCommand, HideSelectedCommand, HideUnselectedCommand, RebuildCommand, UnhideAllCommand } from '../../commands/CommandLike';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import centerCircle from './img/center-circle.svg';
@@ -231,32 +230,7 @@ keybindings.set("snaps:set-square", "Square");
 keybindings.set("gizmo:shell", "Thickness");
 
 export default (editor: Editor): void => {
-    editor.registry.add('ispace-viewport', {
-        'command:move': () => editor.enqueue(new cmd.MoveCommand(editor)),
-        'command:rotate': () => editor.enqueue(new cmd.RotateCommand(editor)),
-        'command:scale': () => editor.enqueue(new cmd.ScaleCommand(editor)),
-        'command:sphere': () => editor.enqueue(new cmd.SphereCommand(editor)),
-        'command:center-circle': () => editor.enqueue(new cmd.CenterCircleCommand(editor)),
-        'command:center-rectangle': () => editor.enqueue(new cmd.CenterRectangleCommand(editor)),
-        'command:line': () => editor.enqueue(new cmd.LineCommand(editor)),
-        'command:curve': () => editor.enqueue(new cmd.CurveCommand(editor)),
-        'command:corner-rectangle': () => editor.enqueue(new cmd.CornerRectangleCommand(editor)),
-        'command:corner-box': () => editor.enqueue(new cmd.CornerBoxCommand(editor)),
-        'command:union': () => editor.enqueue(new cmd.UnionCommand(editor)),
-        'command:intersection': () => editor.enqueue(new cmd.IntersectionCommand(editor)),
-        'command:difference': () => editor.enqueue(new cmd.DifferenceCommand(editor)),
-        'command:offset': () => editor.enqueue(new cmd.OffsetCurveCommand(editor)),
-        'command:cut': () => editor.enqueue(new cmd.CutCommand(editor)),
-        'command:modify-face': () => editor.enqueue(new cmd.OffsetFaceCommand(editor)),
-        'command:delete': () => editor.enqueue(new cmd.DeleteCommand(editor)),
-        'command:extrude': () => editor.enqueue(new cmd.ExtrudeCommand(editor)),
-        'command:trim': () => editor.enqueue(new cmd.TrimCommand(editor)),
-        'command:unhide-all': () => editor.enqueue(new UnhideAllCommand(editor)),
-        'command:hide-selected': () => editor.enqueue(new HideSelectedCommand(editor)),
-        'command:hide-unselected': () => editor.enqueue(new HideUnselectedCommand(editor)),
-        'command:duplicate': () => editor.enqueue(new cmd.DuplicateCommand(editor)),
-        'command:mirror': () => editor.enqueue(new cmd.MirrorCommand(editor)),
-        'command:rebuild': () => editor.enqueue(new RebuildCommand(editor)),
-        'command:deselect-all': () => editor.enqueue(new DeselectAllCommand(editor)),
-    })
+    for (const Command of Object.values(cmd)) {
+        editor.registry.addOne('ispace-viewport', `command:${Command.identifier}`, () => editor.enqueue(new Command(editor)));
+    }
 }
