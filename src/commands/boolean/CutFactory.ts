@@ -6,7 +6,6 @@ import { composeMainName, curve3d2curve2d, point2point, vec2vec } from '../../ut
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
 import { GeometryFactory, ValidationError } from '../GeometryFactory';
 
-
 export interface CutParams {
     mergingFaces: boolean;
     mergingEdges: boolean;
@@ -99,7 +98,9 @@ export class CutFactory extends AbstractCutFactory {
             case 'contour':
                 return new c3d.ShellCuttingParams(mode.placement, mode.contour, false, direction, flags, true, names);;
             case 'surface':
-                return new c3d.ShellCuttingParams(mode.surface, false, flags, true, names);
+                const params = new c3d.ShellCuttingParams(mode.surface, false, flags, true, names);
+                params.AddSurfaceProlongType(c3d.SurfaceProlongType.Extrusion);
+                return params;
         }
     }
 }

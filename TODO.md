@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- copy fillet radius by clicking on another fillet surface  
 - bug: box selected, while mouse down, zoom  
 - extrude multiple regions at once  
 - Fusion-like multigizmo  
