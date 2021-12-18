@@ -3,12 +3,19 @@ import c3d from '../../../build/Release/c3d.node';
 import { composeMainName, vec2vec } from '../../util/Conversion';
 import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
 import { ThickFaceFactory } from '../thin-solid/ThinSolidFactory';
-import { ModifyFaceFactory, OffsetFaceParams } from './ModifyFaceFactory';
+import { ModifyFaceFactory } from './ModifyFaceFactory';
 import * as visual from "../../visual_model/VisualModel";
+
+export interface OffsetFaceParams {
+    distance: number;
+    angle: number;
+    faces: visual.Face[];
+}
 
 export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFaceParams {
     angle = 0;
     operationType = c3d.ModifyingType.Offset;
+    get distance() { return this.direction.x }
     set distance(d: number) { this.direction = new THREE.Vector3(d, 0, 0) }
 
     async calculate() {

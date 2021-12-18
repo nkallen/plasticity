@@ -5,12 +5,6 @@ import { composeMainName, decomposeMainName, vec2vec } from '../../util/Conversi
 import { GeometryFactory, NoOpError } from '../GeometryFactory';
 import { MoveParams } from '../translate/TranslateFactory';
 
-export interface OffsetFaceParams {
-    distance: number;
-    angle: number;
-    faces: visual.Face[];
-}
-
 export interface FilletFaceParams {
     distance: number;
     faces: visual.Face[];

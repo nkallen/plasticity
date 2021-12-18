@@ -6,7 +6,8 @@ import { point2point, vec2vec } from "../../util/Conversion";
 import { EditorLike, Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
-import { FilletFaceParams, OffsetFaceParams } from './ModifyFaceFactory';
+import { FilletFaceParams } from './ModifyFaceFactory';
+import { OffsetFaceParams } from "./OffsetFaceFactory";
 
 export class OffsetFaceGizmo extends CompositeGizmo<OffsetFaceParams> {
     private readonly distance = new ExtrudeLikeGizmo("offset-face:distance", this.editor);

@@ -1,18 +1,20 @@
+import checkSquare from 'bootstrap-icons/icons/check-square.svg';
 import eye from 'bootstrap-icons/icons/eye.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
-import checkSquare from 'bootstrap-icons/icons/check-square.svg';
 import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
+import * as THREE from 'three';
 import _ from "underscore-plus";
-import { AddModifierCommand, ApplyModifierCommand, RemoveModifierCommand } from '../../commands/CommandLike';
+import * as cmd from "../../commands/Command";
 import { FilletSolidCommand, MirrorCommand, UnionCommand } from '../../commands/GeometryCommands';
 import { GeometryFactory } from '../../commands/GeometryFactory';
 import { SymmetryFactory } from '../../commands/mirror/MirrorFactory';
+import { MirrorGizmo } from '../../commands/mirror/MirrorGizmo';
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
 import ModifierManager, { ModifierStack } from '../../editor/ModifierManager';
-import * as visual from '../../visual_model/VisualModel';
 import { HasSelection } from '../../selection/SelectionDatabase';
+import * as visual from '../../visual_model/VisualModel';
 import { icons } from '../toolbar/icons';
 
 const emptyStack = {
@@ -156,4 +158,60 @@ export default (editor: Editor) => {
 
     class Foo extends Modifier<SymmetryFactory> { };
     customElements.define(`ispace-modifier-symmetry-factory`, Foo);
+}
+
+
+export class AddModifierCommand extends cmd.CommandLike {
+    async execute(): Promise<void> {
+        const { modifiers, selection } = this.editor;
+        const solid = selection.selected.solids.first;
+
+        const preview = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        preview.solid = solid;
+        preview.origin = new THREE.Vector3();
+
+        const gizmo = new MirrorGizmo(preview, this.editor);
+        await gizmo.execute(s => {
+            preview.update();
+        }).resource(this);
+        preview.cancel();
+
+        const stack_factory = modifiers.add(solid, SymmetryFactory);
+        let stack = stack_factory.stack;
+        const factory = stack_factory.factory;
+        factory.solid = solid;
+        factory.origin = preview.origin;
+        factory.quaternion = preview.quaternion;
+        stack = await modifiers.rebuild(stack);
+
+        selection.selected.addSolid(stack.modified);
+    }
+}
+
+export class ApplyModifierCommand extends cmd.CommandLike {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly stack: ModifierStack,
+        private readonly index: number,
+    ) { super(editor) }
+
+    async execute(): Promise<void> {
+        const { stack, editor: { modifiers, selection } } = this;
+        const result = await modifiers.apply(stack);
+        selection.selected.addSolid(result);
+    }
+}
+
+export class RemoveModifierCommand extends cmd.CommandLike {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly stack: ModifierStack,
+        private readonly index: number,
+    ) { super(editor) }
+
+    async execute(): Promise<void> {
+        const { stack, editor: { modifiers, selection } } = this;
+        await modifiers.remove(stack.premodified);
+        selection.selected.addSolid(stack.premodified);
+    }
 }

@@ -3,11 +3,10 @@ import * as THREE from "three";
 import * as gizmo from "../../commands/AbstractGizmo";
 import { GizmoLike } from "../../commands/AbstractGizmo";
 import Command, * as cmd from "../../commands/Command";
-import { ClickChangeSelectionCommand, CommandLike } from "../../commands/CommandLike";
 import { DashedLineMagnitudeHelper } from "../../commands/MiniGizmos";
 import { MoveContourPointFactory } from "../../commands/modify_contour/ModifyContourPointFactory";
 import { ChangeSelectionModifier } from "../../selection/ChangeSelectionExecutor";
-import { AbstractViewportSelector } from "../../selection/ViewportSelector";
+import { AbstractViewportSelector, ClickChangeSelectionCommand } from "../../selection/ViewportSelector";
 import { CancellablePromise } from "../../util/Cancellable";
 import { Intersection } from "../../visual_model/Intersectable";
 import * as visual from '../../visual_model/VisualModel';
@@ -161,7 +160,7 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
     }
 }
 
-export class MoveControlPointCommand extends CommandLike {
+export class MoveControlPointCommand extends cmd.CommandLike {
     controlPoint!: visual.ControlPoint;
     gizmo!: GizmoLike<(delta: THREE.Vector3) => void>;
 

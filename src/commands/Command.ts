@@ -76,3 +76,7 @@ export default abstract class Command extends CancellableRegistor {
         return true;
     }
 }
+
+export abstract class CommandLike extends Command {
+    remember = false;
+}

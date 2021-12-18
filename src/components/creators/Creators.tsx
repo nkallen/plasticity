@@ -2,8 +2,9 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import _ from "underscore-plus";
 import c3d from '../../../build/Release/c3d.node';
+import * as cmd from "../../commands/Command";
 import { EditorLike } from '../../commands/Command';
-import { CreatorChangeSelectionCommand, RebuildCommand } from '../../commands/CommandLike';
+import {  RebuildCommand } from '../../commands/CommandLike';
 import { Editor } from '../../editor/Editor';
 import { ChangeSelectionModifier } from '../../selection/ChangeSelectionExecutor';
 import { AbstractViewportSelector } from '../../selection/ViewportSelector';
@@ -190,5 +191,20 @@ export default (editor: Editor) => {
     for (const key in c3d.CreatorType) {
         class Anon extends Creator { };
         customElements.define(`ispace-creator-${_.dasherize(key)}`, Anon);
+    }
+}
+
+export class CreatorChangeSelectionCommand extends cmd.CommandLike {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly topologyItems: visual.TopologyItem[],
+        private readonly modifier: ChangeSelectionModifier
+    ) {
+        super(editor);
+    }
+
+    async execute(): Promise<void> {
+        const { topologyItems } = this;
+        this.editor.changeSelection.onCreatorSelect(topologyItems, this.modifier);
     }
 }

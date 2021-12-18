@@ -3,7 +3,7 @@ import c3d from '../../build/Release/c3d.node';
 import { AxisSnap, CurvePointSnap, CurveSnap, PlaneSnap, PointSnap } from "../editor/snaps/Snap";
 import { SelectionMode } from "../selection/ChangeSelectionExecutor";
 import { Finish } from "../util/Cancellable";
-import { decomposeMainName, point2point, vec2vec } from "../util/Conversion";
+import { point2point, vec2vec } from "../util/Conversion";
 import * as visual from "../visual_model/VisualModel";
 import { Mode } from "./AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
@@ -11,8 +11,8 @@ import { ArrayFactory } from "./array/ArrayFactory";
 import { RadialArrayDialog } from "./array/RadialArrayDialog";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
 import { MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './boolean/BooleanFactory';
-import { CutAndSplitFactory } from "./boolean/CutFactory";
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
+import { CutAndSplitFactory } from "./boolean/CutFactory";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
@@ -33,6 +33,7 @@ import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/Ellips
 import { RevolutionDialog } from "./evolution/RevolutionDialog";
 import RevolutionFactory from "./evolution/RevolutionFactory";
 import { RevolutionGizmo } from "./evolution/RevolutionGizmo";
+import ExtensionShellFactory from "./extend/ExtensionShellFactory";
 import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
@@ -49,6 +50,7 @@ import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { MirrorKeyboardGizmo } from "./mirror/MirrorKeyboardGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
+import { OffsetFaceDialog } from "./modifyface/OffsetFaceDialog";
 import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo, RefilletGizmo } from "./modifyface/OffsetFaceGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
@@ -77,7 +79,6 @@ import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
 import { FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './translate/TranslateFactory';
-import ExtensionShellFactory from "./extend/ExtensionShellFactory";
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -1286,16 +1287,21 @@ export class OffsetFaceCommand extends Command {
         factory.solid = parent;
         factory.faces = faces;
 
-        for (const face of faces) {
-            const model = this.editor.db.lookupTopologyItem(face);
-            const [type] = decomposeMainName(model.GetMainName());
-        }
+        const gizmo = shouldRefillet
+            ? new RefilletGizmo(fillet, this.editor, this.point)
+            : new OffsetFaceGizmo(offset, this.editor, this.point);
+        const dialog = new OffsetFaceDialog(offset, this.editor.signals);
 
-        const gizmo = shouldRefillet ? new RefilletGizmo(fillet, this.editor, this.point) : new OffsetFaceGizmo(offset, this.editor, this.point);
-
-        await gizmo.execute(async params => {
+        gizmo.execute(async params => {
             await factory.update();
+            dialog.render();
         }).resource(this);
+
+        dialog.execute(async params => {
+            await offset.update();
+        }).resource(this);
+
+        await this.finished;
 
         const result = await factory.commit() as visual.Solid;
         this.editor.selection.selected.addSolid(result);

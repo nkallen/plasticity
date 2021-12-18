@@ -1,13 +1,7 @@
-import * as THREE from 'three';
-import { ModifierStack } from '../editor/ModifierManager';
-import { ChangeSelectionModifier } from '../selection/ChangeSelectionExecutor';
-import { Intersectable, Intersection } from '../visual_model/Intersectable';
 import * as visual from "../visual_model/VisualModel";
-import Command, * as cmd from "./Command";
+import * as cmd from "./Command";
 import { ExportDialog } from './export/ExportDialog';
 import { ExportFactory } from './export/ExportFactory';
-import { SymmetryFactory } from './mirror/MirrorFactory';
-import { MirrorGizmo } from './mirror/MirrorGizmo';
 import { RebuildFactory } from "./rebuild/RebuildFactory";
 import { RebuildKeyboardGizmo } from './rebuild/RebuildKeyboardGizmo';
 
@@ -16,47 +10,7 @@ import { RebuildKeyboardGizmo } from './rebuild/RebuildKeyboardGizmo';
  * But these represent actions/state-changes that are meant to be atomic (for the purpose of UNDO).
  */
 
-export abstract class CommandLike extends Command {
-    remember = false;
-}
-
-// FIXME: move to site used
-export class ClickChangeSelectionCommand extends CommandLike {
-    point?: THREE.Vector3;
-
-    constructor(
-        editor: cmd.EditorLike,
-        private readonly intersection: Intersection[],
-        private readonly modifier: ChangeSelectionModifier
-    ) { super(editor) }
-
-
-    async execute(): Promise<void> {
-        this.point = this.editor.changeSelection.onClick(this.intersection, this.modifier)?.point;
-    }
-
-    shouldAddToHistory(selectionChanged: boolean) {
-        return selectionChanged;
-    }
-}
-
-export class BoxChangeSelectionCommand extends CommandLike {
-    constructor(
-        editor: cmd.EditorLike,
-        private readonly intersected: Set<Intersectable>,
-        private readonly modifier: ChangeSelectionModifier,
-    ) { super(editor) }
-
-    async execute(): Promise<void> {
-        this.editor.changeSelection.onBoxSelect(this.intersected, this.modifier);
-    }
-
-    shouldAddToHistory(selectionChanged: boolean) {
-        return selectionChanged;
-    }
-}
-
-export class DeselectAllCommand extends CommandLike {
+export class DeselectAllCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         this.editor.selection.selected.removeAll();
     }
@@ -66,27 +20,8 @@ export class DeselectAllCommand extends CommandLike {
     }
 }
 
-export class CreatorChangeSelectionCommand extends CommandLike {
-    constructor(
-        editor: cmd.EditorLike,
-        private readonly topologyItems: visual.TopologyItem[],
-        private readonly modifier: ChangeSelectionModifier
-    ) {
-        super(editor);
-    }
-
-    async execute(): Promise<void> {
-        const { topologyItems } = this;
-        this.editor.changeSelection.onCreatorSelect(topologyItems, this.modifier);
-    }
-}
-
-export class RebuildCommand extends CommandLike {
+export class RebuildCommand extends cmd.CommandLike {
     index?: number;
-
-    constructor(
-        editor: cmd.EditorLike,
-    ) { super(editor) }
 
     async execute(): Promise<void> {
         const rebuild = new RebuildFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -115,7 +50,7 @@ export class RebuildCommand extends CommandLike {
     }
 }
 
-export class HideSelectedCommand extends CommandLike {
+export class HideSelectedCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const { solids, curves, regions } = this.editor.selection.selected;
         const selectedItems = [...solids, ...curves, ...regions];
@@ -124,7 +59,7 @@ export class HideSelectedCommand extends CommandLike {
     }
 }
 
-export class HideUnselectedCommand extends CommandLike {
+export class HideUnselectedCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         const db = this.editor.db;
         const { solids, curves, regions } = this.editor.selection.selected;
@@ -135,68 +70,13 @@ export class HideUnselectedCommand extends CommandLike {
     }
 }
 
-export class UnhideAllCommand extends CommandLike {
+export class UnhideAllCommand extends cmd.CommandLike {
     async execute(): Promise<void> {
         this.editor.db.unhideAll();
     }
 }
 
-export class AddModifierCommand extends CommandLike {
-    async execute(): Promise<void> {
-        const { modifiers, selection } = this.editor;
-        const solid = selection.selected.solids.first;
-
-        const preview = new SymmetryFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        preview.solid = solid;
-        preview.origin = new THREE.Vector3();
-
-        const gizmo = new MirrorGizmo(preview, this.editor);
-        await gizmo.execute(s => {
-            preview.update();
-        }).resource(this);
-        preview.cancel();
-
-        const stack_factory = modifiers.add(solid, SymmetryFactory);
-        let stack = stack_factory.stack;
-        const factory = stack_factory.factory;
-        factory.solid = solid;
-        factory.origin = preview.origin;
-        factory.quaternion = preview.quaternion;
-        stack = await modifiers.rebuild(stack);
-
-        selection.selected.addSolid(stack.modified);
-    }
-}
-
-export class ApplyModifierCommand extends CommandLike {
-    constructor(
-        editor: cmd.EditorLike,
-        private readonly stack: ModifierStack,
-        private readonly index: number,
-    ) { super(editor) }
-
-    async execute(): Promise<void> {
-        const { stack, editor: { modifiers, selection } } = this;
-        const result = await modifiers.apply(stack);
-        selection.selected.addSolid(result);
-    }
-}
-
-export class RemoveModifierCommand extends CommandLike {
-    constructor(
-        editor: cmd.EditorLike,
-        private readonly stack: ModifierStack,
-        private readonly index: number,
-    ) { super(editor) }
-
-    async execute(): Promise<void> {
-        const { stack, editor: { modifiers, selection } } = this;
-        await modifiers.remove(stack.premodified);
-        selection.selected.addSolid(stack.premodified);
-    }
-}
-
-export class ExportCommand extends CommandLike {
+export class ExportCommand extends cmd.CommandLike {
     filePath!: string;
 
     async execute(): Promise<void> {

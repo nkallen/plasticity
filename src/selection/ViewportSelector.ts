@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import Command, * as cmd from "../commands/Command";
-import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from "../commands/CommandLike";
 import { pointerEvent2keyboardEvent } from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { defaultRaycasterParams, ViewportControl } from "../components/viewport/ViewportControl";
@@ -184,5 +183,40 @@ class BoxSelectionHelper {
 
     onSelectOver() {
         this.element.parentElement?.removeChild(this.element);
+    }
+}
+
+export class ClickChangeSelectionCommand extends cmd.CommandLike {
+    point?: THREE.Vector3;
+
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly intersection: intersectable.Intersection[],
+        private readonly modifier: ChangeSelectionModifier
+    ) { super(editor) }
+
+
+    async execute(): Promise<void> {
+        this.point = this.editor.changeSelection.onClick(this.intersection, this.modifier)?.point;
+    }
+
+    shouldAddToHistory(selectionChanged: boolean) {
+        return selectionChanged;
+    }
+}
+
+export class BoxChangeSelectionCommand extends cmd.CommandLike {
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly intersected: Set<intersectable.Intersectable>,
+        private readonly modifier: ChangeSelectionModifier,
+    ) { super(editor) }
+
+    async execute(): Promise<void> {
+        this.editor.changeSelection.onBoxSelect(this.intersected, this.modifier);
+    }
+
+    shouldAddToHistory(selectionChanged: boolean) {
+        return selectionChanged;
     }
 }

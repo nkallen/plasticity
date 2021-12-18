@@ -3,6 +3,7 @@ import trash from 'bootstrap-icons/icons/trash.svg';
 import c3d from '../../../build/Release/c3d.node';
 import Command from '../../commands/Command';
 import * as cmd from '../../commands/GeometryCommands';
+import * as like from '../../commands/CommandLike';
 import { Editor } from '../../editor/Editor';
 import centerCircle from './img/center-circle.svg';
 import centerEllipse from './img/center-ellipse.svg';
@@ -231,6 +232,10 @@ keybindings.set("gizmo:shell", "Thickness");
 
 export default (editor: Editor): void => {
     for (const Command of Object.values(cmd)) {
+        editor.registry.addOne('ispace-viewport', `command:${Command.identifier}`, () => editor.enqueue(new Command(editor)));
+    }
+
+    for (const Command of Object.values(like)) {
         editor.registry.addOne('ispace-viewport', `command:${Command.identifier}`, () => editor.enqueue(new Command(editor)));
     }
 }
