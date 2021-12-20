@@ -57,6 +57,7 @@ export class ViewportControlMultiplexer extends ViewportControl {
 
     startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent) {
         for (const control of this.controls) {
+            if (!control.enabled) continue;
             if (control.startClick(intersections, downEvent)) {
                 this.winner = control;
                 return true;

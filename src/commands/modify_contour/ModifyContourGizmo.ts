@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { Viewport } from "../../components/viewport/Viewport";
-import { CancellablePromise } from "../../util/Cancellable";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { AbstractGizmo, EditorLike, GizmoStateMachine, GizmoTriggerStrategy, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
@@ -204,7 +204,6 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
                     event.stopPropagation();
                     event.stopImmediatePropagation();
 
-                    viewport.disableControls();
                     return winner!.addEventHandlers();
                 });
             }

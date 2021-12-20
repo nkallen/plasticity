@@ -84,6 +84,11 @@ export class CommandExecutor {
             let selectionChanged = false;
             signals.objectSelected.addOnce(() => selectionChanged = true);
             signals.objectDeselected.addOnce(() => selectionChanged = true);
+            command.factoryChanged.addOnce(() => {
+                for (const viewport of this.editor.viewports) {
+                    viewport.selector.enable(false);
+                }
+            });
             await contours.transaction(async () => {
                 await command.execute();
                 command.finish(); // FIXME: I'm not sure this is necessary
@@ -96,6 +101,9 @@ export class CommandExecutor {
             throw e;
         } finally {
             document.body.removeAttribute("command");
+            for (const viewport of this.editor.viewports) {
+                viewport.enableControls();
+            }
             disposable.dispose();
             db.clearTemporaryObjects();
             signals.commandEnded.dispatch(command);

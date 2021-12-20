@@ -11,7 +11,7 @@ import LayerManager from '../editor/LayerManager';
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
-import { CancellablePromise } from '../util/Cancellable';
+import { CancellablePromise } from "../util/CancellablePromise";
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helper, Helpers } from '../util/Helpers';
 import { SnapManagerGeometryCache, SnapPicker, SnapResult } from '../visual_model/SnapPicker';
@@ -385,11 +385,10 @@ export class PointPicker {
             let info: SnapInfo | undefined = undefined;
             // FIXME: build elsewhere for higher performance
             const snapCache = new SnapManagerGeometryCache(editor.snaps);
-            disposables.add(new Disposable(() => snapCache.dispose));
+            disposables.add(new Disposable(() => snapCache.dispose()));
 
             for (const viewport of this.editor.viewports) {
-                viewport.disableControls(viewport.navigationControls);
-                disposables.add(new Disposable(() => viewport.enableControls()));
+                disposables.add(viewport.disableControls(viewport.navigationControls));
 
                 let isNavigating = false;
                 disposables.add(this.disablePickingDuringNavigation(viewport.navigationControls,

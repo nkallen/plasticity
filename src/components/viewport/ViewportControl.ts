@@ -20,9 +20,13 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     protected readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
+    private clock = 0;
     private _enabled = true;
     get enabled() { return this._enabled }
-    set enabled(enabled: boolean) {
+    enable(enabled: boolean) {
+        const clock = ++this.clock;
+
+        const before = this._enabled;
         this._enabled = enabled;
         if (!enabled) {
             switch (this.state.tag) {
@@ -36,8 +40,11 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
             }
             this.state = { tag: 'none' };
         }
+        return new Disposable(() => {
+            if (clock < this.clock) return;
+            this.enable(before);
+        });
     }
-
     private state: State = { tag: 'none' }
     private readonly picker = new GeometryPicker(this.layers, this.raycasterParams);
 
@@ -49,7 +56,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         protected readonly layers: LayerManager,
         protected readonly db: DatabaseLike,
         private readonly signals: EditorSignals,
-        readonly raycasterParams: THREE.RaycasterParameters = {...defaultRaycasterParams},
+        readonly raycasterParams: THREE.RaycasterParameters = { ...defaultRaycasterParams },
     ) {
         super();
 

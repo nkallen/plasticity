@@ -6,7 +6,7 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import { PlaneSnap } from "../editor/snaps/Snap";
-import { CancellablePromise } from "../util/Cancellable";
+import { CancellablePromise } from "../util/CancellablePromise";
 import { Helper, Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 
@@ -73,8 +73,8 @@ export abstract class AbstractGizmo<CB> extends Helper {
     abstract onPointerDown(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onInterrupt(cb: CB): void;
-    onDeactivate() {}
-    onActivate() {}
+    onDeactivate() { }
+    onActivate() { }
 
     execute(cb: CB, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const disposables = new CompositeDisposable();
@@ -105,7 +105,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 const { renderer: { domElement } } = viewport;
 
                 if ((mode & Mode.DisableSelection) === Mode.DisableSelection) {
-                    viewport.selector.enabled = false;
+                    disposables.add(viewport.selector.enable(false));
                 }
 
                 // First, register any keyboard commands for each viewport, like 'x' for :move:x
@@ -118,7 +118,6 @@ export abstract class AbstractGizmo<CB> extends Helper {
                         stateMachine.update(viewport, lastEvent);
                         stateMachine.command(fn, () => {
                             domElement.ownerDocument.body.setAttribute("gizmo", this.title);
-                            viewport.disableControls();
                             return addEventHandlers();
                         });
                     });
@@ -127,9 +126,11 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
                 // Add handlers when triggered, for example, on pointerdown
                 const addEventHandlers = () => {
+                    const reenableControls = viewport.disableControls();
                     domElement.ownerDocument.addEventListener('pointermove', onPointerMove);
                     domElement.ownerDocument.addEventListener('pointerup', onPointerUp);
                     return new Disposable(() => {
+                        reenableControls.dispose();
                         domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
                         domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
                     });
@@ -148,13 +149,11 @@ export abstract class AbstractGizmo<CB> extends Helper {
                             resolve();
                         }
                         domElement.ownerDocument.body.removeAttribute('gizmo');
-                        viewport.enableControls();
                     });
                 }
 
                 const trigger = this.trigger.register(this, viewport, addEventHandlers);
                 disposables.add(new Disposable(() => {
-                    viewport.enableControls();
                     trigger.dispose();
                     domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
                     domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
@@ -201,7 +200,6 @@ export class BasicGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
                 event.stopImmediatePropagation();
 
                 domElement.ownerDocument.body.setAttribute("gizmo", this.title);
-                viewport.disableControls();
                 return addEventHandlers();
             });
         }

@@ -1,4 +1,5 @@
-import { Cancel, CancellablePromise, Finish, Interrupt } from "../src/util/Cancellable";
+import { Cancel, Finish, Interrupt } from "../src/util/Cancellable";
+import { CancellablePromise } from "../src/util/CancellablePromise";
 
 describe(CancellablePromise, () => {
     let c1: CancellablePromise<void>;

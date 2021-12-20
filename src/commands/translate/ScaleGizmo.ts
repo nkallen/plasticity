@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import { CancellablePromise } from "../../util/Cancellable";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { GizmoMaterial } from "../GizmoMaterials";

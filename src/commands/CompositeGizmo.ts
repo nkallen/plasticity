@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
-import { CancellablePromise } from "../util/Cancellable";
+import { CancellablePromise } from "../util/CancellablePromise";
 import { Helper } from "../util/Helpers";
 import { AbstractGizmo, EditorLike, GizmoLike, Mode } from "./AbstractGizmo";
 
