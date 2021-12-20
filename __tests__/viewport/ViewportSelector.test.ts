@@ -4,14 +4,13 @@
 import { ViewportControlMultiplexer } from '../../src/components/viewport/ViewportControlMultiplexer';
 import * as THREE from 'three';
 import { ThreePointBoxFactory } from '../../src/commands/box/BoxFactory';
-import { BoxChangeSelectionCommand, ClickChangeSelectionCommand } from '../../src/commands/CommandLike';
 import { Viewport } from '../../src/components/viewport/Viewport';
 import { Editor } from '../../src/editor/Editor';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { SelectionDatabase } from '../../src/selection/SelectionDatabase';
-import { ViewportSelector } from '../../src/selection/ViewportSelector';
+import { BoxChangeSelectionCommand, ClickChangeSelectionCommand, ViewportSelector } from '../../src/selection/ViewportSelector';
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from '../../__mocks__/FakeViewport';
 import '../matchers';
