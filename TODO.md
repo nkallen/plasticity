@@ -4,7 +4,6 @@
 
 ### Backlog
 
-- Add dialog for extrude  
 - Napi::Promise::Deferred const &d rename _deferred  
 - ensure all commands have a binding  
 - dialog keybindings  
@@ -12,7 +11,6 @@
 - bug: box selected, while mouse down, zoom  
 - extrude multiple regions at once  
 - Fusion-like multigizmo  
-- When offsetting face, offset should match snap pt with ctrl  
 - [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
 - [ ] circle angle gizmo when far off from center not facing camera  
 - [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
@@ -59,14 +57,16 @@
 
 ### Todo
 
+- Add dialog for extrude  
 - rr ss gg for screenspace  
 
 ### In Progress
 
-- Add extension body command  
+- When offsetting face, offset should match snap pt with ctrl  
 
 ### Done ✓
 
+- Add extension body command  
 - bug: trim is broken  
 - Split body by picking faces  
 - Mirror around plane  
