@@ -1,9 +1,19 @@
 import c3d from '../../../build/Release/c3d.node';
-import { composeMainName } from "../../util/Conversion";
+import { composeMainName, unit } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
 import { GeometryFactory } from '../GeometryFactory';
 
-export default class ExtensionShellFactory extends GeometryFactory {
+export interface ExtensionShellParams {
+    distance: number;
+    type: c3d.ExtensionType;
+    lateralKind: c3d.LateralKind;
+}
+
+export default class ExtensionShellFactory extends GeometryFactory implements ExtensionShellParams {
+    distance = 0;
+    type = c3d.ExtensionType.tangent;
+    lateralKind = c3d.LateralKind.prolong;
+
     private _solid!: visual.Solid;
     private model!: c3d.Solid;
     set solid(solid: visual.Solid) {
@@ -30,12 +40,18 @@ export default class ExtensionShellFactory extends GeometryFactory {
         this.curveEdges = curveEdges;
         this._edges = edges;
     }
-    private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ExtensionShell, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
-        const { model: solid, faceModel: face, names, curveEdges: edges } = this;
+        const { model: solid, faceModel: face, curveEdges: edges, distance, type, lateralKind } = this;
+
+        const offsetParams = new c3d.SweptValues();
+        offsetParams.shellClosed = false;
+        const offsetNames = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ExtensionShell, this.db.version), c3d.ESides.SideNone, 0);
+        const offset = await c3d.ActionShell.OffsetShell_async(solid, c3d.CopyMode.Copy, [face], true, offsetParams, offsetNames, true);
+
         const params = new c3d.ExtensionValues();
-        params.InitByDistance(c3d.ExtensionType.same, c3d.LateralKind.normal, new c3d.Vector3D(0, 0, 0), 10);
-        return c3d.ActionShell.ExtensionShell(solid, c3d.CopyMode.Copy, face, edges, params, names);
+        params.InitByDistance(type, lateralKind, new c3d.Vector3D(0, 0, 0), unit(distance));
+        const extensionNames = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ExtensionShell, this.db.version), c3d.ESides.SideNone, 0);
+        return c3d.ActionShell.ExtensionShell_async(offset , c3d.CopyMode.Copy, offset.GetFace(0)!, offset.GetEdges(), params, extensionNames);
     }
 }

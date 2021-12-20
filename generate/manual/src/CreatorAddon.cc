@@ -31,6 +31,7 @@
 #include "../include/DuplicationSolid.h"
 #include "../include/ReverseCreator.h"
 #include "../include/TransformationMaker.h"
+#include "../include/ExtensionShell.h"
 
 Napi::Value cast(MbCreator *_underlying, const Napi::CallbackInfo &info)
 {
@@ -117,6 +118,8 @@ Napi::Value cast(MbCreator *_underlying, const Napi::CallbackInfo &info)
         return ReverseCreator::NewInstance(env, (MbReverseCreator *)(_underlying));
     case ct_TransformationMaker:
         return TransformationMaker::NewInstance(env, (MbTransformationMaker *)(_underlying));
+    case ct_ExtensionShell:
+        return ExtensionShell::NewInstance(env, (MbExtensionShell *)(_underlying));
     default:
         std::ostringstream msg;
         msg << "Operation Cast failed: object is a " << _underlying->IsA() << " but trying to cast to " << isa << "\n";

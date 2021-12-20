@@ -1431,6 +1431,11 @@ export default {
             extends: "Creator",
             dependencies: ["Creator.h"]
         },
+        ExtensionShell: {
+            rawHeader: "cr_extension_shell.h",
+            extends: "Creator",
+            dependencies: ["Creator.h"]
+        },
         MpGraph: {
             rawHeader: "contour_graph.h",
             cppClassName: "Graph",
@@ -1821,9 +1826,10 @@ export default {
         },
         ActionShell: {
             rawHeader: "action_shell.h",
-            dependencies: ["Solid.h", "Face.h", "CurveEdge.h", "SNameMaker.h", "_ExtensionValues.h"],
+            dependencies: ["Solid.h", "Face.h", "CurveEdge.h", "SNameMaker.h", "_ExtensionValues.h", "_SweptValues.h"],
             functions: [
                 "MbResultType ExtensionShell(MbSolid & solid, MbeCopyMode sameShell, MbFace & face, const RPArray<MbCurveEdge> & edges, const ExtensionValues & params, const MbSNameMaker & operNames, MbSolid *& result)",
+                "MbResultType OffsetShell(MbSolid & solid, MbeCopyMode sameShell, RPArray<MbFace> & initFaces, bool checkFacesConnection, SweptValues & p, const MbSNameMaker & operNames, bool copyFaceAttrs, MbSolid *& result)"
             ],
         },
         Mutex: {

@@ -33,7 +33,9 @@ import { CenterEllipseFactory, ThreePointEllipseFactory } from "./ellipse/Ellips
 import { RevolutionDialog } from "./evolution/RevolutionDialog";
 import RevolutionFactory from "./evolution/RevolutionFactory";
 import { RevolutionGizmo } from "./evolution/RevolutionGizmo";
+import { ExtensionShellDialog } from "./extend/ExtensionShellDialog";
 import ExtensionShellFactory from "./extend/ExtensionShellFactory";
+import { ExtensionShellGizmo } from "./extend/ExtensionShellGizmo";
 import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
@@ -1184,11 +1186,27 @@ export class CutCommand extends Command {
     }
 }
 
-export class ExtensionSolidCommand extends Command {
+export class ExtensionShellCommand extends Command {
     async execute(): Promise<void> {
         const extension = new ExtensionShellFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         extension.face = this.editor.selection.selected.faces.first;
         extension.edges = [...this.editor.selection.selected.edges];
+
+        const dialog = new ExtensionShellDialog(extension, this.editor.signals);
+        const gizmo = new ExtensionShellGizmo("extension-shell:distance", this.editor);
+
+        dialog.execute(async params => {
+            await extension.update();
+            gizmo.render(params.distance);
+        }).resource(this);
+
+        gizmo.execute(distance => {
+            extension.distance = distance;
+            extension.update();
+            dialog.render();
+        }).resource(this);
+
+        await this.finished;
 
         extension.commit();
     }

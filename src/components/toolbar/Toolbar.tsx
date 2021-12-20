@@ -47,7 +47,7 @@ export class Model {
         if (selection.faces.size > 0) {
             result.add(cmd.OffsetCurveCommand);
             result.add(cmd.ExtrudeCommand);
-            result.add(cmd.ExtensionSolidCommand);
+            result.add(cmd.ExtensionShellCommand);
         }
         if (selection.faces.size > 0 || selection.solids.size > 0) {
             result.add(cmd.CutCommand);
