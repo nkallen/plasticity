@@ -214,7 +214,8 @@ export class Model {
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge);
             const restriction = new CurveEdgeSnap(edge, model);
-            this._restrictionSnaps.push(restriction);
+            // FIXME: this isn't used by snap picker, which is relying on all geometry. Not as efficient as it could be ...
+            // this._restrictionSnaps.push(restriction);
             restrictions.push(restriction);
         }
         const restriction = new OrRestriction(restrictions);
@@ -359,7 +360,7 @@ export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
     private readonly cursorHelper = new PointTarget();
 
-    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number }, Points: { threshold: number} } = {
         Line: { threshold: 0.1 },
         Line2: { threshold: 20 },
         Points: { threshold: 25 }
@@ -420,7 +421,12 @@ export class PointPicker {
                     for (const i of indicators) helpers.add(i);
 
                     info = presentation.info;
-                    if (info === undefined) return;
+                    if (info === undefined) {
+                        cursorHelper.visible = false;
+                        editor.signals.pointPickerChanged.dispatch();
+                        return;
+                    }
+                    cursorHelper.visible = true;
 
                     lastSnap = info.snap;
                     const { position, cursorPosition } = info;

@@ -1238,15 +1238,18 @@ export class FilletSolidCommand extends Command {
             await fillet.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
 
-        const pp = new PointPicker(this.editor);
-        const restriction = pp.restrictToEdges(edges);
+        const variable = new PointPicker(this.editor);
+        const restriction = variable.restrictToEdges(edges);
+        variable.raycasterParams.Line2.threshold = 300;
+        variable.raycasterParams.Points.threshold = 50;
         keyboard.execute(async s => {
             switch (s) {
                 case 'add':
-                    const { point } = await pp.execute().resource(this);
-                    const { view, t } = restriction.match;
+                    const { point } = await variable.execute().resource(this);
+                    const { model, view } = restriction.match;
+                    const t = restriction.match.t(point);
                     const fn = fillet.functions.get(view.simpleName)!;
-                    const added = gizmo.addVariable(point, restriction.match);
+                    const added = gizmo.addVariable(point, model, t);
                     added.execute(async delta => {
                         fn.InsertValue(t, delta);
                         await fillet.update();
@@ -1912,7 +1915,7 @@ export class BridgeCurvesCommand extends Command {
 
         line.push(p1);
         factory.curve1 = snap1.view;
-        factory.t1 = snap1.t;
+        factory.t1 = snap1.t(p1);
 
         line.push(p1);
         const { info: { snap: snap2 } } = await pointPicker.execute(({ point: p2, info: { snap: snap2 } }) => {
@@ -1921,7 +1924,7 @@ export class BridgeCurvesCommand extends Command {
 
             if (!(snap2 instanceof CurveSnap || snap2 instanceof CurvePointSnap)) return;
             factory.curve2 = snap2.view;
-            factory.t2 = snap2.t;
+            factory.t2 = snap2.t(p2);
             factory.update();
             dialog.render();
         }).resource(this);

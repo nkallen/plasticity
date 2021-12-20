@@ -30,6 +30,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         main.quaternion.setFromUnitVectors(Y, normal);
         main.position.copy(point);
         angle.position.copy(point);
+        angle.visible = false;
 
         this.add(main);
         this.add(angle);
@@ -97,10 +98,8 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         this.main.render(length);
     }
 
-    addVariable(point: THREE.Vector3, snap: CurveEdgeSnap): FilletMagnitudeGizmo {
-        const { model, t } = snap;
-
-        const normal = model.EdgeNormal(t);
+    addVariable(point: THREE.Vector3, edge: c3d.CurveEdge, t: number): FilletMagnitudeGizmo {
+        const normal = edge.EdgeNormal(t);
         const gizmo = new FilletMagnitudeGizmo(`fillet:distance:${this.variables.length}`, this.editor);
         gizmo.relativeScale.setScalar(0.5);
         gizmo.value = 1;

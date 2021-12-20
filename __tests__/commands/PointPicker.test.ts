@@ -167,9 +167,7 @@ describe('restrictToEdges', () => {
 
     test("restrictionSnaps", () => {
         const restrictions = pointPicker.restrictionSnapsFor(new PlaneSnap());
-        expect(restrictions.length).toBe(2);
-        expect(restrictions[0]).toBeInstanceOf(CurveEdgeSnap);
-        expect(restrictions[1]).toBeInstanceOf(CurveEdgeSnap);
+        expect(restrictions.length).toBe(0);
     })
 
     test("snaps", () => {

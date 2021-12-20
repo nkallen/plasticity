@@ -87,27 +87,32 @@ export class SnapPicker {
         }
         const extremelyCloseSnaps = this.intersections2snaps(snaps, intersections, db);
         extremelyCloseSnaps.sort(sort);
-        
+
         let result: SnapResult[] = [];
         for (const { snap, intersection } of extremelyCloseSnaps) {
             const { position, orientation } = snap.project(intersection.point);
             result.push({ snap, position, orientation, cursorPosition: position, cursorOrientation: orientation });
         }
-        if (result.length === 0) result = this.intersectConstructionPlane(pointPicker, viewport);
+        if (result.length === 0) {
+            result = this.intersectConstructionPlane(pointPicker, viewport);
+        }
 
         return this.applyRestrictions(pointPicker, viewport, result);
     }
 
-    private applyRestrictions(pointPicker: Model, viewport: Viewport, result: SnapResult[]) {
+    private applyRestrictions(pointPicker: Model, viewport: Viewport, input: SnapResult[]) {
         const restriction = pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrthoMode);
-        if (restriction !== undefined) {
-            for (const info of result) {
-                const { position, orientation } = restriction.project(info.position);
-                info.position = position;
-                info.orientation = orientation;
-            }
+        if (restriction === undefined) return input;
+
+        const output = [];
+        for (const info of input) {
+            if (!restriction.isValid(info.position)) continue;
+            const { position, orientation } = restriction.project(info.position);
+            info.position = position;
+            info.orientation = orientation;
+            output.push(info);
         }
-        return result;
+        return output;
     }
 
     private intersections2snaps(snaps: SnapManagerGeometryCache, intersections: THREE.Intersection[], db: DatabaseLike): { snap: Snap, intersection: THREE.Intersection }[] {

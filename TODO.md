@@ -65,14 +65,3 @@
 - When offsetting face, offset should match snap pt with ctrl  
 
 ### Done ✓
-
-- Add extension body command  
-- bug: trim is broken  
-- Split body by picking faces  
-- Mirror around plane  
-- Align camera and construction plane (with space)  
-- when isOrtho, all things project  
-- Animated box navigation  
-- speed of gizmos tempered by zoom  
-- Selection become conventional  
-

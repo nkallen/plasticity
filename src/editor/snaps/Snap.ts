@@ -117,8 +117,12 @@ export class AxisCurveCrossPointSnap extends PointSnap {
 }
 
 export class CurvePointSnap extends PointSnap {
-    constructor(readonly name: string | undefined, position: THREE.Vector3, readonly curveSnap: CurveSnap, readonly t: number) {
+    constructor(readonly name: string | undefined, position: THREE.Vector3, readonly curveSnap: CurveSnap, protected readonly _t: number) {
         super(name, position);
+    }
+
+    t(_: any) {
+        return this._t;
     }
 
     get view() { return this.curveSnap.view }
@@ -127,8 +131,8 @@ export class CurvePointSnap extends PointSnap {
 
 export class CurveEndPointSnap extends CurvePointSnap {
     get tangentSnap(): PointAxisSnap {
-        const { t, curveSnap: { model } } = this;
-        const tangent = vec2vec(model.Tangent(t), 1);
+        const { _t, curveSnap: { model } } = this;
+        const tangent = vec2vec(model.Tangent(_t), 1);
         return new PointAxisSnap("Tangent", tangent, this.position);
     }
 }
@@ -172,17 +176,20 @@ export class FaceCenterPointSnap extends PointSnap {
 
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
-    t!: number;
-    get snapper() { return this.view.slice() }
+    readonly snapper: THREE.Object3D;
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
         super();
+        this.snapper = view.slice();
         this.init();
+    }
+
+    t(point: THREE.Vector3) {
+        return this.model.PointProjection(point2point(point));
     }
 
     project(point: THREE.Vector3) {
         const t = this.model.PointProjection(point2point(point));
-        this.t = t;
         const on = this.model.Point(t);
         const curve = this.model.GetSpaceCurve()!;
         const t2 = curve.NearPointProjection(point2point(point), false).t;
@@ -221,7 +228,6 @@ const zero = new THREE.Vector3();
 
 export class CurveSnap extends Snap {
     readonly name = "Curve";
-    t!: number;
     readonly snapper = new THREE.Group();
 
     constructor(readonly view: visual.SpaceInstance<visual.Curve3D>, readonly model: c3d.Curve3D) {
@@ -230,11 +236,14 @@ export class CurveSnap extends Snap {
         this.init();
     }
 
+    t(point: THREE.Vector3) {
+        return this.model.NearPointProjection(point2point(point), false).t;
+    }
+
     project(point: THREE.Vector3) {
         const { t } = this.model.NearPointProjection(point2point(point), false);
         const on = this.model.PointOn(t);
         const tan = this.model.Tangent(t);
-        this.t = t;
         const position = point2point(on);
         const orientation = new THREE.Quaternion().setFromUnitVectors(Z, vec2vec(tan, 1));
         return { position, orientation };
@@ -390,10 +399,10 @@ export class OrRestriction<R extends Restriction> implements Restriction {
     }
 
     project(point: THREE.Vector3): { position: THREE.Vector3; orientation: THREE.Quaternion } {
-        this.isValid(point);
         return this.match.project(point);
     }
 }
+
 const axisGeometry = new THREE.BufferGeometry();
 const points = [];
 points.push(new THREE.Vector3(0, -100000, 0));
@@ -572,5 +581,5 @@ export class ConstructionPlaneSnap extends PlaneSnap {
     }
 
     // NOTE: A construction plane accepts all points, projecting them
-    isValid() { return true; }
+    isValid() { return true }
 }
