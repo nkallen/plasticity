@@ -89,7 +89,7 @@ export class PlanarMoveGizmo extends PlanarGizmo<THREE.Vector3> {
     onPointerMove(cb: (value: THREE.Vector3) => void, intersect: Intersector, info: MovementInfo): void {
         const { plane, startMousePosition, state } = this;
 
-        const planeIntersect = intersect(plane, true);
+        const planeIntersect = intersect(plane);
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
         const delta = planeIntersect.point.clone().sub(startMousePosition).add(state.original);

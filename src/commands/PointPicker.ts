@@ -14,7 +14,8 @@ import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import { CancellablePromise } from '../util/Cancellable';
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helper, Helpers } from '../util/Helpers';
-import { SnapManagerGeometryCache, SnapPicker, SnapResult } from '../visual_model/SnapPicker';
+import { SnapPicker, SnapResult } from '../visual_model/SnapPicker';
+import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import * as visual from "../visual_model/VisualModel";
 
 const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
@@ -385,7 +386,7 @@ export class PointPicker {
             let info: SnapInfo | undefined = undefined;
             // FIXME: build elsewhere for higher performance
             const snapCache = new SnapManagerGeometryCache(editor.snaps);
-            disposables.add(new Disposable(() => snapCache.dispose));
+            disposables.add(new Disposable(() => snapCache.dispose()));
 
             for (const viewport of this.editor.viewports) {
                 viewport.disableControls(viewport.navigationControls);
@@ -483,6 +484,7 @@ export class PointPicker {
                 disposables.add(new Disposable(() => domElement.removeEventListener('pointerdown', onPointerDown)));
                 disposables.add(new Disposable(() => document.removeEventListener('keydown', onKeyDown)));
                 disposables.add(new Disposable(() => document.removeEventListener('keyup', onKeyUp)));
+                disposables.add(new Disposable(() => { editor.snaps.enabled = true }));
             }
             const dispose = () => {
                 disposables.dispose();

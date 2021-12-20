@@ -7,6 +7,7 @@
 - Napi::Promise::Deferred const &d rename _deferred  
 - ensure all commands have a binding  
 - dialog keybindings  
+- [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - copy fillet radius by clicking on another fillet surface  
 - bug: box selected, while mouse down, zoom  
 - extrude multiple regions at once  
@@ -24,7 +25,6 @@
 - [ ] Refactor curve extension code  
 - [ ] bug: control points, when one selected and another hovered, everything unhighlighted  
 - [ ] PointPicker: Restrictions are ignored with choice -  
-- [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - [ ] Redesign set resolution of line2 etc  
 - [ ] parentId of edge and face should be set directly and not actually in the tree?  
 - [ ] fillet face  
@@ -42,7 +42,6 @@
 - [ ] Add settings for loft  
 - [ ] memoize and discretize calculations like fillet #performance  
 - [ ] memoize mesh generation of faces in mesh creator (for the duration of a command). #performance  
-- [ ] in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?  
 - [ ] showPhantoms() in ModifyContourPointFactory needs implementation  
 - [ ] Nearpointprojection needs to be errorbool  
 - [ ] Trim command should allow splitting segments  
@@ -57,6 +56,7 @@
 
 ### Todo
 
+- [ ] in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?  
 - Add dialog for extrude  
 - rr ss gg for screenspace  
 

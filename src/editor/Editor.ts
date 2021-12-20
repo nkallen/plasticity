@@ -30,6 +30,7 @@ import ModifierManager from "./ModifierManager";
 import { SnapManager } from './snaps/SnapManager';
 import { SnapPresenter } from "./snaps/SnapPresenter";
 import { SpriteDatabase } from "./SpriteDatabase";
+import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
@@ -56,8 +57,9 @@ export class Editor {
     readonly crosses = new CrossPointDatabase();
     readonly snaps = new SnapManager(this.db, this.crosses, this.signals);
     readonly snapPresenter = new SnapPresenter(this.gizmos);
+    readonly snapCache = new SnapManagerGeometryCache(this.snaps);
     readonly keymaps = new KeymapManager();
-    readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME viewRegistry shouldn't be null
+    readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals);
     readonly changeSelection = new ChangeSelectionExecutor(this.modifiers, this.materials, this.signals);

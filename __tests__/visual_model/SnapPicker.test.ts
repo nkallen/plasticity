@@ -2,11 +2,13 @@
  * @jest-environment jsdom
  */
 import * as THREE from 'three';
+import c3d from '../../build/Release/c3d.node';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from '../../src/commands/curve/CurveFactory';
 import { Model } from "../../src/commands/PointPicker";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { Viewport } from "../../src/components/viewport/Viewport";
+import { Orientation } from '../../src/components/viewport/ViewportNavigator';
 import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
@@ -15,12 +17,11 @@ import LayerManager from "../../src/editor/LayerManager";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { CurveEndPointSnap, FaceSnap, PointSnap } from "../../src/editor/snaps/Snap";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
-import { SnapManagerGeometryCache, SnapPicker } from "../../src/visual_model/SnapPicker";
+import { SnapManagerGeometryCache } from '../../src/visual_model/SnapManagerGeometryCache';
+import { SnapPicker } from "../../src/visual_model/SnapPicker";
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
-import c3d from '../../build/Release/c3d.node';
 import '../matchers';
-import { Orientation } from '../../src/components/viewport/ViewportNavigator';
 
 let editor: Editor;
 let layers: LayerManager;

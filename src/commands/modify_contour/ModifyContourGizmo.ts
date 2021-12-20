@@ -220,7 +220,7 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
                 let newWinner = undefined;
                 for (const info of this.map) {
                     const { gizmo } = info;
-                    const intersection = GizmoStateMachine.intersectObjectWithRay(gizmo.picker, this.raycaster, true);
+                    const intersection = GizmoStateMachine.intersectObjectWithRay([gizmo.picker], this.raycaster);
                     if (intersection !== undefined) {
                         newWinner = info;
                         break;

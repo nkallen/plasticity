@@ -3,42 +3,41 @@
  */
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { EditorLike, Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
-import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
-import { ChamferAndFilletKeyboardGizmo, FilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { ModifyContourFactory } from "../../src/commands/modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "../../src/commands/modify_contour/ModifyContourGizmo";
 import { Viewport } from "../../src/components/viewport/Viewport";
+import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
-import * as visual from '../../src/visual_model/VisualModel';
-import { Cancel, CancellablePromise } from "../../src/util/Cancellable";
+import { CancellablePromise } from "../../src/util/Cancellable";
 import { inst2curve, normalizeCurve } from "../../src/util/Conversion";
 import { Helpers } from "../../src/util/Helpers";
-import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import * as visual from '../../src/visual_model/VisualModel';
 import '../matchers';
 
 let db: GeometryDatabase;
 let modify: ModifyContourFactory;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
-let editor: EditorLike;
+let editor: Editor;
 let gizmos: GizmoMaterialDatabase;
 let helpers: Helpers;
 
 beforeEach(() => {
-    materials = new FakeMaterials();
-    signals = new EditorSignals();
-    db = new GeometryDatabase(materials, signals);
-    modify = new ModifyContourFactory(db, materials, signals);
-    gizmos = new GizmoMaterialDatabase(signals);
-    helpers = new Helpers(signals);
-    const viewports: Viewport[] = [];
-    editor = { db, gizmos, helpers, signals, viewports } as unknown as EditorLike;
+    editor = new Editor();
+    materials = editor.materials;
+    signals = editor.signals;
+    db = editor._db;
+    gizmos = editor.gizmos;
+    helpers = editor.helpers;
 })
+
+beforeEach(() => {
+    modify = new ModifyContourFactory(db, materials, signals);
+});
 
 describe(ModifyContourGizmo, () => {
     let gizmo: ModifyContourGizmo;

@@ -8,6 +8,7 @@ import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { AngleGizmo, DistanceGizmo, LengthGizmo } from "../../src/commands/MiniGizmos";
 import { CircleMoveGizmo, MoveAxisGizmo, PlanarMoveGizmo } from "../../src/commands/translate/MoveGizmo";
 import { CircleScaleGizmo, PlanarScaleGizmo, ScaleAxisGizmo } from "../../src/commands/translate/ScaleGizmo";
+import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
@@ -20,6 +21,7 @@ let gizmos: GizmoMaterialDatabase;
 let signals: EditorSignals;
 let helpers: Helpers;
 let editor: Editor;
+let viewport: Viewport;
 
 beforeEach(() => {
     editor = new Editor();
@@ -27,6 +29,7 @@ beforeEach(() => {
     signals = editor.signals;
     helpers = editor.helpers;
     gizmos = editor.gizmos;
+    viewport = MakeViewport(editor);
 })
 
 describe(AngleGizmo, () => {
@@ -40,7 +43,6 @@ describe(AngleGizmo, () => {
     test("it changes the angle, and respects interrupts", () => {
         const intersector = jest.fn();
         const cb = jest.fn();
-        const viewport = MakeViewport(editor);
         const info = { viewport } as MovementInfo;
 
         gizmo.onPointerEnter(intersector);
@@ -213,7 +215,7 @@ describe(MoveAxisGizmo, () => {
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
@@ -390,3 +392,5 @@ describe(FilletMagnitudeGizmo, () => {
         expect(gizmo.value).toBeCloseTo(-0.14);
     })
 })
+
+const moveEvent = new MouseEvent('move', { clientX: 50, clientY: 50 });

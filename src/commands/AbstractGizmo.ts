@@ -4,8 +4,10 @@ import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from "../editor/GeometryDatabase";
+import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import { PlaneSnap } from "../editor/snaps/Snap";
+import { SnapManager } from "../editor/snaps/SnapManager";
 import { CancellablePromise } from "../util/Cancellable";
 import { Helper, Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
@@ -32,13 +34,15 @@ export interface GizmoView {
 }
 
 export interface EditorLike {
-    db: DatabaseLike,
-    helpers: Helpers,
-    viewports: Viewport[],
-    signals: EditorSignals,
-    registry: CommandRegistry,
-    gizmos: GizmoMaterialDatabase,
-    materials: MaterialDatabase,
+    db: DatabaseLike;
+    helpers: Helpers;
+    viewports: Viewport[];
+    signals: EditorSignals;
+    registry: CommandRegistry;
+    gizmos: GizmoMaterialDatabase;
+    materials: MaterialDatabase;
+    snaps: SnapManager;
+    layers: LayerManager;
 }
 
 export interface GizmoLike<CB> {
@@ -73,8 +77,8 @@ export abstract class AbstractGizmo<CB> extends Helper {
     abstract onPointerDown(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onPointerUp(cb: CB, intersect: Intersector, info: MovementInfo): void;
     abstract onInterrupt(cb: CB): void;
-    onDeactivate() {}
-    onActivate() {}
+    onDeactivate() { }
+    onActivate() { }
 
     execute(cb: CB, mode: Mode = Mode.Persistent): CancellablePromise<void> {
         const disposables = new CompositeDisposable();
@@ -232,7 +236,7 @@ export interface Pointer {
     x: number; y: number, button: number, event: MouseEvent
 }
 
-export type Intersector = (objects: THREE.Object3D, includeInvisible: boolean) => THREE.Intersection | undefined
+export type Intersector = (...objects: THREE.Object3D[]) => THREE.Intersection | undefined
 
 export interface MovementInfo {
     // These are the mouse down and mouse move positions in screenspace
@@ -316,11 +320,11 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.pointer = pointer;
     }
 
-    private intersector: Intersector = (obj, hidden) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster, hidden);
+    private intersector: Intersector = (...obj) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster);
 
     private worldPosition = new THREE.Vector3();
     private begin() {
-        const intersection = this.intersector(this.cameraPlane, true);
+        const intersection = this.intersector(this.cameraPlane);
         if (!intersection) throw "corrupt intersection query";
 
         switch (this.state.tag) {
@@ -387,7 +391,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 if (this.pointer.button !== -1) return;
             case 'command':
                 this.pointEnd2d.set(this.pointer.x, this.pointer.y);
-                const intersection = this.intersector(this.cameraPlane, true);
+                const intersection = this.intersector(this.cameraPlane,);
                 if (!intersection) throw new Error("corrupt intersection query");
                 this.pointEnd3d.copy(intersection.point);
                 this.endRadius.copy(this.pointEnd2d).sub(this.center2d).normalize();
@@ -431,7 +435,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
         switch (this.state.tag) {
             case 'none': {
-                const intersect = this.intersector(this.gizmo.picker, true);
+                const intersect = this.intersector(this.gizmo.picker);
                 if (intersect !== undefined) {
                     this.gizmo.onPointerEnter(this.intersector);
                     this.state = { tag: 'hover' }
@@ -441,7 +445,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 break;
             }
             case 'hover': {
-                const intersect = this.intersector(this.gizmo.picker, true);
+                const intersect = this.intersector(this.gizmo.picker);
                 if (intersect === undefined) {
                     this.gizmo.onPointerLeave(this.intersector);
                     this.state = { tag: 'none' }
@@ -486,12 +490,10 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.gizmo.helper?.onEnd();
     }
 
-    static intersectObjectWithRay(object: THREE.Object3D, raycaster: THREE.Raycaster, includeInvisible: boolean): THREE.Intersection | undefined {
-        const allIntersections = raycaster.intersectObject(object, true);
+    static intersectObjectWithRay(objects: THREE.Object3D[], raycaster: THREE.Raycaster): THREE.Intersection | undefined {
+        const allIntersections = raycaster.intersectObjects(objects, true);
         for (var i = 0; i < allIntersections.length; i++) {
-            if (allIntersections[i].object.visible || includeInvisible) {
-                return allIntersections[i];
-            }
+            return allIntersections[i];
         }
     }
 }
