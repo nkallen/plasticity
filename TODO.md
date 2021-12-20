@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- Add dialog for extrude  
 - Napi::Promise::Deferred const &d rename _deferred  
 - ensure all commands have a binding  
 - dialog keybindings  

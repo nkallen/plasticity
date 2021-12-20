@@ -184,7 +184,7 @@ export default {
         "b": "command:fillet",
         "e": "command:extrude",
         "t": "command:trim",
-        "i": "command:offset",
+        "o": "command:offset-curve",
         "alt-x": "command:mirror",
         "tab": "command:mode",
         "x": "command:delete",

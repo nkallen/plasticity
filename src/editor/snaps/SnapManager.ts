@@ -158,9 +158,13 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
                     for (const endSnap of endSnaps) into.add(endSnap);
                 }
             }
-            const point = item.GetLimitPoint(2);
-            const final = new CurveEndPointSnap("End", point2point(point), curveSnap, item.NearPointProjection(point, false).t)
-            into.add(final);
+            const begPt = item.GetLimitPoint(1);
+            const beg = new CurveEndPointSnap("Beginning", point2point(begPt), curveSnap, item.NearPointProjection(begPt, false).t)
+            into.add(beg);
+
+            const endPt = item.GetLimitPoint(2);
+            const end = new CurveEndPointSnap("End", point2point(endPt), curveSnap, item.NearPointProjection(endPt, false).t)
+            into.add(end);
         } else {
             if (item.IsClosed()) return;
 
