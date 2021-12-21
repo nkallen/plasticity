@@ -28,7 +28,7 @@ import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import ModifierManager from "./ModifierManager";
 import { SnapManager } from './snaps/SnapManager';
-import { SnapPresenter } from "./snaps/SnapPresenter";
+import { SnapIndicator } from "../command/SnapIndicator";
 import { SpriteDatabase } from "./SpriteDatabase";
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 
@@ -56,7 +56,6 @@ export class Editor {
 
     readonly crosses = new CrossPointDatabase();
     readonly snaps = new SnapManager(this.db, this.crosses, this.signals);
-    readonly snapPresenter = new SnapPresenter(this.gizmos);
     readonly snapCache = new SnapManagerGeometryCache(this.snaps);
     readonly keymaps = new KeymapManager();
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null

@@ -8,7 +8,7 @@ import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
 import { PlanarCurveDatabase } from "../editor/curves/PlanarCurveDatabase";
 import { SnapManager } from "../editor/snaps/SnapManager";
-import { SnapPresenter } from "../editor/snaps/SnapPresenter";
+import { SnapIndicator } from "./SnapIndicator";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { CancellableRegistor } from "../util/CancellableRegistor";
@@ -55,7 +55,6 @@ export interface EditorLike {
     activeViewport?: Viewport,
     enqueue(command: Command, interrupt?: boolean): Promise<void>,
     modifiers: ModifierManager,
-    snapPresenter: SnapPresenter,
     crosses: CrossPointDatabase,
     keymaps: AtomKeymap.KeymapManager,
 }

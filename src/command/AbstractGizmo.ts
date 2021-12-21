@@ -10,7 +10,10 @@ import { PlaneSnap } from "../editor/snaps/Snap";
 import { SnapManager } from "../editor/snaps/SnapManager";
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Helper, Helpers } from "../util/Helpers";
+import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
+import { GizmoSnapPicker, SnapResult } from "../visual_model/SnapPicker";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
+import { SnapPresentation, SnapPresenter } from "./SnapPresenter";
 
 /**
  * Gizmos are the graphical tools used to run commands, such as move/rotate/fillet, etc.
@@ -87,7 +90,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
             disposables.add(new Disposable(() => this.editor.helpers.remove(this)));
         }
 
-        const stateMachine = new GizmoStateMachine(this, this.editor.signals, cb);
+        const stateMachine = new GizmoStateMachine(this, this.editor, cb);
         this.stateMachine = stateMachine;
         disposables.add(new Disposable(() => this.stateMachine = undefined));
 
@@ -157,11 +160,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
                 }
 
                 const trigger = this.trigger.register(this, viewport, addEventHandlers);
-                disposables.add(new Disposable(() => {
-                    trigger.dispose();
-                    domElement.ownerDocument.removeEventListener('pointerup', onPointerUp);
-                    domElement.ownerDocument.removeEventListener('pointermove', onPointerMove);
-                }));
+                disposables.add(trigger);
                 this.editor.signals.gizmoChanged.dispatch();
             }
             const dispose = () => {
@@ -234,8 +233,10 @@ export interface Pointer {
     x: number; y: number, button: number, event: MouseEvent
 }
 
-export type Intersector = (...objects: THREE.Object3D[]) => THREE.Intersection | undefined
-
+export interface Intersector {
+    raycast(...objects: THREE.Object3D[]): THREE.Intersection | undefined;
+    snap(): SnapResult[];
+}
 export interface MovementInfo {
     // These are the mouse down and mouse move positions in screenspace
     pointStart2d: THREE.Vector2;
@@ -263,7 +264,7 @@ export interface MovementInfo {
 // This class handles computing some useful data (like click start and click end) of the
 // gizmo user interaction. It deals with the hover->click->drag->unclick case (the traditional
 // gizmo interactions) as well as the keyboardCommand->move->click->unclick case (blender modal-style).
-type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'dragging', clearEventHandlers: Disposable } | { tag: 'command', clearEventHandlers: Disposable, text: string }
+type State = { tag: 'none' } | { tag: 'hover' } | { tag: 'dragging', clearEventHandlers: Disposable, clearPresenter: Disposable } | { tag: 'command', clearEventHandlers: Disposable, clearPresenter: Disposable, text: string }
 
 export class GizmoStateMachine<T> implements MovementInfo {
     // NOTE: isActive and isEnabled differ only slightly. When !isEnabled, the gizmo is COMPLETELY disabled.
@@ -282,20 +283,18 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
     private readonly cameraPlane = new THREE.Mesh(new THREE.PlaneGeometry(100_000, 100_000, 2, 2), new THREE.MeshBasicMaterial());
     constructionPlane!: PlaneSnap;
-    eye = new THREE.Vector3();
-    pointStart2d = new THREE.Vector2();
-    pointEnd2d = new THREE.Vector2();
-    pointStart3d = new THREE.Vector3();
-    pointEnd3d = new THREE.Vector3();
-    center2d = new THREE.Vector2()
-    endRadius = new THREE.Vector2();
+    readonly eye = new THREE.Vector3();
+    readonly pointStart2d = new THREE.Vector2();
+    readonly pointEnd2d = new THREE.Vector2();
+    readonly pointStart3d = new THREE.Vector3();
+    readonly pointEnd3d = new THREE.Vector3();
+    readonly center2d = new THREE.Vector2()
+    readonly endRadius = new THREE.Vector2();
     angle = 0;
-
-    private readonly raycaster = new THREE.Raycaster();
 
     constructor(
         private readonly gizmo: AbstractGizmo<T>,
-        private readonly signals: EditorSignals,
+        private readonly editor: EditorLike,
         private readonly cb: T,
     ) { }
 
@@ -315,14 +314,25 @@ export class GizmoStateMachine<T> implements MovementInfo {
         this.cameraPlane.updateMatrixWorld();
         this.constructionPlane = viewport.constructionPlane;
         this.raycaster.setFromCamera(pointer, camera);
+        this.snapPicker.setFromViewport(event, viewport);
         this.pointer = pointer;
     }
 
-    private intersector: Intersector = (...obj) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster);
+    private readonly raycaster = new THREE.Raycaster();
+    private readonly snapCache = new SnapManagerGeometryCache(this.editor.snaps);
+    private readonly snapPicker = new GizmoSnapPicker(this.editor.layers);
+    private readonly presenter = new SnapPresenter(this.editor);
+    private readonly raycast = (...obj: THREE.Object3D[]) => GizmoStateMachine.intersectObjectWithRay(obj, this.raycaster);
+    private readonly snap = () => {
+        const { presentation, intersections } = SnapPresentation.makeForGizmo(this.snapPicker, this.viewport, this.editor.db, this.snapCache, this.editor.gizmos);
+        this.presenter.onPointerMove(this.viewport, presentation);
+        return intersections;
+    }
+    private readonly intersector: Intersector = { raycast: this.raycast, snap: this.snap }
 
     private worldPosition = new THREE.Vector3();
     private begin() {
-        const intersection = this.intersector(this.cameraPlane);
+        const intersection = GizmoStateMachine.intersectObjectWithRay([this.cameraPlane], this.raycaster);
         if (!intersection) throw "corrupt intersection query";
 
         switch (this.state.tag) {
@@ -341,7 +351,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 break;
             default: throw new Error("invalid state");
         }
-        this.signals.gizmoChanged.dispatch();
+        this.editor.signals.gizmoChanged.dispatch();
     }
 
     command(fn: (cb?: T) => void, start: () => Disposable): void {
@@ -354,7 +364,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 if (fn(this.cb) === undefined) {
                     this.gizmo.update(this.camera);
                     this.begin();
-                    this.state = { tag: 'command', clearEventHandlers, text: "" };
+                    const clearPresenter = this.presenter.execute();
+                    this.state = { tag: 'command', clearEventHandlers, clearPresenter, text: "" };
                     this.gizmo.dispatchEvent({ type: 'start' });
                 } else {
                     clearEventHandlers.dispose();
@@ -373,7 +384,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
                 this.begin();
                 const clearEventHandlers = start();
-                this.state = { tag: 'dragging', clearEventHandlers };
+                const clearPresenter = this.presenter.execute();
+                this.state = { tag: 'dragging', clearEventHandlers, clearPresenter };
                 this.gizmo.dispatchEvent({ type: 'start' });
                 break;
             default: break;
@@ -389,17 +401,18 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 if (this.pointer.button !== -1) return;
             case 'command':
                 this.pointEnd2d.set(this.pointer.x, this.pointer.y);
-                const intersection = this.intersector(this.cameraPlane,);
+                const intersection = GizmoStateMachine.intersectObjectWithRay([this.cameraPlane], this.raycaster);
                 if (!intersection) throw new Error("corrupt intersection query");
                 this.pointEnd3d.copy(intersection.point);
                 this.endRadius.copy(this.pointEnd2d).sub(this.center2d).normalize();
                 const startRadius = this.pointStart2d.clone().sub(this.center2d);
                 this.angle = Math.atan2(this.endRadius.y, this.endRadius.x) - Math.atan2(startRadius.y, startRadius.x);
 
+                this.presenter.clear();
                 this.gizmo.helper?.onMove(this.pointEnd2d);
                 this.gizmo.onPointerMove(this.cb, this.intersector, this);
 
-                this.signals.gizmoChanged.dispatch();
+                this.editor.signals.gizmoChanged.dispatch();
                 break;
             default: throw new Error('invalid state: ' + this.state.tag);
         }
@@ -415,7 +428,8 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 if (this.pointer.button !== 0) return;
 
                 this.state.clearEventHandlers.dispose();
-                this.signals.gizmoChanged.dispatch();
+                this.state.clearPresenter.dispose();
+                this.editor.signals.gizmoChanged.dispatch();
                 this.state = { tag: 'none' };
                 this.gizmo.dispatchEvent({ type: 'end' });
                 this.gizmo.onPointerUp(this.cb, this.intersector, this);
@@ -433,22 +447,22 @@ export class GizmoStateMachine<T> implements MovementInfo {
 
         switch (this.state.tag) {
             case 'none': {
-                const intersect = this.intersector(this.gizmo.picker);
+                const intersect = GizmoStateMachine.intersectObjectWithRay([this.gizmo.picker], this.raycaster);
                 if (intersect !== undefined) {
                     this.gizmo.onPointerEnter(this.intersector);
                     this.state = { tag: 'hover' }
                     // this.viewport.disableControls();
-                    this.signals.gizmoChanged.dispatch();
+                    this.editor.signals.gizmoChanged.dispatch();
                 }
                 break;
             }
             case 'hover': {
-                const intersect = this.intersector(this.gizmo.picker);
+                const intersect = GizmoStateMachine.intersectObjectWithRay([this.gizmo.picker], this.raycaster);
                 if (intersect === undefined) {
                     this.gizmo.onPointerLeave(this.intersector);
                     this.state = { tag: 'none' }
                     // this.viewport.enableControls();
-                    this.signals.gizmoChanged.dispatch();
+                    this.editor.signals.gizmoChanged.dispatch();
                 }
                 break;
             }
@@ -464,7 +478,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
             case 'command':
                 this.state.text += key;
                 this.gizmo.onKeyPress(this.cb, this.state.text);
-                this.signals.gizmoChanged.dispatch();
+                this.editor.signals.gizmoChanged.dispatch();
                 break;
             default: break;
         }
@@ -475,6 +489,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
             case 'command':
             case 'dragging':
                 this.state.clearEventHandlers.dispose();
+                this.state.clearPresenter.dispose();
                 this.gizmo.dispatchEvent({ type: 'interrupt' });
                 this.gizmo.onInterrupt(this.cb);
                 this.gizmo.helper?.onEnd();
@@ -485,14 +500,19 @@ export class GizmoStateMachine<T> implements MovementInfo {
     }
 
     finish() {
-        this.gizmo.helper?.onEnd();
+        switch (this.state.tag) {
+            case 'command':
+            case 'dragging':
+                this.state.clearEventHandlers.dispose();
+                this.state.clearPresenter.dispose();
+                this.gizmo.helper?.onEnd();
+            default: break;
+        }
     }
 
     static intersectObjectWithRay(objects: THREE.Object3D[], raycaster: THREE.Raycaster): THREE.Intersection | undefined {
         const allIntersections = raycaster.intersectObjects(objects, true);
-        for (var i = 0; i < allIntersections.length; i++) {
-            return allIntersections[i];
-        }
+        return allIntersections[0];
     }
 }
 

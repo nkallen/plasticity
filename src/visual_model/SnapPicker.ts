@@ -16,6 +16,17 @@ import * as visual from "./VisualModel";
  * using a cache for most point snaps and the existing, (optimized) geometry raycasting targets.
  */
 
+ export type RaycasterParams = THREE.RaycasterParameters & {
+    Line2: { threshold: number }
+    Points: { threshold: number }
+};
+
+const defaultIntersectParams: RaycasterParams= {
+    Line: { threshold: 0.1 },
+    Line2: { threshold: 30 },
+    Points: { threshold: 25 }
+};
+
 const defaultNearbyParams: THREE.RaycasterParameters = {
     Points: { threshold: 200 }
 };
@@ -25,7 +36,7 @@ abstract class AbstractSnapPicker {
 
     constructor(
         protected readonly layers: LayerManager,
-        protected readonly intersectParams: THREE.RaycasterParameters,
+        protected readonly intersectParams: RaycasterParams = defaultIntersectParams,
         protected readonly nearbyParams: THREE.RaycasterParameters = defaultNearbyParams,
     ) { }
 

@@ -139,7 +139,7 @@ export class PlanarScaleGizmo extends PlanarGizmo<number> {
     onPointerMove(cb: (value: number) => void, intersect: Intersector, info: MovementInfo): void {
         const { plane, denominator, state } = this;
 
-        const planeIntersect = intersect(plane);
+        const planeIntersect = intersect.raycast(plane);
         if (planeIntersect === undefined) return; // this only happens when the user is dragging through different viewports.
 
         let magnitude = planeIntersect.point.sub(this.worldPosition).length();

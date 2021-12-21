@@ -48,7 +48,7 @@ beforeEach(() => {
     start = end = interrupt = 0;
     gizmo = new FakeGizmo(editor);
     const cb = () => { };
-    sm = new GizmoStateMachine(gizmo, signals, cb);
+    sm = new GizmoStateMachine(gizmo, editor, cb);
 
     gizmo.addEventListener('start', () => start++);
     gizmo.addEventListener('end', () => end++);

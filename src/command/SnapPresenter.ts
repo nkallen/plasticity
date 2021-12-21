@@ -1,18 +1,20 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
 import * as THREE from "three";
 import { Viewport } from '../components/viewport/Viewport';
+import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import { PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
-import { SnapPresenter } from '../editor/snaps/SnapPresenter';
-import { Helper } from '../util/Helpers';
+import { Helper, Helpers } from '../util/Helpers';
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
-import { SnapPicker, SnapResult } from '../visual_model/SnapPicker';
-import { EditorLike, Model, pointGeometry, RaycasterParams } from './PointPicker';
+import { GizmoSnapPicker, SnapPicker, SnapResult } from '../visual_model/SnapPicker';
+import { GizmoMaterialDatabase } from './GizmoMaterials';
+import { Model, pointGeometry } from './PointPicker';
+import { SnapIndicator } from './SnapIndicator';
 
 export interface SnapInfo {
     snap: Snap,
     constructionPlane: PlaneSnap,
-    orientation: THREE.Quaternion 
+    orientation: THREE.Quaternion
     position: THREE.Vector3;
     cursorPosition: THREE.Vector3;
     cursorOrientation: THREE.Quaternion;
@@ -22,15 +24,27 @@ export interface SnapInfo {
 // There are icons, indicators, textual name explanations, etc.
 
 export class SnapPresentation {
-    static make(picker: SnapPicker, viewport: Viewport, pointPicker: Model, db: DatabaseLike, snapCache: SnapManagerGeometryCache, presenter: SnapPresenter) {
-        const { constructionPlane, isOrthoMode: isOrtho } = viewport;
+    static makeForPointPicker(picker: SnapPicker, viewport: Viewport, pointPicker: Model, db: DatabaseLike, snapCache: SnapManagerGeometryCache, gizmos: GizmoMaterialDatabase) {
+        const { constructionPlane, isOrthoMode } = viewport;
 
         const nearby = picker.nearby(pointPicker, snapCache, db);
         const intersections = picker.intersect(pointPicker, snapCache, db);
-        const actualConstructionPlaneGiven = pointPicker.actualConstructionPlaneGiven(constructionPlane, isOrtho);
+        const actualConstructionPlaneGiven = pointPicker.actualConstructionPlaneGiven(constructionPlane, isOrthoMode);
+        const indicators = new SnapIndicator(gizmos);
 
-        const presentation = new SnapPresentation(nearby, intersections, actualConstructionPlaneGiven, isOrtho, presenter);
-        return { presentation, snappers: intersections, nearby };
+        const presentation = new SnapPresentation(nearby, intersections, actualConstructionPlaneGiven, isOrthoMode, indicators);
+        return { presentation, intersections, nearby };
+    }
+
+    static makeForGizmo(picker: GizmoSnapPicker, viewport: Viewport, db: DatabaseLike, snapCache: SnapManagerGeometryCache, gizmos: GizmoMaterialDatabase) {
+        const { constructionPlane, isOrthoMode } = viewport;
+
+        const nearby = picker.nearby(snapCache, db);
+        const intersections = picker.intersect(snapCache, db);
+        const indicators = new SnapIndicator(gizmos);
+
+        const presentation = new SnapPresentation(nearby, intersections, constructionPlane, isOrthoMode, indicators);
+        return { presentation, intersections, nearby };
     }
 
     readonly helpers: THREE.Object3D[];
@@ -38,7 +52,7 @@ export class SnapPresentation {
     readonly names: string[];
     readonly nearby: Helper[];
 
-    constructor(nearby: PointSnap[], intersections: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapPresenter) {
+    constructor(nearby: PointSnap[], intersections: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapIndicator) {
         this.nearby = nearby.map(n => presenter.nearbyIndicatorFor(n));
 
         if (intersections.length === 0) {
@@ -84,15 +98,17 @@ export class PointTarget extends Helper {
     }
 }
 
-export class SnapPresentationInteractor {
-    private readonly disposable = new CompositeDisposable();
-    dispose() { this.disposable.dispose(); }
+interface EditorLike {
+    helpers: Helpers;
+    signals: EditorSignals;
+    viewports: Viewport[];
+}
 
+export class SnapPresenter {
     private readonly cursorHelper = new PointTarget();
     private readonly helpers = new THREE.Scene();
 
-    constructor(private readonly editor: EditorLike, private readonly raycasterParams: RaycasterParams) {
-    }
+    constructor(private readonly editor: EditorLike) { }
 
     execute() {
         const { editor, cursorHelper, helpers } = this;
@@ -113,8 +129,7 @@ export class SnapPresentationInteractor {
 
         helpers.clear();
         const { names, helpers: newHelpers, nearby: indicators } = presentation;
-        for (const i of indicators)
-            helpers.add(i);
+        for (const i of indicators) helpers.add(i);
 
         const info = presentation.info;
         if (info === undefined) {
@@ -132,5 +147,12 @@ export class SnapPresentationInteractor {
             names.length > 0 ?
                 { position: position.clone().project(viewport.camera), names }
                 : undefined);
+    }
+
+    clear() {
+        const { editor, cursorHelper, helpers } = this;
+        helpers.clear();
+        cursorHelper.visible = false;
+        editor.signals.pointPickerChanged.dispatch();
     }
 }

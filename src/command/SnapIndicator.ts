@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { GizmoMaterialDatabase } from "../../command/GizmoMaterials";
-import { Helper, SimpleHelper } from "../../util/Helpers";
-import { CircleGeometry } from "../../util/Util";
-import { SnapResult } from "../../visual_model/SnapPicker";
-import { PointSnap } from "./Snap";
+import { GizmoMaterialDatabase } from "./GizmoMaterials";
+import { Helper, SimpleHelper } from "../util/Helpers";
+import { CircleGeometry } from "../util/Util";
+import { SnapResult } from "../visual_model/SnapPicker";
+import { PointSnap } from "../editor/snaps/Snap";
 
 const nearbyGeometry = new THREE.CircleGeometry(0.025, 24);
 const snapGeometry = new LineGeometry();
@@ -13,7 +13,7 @@ snapGeometry.setPositions(CircleGeometry(0.1, 24));
 
 const nearbyMaterial = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide, blending: THREE.MultiplyBlending });
 
-export class SnapPresenter {
+export class SnapIndicator {
     constructor(private readonly materials: GizmoMaterialDatabase) { }
 
     nearbyIndicatorFor(snap: PointSnap): Helper {

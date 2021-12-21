@@ -1,15 +1,17 @@
+import { Disposable } from "event-kit";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { ProxyCamera } from "../components/viewport/ProxyCamera";
-import { CancellableRegistor } from "../util/CancellableRegistor";
 import { CancellableRegisterable } from "../util/CancellableRegisterable";
+import { CancellableRegistor } from "../util/CancellableRegistor";
 import { CircleGeometry } from "../util/Util";
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { GizmoSnapPicker, SnapResult } from "../visual_model/SnapPicker";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 import { GizmoMaterial } from "./GizmoMaterials";
-import { PointTarget } from "./SnapPresentation";
+import { SnapIndicator } from "./SnapIndicator";
+import { SnapPresentation, SnapPresenter } from "./SnapPresenter";
 
 /**
  * In this file are a collection of "mini" gizmos that can be used alone or composed into a more complex gizmo.
@@ -108,7 +110,6 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
         if (this.shouldLookAtCamera) this.lookAt(camera.position);
     }
 
-
     onDeactivate() {
         this.visible = false;
     }
@@ -153,9 +154,9 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
     private readonly plane = new THREE.Mesh(planeGeometry, this.editor.gizmos.invisible);
 
+    private originalPosition!: THREE.Vector3;
     private readonly startMousePosition = new THREE.Vector3();
     private sign = 1;
-    protected originalPosition?= new THREE.Vector3();
 
     constructor(
         private readonly longName: string,
@@ -194,45 +195,38 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     }
 
     onPointerDown(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
-        const planeIntersect = intersect(this.plane);
+        const planeIntersect = intersect.raycast(this.plane);
         if (planeIntersect === undefined) return;
 
         this.startMousePosition.copy(planeIntersect.point);
         this.sign = Math.sign(planeIntersect.point.dot(this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion)));
         if (this.sign === 0) this.sign = 1;
 
-        if (this.originalPosition === undefined) this.originalPosition = this.position.clone();
-        this.editor.helpers.add(this.cursorHelper);
+        if (this.originalPosition === undefined) this.originalPosition = this.worldPosition.clone();
     }
 
-    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
-        Line: { threshold: 0.1 },
-        Line2: { threshold: 20 },
-        Points: { threshold: 25 }
-    };
-
-    private readonly snapCache = new SnapManagerGeometryCache(this.editor.snaps);
-    private readonly snapPicker = new GizmoSnapPicker(this.editor.layers, this.raycasterParams);
-    private readonly cursorHelper = new PointTarget();
-
-    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
-        this.snapPicker.setFromViewport(info.pointer.event, info.viewport);
-
-        let intersections: SnapResult[] = [];
+    onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo) {
         if (info.pointer.event.ctrlKey) {
-            intersections = this.snapPicker.intersect(this.snapCache, this.editor.db);
+            const point = intersect.snap()[0]?.position.clone();
+            if (point === undefined) return; // this only happens when the user is dragging through different viewports.
+
+            const localY = this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion);
+            const dist = point.sub(this.originalPosition).dot(localY);
+            const length = this.accumulate(0, this.sign, dist);
+            this.state.current = length;
+            this.render(this.state.current);
+            cb(this.state.current);
+        } else {
+            const point = intersect.raycast(this.plane)?.point;
+            if (point === undefined) return; // this only happens when the user is dragging through different viewports.
+
+            const localY = this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion);
+            const dist = point.sub(this.startMousePosition).dot(localY);
+            const length = this.accumulate(this.state.original, this.sign, dist);
+            this.state.current = length;
+            this.render(this.state.current);
+            cb(this.state.current);
         }
-
-        const first: SnapResult | undefined = intersections[0];
-        const point  = first?.position ?? intersect(this.plane)?.point;
-        if (point === undefined) return; // this only happens when the user is dragging through different viewports.
-
-        const localY = this.localY.set(0, 1, 0).applyQuaternion(this.worldQuaternion);
-        const dist = point.sub(this.startMousePosition).dot(localY);
-        const length = this.accumulate(this.state.original, this.sign, dist);
-        this.state.current = length;
-        this.render(this.state.current);
-        cb(this.state.current);
     }
 
     protected abstract accumulate(original: number, sign: number, dist: number): number;
@@ -366,7 +360,7 @@ export abstract class PlanarGizmo<T> extends AbstractGizmo<(value: T) => void> {
 
     onPointerDown(cb: (t: T) => void, intersect: Intersector, info: MovementInfo) {
         this.updatePlane();
-        const planeIntersect = intersect(this.plane);
+        const planeIntersect = intersect.raycast(this.plane);
         if (planeIntersect === undefined) throw new Error("invalid precondition");
         this.state.start();
         this.startMousePosition.copy(planeIntersect.point);

@@ -10,14 +10,14 @@ import { DatabaseLike } from '../editor/GeometryDatabase';
 import LayerManager from '../editor/LayerManager';
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
-import { SnapPresenter } from '../editor/snaps/SnapPresenter';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helpers } from '../util/Helpers';
-import { SnapPicker } from '../visual_model/SnapPicker';
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
+import { RaycasterParams, SnapPicker } from '../visual_model/SnapPicker';
 import * as visual from "../visual_model/VisualModel";
-import { SnapPresentationInteractor, SnapPresentation, SnapInfo } from './SnapPresentation';
+import { GizmoMaterialDatabase } from './GizmoMaterials';
+import { SnapInfo, SnapPresentation, SnapPresenter } from './SnapPresenter';
 
 export const pointGeometry = new THREE.SphereGeometry(0.03, 8, 6, 0, Math.PI * 2, 0, Math.PI);
 
@@ -27,10 +27,10 @@ export interface EditorLike {
     snaps: SnapManager,
     signals: EditorSignals,
     helpers: Helpers,
-    snapPresenter: SnapPresenter,
     crosses: CrossPointDatabase,
     registry: CommandRegistry,
     layers: LayerManager,
+    gizmos: GizmoMaterialDatabase;
 }
 
 export type PointInfo = { constructionPlane: PlaneSnap, snap: Snap, orientation: THREE.Quaternion }
@@ -289,10 +289,7 @@ export class Model {
     }
 }
 
-export type RaycasterParams = THREE.RaycasterParameters & {
-    Line2: { threshold: number }
-    Points: { threshold: number }
-};
+
 
 export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
@@ -315,14 +312,15 @@ export class PointPicker {
             document.body.setAttribute("gizmo", "point-picker");
             disposables.add(new Disposable(() => document.body.removeAttribute('gizmo')));
 
-            const present = new SnapPresentationInteractor(editor, this.raycasterParams);
-            disposables.add(present.execute());
+            const presenter = new SnapPresenter(editor);
+            disposables.add(presenter.execute());
 
-            let info: SnapInfo | undefined = undefined;
             // FIXME: build elsewhere for higher performance
             const snapCache = new SnapManagerGeometryCache(editor.snaps);
-
-            for (const viewport of this.editor.viewports) {
+            const picker = new SnapPicker(editor.layers, this.raycasterParams);
+            
+            let info: SnapInfo | undefined = undefined;
+            for (const viewport of editor.viewports) {
                 disposables.add(viewport.disableControls(viewport.navigationControls));
 
                 let isNavigating = false;
@@ -331,7 +329,6 @@ export class PointPicker {
                     () => isNavigating = false));
 
                 const { renderer: { domElement } } = viewport;
-                const picker = new SnapPicker(this.editor.layers, this.raycasterParams);
 
                 let lastMoveEvent: PointerEvent | undefined = undefined;
                 let lastSnap: Snap | undefined = undefined;
@@ -342,15 +339,13 @@ export class PointPicker {
 
                     lastMoveEvent = e;
                     picker.setFromViewport(e, viewport);
+                    const { presentation, intersections } = SnapPresentation.makeForPointPicker(picker, viewport, model, editor.db, snapCache, editor.gizmos);
+                    presenter.onPointerMove(viewport, presentation);
 
-                    const { presentation, snappers } = SnapPresentation.make(picker, viewport, model, editor.db, snapCache, editor.snapPresenter);
-                    present.onPointerMove(viewport, presentation);
-
-                    this.model.activateMutualSnaps(snappers.map(s => s.snap));
+                    this.model.activateMutualSnaps(intersections.map(s => s.snap));
 
                     info = presentation.info;
                     if (info === undefined) return;
-
                     lastSnap = info.snap;
                     const { position } = info;
 

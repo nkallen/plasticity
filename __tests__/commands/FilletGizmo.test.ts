@@ -3,7 +3,6 @@
  */
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
-import { Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { MaxFilletFactory } from "../../src/commands/fillet/FilletFactory";
 import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
@@ -20,6 +19,7 @@ import { FilletMagnitudeGizmo, FilletSolidGizmo } from "../../src/commands/fille
 import { ChamferAndFilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
+import { Intersector, MovementInfo } from "../../src/command/AbstractGizmo";
 
 let db: GeometryDatabase;
 let fillet: MaxFilletFactory;
@@ -79,11 +79,13 @@ describe(FilletSolidGizmo, () => {
 
         const sm = handle.stateMachine!;
         const cb = handle.stateMachine!['cb'];
-        const intersector = jest.fn();
+        const intersector = { raycast: jest.fn(), snap: jest.fn() };
 
         handle.onPointerEnter(intersector);
-        handle.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        handle.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
+        handle.onPointerDown(cb, intersector, {} as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) })
+        handle.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(handle.value).toBeCloseTo(1);
         handle.onPointerUp(cb, intersector, {} as MovementInfo)
         expect(handle.value).toBeCloseTo(1);
@@ -100,11 +102,13 @@ describe(FilletSolidGizmo, () => {
 
         const sm = handle.stateMachine!;
         const cb = handle.stateMachine!['cb'];
-        const intersector = jest.fn();
+        const intersector = { raycast: jest.fn(), snap: jest.fn() } ;
 
         handle.onPointerEnter(intersector);
-        handle.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        handle.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, -1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
+        handle.onPointerDown(cb, intersector, {} as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, -1, 0) });
+        handle.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(handle.value).toBeCloseTo(-1);
         handle.onPointerUp(cb, intersector, {} as MovementInfo)
         expect(handle.value).toBeCloseTo(-1);
@@ -169,44 +173,52 @@ describe(FilletMagnitudeGizmo, () => {
     })
 
     test("it changes size and respects interrupts", () => {
-        const intersector = jest.fn();
+        const intersector = { raycast: jest.fn(), snap: jest.fn() };
         const cb = jest.fn();
         let info = {} as MovementInfo;
 
         gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
+        gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) })
+        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBeCloseTo(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
 
         gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() });
+        gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) })
+        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBeCloseTo(2);
 
-        gizmo.onInterrupt(intersector);
+        gizmo.onInterrupt(() => {});
         expect(gizmo.value).toBeCloseTo(2);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
     })
 
     test("it changes sign when it crosses its center", () => {
-        const intersector = jest.fn();
+        const intersector = { raycast: jest.fn(), snap: jest.fn() };
         const cb = jest.fn();
         let info = {} as MovementInfo;
 
 
         gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() })
+        gizmo.onPointerDown(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) });
+        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBeCloseTo(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
 
         gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, -2, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3() });
+        gizmo.onPointerDown(cb, intersector, {} as MovementInfo);
+        intersector.raycast.mockReturnValueOnce({ point: new THREE.Vector3(0, -2, 0) });
+        gizmo.onPointerMove(cb, intersector, { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBeCloseTo(-1);
     })
 })
