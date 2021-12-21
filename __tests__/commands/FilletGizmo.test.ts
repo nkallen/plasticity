@@ -6,7 +6,7 @@ import c3d from '../../build/Release/c3d.node';
 import { EditorLike, Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { MaxFilletFactory } from "../../src/commands/fillet/FilletFactory";
-import { FilletSolidGizmo } from "../../src/commands/fillet/FilletGizmo";
+import { FilletMagnitudeGizmo, FilletSolidGizmo } from "../../src/commands/fillet/FilletGizmo";
 import { ChamferAndFilletKeyboardGizmo, FilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { Viewport } from "../../src/components/viewport/Viewport";
@@ -14,10 +14,11 @@ import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";
 import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import * as visual from '../../src/visual_model/VisualModel';
-import { Cancel, CancellablePromise } from "../../src/util/Cancellable";
+import { Cancel } from "../../src/util/Cancellable";
 import { Helpers } from "../../src/util/Helpers";
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
+import { CancellablePromise } from "../../src/util/CancellablePromise";
 
 let db: GeometryDatabase;
 let fillet: MaxFilletFactory;
@@ -62,7 +63,7 @@ describe(FilletSolidGizmo, () => {
         gizmo = new FilletSolidGizmo(fillet, editor, new THREE.Vector3());
         promise = gizmo.execute(async params => {
             gizmo.toggle(fillet.mode);
-        }, Mode.Persistent);
+        });
         expect(fillet.distance).toBeCloseTo(0);
         expect(fillet.mode).toBe(c3d.CreatorType.FilletSolid);
     })
@@ -75,17 +76,14 @@ describe(FilletSolidGizmo, () => {
         const cb = handle.stateMachine!['cb'];
         const intersector = jest.fn();
 
-        const center2d = new THREE.Vector2();
-        const pointStart2d = new THREE.Vector2(0.1, 0.1);
-
         handle.onPointerEnter(intersector);
-        handle.onPointerDown(cb, intersector, { pointStart2d, center2d } as MovementInfo);
-        handle.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(0.2, 0.2) } as MovementInfo);
-        expect(handle.value).toBeCloseTo(0.14);
+        handle.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
+        handle.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        expect(handle.value).toBeCloseTo(1);
         handle.onPointerUp(cb, intersector, {} as MovementInfo)
-        expect(handle.value).toBeCloseTo(0.14);
+        expect(handle.value).toBeCloseTo(1);
 
-        expect(fillet.distance).toBeCloseTo(0.14);
+        expect(fillet.distance).toBeCloseTo(1);
 
         promise.finish();
         await promise;
@@ -99,17 +97,14 @@ describe(FilletSolidGizmo, () => {
         const cb = handle.stateMachine!['cb'];
         const intersector = jest.fn();
 
-        const center2d = new THREE.Vector2();
-        const pointStart2d = new THREE.Vector2(0.1, 0.1);
-
         handle.onPointerEnter(intersector);
-        handle.onPointerDown(cb, intersector, { pointStart2d, center2d } as MovementInfo);
-        handle.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(-0.1, -0.1) } as MovementInfo);
-        expect(handle.value).toBeCloseTo(-0.14);
+        handle.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
+        handle.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, -1, 0) }), {} as MovementInfo);
+        expect(handle.value).toBeCloseTo(-1);
         handle.onPointerUp(cb, intersector, {} as MovementInfo)
-        expect(handle.value).toBeCloseTo(-0.14);
+        expect(handle.value).toBeCloseTo(-1);
 
-        expect(fillet.distance).toBeCloseTo(-0.14);
+        expect(fillet.distance).toBeCloseTo(-1);
         expect(fillet.mode).toBe(c3d.CreatorType.ChamferSolid);
 
         promise.finish();
@@ -157,3 +152,56 @@ describe(ChamferAndFilletKeyboardGizmo, () => {
         });
     });
 });
+
+describe(FilletMagnitudeGizmo, () => {
+    let gizmo: FilletMagnitudeGizmo;
+
+    beforeEach(() => {
+        gizmo = new FilletMagnitudeGizmo("name", editor);
+        expect(gizmo.value).toBe(0);
+    })
+
+    test("it changes size and respects interrupts", () => {
+        const intersector = jest.fn();
+        const cb = jest.fn();
+        let info = {} as MovementInfo;
+
+        gizmo.onPointerEnter(intersector);
+        gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        expect(gizmo.value).toBeCloseTo(1);
+        gizmo.onPointerUp(cb, intersector, info)
+        gizmo.onPointerLeave(intersector);
+
+        gizmo.onPointerEnter(intersector);
+        gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        expect(gizmo.value).toBeCloseTo(2);
+
+        gizmo.onInterrupt(intersector);
+        expect(gizmo.value).toBeCloseTo(2);
+        gizmo.onPointerUp(cb, intersector, info)
+        gizmo.onPointerLeave(intersector);
+    })
+
+    test("it changes sign when it crosses its center", () => {
+        const intersector = jest.fn();
+        const cb = jest.fn();
+        let info = {} as MovementInfo;
+
+        const center2d = new THREE.Vector2();
+        const pointStart2d = new THREE.Vector2(0.1, 0.1);
+
+        gizmo.onPointerEnter(intersector);
+        gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        expect(gizmo.value).toBeCloseTo(1);
+        gizmo.onPointerUp(cb, intersector, info)
+        gizmo.onPointerLeave(intersector);
+
+        gizmo.onPointerEnter(intersector);
+        gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, -2, 0) }), {} as MovementInfo);
+        expect(gizmo.value).toBeCloseTo(-1);
+    })
+})

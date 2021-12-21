@@ -4,8 +4,8 @@
 
 ### Backlog
 
+- bug: Adding Variable enabled viewport selector, overriding value set in config  
 - Napi::Promise::Deferred const &d rename _deferred  
-- ensure all commands have a binding  
 - dialog keybindings  
 - copy fillet radius by clicking on another fillet surface  
 - bug: box selected, while mouse down, zoom  
@@ -62,6 +62,10 @@
 
 ### In Progress
 
+- Experiment new fillet gizmo  
 - When offsetting face, offset should match snap pt with ctrl  
 
 ### Done ✓
+
+- ensure all commands have a binding  
+

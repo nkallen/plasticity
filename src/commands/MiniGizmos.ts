@@ -217,7 +217,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     get value() { return this.state.current }
     set value(mag: number) {
         this.state.original = mag;
-        this.render(this.state.current)
+        this.render(this.state.current);
     }
 
     render(length: number) {
@@ -396,12 +396,6 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
 
     constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
         super(name, editor);
-    }
-
-    get value() { return this.state.current }
-    set value(mag: number) {
-        this.state.original = mag;
-        this.render(this.state.current)
     }
 
     onInterrupt(cb: (radius: number) => void) {
