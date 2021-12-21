@@ -3,7 +3,8 @@ import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
-import { Model, Presentation } from '../../src/commands/PointPicker';
+import { Model } from '../../src/commands/PointPicker';
+import { SnapPresentation } from "../../src/commands/SnapPresentation";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
@@ -430,7 +431,7 @@ describe('restrictionFor', () => {
     })
 })
 
-describe(Presentation, () => {
+describe(SnapPresentation, () => {
     test("it gives info for best snap and names other possible snaps", () => {
         const hitPosition = new THREE.Vector3(1, 1, 1);
         const orientation = new THREE.Quaternion();
@@ -440,7 +441,7 @@ describe(Presentation, () => {
             { snap: endPoint, position: hitPosition, cursorPosition: hitPosition, orientation, cursorOrientation: orientation },
             { snap: startPoint, position: hitPosition, cursorPosition: hitPosition, orientation, cursorOrientation: orientation }
         ];
-        const presentation = new Presentation([], snapResults, new PlaneSnap(), false, presenter);
+        const presentation = new SnapPresentation([], snapResults, new PlaneSnap(), false, presenter);
 
         expect(presentation.names).toEqual(["endpoint", "startpoint"]);
         expect(presentation.info!.position).toBe(hitPosition);

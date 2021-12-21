@@ -9,7 +9,7 @@ import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCac
 import { GizmoSnapPicker, SnapResult } from "../visual_model/SnapPicker";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 import { GizmoMaterial } from "./GizmoMaterials";
-import { PointTarget } from "./PointPicker";
+import { PointTarget } from "./SnapPresentation";
 
 /**
  * In this file are a collection of "mini" gizmos that can be used alone or composed into a more complex gizmo.
