@@ -4,8 +4,13 @@
 
 ### Backlog
 
+- face cutter offset along normal  
+- move mirror gizmo origin  
+- select all sketches  
+- Offset edge: (and allow distance 0)  
+- Offset curve: It should start offset distance when you press O, without you having to press D.  
+- bug: Adding Variable enabled viewport selector, overriding value set in config  
 - Napi::Promise::Deferred const &d rename _deferred  
-- ensure all commands have a binding  
 - dialog keybindings  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - copy fillet radius by clicking on another fillet surface  
@@ -56,7 +61,11 @@
 
 ### Todo
 
-- [ ] in moi, once you create a cylinder, you can shift once you lock onto Z axis; however, you can't then snap to match height. what do we want to do?  
+- Convert Face selection to Border Selection:  
+- bug: Alt click focus: issue on windows  
+- object with selected face, select body: confusing - should be able to select body  
+- cut body: select edge after starting command  
+- offset face dialog  
 - Add dialog for extrude  
 - rr ss gg for screenspace  
 
@@ -66,13 +75,6 @@
 
 ### Done ✓
 
-- Add extension body command  
-- bug: trim is broken  
-- Split body by picking faces  
-- Mirror around plane  
-- Align camera and construction plane (with space)  
-- when isOrtho, all things project  
-- Animated box navigation  
-- speed of gizmos tempered by zoom  
-- Selection become conventional  
+- Experiment new fillet gizmo  
+- ensure all commands have a binding  
 

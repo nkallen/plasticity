@@ -3,9 +3,10 @@ import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike, MaterialOverride, TemporaryObject } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import * as visual from '../visual_model/VisualModel';
-import { CancellableRegisterable } from '../util/Cancellable';
+import { CancellableRegisterable } from "../util/CancellableRegisterable";
 import { SequentialExecutor } from '../util/SequentialExecutor';
 import { zip } from '../util/Util';
+import { Signal } from "signals";
 
 type State = { tag: 'none', last: undefined }
     | { tag: 'updated', last?: Map<string, any> }
@@ -55,7 +56,14 @@ export type PhantomInfo = { phantom: c3d.Item, material: MaterialOverride }
  */
 
 export abstract class AbstractGeometryFactory extends CancellableRegisterable {
-    state: State = { tag: 'none', last: undefined };
+    readonly changed = new Signal();
+
+    private _state: State = { tag: 'none', last: undefined };
+    get state() { return this._state }
+    set state(state: State) {
+        this._state = state;
+        this.changed.dispatch();
+    }
 
     constructor(
         protected readonly db: DatabaseLike,

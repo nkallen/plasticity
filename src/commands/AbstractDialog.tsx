@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import { EditorSignals } from "../editor/EditorSignals";
-import { CancellablePromise } from "../util/Cancellable";
+import { CancellablePromise } from "../util/CancellablePromise";
 
 export type State<T> = { tag: 'none' } | { tag: 'executing', cb: (sv: T) => void, cancellable: CancellablePromise<void> } | { tag: 'finished' }
 

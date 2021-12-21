@@ -61,6 +61,15 @@ export class Model {
             result.add(cmd.LoftCommand);
             result.add(cmd.JoinCurvesCommand);
         }
+        if (selection.edges.size > 0) {
+            result.add(cmd.FilletSolidCommand);
+        }
+        if (selection.edges.size > 0 || selection.curves.size > 0 || selection.solids.size > 0) {
+            result.add(cmd.DuplicateCommand);
+        }
+        if (selection.faces.size > 0) {
+            result.add(cmd.OffsetFaceCommand);
+        }
         return [...result];
     }
 }

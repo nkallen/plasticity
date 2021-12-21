@@ -11,7 +11,7 @@ import LayerManager from '../editor/LayerManager';
 import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
 import { SnapPresenter } from '../editor/snaps/SnapPresenter';
-import { CancellablePromise } from '../util/Cancellable';
+import { CancellablePromise } from "../util/CancellablePromise";
 import { inst2curve, point2point } from '../util/Conversion';
 import { Helper, Helpers } from '../util/Helpers';
 import { SnapPicker, SnapResult } from '../visual_model/SnapPicker';
@@ -215,7 +215,8 @@ export class Model {
         for (const edge of edges) {
             const model = this.db.lookupTopologyItem(edge);
             const restriction = new CurveEdgeSnap(edge, model);
-            this._restrictionSnaps.push(restriction);
+            // FIXME: this isn't used by snap picker, which is relying on all geometry. Not as efficient as it could be ...
+            // this._restrictionSnaps.push(restriction);
             restrictions.push(restriction);
         }
         const restriction = new OrRestriction(restrictions);
@@ -360,9 +361,9 @@ export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
     private readonly cursorHelper = new PointTarget();
 
-    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
+    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number }, Points: { threshold: number} } = {
         Line: { threshold: 0.1 },
-        Line2: { threshold: 20 },
+        Line2: { threshold: 30 },
         Points: { threshold: 25 }
     };
 
@@ -389,8 +390,7 @@ export class PointPicker {
             disposables.add(new Disposable(() => snapCache.dispose()));
 
             for (const viewport of this.editor.viewports) {
-                viewport.disableControls(viewport.navigationControls);
-                disposables.add(new Disposable(() => viewport.enableControls()));
+                disposables.add(viewport.disableControls(viewport.navigationControls));
 
                 let isNavigating = false;
                 disposables.add(this.disablePickingDuringNavigation(viewport.navigationControls,
@@ -422,7 +422,12 @@ export class PointPicker {
                     for (const i of indicators) helpers.add(i);
 
                     info = presentation.info;
-                    if (info === undefined) return;
+                    if (info === undefined) {
+                        cursorHelper.visible = false;
+                        editor.signals.pointPickerChanged.dispatch();
+                        return;
+                    }
+                    cursorHelper.visible = true;
 
                     lastSnap = info.snap;
                     const { position, cursorPosition } = info;

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from '../src/components/viewport/OrbitControls';
 import { ProxyCamera } from '../src/components/viewport/ProxyCamera';
 import { EditorLike, Viewport } from '../src/components/viewport/Viewport';
-import { PlaneSnap } from '../src/editor/snaps/Snap';
+import { ConstructionPlaneSnap, PlaneSnap } from '../src/editor/snaps/Snap';
 
 class FakeWebGLRenderer implements THREE.Renderer {
     constructor(readonly domElement = document.createElement("canvas")) { }
@@ -57,7 +57,7 @@ export function MakeViewport(editor: EditorLike) {
         new FakeWebGLRenderer(canvas) as unknown as THREE.WebGLRenderer,
         domElement,
         camera,
-        new PlaneSnap(),
+        new ConstructionPlaneSnap(),
         new OrbitControls(camera, canvas, editor.keymaps),
     );
     viewport.lastPointerEvent = new MouseEvent('pointermove', { clientX: 0, clientY: 0 }) as PointerEvent;

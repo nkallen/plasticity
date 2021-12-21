@@ -327,15 +327,17 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 
     private readonly controls = [this.multiplexer, this.selector, this.points, this.navigationControls];
-    disableControls(except?: { set enabled(e: boolean) }) {
+    disableControls(except?: { enable(e: boolean): Disposable }): Disposable {
+        const disposable = new CompositeDisposable();
         for (const control of this.controls) {
             if (control === except) continue;
-            control.enabled = false;
+            disposable.add(control.enable(false));
         }
+        return disposable;
     }
 
     enableControls() {
-        this.multiplexer.enabled = this.selector.enabled = this.navigationControls.enabled = this.points.enabled = true;
+        for (const control of this.controls) control.enable(true);
     }
 
     private navigationState: NavigationState = { tag: 'none' }
@@ -345,8 +347,8 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             case 'none':
                 this.navigationControls.addEventListener('change', this.navigationChange);
                 this.navigationControls.addEventListener('end', this.navigationEnd);
-                this.navigationState = { tag: 'navigating', multiplexerEnabled: this.multiplexer.enabled, quaternion: this.camera.quaternion.clone() };
-                this.disableControls(this.navigationControls);
+                const restoreControls = this.disableControls(this.navigationControls);
+                this.navigationState = { tag: 'navigating', restoreControls, quaternion: this.camera.quaternion.clone() };
                 this.editor.signals.viewportActivated.dispatch(this);
                 break;
             default: throw new Error("invalid state");
@@ -394,7 +396,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
             case 'navigating':
                 this.navigationControls.removeEventListener('change', this.navigationChange);
                 this.navigationControls.removeEventListener('end', this.navigationEnd);
-                this.multiplexer.enabled = this.navigationState.multiplexerEnabled;
+                this.navigationState.restoreControls.dispose();
                 this.navigationEnded.dispatch();
                 this.navigationState = { tag: 'none' };
                 break;
@@ -458,7 +460,6 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
 
     validate() {
         console.assert(this.selector.enabled, "this.selector.enabled");
-        this.selector.enabled = true;
     }
 
     saveToMemento(): ViewportMemento {
@@ -519,7 +520,7 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
     }
 }
 
-type NavigationState = { tag: 'none' } | { tag: 'navigating', multiplexerEnabled: boolean, quaternion: THREE.Quaternion }
+type NavigationState = { tag: 'none' } | { tag: 'navigating', restoreControls: Disposable, quaternion: THREE.Quaternion }
 
 export interface ViewportElement {
     readonly model: Viewport;

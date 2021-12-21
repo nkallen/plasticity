@@ -2,7 +2,8 @@ import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { ProxyCamera } from "../components/viewport/ProxyCamera";
-import { CancellableRegisterable, CancellableRegistor } from "../util/Cancellable";
+import { CancellableRegistor } from "../util/CancellableRegistor";
+import { CancellableRegisterable } from "../util/CancellableRegisterable";
 import { CircleGeometry } from "../util/Util";
 import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { GizmoSnapPicker, SnapResult } from "../visual_model/SnapPicker";
@@ -236,7 +237,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
     get value() { return this.state.current }
     set value(mag: number) {
         this.state.original = mag;
-        this.render(this.state.current)
+        this.render(this.state.current);
     }
 
     render(length: number) {
@@ -415,12 +416,6 @@ export abstract class AbstractAxialScaleGizmo extends AbstractAxisGizmo {
 
     constructor(name: string, editor: EditorLike, protected readonly material: GizmoMaterial) {
         super(name, editor);
-    }
-
-    get value() { return this.state.current }
-    set value(mag: number) {
-        this.state.original = mag;
-        this.render(this.state.current)
     }
 
     onInterrupt(cb: (radius: number) => void) {

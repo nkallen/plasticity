@@ -7,7 +7,7 @@ import { DashedLineMagnitudeHelper } from "../../commands/MiniGizmos";
 import { MoveContourPointFactory } from "../../commands/modify_contour/ModifyContourPointFactory";
 import { ChangeSelectionModifier } from "../../selection/ChangeSelectionExecutor";
 import { AbstractViewportSelector, ClickChangeSelectionCommand } from "../../selection/ViewportSelector";
-import { CancellablePromise } from "../../util/Cancellable";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { Intersection } from "../../visual_model/Intersectable";
 import * as visual from '../../visual_model/VisualModel';
 import { pointerEvent2keyboardEvent } from "./KeyboardEventManager";

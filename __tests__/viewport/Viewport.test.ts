@@ -87,7 +87,7 @@ test("navigation start & end", () => {
 });
 
 test("navigation start & end restores selector state correctly", () => {
-    viewport.multiplexer.enabled = false;
+    viewport.multiplexer.enable(false);
     viewport.navigationControls.dispatchEvent({ type: 'start', target: null });
     expect(viewport.multiplexer.enabled).toBe(false);
     viewport.navigationControls.dispatchEvent({ type: 'change', target: null });

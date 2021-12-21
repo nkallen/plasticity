@@ -3,7 +3,6 @@
  */
 import * as THREE from "three";
 import { MovementInfo } from "../../src/commands/AbstractGizmo";
-import { FilletMagnitudeGizmo } from "../../src/commands/fillet/FilletGizmo";
 import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
 import { AngleGizmo, DistanceGizmo, LengthGizmo } from "../../src/commands/MiniGizmos";
 import { CircleMoveGizmo, MoveAxisGizmo, PlanarMoveGizmo } from "../../src/commands/translate/MoveGizmo";
@@ -151,14 +150,14 @@ describe(LengthGizmo, () => {
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBe(2);
 
         gizmo.onInterrupt(intersector);
@@ -183,14 +182,14 @@ describe(DistanceGizmo, () => {
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBe(1);
         gizmo.onPointerUp(cb, intersector, info)
         gizmo.onPointerLeave(intersector);
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBe(2);
 
         gizmo.onInterrupt(intersector);
@@ -199,6 +198,8 @@ describe(DistanceGizmo, () => {
         gizmo.onPointerLeave(intersector);
     })
 })
+
+const moveEvent = new MouseEvent('move');
 
 describe(MoveAxisGizmo, () => {
     let gizmo: MoveAxisGizmo;
@@ -222,7 +223,7 @@ describe(MoveAxisGizmo, () => {
 
         gizmo.onPointerEnter(intersector);
         gizmo.onPointerDown(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3() }), {} as MovementInfo);
-        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), {} as MovementInfo);
+        gizmo.onPointerMove(cb, intersector.mockReturnValueOnce({ point: new THREE.Vector3(0, 1, 0) }), { viewport, pointer: { event: moveEvent } } as MovementInfo);
         expect(gizmo.value).toBe(2);
 
         gizmo.onInterrupt(intersector);
@@ -336,61 +337,3 @@ describe(PlanarScaleGizmo, () => {
         gizmo.onPointerLeave(intersector);
     })
 })
-
-describe(FilletMagnitudeGizmo, () => {
-    let gizmo: FilletMagnitudeGizmo;
-
-    beforeEach(() => {
-        gizmo = new FilletMagnitudeGizmo("name", editor);
-        expect(gizmo.value).toBe(0);
-    })
-
-    test("it changes size and respects interrupts", () => {
-        const intersector = jest.fn();
-        const cb = jest.fn();
-        let info = {} as MovementInfo;
-
-        const center2d = new THREE.Vector2();
-        const pointStart2d = new THREE.Vector2(0.1, 0.1);
-
-        gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(cb, intersector, { pointStart2d, center2d } as MovementInfo);
-        gizmo.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(0.2, 0.2) } as MovementInfo);
-        expect(gizmo.value).toBeCloseTo(0.14);
-        gizmo.onPointerUp(cb, intersector, info)
-        gizmo.onPointerLeave(intersector);
-
-        gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(cb, intersector, { pointStart2d, center2d } as MovementInfo);
-        gizmo.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(0.2, 0.2) } as MovementInfo);
-        expect(gizmo.value).toBeCloseTo(0.28);
-
-        gizmo.onInterrupt(intersector);
-        expect(gizmo.value).toBeCloseTo(0.28);
-        gizmo.onPointerUp(cb, intersector, info)
-        gizmo.onPointerLeave(intersector);
-    })
-
-    test("it changes sign when it crosses its center", () => {
-        const intersector = jest.fn();
-        const cb = jest.fn();
-        let info = {} as MovementInfo;
-
-        const center2d = new THREE.Vector2();
-        const pointStart2d = new THREE.Vector2(0.1, 0.1);
-
-        gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(cb, intersector, { pointStart2d, center2d } as MovementInfo);
-        gizmo.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(0.2, 0.2) } as MovementInfo);
-        expect(gizmo.value).toBeCloseTo(0.14);
-        gizmo.onPointerUp(cb, intersector, info)
-        gizmo.onPointerLeave(intersector);
-
-        gizmo.onPointerEnter(intersector);
-        gizmo.onPointerDown(cb, intersector, { pointStart2d, center2d } as MovementInfo);
-        gizmo.onPointerMove(cb, intersector, { pointStart2d, center2d, pointEnd2d: new THREE.Vector2(-0.1, -0.1) } as MovementInfo);
-        expect(gizmo.value).toBeCloseTo(-0.14);
-    })
-})
-
-const moveEvent = new MouseEvent('move', { clientX: 50, clientY: 50 });

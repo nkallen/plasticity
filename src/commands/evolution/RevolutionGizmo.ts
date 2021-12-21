@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CancellablePromise } from "../../util/Cancellable";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { Mode } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
 import { MagnitudeGizmo } from "../extrude/ExtrudeGizmo";

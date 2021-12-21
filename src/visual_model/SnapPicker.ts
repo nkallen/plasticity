@@ -182,16 +182,19 @@ export class SnapPicker extends AbstractSnapPicker {
         else raycaster.layers.enable(visual.Layers.Face);
     }
 
-    private applyRestrictions(pointPicker: Model, viewport: Viewport, result: SnapResult[]) {
+    private applyRestrictions(pointPicker: Model, viewport: Viewport, input: SnapResult[]) {
         const restriction = pointPicker.restrictionFor(viewport.constructionPlane, viewport.isOrthoMode);
-        if (restriction !== undefined) {
-            for (const info of result) {
-                const { position, orientation } = restriction.project(info.position);
-                info.position = position;
-                info.orientation = orientation;
-            }
+        if (restriction === undefined) return input;
+
+        const output = [];
+        for (const info of input) {
+            if (!restriction.isValid(info.position)) continue;
+            const { position, orientation } = restriction.project(info.position);
+            info.position = position;
+            info.orientation = orientation;
+            output.push(info);
         }
-        return result;
+        return output;
     }
 
     private intersectConstructionPlane(pointPicker: Model, viewport: Viewport): SnapResult[] {

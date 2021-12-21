@@ -11,10 +11,11 @@ import { SnapManager } from "../editor/snaps/SnapManager";
 import { SnapPresenter } from "../editor/snaps/SnapPresenter";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
-import { CancellableRegistor } from "../util/Cancellable";
+import { CancellableRegistor } from "../util/CancellableRegistor";
 import { Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
 import { CrossPointDatabase } from "../editor/curves/CrossPointDatabase";
+import signal from "signals";
 
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical
@@ -62,6 +63,7 @@ export interface EditorLike {
 export default abstract class Command extends CancellableRegistor {
     static get title() { return this.name.replace(/Command/, '') }
     static get identifier() { return _.dasherize(this.title) }
+
     get title() { return this.constructor.name.replace(/Command/, '') }
     get identifier() { return _.dasherize(this.title) }
     remember: boolean = true;

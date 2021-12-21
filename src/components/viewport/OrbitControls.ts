@@ -1,3 +1,4 @@
+import { Disposable } from "event-kit";
 import * as THREE from "three";
 import { pointerEvent2keyboardEvent } from "./KeyboardEventManager";
 import { ProxyCamera } from "./ProxyCamera";
@@ -21,7 +22,13 @@ export class OrbitControls extends THREE.EventDispatcher {
     private zoomChanged = false;
     private readonly panOffset = new THREE.Vector3();
 
-    enabled = true;
+    private _enabled = true;
+    get enabled() { return this._enabled }
+    enable(enabled: boolean) {
+        this._enabled = enabled;
+        return new Disposable(() => this._enabled = !enabled);
+    }
+
     readonly target = new THREE.Vector3();
 
     zoomSpeed = 1;

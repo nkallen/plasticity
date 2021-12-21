@@ -8,7 +8,7 @@ import MaterialDatabase from '../editor/MaterialDatabase';
 import { ChangeSelectionExecutor, ChangeSelectionModifier } from '../selection/ChangeSelectionExecutor';
 import { HasSelectedAndHovered, HasSelection, Selectable, SelectionDatabase, ToggleableSet } from '../selection/SelectionDatabase';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
-import { CancellablePromise } from '../util/Cancellable';
+import { CancellablePromise } from "../util/CancellablePromise";
 import { Intersectable, Intersection } from '../visual_model/Intersectable';
 
 interface EditorLike {
@@ -95,8 +95,8 @@ export class ObjectPicker {
             disposables.add(new Disposable(() => signals.objectSelected.remove(finish)));
 
             for (const viewport of this.editor.viewports) {
-                viewport.disableControls(viewport.navigationControls);
-                disposables.add(new Disposable(() => viewport.enableControls()));
+                const reenable = viewport.disableControls(viewport.navigationControls); // FIXME: is this correct?
+                disposables.add(reenable);
 
                 const selector = new ObjectPickerViewportSelector(viewport, editor, selection, finish, this.raycasterParams);
                 selector.addEventLiseners();

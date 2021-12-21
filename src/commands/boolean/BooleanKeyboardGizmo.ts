@@ -1,5 +1,5 @@
 import c3d from '../../../build/Release/c3d.node';
-import { CancellablePromise } from "../../util/Cancellable";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { AbstractCommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
 import { PossiblyBooleanFactory } from './BooleanFactory';
 

@@ -1,12 +1,11 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
-import { CurveEdgeSnap } from "../../editor/snaps/Snap";
-import { CancellablePromise } from "../../util/Cancellable";
+import { CancellablePromise } from "../../util/CancellablePromise";
 import { point2point, vec2vec } from "../../util/Conversion";
-import { EditorLike, Mode } from "../AbstractGizmo";
+import { EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
 import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo, AngleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
+import { AbstractAxialScaleGizmo, AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
 import * as fillet from './FilletFactory';
 import { FilletParams } from './FilletFactory';
 
@@ -30,6 +29,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         main.quaternion.setFromUnitVectors(Y, normal);
         main.position.copy(point);
         angle.position.copy(point);
+        angle.visible = false;
 
         this.add(main);
         this.add(angle);
@@ -97,10 +97,8 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         this.main.render(length);
     }
 
-    addVariable(point: THREE.Vector3, snap: CurveEdgeSnap): FilletMagnitudeGizmo {
-        const { model, t } = snap;
-
-        const normal = model.EdgeNormal(t);
+    addVariable(point: THREE.Vector3, edge: c3d.CurveEdge, t: number): FilletMagnitudeGizmo {
+        const normal = edge.EdgeNormal(t);
         const gizmo = new FilletMagnitudeGizmo(`fillet:distance:${this.variables.length}`, this.editor);
         gizmo.relativeScale.setScalar(0.5);
         gizmo.value = 1;
@@ -124,21 +122,36 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     }
 }
 
-export class FilletMagnitudeGizmo extends AbstractAxialScaleGizmo {
+export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
     readonly state = new MagnitudeStateMachine(0);
+    protected material = this.editor.gizmos.default;
+    readonly helper = new AxisHelper(this.material.line);
     readonly tip: THREE.Mesh<any, any> = new THREE.Mesh(sphereGeometry, this.material.mesh);
     protected readonly shaft = new Line2(lineGeometry, this.material.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
 
+    private denominator = 1;
+
     constructor(name: string, editor: EditorLike) {
-        super(name, editor, editor.gizmos.default);
+        super(name, editor);
         this.setup();
+        this.add(this.helper);
     }
 
     get shouldRescaleOnZoom() { return true }
 
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
+    }
+
+    render(length: number) {
+        this.shaft.scale.y = length;
+        this.tip.position.set(0, length, 0);
+        this.knob.position.copy(this.tip.position);
+    }
+
+    protected accumulate(original: number, sign: number, dist: number): number {
+        return original + dist
     }
 }
 
