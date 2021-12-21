@@ -9,6 +9,7 @@ import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCac
 import { GizmoSnapPicker, SnapResult } from "../visual_model/SnapPicker";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 import { GizmoMaterial } from "./GizmoMaterials";
+import { PointTarget } from "./PointPicker";
 
 /**
  * In this file are a collection of "mini" gizmos that can be used alone or composed into a more complex gizmo.
@@ -201,6 +202,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
         if (this.sign === 0) this.sign = 1;
 
         if (this.originalPosition === undefined) this.originalPosition = this.position.clone();
+        this.editor.helpers.add(this.cursorHelper);
     }
 
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
@@ -211,6 +213,7 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
     private readonly snapCache = new SnapManagerGeometryCache(this.editor.snaps);
     private readonly snapPicker = new GizmoSnapPicker(this.editor.layers, this.raycasterParams);
+    private readonly cursorHelper = new PointTarget();
 
     onPointerMove(cb: (radius: number) => void, intersect: Intersector, info: MovementInfo): void {
         this.snapPicker.setFromViewport(info.pointer.event, info.viewport);

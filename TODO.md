@@ -4,7 +4,8 @@
 
 ### Backlog
 
-- face cutter offset along normal  
+- bug: hover when viewportselector disabled still running for solids  
+- Solid cut by face: face cutter offset along normal  
 - move mirror gizmo origin  
 - select all sketches  
 - Offset edge: (and allow distance 0)  

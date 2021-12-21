@@ -6,9 +6,6 @@ import { BetterRaycastingPoints, BetterRaycastingPointsMaterial } from "./Visual
 
 
 export class SnapManagerGeometryCache {
-    private readonly disposable = new CompositeDisposable();
-    dispose() { this.disposable.dispose(); }
-
     private readonly material = new BetterRaycastingPointsMaterial();
     get resolution() { return this.material.resolution; }
 

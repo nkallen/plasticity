@@ -296,7 +296,7 @@ interface SnapInfo extends PointInfo {
 
 // This is a presentation or template class that contains all info needed to show "nearby" and "snap" points to the user
 // There are icons, indicators, textual name explanations, etc.
-export class Presentation {
+export class SnapPresentation {
     static make(picker: SnapPicker, viewport: Viewport, pointPicker: Model, db: DatabaseLike, snapCache: SnapManagerGeometryCache, presenter: SnapPresenter) {
         const { constructionPlane, isOrthoMode: isOrtho } = viewport;
 
@@ -304,7 +304,7 @@ export class Presentation {
         const intersections = picker.intersect(pointPicker, snapCache, db);
         const actualConstructionPlaneGiven = pointPicker.actualConstructionPlaneGiven(constructionPlane, isOrtho);
 
-        const presentation = new Presentation(nearby, intersections, actualConstructionPlaneGiven, isOrtho, presenter);
+        const presentation = new SnapPresentation(nearby, intersections, actualConstructionPlaneGiven, isOrtho, presenter);
         return { presentation, snappers: intersections, nearby };
     }
 
@@ -357,11 +357,65 @@ export class PointTarget extends Helper {
     }
 }
 
+export class SnapPresentationInteractor {
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+
+    private readonly cursorHelper = new PointTarget();
+    private readonly helpers = new THREE.Scene();
+
+    constructor(private readonly editor: EditorLike, private readonly raycasterParams: RaycasterParams) {
+    }
+
+    execute() {
+        const { editor, cursorHelper, helpers } = this;
+        const disposables = new CompositeDisposable();
+        this.editor.helpers.add(this.cursorHelper);
+        disposables.add(new Disposable(() => editor.helpers.remove(cursorHelper)));
+        disposables.add(new Disposable(() => editor.signals.snapped.dispatch(undefined)));
+
+        for (const viewport of editor.viewports) {
+            viewport.additionalHelpers.add(helpers);
+            disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));
+        }
+        return disposables;
+    }
+
+    onPointerMove(viewport: Viewport, presentation: SnapPresentation) {
+        const { editor, cursorHelper, helpers } = this;
+
+        helpers.clear();
+        const { names, helpers: newHelpers, nearby: indicators } = presentation;
+        for (const i of indicators) helpers.add(i);
+
+        const info = presentation.info;
+        if (info === undefined) {
+            cursorHelper.visible = false;
+            editor.signals.pointPickerChanged.dispatch();
+            return;
+        }
+        cursorHelper.visible = true;
+        const { position, cursorPosition } = info;
+
+        helpers.add(...newHelpers);
+        cursorHelper.position.copy(cursorPosition);
+
+        editor.signals.snapped.dispatch(
+            names.length > 0 ?
+                { position: position.clone().project(viewport.camera), names }
+                : undefined);
+    }
+}
+
+type RaycasterParams = THREE.RaycasterParameters & {
+    Line2: { threshold: number }
+    Points: { threshold: number }
+};
+
 export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);
-    private readonly cursorHelper = new PointTarget();
 
-    readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number }, Points: { threshold: number} } = {
+    readonly raycasterParams: RaycasterParams = {
         Line: { threshold: 0.1 },
         Line2: { threshold: 30 },
         Points: { threshold: 25 }
@@ -372,22 +426,19 @@ export class PointPicker {
     execute<T>(cb?: (pt: PointResult) => T): CancellablePromise<PointResult> {
         return new CancellablePromise((resolve, reject) => {
             const disposables = new CompositeDisposable();
-            const { cursorHelper, editor, model } = this;
+            const { editor, model } = this;
 
             disposables.add(model.start());
 
             document.body.setAttribute("gizmo", "point-picker");
             disposables.add(new Disposable(() => document.body.removeAttribute('gizmo')));
 
-            editor.helpers.add(cursorHelper);
-            disposables.add(new Disposable(() => editor.helpers.remove(cursorHelper)));
-            disposables.add(new Disposable(() => editor.signals.snapped.dispatch(undefined)));
-            const helpers = new THREE.Scene();
+            const present = new SnapPresentationInteractor(editor, this.raycasterParams);
+            disposables.add(present.execute());
 
             let info: SnapInfo | undefined = undefined;
             // FIXME: build elsewhere for higher performance
             const snapCache = new SnapManagerGeometryCache(editor.snaps);
-            disposables.add(new Disposable(() => snapCache.dispose()));
 
             for (const viewport of this.editor.viewports) {
                 disposables.add(viewport.disableControls(viewport.navigationControls));
@@ -397,11 +448,8 @@ export class PointPicker {
                     () => isNavigating = true,
                     () => isNavigating = false));
 
-                const { camera, renderer: { domElement } } = viewport;
+                const { renderer: { domElement } } = viewport;
                 const picker = new SnapPicker(this.editor.layers, this.raycasterParams);
-
-                viewport.additionalHelpers.add(helpers);
-                disposables.add(new Disposable(() => viewport.additionalHelpers.delete(helpers)));
 
                 let lastMoveEvent: PointerEvent | undefined = undefined;
                 let lastSnap: Snap | undefined = undefined;
@@ -413,33 +461,18 @@ export class PointPicker {
                     lastMoveEvent = e;
                     picker.setFromViewport(e, viewport);
 
-                    const { presentation, snappers } = Presentation.make(picker, viewport, model, editor.db, snapCache, editor.snapPresenter);
+                    const { presentation, snappers } = SnapPresentation.make(picker, viewport, model, editor.db, snapCache, editor.snapPresenter);
+                    present.onPointerMove(viewport, presentation);
 
                     this.model.activateMutualSnaps(snappers.map(s => s.snap));
 
-                    helpers.clear();
-                    const { names, helpers: newHelpers, nearby: indicators } = presentation;
-                    for (const i of indicators) helpers.add(i);
-
                     info = presentation.info;
-                    if (info === undefined) {
-                        cursorHelper.visible = false;
-                        editor.signals.pointPickerChanged.dispatch();
-                        return;
-                    }
-                    cursorHelper.visible = true;
+                    if (info === undefined) return;
 
                     lastSnap = info.snap;
-                    const { position, cursorPosition } = info;
+                    const { position } = info;
 
-                    helpers.add(...newHelpers);
-                    cursorHelper.position.copy(cursorPosition);
                     if (cb !== undefined) cb({ point: position, info });
-
-                    editor.signals.snapped.dispatch(
-                        names.length > 0 ?
-                            { position: position.clone().project(camera), names }
-                            : undefined);
                     editor.signals.pointPickerChanged.dispatch();
                 }
 
@@ -491,10 +524,12 @@ export class PointPicker {
                 disposables.add(new Disposable(() => document.removeEventListener('keyup', onKeyUp)));
                 disposables.add(new Disposable(() => { editor.snaps.enabled = true }));
             }
+
             const dispose = () => {
                 disposables.dispose();
                 editor.signals.pointPickerChanged.dispatch();
             }
+
             const finish = () => {
                 if (info === undefined) throw new Error("invalid state");
                 const point = info.position.clone();
@@ -502,6 +537,7 @@ export class PointPicker {
                 model.addPickedPoint(pointResult);
                 resolve(pointResult);
             }
+            
             return { dispose, finish };
         });
     }
