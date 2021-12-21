@@ -4,6 +4,11 @@
 
 ### Backlog
 
+- face cutter offset along normal  
+- move mirror gizmo origin  
+- select all sketches  
+- Offset edge: (and allow distance 0)  
+- Offset curve: It should start offset distance when you press O, without you having to press D.  
 - bug: Adding Variable enabled viewport selector, overriding value set in config  
 - Napi::Promise::Deferred const &d rename _deferred  
 - dialog keybindings  
@@ -57,15 +62,20 @@
 
 ### Todo
 
+- Convert Face selection to Border Selection:  
+- bug: Alt click focus: issue on windows  
+- object with selected face, select body: confusing - should be able to select body  
+- cut body: select edge after starting command  
+- offset face dialog  
 - Add dialog for extrude  
 - rr ss gg for screenspace  
 
 ### In Progress
 
-- Experiment new fillet gizmo  
 - When offsetting face, offset should match snap pt with ctrl  
 
 ### Done ✓
 
+- Experiment new fillet gizmo  
 - ensure all commands have a binding  
 

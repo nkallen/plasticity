@@ -362,7 +362,7 @@ export class PointPicker {
 
     readonly raycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number }, Points: { threshold: number} } = {
         Line: { threshold: 0.1 },
-        Line2: { threshold: 20 },
+        Line2: { threshold: 30 },
         Points: { threshold: 25 }
     };
 
