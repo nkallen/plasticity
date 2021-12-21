@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { AbstractDialog } from "../AbstractDialog";
+import { AbstractDialog } from "../../command/AbstractDialog";
 import RevolutionFactory, { RevolutionParams } from "./RevolutionFactory";
 import c3d from '../../../build/Release/c3d.node';
 

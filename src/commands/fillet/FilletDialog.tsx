@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { AbstractDialog } from "../AbstractDialog";
+import { AbstractDialog } from "../../command/AbstractDialog";
 import FilletFactory, { FilletParams, Mode } from "./FilletFactory";
 import c3d from '../../../build/Release/c3d.node';
 import distance1_2 from './img/distance1-2.jpg';

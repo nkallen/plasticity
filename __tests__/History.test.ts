@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import * as visual from '../src/visual_model/VisualModel';
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
-import { GizmoMaterialDatabase } from '../src/commands/GizmoMaterials';
+import { GizmoMaterialDatabase } from '../src/command/GizmoMaterials';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import { CameraMemento, ConstructionPlaneMemento, EditorOriginator, ViewportMemento } from '../src/editor/History';

@@ -2,10 +2,10 @@
  * @jest-environment jsdom
  */
 
-import Command from "../../src/commands/Command";
-import { CommandExecutor, EditorLike } from "../../src/commands/CommandExecutor";
-import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
-import { SelectionCommandManager } from "../../src/commands/SelectionCommandManager";
+import Command from "../../src/command/Command";
+import { CommandExecutor, EditorLike } from "../../src/command/CommandExecutor";
+import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
+import { SelectionCommandManager } from "../../src/command/SelectionCommandManager";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import ContourManager from "../../src/editor/curves/ContourManager";

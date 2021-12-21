@@ -4,7 +4,7 @@ import { DatabaseLike } from '../../editor/GeometryDatabase';
 import MaterialDatabase from '../../editor/MaterialDatabase';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, deunit, unit } from '../../util/Conversion';
-import { GeometryFactory, NoOpError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 
 export interface FilletParams {
     solid: visual.Solid;

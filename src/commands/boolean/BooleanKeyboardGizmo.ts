@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { AbstractCommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
+import { AbstractCommandKeyboardInput, EditorLike } from "../../command/CommandKeyboardInput";
 import { PossiblyBooleanFactory } from './BooleanFactory';
 
 export type BooleanKeyboardEvent = { tag: 'boolean', type: number } | { tag: 'new-body' }

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import { EditorLike } from "../AbstractGizmo";
-import { AbstractAxialScaleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
+import { EditorLike } from "../../command/AbstractGizmo";
+import { AbstractAxialScaleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 
 export class ExtensionShellGizmo extends AbstractAxialScaleGizmo {
     readonly state = new MagnitudeStateMachine(0);

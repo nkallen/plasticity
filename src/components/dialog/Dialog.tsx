@@ -1,5 +1,5 @@
 import { CompositeDisposable, Disposable } from 'event-kit';
-import { AbstractDialog } from "../../commands/AbstractDialog";
+import { AbstractDialog } from "../../command/AbstractDialog";
 import { Editor } from '../../editor/Editor';
 import { createRef, render } from 'preact';
 

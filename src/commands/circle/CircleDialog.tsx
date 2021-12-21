@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { AbstractDialog } from "../AbstractDialog";
+import { AbstractDialog } from "../../command/AbstractDialog";
 import { EditCircleParams } from './CircleFactory';
 
 export class EditCircleDialog extends AbstractDialog<EditCircleParams> {

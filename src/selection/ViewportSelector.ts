@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import Command, * as cmd from "../commands/Command";
+import Command, * as cmd from "../command/Command";
 import { pointerEvent2keyboardEvent } from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
 import { defaultRaycasterParams, ViewportControl } from "../components/viewport/ViewportControl";

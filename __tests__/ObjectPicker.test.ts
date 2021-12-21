@@ -3,7 +3,7 @@
  */
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
-import { ObjectPicker, ObjectPickerViewportSelector } from "../src/commands/ObjectPicker";
+import { ObjectPicker, ObjectPickerViewportSelector } from "../src/command/ObjectPicker";
 import { Viewport } from "../src/components/viewport/Viewport";
 import { Editor } from "../src/editor/Editor";
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';

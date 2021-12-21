@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride, TemporaryObject } from "../../editor/GeometryDatabase";
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, vec2vec } from '../../util/Conversion';
-import { GeometryFactory, PhantomInfo } from '../GeometryFactory';
+import { GeometryFactory, PhantomInfo } from '../../command/GeometryFactory';
 import { MoveParams } from "../translate/TranslateFactory";
 
 interface BooleanLikeFactory extends GeometryFactory {

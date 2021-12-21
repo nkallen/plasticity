@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride, TemporaryObject } from '../../editor/GeometryDatabase';
 import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
-import { GeometryFactory, NoOpError, PhantomInfo } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
 
 export interface MirrorParams {
     shouldCut: boolean;

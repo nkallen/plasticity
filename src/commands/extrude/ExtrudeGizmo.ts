@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { EditorLike, Mode } from "../AbstractGizmo";
-import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo, AngleGizmo, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine } from "../MiniGizmos";
+import { EditorLike, Mode } from "../../command/AbstractGizmo";
+import { CompositeGizmo } from "../../command/CompositeGizmo";
+import { AbstractAxialScaleGizmo, AngleGizmo, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine } from "../../command/MiniGizmos";
 import { ExtrudeParams } from "./ExtrudeFactory";
 
 export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {

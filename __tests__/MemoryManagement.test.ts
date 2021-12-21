@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
-import { ObjectPicker } from "../src/commands/ObjectPicker";
+import { ObjectPicker } from "../src/command/ObjectPicker";
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
 import MaterialDatabase from '../src/editor/MaterialDatabase';

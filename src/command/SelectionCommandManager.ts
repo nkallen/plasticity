@@ -1,9 +1,9 @@
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ClickChangeSelectionCommand } from '../selection/ViewportSelector';
-import * as gizmo from './AbstractGizmo';
-import Command, * as cmd from './Command';
-import { ExtrudeCommand, FilletSolidCommand, ModifyContourCommand, OffsetFaceCommand } from './GeometryCommands';
+import * as gizmo from '../command/AbstractGizmo';
+import Command, * as cmd from '../command/Command';
+import { ExtrudeCommand, FilletSolidCommand, ModifyContourCommand, OffsetFaceCommand } from '../commands/GeometryCommands';
 
 export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
     db: DatabaseLike;

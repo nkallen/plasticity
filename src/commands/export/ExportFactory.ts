@@ -6,7 +6,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from '../../editor/GeometryDatabase';
 import * as visual from '../../visual_model/VisualModel';
 import { deunit } from '../../util/Conversion';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory } from '../../command/GeometryFactory';
 
 export interface ExportParams {
     sag: number;

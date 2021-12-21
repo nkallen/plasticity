@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { PlaneSnap } from "../../editor/snaps/Snap";
 import { point2point } from "../../util/Conversion";
-import { GeometryFactory, NoOpError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 };
 

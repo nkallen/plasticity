@@ -2,7 +2,7 @@ import { PlaneSnap } from "../../editor/snaps/Snap";
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { point2point, vec2vec } from "../../util/Conversion";
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory } from '../../command/GeometryFactory';
 import { CenterCircleFactory, Mode } from "../circle/CircleFactory";
 
 export class PolygonFactory extends GeometryFactory {

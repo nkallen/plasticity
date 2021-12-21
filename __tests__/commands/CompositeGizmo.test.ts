@@ -3,16 +3,16 @@
  */
 import { Disposable } from "event-kit";
 import * as THREE from "three";
-import { AbstractGizmo, EditorLike, Intersector, Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
-import { CompositeGizmo } from "../../src/commands/CompositeGizmo";
-import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
+import { AbstractGizmo, EditorLike, Intersector, Mode, MovementInfo } from "../../src/command/AbstractGizmo";
+import { CompositeGizmo } from "../../src/command/CompositeGizmo";
+import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
-import { CancellablePromise } from "../../src/util/Cancellable";
+import { CancellablePromise } from "../../src/util/CancellablePromise";
 import { Helpers } from "../../src/util/Helpers";
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { GizmoMaterialDatabase } from "../../commands/GizmoMaterials";
+import { GizmoMaterialDatabase } from "../../command/GizmoMaterials";
 import { Helper, SimpleHelper } from "../../util/Helpers";
 import { CircleGeometry } from "../../util/Util";
 import { SnapResult } from "../../visual_model/SnapPicker";

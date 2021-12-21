@@ -3,8 +3,8 @@
  */
 import * as THREE from "three";
 import { MovementInfo } from "../../src/commands/AbstractGizmo";
-import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
-import { AngleGizmo, DistanceGizmo, LengthGizmo } from "../../src/commands/MiniGizmos";
+import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
+import { AngleGizmo, DistanceGizmo, LengthGizmo } from "../../src/command/MiniGizmos";
 import { CircleMoveGizmo, MoveAxisGizmo, PlanarMoveGizmo } from "../../src/commands/translate/MoveGizmo";
 import { CircleScaleGizmo, PlanarScaleGizmo, ScaleAxisGizmo } from "../../src/commands/translate/ScaleGizmo";
 import { Viewport } from "../../src/components/viewport/Viewport";

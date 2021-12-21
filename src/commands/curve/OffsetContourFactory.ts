@@ -1,7 +1,7 @@
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
 import c3d from '../../../build/Release/c3d.node';
-import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 import * as THREE from "three";
 
 export default class OffsetCurveFactory extends GeometryFactory {

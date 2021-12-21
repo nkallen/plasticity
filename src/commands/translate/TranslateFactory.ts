@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { TemporaryObject } from "../../editor/GeometryDatabase";
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, deunit, mat2mat, point2point, unit, vec2vec } from "../../util/Conversion";
-import { GeometryFactory, NoOpError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 
 const identityMatrix = new THREE.Matrix4();
 export const X = new THREE.Vector3(1, 0, 0);

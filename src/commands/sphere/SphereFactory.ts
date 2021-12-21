@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, point2point } from "../../util/Conversion";
 import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
-import { GeometryFactory, NoOpError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 
 interface SphereParams {
     center: THREE.Vector3;

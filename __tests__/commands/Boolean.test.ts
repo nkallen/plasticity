@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { IntersectionFactory } from '../../src/commands/boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "../../src/commands/boolean/BooleanKeyboardGizmo";
-import { EditorLike } from "../../src/commands/CommandKeyboardInput";
+import { EditorLike } from "../../src/command/CommandKeyboardInput";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';

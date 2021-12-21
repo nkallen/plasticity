@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory } from '../../command/GeometryFactory';
 
 export interface RevolutionParams {
     origin: THREE.Vector3;

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, decomposeMainName, vec2vec } from '../../util/Conversion';
-import { GeometryFactory, NoOpError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { MoveParams } from '../translate/TranslateFactory';
 
 export interface FilletFaceParams {

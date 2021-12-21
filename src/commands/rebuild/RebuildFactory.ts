@@ -1,7 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
 import { MaterialOverride } from '../../editor/GeometryDatabase';
 import * as visual from '../../visual_model/VisualModel';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory } from '../../command/GeometryFactory';
 import * as THREE from "three";
 
 export class RebuildFactory extends GeometryFactory {

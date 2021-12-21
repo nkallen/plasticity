@@ -4,7 +4,7 @@ import { PlaneSnap } from "../../editor/snaps/Snap";
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, curve3d2curve2d, point2point, vec2vec } from '../../util/Conversion';
 import { ExtrudeSurfaceFactory } from "../extrude/ExtrudeSurfaceFactory";
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
 
 export interface CutParams {
     mergingFaces: boolean;

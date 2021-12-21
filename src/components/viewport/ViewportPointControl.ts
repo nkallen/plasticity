@@ -1,9 +1,9 @@
 import { Disposable } from "event-kit";
 import * as THREE from "three";
-import * as gizmo from "../../commands/AbstractGizmo";
-import { GizmoLike } from "../../commands/AbstractGizmo";
-import Command, * as cmd from "../../commands/Command";
-import { DashedLineMagnitudeHelper } from "../../commands/MiniGizmos";
+import * as gizmo from "../../command/AbstractGizmo";
+import { GizmoLike } from "../../command/AbstractGizmo";
+import Command, * as cmd from "../../command/Command";
+import { DashedLineMagnitudeHelper } from "../../command/MiniGizmos";
 import { MoveContourPointFactory } from "../../commands/modify_contour/ModifyContourPointFactory";
 import { ChangeSelectionModifier } from "../../selection/ChangeSelectionExecutor";
 import { AbstractViewportSelector, ClickChangeSelectionCommand } from "../../selection/ViewportSelector";

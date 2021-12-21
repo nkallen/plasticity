@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { point2point } from "../../util/Conversion";
-import { GeometryFactory, PhantomInfo } from '../GeometryFactory';
+import { GeometryFactory, PhantomInfo } from '../../command/GeometryFactory';
 
 export default class LineFactory extends GeometryFactory {
     p1!: THREE.Vector3;

@@ -1,6 +1,6 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import signal from "signals";
-import { GeometryFactory } from "../commands/GeometryFactory";
+import { GeometryFactory } from "../command/GeometryFactory";
 import { CancellablePromise } from "./CancellablePromise";
 import { CancellableRegisterable } from "./CancellableRegisterable";
 import { Cancellable } from "./Cancellable";

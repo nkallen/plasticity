@@ -1,5 +1,5 @@
 import * as visual from "../visual_model/VisualModel";
-import * as cmd from "./Command";
+import * as cmd from "../command/Command";
 import { ExportDialog } from './export/ExportDialog';
 import { ExportFactory } from './export/ExportFactory';
 import { RebuildFactory } from "./rebuild/RebuildFactory";

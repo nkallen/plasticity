@@ -2,7 +2,7 @@ import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { computeControlPointInfo, ControlPointInfo, inst2curve, normalizeCurve, point2point, unit } from '../../util/Conversion';
-import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 import { FreestyleScaleFactory, FreestyleScaleFactoryLike, MoveFactoryLike, MoveParams, RotateFactoryLike, ScaleParams } from "../translate/TranslateFactory";
 
 export interface ModifyContourPointParams {

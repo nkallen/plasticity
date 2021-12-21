@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { EditorLike, Mode } from "../AbstractGizmo";
-import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxialScaleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
+import { EditorLike, Mode } from "../../command/AbstractGizmo";
+import { CompositeGizmo } from "../../command/CompositeGizmo";
+import { AbstractAxialScaleGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { FilletCurveParams } from "./ContourFilletFactory";
 
 const Y = new THREE.Vector3(0, 1, 0);

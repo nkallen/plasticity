@@ -5,7 +5,7 @@ import * as THREE from "three";
 import './matchers';
 import { EditorSignals } from '../src/editor/EditorSignals';
 import { BasicMaterialDatabase } from "../src/editor/MaterialDatabase";
-import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
+import { GizmoMaterialDatabase } from "../src/command/GizmoMaterials";
 
 let materials: BasicMaterialDatabase;
 let gizmos: GizmoMaterialDatabase;

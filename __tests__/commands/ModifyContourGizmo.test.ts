@@ -4,7 +4,7 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import CurveFactory from "../../src/commands/curve/CurveFactory";
-import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
+import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
 import { ModifyContourFactory } from "../../src/commands/modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "../../src/commands/modify_contour/ModifyContourGizmo";
 import { Viewport } from "../../src/components/viewport/Viewport";

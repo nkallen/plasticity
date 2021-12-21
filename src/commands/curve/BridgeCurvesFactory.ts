@@ -1,7 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName } from '../../util/Conversion';
-import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 
 export interface BridgeCurvesParams {
     t1: number;

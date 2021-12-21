@@ -1,4 +1,4 @@
-import { AbstractCommandKeyboardInput, CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
+import { AbstractCommandKeyboardInput, CommandKeyboardInput, EditorLike } from "../../command/CommandKeyboardInput";
 import c3d from '../../../build/Release/c3d.node';
 
 const commands = new Array<string>();

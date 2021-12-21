@@ -3,9 +3,9 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../build/Release/c3d.node';
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { point2point, vec2vec } from "../../util/Conversion";
-import { EditorLike, Mode } from "../AbstractGizmo";
-import { CompositeGizmo } from "../CompositeGizmo";
-import { AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../MiniGizmos";
+import { EditorLike, Mode } from "../../command/AbstractGizmo";
+import { CompositeGizmo } from "../../command/CompositeGizmo";
+import { AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { FilletFaceParams } from './ModifyFaceFactory';
 import { OffsetFaceParams } from "./OffsetFaceFactory";
 

@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { AbstractDialog } from "../AbstractDialog";
+import { AbstractDialog } from "../../command/AbstractDialog";
 import { BooleanParams } from "./BooleanFactory";
 import { CutParams } from "./CutFactory";
 import c3d from '../../../build/Release/c3d.node';

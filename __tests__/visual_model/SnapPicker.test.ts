@@ -3,9 +3,9 @@
  */
 import * as THREE from 'three';
 import c3d from '../../build/Release/c3d.node';
+import { Model } from '../../src/command/PointPicker';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from '../../src/commands/curve/CurveFactory';
-import { Model } from "../../src/commands/PointPicker";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { Viewport } from "../../src/components/viewport/Viewport";
 import { Orientation } from '../../src/components/viewport/ViewportNavigator';

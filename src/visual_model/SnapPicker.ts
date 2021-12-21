@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Model } from "../commands/PointPicker";
+import { Model } from "../command/PointPicker";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";

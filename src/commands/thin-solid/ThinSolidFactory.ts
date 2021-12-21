@@ -1,7 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { composeMainName, unit } from '../../util/Conversion';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory } from '../../command/GeometryFactory';
 
 export interface ThinSolidParams {
     thickness1: number;

@@ -3,7 +3,7 @@ import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { CornerAngle, cornerInfo, inst2curve, point2point, unit, vec2vec } from '../../util/Conversion';
 import JoinCurvesFactory from '../curve/JoinCurvesFactory';
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
 import LineFactory from '../line/LineFactory';
 
 /**

@@ -1,7 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
 import * as visual from '../../visual_model/VisualModel';
 import { point2point, curve3d2curve2d, vec2vec, composeMainName, unit, inst2curve } from '../../util/Conversion';
-import { GeometryFactory, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
 
 export default class LoftFactory extends GeometryFactory {
     private _curves!: visual.SpaceInstance<visual.Curve3D>[];

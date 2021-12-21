@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { EditorLike, Intersector, Mode, MovementInfo } from "../AbstractGizmo";
-import { CompositeGizmo } from "../CompositeGizmo";
-import { GizmoMaterial } from "../GizmoMaterials";
-import { AngleGizmo, AxisHelper, CompositeHelper, DashedLineMagnitudeHelper, QuaternionStateMachine } from "../MiniGizmos";
+import { EditorLike, Intersector, Mode, MovementInfo } from "../../command/AbstractGizmo";
+import { CompositeGizmo } from "../../command/CompositeGizmo";
+import { GizmoMaterial } from "../../command/GizmoMaterials";
+import { AngleGizmo, AxisHelper, CompositeHelper, DashedLineMagnitudeHelper, QuaternionStateMachine } from "../../command/MiniGizmos";
 import { RotateParams } from "./TranslateFactory";
 
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);

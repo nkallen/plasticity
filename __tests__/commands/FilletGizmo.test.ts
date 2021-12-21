@@ -6,7 +6,7 @@ import c3d from '../../build/Release/c3d.node';
 import { Mode, MovementInfo } from "../../src/commands/AbstractGizmo";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { MaxFilletFactory } from "../../src/commands/fillet/FilletFactory";
-import { GizmoMaterialDatabase } from "../../src/commands/GizmoMaterials";
+import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
 import { Editor } from "../../src/editor/Editor";
 import { EditorSignals } from "../../src/editor/EditorSignals";
 import { GeometryDatabase } from "../../src/editor/GeometryDatabase";

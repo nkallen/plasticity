@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { Mode } from "../AbstractGizmo";
-import { CompositeGizmo } from "../CompositeGizmo";
+import { Mode } from "../../command/AbstractGizmo";
+import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { MagnitudeGizmo } from "../extrude/ExtrudeGizmo";
-import { AngleGizmo } from "../MiniGizmos";
+import { AngleGizmo } from "../../command/MiniGizmos";
 import { RevolutionParams } from './RevolutionFactory';
 
 const Y = new THREE.Vector3(0, 1, 0);

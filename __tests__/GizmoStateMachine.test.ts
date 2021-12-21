@@ -3,7 +3,7 @@
  */
 import { Disposable } from "event-kit";
 import * as THREE from "three";
-import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/commands/AbstractGizmo";
+import { AbstractGizmo, GizmoStateMachine, Intersector, MovementInfo } from "../src/command/AbstractGizmo";
 import { EditorLike, Viewport } from "../src/components/viewport/Viewport";
 import { Editor } from "../src/editor/Editor";
 import { EditorSignals } from '../src/editor/EditorSignals';

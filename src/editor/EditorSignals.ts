@@ -1,7 +1,7 @@
 import signals from "signals";
 import c3d from '../build/Release/c3d.node';
-import { AbstractDialog } from "../commands/AbstractDialog";
-import Command from '../commands/Command';
+import { AbstractDialog } from "../command/AbstractDialog";
+import Command from '../command/Command';
 import { Viewport } from '../components/viewport/Viewport';
 import { HasSelection, Selectable, ToggleableSet } from '../selection/SelectionDatabase';
 import { Agent } from './GeometryDatabase';

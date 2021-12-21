@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { AbstractDialog } from "../AbstractDialog";
+import { AbstractDialog } from "../../command/AbstractDialog";
 import { ArrayParams } from "./ArrayFactory";
 
 export class RadialArrayDialog extends AbstractDialog<ArrayParams> {

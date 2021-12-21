@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { AbstractDialog } from "../AbstractDialog";
+import { AbstractDialog } from "../../command/AbstractDialog";
 import { MirrorParams } from "./MirrorFactory";
 
 export class MirrorDialog extends AbstractDialog<MirrorParams> {

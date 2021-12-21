@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import c3d from '../../build/Release/c3d.node';
-import Command, * as cmd from '../commands/Command';
+import Command, * as cmd from '../command/Command';
 import { ExportCommand } from "../commands/CommandLike";
 import { GeometryDatabase } from "./GeometryDatabase";
 

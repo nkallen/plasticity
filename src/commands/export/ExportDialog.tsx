@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { EditorSignals } from "../../editor/EditorSignals";
-import { AbstractDialog } from "../AbstractDialog";
+import { AbstractDialog } from "../../command/AbstractDialog";
 import { ExportParams } from "./ExportFactory";
 
 export class ExportDialog extends AbstractDialog<ExportParams> {

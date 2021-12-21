@@ -1,7 +1,7 @@
 import box from 'bootstrap-icons/icons/box.svg';
 import trash from 'bootstrap-icons/icons/trash.svg';
 import c3d from '../../../build/Release/c3d.node';
-import Command from '../../commands/Command';
+import Command from '../../command/Command';
 import * as cmd from '../../commands/GeometryCommands';
 import * as like from '../../commands/CommandLike';
 import { Editor } from '../../editor/Editor';

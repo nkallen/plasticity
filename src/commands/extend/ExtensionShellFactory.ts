@@ -1,7 +1,7 @@
 import c3d from '../../../build/Release/c3d.node';
 import { composeMainName, unit } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory } from '../../command/GeometryFactory';
 
 export interface ExtensionShellParams {
     distance: number;

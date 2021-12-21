@@ -5,7 +5,7 @@ import { DatabaseLike } from "../../editor/GeometryDatabase";
 import MaterialDatabase from "../../editor/MaterialDatabase";
 import { Snap, TanTanSnap } from "../../editor/snaps/Snap";
 import { point2point } from "../../util/Conversion";
-import { GeometryFactory, NoOpError, ValidationError } from '../GeometryFactory';
+import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 
 const curveMinimumPoints = new Map<c3d.SpaceType, number>();
 curveMinimumPoints.set(c3d.SpaceType.Polyline3D, 2);

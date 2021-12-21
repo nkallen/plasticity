@@ -1,4 +1,4 @@
-import { CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
+import { CommandKeyboardInput, EditorLike } from "../../command/CommandKeyboardInput";
 
 export class CircleKeyboardGizmo extends CommandKeyboardInput {
     constructor(editor: EditorLike) {

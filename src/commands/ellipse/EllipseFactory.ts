@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { point2point } from "../../util/Conversion";
-import { GeometryFactory } from '../GeometryFactory';
+import { GeometryFactory } from '../../command/GeometryFactory';
 
 export class CenterEllipseFactory extends GeometryFactory {
     center!: THREE.Vector3;

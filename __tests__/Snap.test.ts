@@ -3,7 +3,7 @@ import c3d from '../build/Release/c3d.node';
 import { ThreePointBoxFactory } from '../src/commands/box/BoxFactory';
 import { CenterCircleFactory } from "../src/commands/circle/CircleFactory";
 import CurveFactory from "../src/commands/curve/CurveFactory";
-import { GizmoMaterialDatabase } from "../src/commands/GizmoMaterials";
+import { GizmoMaterialDatabase } from "../src/command/GizmoMaterials";
 import LineFactory from "../src/commands/line/LineFactory";
 import { CrossPointDatabase } from "../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../src/editor/EditorSignals';

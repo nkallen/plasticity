@@ -2,7 +2,7 @@ import { CompositeDisposable, Disposable } from 'event-kit';
 import { render } from 'preact';
 import * as THREE from "three";
 import _ from "underscore-plus";
-import Command from '../../commands/Command';
+import Command from '../../command/Command';
 import * as cmd from '../../commands/GeometryCommands';
 import { Editor } from '../../editor/Editor';
 import { GConstructor } from '../../util/Util';

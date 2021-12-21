@@ -1,6 +1,6 @@
 import c3d from '../../../build/Release/c3d.node';
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { CommandKeyboardInput, EditorLike } from "../CommandKeyboardInput";
+import { CommandKeyboardInput, EditorLike } from "../../command/CommandKeyboardInput";
 import { Mode } from "./FilletFactory";
 
 export class ChamferAndFilletKeyboardGizmo  {
