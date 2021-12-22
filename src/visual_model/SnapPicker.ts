@@ -94,8 +94,7 @@ abstract class AbstractSnapPicker {
             const { position, orientation } = snap.project(intersection.point);
             result.push({ snap, position, orientation, cursorPosition: position, cursorOrientation: orientation });
         }
-
-        return findAllSnapsInTheSamePlace(result);
+        return result;
     }
 
     protected configureIntersectRaycaster() {
@@ -181,9 +180,10 @@ export class SnapPicker extends AbstractSnapPicker {
         const restrictionSnaps = pointPicker.restrictionSnapsFor(viewport.constructionPlane).map(r => r.snapper);
         let intersections = super._intersect([...additional, ...restrictionSnaps], snaps, db);
 
-        if (intersections.length === 0) intersections = this.intersectConstructionPlane(pointPicker, viewport);
+        intersections = intersections.concat(this.intersectConstructionPlane(pointPicker, viewport));
+        const restricted = this.applyRestrictions(pointPicker, viewport, intersections);
 
-        return this.applyRestrictions(pointPicker, viewport, intersections);
+        return findAllSnapsInTheSamePlace(restricted);
     }
 
     protected configureIntersectRaycaster(): void {

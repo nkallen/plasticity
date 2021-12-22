@@ -4,18 +4,12 @@
 
 ### Backlog
 
-- helper for center snap points  
-- circle quarter snap points  
-- double click to select body  
-- move snapmanagergeometrycache to editor  
+- [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
+- colored helpers for basic axis snaps  
 - Solid cut by face: face cutter offset along normal  
 - move mirror gizmo origin  
-- select all sketches  
-- Convert Face selection to Border Selection:  
-- bug: Adding Variable enabled viewport selector, overriding value set in config  
 - Napi::Promise::Deferred const &d rename _deferred  
 - dialog keybindings  
-- [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - copy fillet radius by clicking on another fillet surface  
 - bug: box selected, while mouse down, zoom  
 - extrude multiple regions at once  
@@ -23,6 +17,7 @@
 - [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
 - [ ] circle angle gizmo when far off from center not facing camera  
 - [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
+- double click to select body  
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
 - [ ] Audit re-used icons  
 - [ ] moving circle point doesn't work (drag and g)  
@@ -67,12 +62,17 @@
 - cut body: select edge after starting command  
 - rr ss gg for screenspace  
 - bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
+- circle quarter snap points  
+- move snapmanagergeometrycache to editor  
+- Convert Face selection to Border Selection:  
+- select all sketches  
 
 ### In Progress
 
 
 ### Done ✓
 
+- helper for center snap points  
 - object with selected face, select body: confusing - should be able to select body  
 - Add dialog for extrude  
 - bug: Alt click focus: issue on windows  

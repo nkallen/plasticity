@@ -155,7 +155,7 @@ describe('intersect', () => {
                 picker.setFromViewport(event, viewport);
                 const actual = picker.intersect(pointPicker, snaps, db);
                 expect(actual.filter(a => a.snap instanceof FaceSnap)).toHaveLength(0);
-                expect(actual.length).toBe(1);
+                expect(actual.length).toBe(2);
             });
         });
 
@@ -201,7 +201,7 @@ describe('intersect', () => {
             test('with a restriction, curorPosition and position differ', () => {
                 pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3());
                 const actual = picker.intersect(pointPicker, snaps, db);
-                expect(actual.length).toBe(1);
+                expect(actual.length).toBe(2);
                 const first = actual[0];
                 expect(first.cursorPosition).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
                 expect(first.position).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0));
