@@ -127,7 +127,7 @@ describe('nearby', () => {
 
 describe('intersect', () => {
     test('when no geometry or point picker settings', () => {
-        expect(picker.intersect(pointPicker, snaps, db)).toHaveLength(4);
+        expect(picker.intersect(pointPicker, snaps, db)).toHaveLength(3);
     });
 
     describe('when geometry additions', () => {
@@ -146,7 +146,7 @@ describe('intersect', () => {
             test('it returns snap points for the geometry', () => {
                 const actual = picker.intersect(pointPicker, snaps, db);
                 expect(viewport.isOrthoMode).toBe(false);
-                expect(actual.length).toBe(51);
+                expect(actual.length).toBe(1);
             })
 
             test('when isOrtho is true, face snaps are turned off', () => {
@@ -155,7 +155,7 @@ describe('intersect', () => {
                 picker.setFromViewport(event, viewport);
                 const actual = picker.intersect(pointPicker, snaps, db);
                 expect(actual.filter(a => a.snap instanceof FaceSnap)).toHaveLength(0);
-                expect(actual.length).toBe(51);
+                expect(actual.length).toBe(1);
             });
         });
 
@@ -174,7 +174,7 @@ describe('intersect', () => {
 
             test('it returns snap points for the geometry', () => {
                 const actual = picker.intersect(pointPicker, snaps, db);
-                expect(actual.length).toBe(10);
+                expect(actual.length).toBe(5);
             })
         })
 
@@ -192,7 +192,7 @@ describe('intersect', () => {
 
             test("when no restrictions", () => {
                 const actual = picker.intersect(pointPicker, snaps, db);
-                expect(actual.length).toBe(51);
+                expect(actual.length).toBe(1);
                 const first = actual[0];
                 expect(first.cursorPosition).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
                 expect(first.position).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
@@ -201,7 +201,7 @@ describe('intersect', () => {
             test('with a restriction, curorPosition and position differ', () => {
                 pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3());
                 const actual = picker.intersect(pointPicker, snaps, db);
-                expect(actual.length).toBe(51);
+                expect(actual.length).toBe(1);
                 const first = actual[0];
                 expect(first.cursorPosition).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0.5));
                 expect(first.position).toApproximatelyEqual(new THREE.Vector3(0.25, 0.25, 0));

@@ -84,7 +84,7 @@ abstract class AbstractSnapPicker {
         intersections = raycaster.intersectObjects([...snappers, ...additional, ...geometry], false);
 
         if (!this.viewport.isXRay) {
-            intersections = findAllVeryCloseTogether(intersections);
+            intersections = findAllIntersectionsVeryCloseTogether(intersections);
         }
         const extremelyCloseSnaps = this.intersections2snaps(snaps, intersections, db);
         extremelyCloseSnaps.sort(sort);
@@ -94,7 +94,8 @@ abstract class AbstractSnapPicker {
             const { position, orientation } = snap.project(intersection.point);
             result.push({ snap, position, orientation, cursorPosition: position, cursorOrientation: orientation });
         }
-        return result;
+
+        return findAllSnapsInTheSamePlace(result);
     }
 
     protected configureIntersectRaycaster() {
@@ -245,7 +246,7 @@ export interface SnapResult {
     cursorOrientation: THREE.Quaternion;
 }
 
-function findAllVeryCloseTogether(intersections: THREE.Intersection[]) {
+function findAllIntersectionsVeryCloseTogether(intersections: THREE.Intersection[]) {
     if (intersections.length === 0) return [];
 
     const nearest = intersections[0];
@@ -253,6 +254,19 @@ function findAllVeryCloseTogether(intersections: THREE.Intersection[]) {
     for (const intersection of intersections) {
         if (Math.abs(nearest.distance - intersection.distance) < 10e-3) {
             result.push(intersection);
+        }
+    }
+    return result;
+}
+
+function findAllSnapsInTheSamePlace(snaps: SnapResult[]) {
+    if (snaps.length === 0) return [];
+
+    const { position: nearest } = snaps[0];
+    const result = [];
+    for (const snap of snaps) {
+        if (Math.abs(nearest.manhattanDistanceTo(snap.position)) < 10e-5) {
+            result.push(snap);
         }
     }
     return result;

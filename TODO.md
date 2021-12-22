@@ -64,15 +64,16 @@
 
 ### Todo
 
-- object with selected face, select body: confusing - should be able to select body  
 - cut body: select edge after starting command  
 - rr ss gg for screenspace  
+- bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
 
 ### In Progress
 
 
 ### Done ✓
 
+- object with selected face, select body: confusing - should be able to select body  
 - Add dialog for extrude  
 - bug: Alt click focus: issue on windows  
 - Write unit test for snappresenter  

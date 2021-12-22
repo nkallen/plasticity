@@ -63,15 +63,17 @@ export class SnapPresentation {
 
         // First match is assumed best
         const first = intersections[0];
-        const { snap } = first;
         const indicator = presenter.snapIndicatorFor(first);
 
         // Collect indicators, etc. as feedback for the user
         const helpers = [];
         helpers.push(indicator);
-        const snapHelper = snap.helper;
-        if (snapHelper !== undefined)
-            helpers.push(snapHelper);
+
+        // And add additional helpers associated with all matching snaps
+        for (const intersection of intersections) {
+            const snapHelper = intersection.snap.helper;
+            if (snapHelper !== undefined) helpers.push(snapHelper);
+        }
         this.helpers = helpers;
 
         this.info = { ...first, constructionPlane };

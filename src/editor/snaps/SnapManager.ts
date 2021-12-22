@@ -6,7 +6,7 @@ import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
 import * as visual from '../../visual_model/VisualModel';
-import { AxisSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgeMidPointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
+import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgeMidPointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
     enabled = true;
@@ -94,8 +94,7 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         if (underlying !== null) {
             if (underlying.IsA() === c3d.SpaceType.Arc3D) {
                 const cast = underlying.Cast<c3d.Arc3D>(underlying.IsA());
-                const { placement } = cast.GetPlaneCurve(false);
-                const centerSnap = new PointSnap("Center", point2point(cast.GetCentre()), vec2vec(placement.GetAxisZ(), 1));
+                const centerSnap = new CircleCenterPointSnap(cast, edge);
                 into.add(centerSnap);
             }
         }

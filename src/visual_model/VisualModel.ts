@@ -293,8 +293,9 @@ export class CurveEdge extends Edge {
         this.visible = false; // FIXME: this is just a performance optimization; we really need to remove CurveEdge and Face from the scene
     }
 
-    slice() {
-        return this.parentItem.edges.slice([this]);
+    slice(kind: 'line' | 'line2' = 'line2') {
+        if (kind == 'line') return this.parentItem.edges.slice([this], kind);
+        else return this.parentItem.edges.slice([this], kind);
     }
 
     dispose() { }
@@ -382,7 +383,9 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
         return this.edges[i];
     }
 
-    slice(edges: T[]): LineSegments2 {
+    slice(edges: T[], kind?: 'line2'): LineSegments2;
+    slice(edges: T[], kind?: 'line'): THREE.Line;
+    slice(edges: T[], kind: 'line' | 'line2' = 'line2'): THREE.Line | LineSegments2 {
         const instanceStart = this.line.geometry.attributes.instanceStart as THREE.InterleavedBufferAttribute;
         const inArray = instanceStart.data.array as Float32Array;
         const inBuffer = Buffer.from(inArray.buffer);
@@ -397,11 +400,22 @@ export class CurveGroup<T extends CurveEdge | CurveSegment> extends THREE.Group 
             inBuffer.copy(outBuffer, offset, group.start * 4, next);
             offset += group.count * 4;
         }
-        const geometry = new LineSegmentsGeometry();
-        geometry.setPositions(new Float32Array(outBuffer.buffer));
-        const line = this.line.clone();
-        line.geometry = geometry;
-        return line;
+        const points = new Float32Array(outBuffer.buffer);
+        if (kind == 'line2') {
+            const geometry = new LineSegmentsGeometry();
+            geometry.setPositions(points);
+            const line = this.line.clone();
+            line.geometry = geometry;
+            return line;
+        } else {
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(points, 3));
+            const result = new THREE.Line();
+            result.copy(this.line as any);
+            result.geometry = geometry;
+            result.material = new THREE.LineBasicMaterial();
+            return result;
+        }
     }
 
     get line() { return this.mesh.children[0] as LineSegments2 }

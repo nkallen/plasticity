@@ -49,7 +49,7 @@ export class PointSnap extends Snap {
     static snapperGeometry = new THREE.SphereGeometry(0.1);
     static nearbyGeometry = new THREE.SphereGeometry(0.2);
 
-    constructor(readonly name?: string, position = new THREE.Vector3(), private readonly normal = Z) {
+    constructor(readonly name?: string, position = new THREE.Vector3(), protected readonly normal = Z) {
         super();
 
         this.snapper.position.copy(position);
@@ -76,6 +76,20 @@ export class PointSnap extends Snap {
 
     isValid(pt: THREE.Vector3): boolean {
         return this.snapper.position.manhattanDistanceTo(pt) < 10e-6;
+    }
+}
+
+export class CircleCenterPointSnap extends PointSnap {
+    readonly helper = new THREE.Group();
+
+    constructor(model: c3d.Arc3D, view: visual.CurveEdge) {
+        super("Center",
+            point2point(model.GetCentre()),
+            vec2vec(model.GetPlaneCurve(false).placement.GetAxisZ(), 1).normalize()
+        );
+        
+        const slice = view.slice('line');
+        this.helper.add(slice);
     }
 }
 
@@ -165,7 +179,8 @@ export class FaceCenterPointSnap extends PointSnap {
     }
 
     additionalSnapsFor(point: THREE.Vector3) {
-        return this.faceSnap.additionalSnapsFor(point);
+        const normalSnap = new NormalAxisSnap(this.normal, point);
+        return [normalSnap];
     }
 
     get normalSnap(): PointAxisSnap {
@@ -412,9 +427,10 @@ const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const origin = new THREE.Vector3();
+const lineBasicMaterial = new THREE.LineBasicMaterial();
 
 export class AxisSnap extends Snap {
-    readonly snapper = new THREE.Line(axisGeometry, new THREE.LineBasicMaterial());
+    readonly snapper = new THREE.Line(axisGeometry, lineBasicMaterial);
     readonly helper: THREE.Object3D = this.snapper.clone();
 
     static X = new AxisSnap("X", new THREE.Vector3(1, 0, 0));
