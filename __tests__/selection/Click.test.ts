@@ -109,6 +109,7 @@ describe(visual.Solid, () => {
     })
 
     test('when the face is already selected, returns false and does not modify the selection', () => {
+        modes.set(SelectionMode.Solid, SelectionMode.Face);
         click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Replace);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
@@ -116,6 +117,17 @@ describe(visual.Solid, () => {
         expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace)).toBe(false);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
+    })
+
+    test('when face is already selected, and mode is ONLY solid, returns true and DOES modify the selection', () => {
+        click.topologicalItem(solid1.faces.get(0), ChangeSelectionModifier.Replace);
+        expect(selectionDb.selected.solids.size).toBe(0);
+        expect(selectionDb.selected.faces.size).toBe(1);
+        
+        modes.set(SelectionMode.Solid);
+        expect(click.solid(solid1.faces.get(0), ChangeSelectionModifier.Replace)).toBe(true);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.faces.size).toBe(0);
     })
 });
 

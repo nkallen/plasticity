@@ -1,11 +1,11 @@
 import { Intersectable } from "../visual_model/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
 import { ChangeSelectionModifier, SelectionMode } from "./ChangeSelectionExecutor";
-import { ModifiesSelection } from "./SelectionDatabase";
+import { ModifiesSelection, ToggleableSet } from "./SelectionDatabase";
 
 export class ClickStrategy {
     constructor(
-        protected readonly mode: Set<SelectionMode>,
+        protected readonly mode: ToggleableSet,
         protected readonly selected: ModifiesSelection,
         protected readonly hovered: ModifiesSelection,
         protected readonly writeable: ModifiesSelection
@@ -68,7 +68,7 @@ export class ClickStrategy {
                     this.writeable.removeSolid(parentItem);
                     return true;
                 });
-        } else if (!this.selected.hasSelectedChildren(parentItem)) {
+        } else if (!this.selected.hasSelectedChildren(parentItem) || this.mode.is(SelectionMode.Solid)) {
             return this.modify(modifier,
                 () => {
                     this.writeable.addSolid(parentItem);

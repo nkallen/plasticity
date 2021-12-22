@@ -357,6 +357,14 @@ export class ToggleableSet extends Set<SelectionMode> {
         }
         this.signals.selectionModeChanged.dispatch(this);
     }
+
+    is(...elements: SelectionMode[]) {
+        if (this.size !== elements.length) return false;
+        for (const element of elements) {
+            if (!this.has(element)) return false;
+        }
+        return true;
+    }
 }
 
 function eqSet<A>(as: Set<A>, bs: Set<A>) {
