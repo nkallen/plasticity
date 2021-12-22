@@ -1,29 +1,38 @@
 import * as THREE from "three";
+import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
+import { Model } from "../../src/command/PointPicker";
+import { SnapIndicator } from "../../src/command/SnapIndicator";
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
-import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
-import { SnapPresentation } from "../../src/command/SnapPresenter";
 import CommandRegistry from "../../src/components/atom/CommandRegistry";
 import { CrossPointDatabase } from "../../src/editor/curves/CrossPointDatabase";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, TanTanSnap } from '../../src/editor/snaps/Snap';
-import { SnapIndicator } from "../../src/command/SnapIndicator";
 import { inst2curve } from "../../src/util/Conversion";
-import { SnapResult } from "../../src/visual_model/SnapPicker";
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import c3d from '../build/Release/c3d.node';
 import '../matchers';
-import { Model } from "../../src/command/PointPicker";
 
 let pointPicker: Model;
 let db: GeometryDatabase;
 let materials: MaterialDatabase;
 let signals: EditorSignals;
 let presenter: SnapIndicator;
+
+beforeEach(() => {
+    materials = new FakeMaterials();
+    signals = new EditorSignals();
+    db = new GeometryDatabase(materials, signals);
+    const gizmos = new GizmoMaterialDatabase(signals);
+    presenter = new SnapIndicator(gizmos);
+    const crosses = new CrossPointDatabase();
+    const registry = new CommandRegistry();
+    pointPicker = new Model(db, crosses, registry, signals);
+});
 
 beforeEach(() => {
     materials = new FakeMaterials();
@@ -430,22 +439,3 @@ describe('restrictionFor', () => {
         expect(restriction).toBe(constructionPlane);
     })
 })
-
-describe(SnapPresentation, () => {
-    test("it gives info for best snap and names other possible snaps", () => {
-        const hitPosition = new THREE.Vector3(1, 1, 1);
-        const orientation = new THREE.Quaternion();
-        const startPoint = new PointSnap("startpoint", new THREE.Vector3(1, 1, 1));
-        const endPoint = new PointSnap("endpoint", new THREE.Vector3(1, 1, 1));
-        const snapResults: SnapResult[] = [
-            { snap: endPoint, position: hitPosition, cursorPosition: hitPosition, orientation, cursorOrientation: orientation },
-            { snap: startPoint, position: hitPosition, cursorPosition: hitPosition, orientation, cursorOrientation: orientation }
-        ];
-        const presentation = new SnapPresentation([], snapResults, new PlaneSnap(), false, presenter);
-
-        expect(presentation.names).toEqual(["endpoint", "startpoint"]);
-        expect(presentation.info!.position).toBe(hitPosition);
-        expect(presentation.info!.snap).toBe(endPoint);
-    });
-});
-

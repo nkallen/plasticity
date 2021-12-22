@@ -113,6 +113,7 @@ export class SnapPresenter {
     execute() {
         const { editor, cursorHelper, helpers } = this;
         const disposables = new CompositeDisposable();
+        this.cursorHelper.visible = false;
         this.editor.helpers.add(this.cursorHelper);
         disposables.add(new Disposable(() => editor.helpers.remove(cursorHelper)));
         disposables.add(new Disposable(() => editor.signals.snapped.dispatch(undefined)));
@@ -140,7 +141,7 @@ export class SnapPresenter {
         cursorHelper.visible = true;
         const { position, cursorPosition } = info;
 
-        helpers.add(...newHelpers);
+        if (newHelpers.length > 0) helpers.add(...newHelpers);
         cursorHelper.position.copy(cursorPosition);
 
         editor.signals.snapped.dispatch(
