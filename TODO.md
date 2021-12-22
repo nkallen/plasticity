@@ -4,6 +4,8 @@
 
 ### Backlog
 
+- helper for center snap points  
+- circle quarter snap points  
 - double click to select body  
 - move snapmanagergeometrycache to editor  
 - Solid cut by face: face cutter offset along normal  

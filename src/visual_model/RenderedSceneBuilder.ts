@@ -346,7 +346,8 @@ function unmask(child: THREE.Object3D) {
     }
 }
 
-const line_unselected = new LineMaterial({ color: 0x000000, linewidth: 1.4 });
+const line_unselected = new LineMaterial({ linewidth: 1.5 });
+line_unselected.color.setHex(0x7dc9e2).convertGammaToLinear();
 line_unselected.polygonOffset = true;
 line_unselected.polygonOffsetFactor = -20;
 line_unselected.polygonOffsetUnits = -20;
@@ -407,7 +408,6 @@ region_highlighted.polygonOffsetUnits = -1;
 
 const region_unhighlighted = new THREE.MeshBasicMaterial();
 region_unhighlighted.fog = false;
-region_unhighlighted.color.setHex(0xff000).convertGammaToLinear();
 region_unhighlighted.color.setHex(0x8dd9f2).convertGammaToLinear();
 region_unhighlighted.opacity = 0.1;
 region_unhighlighted.transparent = true;
