@@ -234,4 +234,8 @@ export default {
         "z": "snaps:set-z",
         "s": "snaps:set-square",
     },
+
+    "body": {
+        "alt": "noop",
+    }
 }

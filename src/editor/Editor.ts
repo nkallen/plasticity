@@ -102,7 +102,8 @@ export class Editor {
             'selection:toggle-control-point': () => this.selection.mode.toggle(SelectionMode.ControlPoint),
             'selection:toggle-edge': () => this.selection.mode.toggle(SelectionMode.CurveEdge, SelectionMode.Curve),
             'selection:toggle-face': () => this.selection.mode.toggle(SelectionMode.Face),
-            'selection:toggle-solid': () => this.selection.mode.toggle(SelectionMode.Solid)
+            'selection:toggle-solid': () => this.selection.mode.toggle(SelectionMode.Solid),
+            'noop': () => {},
         });
         this.disposable.add(d);
     }
