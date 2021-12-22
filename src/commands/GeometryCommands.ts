@@ -1,11 +1,16 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
+import { Mode } from "../command/AbstractGizmo";
+import Command from "../command/Command";
+import { ValidationError } from "../command/GeometryFactory";
+import { AxisHelper } from "../command/MiniGizmos";
+import { ObjectPicker } from "../command/ObjectPicker";
+import { PointPicker } from "../command/PointPicker";
 import { AxisSnap, CurvePointSnap, CurveSnap, PlaneSnap, PointSnap } from "../editor/snaps/Snap";
 import { SelectionMode } from "../selection/ChangeSelectionExecutor";
 import { Finish } from "../util/Cancellable";
 import { point2point, vec2vec } from "../util/Conversion";
 import * as visual from "../visual_model/VisualModel";
-import { Mode } from "../command/AbstractGizmo";
 import { CenterPointArcFactory, ThreePointArcFactory } from "./arc/ArcFactory";
 import { ArrayFactory } from "./array/ArrayFactory";
 import { RadialArrayDialog } from "./array/RadialArrayDialog";
@@ -19,7 +24,6 @@ import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
 import { EditCircleDialog } from "./circle/CircleDialog";
 import { CenterCircleFactory, EditCircleFactory, ThreePointCircleFactory, TwoPointCircleFactory } from './circle/CircleFactory';
 import { CircleKeyboardGizmo } from "./circle/CircleKeyboardGizmo";
-import Command from "../command/Command";
 import { BridgeCurvesDialog } from "./curve/BridgeCurvesDialog";
 import BridgeCurvesFactory from "./curve/BridgeCurvesFactory";
 import CurveFactory, { CurveWithPreviewFactory } from "./curve/CurveFactory";
@@ -42,10 +46,8 @@ import { FilletDialog } from "./fillet/FilletDialog";
 import { MaxFilletFactory } from './fillet/FilletFactory';
 import { FilletMagnitudeGizmo, FilletSolidGizmo } from './fillet/FilletGizmo';
 import { ChamferAndFilletKeyboardGizmo } from "./fillet/FilletKeyboardGizmo";
-import { ValidationError } from "../command/GeometryFactory";
 import LineFactory, { PhantomLineFactory } from './line/LineFactory';
 import LoftFactory from "./loft/LoftFactory";
-import { AxisHelper } from "../command/MiniGizmos";
 import { MirrorDialog } from "./mirror/MirrorDialog";
 import { MirrorFactory, MirrorFactoryLike, MultiSymmetryFactory, SymmetryFactory } from "./mirror/MirrorFactory";
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
@@ -60,7 +62,6 @@ import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
 import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RemoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
 import { MultilineDialog } from "./multiline/MultilineDialog";
 import MultilineFactory from "./multiline/MultilineFactory";
-import { ObjectPicker } from "../command/ObjectPicker";
 import { PolygonFactory } from "./polygon/PolygonFactory";
 import { PolygonKeyboardGizmo } from "./polygon/PolygonKeyboardGizmo";
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './rect/RectangleFactory';
@@ -80,7 +81,6 @@ import { ScaleDialog } from "./translate/ScaleDialog";
 import { ScaleGizmo } from "./translate/ScaleGizmo";
 import { ScaleKeyboardGizmo } from "./translate/ScaleKeyboardGizmo";
 import { FreestyleScaleFactoryLike, MoveFactory, MoveFactoryLike, RotateFactory, RotateFactoryLike } from './translate/TranslateFactory';
-import { PointPicker } from "../command/PointPicker";
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
@@ -1942,20 +1942,25 @@ export class OffsetCurveCommand extends Command {
     async execute(): Promise<void> {
         const face = this.editor.selection.selected.faces.first;
         const curve = this.editor.selection.selected.curves.first;
+        const edges = this.editor.selection.selected.edges;
 
         const offsetContour = new OffsetCurveFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        offsetContour.constructionPlane = this.editor.activeViewport?.constructionPlane;
         if (face !== undefined) offsetContour.face = face;
         if (curve !== undefined) offsetContour.curve = curve;
+        if (edges.size > 0) offsetContour.edges = [...edges];
 
-        const gizmo = new OffsetCurveGizmo("offset-curve:distance", this.editor);
+        const gizmo = new OffsetCurveGizmo(offsetContour, this.editor);
         gizmo.position.copy(offsetContour.center);
         gizmo.quaternion.setFromUnitVectors(Y, offsetContour.normal);
         gizmo.relativeScale.setScalar(0.8);
 
-        await gizmo.execute(async distance => {
-            offsetContour.distance = distance;
+        gizmo.execute(d => {
             offsetContour.update();
-        }, Mode.Persistent).resource(this);
+        }).resource(this);
+        gizmo.start('gizmo:offset-curve:distance');
+
+        await this.finished;
 
         if (face !== undefined) this.editor.selection.selected.removeFace(face);
         if (curve !== undefined) this.editor.selection.selected.removeCurve(curve);

@@ -63,6 +63,7 @@ export class Model {
         }
         if (selection.edges.size > 0) {
             result.add(cmd.FilletSolidCommand);
+            result.add(cmd.OffsetCurveCommand);
         }
         if (selection.edges.size > 0 || selection.curves.size > 0 || selection.solids.size > 0) {
             result.add(cmd.DuplicateCommand);

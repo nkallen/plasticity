@@ -155,7 +155,6 @@ test("interrupt", () => {
     expect(interrupt).toBe(1);
 });
 
-
 test("commands are registered", done => {
     editor.registry.attach(viewport.renderer.domElement);
     const event = new CustomEvent("gizmo:fake:key");
@@ -182,4 +181,17 @@ test("isActive", () => {
     sm.isActive = true;
     expect(onActivate).toHaveBeenCalledTimes(1);
     expect(onDeactivate).toHaveBeenCalledTimes(1);
+})
+
+test('start(command)', done => {
+    editor.registry.attach(viewport.renderer.domElement);
+    signals.viewportActivated.dispatch(viewport);
+
+    expect(gizmo.fakeCommand).toHaveBeenCalledTimes(0);
+    const result = gizmo.execute(() => { });
+    result.then(() => { }, () => done());
+    gizmo.start('gizmo:fake:key');
+    expect(gizmo.fakeCommand).toHaveBeenCalledTimes(1);
+
+    result.cancel();
 })

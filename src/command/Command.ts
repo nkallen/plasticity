@@ -1,21 +1,19 @@
 import _ from "underscore-plus";
 import CommandRegistry from "../components/atom/CommandRegistry";
 import { Viewport } from "../components/viewport/Viewport";
+import { CrossPointDatabase } from "../editor/curves/CrossPointDatabase";
+import { PlanarCurveDatabase } from "../editor/curves/PlanarCurveDatabase";
 import { EditorSignals } from "../editor/EditorSignals";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
 import MaterialDatabase from "../editor/MaterialDatabase";
 import ModifierManager from "../editor/ModifierManager";
-import { PlanarCurveDatabase } from "../editor/curves/PlanarCurveDatabase";
 import { SnapManager } from "../editor/snaps/SnapManager";
-import { SnapIndicator } from "./SnapIndicator";
 import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { HasSelectedAndHovered } from "../selection/SelectionDatabase";
 import { CancellableRegistor } from "../util/CancellableRegistor";
 import { Helpers } from "../util/Helpers";
 import { GizmoMaterialDatabase } from "./GizmoMaterials";
-import { CrossPointDatabase } from "../editor/curves/CrossPointDatabase";
-import signal from "signals";
 
 /**
  * Commands have two responsibilities. They are usually a step-by-step interactive workflow for geometrical

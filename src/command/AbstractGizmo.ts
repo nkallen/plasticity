@@ -46,6 +46,7 @@ export interface EditorLike {
     materials: MaterialDatabase;
     snaps: SnapManager;
     layers: LayerManager;
+    activeViewport?: Viewport;
 }
 
 export interface GizmoLike<CB> {
@@ -96,7 +97,6 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
         return new CancellablePromise<void>((resolve, reject) => {
             // Aggregate the commands, like 'x' for :move:x
-            const registry = this.editor.registry;
             const commands: [string, () => void][] = [];
             const commandNames: string[] = [];
             for (const picker of this.picker.children) {
@@ -117,7 +117,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
 
                 // First, register any keyboard commands for each viewport, like 'x' for :move:x
                 for (const [name, fn] of commands) {
-                    const disp = registry.addOne(domElement, name, () => {
+                    const disp = this.editor.registry.addOne(domElement, name, () => {
                         // If a keyboard command is invoked immediately after the gizmo appears, we will
                         // not have received any pointer info from pointermove/hover. Since we need a "start"
                         // position for many calculations, use the "lastPointerEvent" which is ALMOST always available.
@@ -170,6 +170,11 @@ export abstract class AbstractGizmo<CB> extends Helper {
             }
             return { dispose, finish: resolve };
         });
+    }
+
+    start(command: string) {
+        const event = new CustomEvent(command, { bubbles: true });
+        this.editor.activeViewport?.renderer.domElement.dispatchEvent(event);
     }
 
     static getPointer(domElement: HTMLElement, event: MouseEvent): Pointer {

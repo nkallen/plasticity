@@ -1,4 +1,3 @@
-import { Disposable } from "event-kit";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
@@ -6,12 +5,8 @@ import { ProxyCamera } from "../components/viewport/ProxyCamera";
 import { CancellableRegisterable } from "../util/CancellableRegisterable";
 import { CancellableRegistor } from "../util/CancellableRegistor";
 import { CircleGeometry } from "../util/Util";
-import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
-import { GizmoSnapPicker, SnapResult } from "../visual_model/SnapPicker";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 import { GizmoMaterial } from "./GizmoMaterials";
-import { SnapIndicator } from "./SnapIndicator";
-import { SnapPresentation, SnapPresenter } from "./SnapPresenter";
 
 /**
  * In this file are a collection of "mini" gizmos that can be used alone or composed into a more complex gizmo.
@@ -154,12 +149,12 @@ export abstract class AbstractAxisGizmo extends AbstractGizmo<(mag: number) => v
 
     private readonly plane = new THREE.Mesh(planeGeometry, this.editor.gizmos.invisible);
 
-    private originalPosition!: THREE.Vector3;
+    protected originalPosition!: THREE.Vector3;
     private readonly startMousePosition = new THREE.Vector3();
     private sign = 1;
 
     constructor(
-        private readonly longName: string,
+        protected readonly longName: string,
         editor: EditorLike,
     ) {
         super(longName.split(':')[0], editor);

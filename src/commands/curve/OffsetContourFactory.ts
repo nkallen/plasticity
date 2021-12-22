@@ -1,12 +1,22 @@
-import * as visual from '../../visual_model/VisualModel';
-import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
-import c3d from '../../../build/Release/c3d.node';
-import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 import * as THREE from "three";
+import c3d from '../../../build/Release/c3d.node';
+import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
+import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
+import { composeMainName, point2point, unit, vec2vec } from '../../util/Conversion';
+import * as visual from '../../visual_model/VisualModel';
+
+export interface OffsetCurveParams {
+    distance: number;
+}
 
 export default class OffsetCurveFactory extends GeometryFactory {
-    private offsetFace = new OffsetFaceFactory(this.db, this.materials, this.signals);
-    private offsetCurve = new OffsetSpaceCurveFactory(this.db, this.materials, this.signals);
+    private readonly offsetFace = new OffsetFaceFactory(this.db, this.materials, this.signals);
+    private readonly offsetCurve = new OffsetSpaceCurveFactory(this.db, this.materials, this.signals);
+
+    set constructionPlane(constructionPlane: ConstructionPlaneSnap | undefined) {
+        if (constructionPlane === undefined) return;
+        this.offsetCurve.constructionPlane = constructionPlane
+    }
 
     set distance(d: number) {
         this.offsetFace.distance = d;
@@ -15,25 +25,26 @@ export default class OffsetCurveFactory extends GeometryFactory {
 
     set face(f: visual.Face) { this.offsetFace.face = f }
     set curve(c: visual.SpaceInstance<visual.Curve3D>) { this.offsetCurve.curve = c }
+    set edges(edges: visual.CurveEdge[]) { this.offsetCurve.edges = edges }
 
     get center() {
         const { offsetCurve, offsetFace } = this;
-        if (offsetCurve.curve !== undefined) return offsetCurve.center;
-        if (offsetFace.curve !== undefined) return offsetFace.center;
+        if (offsetCurve.hasCurve) return offsetCurve.center;
+        if (offsetFace.hasCurve) return offsetFace.center;
         throw new ValidationError("no face or curve");
     }
 
     get normal() {
         const { offsetCurve, offsetFace } = this;
-        if (offsetCurve.curve !== undefined) return offsetCurve.normal;
-        if (offsetFace.curve !== undefined) return offsetFace.normal;
+        if (offsetCurve.hasCurve) return offsetCurve.normal;
+        if (offsetFace.hasCurve) return offsetFace.normal;
         throw new ValidationError("no face or curve");
     }
 
     async calculate() {
         const { offsetCurve, offsetFace } = this;
-        if (offsetCurve.curve !== undefined) return offsetCurve.calculate();
-        if (offsetFace.curve !== undefined) return offsetFace.calculate();
+        if (offsetCurve.hasCurve) return offsetCurve.calculate();
+        if (offsetFace.hasCurve) return offsetFace.calculate();
         throw new ValidationError("no face or curve");
     }
 }
@@ -46,6 +57,8 @@ export class OffsetFaceFactory extends GeometryFactory {
 
     _normal!: THREE.Vector3;
     get normal() { return this._normal }
+
+    get hasCurve() { return this.model !== undefined }
 
     curve!: c3d.Curve3D;
     private model!: c3d.Face;
@@ -94,6 +107,7 @@ export class OffsetFaceFactory extends GeometryFactory {
 }
 
 export class OffsetSpaceCurveFactory extends GeometryFactory {
+    constructionPlane: ConstructionPlaneSnap = new ConstructionPlaneSnap();
     distance = 0;
 
     private _center!: THREE.Vector3;
@@ -102,28 +116,53 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
     private _normal!: THREE.Vector3;
     get normal() { return this._normal }
 
-    private _curve!: c3d.Curve3D;
+    get hasCurve() { return this.model !== undefined }
+
+    private model!: c3d.Curve3D;
+    private _curve!: visual.SpaceInstance<visual.Curve3D>;
     get curve() { return this._curve }
-    set curve(curve: visual.SpaceInstance<visual.Curve3D> | c3d.Curve3D) {
-        if (curve instanceof c3d.Curve3D) {
-            this._curve = curve;
+    set curve(curve: visual.SpaceInstance<visual.Curve3D>) {
+        this._curve = curve;
+        const inst = this.db.lookup(curve);
+        const item = inst.GetSpaceItem()!;
+        const model = item.Cast<c3d.Curve3D>(item.IsA());
+        this.model = model;
+
+        if (model.IsStraight()) {
+            const [start, end] = [point2point(model.GetLimitPoint(1)), point2point(model.GetLimitPoint(2))];
+            this._center = start.clone().add(end).multiplyScalar(0.5);
+            this._normal = start.clone().sub(end).normalize().cross(this.constructionPlane.n).normalize();
         } else {
-            const inst = this.db.lookup(curve);
-            const item = inst.GetSpaceItem()!;
-            this._curve = item.Cast<c3d.Curve3D>(item.IsA());
-            this._center = point2point(this._curve.GetLimitPoint(1));
-            this._normal = vec2vec(this._curve.Normal(this._curve.GetTMin()), -1);
+            const t = (model.GetTMin() + model.GetTMax()) / 2;
+            this._center = point2point(model.PointOn(t));
+            this._normal = vec2vec(model.Normal(t), 1);
         }
+    }
+
+    set edges(edges: visual.CurveEdge[]) {
+        const curves = edges.map(e => this.db.lookupTopologyItem(e).MakeCurve()!);
+        const model = new c3d.Contour3D();
+        for (const curve of curves) model.AddCurveWithRuledCheck(curve);
+        this.model = model;
+        const t = (model.GetTMin() + model.GetTMax()) / 2;
+        this._center = point2point(model.PointOn(t));
+        this._normal = vec2vec(model.Normal(t), 1);
     }
 
     private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.Curve3DCreator, this.db.version), c3d.ESides.SideNone, 0)
 
+    private readonly distVec = new THREE.Vector3();
     async calculate() {
-        const { _curve: curve, distance, names } = this;
-        if (distance === 0) throw new NoOpError();
-
+        const { model: curve, distance, names } = this;
+        const { distVec } = this;
+        if (distance === 0) return new c3d.SpaceInstance(curve);
         const dist = unit(distance);
-        if (curve.IsPlanar()) {
+
+        if (curve.IsStraight()) {
+            const dup = curve.Duplicate().Cast<c3d.Curve3D>(curve.IsA());
+            dup.Move(vec2vec(distVec.copy(this._normal).multiplyScalar(dist), 1));
+            return new c3d.SpaceInstance(dup);
+        } if (curve.IsPlanar()) {
             const result = await c3d.ActionSurfaceCurve.OffsetPlaneCurve_async(curve, dist);
             return new c3d.SpaceInstance(result);
         } else {

@@ -18,7 +18,7 @@ import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { CurveEndPointSnap, FaceSnap, PointSnap } from "../../src/editor/snaps/Snap";
 import { SelectionDatabase } from "../../src/selection/SelectionDatabase";
 import { SnapManagerGeometryCache } from '../../src/visual_model/SnapManagerGeometryCache';
-import { SnapPicker } from "../../src/visual_model/SnapPicker";
+import { RaycasterParams, SnapPicker } from "../../src/visual_model/SnapPicker";
 import * as visual from '../../src/visual_model/VisualModel';
 import { MakeViewport } from "../../__mocks__/FakeViewport";
 import '../matchers';
@@ -49,11 +49,10 @@ beforeEach(() => {
 
 let picker: SnapPicker;
 let nearbyParams: THREE.RaycasterParameters = {};
-let intersectParams: THREE.RaycasterParameters = {};
+let intersectParams: RaycasterParams = { Line2: { threshold: 10 }, Points: { threshold: 10 } };
 
 beforeEach(() => {
     picker = new SnapPicker(layers, intersectParams, nearbyParams);
-
 });
 
 let pointPicker: Model;

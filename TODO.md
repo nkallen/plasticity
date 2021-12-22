@@ -4,12 +4,12 @@
 
 ### Backlog
 
-- bug: hover when viewportselector disabled still running for solids  
+- double click to select body  
+- move snapmanagergeometrycache to editor  
 - Solid cut by face: face cutter offset along normal  
 - move mirror gizmo origin  
 - select all sketches  
-- Offset edge: (and allow distance 0)  
-- Offset curve: It should start offset distance when you press O, without you having to press D.  
+- Convert Face selection to Border Selection:  
 - bug: Adding Variable enabled viewport selector, overriding value set in config  
 - Napi::Promise::Deferred const &d rename _deferred  
 - dialog keybindings  
@@ -62,20 +62,25 @@
 
 ### Todo
 
-- Convert Face selection to Border Selection:  
+- can't select donut inner top edge  
+- bug: hover when viewportselector disabled still running for solids  
+- Write unit test for snappresenter  
 - bug: Alt click focus: issue on windows  
 - object with selected face, select body: confusing - should be able to select body  
 - cut body: select edge after starting command  
-- offset face dialog  
 - Add dialog for extrude  
 - rr ss gg for screenspace  
 
 ### In Progress
 
-- When offsetting face, offset should match snap pt with ctrl  
 
 ### Done ✓
 
+- Offset edge: - allow distance 0, move lines along normal relative to construction plane  
+- Offset curve: It should start offset distance when you press O, without you having to press D.  
+- Change gizmo for offset  
+- offset face dialog  
+- When offsetting face, offset should match snap pt with ctrl  
 - Experiment new fillet gizmo  
 - ensure all commands have a binding  
 

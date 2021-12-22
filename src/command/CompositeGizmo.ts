@@ -63,4 +63,9 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
         super.update(camera);
         for (const [gizmo,] of this.gizmos) gizmo.update(camera);
     }
+
+    start(command: string) {
+        const event = new CustomEvent(command, { bubbles: true });
+        this.editor.activeViewport?.renderer.domElement.dispatchEvent(event);
+    }
 }
