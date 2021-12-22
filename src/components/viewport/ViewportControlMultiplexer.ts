@@ -24,18 +24,21 @@ export class ViewportControlMultiplexer extends ViewportControl {
 
     startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
         for (const control of this.controls) {
+            if (!control.enabled) continue;
             control.startHover(intersections, moveEvent);
         }
     }
 
     continueHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent) {
         for (const control of this.controls) {
+            if (!control.enabled) continue;
             control.continueHover(intersections, moveEvent);
         }
     }
 
     endHover() {
         for (const control of this.controls) {
+            if (!control.enabled) continue;
             control.endHover();
         }
     }

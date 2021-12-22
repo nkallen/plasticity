@@ -62,8 +62,6 @@
 
 ### Todo
 
-- can't select donut inner top edge  
-- bug: hover when viewportselector disabled still running for solids  
 - Write unit test for snappresenter  
 - bug: Alt click focus: issue on windows  
 - object with selected face, select body: confusing - should be able to select body  
@@ -76,6 +74,7 @@
 
 ### Done ✓
 
+- bug: hover when viewportselector disabled still running for solids  
 - Offset edge: - allow distance 0, move lines along normal relative to construction plane  
 - Offset curve: It should start offset distance when you press O, without you having to press D.  
 - Change gizmo for offset  

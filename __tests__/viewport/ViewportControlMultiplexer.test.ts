@@ -14,6 +14,7 @@ import '../matchers';
 const moveEvent = new MouseEvent('move');
 const downEvent = new MouseEvent('down');
 const upEvent = new MouseEvent('up');
+
 describe(ViewportControlMultiplexer, () => {
     let multiplexer: ViewportControlMultiplexer;
     let pointControl: ViewportPointControl;
@@ -72,6 +73,33 @@ describe(ViewportControlMultiplexer, () => {
         expect(endHover2).toBeCalledTimes(1);
     });
 
+    test('hover respects enabled', () => {
+        multiplexer.push(selector);
+        multiplexer.push(pointControl);
+
+        const startHover1 = jest.spyOn(selector, 'startHover');
+        const continueHover1 = jest.spyOn(selector, 'continueHover');
+        const endHover1 = jest.spyOn(selector, 'endHover');
+
+        const startHover2 = jest.spyOn(pointControl, 'startHover');
+        const continueHover2 = jest.spyOn(pointControl, 'continueHover');
+        const endHover2 = jest.spyOn(pointControl, 'endHover');
+
+        pointControl.enable(false);
+
+        multiplexer.startHover([], moveEvent);
+        expect(startHover1).toBeCalledTimes(1);
+        expect(startHover2).toBeCalledTimes(0);
+
+        multiplexer.continueHover([], moveEvent);
+        expect(continueHover1).toBeCalledTimes(1);
+        expect(continueHover2).toBeCalledTimes(0);
+
+        multiplexer.endHover();
+        expect(endHover1).toBeCalledTimes(1);
+        expect(endHover2).toBeCalledTimes(0);
+    })
+
     describe('click picks a winner and delegates all subsequent commands', () => {
         beforeEach(() => {
             multiplexer.push(selector);
@@ -92,6 +120,24 @@ describe(ViewportControlMultiplexer, () => {
             multiplexer.endClick([], upEvent);
             expect(endClick1).toHaveBeenCalledTimes(1);
             expect(endClick2).toHaveBeenCalledTimes(0);
+        });
+
+        test('when one is disabled', () => {
+            const startClick1 = jest.spyOn(selector, 'startClick').mockReturnValue(true);
+            const endClick1 = jest.spyOn(selector, 'endClick');
+
+            const startClick2 = jest.spyOn(pointControl, 'startClick').mockReturnValue(true);
+            const endClick2 = jest.spyOn(pointControl, 'endClick');
+
+            selector.enable(false);
+
+            multiplexer.startClick([], downEvent);
+            expect(startClick1).toHaveBeenCalledTimes(0);
+            expect(startClick2).toHaveBeenCalledTimes(1);
+
+            multiplexer.endClick([], upEvent);
+            expect(endClick1).toHaveBeenCalledTimes(0);
+            expect(endClick2).toHaveBeenCalledTimes(1);
         });
 
         test('when the second control returns true', () => {
