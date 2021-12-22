@@ -40,6 +40,7 @@ import { RevolutionGizmo } from "./evolution/RevolutionGizmo";
 import { ExtensionShellDialog } from "./extend/ExtensionShellDialog";
 import ExtensionShellFactory from "./extend/ExtensionShellFactory";
 import { ExtensionShellGizmo } from "./extend/ExtensionShellGizmo";
+import { ExtrudeDialog } from "./extrude/ExtrudeDialog";
 import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
@@ -1320,7 +1321,7 @@ export class OffsetFaceCommand extends Command {
 
         dialog.execute(async params => {
             await offset.update();
-        }).resource(this);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
 
         await this.finished;
 
@@ -1464,17 +1465,26 @@ export class ExtrudeCommand extends Command {
         if (selected.faces.size > 0) extrude.face = selected.faces.first;
         extrude.region = selected.regions.first;
 
-        const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
-        keyboard.prepare(extrude).resource(this);
-
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
+        const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
+        const dialog = new ExtrudeDialog(extrude, this.editor.signals);
+
+        keyboard.prepare(extrude).resource(this);
+        
         gizmo.position.copy(this.point ?? extrude.center);
         gizmo.quaternion.setFromUnitVectors(Y, extrude.direction);
 
-        await gizmo.execute(params => {
+        gizmo.execute(params => {
             extrude.update();
             keyboard.toggle(extrude.isOverlapping);
+            dialog.render();
         }).resource(this);
+
+        dialog.execute(params => {
+            extrude.update();
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        await this.finished;
 
         const result = await extrude.commit() as visual.Solid;
 
@@ -1904,7 +1914,7 @@ export class BridgeCurvesCommand extends Command {
         dialog.execute(params => {
             factory.update();
             dialog.render();
-        }).resource(this);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
 
         const pointPicker = new PointPicker(this.editor);
         pointPicker.raycasterParams.Line2.threshold = 400;
@@ -1979,9 +1989,12 @@ export class MultilineCommand extends Command {
         const dialog = new MultilineDialog(factory, this.editor.signals);
 
         await factory.update();
-        await dialog.execute(params => {
+
+        dialog.execute(params => {
             factory.update();
-        }).resource(this);
+        }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        await this.finished;
 
         await factory.commit();
     }
@@ -2152,9 +2165,11 @@ export class RadialArrayCommand extends Command {
 
         await factory.update();
 
-        await dialog.execute(async params => {
+        dialog.execute(async params => {
             factory.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        await this.finished;
 
         await factory.commit();
     }

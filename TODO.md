@@ -66,7 +66,6 @@
 
 - object with selected face, select body: confusing - should be able to select body  
 - cut body: select edge after starting command  
-- Add dialog for extrude  
 - rr ss gg for screenspace  
 
 ### In Progress
@@ -74,6 +73,7 @@
 
 ### Done ✓
 
+- Add dialog for extrude  
 - bug: Alt click focus: issue on windows  
 - Write unit test for snappresenter  
 - bug: hover when viewportselector disabled still running for solids  

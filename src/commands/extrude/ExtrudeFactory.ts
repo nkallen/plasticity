@@ -247,7 +247,6 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
         if (curves.length === 0) return;
         this.curveExtrude.curves = curves;
-        if (this.thickness1 === 0) this.thickness1 = 0.1;
     }
 
     calculate(): Promise<c3d.Solid> {
@@ -286,6 +285,13 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
     set race2(race2: number) { for (const f of this.factories) f.race2 = race2 }
     set thickness1(thickness1: number) { for (const f of this.factories) f.thickness1 = thickness1 }
     set thickness2(thickness2: number) { for (const f of this.factories) f.thickness2 = thickness2 }
+
+    get distance1() { return this.factories[0].distance1 }
+    get distance2() { return this.factories[0].distance2 }
+    get race1() { return this.factories[0].race1 }
+    get race2() { return this.factories[0].race2 }
+    get thickness1() { return this.factories[0].thickness1 }
+    get thickness2() { return this.factories[0].thickness2 }
 
     set isOverlapping(isOverlapping: boolean) { for (const f of this.factories) f.isOverlapping = isOverlapping }
     set isSurface(isSurface: boolean) { for (const f of this.factories) f.isSurface = isSurface }
