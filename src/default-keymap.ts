@@ -75,7 +75,7 @@ export default {
         "Z": "gizmo:move:xy",
         "X": "gizmo:move:yz",
         "Y": "gizmo:move:xz",
-        "s": "gizmo:move:screen",
+        "g": "gizmo:move:screen",
         "f": "gizmo:move:free",
     },
 
@@ -104,7 +104,7 @@ export default {
         "x": "gizmo:rotate:x",
         "y": "gizmo:rotate:y",
         "z": "gizmo:rotate:z",
-        "s": "gizmo:rotate:screen",
+        "r": "gizmo:rotate:screen",
         "f": "gizmo:rotate:free",
     },
 

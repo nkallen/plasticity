@@ -4,6 +4,8 @@
 
 ### Backlog
 
+- popup quickmenu a la fusion  
+- hold click popover to preciser selection  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - colored helpers for basic axis snaps  
 - Solid cut by face: face cutter offset along normal  
@@ -15,7 +17,6 @@
 - extrude multiple regions at once  
 - Fusion-like multigizmo  
 - [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
-- [ ] circle angle gizmo when far off from center not facing camera  
 - [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
 - double click to select body  
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
@@ -59,19 +60,24 @@
 
 ### Todo
 
-- cut body: select edge after starting command  
-- rr ss gg for screenspace  
-- bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
-- circle quarter snap points  
-- move snapmanagergeometrycache to editor  
+- 1/4 point snaps on curves  
 - Convert Face selection to Border Selection:  
+- bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
+- select all of type  
+- circle quarter snap points  
+- cut body: select edge after starting command  
+- move snapmanagergeometrycache to editor  
 - select all sketches  
+- [ ] circle angle gizmo when far off from center not facing camera  
+- trim should allow deleting a line  
+- upper-left box select of straight lines is too eager  
 
 ### In Progress
 
 
 ### Done ✓
 
+- rr ss gg for screenspace  
 - helper for center snap points  
 - object with selected face, select body: confusing - should be able to select body  
 - Add dialog for extrude  
