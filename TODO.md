@@ -60,14 +60,12 @@
 
 ### Todo
 
-- 1/4 point snaps on curves  
 - Convert Face selection to Border Selection:  
+- select all sketches  
 - bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
 - select all of type  
-- circle quarter snap points  
 - cut body: select edge after starting command  
 - move snapmanagergeometrycache to editor  
-- select all sketches  
 - [ ] circle angle gizmo when far off from center not facing camera  
 - trim should allow deleting a line  
 - upper-left box select of straight lines is too eager  
@@ -77,6 +75,7 @@
 
 ### Done ✓
 
+- 1/4 point snaps on curves  
 - rr ss gg for screenspace  
 - helper for center snap points  
 - object with selected face, select body: confusing - should be able to select body  
