@@ -71,23 +71,5 @@
 
 ### In Progress
 
-- Convert Face selection to Border Selection:  
 
 ### Done ✓
-
-- 1/4 point snaps on curves  
-- rr ss gg for screenspace  
-- helper for center snap points  
-- object with selected face, select body: confusing - should be able to select body  
-- Add dialog for extrude  
-- bug: Alt click focus: issue on windows  
-- Write unit test for snappresenter  
-- bug: hover when viewportselector disabled still running for solids  
-- Offset edge: - allow distance 0, move lines along normal relative to construction plane  
-- Offset curve: It should start offset distance when you press O, without you having to press D.  
-- Change gizmo for offset  
-- offset face dialog  
-- When offsetting face, offset should match snap pt with ctrl  
-- Experiment new fillet gizmo  
-- ensure all commands have a binding  
-
