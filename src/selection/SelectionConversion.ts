@@ -29,6 +29,8 @@ export class SelectionCommandRegistrar {
             'selection:mode:toggle:solid': () => selection.mode.toggle(SelectionMode.Solid),
 
             'selection:convert:edge': () => this.editor.enqueue(new ConvertCommand(this.editor, SelectionMode.CurveEdge))
+            'selection:convert:face': () => this.editor.enqueue(new ConvertCommand(this.editor, SelectionMode.Face))
+            'selection:convert:solid': () => this.editor.enqueue(new ConvertCommand(this.editor, SelectionMode.Solid))
         })
     }
 }
