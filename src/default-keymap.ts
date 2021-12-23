@@ -157,15 +157,20 @@ export default {
     },
 
     "body:not([gizmo])": {
-        "1": "selection:set-control-point",
-        "2": "selection:set-edge",
-        "3": "selection:set-face",
-        "4": "selection:set-solid",
+        "1": "selection:mode:set:control-point",
+        "2": "selection:mode:set:edge",
+        "3": "selection:mode:set:face",
+        "4": "selection:mode:set:solid",
+
+        "ctrl-1": "selection:convert:control-point",
+        "ctrl-2": "selection:convert:edge",
+        "ctrl-3": "selection:convert:face",
+        "ctrl-4": "selection:convert:solid",
     
-        "!": "selection:toggle-control-point",
-        "@": "selection:toggle-edge",
-        "#": "selection:toggle-face",
-        "$": "selection:toggle-solid",
+        "!": "selection:mode:toggle:control-point",
+        "@": "selection:mode:toggle:edge",
+        "#": "selection:mode:toggle:face",
+        "$": "selection:mode:toggle:solid",
     },
 
     "body:not([gizmo]) ispace-viewport": {

@@ -10,11 +10,13 @@ import CommandRegistry from "../components/atom/CommandRegistry";
 import TooltipManager from "../components/atom/tooltip-manager";
 import KeyboardEventManager from "../components/viewport/KeyboardEventManager";
 import { Viewport } from "../components/viewport/Viewport";
-import { ModifierHighlightManager } from "../visual_model/RenderedSceneBuilder";
-import { ChangeSelectionExecutor, SelectionMode } from "../selection/ChangeSelectionExecutor";
+import { ChangeSelectionExecutor } from "../selection/ChangeSelectionExecutor";
 import { SelectionDatabase } from "../selection/SelectionDatabase";
+import { SelectionCommandRegistrar } from "../selection/SelectionConversion";
 import { Helpers } from "../util/Helpers";
 import { CreateMutable } from "../util/Util";
+import { ModifierHighlightManager } from "../visual_model/RenderedSceneBuilder";
+import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 import { Backup } from "./Backup";
 import ContourManager from "./curves/ContourManager";
 import { CrossPointDatabase } from "./curves/CrossPointDatabase";
@@ -28,13 +30,14 @@ import LayerManager from "./LayerManager";
 import MaterialDatabase, { BasicMaterialDatabase } from "./MaterialDatabase";
 import ModifierManager from "./ModifierManager";
 import { SnapManager } from './snaps/SnapManager';
-import { SnapIndicator } from "../command/SnapIndicator";
 import { SpriteDatabase } from "./SpriteDatabase";
-import { SnapManagerGeometryCache } from "../visual_model/SnapManagerGeometryCache";
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
 export class Editor {
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+    
     readonly viewports: Viewport[] = [];
 
     readonly signals = new EditorSignals();
@@ -49,10 +52,11 @@ export class Editor {
     readonly contours = new ContourManager(this._db, this.curves, this.regions);
 
     readonly _selection = new SelectionDatabase(this._db, this.materials, this.signals);
-
+    
     readonly modifiers = new ModifierManager(this.contours, this._selection, this.materials, this.signals);
     readonly selection = this.modifiers;
     readonly db = this.modifiers as DatabaseLike;
+    readonly registrar = new SelectionCommandRegistrar(this);
 
     readonly crosses = new CrossPointDatabase();
     readonly snaps = new SnapManager(this.db, this.crosses, this.signals);
@@ -61,7 +65,7 @@ export class Editor {
     readonly tooltips = new TooltipManager({ keymapManager: this.keymaps, viewRegistry: null }); // FIXME: viewRegistry shouldn't be null
     readonly layers = new LayerManager(this.selection.selected, this.signals);
     readonly helpers: Helpers = new Helpers(this.signals);
-    readonly changeSelection = new ChangeSelectionExecutor(this.modifiers, this.materials, this.signals);
+    readonly changeSelection = new ChangeSelectionExecutor(this.modifiers, this.db, this.signals);
     readonly commandForSelection = new SelectionCommandManager(this);
     readonly originator = new EditorOriginator(this._db, this._selection.selected, this.snaps, this.crosses, this.curves, this.contours, this.modifiers, this.viewports);
     readonly history = new History(this.originator, this.signals);
@@ -70,8 +74,6 @@ export class Editor {
     readonly backup = new Backup(this.originator, this.signals);
     readonly highlighter = new ModifierHighlightManager(this.modifiers, this.db, this.materials, this.selection, this.signals);
     readonly importer = new ImporterExporter(this);
-
-    disposable = new CompositeDisposable();
 
     windowLoaded = false;
 
@@ -95,17 +97,10 @@ export class Editor {
             'undo': () => this.undo(),
             'redo': () => this.redo(),
             'repeat-last-command': () => this.executor.repeatLastCommand(),
-            'selection:set-control-point': () => this.selection.mode.set(SelectionMode.ControlPoint),
-            'selection:set-edge': () => this.selection.mode.set(SelectionMode.CurveEdge, SelectionMode.Curve),
-            'selection:set-face': () => this.selection.mode.set(SelectionMode.Face),
-            'selection:set-solid': () => this.selection.mode.set(SelectionMode.Solid),
-            'selection:toggle-control-point': () => this.selection.mode.toggle(SelectionMode.ControlPoint),
-            'selection:toggle-edge': () => this.selection.mode.toggle(SelectionMode.CurveEdge, SelectionMode.Curve),
-            'selection:toggle-face': () => this.selection.mode.toggle(SelectionMode.Face),
-            'selection:toggle-solid': () => this.selection.mode.toggle(SelectionMode.Solid),
             'noop': () => {},
         });
         this.disposable.add(d);
+        this.disposable.add(this.registrar.register(this.registry));
     }
 
     async enqueue(command: Command, interrupt?: boolean) {

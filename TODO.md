@@ -60,7 +60,6 @@
 
 ### Todo
 
-- Convert Face selection to Border Selection:  
 - select all sketches  
 - bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
 - select all of type  
@@ -72,6 +71,7 @@
 
 ### In Progress
 
+- Convert Face selection to Border Selection:  
 
 ### Done ✓
 

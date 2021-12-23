@@ -1,10 +1,12 @@
 import { EditorSignals } from '../editor/EditorSignals';
+import { DatabaseLike } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
-import { ControlPoint, Curve3D, CurveEdge, Face, Region, TopologyItem } from '../visual_model/VisualModel';
+import { ControlPoint, Curve3D, CurveEdge, Face, Region } from '../visual_model/VisualModel';
 import { ClickStrategy, HoverStrategy } from './Click';
 import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
+import { SelectionConversionStrategy } from './SelectionConversion';
 
 export enum SelectionMode {
     CurveEdge, Face, Solid, Curve, ControlPoint
@@ -19,20 +21,23 @@ export enum ChangeSelectionModifier {
 export class ChangeSelectionExecutor {
     private readonly clickStrategy: ClickStrategy;
     private readonly hoverStrategy: ClickStrategy;
+    private readonly conversionStrategy: SelectionConversionStrategy;
 
     constructor(
-        readonly selection: HasSelectedAndHovered,
-        readonly materials: MaterialDatabase,
-        readonly signals: EditorSignals
+        selection: HasSelectedAndHovered,
+        db: DatabaseLike,
+        private readonly signals: EditorSignals,
     ) {
         this.clickStrategy = new ClickStrategy(selection.mode, selection.selected, selection.hovered, selection.selected);
         this.hoverStrategy = new HoverStrategy(selection.mode, selection.selected, selection.hovered, selection.hovered);
+        this.conversionStrategy = new SelectionConversionStrategy(selection, db);
 
         this.onClick = this.wrapFunction(this.onClick);
         this.onHover = this.wrapFunction(this.onHover);
         this.onBoxHover = this.wrapFunction(this.onBoxHover);
         this.onBoxSelect = this.wrapFunction(this.onBoxSelect);
         this.onCreatorSelect = this.wrapFunction(this.onCreatorSelect);
+        this.onConvert = this.wrapFunction(this.onConvert);
     }
 
     private onIntersection(intersections: Intersection[], strategy: ClickStrategy, modifier: ChangeSelectionModifier): Intersection | undefined {
@@ -80,6 +85,10 @@ export class ChangeSelectionExecutor {
 
     onCreatorSelect(topologyItems: visual.TopologyItem[], modifier: ChangeSelectionModifier) {
         this.clickStrategy.box(new Set(topologyItems), modifier);
+    }
+
+    onConvert(mode: SelectionMode, modifier: ChangeSelectionModifier) {
+        this.conversionStrategy.convert(mode, modifier);
     }
 
     private aggregateHovers<R>(f: () => R): R {

@@ -82,14 +82,14 @@ describe(ObjectPickerViewportSelector, () => {
 
     test('processClick empty', () => {
         expect(onEmptyIntersection).toBeCalledTimes(0);
-        selector.processClick([]);
+        selector.processClick([], new MouseEvent('up'));
         expect(onEmptyIntersection).toBeCalledTimes(1);
     });
 
     test('processClick non-empty', () => {
         expect(selection.selected.curves.size).toBe(0);
         expect(onEmptyIntersection).toBeCalledTimes(0);
-        selector.processClick([{ object: item.underlying, point: new THREE.Vector3() }]);
+        selector.processClick([{ object: item.underlying, point: new THREE.Vector3() }], new MouseEvent('up'));
         expect(onEmptyIntersection).toBeCalledTimes(0);
         expect(selection.selected.curves.size).toBe(1);
     });

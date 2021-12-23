@@ -18,7 +18,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-    editor.disposable.dispose();
+    editor.dispose();
 });
 
 test('keeps track of active viewport', () => {

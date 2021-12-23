@@ -23,7 +23,7 @@ interface EditorLike {
 }
 
 export class ObjectPickerViewportSelector extends AbstractViewportSelector {
-    private changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.materials, this.editor.signals);
+    private changeSelection = new ChangeSelectionExecutor(this.selection, this.editor.db, this.editor.signals);
 
     constructor(
         viewport: Viewport,

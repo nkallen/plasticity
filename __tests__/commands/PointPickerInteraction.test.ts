@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-    editor.disposable.dispose();
+    editor.dispose();
 });
 
 let domElement: HTMLCanvasElement;

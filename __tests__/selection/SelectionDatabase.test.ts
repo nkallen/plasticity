@@ -130,25 +130,33 @@ describe(Selection, () => {
 
         const face = solid.faces.get(0);
 
-        selection.addFace(face, solid);
+        selection.addFace(face);
         expect(selection.faces.first).toBe(face);
         expect(objectAdded).toHaveBeenCalledTimes(1);
         expect(objectRemoved).toHaveBeenCalledTimes(0);
 
         expect(selection.hasSelectedChildren(solid)).toBe(true);
 
-        selection.addFace(face, solid);
+        selection.addFace(face);
         expect(selection.faces.first).toBe(face);
         expect(objectAdded).toHaveBeenCalledTimes(1);
         expect(objectRemoved).toHaveBeenCalledTimes(0);
 
         expect(selection.hasSelectedChildren(solid)).toBe(true);
 
-        selection.removeFace(face, solid);
+        selection.removeFace(face);
         expect(selection.faces.first).toBe(undefined);
         expect(objectAdded).toHaveBeenCalledTimes(1);
         expect(objectRemoved).toHaveBeenCalledTimes(1);
 
         expect(selection.hasSelectedChildren(solid)).toBe(false);
     });
+
+    test("removeAll", () => {
+        const face = solid.faces.get(0);
+        selection.addFace(face);
+        expect(selection.faces.size).toBe(1);
+        selection.removeAll();
+        expect(selection.faces.size).toBe(0);
+    })
 });
