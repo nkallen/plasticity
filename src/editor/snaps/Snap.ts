@@ -150,18 +150,13 @@ export class CurveEndPointSnap extends CurvePointSnap {
     }
 }
 
-export class EdgeMidPointSnap extends PointSnap {
-    constructor(position: THREE.Vector3, readonly edgeSnap: CurveEdgeSnap) {
-        super("Mid", position);
-    }
+export class EdgePointSnap extends PointSnap {
+    readonly helper = new THREE.Group();
 
-    restrictionFor(point: THREE.Vector3) {
-        return this.edgeSnap.restrictionFor(point);
-    }
-}
-export class EdgeEndPointSnap extends PointSnap {
-    constructor(position: THREE.Vector3, readonly edgeSnap: CurveEdgeSnap) {
-        super("Beginning", position);
+    constructor(name: string, position: THREE.Vector3, readonly edgeSnap: CurveEdgeSnap) {
+        super(name, position);
+        const slice = edgeSnap.view.slice('line');
+        this.helper.add(slice);
     }
 
     restrictionFor(point: THREE.Vector3) {
@@ -191,10 +186,13 @@ export class FaceCenterPointSnap extends PointSnap {
 export class CurveEdgeSnap extends Snap {
     readonly name = "Edge";
     readonly snapper: THREE.Object3D;
+    readonly helper = new THREE.Group();
 
     constructor(readonly view: visual.CurveEdge, readonly model: c3d.CurveEdge) {
         super();
         this.snapper = view.slice();
+        const slice = view.slice('line');
+        this.helper.add(slice);
         this.init();
     }
 

@@ -4,7 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { point2point, vec2vec } from '../util/Conversion';
-import { ControlPoint, ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
+import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
     interface Face {
@@ -165,8 +165,8 @@ Solids: {
                 this.boundingBox = _lineSegmentsGeometry.boundingBox!.clone();
                 this.boundingSphere = _lineSegmentsGeometry.boundingSphere!.clone();
             } else {
-                _lineSegmentsGeometry.boundingBox = this.boundingBox!;
-                _lineSegmentsGeometry.boundingSphere = this.boundingSphere!;
+                _lineSegmentsGeometry.boundingBox!.copy(this.boundingBox!);
+                _lineSegmentsGeometry.boundingSphere!.copy(this.boundingSphere!);
             }
         }
 
@@ -335,8 +335,8 @@ const _v1 = new THREE.Vector3();
 const _clipToWorldVector = new THREE.Vector4();
 const _box = new THREE.Box3();
 const _lineSegments = new LineSegments2();
-const _lineSegmentsGeometry = new LineSegmentsGeometry();
 const _instanceBuffer = new THREE.InstancedInterleavedBuffer([], 6, 1); // xyz, xyz
+const _lineSegmentsGeometry = new LineSegmentsGeometry();
 _lineSegmentsGeometry.setAttribute('instanceStart', new THREE.InterleavedBufferAttribute(_instanceBuffer, 3, 0)); // xyz
 _lineSegmentsGeometry.setAttribute('instanceEnd', new THREE.InterleavedBufferAttribute(_instanceBuffer, 3, 3)); // xyz
 const _position = new THREE.Vector3();

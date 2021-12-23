@@ -1,12 +1,12 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
 import { cornerInfo, inst2curve, point2point, vec2vec } from "../../util/Conversion";
+import * as visual from '../../visual_model/VisualModel';
 import { CrossPointDatabase } from "../curves/CrossPointDatabase";
 import { EditorSignals } from "../EditorSignals";
 import { DatabaseLike } from "../GeometryDatabase";
 import { MementoOriginator, SnapMemento } from "../History";
-import * as visual from '../../visual_model/VisualModel';
-import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgeEndPointSnap, EdgeMidPointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
+import { AxisSnap, CircleCenterPointSnap, CrossPointSnap, CurveEdgeSnap, CurveEndPointSnap, CurvePointSnap, CurveSnap, EdgePointSnap, FaceCenterPointSnap, FaceSnap, PointSnap, Snap } from "./Snap";
 
 export class SnapManager implements MementoOriginator<SnapMemento> {
     enabled = true;
@@ -86,9 +86,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         const begPt = model.GetBegPoint();
         const endPt = model.GetEndPoint();
         const midPt = model.Point(0.5);
-        const begSnap = new EdgeEndPointSnap(point2point(begPt), edgeSnap);
-        const endSnap = new EdgeEndPointSnap(point2point(endPt), edgeSnap);
-        const midSnap = new EdgeMidPointSnap(point2point(midPt), edgeSnap);
+        const begSnap = new EdgePointSnap("Beginning", point2point(begPt), edgeSnap);
+        const endSnap = new EdgePointSnap("End", point2point(endPt), edgeSnap);
+        const midSnap = new EdgePointSnap("Middle", point2point(midPt), edgeSnap);
 
         const underlying = model.GetSpaceCurve();
         if (underlying !== null) {
@@ -96,6 +96,13 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
                 const cast = underlying.Cast<c3d.Arc3D>(underlying.IsA());
                 const centerSnap = new CircleCenterPointSnap(cast, edge);
                 into.add(centerSnap);
+
+                const quartPt = model.Point(0.25);
+                const threeQuartPt = model.Point(0.75);
+                const quarter = new EdgePointSnap("1/4", point2point(quartPt), edgeSnap);
+                const threeQuarter = new EdgePointSnap("3/4", point2point(threeQuartPt), edgeSnap);
+                into.add(quarter);
+                into.add(threeQuarter);
             }
         }
 

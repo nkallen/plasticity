@@ -49,7 +49,7 @@ export class SnapPresentation {
 
     readonly helpers: THREE.Object3D[];
     readonly info?: SnapInfo;
-    readonly names: string[];
+    readonly names: readonly string[];
     readonly nearby: Helper[];
 
     constructor(nearby: PointSnap[], intersections: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapIndicator) {
@@ -63,31 +63,25 @@ export class SnapPresentation {
 
         // First match is assumed best
         const first = intersections[0];
+        this.info = { ...first, constructionPlane };
+
         const indicator = presenter.snapIndicatorFor(first);
 
         // Collect indicators, etc. as feedback for the user
         const helpers = [];
         helpers.push(indicator);
 
-        // And add additional helpers associated with all matching snaps
+        // And add additional helpers associated with all matching snaps; include names too
+        let names = [];
         for (const intersection of intersections) {
-            const snapHelper = intersection.snap.helper;
-            if (snapHelper !== undefined) helpers.push(snapHelper);
+            const { helper, name } = intersection.snap;
+            if (helper !== undefined) helpers.push(helper);
+            if (name !== undefined) names.push(name);
         }
         this.helpers = helpers;
 
-        this.info = { ...first, constructionPlane };
-
         // Collect names of other matches to display to user
-        let names = [];
-        const pos = first.position;
-        for (const { snap, position } of new Set(intersections)) { // FIXME: should this be a set?
-            if (position.manhattanDistanceTo(pos) > 10e-6)
-                continue;
-            names.push(snap.name);
-        }
-        names = names.filter(x => x !== undefined);
-        this.names = [...new Set(names as string[])].sort();
+        this.names = [...new Set(names)].sort();
     }
 }
 

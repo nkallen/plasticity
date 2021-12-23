@@ -2,11 +2,9 @@ import { render } from 'preact';
 import { Editor } from '../../editor/Editor';
 import * as THREE from "three";
 
-type SnapInfo = { position: THREE.Vector3, names: string[] };
-
 export default (editor: Editor) => {
     class SnapOverlay extends HTMLElement {
-        private info?: SnapInfo;
+        private info?: { position: Readonly<THREE.Vector3>, names: readonly string[] };
 
         constructor() {
             super();
@@ -22,41 +20,27 @@ export default (editor: Editor) => {
             editor.signals.snapped.remove(this.add);
         }
 
+        private readonly normalized = new THREE.Vector2();
         render() {
             const { info } = this;
             if (info === undefined || info.names.length === 0) {
                 render(<></>, this);
             } else {
                 const { position, names } = info;
-                const screen = new THREE.Vector2(position.x, position.y);
-                const normalized = new THREE.Vector2();
-                normalized2screen(screen, normalized);
+                const { normalized } = this;
+                normalized2screen(position, normalized);
                 render(<div style={`left: ${normalized.x * 100}%; top: ${normalized.y * 100}%`}>{names!.join(',')}</div>, this);
             }
         }
 
-        add(info?: SnapInfo) {
-            if (this.info === undefined) {
-                if (info === undefined) return;
-                this.info = info;
-                this.render();
-            } else {
-                if (info === undefined) {
-                    this.info = undefined;
-                    this.render();
-                } else {
-                    const { position } = info;
-                    if (!position.equals(this.info.position)) {
-                        this.info = info;
-                        this.render();
-                    }
-                }
-            }
+        private add(info?: { position: Readonly<THREE.Vector3>, names: readonly string[] }) {
+            this.info = info;
+            this.render();
         }
     }
     customElements.define('ispace-snap-overlay', SnapOverlay);
 }
 
-function normalized2screen(from: THREE.Vector2, to: THREE.Vector2) {
+function normalized2screen(from: THREE.Vector3, to: THREE.Vector2) {
     to.set(from.x / 2 + 0.5, - from.y / 2 + 0.5);
 }

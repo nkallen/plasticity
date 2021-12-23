@@ -4,9 +4,9 @@ import { AbstractDialog } from "../command/AbstractDialog";
 import Command from '../command/Command';
 import { Viewport } from '../components/viewport/Viewport';
 import { HasSelection, Selectable, ToggleableSet } from '../selection/SelectionDatabase';
+import * as visual from '../visual_model/VisualModel';
 import { Agent } from './GeometryDatabase';
 import { Replacement } from './ModifierManager';
-import * as visual from '../visual_model/VisualModel';
 
 export class EditorSignals {
     objectAdded: signals.Signal<[visual.Item, Agent]> = new signals.Signal();
@@ -22,7 +22,7 @@ export class EditorSignals {
     hoverChanged: signals.Signal<{ added: Set<Selectable>,removed: Set<Selectable> }> = new signals.Signal();
     sceneGraphChanged: signals.Signal = new signals.Signal();
     modifiersLoaded: signals.Signal = new signals.Signal();
-    snapped: signals.Signal<{ position: THREE.Vector3, names: string[] } | undefined> = new signals.Signal();
+    snapped: signals.Signal<{ position: Readonly<THREE.Vector3>, names: readonly string[] } | undefined> = new signals.Signal();
     factoryUpdated: signals.Signal = new signals.Signal();
     factoryUpdateFailed: signals.Signal<any> = new signals.Signal();
     factoryCommitted: signals.Signal = new signals.Signal();
