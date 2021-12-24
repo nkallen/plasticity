@@ -344,7 +344,7 @@ export abstract class GeometryFactory extends AbstractGeometryFactory {
                 this.signals.factoryCancelled.dispatch();
                 return;
             default:
-                throw new Error('invalid state: ' + this.state.tag);
+                throw new Error(`Factory ${this.constructor.name} in invalid state: ${this.state.tag}`);
         }
     }
 

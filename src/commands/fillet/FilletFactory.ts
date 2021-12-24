@@ -49,7 +49,7 @@ export default class FilletFactory extends GeometryFactory implements FilletPara
         params.smoothCorner = c3d.CornerForm.uniform;
         params.begLength = unit(FilletFactory.LengthSentinel);
         params.endLength = unit(FilletFactory.LengthSentinel);
-        params.keepCant = -1;
+        params.keepCant = c3d.ThreeStates.negative;
         params.strict = true;
 
         this.params = params;
@@ -212,7 +212,7 @@ export class Max<T> {
                 }, 1000);
                 console.timeEnd("searching for max fillet");
 
-                this.state = { tag: 'found', value: result }
+                this.state = { tag: 'found', value: Number.POSITIVE_INFINITY }
                 return result;
             default: throw new Error("invalid state");
         }

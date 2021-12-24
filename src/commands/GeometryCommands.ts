@@ -2101,7 +2101,7 @@ export class DuplicateCommand extends Command {
 
         if (faces.size > 0) {
             const parent = faces.first.parentItem as visual.Solid
-            const createFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+            const createFace = new CreateFaceFactory(this.editor.db, this.editor.materials, this.editor.signals);
             createFace.solid = parent;
             createFace.faces = [...faces];
             const result = createFace.commit() as Promise<visual.Solid>;
