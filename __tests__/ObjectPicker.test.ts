@@ -60,11 +60,11 @@ describe(ObjectPicker, () => {
 
         const addEventListener = jest.spyOn(viewport.renderer.domElement, 'addEventListener');
         const promise = objectPicker.execute(() => { });
-        expect(addEventListener).toBeCalledTimes(2);
+        expect(addEventListener).toBeCalledTimes(3);
 
         const removeEventListener = jest.spyOn(viewport.renderer.domElement, 'removeEventListener');
         promise.finish();
-        expect(removeEventListener).toBeCalledTimes(2);
+        expect(removeEventListener).toBeCalledTimes(3);
         await promise;
     })
 });

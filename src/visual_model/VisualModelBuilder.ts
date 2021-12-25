@@ -72,8 +72,7 @@ export class FaceGroupBuilder {
     build(): FaceGroup {
         const geos = [];
         const meshes = this.meshes;
-        for (const mesh of meshes)
-            geos.push(mesh.geometry);
+        for (const mesh of meshes) geos.push(mesh.geometry);
         const merged = BufferGeometryUtils.mergeBufferGeometries(geos, true);
         const groups = merged.groups;
 
@@ -92,8 +91,7 @@ export class FaceGroupBuilder {
         mesh.scale.setScalar(deunit(1));
         mesh.renderOrder = RenderOrder.Face;
 
-        for (const geo of geos)
-            geo.dispose();
+        for (const geo of geos) geo.dispose();
         merged.clearGroups();
 
         return new FaceGroup(mesh, faces, groups);

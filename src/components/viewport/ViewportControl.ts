@@ -7,7 +7,7 @@ import { GeometryPicker } from "../../visual_model/GeometryPicker";
 import * as intersectable from "../../visual_model/Intersectable";
 import { Viewport } from "./Viewport";
 
-type State = { tag: 'none', last?: MouseEvent } | { tag: 'hover', last?: MouseEvent } | { tag: 'down', downEvent: MouseEvent, disposable: Disposable, last?: MouseEvent } | { tag: 'dragging', downEvent: MouseEvent, startEvent: MouseEvent, disposable: Disposable }
+type State = { tag: 'none', last?: MouseEvent } | { tag: 'hover', last?: MouseEvent } | { tag: 'down', downEvent: MouseEvent, disposable: Disposable, last?: MouseEvent } | { tag: 'dragging', downEvent: MouseEvent, startEvent: MouseEvent, disposable: Disposable } | { tag: 'wheel', intersections: intersectable.Intersection[], index: number, disposable: Disposable }
 
 export const defaultRaycasterParams: THREE.RaycasterParameters & { Line2: { threshold: number } } = {
     Mesh: { threshold: 0 },
@@ -63,15 +63,18 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         this.onPointerDown = this.onPointerDown.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
         this.onPointerMove = this.onPointerMove.bind(this);
+        this.onWheel = this.onWheel.bind(this);
     }
 
     addEventLiseners() {
         const domElement = this.viewport.renderer.domElement;
         domElement.addEventListener('pointerdown', this.onPointerDown);
         domElement.addEventListener('pointermove', this.onPointerMove);
+        domElement.addEventListener('wheel', this.onWheel);
         this.disposable.add(new Disposable(() => {
             domElement.removeEventListener('pointerdown', this.onPointerDown);
             domElement.removeEventListener('pointermove', this.onPointerMove);
+            domElement.removeEventListener('wheel', this.onWheel);
         }));
     }
 
@@ -170,7 +173,14 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
                     this.state.disposable.dispose();
                     this.state = { tag: 'none', last: upEvent };
                 }
-
+                break;
+            case 'wheel':
+                try {
+                    this.endClick([this.state.intersections[this.state.index]], upEvent);
+                } finally {
+                    this.state.disposable.dispose();
+                    this.state = { tag: 'none', last: upEvent };
+                }
                 break;
             case 'dragging':
                 try {
@@ -185,8 +195,38 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
         }
     }
 
-    abstract startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent): void;
-    abstract continueHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent): void;
+    onWheel(wheelEvent: WheelEvent) {
+        if (!this.enabled) return;
+
+        switch (this.state.tag) {
+            case 'down':
+                wheelEvent.preventDefault();
+                wheelEvent.stopPropagation();
+                wheelEvent.stopImmediatePropagation();
+
+                this.viewport.getNormalizedMousePosition(this.state.downEvent, this.normalizedMousePosition);
+                const intersections = this.getIntersects(this.normalizedMousePosition, [...this.db.visibleObjects], true);
+                if (intersections.length === 0) return;
+                this.startHover([intersections[0]], wheelEvent);
+                this.state = { tag: 'wheel', intersections, index: 0, disposable: this.state.disposable };
+                break;
+            case 'wheel': {
+                wheelEvent.preventDefault();
+                wheelEvent.stopPropagation();
+                wheelEvent.stopImmediatePropagation();
+
+                const intersections = this.state.intersections;
+                let index = this.state.index + (wheelEvent.deltaY > 0 ? 1 : -1);
+                index += intersections.length;
+                index %= intersections.length;
+                this.continueHover([intersections[index]], wheelEvent);
+                this.state = { ...this.state, index };
+            }
+        }
+    }
+
+    abstract startHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent | WheelEvent): void;
+    abstract continueHover(intersections: intersectable.Intersection[], moveEvent: MouseEvent | WheelEvent): void;
     abstract endHover(): void;
     abstract startClick(intersections: intersectable.Intersection[], downEvent: MouseEvent): boolean;
     abstract endClick(intersections: intersectable.Intersection[], upEvent: MouseEvent): void;
@@ -195,9 +235,9 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     abstract endDrag(normalizedMousePosition: THREE.Vector2, upEvent: MouseEvent): void;
     abstract dblClick(intersections: intersectable.Intersection[], upEvent: MouseEvent): void;
 
-    private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[]): intersectable.Intersection[] {
+    private getIntersects(normalizedMousePosition: THREE.Vector2, objects: THREE.Object3D[], isXRay = this.viewport.isXRay): intersectable.Intersection[] {
         this.picker.setFromViewport(normalizedMousePosition, this.viewport);
-        return this.picker.intersect(objects) as intersectable.Intersection[];
+        return this.picker.intersect(objects, isXRay);
     }
 }
 

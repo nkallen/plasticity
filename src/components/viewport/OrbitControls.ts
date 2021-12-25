@@ -1,4 +1,4 @@
-import { Disposable } from "event-kit";
+import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { pointerEvent2keyboardEvent } from "./KeyboardEventManager";
 import { ProxyCamera } from "./ProxyCamera";
@@ -12,6 +12,9 @@ const endEvent = { type: 'end' };
 type State = 'none' | 'rotate' | 'dolly' | 'pan' | 'touch-rotate' | 'touch-dolly-pan' | 'touch-pan' | 'touch-dolly-rotate';
 
 export class OrbitControls extends THREE.EventDispatcher {
+    private readonly disposable = new CompositeDisposable();
+    dispose() { this.disposable.dispose() }
+
     private state: State = 'none';
 
     // current position in spherical coordinates
@@ -83,20 +86,23 @@ export class OrbitControls extends THREE.EventDispatcher {
         this.onPointerMove = this.onPointerMove.bind(this);
         this.onPointerUp = this.onPointerUp.bind(this);
 
+        this.update();
+    }
+
+    addEventListeners() {
+        const domElement = this.domElement;
+
         domElement.addEventListener('contextmenu', this.onContextMenu);
         domElement.addEventListener('pointerdown', this.onPointerDown);
         domElement.addEventListener('pointercancel', this.onPointerCancel);
         domElement.addEventListener('wheel', this.onMouseWheel, { passive: false });
 
-        this.update();
-    }
-
-    dispose() {
-        const domElement = this.domElement;
-        domElement.removeEventListener('contextmenu', this.onContextMenu);
-        domElement.removeEventListener('pointerdown', this.onPointerDown);
-        domElement.removeEventListener('pointercancel', this.onPointerCancel);
-        domElement.removeEventListener('wheel', this.onMouseWheel);
+        this.disposable.add(new Disposable(() => {
+            domElement.removeEventListener('contextmenu', this.onContextMenu);
+            domElement.removeEventListener('pointerdown', this.onPointerDown);
+            domElement.removeEventListener('pointercancel', this.onPointerCancel);
+            domElement.removeEventListener('wheel', this.onMouseWheel);
+        }))
     }
 
     saveState() {
@@ -408,7 +414,7 @@ export class OrbitControls extends THREE.EventDispatcher {
 
         event.preventDefault();
         this.dispatchEvent(startEvent);
-        this.dolly(Math.sign(event.deltaY) > 0 ? 1 / this.zoomScale : this.zoomScale);
+        this.dolly(Math.sign(event.deltaY) > 0 ? 1 / zoomScale : zoomScale);
         this.update();
         this.dispatchEvent(endEvent);
     }

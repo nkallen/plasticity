@@ -457,6 +457,11 @@ export class FaceGroup extends THREE.Group {
     clone(recursive?: boolean): this {
         return new THREE.Object3D().copy(this) as this;
     }
+
+    get allGroup(): GeometryGroup {
+        const index = this.mesh.geometry.index!;
+        return { start: 0, count: index.count }
+    }
 }
 
 export class ControlPointGroup extends THREE.Object3D {

@@ -14,12 +14,12 @@ export class GeometryPicker {
         this.raycaster.layers = layers.visible;
     }
 
-    intersect(objects: THREE.Object3D[]): intersectable.Intersection[] {
+    intersect(objects: THREE.Object3D[], isXRay = this.viewport.isXRay): intersectable.Intersection[] {
         const { raycaster } = this;
 
         this.raycaster.params = this.raycasterParams;
         let intersections = raycaster.intersectObjects(objects, false) as THREE.Intersection<intersectable.Intersectable>[];
-        if (!this.viewport.isXRay) {
+        if (!isXRay) {
             intersections = findAllVeryCloseTogether(intersections);
         }
         return intersections.sort(sort);

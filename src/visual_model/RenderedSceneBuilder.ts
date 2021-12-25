@@ -198,7 +198,7 @@ export class RenderedSceneBuilder {
         }
     }
 
-    protected highlightFaces(solid: visual.Solid, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) {
+    protected highlightFaces(solid: visual.Solid, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted, phantom: THREE.Material = face_hovered_phantom) {
         const selection = this.selection.selected;
         const hovering = this.selection.hovered;
         const facegroup = solid.lod.high.faces;
@@ -217,11 +217,13 @@ export class RenderedSceneBuilder {
         hovered = visual.GeometryGroupUtils.compact(hovered);
         selected = visual.GeometryGroupUtils.compact(selected);
         unselected = visual.GeometryGroupUtils.compact(unselected);
+        const hovered_phantom = hovered.map(u => ({ ...u }));
         hovered.forEach(s => s.materialIndex = 0);
         selected.forEach(s => s.materialIndex = 1);
         unselected.forEach(s => s.materialIndex = 2);
-        facegroup.mesh.material = [face_hovered, highlighted, unhighlighted];
-        facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected];
+        hovered_phantom.forEach(s => s.materialIndex = 3);
+        facegroup.mesh.material = [face_hovered, highlighted, unhighlighted, phantom];
+        facegroup.mesh.geometry.groups = [...hovered, ...selected, ...unselected, ...hovered_phantom];
     }
 
     protected highlightFace(face: visual.Face, highlighted: THREE.Material = face_highlighted, unhighlighted: THREE.Material = face_unhighlighted) { }
@@ -386,6 +388,11 @@ face_highlighted.polygonOffset = true;
 face_highlighted.polygonOffsetFactor = 1;
 face_highlighted.polygonOffsetUnits = 1;
 
+const face_highlighted_phantom = face_highlighted.clone();
+face_highlighted_phantom.depthFunc = THREE.AlwaysDepth;
+face_highlighted_phantom.transparent = true;
+face_highlighted_phantom.opacity = 0.0;
+
 const face_hovered = new THREE.MeshMatcapMaterial();
 face_hovered.color.setHex(0xffffcc).convertGammaToLinear();
 face_hovered.fog = false;
@@ -393,6 +400,12 @@ face_hovered.matcap = matcapTexture;
 face_hovered.polygonOffset = true;
 face_hovered.polygonOffsetFactor = 1;
 face_hovered.polygonOffsetUnits = 1;
+
+const face_hovered_phantom = face_hovered.clone();
+face_hovered.depthFunc = THREE.AlwaysDepth;
+face_hovered.transparent = true;
+face_hovered.opacity = 0.3;
+face_hovered.side = THREE.DoubleSide;
 
 const region_hovered = new THREE.MeshBasicMaterial();
 region_hovered.fog = false;
@@ -403,6 +416,7 @@ region_hovered.side = THREE.DoubleSide;
 region_hovered.polygonOffset = true;
 region_hovered.polygonOffsetFactor = -10;
 region_hovered.polygonOffsetUnits = -1;
+region_hovered.depthFunc = THREE.AlwaysDepth;
 
 const region_highlighted = new THREE.MeshBasicMaterial();
 region_highlighted.fog = false;

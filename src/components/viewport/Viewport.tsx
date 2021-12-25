@@ -9,7 +9,7 @@ import { EditorSignals } from '../../editor/EditorSignals';
 import { DatabaseLike } from "../../editor/GeometryDatabase";
 import { ConstructionPlaneMemento, EditorOriginator, MementoOriginator, ViewportMemento } from "../../editor/History";
 import { VisibleLayers } from "../../editor/LayerManager";
-import { ConstructionPlaneSnap, PlaneSnap } from "../../editor/snaps/Snap";
+import { ConstructionPlaneSnap } from "../../editor/snaps/Snap";
 import * as selector from '../../selection/ViewportSelector';
 import { ViewportSelector } from '../../selection/ViewportSelector';
 import { Helper, Helpers } from "../../util/Helpers";
@@ -195,7 +195,9 @@ export class Viewport implements MementoOriginator<ViewportMemento> {
         this.multiplexer.push(this.points, this.selector);
         this.multiplexer.addEventListener('start', this.controlStart);
         this.multiplexer.addEventListener('end', this.controlEnd);
+
         this.multiplexer.addEventLiseners();
+        this.navigationControls.addEventListeners();
 
         this.renderer.setAnimationLoop(clock => this.animate(clock));
 
