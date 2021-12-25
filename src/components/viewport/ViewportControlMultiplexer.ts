@@ -74,4 +74,8 @@ export class ViewportControlMultiplexer extends ViewportControl {
         this.winner.endClick(intersections, upEvent);
     }
 
+    dblClick(intersections: intersectable.Intersection[], dblClickEvent: MouseEvent) {
+        if (this.winner === undefined) return;
+        this.winner.dblClick(intersections, dblClickEvent);        
+    }
 }

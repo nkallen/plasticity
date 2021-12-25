@@ -1,16 +1,13 @@
 /**
  * @jest-environment jsdom
  */
-import { Viewport } from "../../src/components/viewport/Viewport";
-import { MoveControlPointCommand, ViewportPointControl } from "../../src/components/viewport/ViewportPointControl";
-import { Editor } from "../../src/editor/Editor";
-import { MakeViewport } from "../../__mocks__/FakeViewport";
-import * as visual from '../../src/visual_model/VisualModel';
 import * as THREE from "three";
-import { CenterCircleFactory } from "../../src/commands/circle/CircleFactory";
-import '../matchers';
+import { Viewport } from "../../src/components/viewport/Viewport";
 import { ViewportControl } from "../../src/components/viewport/ViewportControl";
+import { Editor } from "../../src/editor/Editor";
 import { Intersection } from "../../src/visual_model/Intersectable";
+import { MakeViewport } from "../../__mocks__/FakeViewport";
+import '../matchers';
 
 let editor: Editor;
 let viewport: Viewport;
@@ -45,6 +42,9 @@ class MyViewportControl extends ViewportControl {
     endDrag(normalizedMousePosition: THREE.Vector2, upEvent: MouseEvent): void {
         throw new Error("Method not implemented.");
     }
+    dblClick(intersections: Intersection[], upEvent: MouseEvent): void {
+        throw new Error("Method not implemented.");
+    }
 }
 
 let control: MyViewportControl;
@@ -67,4 +67,33 @@ test('enable & reenable with race', () => {
     control.enable(false);
     reenable.dispose();
     expect(control.enabled).toBe(false);
+})
+
+test('click', () => {
+    const startClick = jest.spyOn(control, 'startClick').mockImplementation(() => true);
+    control.onPointerDown(new MouseEvent('pointerdown'));
+    expect(startClick).toBeCalledTimes(1);
+
+    const endClick = jest.spyOn(control, 'endClick').mockImplementation(() => { });
+    control.onPointerUp(new MouseEvent('pointerup'));
+    expect(endClick).toBeCalledTimes(1);
+});
+
+test('dblclick', () => {
+    const startClick = jest.spyOn(control, 'startClick').mockImplementation(() => true);
+    control.onPointerDown(new MouseEvent('pointerdown'));
+    expect(startClick).toBeCalledTimes(1);
+
+    const endClick = jest.spyOn(control, 'endClick').mockImplementation(() => { });
+    control.onPointerUp(new MouseEvent('pointerup'));
+    expect(endClick).toBeCalledTimes(1);
+
+    control.onPointerDown(new MouseEvent('pointerdown'));
+    expect(startClick).toBeCalledTimes(2);
+
+    const dblClick = jest.spyOn(control, 'dblClick').mockImplementation(() => { });
+    control.onPointerUp(new MouseEvent('pointerup'));
+    expect(startClick).toBeCalledTimes(2);
+    expect(endClick).toBeCalledTimes(1);
+    expect(dblClick).toBeCalledTimes(1);
 })

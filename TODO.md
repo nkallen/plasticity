@@ -73,3 +73,6 @@
 
 
 ### Done ✓
+
+- DblClick selects solids  
+

@@ -205,6 +205,21 @@ export class ClickStrategy {
                 for (const point of changedPoints) this.writeable.removeControlPoint(point);
             });
     }
+
+    dblClick(intersection: Intersectable, modifier: ChangeSelectionModifier): boolean {
+        if (intersection instanceof TopologyItem) {
+            return this.modify(modifier,
+                () => {
+                    this.writeable.addSolid(intersection.parentItem);
+                    return true;
+                },
+                () => {
+                    this.writeable.removeSolid(intersection.parentItem);
+                    return true;
+                });
+        }
+        return false;
+    }
 }
 
 export class HoverStrategy extends ClickStrategy {

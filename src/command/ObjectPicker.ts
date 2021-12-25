@@ -42,6 +42,10 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
         if (intersections.length === 0) this.onEmptyIntersection();
     }
 
+    protected processDblClick(intersects: Intersection[], dblClickEvent: MouseEvent) {
+        
+    }
+
     processBoxSelect(selected: Set<Intersectable>, upEvent: MouseEvent): void {
         this.changeSelection.onBoxSelect(selected, ChangeSelectionModifier.Replace);
         if (selected.size === 0) this.onEmptyIntersection();

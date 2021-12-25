@@ -139,6 +139,9 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
         }
     }
 
+    dblClick(intersections: Intersection[], dblClickEvent: MouseEvent) {
+    }
+
     execute(cb: (delta: THREE.Vector3) => void, finishFast?: gizmo.Mode): CancellablePromise<void> {
         switch (this.mode.tag) {
             case 'start':
@@ -151,7 +154,6 @@ export class ViewportPointControl extends ViewportControl implements GizmoLike<(
             default: throw new Error('invalid state');
         }
     }
-
 
     protected event2modifier(event: MouseEvent): ChangeSelectionModifier {
         const keyboard = pointerEvent2keyboardEvent(event);

@@ -71,6 +71,12 @@ export class ChangeSelectionExecutor {
         return this.onIntersection(intersections, this.clickStrategy, modifier);
     }
 
+    onDblClick(intersections: Intersection[], modifier: ChangeSelectionModifier): Intersection | undefined {
+        if (intersections.length === 0) return;
+        const first = intersections[0];
+        if (this.clickStrategy.dblClick(first.object, modifier)) return first;
+    }
+
     onHover(intersections: Intersection[], modifier: ChangeSelectionModifier): void {
         this.onIntersection(intersections, this.hoverStrategy, modifier);
     }

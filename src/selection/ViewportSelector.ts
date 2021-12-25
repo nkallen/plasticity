@@ -86,11 +86,16 @@ export abstract class AbstractViewportSelector extends ViewportControl {
         this.processBoxSelect(new Set(selected), upEvent);
     }
 
+    dblClick(intersections: intersectable.Intersection[], dblClickEvent: MouseEvent) {
+        this.processDblClick(intersections, dblClickEvent)
+    }
+
     protected abstract processBoxHover(selected: Set<intersectable.Intersectable>, moveEvent: MouseEvent): void;
     protected abstract processBoxSelect(selected: Set<intersectable.Intersectable>, upEvent: MouseEvent): void;
 
     protected abstract processClick(intersects: intersectable.Intersection[], upEvent: MouseEvent): void;
     protected abstract processHover(intersects: intersectable.Intersection[], moveEvent?: MouseEvent): void;
+    protected abstract processDblClick(intersects: intersectable.Intersection[], dblClickEvent: MouseEvent): void;
 
     protected event2modifier(event: MouseEvent): ChangeSelectionModifier {
         const keyboard = pointerEvent2keyboardEvent(event);
@@ -128,6 +133,11 @@ export class ViewportSelector extends AbstractViewportSelector {
 
     protected processClick(intersects: intersectable.Intersection[], upEvent: MouseEvent) {
         const command = new ClickChangeSelectionCommand(this.editor, intersects, this.event2modifier(upEvent));
+        this.editor.enqueue(command, true);
+    }
+
+    protected processDblClick(intersects: intersectable.Intersection[], upEvent: MouseEvent) {
+        const command = new DblClickChangeSelectionCommand(this.editor, intersects, this.event2modifier(upEvent));
         this.editor.enqueue(command, true);
     }
 
@@ -198,6 +208,25 @@ export class ClickChangeSelectionCommand extends cmd.CommandLike {
 
     async execute(): Promise<void> {
         this.point = this.editor.changeSelection.onClick(this.intersection, this.modifier)?.point;
+    }
+
+    shouldAddToHistory(selectionChanged: boolean) {
+        return selectionChanged;
+    }
+}
+
+export class DblClickChangeSelectionCommand extends cmd.CommandLike {
+    point?: THREE.Vector3;
+
+    constructor(
+        editor: cmd.EditorLike,
+        private readonly intersection: intersectable.Intersection[],
+        private readonly modifier: ChangeSelectionModifier
+    ) { super(editor) }
+
+
+    async execute(): Promise<void> {
+        this.point = this.editor.changeSelection.onDblClick(this.intersection, this.modifier)?.point;
     }
 
     shouldAddToHistory(selectionChanged: boolean) {
