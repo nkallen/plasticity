@@ -93,9 +93,11 @@ export class CommandExecutor {
                 await command.execute();
                 command.finish(); // FIXME: I'm not sure this is necessary
             })
-            if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
-            if (command.shouldAddToHistory(selectionChanged)) history.add("Command", state);
-            signals.commandFinishedSuccessfully.dispatch(command);
+            if (command.state == 'Finished') {
+                if (selectionChanged) signals.selectionChanged.dispatch({ selection: selection.selected });
+                if (command.shouldAddToHistory(selectionChanged)) history.add(command.title, state);
+                signals.commandFinishedSuccessfully.dispatch(command);
+            }
         } catch (e) {
             command.cancel();
             throw e;

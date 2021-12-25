@@ -736,13 +736,13 @@ export class MoveCommand extends Command {
 
         if (selected.faces.size > 0) {
             const command = new ActionFaceCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         } else if (selected.solids.size > 0 || selected.curves.size > 0) {
             const command = new MoveItemCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         } else if (selected.controlPoints.size > 0) {
             const command = new MoveControlPointCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         }
     }
 }
@@ -848,10 +848,10 @@ export class ScaleCommand extends Command {
         const selected = this.editor.selection.selected;
         if (selected.solids.size > 0 || selected.curves.size > 0) {
             const command = new ScaleItemCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         } else if (selected.controlPoints.size > 0) {
             const command = new ScaleControlPointCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         }
     }
 }
@@ -965,13 +965,13 @@ export class RotateCommand extends Command {
         const selected = this.editor.selection.selected;
         if (selected.faces.size > 0) {
             const command = new DraftSolidCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         } else if (selected.solids.size > 0 || selected.curves.size > 0) {
             const command = new RotateItemCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         } else if (selected.controlPoints.size > 0) {
             const command = new RotateControlPointCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         }
     }
 }
@@ -1304,7 +1304,7 @@ export class ModifyFaceCommand extends Command {
         const shouldRefillet = fillet.areFilletFaces(faces);
         const command = shouldRefillet ? new RefilletFaceCommand(this.editor) : new OffsetFaceCommand(this.editor);
         command.point = this.point;
-        this.editor.enqueue(command, false);
+        this.editor.enqueue(command, true);
     }
 }
 
@@ -1542,10 +1542,10 @@ export class MirrorCommand extends Command {
         const selected = this.editor.selection.selected;
         if (selected.solids.size > 0) {
             const command = new MirrorSolidCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         } else if (selected.curves.size > 0) {
             const command = new MirrorItemCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         }
     }
 }
@@ -2048,10 +2048,10 @@ export class ShellCommand extends Command {
         const selected = this.editor.selection.selected;
         if (selected.solids.size > 0 || selected.faces.size > 0) {
             const command = new ThinSolidCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         } else if (selected.curves.size > 0) {
             const command = new MultilineCommand(this.editor);
-            this.editor.enqueue(command, false)
+            this.editor.enqueue(command, true)
         }
     }
 }

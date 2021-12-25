@@ -15,15 +15,17 @@ export type State = 'None' | 'Cancelled' | 'Finished' | 'Interrupted';
 
 export abstract class CancellableRegistor implements Cancellable {
     readonly factoryChanged = new signal.Signal();
-    private state: State = 'None';
+    private _state: State = 'None';
+    get state() { return this._state }
+    private set state(state: State) { this._state = state }
 
     protected readonly resources: CancellableRegisterable[] = [];
     protected readonly promises: PromiseLike<any>[] = [];
     private disposable = new CompositeDisposable();
 
     cancel(): void {
-        if (this.state != 'None')
-            return;
+        if (this.state != 'None') return;
+
         for (const resource of this.resources) {
             if (resource instanceof CancellablePromise)
                 resource.then(null, () => null);
@@ -34,8 +36,8 @@ export abstract class CancellableRegistor implements Cancellable {
     }
 
     finish(): void {
-        if (this.state != 'None')
-            return;
+        if (this.state != 'None') return;
+
         for (const resource of this.resources) {
             resource.finish();
         }
@@ -44,8 +46,8 @@ export abstract class CancellableRegistor implements Cancellable {
     }
 
     interrupt(): void {
-        if (this.state != 'None')
-            return;
+        if (this.state != 'None') return;
+        
         for (const resource of this.resources) {
             resource.interrupt();
         }
