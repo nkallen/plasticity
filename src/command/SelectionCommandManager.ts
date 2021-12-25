@@ -1,9 +1,9 @@
+import * as gizmo from '../command/AbstractGizmo';
+import Command, * as cmd from '../command/Command';
+import { ExtrudeCommand, FilletSolidCommand, ModifyContourCommand, ModifyFaceCommand } from '../commands/GeometryCommands';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ClickChangeSelectionCommand } from '../selection/ViewportSelector';
-import * as gizmo from '../command/AbstractGizmo';
-import Command, * as cmd from '../command/Command';
-import { ExtrudeCommand, FilletSolidCommand, ModifyContourCommand, OffsetFaceCommand } from '../commands/GeometryCommands';
 
 export interface EditorLike extends gizmo.EditorLike, cmd.EditorLike {
     db: DatabaseLike;
@@ -23,7 +23,7 @@ export class SelectionCommandManager {
             command.point = point;
             return command;
         } else if (selected.faces.size > 0) {
-            const command = new OffsetFaceCommand(this.editor);
+            const command = new ModifyFaceCommand(this.editor);
             command.point = point;
             return command;
         } else if (selected.edges.size > 0) {

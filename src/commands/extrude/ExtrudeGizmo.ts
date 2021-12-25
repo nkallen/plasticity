@@ -6,6 +6,9 @@ import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { AbstractAxialScaleGizmo, AngleGizmo, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine } from "../../command/MiniGizmos";
 import { ExtrudeParams } from "./ExtrudeFactory";
 
+const Z = new THREE.Vector3(0, 0, 1);
+const Y = new THREE.Vector3(0, 1, 0);
+
 export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
     private readonly distance1Gizmo = new ExtrudeDistanceGizmo("extrude:distance1", this.editor);
     private readonly race1Gizmo = new ExtrudeAngleGizmo("extrude:race1", this.editor, this.editor.gizmos.white);
@@ -24,7 +27,7 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
     execute(cb: (params: ExtrudeParams) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
         const { race1Gizmo, distance1Gizmo, thicknessGizmo, params } = this;
 
-        thicknessGizmo.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0));
+        thicknessGizmo.quaternion.setFromUnitVectors(Z, Y);
 
         this.addGizmo(distance1Gizmo, length => {
             params.distance1 = length;

@@ -5,7 +5,6 @@
 ### Backlog
 
 - popup quickmenu a la fusion  
-- hold click popover to preciser selection  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - colored helpers for basic axis snaps  
 - Solid cut by face: face cutter offset along normal  
@@ -60,7 +59,6 @@
 
 ### Todo
 
-- select all sketches  
 - bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
 - select all of type  
 - cut body: select edge after starting command  
@@ -74,5 +72,6 @@
 
 ### Done ✓
 
+- Viewport selection: use mousewheel to flip through all items under cursor  
 - DblClick selects solids  
 

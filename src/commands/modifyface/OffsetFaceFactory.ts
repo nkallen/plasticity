@@ -73,46 +73,71 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
     }
 }
 
-export class FooFactory extends GeometryFactory implements OffsetFaceParams {
+export class OffsetOrThickFaceFactory extends GeometryFactory implements OffsetFaceParams {
     private readonly offset = new OffsetFaceFactory(this.db, this.materials, this.signals);
-    private readonly thicken = new ThickFaceFactory(this.db, this.materials, this.signals);
+    
+    newBody = false;
+    async toggle() {
+        this.newBody = !this.newBody
+        if (this.newBody) {
 
-    get solid() { return this.offset.solid }
-    set solid(solid: visual.Solid) {
-        this.offset.solid = solid;
-        this.thicken.solid = solid;
+        }
     }
-
+    
+    private _solid!: visual.Solid;
+    get solid() { return this._solid }
+    set solid(solid: visual.Solid) {
+        this._solid = solid;
+        this.offset.solid = solid;
+    }
+    
     get faces() { return this.offset.faces }
     set faces(faces: visual.Face[]) {
         this.offset.faces = faces;
-        this.thicken.faces = faces;
     }
-
-    get distance() { return this.offset.distance }
+    
+    private _distance = 0;
+    get distance() { return this._distance }
     set distance(distance: number) {
         this.offset.distance = distance;
-        this.thicken.thickness1 = distance;
+        this._distance = distance;
     }
-
+    
     get angle() { return this.offset.angle }
     set angle(angle: number) {
         this.offset.angle = angle;
     }
+    
+    private thickened?: { solid: c3d.Solid, sign: boolean, faces: c3d.Face[] };
 
     async calculate() {
-        try {
-            const result = await this.offset.calculate();
-            return result;
-        } catch (e) {
-            const error = e as any;
-            if (error.isC3dError) {
-                return this.thicken.calculate();
-            } else throw new ValidationError();
+        const { newBody, solid, offset, distance, faces } = this;
+        if (newBody) {
+            const sign = distance > 0;
+            if (this.thickened === undefined || this.thickened.sign !== sign) {
+                const thicken = new ThickFaceFactory(this.db, this.materials, this.signals);
+                thicken.solid = solid;
+                thicken.faces = offset.faces;
+                if (sign) thicken.thickness1 = 10e-6
+                else thicken.thickness2 = 10e-6;
+                const thickenedSolid = await thicken.calculate();
+                const thickenedFaces = thickenedSolid.GetFaces().slice(0, faces.length);
+                this.thickened = { solid: thickenedSolid, sign, faces: thickenedFaces }
+            }
+            const { solid: thickenedSolid, faces: thickenedFaces } = this.thickened;
+            this.offset.solid = thickenedSolid;
+            this.offset.faces = thickenedFaces;
+            this.offset.distance = Math.abs(distance);
+            return this.offset.calculate();
+        } else {
+            this.offset.solid = this.solid;
+            return this.offset.calculate();
         }
     }
 
-    get originalItem() { return this.offset.originalItem }
+    get originalItem() {
+        if (!this.newBody) return this.offset.originalItem
+    }
 }
 
 export class FaceCollector {

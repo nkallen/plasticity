@@ -18,24 +18,33 @@ export abstract class ModifyFaceFactory extends GeometryFactory {
 
     private _solid!: visual.Solid;
     protected solidModel!: c3d.Solid;
-    get solid() { return this._solid }
-    set solid(obj: visual.Solid) {
-        this._solid = obj;
-        this.solidModel = this.db.lookup(this.solid);
+    get solid(): visual.Solid { return this._solid }
+    set solid(solid: visual.Solid | c3d.Solid) {
+        if (solid instanceof visual.Solid) {
+            this._solid = solid;
+            this.solidModel = this.db.lookup(solid);
+        } else {
+            this.solidModel = solid;
+        }
     }
 
     private _faces = new Array<visual.Face>();
     protected facesModel!: c3d.Face[];
-    get faces() { return this._faces }
-    set faces(faces: visual.Face[]) {
-        this._faces = faces;
+    get faces(): visual.Face[] { return this._faces }
+    set faces(faces: visual.Face[] | c3d.Face[]) {
+        if (faces[0] instanceof visual.Face) {
+            const views = faces as visual.Face[];
+            this._faces = views;
 
-        const facesModel = [];
-        for (const face of faces) {
-            const model = this.db.lookupTopologyItem(face);
-            facesModel.push(model);
+            const facesModel = [];
+            for (const face of views) {
+                const model = this.db.lookupTopologyItem(face);
+                facesModel.push(model);
+            }
+            this.facesModel = facesModel;
+        } else {
+            this.facesModel = faces as c3d.Face[];
         }
-        this.facesModel = facesModel;
     }
 
     async calculate(): Promise<c3d.Solid> {

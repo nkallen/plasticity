@@ -56,8 +56,10 @@ import { MirrorKeyboardGizmo } from "./mirror/MirrorKeyboardGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceDialog } from "./modifyface/OffsetFaceDialog";
-import { OffsetFaceFactory } from "./modifyface/OffsetFaceFactory";
-import { OffsetFaceGizmo, RefilletGizmo } from "./modifyface/OffsetFaceGizmo";
+import { OffsetFaceFactory, OffsetOrThickFaceFactory } from "./modifyface/OffsetFaceFactory";
+import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
+import { RefilletGizmo } from "./modifyface/RefilletGizmo";
+import { OffsetFaceKeyboardGizmo } from "./modifyface/OffsetFaceKeyboardGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
 import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RemoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
@@ -1293,6 +1295,19 @@ export class CharacterCurveCommand extends Command {
     }
 }
 
+export class ModifyFaceCommand extends Command {
+    point?: THREE.Vector3
+
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selected.faces];
+        const fillet = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const shouldRefillet = fillet.areFilletFaces(faces);
+        const command = shouldRefillet ? new RefilletFaceCommand(this.editor) : new OffsetFaceCommand(this.editor);
+        command.point = this.point;
+        this.editor.enqueue(command, false);
+    }
+}
+
 export class OffsetFaceCommand extends Command {
     point?: THREE.Vector3
 
@@ -1300,19 +1315,15 @@ export class OffsetFaceCommand extends Command {
         const faces = [...this.editor.selection.selected.faces];
         const parent = faces[0].parentItem as visual.Solid;
 
-        const fillet = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const offset = new OffsetFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const offset = new OffsetOrThickFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
 
-        const shouldRefillet = fillet.areFilletFaces(faces);
-
-        const factory = shouldRefillet ? fillet : offset;
+        const factory = offset;
         factory.solid = parent;
         factory.faces = faces;
 
-        const gizmo = shouldRefillet
-            ? new RefilletGizmo(fillet, this.editor, this.point)
-            : new OffsetFaceGizmo(offset, this.editor, this.point);
+        const gizmo = new OffsetFaceGizmo(offset, this.editor, this.point);
         const dialog = new OffsetFaceDialog(offset, this.editor.signals);
+        const keyboard = new OffsetFaceKeyboardGizmo(this.editor);
 
         gizmo.execute(async params => {
             await factory.update();
@@ -1322,6 +1333,38 @@ export class OffsetFaceCommand extends Command {
         dialog.execute(async params => {
             await offset.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
+
+        keyboard.execute(s => {
+            switch (s) {
+                case 'toggle':
+                    offset.toggle();
+                    offset.update();
+            }
+        }).resource(this);
+
+        await this.finished;
+
+        const result = await factory.commit() as visual.Solid;
+        this.editor.selection.selected.addSolid(result);
+    }
+}
+
+export class RefilletFaceCommand extends Command {
+    point?: THREE.Vector3
+
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selected.faces];
+        const parent = faces[0].parentItem as visual.Solid;
+
+        const factory = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        factory.solid = parent;
+        factory.faces = faces;
+
+        const gizmo = new RefilletGizmo(factory, this.editor, this.point);
+
+        gizmo.execute(async params => {
+            await factory.update();
+        }).resource(this);
 
         await this.finished;
 
@@ -1470,7 +1513,7 @@ export class ExtrudeCommand extends Command {
         const dialog = new ExtrudeDialog(extrude, this.editor.signals);
 
         keyboard.prepare(extrude).resource(this);
-        
+
         gizmo.position.copy(this.point ?? extrude.center);
         gizmo.quaternion.setFromUnitVectors(Y, extrude.direction);
 

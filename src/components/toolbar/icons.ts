@@ -210,6 +210,8 @@ keybindings.set("gizmo:cylinder:intersect", "Intersect");
 keybindings.set("gizmo:cylinder:new-body", "New body");
 keybindings.set("gizmo:offset-face:distance", "Distance");
 keybindings.set("gizmo:offset-face:angle", "Angle adjacent faces");
+keybindings.set("gizmo:offset-face:toggle", "New body");
+keybindings.set("gizmo:refillet-face:distance", "Distance");
 keybindings.set("gizmo:mirror:x", "Positive X");
 keybindings.set("gizmo:mirror:y", "Positive Y");
 keybindings.set("gizmo:mirror:z", "Positive Z");
