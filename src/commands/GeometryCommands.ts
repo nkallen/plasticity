@@ -1190,7 +1190,7 @@ export class CutCommand extends Command {
 export class ExtensionShellCommand extends Command {
     async execute(): Promise<void> {
         const extension = new ExtensionShellFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        extension.face = this.editor.selection.selected.faces.first;
+        extension.faces = [...this.editor.selection.selected.faces];
         extension.edges = [...this.editor.selection.selected.edges];
 
         const dialog = new ExtensionShellDialog(extension, this.editor.signals);

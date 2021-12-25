@@ -21,12 +21,12 @@ export default class ExtensionShellFactory extends GeometryFactory implements Ex
         this.model = this.db.lookup(solid);
     }
 
-    private _face!: visual.Face;
-    private faceModel!: c3d.Face;
-    set face(face: visual.Face) {
-        this._face = face;
-        this.faceModel = this.db.lookupTopologyItem(face);
-        this.solid = face.parentItem;
+    private _faces!: visual.Face[];
+    private faceModels!: c3d.Face[];
+    set faces(faces: visual.Face[]) {
+        this._faces = faces;
+        this.faceModels = faces.map(face => this.db.lookupTopologyItem(face));
+        this.solid = faces[0].parentItem;
     }
 
     private curveEdges!: c3d.CurveEdge[];
@@ -42,16 +42,21 @@ export default class ExtensionShellFactory extends GeometryFactory implements Ex
     }
 
     async calculate() {
-        const { model: solid, faceModel: face, curveEdges: edges, distance, type, lateralKind } = this;
+        const { model: solid, faceModels: faces, distance, type, lateralKind } = this;
+        let { curveEdges: edges, } = this;
 
         const offsetParams = new c3d.SweptValues();
         offsetParams.shellClosed = false;
         const offsetNames = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ExtensionShell, this.db.version), c3d.ESides.SideNone, 0);
-        const offset = await c3d.ActionShell.OffsetShell_async(solid, c3d.CopyMode.Copy, [face], true, offsetParams, offsetNames, true);
+        const offset = await c3d.ActionShell.OffsetShell_async(solid, c3d.CopyMode.Copy, faces, true, offsetParams, offsetNames, true);
+
+        // if (edges.length === 0) {
+            edges = offset.GetShell()!.GetBoundaryEdges()
+        // }
 
         const params = new c3d.ExtensionValues();
         params.InitByDistance(type, lateralKind, new c3d.Vector3D(0, 0, 0), unit(distance));
         const extensionNames = new c3d.SNameMaker(composeMainName(c3d.CreatorType.ExtensionShell, this.db.version), c3d.ESides.SideNone, 0);
-        return c3d.ActionShell.ExtensionShell_async(offset , c3d.CopyMode.Copy, offset.GetFace(0)!, offset.GetEdges(), params, extensionNames);
+        return c3d.ActionShell.ExtensionShell_async(offset, c3d.CopyMode.Copy, offset.GetFace(0)!, edges, params, extensionNames);
     }
 }

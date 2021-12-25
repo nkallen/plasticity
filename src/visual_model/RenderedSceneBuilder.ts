@@ -103,7 +103,7 @@ export class RenderedSceneBuilder {
             if (item instanceof visual.Solid) {
                 this.highlightSolid(item);
             } else if (item instanceof visual.SpaceInstance) {
-                this.highlightCurve(item);
+                this.highlightSpaceInstance(item);
             } else if (item instanceof visual.PlaneInstance) {
                 this.highlightRegion(item);
             } else throw new Error("invalid type: " + item.constructor.name);
@@ -127,6 +127,14 @@ export class RenderedSceneBuilder {
         region.mesh.material = selected.regionIds.has(region.simpleName) ? region_highlighted : region_unhighlighted;
         region.layers.set(visual.Layers.Region);
         region.mesh.layers.set(visual.Layers.Region);
+    }
+
+    private highlightSpaceInstance(item: visual.SpaceInstance<any>) {
+        const underlying = item.underlying;
+        if (underlying instanceof visual.Curve3D) {
+            this.highlightCurve(item);
+        } else if (underlying instanceof visual.Surface) {
+        }
     }
 
     private highlightCurve(item: visual.SpaceInstance<visual.Curve3D>) {

@@ -473,8 +473,11 @@ export default {
         FaceShell: {
             rawHeader: "topology_faceset.h",
             extends: "TopItem",
-            dependencies: ["TopItem.h"],
+            dependencies: ["TopItem.h", "CurveEdge.h"],
             initializers: [""],
+            functions: [
+                { signature: "void GetBoundaryEdges(RPArray<MbCurveEdge> & edges)", edges: isReturn },
+            ]
         },
         ElementarySolid: {
             rawHeader: "cr_elementary_solid.h",

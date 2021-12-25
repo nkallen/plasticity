@@ -212,7 +212,7 @@ export class Max<T> {
                 }, 1000);
                 console.timeEnd("searching for max fillet");
 
-                this.state = { tag: 'found', value: Number.POSITIVE_INFINITY }
+                this.state = { tag: 'found', value: result }
                 return result;
             default: throw new Error("invalid state");
         }
