@@ -17,12 +17,12 @@ jobs:
           cache-name: cache-c3d-libraries
         with:
           # vendor/c3d/
-          path: ~/.npm
+          path: Win64_Visual_Studio_2019_Unicode.zip
           key: ${{ runner.os }}-build-${{ env.cache-name }}
       - name: Download c3d libraries
         run: |
           choco install wget --no-progress 
-          wget -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
+          wget -q -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
           7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
       - name: Setup license key
         run: |
