@@ -186,7 +186,7 @@ export default {
     },
 
     "body:not([gizmo]) ispace-workspace": {
-        "c": "command:center-circle",
+        "c": "command:cut",
         "g": "command:move",
         "r": "command:rotate",
         "R": "command:center-rectangle",

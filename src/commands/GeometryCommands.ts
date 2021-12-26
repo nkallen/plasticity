@@ -17,7 +17,7 @@ import { RadialArrayDialog } from "./array/RadialArrayDialog";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
 import { MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
-import { CutAndSplitFactory, MultiCutFactory } from "./boolean/CutFactory";
+import { MultiCutFactory } from "./boolean/CutFactory";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
@@ -56,10 +56,10 @@ import { MirrorKeyboardGizmo } from "./mirror/MirrorKeyboardGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceDialog } from "./modifyface/OffsetFaceDialog";
-import { OffsetFaceFactory, OffsetOrThickFaceFactory } from "./modifyface/OffsetFaceFactory";
+import { OffsetOrThickFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
-import { RefilletGizmo } from "./modifyface/RefilletGizmo";
 import { OffsetFaceKeyboardGizmo } from "./modifyface/OffsetFaceKeyboardGizmo";
+import { RefilletGizmo } from "./modifyface/RefilletGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
 import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RemoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
@@ -1160,17 +1160,18 @@ export class CutCommand extends Command {
     async execute(): Promise<void> {
         const cut = new MultiCutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
-        cut.solids = [...this.editor.selection.selected.solids];
-        // cut.faces = [...this.editor.selection.selected.faces];
-        cut.curves = [...this.editor.selection.selected.curves];
-        await cut.update();
 
         const dialog = new CutDialog(cut, this.editor.signals);
-        const picker = new ObjectPicker(this.editor);
 
         dialog.execute(async params => {
             await cut.update();
         }).resource(this);
+
+        const picker = new ObjectPicker(this.editor);
+        cut.solids = await picker.get(SelectionMode.Solid, 1);
+        // cut.faces = [...this.editor.selection.selected.faces];
+        cut.curves = [...this.editor.selection.selected.curves];
+        await cut.update();
 
         picker.max = Number.POSITIVE_INFINITY;
         picker.mode.set(SelectionMode.Face);

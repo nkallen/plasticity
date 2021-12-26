@@ -31,16 +31,19 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
                 }
             };
             for (const p of ps) {
-                p.then(r => { dispose(); resolve(r); }, r => { dispose(); reject(r); });
+                p.then(
+                    r => { dispose(); resolve(r); },
+                    r => { dispose(); reject(r); }
+                );
             }
             return { dispose, finish: resolve };
         });
         return result;
     }
 
-    static resolve() {
-        return new CancellablePromise<void>((resolve, reject) => {
-            resolve();
+    static resolve<T>(t: T) {
+        return new CancellablePromise<T>((resolve, reject) => {
+            resolve(t);
             const dispose = () => { };
             const finish = () => { };
             return { dispose, finish };
@@ -115,6 +118,14 @@ export class CancellablePromise<T> extends CancellableRegisterable implements Pr
 
     then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2> {
         return this.promise.then(onfulfilled, onrejected);
+    }
+
+    map<S>(onfulfilled: (value: T) => S): CancellablePromise<S> {
+        const that = this;
+        return new CancellablePromise<S>((resolve, reject) => {
+            this.promise.then(result => resolve(onfulfilled(result)), reject);
+            return { dispose: that._dispose, finish: that._finish };
+        });
     }
 
     private _onFinish(reject: (reason?: any) => void) {

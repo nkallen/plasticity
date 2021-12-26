@@ -6,10 +6,12 @@ import { DatabaseLike } from '../editor/GeometryDatabase';
 import LayerManager from '../editor/LayerManager';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ChangeSelectionExecutor, ChangeSelectionModifier } from '../selection/ChangeSelectionExecutor';
-import { HasSelectedAndHovered, HasSelection, Selectable, SelectionDatabase, ToggleableSet } from '../selection/SelectionDatabase';
+import { HasSelectedAndHovered, HasSelection, ModifiesSelection, Selectable, SelectionDatabase, ToggleableSet } from '../selection/SelectionDatabase';
 import { AbstractViewportSelector } from '../selection/ViewportSelector';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { Intersectable, Intersection } from '../visual_model/Intersectable';
+import { SelectionMode } from "../selection/ChangeSelectionExecutor";
+import * as visual from "../visual_model/VisualModel";
 
 interface EditorLike {
     db: DatabaseLike;
@@ -43,7 +45,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     }
 
     protected processDblClick(intersects: Intersection[], dblClickEvent: MouseEvent) {
-        
+
     }
 
     processBoxSelect(selected: Set<Intersectable>, upEvent: MouseEvent): void {
@@ -61,6 +63,10 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
         this.changeSelection.onBoxHover(selected, this.event2modifier(moveEvent));
     }
 }
+
+type SelectionArray = visual.Face[] | visual.CurveEdge[] | visual.Solid[] | visual.SpaceInstance<visual.Curve3D>[] | visual.ControlPoint[];
+type CancelableSelectionArray = CancellablePromise<visual.Face[]> | CancellablePromise<visual.CurveEdge[]> | CancellablePromise<visual.Solid[]> | CancellablePromise<visual.SpaceInstance<visual.Curve3D>[]> | CancellablePromise<visual.ControlPoint[]>
+type PromiseSelectionArray = Promise<visual.Face[]> | Promise<visual.CurveEdge[]> | Promise<visual.Solid[]> | Promise<visual.SpaceInstance<visual.Curve3D>>[] | Promise<visual.ControlPoint[]>
 
 export class ObjectPicker {
     min = 1;
@@ -114,5 +120,43 @@ export class ObjectPicker {
             return { dispose: () => disposables.dispose(), finish: () => resolve(selection.selected) };
         });
         return cancellable;
+    }
+
+    get(mode: SelectionMode.Face, min?: number): CancellablePromise<visual.Face[]>;
+    get(mode: SelectionMode.CurveEdge, min?: number): CancellablePromise<visual.CurveEdge[]>;
+    get(mode: SelectionMode.Solid, min?: number): CancellablePromise<visual.Solid[]>;
+    get(mode: SelectionMode.Curve, min?: number): CancellablePromise<visual.SpaceInstance<visual.Curve3D>[]>;
+    get(mode: SelectionMode.ControlPoint, min?: number): CancellablePromise<visual.ControlPoint[]>;
+    get(mode: SelectionMode, min = 1): CancelableSelectionArray {
+        if (min < 0) throw new Error("min must be > 0");
+        if (min === 0) return CancellablePromise.resolve([]);
+
+        const { editor, editor: { selection: { selected } } } = this;
+        let collection: SelectionArray;
+        collection = this.mode2collection(mode, selected);
+        if (collection.length >= min) return CancellablePromise.resolve(collection) as CancelableSelectionArray;
+
+        min -= collection.length;
+        const picker = new ObjectPicker(editor);
+        picker.mode.set(mode);
+        picker.min = min;
+        picker.max = min;
+        return picker.execute().map(selected => {
+            const added = this.mode2collection(mode, selected);
+            // @ts-expect-error
+            return collection.concat(added);
+        });
+    }
+
+    private mode2collection(mode: SelectionMode, selected: HasSelection): SelectionArray {
+        let collection;
+        switch (mode) {
+            case SelectionMode.CurveEdge: collection = selected.edges; break;
+            case SelectionMode.Face: collection = selected.faces; break;
+            case SelectionMode.Solid: collection = selected.solids; break;
+            case SelectionMode.Curve: collection = selected.curves; break;
+            case SelectionMode.ControlPoint: collection = selected.controlPoints; break;
+        }
+        return [...collection] as any;
     }
 }
