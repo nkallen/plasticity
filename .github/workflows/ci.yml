@@ -11,10 +11,18 @@ jobs:
         with:
           node-version: '16.10.0'
           cache: 'yarn'
+      - name: Cache c3d libraries
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-c3d-libraries
+        with:
+          # vendor/c3d/
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}
       - name: Download c3d libraries
         run: |
           choco install wget --no-progress 
-          wget --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
+          wget -N --user='${{ secrets.C3D_DOWNLOAD_USER }}' --password '${{ secrets.C3D_DOWNLOAD_PASS }}' https://c3d.sd.ascon.ru/C3D_workversion/C3D_Kernel_Latest/Kernel/Win64_Visual_Studio_2019_Unicode.zip
           7z x Win64_Visual_Studio_2019_Unicode.zip -ovendor/c3d/
       - name: Setup license key
         run: |
@@ -26,28 +34,28 @@ jobs:
         run: |
           choco install astyle --no-progress 
           yarn generate
-          yarn run node-gyp rebuild -j max
+          yarn run node-gyp configure
+          yarn electron-rebuild
       - name: Run tests
         run: |
           yarn test
-      - name: Increment version
-        run: |
-          yarn plugin import version
-          yarn version patch
-          git config user.email "mr@roboto.com"
-          git config user.name "GitHub Action"
-          git commit -am "Update version"
-          git push
-      - name: Publish canary release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          yarn electron-rebuild
-          yarn publish
-      - name: Post
-        run: |
-          choco install curl --no-progress
-          yarn echo-version
-          cmd /c @"
-          curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
-          "@
+      # - name: Increment version
+      #   run: |
+      #     yarn plugin import version
+      #     yarn version patch
+      #     git config user.email "mr@roboto.com"
+      #     git config user.name "GitHub Action"
+      #     git commit -am "Update version"
+      #     git push
+      # - name: Publish canary release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     yarn publish
+      # - name: Post
+      #   run: |
+      #     choco install curl --no-progress
+      #     yarn echo-version
+      #     cmd /c @"
+      #     curl -H "Content-Type: application/json" -d "{\"username\": \"GitHub\", \"content\": \"https://github.com/nkallen/plasticity/releases/tag/v$(yarn echo-version)\"}" ${{ secrets.DISCORD_WEBHOOK_URL }}
+      #     "@

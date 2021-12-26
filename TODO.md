@@ -4,23 +4,20 @@
 
 ### Backlog
 
+- ctrl in object select should temporarily enable everything (point solid etc)  
 - popup quickmenu a la fusion  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
 - colored helpers for basic axis snaps  
-- Solid cut by face: face cutter offset along normal  
 - move mirror gizmo origin  
 - Napi::Promise::Deferred const &d rename _deferred  
 - dialog keybindings  
 - copy fillet radius by clicking on another fillet surface  
 - bug: box selected, while mouse down, zoom  
-- extrude multiple regions at once  
 - Fusion-like multigizmo  
 - [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
 - [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
-- double click to select body  
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
 - [ ] Audit re-used icons  
-- [ ] moving circle point doesn't work (drag and g)  
 - [ ] in xray mode, control points not visible  
 - [ ] currently FINISH is always available, even at step 1 of 3 points box. #bug - registry.add(command:finish) should maybe not happen in command executor but in await this.finished  
 - [ ] PointSnap resolution for nearby seems wrong  
@@ -59,9 +56,10 @@
 
 ### Todo
 
+- perf problem w extrude  
+- extrude multiple regions at once  
 - bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
 - select all of type  
-- cut body: select edge after starting command  
 - move snapmanagergeometrycache to editor  
 - [ ] circle angle gizmo when far off from center not facing camera  
 - trim should allow deleting a line  
@@ -69,9 +67,12 @@
 
 ### In Progress
 
+- cut body: select edge after starting command  
+- Solid cut by face: face cutter offset along normal  
 
 ### Done ✓
 
+- [x] moving circle point doesn't work (drag and g)  
 - Viewport selection: use mousewheel to flip through all items under cursor  
 - DblClick selects solids  
 
