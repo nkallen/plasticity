@@ -1,21 +1,20 @@
 import * as THREE from "three";
+import { EditorLike } from "../../src/command/CommandKeyboardInput";
 import { IntersectionFactory } from '../../src/commands/boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "../../src/commands/boolean/BooleanKeyboardGizmo";
-import { EditorLike } from "../../src/command/CommandKeyboardInput";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
-import * as visual from '../../src/visual_model/VisualModel';
 import { Cancel } from "../../src/util/Cancellable";
+import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
-import c3d from '../../build/Release/c3d.node';
 
-export let db: GeometryDatabase;
+let db: GeometryDatabase;
 let intersect: IntersectionFactory;
-export let materials: Required<MaterialDatabase>;
-export let signals: EditorSignals;
+let materials: Required<MaterialDatabase>;
+let signals: EditorSignals;
 
 beforeEach(() => {
     materials = new FakeMaterials();

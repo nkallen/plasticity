@@ -1,11 +1,27 @@
 import * as THREE from "three";
-import { CutAndSplitFactory, CutFactory, SplitFactory } from '../../src/commands/boolean/CutFactory';
-import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
+import { IntersectionFactory } from '../../src/commands/boolean/BooleanFactory';
+import { CutAndSplitFactory, CutFactory, MultiCutFactory, SplitFactory } from '../../src/commands/boolean/CutFactory';
+import { CenterBoxFactory, ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
 import CurveFactory from "../../src/commands/curve/CurveFactory";
 import SphereFactory from '../../src/commands/sphere/SphereFactory';
-import * as visual from '../../src/visual_model/VisualModel';
+import { EditorSignals } from '../../src/editor/EditorSignals';
+import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
+import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { PlaneSnap } from "../../src/editor/snaps/Snap";
-import { db, materials, signals } from "./Boolean.test";
+import * as visual from '../../src/visual_model/VisualModel';
+import { FakeMaterials } from "../../__mocks__/FakeMaterials";
+import '../matchers';
+
+let db: GeometryDatabase;
+let materials: Required<MaterialDatabase>;
+let signals: EditorSignals;
+
+
+beforeEach(() => {
+    materials = new FakeMaterials();
+    signals = new EditorSignals();
+    db = new GeometryDatabase(materials, signals);
+})
 
 describe(CutFactory, () => {
     test('takes a cutting curve and a solid and produces a divided solid', async () => {
@@ -64,12 +80,13 @@ describe(CutFactory, () => {
         const cut = new CutFactory(db, materials, signals);
         cut.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
         cut.solid = sphere;
-        cut.plane = box.faces.get(0);
+        cut.surface = box.faces.get(0);
         const result = await cut.commit() as visual.SpaceItem[];
 
         expect(result.length).toBe(2);
     });
 });
+
 describe(SplitFactory, () => {
     test('cuts faces', async () => {
         const makeBox = new ThreePointBoxFactory(db, materials, signals);
@@ -93,8 +110,8 @@ describe(SplitFactory, () => {
 
         expect([...result.faces].length).toBe(7);
     });
-
 });
+
 describe(CutAndSplitFactory, () => {
     test('cuts faces', async () => {
         const makeBox = new ThreePointBoxFactory(db, materials, signals);
@@ -140,3 +157,34 @@ describe(CutAndSplitFactory, () => {
         expect(result.length).toBe(2);
     });
 });
+
+describe(MultiCutFactory, () => {
+    let cut: MultiCutFactory;
+    beforeEach(() => {
+        cut = new MultiCutFactory(db, materials, signals);
+    })
+
+    let sphere: visual.Solid;
+    beforeEach(async () => {
+        const makeSphere = new SphereFactory(db, materials, signals);
+        makeSphere.center = new THREE.Vector3(0, 0, 0);
+        makeSphere.radius = 1;
+        sphere = await makeSphere.commit() as visual.Solid;
+    })
+
+    let box: visual.Solid;
+    beforeEach(async () => {
+        const makeBox = new CenterBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(0.25, 0.25, 0);
+        makeBox.p3 = new THREE.Vector3(0.25, 0.25, -0.25);
+        box = await makeBox.commit() as visual.Solid;
+    })
+
+    it('cuts multiply', async () => {
+        cut.solids = [sphere];
+        cut.surfaces = [...box.faces];
+        const result = await cut.commit() as visual.Solid[];
+        expect(result.length).toBe(27);
+    })
+})

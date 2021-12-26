@@ -97,7 +97,8 @@ export abstract class AbstractViewportSelector extends ViewportControl {
     protected abstract processHover(intersects: intersectable.Intersection[], moveEvent?: MouseEvent): void;
     protected abstract processDblClick(intersects: intersectable.Intersection[], dblClickEvent: MouseEvent): void;
 
-    protected event2modifier(event: MouseEvent): ChangeSelectionModifier {
+    protected event2modifier(event?: MouseEvent): ChangeSelectionModifier {
+        if (event === undefined) return ChangeSelectionModifier.Replace;
         const keyboard = pointerEvent2keyboardEvent(event);
         const keystroke = this.keymaps.keystrokeForKeyboardEvent(keyboard);
         return this.mouseButtons[keystroke];
@@ -142,8 +143,7 @@ export class ViewportSelector extends AbstractViewportSelector {
     }
 
     protected processHover(intersects: intersectable.Intersection[], event?: MouseEvent) {
-        const modifier = event !== undefined ? this.event2modifier(event) : ChangeSelectionModifier.Replace;
-        this.editor.changeSelection.onHover(intersects, modifier);
+        this.editor.changeSelection.onHover(intersects, this.event2modifier(event));
     }
 }
 

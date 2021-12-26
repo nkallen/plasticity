@@ -38,7 +38,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands to modify a "temporary" selection
     processClick(intersections: Intersection[], upEvent: MouseEvent) {
-        this.changeSelection.onClick(intersections, ChangeSelectionModifier.Replace);
+        this.changeSelection.onClick(intersections, this.event2modifier(upEvent));
         if (intersections.length === 0) this.onEmptyIntersection();
     }
 
@@ -47,18 +47,18 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     }
 
     processBoxSelect(selected: Set<Intersectable>, upEvent: MouseEvent): void {
-        this.changeSelection.onBoxSelect(selected, ChangeSelectionModifier.Replace);
+        this.changeSelection.onBoxSelect(selected, this.event2modifier(upEvent));
         if (selected.size === 0) this.onEmptyIntersection();
     }
 
     // NOTE: while the selection.selected is a temporary collection just for this class,
     // typically it will use the real selection.hovered to provide user feedback.
-    processHover(intersects: Intersection[], moveEvent: MouseEvent) {
-        this.changeSelection.onHover(intersects, ChangeSelectionModifier.Replace);
+    processHover(intersects: Intersection[], moveEvent?: MouseEvent) {
+        this.changeSelection.onHover(intersects, this.event2modifier(moveEvent));
     }
 
     processBoxHover(selected: Set<Intersectable>, moveEvent: MouseEvent): void {
-        this.changeSelection.onBoxHover(selected, ChangeSelectionModifier.Replace);
+        this.changeSelection.onBoxHover(selected, this.event2modifier(moveEvent));
     }
 }
 
@@ -75,7 +75,7 @@ export class ObjectPicker {
 
     constructor(private readonly editor: EditorLike) { }
 
-    execute(cb?: (o: Selectable) => void): CancellablePromise<HasSelection> {
+    execute(cb?: (o: HasSelection) => void): CancellablePromise<HasSelection> {
         const signals = new EditorSignals();
         const editor = this.editor;
         const disposables = new CompositeDisposable();
@@ -83,8 +83,11 @@ export class ObjectPicker {
         disposables.add(new Disposable(() => editor.signals.objectRemoved.remove(signals.objectRemoved.dispatch)));
         const selection = editor.selection.makeTemporary(this.mode, signals);
         if (cb !== undefined) {
-            signals.objectSelected.add(cb);
-            disposables.add(new Disposable(() => signals.objectSelected.remove(cb)));
+            const k = () => cb(selection.selected);
+            signals.objectSelected.add(k);
+            disposables.add(new Disposable(() => {
+                signals.objectSelected.remove(k)
+            }));
         }
 
         const cancellable = new CancellablePromise<HasSelection>((resolve, reject) => {

@@ -17,7 +17,7 @@ import { RadialArrayDialog } from "./array/RadialArrayDialog";
 import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
 import { MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
-import { CutAndSplitFactory } from "./boolean/CutFactory";
+import { CutAndSplitFactory, MultiCutFactory } from "./boolean/CutFactory";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
@@ -1158,14 +1158,12 @@ export class DifferenceCommand extends BooleanCommand {
 
 export class CutCommand extends Command {
     async execute(): Promise<void> {
-        const cut = new CutAndSplitFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const cut = new MultiCutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
-        cut.solid = this.editor.selection.selected.solids.first;
-        cut.faces = [...this.editor.selection.selected.faces];
-        if (this.editor.selection.selected.curves.size > 0) {
-            cut.curve = this.editor.selection.selected.curves.first;
-            await cut.update();
-        }
+        cut.solids = [...this.editor.selection.selected.solids];
+        // cut.faces = [...this.editor.selection.selected.faces];
+        cut.curves = [...this.editor.selection.selected.curves];
+        await cut.update();
 
         const dialog = new CutDialog(cut, this.editor.signals);
         const picker = new ObjectPicker(this.editor);
@@ -1176,9 +1174,8 @@ export class CutCommand extends Command {
 
         picker.max = Number.POSITIVE_INFINITY;
         picker.mode.set(SelectionMode.Face);
-        picker.execute(async face => {
-            if (!(face instanceof visual.Face)) throw new Error("invalid state");
-            cut.plane = face;
+        picker.execute(async selection => {
+            cut.surfaces = [...selection.faces];
             cut.update();
         }).resource(this);
 
