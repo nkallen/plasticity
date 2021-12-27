@@ -116,6 +116,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         view.material = this.editor.materials.lineDashed();
         view.computeLineDistances();
         this.editor.db.temporaryObjects.add(view);
+        return view;
     }
 
     get shouldRescaleOnZoom() { return false }

@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- orbit above top  
 - ctrl in object select should temporarily enable everything (point solid etc)  
 - popup quickmenu a la fusion  
 - [ ] Refactor gizmos and controls event entry code - there should be a single class handling hover and pointerdown to disambiguate  
@@ -56,6 +57,7 @@
 
 ### Todo
 
+- offset multiple at once  
 - extrude multiple regions at once  
 - bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
 - select all of type  
@@ -64,13 +66,17 @@
 - trim should allow deleting a line  
 - upper-left box select of straight lines is too eager  
 - Solid cut by face: face cutter offset along normal  
+- picture in viewport  
 
 ### In Progress
 
+- start fillet a priori  
 - cut body: select edge after starting command  
 
 ### Done ✓
 
+- gizmo for fillet and extrude have objective sizes  
+- orbit: pan vertical mushinesss  
 - Cut multiple objects simultaneously  
 - [x] moving circle point doesn't work (drag and g)  
 - Viewport selection: use mousewheel to flip through all items under cursor  

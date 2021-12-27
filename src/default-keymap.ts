@@ -191,7 +191,7 @@ export default {
         "r": "command:rotate",
         "R": "command:center-rectangle",
         "s": "command:scale",
-        "b": "command:fillet",
+        "b": "command:fillet-solid",
         "e": "command:extrude",
         "t": "command:trim",
         "o": "command:offset-curve",
