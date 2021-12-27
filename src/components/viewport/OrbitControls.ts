@@ -266,7 +266,7 @@ export class OrbitControls extends THREE.EventDispatcher {
             delta.y *= factor;
         } else if (this.object.isOrthographicCamera) {
             delta.x *= -(object.right - object.left) / object.zoom / domElement.clientWidth;
-            delta.y *= (object.top - object.bottom) / object.zoom / domElement.clientWidth;
+            delta.y *= (object.top - object.bottom) / object.zoom / domElement.clientHeight;
         }
         delta.applyMatrix3(normalMatrix.getNormalMatrix(object.matrix));
         panOffset.add(delta);
