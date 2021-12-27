@@ -4,6 +4,7 @@ import { LineSegments2 } from "three/examples/jsm/lines/LineSegments2";
 import { LineSegmentsGeometry } from "three/examples/jsm/lines/LineSegmentsGeometry";
 import c3d from '../../build/Release/c3d.node';
 import { point2point, vec2vec } from '../util/Conversion';
+import { RaycasterParams } from "./SnapPicker";
 import { ControlPointGroup, Curve3D, CurveEdge, CurveGroup, CurveSegment, Face, FaceGroup, PlaneInstance, Region, Solid, SpaceInstance } from './VisualModel';
 
 declare module './VisualModel' {
@@ -89,7 +90,12 @@ Solids: {
         const { line } = this;
         const camera = raycaster.camera as THREE.PerspectiveCamera | THREE.OrthographicCamera;
         const { geometry, matrixWorld } = line;
-        const { resolution, linewidth } = line.material as LineMaterial;
+        const { resolution } = line.material as LineMaterial;
+
+        let { linewidth } = line.material;
+        const raycasterParams = raycaster.params as RaycasterParams;
+		const threshold = ( 'Line2' in raycasterParams !== undefined ) ? raycasterParams.Line2.threshold || 0 : 0;
+        linewidth += threshold;
 
         _inverseMatrix.copy(matrixWorld).invert();
         _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
