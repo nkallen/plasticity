@@ -38,7 +38,7 @@ jobs:
           path: build/Release
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Win64_Visual_Studio_2019_Unicode.zip', 'generate/api.mjs') }}
       - name: Codegen C++ and build
-        if: steps.cache-cpp-build.outputs.cache-hit != 'true'
+        # if: steps.cache-cpp-build.outputs.cache-hit != 'true'
         run: |
           choco install astyle --no-progress 
           yarn generate
