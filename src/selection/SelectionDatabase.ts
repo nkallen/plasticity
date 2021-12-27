@@ -348,9 +348,6 @@ export class ToggleableSet extends Set<SelectionMode> {
     }
 
     set(...elements: SelectionMode[]) {
-        if (eqSet(new Set(elements), this)) {
-            elements = SelectionModeAll;
-        }
         this.clear();
         for (const element of elements) {
             this.add(element);
