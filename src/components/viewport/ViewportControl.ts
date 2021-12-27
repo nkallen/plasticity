@@ -81,6 +81,7 @@ export abstract class ViewportControl extends THREE.EventDispatcher {
     onPointerDown(downEvent: MouseEvent) {
         if (!this.enabled) return;
         if (downEvent.button !== 0) return;
+        if (downEvent.altKey) return;
 
         switch (this.state.tag) {
             case 'hover':

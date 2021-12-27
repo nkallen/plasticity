@@ -145,7 +145,7 @@ export default {
         "numpad1": "viewport:navigate:front",
         "numpad3": "viewport:navigate:right",
         "numpad7": "viewport:navigate:top",
-        
+
         "shift-numpad1": "viewport:navigate:back",
         "shift-numpad3": "viewport:navigate:left",
         "shift-numpad7": "viewport:navigate:bottom",
@@ -171,7 +171,7 @@ export default {
         "ctrl-2": "selection:convert:edge",
         "ctrl-3": "selection:convert:face",
         "ctrl-4": "selection:convert:solid",
-    
+
         "!": "selection:mode:toggle:control-point",
         "@": "selection:mode:toggle:edge",
         "#": "selection:mode:toggle:face",
