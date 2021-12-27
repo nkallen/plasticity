@@ -111,6 +111,7 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     }
 
     onActivate() {
+        if (!this.stateMachine?.isEnabled) return;
         this.visible = true;
     }
 }

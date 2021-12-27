@@ -3,9 +3,10 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
 import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { AbstractAxisGizmo, AngleGizmo, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
+import { AbstractAxisGizmo, AngleGizmo, AxisHelper, DistanceGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { point2point, vec2vec } from "../../util/Conversion";
+import { Helper } from "../../util/Helpers";
 import * as fillet from './FilletFactory';
 import { FilletParams } from './FilletFactory';
 
@@ -134,8 +135,6 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
         this.add(this.helper);
     }
 
-    get shouldRescaleOnZoom() { return true }
-
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
     }
@@ -149,10 +148,19 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
     protected accumulate(original: number, sign: number, dist: number): number {
         return original + dist
     }
+
+    scaleIndependentOfZoom(camera: THREE.Camera) {
+        this.tip.scale.copy(this.relativeScale);
+        Helper.scaleIndependentOfZoom(this.tip, camera);
+    }
 }
 
 class FilletAngleGizmo extends AngleGizmo {
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
+    }
+
+    get shouldRescaleOnZoom(): boolean {
+        return true
     }
 }

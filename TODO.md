@@ -56,7 +56,6 @@
 
 ### Todo
 
-- perf problem w extrude  
 - extrude multiple regions at once  
 - bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
 - select all of type  
