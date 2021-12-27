@@ -62,7 +62,7 @@ export default {
     "[command='offset-face'] ispace-viewport": {
         "d": "gizmo:offset-face:distance",
         "a": "gizmo:offset-face:angle",
-        "r": "gizmo:offset-face:toggle",
+        "q": "gizmo:offset-face:toggle",
     },
 
     "[command='refillet-face'] ispace-viewport": {
