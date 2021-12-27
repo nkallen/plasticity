@@ -42,7 +42,7 @@ class OutlinePass extends Pass {
 
         this.resolution = (resolution !== undefined) ? new Vector2(resolution.x, resolution.y) : new Vector2(256, 256);
 
-        const pars = { minFilter: LinearFilter, magFilter: LinearFilter, format: RGBAFormat };
+        const pars = { minFilter: LinearFilter, magFilter: LinearFilter, format: RGBAFormat, skipInvalidateFramebuffer: true };
 
         this.maskBufferMaterial = new MeshBasicMaterial({ color: 0xffffff });
         this.maskBufferMaterial.side = DoubleSide;

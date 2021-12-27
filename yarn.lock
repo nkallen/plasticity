@@ -13118,7 +13118,7 @@ fsevents@^1.2.7:
     style-loader: ^1.2.1
     svg-inline-loader: ^0.8.2
     terser-webpack-plugin: ^5.2.4
-    three: 0.136.0
+    three: "https://github.com/nkallen/three.js.git"
     ts-jest: ^27.0.0-next.10
     ts-loader: ^8.0.2
     ts-node: ^9.1.1
@@ -15516,10 +15516,10 @@ resolve@1.1.7:
   languageName: node
   linkType: hard
 
-"three@npm:0.136.0":
+"three@https://github.com/nkallen/three.js.git":
   version: 0.136.0
-  resolution: "three@npm:0.136.0"
-  checksum: 9183f83a75901edb85034fe8f6d52bf6daaece554e40d42f8eef5dead13a09e5f67548ee7cccd6c34bde42a91c5e8fa2ccb4a1b80783d7986bda4ec9f58bfe7f
+  resolution: "three@https://github.com/nkallen/three.js.git#commit=bcb5b56cf3f17aa9efe191ae0cf1cd6c630dc1fd"
+  checksum: e67db62af09690bc7d9f2fd01b54d492aae8ab137ffd7c3748c6f0da36835aa52686625a77c838115914dd3f601438ac30d28aa420741b6374fe9513d5ae8e59
   languageName: node
   linkType: hard
 
