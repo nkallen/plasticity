@@ -23,9 +23,9 @@ export class ViewportNavigator extends THREE.Object3D {
         panel.addEventListener('pointerdown', e => e.stopPropagation());
         container.appendChild(panel);
 
-        const color1 = new THREE.Color('#ff3653').convertGammaToLinear();
-        const color2 = new THREE.Color('#8adb00').convertGammaToLinear();
-        const color3 = new THREE.Color('#2c8fff').convertGammaToLinear();
+        const color1 = new THREE.Color('#ff3653').convertSRGBToLinear();
+        const color2 = new THREE.Color('#8adb00').convertSRGBToLinear();
+        const color3 = new THREE.Color('#2c8fff').convertSRGBToLinear();
 
         const interactiveObjects: THREE.Object3D[] = [];
 

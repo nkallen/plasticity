@@ -49,7 +49,7 @@ mesh.polygonOffsetUnits = 1;
 
 const region = new THREE.MeshBasicMaterial();
 region.fog = false;
-region.color.setHex(0x8dd9f2).convertGammaToLinear();
+region.color.setHex(0x8dd9f2).convertSRGBToLinear();
 region.opacity = 0.1;
 region.transparent = true;
 region.side = THREE.DoubleSide;

@@ -1,11 +1,10 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { PlaneSnap } from "../../editor/snaps/Snap";
-import { composeMainName, point2point } from "../../util/Conversion";
-import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
-import { CenterRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../rect/RectangleFactory";
+import { composeMainName, point2point } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
+import { BooleanFactory, PossiblyBooleanFactory } from "../boolean/BooleanFactory";
+import { CenterRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../rect/RectangleFactory";
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 }
 

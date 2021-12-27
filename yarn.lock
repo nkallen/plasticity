@@ -13118,7 +13118,7 @@ fsevents@^1.2.7:
     style-loader: ^1.2.1
     svg-inline-loader: ^0.8.2
     terser-webpack-plugin: ^5.2.4
-    three: 0.134.0
+    three: 0.136.0
     ts-jest: ^27.0.0-next.10
     ts-loader: ^8.0.2
     ts-node: ^9.1.1
@@ -15516,10 +15516,10 @@ resolve@1.1.7:
   languageName: node
   linkType: hard
 
-"three@npm:0.134.0":
-  version: 0.134.0
-  resolution: "three@npm:0.134.0"
-  checksum: 1b4e64f75b46666985db15ff3379ac9b6b21bb0e06d90748e4d4a2bc2a9374a2133bd27b28c54797bb368d2efb2806c48388c1b0ae88160f8ec57e116e351cf2
+"three@npm:0.136.0":
+  version: 0.136.0
+  resolution: "three@npm:0.136.0"
+  checksum: 9183f83a75901edb85034fe8f6d52bf6daaece554e40d42f8eef5dead13a09e5f67548ee7cccd6c34bde42a91c5e8fa2ccb4a1b80783d7986bda4ec9f58bfe7f
   languageName: node
   linkType: hard
 
