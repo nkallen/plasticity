@@ -64,14 +64,15 @@
 - [ ] circle angle gizmo when far off from center not facing camera  
 - trim should allow deleting a line  
 - upper-left box select of straight lines is too eager  
+- Solid cut by face: face cutter offset along normal  
 
 ### In Progress
 
 - cut body: select edge after starting command  
-- Solid cut by face: face cutter offset along normal  
 
 ### Done ✓
 
+- Cut multiple objects simultaneously  
 - [x] moving circle point doesn't work (drag and g)  
 - Viewport selection: use mousewheel to flip through all items under cursor  
 - DblClick selects solids  

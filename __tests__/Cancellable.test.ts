@@ -115,4 +115,16 @@ describe(CancellablePromise, () => {
             expect(dispose3).toBeCalledTimes(1);
         });
     })
+
+    test('map success', async () => {
+        let c2 = c1.map(() => 1);
+        c1.finish();
+        expect(await c2).toBe(1);
+    })
+
+    test('map failure', async () => {
+        let c2 = c1.map(() => 1);
+        c1.cancel();
+        await expect(c2).rejects.toBe(Cancel);
+    })
 })
