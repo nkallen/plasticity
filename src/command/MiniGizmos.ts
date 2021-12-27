@@ -4,6 +4,7 @@ import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { ProxyCamera } from "../components/viewport/ProxyCamera";
 import { CancellableRegisterable } from "../util/CancellableRegisterable";
 import { CancellableRegistor } from "../util/CancellableRegistor";
+import { Helper } from "../util/Helpers";
 import { CircleGeometry } from "../util/Util";
 import { AbstractGizmo, EditorLike, GizmoHelper, Intersector, MovementInfo } from "./AbstractGizmo";
 import { GizmoMaterial } from "./GizmoMaterials";
@@ -397,6 +398,11 @@ export class DistanceGizmo extends AbstractAxisGizmo {
 
     protected accumulate(original: number, sign: number, dist: number): number {
         return original + dist
+    }
+
+    scaleIndependentOfZoom(camera: THREE.Camera) {
+        this.tip.scale.copy(this.relativeScale);
+        Helper.scaleIndependentOfZoom(this.tip, camera);
     }
 }
 

@@ -18,6 +18,7 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
         const { race1Gizmo, distance1Gizmo, thicknessGizmo } = this;
         race1Gizmo.relativeScale.setScalar(0.3);
         distance1Gizmo.relativeScale.setScalar(0.8);
+        thicknessGizmo.relativeScale.setScalar(0.8);
 
         this.add(distance1Gizmo, thicknessGizmo);
 
@@ -43,18 +44,24 @@ export class ExtrudeGizmo extends CompositeGizmo<ExtrudeParams> {
 
         return super.execute(cb, finishFast);
     }
+
+    get shouldRescaleOnZoom() { return false }
 }
 
 class ExtrudeDistanceGizmo extends DistanceGizmo {
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
     }
+
+    get shouldRescaleOnZoom() { return false }
 }
 
 class ExtrudeAngleGizmo extends AngleGizmo {
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
     }
+
+    get shouldRescaleOnZoom() { return true }
 }
 
 export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
@@ -72,4 +79,6 @@ export class MagnitudeGizmo extends AbstractAxialScaleGizmo {
     onInterrupt(cb: (radius: number) => void) {
         this.state.push();
     }
+
+    get shouldRescaleOnZoom() { return true }
 }

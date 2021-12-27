@@ -117,9 +117,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         this.editor.db.temporaryObjects.add(view);
     }
 
-    get shouldRescaleOnZoom() {
-        return false;
-    }
+    get shouldRescaleOnZoom() { return false }
 }
 
 export class FilletMagnitudeGizmo extends AbstractAxisGizmo {

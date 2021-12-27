@@ -36,15 +36,18 @@ export abstract class Helper extends THREE.Object3D {
         this.scale.copy(this.relativeScale);
         if (!this.shouldRescaleOnZoom) return;
 
+        Helper.scaleIndependentOfZoom(this, camera);
+    }
+
+    static scaleIndependentOfZoom(object: THREE.Object3D, camera: THREE.Camera) {
         let factor;
         if (ProxyCamera.isOrthographic(camera)) {
             factor = (camera.top - camera.bottom) / camera.zoom;
         } else if (ProxyCamera.isPerspective(camera)) {
-            factor = this.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.getEffectiveFOV() / 360), 7);
+            factor = object.position.distanceTo(camera.position) * Math.min(1.9 * Math.tan(Math.PI * camera.getEffectiveFOV() / 360), 7);
         } else throw new Error("invalid camera type");
-
-        this.scale.multiplyScalar(factor * 1 / 11);
-        this.updateMatrixWorld();
+        object.scale.multiplyScalar(factor * 1 / 11);
+        object.updateMatrixWorld();
     }
 }
 

@@ -24,7 +24,7 @@ import * as visual from "./VisualModel";
 const defaultIntersectParams: RaycasterParams= {
     Line: { threshold: 0.1 },
     Line2: { threshold: 30 },
-    Points: { threshold: 25 }
+    Points: { threshold: 26 }
 };
 
 const defaultNearbyParams: THREE.RaycasterParameters = {
