@@ -7,7 +7,7 @@ import { ObjectPicker, ObjectPickerViewportSelector } from "../src/command/Objec
 import { Viewport } from "../src/components/viewport/Viewport";
 import { Editor } from "../src/editor/Editor";
 import { GeometryDatabase } from '../src/editor/GeometryDatabase';
-import { ChangeSelectionExecutor } from "../src/selection/ChangeSelectionExecutor";
+import { ChangeSelectionExecutor, SelectionMode } from "../src/selection/ChangeSelectionExecutor";
 import { SelectionDatabase } from "../src/selection/SelectionDatabase";
 import * as visual from '../src/visual_model/VisualModel';
 import { MakeViewport } from "../__mocks__/FakeViewport";
@@ -66,6 +66,13 @@ describe(ObjectPicker, () => {
         promise.finish();
         expect(removeEventListener).toBeCalledTimes(3);
         await promise;
+    })
+
+    test('get, when enough already selected', async () => {
+        editor.selection.selected.addCurve(item);
+        const objectPicker = new ObjectPicker(editor);
+        const result = await objectPicker.get(SelectionMode.Curve);
+        expect(result).toEqual([item]);
     })
 });
 
