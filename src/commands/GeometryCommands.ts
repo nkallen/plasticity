@@ -1397,6 +1397,18 @@ export class DraftSolidCommand extends Command {
 
         keyboard.execute(async s => {
             switch (s) {
+                case 'pivot': {
+                    gizmo.disable();
+                    const pointPicker = new PointPicker(this.editor);
+                    await pointPicker.execute(({ point: pivot, info: { snap } }) => {
+                        const { position, orientation } = snap.project(pivot);
+                        gizmo.position.copy(position);
+                        gizmo.quaternion.copy(orientation);
+                        draftSolid.pivot = position;
+                    }).resource(this);
+                    gizmo.enable();
+                    break;
+                }
                 case 'free':
                     this.finish();
                     this.editor.enqueue(new FreestyleDraftSolidCommand(this.editor), false);

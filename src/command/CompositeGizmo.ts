@@ -53,6 +53,19 @@ export abstract class CompositeGizmo<P> extends Helper implements GizmoLike<(p: 
         }
     }
 
+    disable() {
+        for (const [gizmo] of this.gizmos) {
+            gizmo.stateMachine!.interrupt();
+            gizmo.stateMachine!.isEnabled = false;
+        }
+    }
+
+    enable() {
+        for (const [gizmo] of this.gizmos) {
+            gizmo.stateMachine!.isEnabled = true;
+        }
+    }
+
     private activateGizmos() {
         for (const [gizmo] of this.gizmos) {
             gizmo.stateMachine!.isActive = true;

@@ -158,6 +158,7 @@ keybindings.set("gizmo:rotate:y", "Y axis");
 keybindings.set("gizmo:rotate:z", "Z axis");
 keybindings.set("gizmo:rotate:screen", "Screen space");
 keybindings.set("gizmo:rotate:free", "Freestyle");
+keybindings.set("gizmo:rotate:pivot", "Pivot");
 keybindings.set("gizmo:scale:x", "X axis");
 keybindings.set("gizmo:scale:y", "Y axis");
 keybindings.set("gizmo:scale:z", "Z axis");

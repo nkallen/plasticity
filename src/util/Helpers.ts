@@ -67,8 +67,11 @@ export class Helpers {
         axes.layers.set(visual.Layers.Overlay);
         this.axes = axes;
         axes.renderOrder = -1;
+        axes.position.set(0, 0, 0.01);
         const material = axes.material as THREE.Material;
         material.transparent = true;
+        material.fog = false;
+
     }
 
     add(...objects: THREE.Object3D[]) {

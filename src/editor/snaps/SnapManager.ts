@@ -81,26 +81,32 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         into.add(centerSnap);
     }
 
-    private addEdge(edge: visual.CurveEdge, model: c3d.CurveEdge, into: Set<Snap>) {
-        const edgeSnap = new CurveEdgeSnap(edge, model);
-        const begPt = model.GetBegPoint();
-        const endPt = model.GetEndPoint();
-        const midPt = model.Point(0.5);
-        const begSnap = new EdgePointSnap("Beginning", point2point(begPt), edgeSnap);
-        const endSnap = new EdgePointSnap("End", point2point(endPt), edgeSnap);
-        const midSnap = new EdgePointSnap("Middle", point2point(midPt), edgeSnap);
+    private addEdge(view: visual.CurveEdge, model: c3d.CurveEdge, into: Set<Snap>) {
+        const edgeSnap = new CurveEdgeSnap(view, model);
+        const begPt = point2point(model.GetBegPoint());
+        const endPt = point2point(model.GetEndPoint());
+        const midPt = point2point(model.Point(0.5));
+        const begTau = vec2vec(model.GetBegTangent(), 1);
+        const endTau = vec2vec(model.GetEndTangent(), 1);
+        const midTau = vec2vec(model.Tangent(0.5), 1);
+        const begSnap = new EdgePointSnap("Beginning", begPt, begTau, edgeSnap);
+        const endSnap = new EdgePointSnap("End", endPt, endTau, edgeSnap);
+        const midSnap = new EdgePointSnap("Middle", midPt, midTau, edgeSnap);
 
         const underlying = model.GetSpaceCurve();
         if (underlying !== null) {
             if (underlying.IsA() === c3d.SpaceType.Arc3D) {
                 const cast = underlying.Cast<c3d.Arc3D>(underlying.IsA());
-                const centerSnap = new CircleCenterPointSnap(cast, edge);
+                const centerSnap = new CircleCenterPointSnap(cast, view);
                 into.add(centerSnap);
 
-                const quartPt = model.Point(0.25);
-                const threeQuartPt = model.Point(0.75);
-                const quarter = new EdgePointSnap("1/4", point2point(quartPt), edgeSnap);
-                const threeQuarter = new EdgePointSnap("3/4", point2point(threeQuartPt), edgeSnap);
+                const quartPt = point2point(model.Point(0.25));
+                const threeQuartPt = point2point(model.Point(0.75));
+                const quartTau = vec2vec(model.Tangent(0.25), 1);
+                const threeQuartTau = vec2vec(model.Tangent(0.75), 1);
+
+                const quarter = new EdgePointSnap("1/4", quartPt, quartTau, edgeSnap);
+                const threeQuarter = new EdgePointSnap("3/4", threeQuartPt, threeQuartTau, edgeSnap);
                 into.add(quarter);
                 into.add(threeQuarter);
             }

@@ -836,6 +836,9 @@ export default {
                 { signature: "void GetEndPoint(MbCartPoint3D & p)", p: isReturn },
                 "double PointProjection(const MbCartPoint3D & p)",
                 "void Reverse()",
+                { signature: "void Tangent(double t, MbVector3D & tan)", tan: isReturn },
+                { signature: "void GetBegTangent(MbVector3D & tan)", tan: isReturn },
+                { signature: "void GetEndTangent(MbVector3D & tan)", tan: isReturn },
             ]
         },
         SurfaceIntersectionCurve: {
@@ -880,6 +883,8 @@ export default {
                 "bool IsSmooth()",
                 "bool IsSeam()",
                 "bool IsPole()",
+                { signature: "bool FaceNormal(double t, MbVector3D & n, bool plus)", n: isReturn, return: isErrorBool },
+                { signature: "bool VertexNormal(bool begin, MbVector3D & normal)", normal: isReturn, return: isErrorBool },
             ]
         },
         ContourOnSurface: {

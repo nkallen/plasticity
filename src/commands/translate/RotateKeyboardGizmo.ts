@@ -9,6 +9,7 @@ export class RotateKeyboardGizmo extends CommandKeyboardInput {
     constructor(editor: EditorLike) {
         super('rotate', editor, [
             'gizmo:rotate:free',
+            'gizmo:rotate:pivot',
         ]);
     }
 }

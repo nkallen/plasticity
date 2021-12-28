@@ -4,6 +4,8 @@
 
 ### Backlog
 
+- separate floor from grid  
+- floor needs fog  
 - orbit above top  
 - ctrl in object select should temporarily enable everything (point solid etc)  
 - popup quickmenu a la fusion  
@@ -60,6 +62,7 @@
 - offset multiple at once  
 - extrude multiple regions at once  
 - bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
+- when you shift a helper leave it visible  
 - select all of type  
 - move snapmanagergeometrycache to editor  
 - [ ] circle angle gizmo when far off from center not facing camera  
@@ -67,11 +70,12 @@
 - upper-left box select of straight lines is too eager  
 - Solid cut by face: face cutter offset along normal  
 - picture in viewport  
+- start fillet a priori  
+- cut body: select edge after starting command  
 
 ### In Progress
 
-- start fillet a priori  
-- cut body: select edge after starting command  
+- set pivot of rotate gizmo  
 
 ### Done ✓
 

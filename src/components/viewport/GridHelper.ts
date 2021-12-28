@@ -9,6 +9,7 @@ export class GridHelper extends THREE.GridHelper {
         material.transparent = true;
         this.renderOrder = -2;
         this.layers.set(visual.Layers.Overlay);
+        material.fog = true;
     }
 
     private readonly grid = new THREE.Vector3(0, 1, 0);
@@ -21,5 +22,6 @@ export class GridHelper extends THREE.GridHelper {
         const dot = grid.dot(eye);
         const material = this.material as THREE.LineBasicMaterial;
         material.opacity = dot * dot;
+        this.updateMatrixWorld();
     }
 }
