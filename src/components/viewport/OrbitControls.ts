@@ -412,9 +412,13 @@ export class OrbitControls extends THREE.EventDispatcher {
         const { state, enabled, enableZoom, zoomScale } = this;
         if (!enabled || !enableZoom || state !== 'none') return;
 
+
+        let deltaY = event.deltaY;
+        if (deltaY === 0 && event.shiftKey && event.deltaX !== 0) deltaY = event.deltaX;
+        
         event.preventDefault();
         this.dispatchEvent(startEvent);
-        this.dolly(Math.sign(event.deltaY) > 0 ? 1 / zoomScale : zoomScale);
+        this.dolly(Math.sign(deltaY) > 0 ? 1 / zoomScale : zoomScale);
         this.update();
         this.dispatchEvent(endEvent);
     }

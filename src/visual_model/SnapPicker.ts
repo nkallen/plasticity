@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import { Model } from "../command/PointPicker";
+import { SnapInfo } from "../command/SnapPresenter";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, ChoosableSnap, PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
 import { inst2curve } from "../util/Conversion";
 import * as intersectable from "./Intersectable";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
@@ -16,12 +17,12 @@ import * as visual from "./VisualModel";
  * using a cache for most point snaps and the existing, (optimized) geometry raycasting targets.
  */
 
- export type RaycasterParams = THREE.RaycasterParameters & {
+export type RaycasterParams = THREE.RaycasterParameters & {
     Line2: { threshold: number }
     Points: { threshold: number }
 };
 
-const defaultIntersectParams: RaycasterParams= {
+const defaultIntersectParams: RaycasterParams = {
     Line: { threshold: 0.1 },
     Line2: { threshold: 30 },
     Points: { threshold: 26 }
@@ -221,10 +222,12 @@ export class SnapPicker extends AbstractSnapPicker {
         return [{ snap, position: precisePosition, cursorPosition: precisePosition, orientation, cursorOrientation: orientation }];
     }
 
-    private intersectChoice(choice: AxisSnap): SnapResult[] {
-        const position = choice.intersect(this.raycaster);
-        if (position === undefined) return [];
-        else return [{ snap: choice!, orientation: choice.orientation, position, cursorPosition: position, cursorOrientation: choice.orientation }];
+    private intersectChoice(choice: { snap: ChoosableSnap, info?: SnapInfo }): SnapResult[] {
+        const snap = choice.snap;
+        const intersection = snap.intersect(this.raycaster, choice.info);
+        if (intersection === undefined) return [];
+        const { position, orientation } = intersection;
+        return [{ snap, orientation: orientation, position, cursorPosition: position, cursorOrientation: orientation }];
     }
 }
 

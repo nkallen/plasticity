@@ -154,6 +154,9 @@ export default {
         "numpad5": "viewport:toggle-orthographic",
 
         "space": "viewport:navigate:face",
+
+        "alt-z": "viewport:toggle-x-ray",
+        "shift-alt-z": "viewport:toggle-overlays",
     },
 
     "body[command] ispace-viewport": {
@@ -181,16 +184,12 @@ export default {
 
     "body:not([gizmo]) ispace-viewport": {
         "/": "viewport:focus",
-
-        "alt-z": "viewport:toggle-x-ray",
-        "shift-alt-z": "viewport:toggle-overlays",
     },
 
     "body:not([gizmo]) ispace-workspace": {
         "c": "command:cut",
         "g": "command:move",
         "r": "command:rotate",
-        "R": "command:center-rectangle",
         "s": "command:scale",
         "b": "command:fillet-solid",
         "e": "command:extrude",

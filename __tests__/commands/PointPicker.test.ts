@@ -152,8 +152,8 @@ describe('choose', () => {
     it('works when given an axis snap', () => {
         pointPicker.addAxesAt(new THREE.Vector3(1, 1, 1));
         pointPicker.choose("x");
-        expect(pointPicker.choice).toBeInstanceOf(PointAxisSnap);
-        expect(pointPicker.choice!.name).toBe("x");
+        expect(pointPicker.choice!.snap).toBeInstanceOf(PointAxisSnap);
+        expect(pointPicker.choice!.snap.name).toBe("x");
     })
 });
 
@@ -226,7 +226,7 @@ describe('restrictToLine', () => {
     })
 
     test("choice", () => {
-        expect(pointPicker.choice).toBeInstanceOf(AxisSnap);
+        expect(pointPicker.choice!.snap).toBeInstanceOf(AxisSnap);
     })
 });
 

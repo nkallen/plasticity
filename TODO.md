@@ -75,6 +75,7 @@
 
 ### In Progress
 
+- shift/choice for faces  
 - set pivot of rotate gizmo  
 
 ### Done ✓

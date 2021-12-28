@@ -8,7 +8,7 @@ import { CrossPoint, CrossPointDatabase } from '../editor/curves/CrossPointDatab
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import LayerManager from '../editor/LayerManager';
-import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
+import { AxisAxisCrossPointSnap, AxisCurveCrossPointSnap, AxisSnap, CurveEdgeSnap, CurveEndPointSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, ChoosableSnap, OrRestriction, PlaneSnap, PointAxisSnap, PointSnap, Restriction, Snap } from "../editor/snaps/Snap";
 import { SnapManager } from '../editor/snaps/SnapManager';
 import { CancellablePromise } from "../util/CancellablePromise";
 import { inst2curve, point2point } from '../util/Conversion';
@@ -208,7 +208,7 @@ export class Model {
         const line = new AxisSnap(undefined, direction, origin);
         this._restriction = line;
         this._restrictionSnaps.push(line);
-        this.choice = line;
+        this.choice = { snap: line }; // FIXME: this is abusing the api a bit, think of a better way
     }
 
     restrictToEdges(edges: visual.CurveEdge[]): OrRestriction<CurveEdgeSnap> {
@@ -230,14 +230,14 @@ export class Model {
         this.makeSnapsForLastPickedPoint();
     }
 
-    choice?: AxisSnap;
-    choose(which: Choices | Snap | undefined) {
+    choice?: { snap: ChoosableSnap, info?: SnapInfo };
+    choose(which: Choices | Snap | undefined, info?: SnapInfo) {
         if (which instanceof Snap) {
-            if (which instanceof AxisSnap) this.choice = which;
+            if (which instanceof AxisSnap || which instanceof FaceSnap) this.choice = { snap: which, info };
         } else {
             let chosen = this.snapsForLastPickedPoint.filter(s => s.name == which)[0] as AxisSnap | undefined;
             chosen ??= this.otherAddedSnaps.filter(s => s.name == which)[0] as AxisSnap | undefined;
-            if (chosen !== undefined) this.choice = chosen;
+            if (chosen !== undefined) this.choice = { snap: chosen, info };
         }
     }
 
@@ -318,7 +318,7 @@ export class PointPicker {
             // FIXME: build elsewhere for higher performance
             const snapCache = new SnapManagerGeometryCache(editor.snaps);
             const picker = new SnapPicker(editor.layers, this.raycasterParams);
-            
+
             let info: SnapInfo | undefined = undefined;
             for (const viewport of editor.viewports) {
                 disposables.add(viewport.disableControls(viewport.navigationControls));
@@ -331,7 +331,6 @@ export class PointPicker {
                 const { renderer: { domElement } } = viewport;
 
                 let lastMoveEvent: PointerEvent | undefined = undefined;
-                let lastSnap: Snap | undefined = undefined;
 
                 const onPointerMove = (e: PointerEvent | undefined) => {
                     if (e === undefined) return;
@@ -346,7 +345,6 @@ export class PointPicker {
 
                     info = presentation.info;
                     if (info === undefined) return;
-                    lastSnap = info.snap;
                     const { position } = info;
 
                     if (cb !== undefined) cb({ point: position, info });
@@ -369,7 +367,7 @@ export class PointPicker {
                         editor.snaps.enabled = false;
                         onPointerMove(lastMoveEvent);
                     } else if (e.key == "Shift") {
-                        this.model.choose(lastSnap);
+                        this.model.choose(info?.snap, info);
                     }
                 }
 
@@ -383,7 +381,7 @@ export class PointPicker {
                         const oldChoice = this.model.choice;
                         this.model.choice = undefined;
                         // FIXME: need to pass all last snap results
-                        if (lastSnap !== undefined) model.activateSnapped([lastSnap]);
+                        if (info !== undefined) model.activateSnapped([info.snap]);
                         if (oldChoice !== undefined) onPointerMove(lastMoveEvent);
                     }
                 }

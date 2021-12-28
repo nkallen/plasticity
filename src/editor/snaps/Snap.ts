@@ -1,12 +1,13 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
+import { SnapInfo } from "../../command/SnapPresenter";
 import { curve3d2curve2d, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
 import { CrossPoint } from "../curves/CrossPointDatabase";
 
 export interface Restriction {
     isValid(pt: THREE.Vector3): boolean;
-    project(point: THREE.Vector3): { position: THREE.Vector3; orientation: THREE.Quaternion; };
+    project(point: THREE.Vector3): SnapProjection;
 }
 
 export abstract class Snap implements Restriction {
@@ -34,12 +35,16 @@ export abstract class Snap implements Restriction {
         });
     }
 
-    abstract project(point: THREE.Vector3): { position: THREE.Vector3; orientation: THREE.Quaternion; };
+    abstract project(point: THREE.Vector3): SnapProjection;
     abstract isValid(pt: THREE.Vector3): boolean;
 
     restrictionFor(point: THREE.Vector3): Restriction | undefined { return }
     additionalSnapsFor(point: THREE.Vector3): Snap[] { return [] }
     additionalSnapsForLast(point: THREE.Vector3, lastPickedSnap: Snap): Snap[] { return [] }
+}
+
+export interface ChoosableSnap extends Snap {
+    intersect(raycaster: THREE.Raycaster, info?: SnapInfo): SnapProjection | undefined;
 }
 
 export class PointSnap extends Snap {
@@ -87,7 +92,7 @@ export class CircleCenterPointSnap extends PointSnap {
             point2point(model.GetCentre()),
             vec2vec(model.GetPlaneCurve(false).placement.GetAxisZ(), 1).normalize()
         );
-        
+
         const slice = view.slice('line');
         this.helper.add(slice);
     }
@@ -354,7 +359,12 @@ export class TanTanSnap extends PointSnap {
     }
 }
 
-export class FaceSnap extends Snap {
+type SnapProjection = {
+    position: THREE.Vector3;
+    orientation: THREE.Quaternion;
+};
+
+export class FaceSnap extends Snap implements ChoosableSnap {
     readonly name = "Face";
     readonly snapper = new THREE.Object3D(); // FIXME: FaceSnap and other geometry doesn't actually have a snapper ... disentangle interfaces
 
@@ -394,6 +404,18 @@ export class FaceSnap extends Snap {
         const normalSnap = new NormalAxisSnap(vec2vec(normal, 1), point);
         return [normalSnap];
     }
+
+    private readonly n = new THREE.Vector3();
+    intersect(raycaster: THREE.Raycaster, info?: SnapInfo): SnapProjection | undefined {
+        if (info === undefined) return;
+        const { n } = this;
+        const orientation = info.orientation;
+        n.set(0, 0, 1).applyQuaternion(orientation);
+        const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(n, info.position);
+        const position = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+        if (position === null) return;
+        return { position, orientation };
+    }
 }
 
 export class OrRestriction<R extends Restriction> implements Restriction {
@@ -427,7 +449,7 @@ const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const origin = new THREE.Vector3();
 const lineBasicMaterial = new THREE.LineBasicMaterial();
 
-export class AxisSnap extends Snap {
+export class AxisSnap extends Snap implements ChoosableSnap {
     readonly snapper = new THREE.Line(axisGeometry, lineBasicMaterial);
     readonly helper: THREE.Object3D = this.snapper.clone();
 
@@ -484,7 +506,7 @@ export class AxisSnap extends Snap {
     private readonly align = new THREE.Vector3();
     private readonly matrix = new THREE.Matrix4();
     private readonly intersection = new THREE.Vector3();
-    intersect(raycaster: THREE.Raycaster) {
+    intersect(raycaster: THREE.Raycaster, _: SnapInfo) {
         const { eye, plane, align, dir, o, n, matrix, intersection } = this;
 
         eye.copy(raycaster.camera.position).sub(o).normalize();
@@ -501,7 +523,8 @@ export class AxisSnap extends Snap {
         if (intersections.length === 0) return;
 
         const dist = intersections[0].point.sub(o).dot(n);
-        return intersection.copy(n).multiplyScalar(dist).add(o);
+        const position = intersection.copy(n).multiplyScalar(dist).add(o);
+        return { position, orientation: this.orientation };
     }
 }
 
