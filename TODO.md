@@ -75,11 +75,12 @@
 
 ### In Progress
 
-- shift/choice for faces  
+- mirror bugs  
 - set pivot of rotate gizmo  
 
 ### Done ✓
 
+- shift/choice for faces  
 - gizmo for fillet and extrude have objective sizes  
 - orbit: pan vertical mushinesss  
 - Cut multiple objects simultaneously  
