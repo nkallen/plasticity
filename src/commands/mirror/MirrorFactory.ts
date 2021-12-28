@@ -4,6 +4,7 @@ import { MaterialOverride, TemporaryObject } from '../../editor/GeometryDatabase
 import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
 import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
+import { assertUnreachable } from "../../util/Util";
 
 export interface MirrorParams {
     shouldCut: boolean;
@@ -106,7 +107,7 @@ export class SymmetryFactory extends GeometryFactory {
     private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.SymmetrySolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
-        const { model, origin, quaternion, names } = this;
+        const { shouldCut, shouldUnion, model, origin, quaternion, names } = this;
 
         const { X, Z } = this;
         Z.set(0, 0, -1).applyQuaternion(quaternion);
@@ -121,7 +122,7 @@ export class SymmetryFactory extends GeometryFactory {
         
         let original = model;
         let cutAndMirrored = model
-        if (this.shouldCut) {
+        if (shouldCut) {
             try {
                 const results = c3d.ActionSolid.SolidCutting(cutAndMirrored, c3d.CopyMode.Copy, params);
                 cutAndMirrored = results[1] ?? results[0];
@@ -131,21 +132,22 @@ export class SymmetryFactory extends GeometryFactory {
         cutAndMirrored = c3d.ActionSolid.MirrorSolid(cutAndMirrored, placement, names);
         this._phantom = cutAndMirrored;
 
-        if (this.shouldCut && this.shouldUnion) {
+        if (shouldCut && shouldUnion) {
             try {
-                return c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names);
+                return [c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names)];
             } catch (e) {
                 const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
                 const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
-                return result;
+                return [result];
             }
         } else {
-            let result = cutAndMirrored;
-            if (this.shouldUnion) {
-                const { result: unioned } = c3d.ActionSolid.UnionResult(result, c3d.CopyMode.Copy, [original], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
-                result = unioned;
+            if (!shouldCut && !shouldUnion) return [cutAndMirrored]; // actually, its just mirrored in this case
+            else if (shouldCut && !shouldUnion) return [original, cutAndMirrored];
+            else if (!shouldCut && shouldUnion) {
+                const { result: unioned } = c3d.ActionSolid.UnionResult(cutAndMirrored, c3d.CopyMode.Copy, [original], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
+                return [unioned];
             }
-            return result;
+            throw new Error("unreachable");
         }
     }
 
@@ -158,11 +160,11 @@ export class SymmetryFactory extends GeometryFactory {
     }
 
     get shouldHideOriginalItemDuringUpdate(): boolean {
-        return this.shouldUnion;
+        return this.shouldCut || this.shouldUnion;
     }
 
     get shouldRemoveOriginalItemOnCommit(): boolean {
-        return this.shouldUnion;
+        return this.shouldCut || this.shouldUnion;
     }
 
     private temp?: TemporaryObject;
@@ -221,6 +223,7 @@ export class SymmetryFactory extends GeometryFactory {
     }
 
     get originalItem() { return this.solid }
+
 
     toJSON() {
         return {
@@ -284,7 +287,7 @@ export class MultiSymmetryFactory extends GeometryFactory implements MirrorParam
         for (const individual of individuals) {
             result.push(individual.calculate());
         }
-        return Promise.all(result);
+        return (await Promise.all(result)).flat();
     }
 
     protected get phantoms(): PhantomInfo[] {
@@ -295,8 +298,8 @@ export class MultiSymmetryFactory extends GeometryFactory implements MirrorParam
         return this.individuals.map(i => i.originalItem);
     }
 
-    get shouldHideOriginalItemDuringUpdate() { return this._shouldUnion }
-    get shouldRemoveOriginalItemOnCommit() { return this._shouldUnion }
+    get shouldHideOriginalItemDuringUpdate() { return this.shouldCut || this._shouldUnion }
+    get shouldRemoveOriginalItemOnCommit() { return this.shouldCut || this._shouldUnion }
 }
 
 const mesh_blue = new THREE.MeshBasicMaterial();

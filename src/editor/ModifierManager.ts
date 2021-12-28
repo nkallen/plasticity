@@ -72,7 +72,7 @@ export class ModifierStack {
         for (const modifier of modifiers) {
             const symmetry = modifier as SymmetryFactory;
             symmetry.solid = model;
-            model = await symmetry.calculate();
+            model = (await symmetry.calculate())[0];
         }
 
         const modified = (this.modified === this.premodified) ?
@@ -92,7 +92,7 @@ export class ModifierStack {
         for (const modifier of allButLast) {
             const symmetry = modifier as SymmetryFactory;
             symmetry.solid = symmetrized;
-            symmetrized = await symmetry.calculate();
+            symmetrized = (await symmetry.calculate())[0];
         }
         const symmetry = last as SymmetryFactory;
         symmetry.solid = symmetrized;

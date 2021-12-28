@@ -98,7 +98,9 @@ describe(SymmetryFactory, () => {
         mirror.shouldCut = true;
         mirror.shouldUnion = true;
 
-        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const items = await mirror.commit() as visual.Solid[];
+        expect(items.length).toBe(1);
+        const item = items[0];
         const bbox = new THREE.Box3().setFromObject(item);
         const center = new THREE.Vector3();
         bbox.getCenter(center);
@@ -136,7 +138,9 @@ describe(SymmetryFactory, () => {
         mirror.shouldCut = false;
         mirror.shouldUnion = false;
 
-        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const items = await mirror.commit() as visual.Solid[];
+        expect(items.length).toBe(1);
+        const item = items[0];
         expect(db.visibleObjects.length).toBe(2);
         bbox.setFromObject(item);
         bbox.getCenter(center);
@@ -152,7 +156,9 @@ describe(SymmetryFactory, () => {
         mirror.shouldCut = true;
         mirror.shouldUnion = true;
 
-        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const items = await mirror.commit() as visual.Solid[];
+        expect(items.length).toBe(1);
+        const item = items[0];
         expect(db.visibleObjects.length).toBe(1);
         bbox.setFromObject(item);
         bbox.getCenter(center);
@@ -180,7 +186,9 @@ describe(SymmetryFactory, () => {
             mirror.shouldCut = true;
             mirror.shouldUnion = true;
 
-            const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+            const items = await mirror.commit() as visual.Solid[];
+            expect(items.length).toBe(1);
+            const item = items[0];
             expect(db.visibleObjects.length).toBe(2);
             bbox.setFromObject(item);
             bbox.getCenter(center);
@@ -217,7 +225,9 @@ describe(SymmetryFactory, () => {
         mirror.shouldCut = false;
         mirror.shouldUnion = true;
 
-        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const items = await mirror.commit() as visual.Solid[];
+        expect(items.length).toBe(1);
+        const item = items[0];
         expect(db.visibleObjects.length).toBe(1);
         bbox.setFromObject(item);
         bbox.getCenter(center);
@@ -233,9 +243,19 @@ describe(SymmetryFactory, () => {
         mirror.shouldCut = true;
         mirror.shouldUnion = false;
 
-        const item = await mirror.commit() as visual.SpaceInstance<visual.Curve3D>;
+        const items = await mirror.commit() as visual.Solid[];
+        expect(items.length).toBe(2);
         expect(db.visibleObjects.length).toBe(2);
-        bbox.setFromObject(item);
+
+        const item0 = items[0];
+        bbox.setFromObject(item0);
+        bbox.getCenter(center);
+        expect(center).toApproximatelyEqual(new THREE.Vector3(0.75, 0, 0));
+        expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(0, -1, -1));
+        expect(bbox.max).toApproximatelyEqual(new THREE.Vector3(1.5, 1, 1));
+
+        const item1 = items[1];
+        bbox.setFromObject(item1);
         bbox.getCenter(center);
         expect(center).toApproximatelyEqual(new THREE.Vector3(-0.75, 0, 0));
         expect(bbox.min).toApproximatelyEqual(new THREE.Vector3(-1.5, -1, -1));
