@@ -72,6 +72,8 @@ export class SymmetryFactory extends GeometryFactory {
 
     set normal(normal: THREE.Vector3) {
         normal = normal.clone().normalize();
+        const { Z } = this;
+        // Z.set(0, 0, -1);
         this.quaternion = new THREE.Quaternion().setFromUnitVectors(Z, normal);
     }
 
@@ -109,35 +111,38 @@ export class SymmetryFactory extends GeometryFactory {
         const { X, Z } = this;
         Z.set(0, 0, -1).applyQuaternion(quaternion);
         X.set(1, 0, 0).applyQuaternion(quaternion);
+
         const z = vec2vec(Z, 1);
         const x = vec2vec(X, 1);
         const placement = new c3d.Placement3D(point2point(origin), z, x, false);
 
         const { params } = this.shellCuttingParams;
-        this.computePhantom(placement);
+        const mergeFlags = new c3d.MergingFlags(true, true);
+        
+        let original = model;
+        let cutAndMirrored = model
+        if (this.shouldCut) {
+            try {
+                const results = c3d.ActionSolid.SolidCutting(cutAndMirrored, c3d.CopyMode.Copy, params);
+                cutAndMirrored = results[1] ?? results[0];
+                original = cutAndMirrored;
+            } catch { }
+        }
+        cutAndMirrored = c3d.ActionSolid.MirrorSolid(cutAndMirrored, placement, names);
+        this._phantom = cutAndMirrored;
 
         if (this.shouldCut && this.shouldUnion) {
             try {
                 return c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names);
             } catch (e) {
                 const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
-                const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
+                const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
                 return result;
             }
         } else {
-            let original = model;
-            let result = model;
-            const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
-            result = mirrored;
-            if (this.shouldCut) {
-                try {
-                    const results = c3d.ActionSolid.SolidCutting(result, c3d.CopyMode.Copy, params);
-                    result = results[0];
-                    original = result;
-                } catch { }
-            }
+            let result = cutAndMirrored;
             if (this.shouldUnion) {
-                const { result: unioned } = c3d.ActionSolid.UnionResult(result, c3d.CopyMode.Copy, [original], c3d.CopyMode.Copy, c3d.OperationType.Union, false, new c3d.MergingFlags(), names, false);
+                const { result: unioned } = c3d.ActionSolid.UnionResult(result, c3d.CopyMode.Copy, [original], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
                 result = unioned;
             }
             return result;
@@ -145,19 +150,6 @@ export class SymmetryFactory extends GeometryFactory {
     }
 
     private _phantom!: c3d.Solid;
-    private computePhantom(placement: c3d.Placement3D) {
-        const { model, names } = this;
-        const { params } = this.shellCuttingParams;
-        let cut = model;
-        if (this.shouldCut) {
-            try {
-                const results = c3d.ActionSolid.SolidCutting(cut, c3d.CopyMode.Copy, params);
-                cut = results[0];
-            } catch { }
-        }
-        const mirrored = c3d.ActionSolid.MirrorSolid(cut, placement, names);
-        this._phantom = mirrored;
-    }
 
     get phantoms(): PhantomInfo[] {
         const phantom = this._phantom;
@@ -181,8 +173,11 @@ export class SymmetryFactory extends GeometryFactory {
         return this.db.optimization(solid, async () => {
             const { Z, params } = this.shellCuttingParams;
             try {
-                const results = c3d.ActionSolid.SolidCutting(model, c3d.CopyMode.Copy, params);
-                const result = results[0];
+                let result = model;
+                if (this.shouldCut) {
+                    const results = c3d.ActionSolid.SolidCutting(model, c3d.CopyMode.Copy, params);
+                    result = results[1] ?? results[0];
+                }
 
                 const temp = await this.db.replaceWithTemporaryItem(solid, result);
                 const view = temp.underlying;
@@ -221,7 +216,7 @@ export class SymmetryFactory extends GeometryFactory {
         const contour = new c3d.Contour([line], true);
         const direction = new c3d.Vector3D(0, 0, 0);
         const flags = new c3d.MergingFlags(true, true);
-        const params = new c3d.ShellCuttingParams(placement, contour, false, direction, 1, flags, true, names);
+        const params = new c3d.ShellCuttingParams(placement, contour, false, direction, flags, true, names);
         return { Z, placement, params };
     }
 

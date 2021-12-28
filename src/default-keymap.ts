@@ -128,7 +128,7 @@ export default {
         "ctrl-z": "gizmo:line:undo",
     },
 
-    "[command='mirror'] ispace-viewport": {
+    "[command='mirror-solid'] ispace-viewport, [command='mirror-item'] ispace-viewport": {
         "x": "gizmo:mirror:x",
         "y": "gizmo:mirror:y",
         "z": "gizmo:mirror:z",

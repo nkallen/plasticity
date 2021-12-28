@@ -1167,15 +1167,15 @@ export class CutCommand extends Command {
             await cut.update();
         }).resource(this);
 
-        const picker = new ObjectPicker(this.editor);
-        cut.solids = await picker.get(SelectionMode.Solid, 1);
+        const objectPicker = new ObjectPicker(this.editor);
+        cut.solids = await objectPicker.get(SelectionMode.Solid, 1);
         // cut.faces = [...this.editor.selection.selected.faces];
         cut.curves = [...this.editor.selection.selected.curves];
         await cut.update();
 
-        picker.max = Number.POSITIVE_INFINITY;
-        picker.mode.set(SelectionMode.Face);
-        picker.execute(async selection => {
+        objectPicker.max = Number.POSITIVE_INFINITY;
+        objectPicker.mode.set(SelectionMode.Face);
+        objectPicker.execute(async selection => {
             cut.surfaces = [...selection.faces];
             cut.update();
         }).resource(this);
@@ -1568,7 +1568,7 @@ abstract class AbstractMirrorCommand extends Command {
         const gizmo = new MirrorGizmo(mirror, this.editor);
         const dialog = new MirrorDialog(mirror, this.editor.signals);
         const keyboard = new MirrorKeyboardGizmo(this.editor);
-        const picker = new ObjectPicker(this.editor);
+        const objectPicker = new ObjectPicker(this.editor);
         dialog.execute(async params => {
             await mirror.update();
         }).resource(this).then(() => this.finish(), () => this.cancel());
@@ -1585,11 +1585,11 @@ abstract class AbstractMirrorCommand extends Command {
             }
         }).resource(this);
 
-        picker.max = Number.POSITIVE_INFINITY;
-        picker.mode.set(SelectionMode.Face);
-        picker.execute(async face => {
-            if (!(face instanceof visual.Face)) throw new Error("invalid state");
-            mirror.plane = face;
+        objectPicker.max = Number.POSITIVE_INFINITY;
+        objectPicker.mode.set(SelectionMode.Face);
+        objectPicker.execute(async selection => {
+            if (selection.faces.size === 0) return;
+            mirror.plane = selection.faces.first;
             mirror.update();
         }).resource(this);
 
@@ -1736,10 +1736,10 @@ export class TrimCommand extends Command {
         this.editor.layers.showFragments();
         this.ensure(() => this.editor.layers.hideFragments());
 
-        const picker = new ObjectPicker(this.editor);
-        picker.mode.set(SelectionMode.Curve);
-        picker.raycasterParams.Line2.threshold = 30;
-        const selection = await picker.execute().resource(this);
+        const objectPicker = new ObjectPicker(this.editor);
+        objectPicker.mode.set(SelectionMode.Curve);
+        objectPicker.raycasterParams.Line2.threshold = 30;
+        const selection = await objectPicker.execute().resource(this);
         const fragment = selection.curves.first;
         if (fragment === undefined) return;
 
