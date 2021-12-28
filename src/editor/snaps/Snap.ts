@@ -458,7 +458,7 @@ export class AxisSnap extends Snap {
     project(point: THREE.Vector3) {
         const { n, o, orientation } = this;
         const { projection, intersectionPoint } = this;
-        const position = projection.copy(n).multiplyScalar(n.dot(intersectionPoint.copy(point).sub(o))).add(o);
+        const position = projection.copy(n).multiplyScalar(n.dot(intersectionPoint.copy(point).sub(o))).add(o).clone();
         return { position, orientation };
     }
 

@@ -1402,7 +1402,7 @@ export class DraftSolidCommand extends Command {
                     const pointPicker = new PointPicker(this.editor);
                     await pointPicker.execute(({ point: pivot, info: { snap } }) => {
                         const { position, orientation } = snap.project(pivot);
-                        gizmo.position.copy(position);
+                        gizmo.position.copy(pivot);
                         gizmo.quaternion.copy(orientation);
                         draftSolid.pivot = position;
                     }).resource(this);

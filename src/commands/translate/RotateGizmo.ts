@@ -61,7 +61,7 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
                 const quat = original.copy(state.original);
                 quat.multiply(temp.setFromAxisAngle(axis, angle));
                 state.current = quat;
-                params.axis = axis;
+                params.axis = axis.clone().applyQuaternion(this.quaternion);
                 params.angle = angle;
             }
         }
@@ -95,7 +95,7 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
         const eye = new THREE.Vector3();
         eye.copy(camera.position).sub(this.position).normalize();
 
-        this.occludeBackHalf.lookAt(camera.position);
+        this.occludeBackHalf.quaternion.multiplyQuaternions(this.worldQuaternionInv, camera.quaternion);
         this.occludeBackHalf.position.copy(this.screen.position);
         this.occludeBackHalf.position.add(eye.clone().multiplyScalar(-0.01))
         this.occludeBackHalf.updateMatrixWorld();

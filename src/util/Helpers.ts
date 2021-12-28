@@ -14,6 +14,7 @@ export abstract class Helper extends THREE.Object3D {
     readonly eye = new THREE.Vector3();
     readonly worldPosition = new THREE.Vector3();
     readonly worldQuaternion = new THREE.Quaternion();
+    readonly worldQuaternionInv = new THREE.Quaternion();
 
     get shouldRescaleOnZoom() { return this.parent?.type === 'Scene' }
 
@@ -23,6 +24,7 @@ export abstract class Helper extends THREE.Object3D {
         const { worldPosition, worldQuaternion } = this;
         this.getWorldPosition(worldPosition);
         this.getWorldQuaternion(worldQuaternion);
+        this.worldQuaternionInv.copy(worldQuaternion).invert();
 
         this.eye.copy(camera.position).sub(worldPosition).normalize();
     }

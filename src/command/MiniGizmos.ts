@@ -102,8 +102,13 @@ export abstract class CircularGizmo<T> extends AbstractGizmo<(value: T) => void>
     get shouldLookAtCamera() { return true }
 
     update(camera: THREE.Camera) {
-        super.update(camera);
-        if (this.shouldLookAtCamera) this.lookAt(camera.position);
+        if (this.shouldLookAtCamera) {
+            this.quaternion.identity();
+            super.update(camera);
+            this.quaternion.multiplyQuaternions(this.worldQuaternionInv, camera.quaternion);
+        } else {
+            super.update(camera);
+        }
     }
 
     onDeactivate() {
