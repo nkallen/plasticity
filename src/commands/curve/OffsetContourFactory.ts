@@ -128,14 +128,22 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
         const model = item.Cast<c3d.Curve3D>(item.IsA());
         this.model = model;
 
+        const { center, normal } = this.getCenterAndNormal(model);
+        this._center = center;
+        this._normal = normal;
+    }
+
+    private getCenterAndNormal(model: c3d.Curve3D) {
         if (model.IsStraight()) {
             const [start, end] = [point2point(model.GetLimitPoint(1)), point2point(model.GetLimitPoint(2))];
-            this._center = start.clone().add(end).multiplyScalar(0.5);
-            this._normal = start.clone().sub(end).normalize().cross(this.constructionPlane.n).normalize();
+            const center = start.clone().add(end).multiplyScalar(0.5);
+            const normal = start.clone().sub(end).normalize().cross(this.constructionPlane.n).normalize();
+            return { center, normal };
         } else {
             const t = (model.GetTMin() + model.GetTMax()) / 2;
-            this._center = point2point(model.PointOn(t));
-            this._normal = vec2vec(model.Normal(t), 1);
+            const center = point2point(model.PointOn(t));
+            const normal = vec2vec(model.Normal(t), 1);
+            return { center, normal };
         }
     }
 
@@ -144,9 +152,9 @@ export class OffsetSpaceCurveFactory extends GeometryFactory {
         const model = new c3d.Contour3D();
         for (const curve of curves) model.AddCurveWithRuledCheck(curve);
         this.model = model;
-        const t = (model.GetTMin() + model.GetTMax()) / 2;
-        this._center = point2point(model.PointOn(t));
-        this._normal = vec2vec(model.Normal(t), 1);
+        const { center, normal } = this.getCenterAndNormal(model);
+        this._center = center;
+        this._normal = normal;
     }
 
     private names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.Curve3DCreator, this.db.version), c3d.ESides.SideNone, 0)
