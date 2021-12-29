@@ -10,11 +10,12 @@ export interface CutParams {
     mergingFaces: boolean;
     mergingEdges: boolean;
     constructionPlane?: PlaneSnap;
+    axes: ('X' | 'Y' | 'Z')[];
 }
 
 type CutMode = { tag: 'contour', contour: c3d.Contour, placement: c3d.Placement3D } | { tag: 'surface', surface: c3d.Surface }
 
-abstract class AbstractCutFactory extends GeometryFactory implements CutParams {
+abstract class AbstractCutFactory extends GeometryFactory {
     constructionPlane?: PlaneSnap;
     mergingFaces = true;
     mergingEdges = true;
@@ -60,6 +61,11 @@ abstract class AbstractCutFactory extends GeometryFactory implements CutParams {
         } else {
             this.mode = { tag: 'surface', surface }
         }
+    }
+
+    set axis(axis: 'X' | 'Y' | 'Z') {
+        const { contour, placement } = axis2contour_placement[axis];
+        this.mode = { tag: 'contour', contour, placement }
     }
 
     protected async computePhantom() {
@@ -156,7 +162,7 @@ export class SplitFactory extends AbstractCutFactory {
     }
 }
 
-export class CutAndSplitFactory extends GeometryFactory implements CutParams {
+export class CutAndSplitFactory extends GeometryFactory {
     private cut = new CutFactory(this.db, this.materials, this.signals);
     private split = new SplitFactory(this.db, this.materials, this.signals);
 
@@ -223,9 +229,14 @@ export class MultiCutFactory extends GeometryFactory implements CutParams {
         this._curves = result;
     }
 
+    private _axes: ('X' | 'Y' | 'Z')[] = [];
+    set axes(axes: ('X' | 'Y' | 'Z')[]) {
+        this._axes = axes;
+    }
+
     async calculate() {
-        const { _surfaces: surfaces, _curves: curves, models: solids } = this;
-        const cutters = [...surfaces, ...curves];
+        const { _surfaces: surfaces, _curves: curves, models: solids, _axes: axes } = this;
+        const cutters = [...surfaces, ...curves, ...axes];
         let parts: c3d.Solid[] = solids;
         let phantoms: PhantomInfo[] = [];
         for (const cutter of cutters) {
@@ -234,6 +245,7 @@ export class MultiCutFactory extends GeometryFactory implements CutParams {
                 const cut = new CutFactory(this.db, this.materials, this.signals);
                 cut.solid = part;
                 if (cutter instanceof c3d.Surface) cut.surface = cutter;
+                else if (typeof cutter == "string") cut.axis = cutter;
                 else cut.curve = cutter;
                 const promise = cut.calculate().catch(e => [part]);
                 if (i === 0) { // FIXME: this is very ugly
@@ -273,3 +285,23 @@ surface_red.side = THREE.DoubleSide;
 
 const X = new THREE.Vector3(1, 0, 0);
 const Z = new THREE.Vector3(0, 0, 1);
+
+const axis2contour_placement: Record<'X' | 'Y' | 'Z', { contour: c3d.Contour, placement: c3d.Placement3D }> = (() => {
+    const org = new c3d.CartPoint3D(0, 0, 0);
+    const X = new c3d.Vector3D(1, 0, 0);
+    const Y = new c3d.Vector3D(0, 1, 0);
+    const Z = new c3d.Vector3D(0, 0, 1);
+    const line_x = new c3d.Line(new c3d.CartPoint(-1, 0), new c3d.CartPoint(1, 0));
+    const contour_x = new c3d.Contour([line_x], false);
+    const line_y = new c3d.Line(new c3d.CartPoint(0, -1), new c3d.CartPoint(0, 1));
+    const contour_y = new c3d.Contour([line_y], false);
+
+    const z_placement = new c3d.Placement3D(org, Z, false);
+    const x_placement = new c3d.Placement3D(org, X, false);
+
+    return {
+        'X': { contour: contour_y, placement: z_placement },
+        'Y': { contour: contour_x, placement: z_placement },
+        'Z': { contour: contour_x, placement: x_placement },
+    }
+})();

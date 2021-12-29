@@ -24,11 +24,15 @@ beforeEach(() => {
 })
 
 describe(CutFactory, () => {
-    test('takes a cutting curve and a solid and produces a divided solid', async () => {
+    let sphere: visual.Solid;
+    beforeEach(async () => {
         const makeSphere = new SphereFactory(db, materials, signals);
         makeSphere.center = new THREE.Vector3(0, 0, 0);
         makeSphere.radius = 1;
-        const sphere = await makeSphere.commit() as visual.Solid;
+        sphere = await makeSphere.commit() as visual.Solid;
+    })
+
+    test('takes a cutting curve and a solid and produces a divided solid', async () => {
 
         const makeCurve = new CurveFactory(db, materials, signals);
         makeCurve.points.push(new THREE.Vector3(-2, 2, 0));
@@ -45,11 +49,6 @@ describe(CutFactory, () => {
     });
 
     test('works with lines', async () => {
-        const makeSphere = new SphereFactory(db, materials, signals);
-        makeSphere.center = new THREE.Vector3(0, 0, 0);
-        makeSphere.radius = 1;
-        const sphere = await makeSphere.commit() as visual.Solid;
-
         const makeLine = new CurveFactory(db, materials, signals);
         makeLine.points.push(new THREE.Vector3(-2, -2, 0));
         makeLine.points.push(new THREE.Vector3(2, 2, 0));
@@ -65,16 +64,11 @@ describe(CutFactory, () => {
     });
 
     test('works with faces', async () => {
-        const makeSphere = new SphereFactory(db, materials, signals);
-        makeSphere.center = new THREE.Vector3(0, 0, 0);
-        makeSphere.radius = 2;
-        const sphere = await makeSphere.commit() as visual.Solid;
-
         const makeBox = new ThreePointBoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();
-        makeBox.p2 = new THREE.Vector3(1, 0, 0);
-        makeBox.p3 = new THREE.Vector3(1, 1, 0);
-        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        makeBox.p2 = new THREE.Vector3(0.5, 0, 0);
+        makeBox.p3 = new THREE.Vector3(0.5, 0.5, 0);
+        makeBox.p4 = new THREE.Vector3(0.5, 0.5, 0.5);
         const box = await makeBox.commit() as visual.Solid;
 
         const cut = new CutFactory(db, materials, signals);
@@ -85,6 +79,15 @@ describe(CutFactory, () => {
 
         expect(result.length).toBe(2);
     });
+
+    test('works with axes', async () => {
+        const cut = new CutFactory(db, materials, signals);
+        cut.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+        cut.solid = sphere;
+        cut.axis = 'X';
+        const result = await cut.commit() as visual.SpaceItem[];
+        expect(result.length).toBe(2);
+    })
 });
 
 describe(SplitFactory, () => {

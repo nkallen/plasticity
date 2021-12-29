@@ -18,6 +18,7 @@ import { BooleanDialog, CutDialog } from "./boolean/BooleanDialog";
 import { MovingBooleanFactory, MovingDifferenceFactory, MovingIntersectionFactory, MovingUnionFactory } from './boolean/BooleanFactory';
 import { BooleanKeyboardGizmo } from "./boolean/BooleanKeyboardGizmo";
 import { MultiCutFactory } from "./boolean/CutFactory";
+import { CutGizmo } from "./boolean/CutGizmo";
 import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, PossiblyBooleanThreePointBoxFactory } from './box/BoxFactory';
 import { CharacterCurveDialog } from "./character-curve/CharacterCurveDialog";
 import CharacterCurveFactory from "./character-curve/CharacterCurveFactory";
@@ -1161,9 +1162,14 @@ export class CutCommand extends Command {
         const cut = new MultiCutFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         cut.constructionPlane = this.editor.activeViewport?.constructionPlane;
 
+        const gizmo = new CutGizmo(cut, this.editor);
         const dialog = new CutDialog(cut, this.editor.signals);
 
         dialog.execute(async params => {
+            await cut.update();
+        }).resource(this);
+
+        gizmo.execute(async params => {
             await cut.update();
         }).resource(this);
 

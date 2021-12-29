@@ -71,6 +71,7 @@
 - picture in viewport  
 - start fillet a priori  
 - cut body: select edge after starting command  
+- focus topology  
 
 ### In Progress
 
