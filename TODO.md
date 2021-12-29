@@ -4,6 +4,13 @@
 
 ### Backlog
 
+- cut body: select edge after starting command  
+- upper-left box select of straight lines is too eager  
+- focus topology  
+- move snapmanagergeometrycache to editor  
+- when you shift a helper leave it visible  
+- select all of type  
+- bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
 - separate floor from grid  
 - orbit above top  
 - ctrl in object select should temporarily enable everything (point solid etc)  
@@ -16,7 +23,9 @@
 - copy fillet radius by clicking on another fillet surface  
 - bug: box selected, while mouse down, zoom  
 - Fusion-like multigizmo  
+- Solid cut by face: face cutter offset along normal  
 - [ ] perf: get rid of traverse in viewport -- use separate pass without overwriting depth  
+- picture in viewport  
 - [ ] PointPicker: CHOICE should allow points to be projected even if they don't strictly match the restriction  
 - [ ] ProxyCamera/LOD: write custom :: const distance = _v1.distanceTo( _v2 ) / camera.zoom;  
 - [ ] Audit re-used icons  
@@ -60,25 +69,18 @@
 
 - offset multiple at once  
 - extrude multiple regions at once  
-- bug: select face, change mode to solid, shift select solid. face is still selected but shouldn't be  
-- when you shift a helper leave it visible  
-- select all of type  
-- move snapmanagergeometrycache to editor  
-- [ ] circle angle gizmo when far off from center not facing camera  
 - trim should allow deleting a line  
-- upper-left box select of straight lines is too eager  
-- Solid cut by face: face cutter offset along normal  
-- picture in viewport  
 - start fillet a priori  
-- cut body: select edge after starting command  
-- focus topology  
 
 ### In Progress
 
 - set pivot of rotate gizmo  
+- extrude performance bug params post  
 
 ### Done ✓
 
+- [x] circle angle gizmo when far off from center not facing camera  
+- cut gizmo  
 - raycasting at bottom of a box still annoying  
 - floor needs fog  
 - mirror bugs  

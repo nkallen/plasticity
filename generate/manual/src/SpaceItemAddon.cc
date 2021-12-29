@@ -187,6 +187,10 @@ Napi::Value SurfaceIntersectionCurve::Cast(const Napi::CallbackInfo &info)
     return cast(this->_underlying, info);
 }
 
+Napi::Value ContourOnPlane::Cast(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
 
 // THESE ARE FAKE ASYNC IMPLEMENTATIONS TO GET THE COMPILER TO STOP COMPLAINING
 
@@ -236,6 +240,11 @@ Napi::Value LineSegment3D::Cast_async(const Napi::CallbackInfo &info)
 }
 
 Napi::Value SurfaceIntersectionCurve::Cast_async(const Napi::CallbackInfo &info)
+{
+    return cast(this->_underlying, info);
+}
+
+Napi::Value ContourOnPlane::Cast_async(const Napi::CallbackInfo &info)
 {
     return cast(this->_underlying, info);
 }

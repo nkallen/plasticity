@@ -912,7 +912,8 @@ export default {
                 "const MbPlane & plane",
             ],
             functions: [
-                "const MbPlacement3D & GetPlacement()"
+                "const MbPlacement3D & GetPlacement()",
+                { signature: "MbItem * Cast()", isManual: true },
             ]
         },
         OrientedEdge: {

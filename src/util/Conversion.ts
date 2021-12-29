@@ -329,6 +329,16 @@ export async function normalizeCurve(curve: c3d.Curve3D): Promise<c3d.Contour3D>
                 process.unshift(cast.GetSpaceCurve()!);
                 break;
             }
+            case c3d.SpaceType.ContourOnPlane: {
+                const cast = item.Cast<c3d.ContourOnPlane>(item.IsA());
+                const placement = cast.GetPlacement();
+                const contour = cast.GetContour();
+                for (let i = 0, l = contour.GetSegmentsCount(); i < l; i++) {
+                    const segment = contour.GetSegment(i)!;
+                    process.push(new c3d.PlaneCurve(placement, segment, false))
+                }
+                break;
+            }
             default:
                 result.AddCurveWithRuledCheck(item.Duplicate().Cast<c3d.Curve3D>(item.IsA()), 10e-5, true);
         }

@@ -376,7 +376,6 @@ describe('normalizeCurve', () => {
             makeLine1.p2 = new THREE.Vector3(-1, 0, 1);
             line1 = await makeLine1.commit() as visual.SpaceInstance<visual.Curve3D>;
 
-
             const makeArc1 = new CenterPointArcFactory(db, materials, signals);
             makeArc1.center = new THREE.Vector3(0, 0, 1);
             makeArc1.p2 = new THREE.Vector3(-1, 0, 1);
@@ -407,6 +406,18 @@ describe('normalizeCurve', () => {
             const normalized = await normalizeCurve(model);
             expect(normalized.IsClosed()).toBe(false);
             expect(normalized.GetSegmentsCount()).toBe(3);
+        })
+    })
+
+    describe('contour on plane', () => {
+        it('works', async () => {
+            const line1 = new c3d.LineSegment(new c3d.CartPoint(0, 0), new c3d.CartPoint(0, 1));
+            const line2 = new c3d.LineSegment(new c3d.CartPoint(0, 1), new c3d.CartPoint(2, 1));
+            const plane = new c3d.Plane(new c3d.CartPoint3D(0, 0, 0), new c3d.CartPoint3D(0, 1, 0), new c3d.CartPoint3D(1, 1, 0));
+            const contour = new c3d.ContourOnPlane(plane, new c3d.Contour([line1, line2], false), false);
+            const normalized = await normalizeCurve(contour);
+            expect(normalized.IsClosed()).toBe(false);
+            expect(normalized.GetSegmentsCount()).toBe(2);
         })
     })
 })
