@@ -74,11 +74,11 @@
 
 ### In Progress
 
-- raycasting at bottom of a box still annoying  
 - set pivot of rotate gizmo  
 
 ### Done ✓
 
+- raycasting at bottom of a box still annoying  
 - floor needs fog  
 - mirror bugs  
 - shift/choice for faces  
