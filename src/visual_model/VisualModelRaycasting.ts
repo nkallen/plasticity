@@ -97,34 +97,35 @@ Solids: {
 		const threshold = ( 'Line2' in raycasterParams !== undefined ) ? raycasterParams.Line2.threshold || 0 : 0;
         linewidth += threshold;
 
-        _inverseMatrix.copy(matrixWorld).invert();
-        _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
-
         BoundingSphere: {
             if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
             _sphere.copy(geometry.boundingSphere!);
+            _sphere.applyMatrix4(matrixWorld);
 
-            const distanceToSphere = Math.max(camera.near, _sphere.distanceToPoint(_ray.origin)); // increase the sphere bounds by the worst case line screen space width
+            const distanceToSphere = Math.max(camera.near, _sphere.distanceToPoint(raycaster.ray.origin)); // increase the sphere bounds by the worst case line screen space width
             _clipToWorldVector.set(0, 0, - distanceToSphere, 1.0).applyMatrix4(camera.projectionMatrix);
             _clipToWorldVector.multiplyScalar(1.0 / _clipToWorldVector.w);
             _clipToWorldVector.applyMatrix4(camera.projectionMatrixInverse); // increase the sphere bounds by the worst case line screen space width
             const sphereMargin = getWorldSpaceHalfWidth(camera, distanceToSphere, linewidth, resolution);
             _sphere.radius += sphereMargin;
-            if (!_ray.intersectsSphere(_sphere)) return;
+            if (!raycaster.ray.intersectsSphere(_sphere)) return;
         }
 
         BoundingBox: {
             if (geometry.boundingBox === null) geometry.computeBoundingBox();
             _box.copy(geometry.boundingBox!);
-            const distanceToBox = Math.max(camera.near, _box.distanceToPoint(_ray.origin)); // increase the box bounds by the worst case line screen space width
-            const boxMargin = getWorldSpaceHalfWidth(camera, distanceToBox, linewidth, resolution);
+            _box.applyMatrix4(matrixWorld);
+
+            const distanceToBox = Math.max(camera.near, _box.distanceToPoint(raycaster.ray.origin)); // increase the box bounds by the worst case line screen space width
+            const boxMargin = getWorldSpaceHalfWidth(camera, distanceToBox, linewidth, resolution) + 10;
+            console.log(boxMargin);
             _box.max.x += boxMargin;
             _box.max.y += boxMargin;
             _box.max.z += boxMargin;
             _box.min.x -= boxMargin;
             _box.min.y -= boxMargin;
             _box.min.z -= boxMargin;
-            if (!_ray.intersectsBox(_box)) return;
+            if (!raycaster.ray.intersectsBox(_box)) return;
         }
 
         raycaster.intersectObjects([...this], false, intersects);

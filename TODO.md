@@ -5,7 +5,6 @@
 ### Backlog
 
 - separate floor from grid  
-- floor needs fog  
 - orbit above top  
 - ctrl in object select should temporarily enable everything (point solid etc)  
 - popup quickmenu a la fusion  
@@ -75,11 +74,13 @@
 
 ### In Progress
 
-- mirror bugs  
+- raycasting at bottom of a box still annoying  
 - set pivot of rotate gizmo  
 
 ### Done ✓
 
+- floor needs fog  
+- mirror bugs  
 - shift/choice for faces  
 - gizmo for fillet and extrude have objective sizes  
 - orbit: pan vertical mushinesss  
