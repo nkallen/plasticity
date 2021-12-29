@@ -118,7 +118,6 @@ Solids: {
 
             const distanceToBox = Math.max(camera.near, _box.distanceToPoint(raycaster.ray.origin)); // increase the box bounds by the worst case line screen space width
             const boxMargin = getWorldSpaceHalfWidth(camera, distanceToBox, linewidth, resolution) + 10;
-            console.log(boxMargin);
             _box.max.x += boxMargin;
             _box.max.y += boxMargin;
             _box.max.z += boxMargin;
