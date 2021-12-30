@@ -57,7 +57,7 @@ import { MirrorKeyboardGizmo } from "./mirror/MirrorKeyboardGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceDialog } from "./modifyface/OffsetFaceDialog";
-import { OffsetOrThickFaceFactory } from "./modifyface/OffsetFaceFactory";
+import { MultiOffsetFactory, OffsetOrThickFaceFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import { OffsetFaceKeyboardGizmo } from "./modifyface/OffsetFaceKeyboardGizmo";
 import { RefilletGizmo } from "./modifyface/RefilletGizmo";
@@ -1316,21 +1316,16 @@ export class OffsetFaceCommand extends Command {
     point?: THREE.Vector3
 
     async execute(): Promise<void> {
+        const offset = new MultiOffsetFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         const faces = [...this.editor.selection.selected.faces];
-        const parent = faces[0].parentItem as visual.Solid;
-
-        const offset = new OffsetOrThickFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-
-        const factory = offset;
-        factory.solid = parent;
-        factory.faces = faces;
+        offset.faces = faces;
 
         const gizmo = new OffsetFaceGizmo(offset, this.editor, this.point);
         const dialog = new OffsetFaceDialog(offset, this.editor.signals);
         const keyboard = new OffsetFaceKeyboardGizmo(this.editor);
 
         gizmo.execute(async params => {
-            await factory.update();
+            await offset.update();
             dialog.render();
         }).resource(this);
 
@@ -1348,8 +1343,8 @@ export class OffsetFaceCommand extends Command {
 
         await this.finished;
 
-        const result = await factory.commit() as visual.Solid;
-        this.editor.selection.selected.addSolid(result);
+        const results = await offset.commit() as visual.Solid[];
+        this.editor.selection.selected.add(results);
     }
 }
 

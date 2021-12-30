@@ -71,14 +71,17 @@
 - extrude multiple regions at once  
 - trim should allow deleting a line  
 - start fillet a priori  
+- ortho cube goes to ortho mode  
+- disable fillet dialog while in gizmo  
 
 ### In Progress
 
+- another mirror bug  
 - set pivot of rotate gizmo  
-- extrude performance bug params post  
 
 ### Done ✓
 
+- extrude performance bug params post  
 - [x] circle angle gizmo when far off from center not facing camera  
 - cut gizmo  
 - raycasting at bottom of a box still annoying  

@@ -25,7 +25,8 @@
             "*": [
                 "node_modules/*"
             ]
-        }
+        },
+        "experimentalDecorators": true,
     },
     "include": [
         "src/**/*",

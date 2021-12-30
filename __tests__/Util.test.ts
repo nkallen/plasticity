@@ -61,7 +61,7 @@ describe('WeakValueMap', () => {
     });
 
     test('incr/decr creates and deletes', () => {
-        let x = {};
+        let x: any = {};
         expect(map.get("foo")).toBeUndefined();
         map.set("foo", x);
         expect(map.get("foo")).toBe(x);

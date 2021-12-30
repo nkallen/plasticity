@@ -1,10 +1,13 @@
+import "reflect-metadata";
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
+import { delegate } from "../../command/FactoryBuilder";
+import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
+import { groupBy, MultiGeometryFactory } from '../../command/MultiFactory';
 import { composeMainName, vec2vec } from '../../util/Conversion';
-import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
+import * as visual from "../../visual_model/VisualModel";
 import { ThickFaceFactory } from '../thin-solid/ThinSolidFactory';
 import { ModifyFaceFactory } from './ModifyFaceFactory';
-import * as visual from "../../visual_model/VisualModel";
 
 export interface OffsetFaceParams {
     distance: number;
@@ -73,58 +76,49 @@ export class OffsetFaceFactory extends ModifyFaceFactory implements OffsetFacePa
     }
 }
 
-export class OffsetOrThickFaceFactory extends GeometryFactory implements OffsetFaceParams {
+interface OffsetOrThickFaceParams extends OffsetFaceParams {
+    toggle(): void;
+}
+
+export class OffsetOrThickFaceFactory extends GeometryFactory implements OffsetOrThickFaceParams {
     private readonly offset = new OffsetFaceFactory(this.db, this.materials, this.signals);
-    
-    newBody = false;
+
+    private newBody = false;
     async toggle() {
         this.newBody = !this.newBody
-        if (this.newBody) {
-
-        }
     }
-    
+
     private _solid!: visual.Solid;
     get solid() { return this._solid }
     set solid(solid: visual.Solid) {
         this._solid = solid;
         this.offset.solid = solid;
     }
-    
+
     get faces() { return this.offset.faces }
     set faces(faces: visual.Face[]) {
         this.offset.faces = faces;
     }
-    
+
     private _distance = 0;
     get distance() { return this._distance }
     set distance(distance: number) {
         this.offset.distance = distance;
         this._distance = distance;
     }
-    
+
     get angle() { return this.offset.angle }
     set angle(angle: number) {
         this.offset.angle = angle;
     }
-    
+
     private thickened?: { solid: c3d.Solid, sign: boolean, faces: c3d.Face[] };
 
     async calculate() {
         const { newBody, solid, offset, distance, faces } = this;
         if (newBody) {
-            const sign = distance > 0;
-            if (this.thickened === undefined || this.thickened.sign !== sign) {
-                const thicken = new ThickFaceFactory(this.db, this.materials, this.signals);
-                thicken.solid = solid;
-                thicken.faces = offset.faces;
-                if (sign) thicken.thickness1 = 10e-6
-                else thicken.thickness2 = 10e-6;
-                const thickenedSolid = await thicken.calculate();
-                const thickenedFaces = thickenedSolid.GetFaces().slice(0, faces.length);
-                this.thickened = { solid: thickenedSolid, sign, faces: thickenedFaces }
-            }
-            const { solid: thickenedSolid, faces: thickenedFaces } = this.thickened;
+            await this.computeThickener();
+            const { solid: thickenedSolid, faces: thickenedFaces } = this.thickened!;
             this.offset.solid = thickenedSolid;
             this.offset.faces = thickenedFaces;
             this.offset.distance = Math.abs(distance);
@@ -135,9 +129,51 @@ export class OffsetOrThickFaceFactory extends GeometryFactory implements OffsetF
         }
     }
 
+    private async computeThickener() {
+        const { solid, offset, distance, faces } = this;
+        const sign = distance > 0;
+        if (this.thickened === undefined || this.thickened.sign !== sign) {
+            const thicken = new ThickFaceFactory(this.db, this.materials, this.signals);
+            thicken.solid = solid;
+            thicken.faces = offset.faces;
+            if (sign) thicken.thickness1 = 10e-6;
+            else thicken.thickness2 = 10e-6;
+            const thickenedSolid = await thicken.calculate();
+            const thickenedFaces = thickenedSolid.GetFaces().slice(0, faces.length);
+            this.thickened = { solid: thickenedSolid, sign, faces: thickenedFaces };
+        }
+    }
+
     get originalItem() {
         if (!this.newBody) return this.offset.originalItem
     }
+
+    get phantoms() { return super.phantoms }
+}
+
+export class MultiOffsetFactory extends MultiGeometryFactory<OffsetOrThickFaceFactory> {
+    @delegate(0)
+    distance!: number;
+
+    @delegate(0)
+    angle!: number;
+
+    private _faces!: visual.Face[];
+    get faces() { return this._faces }
+    set faces(faces: visual.Face[]) {
+        this._faces = faces;
+        const individuals = [];
+        const map = groupBy('parentItem', faces);
+        for (const [solid, faces] of map.entries()) {
+            const individual = new OffsetOrThickFaceFactory(this.db, this.materials, this.signals);
+            individual.solid = solid;
+            individual.faces = faces;
+            individuals.push(individual);
+        }
+        this.individuals = individuals;
+    }
+
+    toggle() { this.individuals.forEach(i => i.toggle()) }
 }
 
 export class FaceCollector {

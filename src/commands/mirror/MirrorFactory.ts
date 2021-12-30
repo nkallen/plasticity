@@ -1,10 +1,10 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
+import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
+import { MultiGeometryFactory } from "../../command/MultiFactory";
 import { MaterialOverride, TemporaryObject } from '../../editor/GeometryDatabase';
 import { composeMainName, point2point, vec2vec } from '../../util/Conversion';
 import * as visual from '../../visual_model/VisualModel';
-import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
-import { assertUnreachable } from "../../util/Util";
 
 export interface MirrorParams {
     shouldCut: boolean;
@@ -224,7 +224,6 @@ export class SymmetryFactory extends GeometryFactory {
 
     get originalItem() { return this.solid }
 
-
     toJSON() {
         return {
             dataType: 'SymmetryFactory',
@@ -249,9 +248,7 @@ export class SymmetryFactory extends GeometryFactory {
     }
 }
 
-export class MultiSymmetryFactory extends GeometryFactory implements MirrorParams {
-    private individuals!: SymmetryFactory[];
-
+export class MultiSymmetryFactory extends MultiGeometryFactory<SymmetryFactory> implements MirrorParams {
     set solids(solids: visual.Solid[]) {
         const individuals = [];
         for (const solid of solids) {
@@ -261,45 +258,28 @@ export class MultiSymmetryFactory extends GeometryFactory implements MirrorParam
         }
         this.individuals = individuals;
     }
-
-    _shouldCut = true;
-    _shouldUnion = false;
-
+    
+    private _shouldCut = true;
     get shouldCut() { return this._shouldCut }
     set shouldCut(shouldCut: boolean) {
         this._shouldCut = shouldCut;
         this.individuals.forEach(i => i.shouldCut = shouldCut)
     }
 
+    private _shouldUnion = false;
     get shouldUnion() { return this._shouldUnion }
     set shouldUnion(shouldUnion: boolean) {
         this._shouldUnion = shouldUnion;
         this.individuals.forEach(i => i.shouldUnion = shouldUnion)
     }
+
     set origin(origin: THREE.Vector3) { this.individuals.forEach(i => i.origin = origin) }
     set quaternion(quaternion: THREE.Quaternion) { this.individuals.forEach(i => i.quaternion = quaternion) }
     set normal(normal: THREE.Vector3) { this.individuals.forEach(i => i.normal = normal) }
     set plane(face: visual.Face) { this.individuals.forEach(i => i.plane = face) }
 
-    async calculate() {
-        const { individuals } = this;
-        const result = [];
-        for (const individual of individuals) {
-            result.push(individual.calculate());
-        }
-        return (await Promise.all(result)).flat();
-    }
-
-    protected get phantoms(): PhantomInfo[] {
-        return this.individuals.map(i => i.phantoms).flat();
-    }
-
-    protected get originalItem() {
-        return this.individuals.map(i => i.originalItem);
-    }
-
-    get shouldHideOriginalItemDuringUpdate() { return this.shouldCut || this._shouldUnion }
-    get shouldRemoveOriginalItemOnCommit() { return this.shouldCut || this._shouldUnion }
+    get shouldHideOriginalItemDuringUpdate() { return this.shouldCut || this.shouldUnion }
+    get shouldRemoveOriginalItemOnCommit() { return this.shouldCut || this.shouldUnion }
 }
 
 const mesh_blue = new THREE.MeshBasicMaterial();

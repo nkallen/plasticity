@@ -4,6 +4,7 @@ import { DisposableLike } from "event-kit";
 
 export type Constructor = new (...args: any[]) => {};
 export type GConstructor<T = {}> = new (...args: any[]) => T;
+export type AGConstructor<T = {}> = abstract new (...args: any[]) => T;
 
 export type CreateMutable<Type> = {
     -readonly [Property in keyof Type]: Type[Property];

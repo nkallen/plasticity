@@ -230,8 +230,6 @@ export abstract class AbstractGeometryFactory extends CancellableRegisterable {
 }
 
 export abstract class GeometryFactory extends AbstractGeometryFactory {
-    private readonly queue = new SequentialExecutor();
-
     async update() {
         switch (this.state.tag) {
             case 'none':

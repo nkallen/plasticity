@@ -220,6 +220,7 @@ export default {
 
         "shift-A": "command:deselect-all",
         "alt-A": "command:deselect-all",
+        "escape": "command:deselect-all",
     },
 
     "orbit-controls": {
