@@ -1,6 +1,7 @@
 import * as gizmo from '../command/AbstractGizmo';
 import Command, * as cmd from '../command/Command';
-import { ExtrudeCommand, FilletSolidCommand, ModifyContourCommand, ModifyFaceCommand } from '../commands/GeometryCommands';
+import { FilletSolidCommand, ModifyContourCommand, ModifyFaceCommand } from '../commands/GeometryCommands';
+import { ExtrudeCommand } from "../commands/extrude/ExtrudeCommand";
 import { DatabaseLike } from '../editor/GeometryDatabase';
 import MaterialDatabase from '../editor/MaterialDatabase';
 import { ClickChangeSelectionCommand } from '../selection/ViewportSelector';

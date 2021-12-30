@@ -375,11 +375,10 @@ export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExt
 
     @delegate newBody!: boolean;
     @delegate operationType!: c3d.OperationType;
+    @delegate.some get shouldRemoveOriginalItemOnCommit() { return true }
+    @delegate.get isOverlapping!: boolean;
 
     @delegate.get center!: THREE.Vector3;
     @delegate.get direction!: THREE.Vector3;
-    @delegate isOverlapping!: boolean;
     @delegate extruded!: visual.Face
-
-    @delegate.some get shouldRemoveOriginalItemOnCommit() { return true }
 }
