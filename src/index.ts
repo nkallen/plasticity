@@ -31,6 +31,7 @@ const createWindow = (): void => {
         x: 0,
         y: 0,
         show: false,
+        backgroundColor: '#2e2c29',
         webPreferences: {
             // preload: path.join(path.join(__dirname, 'preload.js')),
             nodeIntegration: true,
@@ -59,9 +60,7 @@ app.on('ready', createWindow);
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-    if (isMac) {
-        app.quit();
-    }
+    if (isMac) app.quit();
 });
 
 app.on('activate', () => {

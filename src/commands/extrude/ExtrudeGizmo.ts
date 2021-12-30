@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { AbstractAxialScaleGizmo, AngleGizmo, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine } from "../../command/MiniGizmos";
+import { AbstractAxialScaleGizmo, AngleGizmo, AxisHelper, boxGeometry, DistanceGizmo, lineGeometry, MagnitudeStateMachine } from "../../command/MiniGizmos";
 import { ExtrudeParams } from "./ExtrudeFactory";
 
 const Z = new THREE.Vector3(0, 0, 1);

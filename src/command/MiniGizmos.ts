@@ -392,10 +392,12 @@ export class DistanceGizmo extends AbstractAxisGizmo {
     protected readonly shaft = new Line2(lineGeometry, this.editor.gizmos.default.line2);
     protected readonly knob = new THREE.Mesh(new THREE.SphereGeometry(0.2), this.editor.gizmos.invisible);
     protected material = this.editor.gizmos.default;
+    readonly helper = new AxisHelper(this.material.line);
 
     constructor(name: string, editor: EditorLike) {
         super(name, editor);
         this.setup();
+        this.add(this.helper);
     }
 
     render(length: number) {

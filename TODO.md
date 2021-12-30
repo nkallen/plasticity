@@ -67,8 +67,6 @@
 
 ### Todo
 
-- offset multiple at once  
-- extrude multiple regions at once  
 - trim should allow deleting a line  
 - start fillet a priori  
 - ortho cube goes to ortho mode  
@@ -81,6 +79,8 @@
 
 ### Done ✓
 
+- extrude multiple regions at once  
+- offset multiple at once  
 - extrude performance bug params post  
 - [x] circle angle gizmo when far off from center not facing camera  
 - cut gizmo  
