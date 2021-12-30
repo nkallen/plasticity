@@ -9,24 +9,24 @@ export interface FactoryHelpers {
 export type MultiplyableFactory = GeometryFactory & FactoryHelpers;
 
 export class MultiGeometryFactory<T extends MultiplyableFactory> extends GeometryFactory {
-    protected individuals!: T[];
+    factories!: T[];
 
     async calculate() {
-        const { individuals } = this;
+        const { factories } = this;
         const result = [];
-        for (const individual of individuals) {
-            result.push(individual.calculate());
+        for (const factory of factories) {
+            result.push(factory.calculate());
         }
         return (await Promise.all(result)).flat();
     }
 
     protected get phantoms(): PhantomInfo[] {
-        return this.individuals.map(i => i.phantoms).flat();
+        return this.factories.map(i => i.phantoms).flat();
     }
 
     protected get originalItem(): visual.Item[] {
         let result: visual.Item[] = [];
-        for (const i of this.individuals) {
+        for (const i of this.factories) {
             const original = i.originalItem;
             if (original === undefined) continue;
             else if (original instanceof visual.Item) result.push(original);

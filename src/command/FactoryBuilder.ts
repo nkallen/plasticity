@@ -1,16 +1,49 @@
-import { MultiGeometryFactory, MultiplyableFactory } from './MultiFactory';
+import { GeometryFactory } from './GeometryFactory';
 
-export function delegate(initial?: number) {
-    return function <T extends MultiplyableFactory>(target: MultiGeometryFactory<T>, propertyKey: keyof T) {
-        let value: any = initial;
+export function delegate<T extends GeometryFactory>(target: GeometryFactory & { factories: T[] }, propertyKey: keyof T) {
+    let value: any;
+    Object.defineProperty(target, propertyKey, {
+        get() { return value },
+        set(t: any) {
+            value = t;
+            const that = this as GeometryFactory & { factories: T[] };
+            const factories = that['factories'] as T[];
+            factories.forEach(i => i[propertyKey] = t);
+        }
+    })
+}
+
+delegate.default = function (initial?: any) {
+    return function <T extends GeometryFactory>(target: GeometryFactory & { factories: T[] }, propertyKey: keyof T) {
+        let value = initial;
         Object.defineProperty(target, propertyKey, {
             get() { return value },
             set(t: any) {
                 value = t;
-                const that = this as MultiGeometryFactory<T>;
-                const individuals = that['individuals'] as MultiGeometryFactory<T>['individuals'];
-                individuals.forEach(i => i[propertyKey] = t);
+                const that = this as GeometryFactory & { factories: T[] };
+                const factories = that['factories'] as T[];
+                factories.forEach(i => i[propertyKey] = t);
             }
         })
     }
+}
+
+delegate.some = function <T extends GeometryFactory>(target: GeometryFactory & { factories: T[] }, propertyKey: keyof T) {
+    Object.defineProperty(target, propertyKey, {
+        get() {
+            const that = this as GeometryFactory & { factories: T[] };
+            const factories = that['factories'] as T[];
+            factories.some(f => f[propertyKey]);
+        }
+    })
+}
+
+delegate.get = function <T extends GeometryFactory>(target: GeometryFactory & { factories: T[] }, propertyKey: keyof T) {
+    Object.defineProperty(target, propertyKey, {
+        get() {
+            const that = this as GeometryFactory & { factories: T[] };
+            const factories = that['factories'] as T[];
+            return factories[factories.length - 1][propertyKey];
+        }
+    })
 }

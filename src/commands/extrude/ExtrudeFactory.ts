@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import * as visual from '../../visual_model/VisualModel';
-import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
-import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
+import { delegate } from "../../command/FactoryBuilder";
 import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
+import { MultiGeometryFactory, MultiplyableFactory } from "../../command/MultiFactory";
+import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
+import * as visual from '../../visual_model/VisualModel';
+import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
 
 export interface ExtrudeParams {
     distance1: number;
@@ -315,7 +317,7 @@ export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
     }
 }
 
-export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<ExtrudeFactory> implements ExtrudeParams {
+export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<ExtrudeFactory> implements ExtrudeParams, MultiplyableFactory {
     protected bool = new ExtrudeFactory(this.db, this.materials, this.signals);
     protected fantom = new ExtrudeFactory(this.db, this.materials, this.signals);
 
@@ -348,4 +350,36 @@ export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<Extrud
 
     set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.fantom.region = region }
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) { this.bool.curves = curves; this.fantom.curves = curves }
+
+    get phantoms() { return super.phantoms }
+}
+
+export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExtrudeFactory> implements ExtrudeParams {
+    set regions(regions: visual.PlaneInstance<visual.Region>[]) {
+        const factories = [];
+        for (const region of regions) {
+            const factory = new PossiblyBooleanExtrudeFactory(this.db, this.materials, this.signals);
+            factory.region = region;
+            factories.push(factory);
+        }
+        this.factories = factories;
+    }
+
+    @delegate solid!: visual.Solid;
+    @delegate.default(0) distance1!: number;
+    @delegate.default(0) distance2!: number;
+    @delegate.default(0) race1!: number;
+    @delegate.default(0) race2!: number;
+    @delegate.default(0) thickness1!: number;
+    @delegate.default(0) thickness2!: number;
+
+    @delegate newBody!: boolean;
+    @delegate operationType!: c3d.OperationType;
+
+    @delegate.get center!: THREE.Vector3;
+    @delegate.get direction!: THREE.Vector3;
+    @delegate isOverlapping!: boolean;
+    @delegate extruded!: visual.Face
+
+    @delegate.some get shouldRemoveOriginalItemOnCommit() { return true }
 }

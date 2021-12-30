@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
+import { delegate } from "../../command/FactoryBuilder";
 import { GeometryFactory, NoOpError, PhantomInfo } from '../../command/GeometryFactory';
 import { MultiGeometryFactory } from "../../command/MultiFactory";
 import { MaterialOverride, TemporaryObject } from '../../editor/GeometryDatabase';
@@ -250,33 +251,21 @@ export class SymmetryFactory extends GeometryFactory {
 
 export class MultiSymmetryFactory extends MultiGeometryFactory<SymmetryFactory> implements MirrorParams {
     set solids(solids: visual.Solid[]) {
-        const individuals = [];
+        const factories = [];
         for (const solid of solids) {
-            const individual = new SymmetryFactory(this.db, this.materials, this.signals);
-            individual.solid = solid;
-            individuals.push(individual);
+            const factory = new SymmetryFactory(this.db, this.materials, this.signals);
+            factory.solid = solid;
+            factories.push(factory);
         }
-        this.individuals = individuals;
+        this.factories = factories;
     }
     
-    private _shouldCut = true;
-    get shouldCut() { return this._shouldCut }
-    set shouldCut(shouldCut: boolean) {
-        this._shouldCut = shouldCut;
-        this.individuals.forEach(i => i.shouldCut = shouldCut)
-    }
-
-    private _shouldUnion = false;
-    get shouldUnion() { return this._shouldUnion }
-    set shouldUnion(shouldUnion: boolean) {
-        this._shouldUnion = shouldUnion;
-        this.individuals.forEach(i => i.shouldUnion = shouldUnion)
-    }
-
-    set origin(origin: THREE.Vector3) { this.individuals.forEach(i => i.origin = origin) }
-    set quaternion(quaternion: THREE.Quaternion) { this.individuals.forEach(i => i.quaternion = quaternion) }
-    set normal(normal: THREE.Vector3) { this.individuals.forEach(i => i.normal = normal) }
-    set plane(face: visual.Face) { this.individuals.forEach(i => i.plane = face) }
+    @delegate.default(true) shouldCut!: boolean;
+    @delegate.default(false) shouldUnion!: boolean;
+    @delegate origin!: THREE.Vector3;
+    @delegate quaternion!: THREE.Quaternion;
+    @delegate normal!: THREE.Vector3;
+    @delegate plane!: visual.Face;
 
     get shouldHideOriginalItemDuringUpdate() { return this.shouldCut || this.shouldUnion }
     get shouldRemoveOriginalItemOnCommit() { return this.shouldCut || this.shouldUnion }

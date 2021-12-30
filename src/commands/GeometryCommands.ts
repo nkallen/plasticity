@@ -42,7 +42,7 @@ import { ExtensionShellDialog } from "./extend/ExtensionShellDialog";
 import ExtensionShellFactory from "./extend/ExtensionShellFactory";
 import { ExtensionShellGizmo } from "./extend/ExtensionShellGizmo";
 import { ExtrudeDialog } from "./extrude/ExtrudeDialog";
-import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
+import { MultiExtrudeFactory, PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { ExtrudeGizmo } from "./extrude/ExtrudeGizmo";
 import { FilletDialog } from "./fillet/FilletDialog";
 import { MaxFilletFactory } from './fillet/FilletFactory';
@@ -1513,11 +1513,11 @@ export class ExtrudeCommand extends Command {
 
     async execute(): Promise<void> {
         const selected = this.editor.selection.selected;
-        const extrude = new PossiblyBooleanExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        const extrude = new MultiExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        extrude.regions = [...selected.regions];
         extrude.solid = selected.solids.first;
-        extrude.curves = [...selected.curves];
-        if (selected.faces.size > 0) extrude.face = selected.faces.first;
-        extrude.region = selected.regions.first;
+        // extrude.curves = [...selected.curves];
+        // if (selected.faces.size > 0) extrude.face = selected.faces.first;
 
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
         const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
@@ -1540,9 +1540,8 @@ export class ExtrudeCommand extends Command {
 
         await this.finished;
 
-        const result = await extrude.commit() as visual.Solid;
-
-        selected.addSolid(result);
+        const results = await extrude.commit() as visual.Solid[];
+        selected.add(results);
         const extruded = extrude.extruded;
         if (!(extruded instanceof visual.Face)) selected.remove(extruded);
     }

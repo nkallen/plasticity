@@ -152,10 +152,10 @@ export class OffsetOrThickFaceFactory extends GeometryFactory implements OffsetO
 }
 
 export class MultiOffsetFactory extends MultiGeometryFactory<OffsetOrThickFaceFactory> {
-    @delegate(0)
+    @delegate.default(0)
     distance!: number;
 
-    @delegate(0)
+    @delegate.default(0)
     angle!: number;
 
     private _faces!: visual.Face[];
@@ -170,10 +170,10 @@ export class MultiOffsetFactory extends MultiGeometryFactory<OffsetOrThickFaceFa
             individual.faces = faces;
             individuals.push(individual);
         }
-        this.individuals = individuals;
+        this.factories = individuals;
     }
 
-    toggle() { this.individuals.forEach(i => i.toggle()) }
+    toggle() { this.factories.forEach(i => i.toggle()) }
 }
 
 export class FaceCollector {
