@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import * as THREE from 'three';
 import c3d from '../../../build/Release/c3d.node';
 import { delegate } from "../../command/FactoryBuilder";
@@ -82,40 +81,22 @@ interface OffsetOrThickFaceParams extends OffsetFaceParams {
 
 export class OffsetOrThickFaceFactory extends GeometryFactory implements OffsetOrThickFaceParams {
     private readonly offset = new OffsetFaceFactory(this.db, this.materials, this.signals);
+    readonly factories = [this.offset];
 
     private newBody = false;
     async toggle() {
         this.newBody = !this.newBody
     }
 
-    private _solid!: visual.Solid;
-    get solid() { return this._solid }
-    set solid(solid: visual.Solid) {
-        this._solid = solid;
-        this.offset.solid = solid;
-    }
-
-    get faces() { return this.offset.faces }
-    set faces(faces: visual.Face[]) {
-        this.offset.faces = faces;
-    }
-
-    private _distance = 0;
-    get distance() { return this._distance }
-    set distance(distance: number) {
-        this.offset.distance = distance;
-        this._distance = distance;
-    }
-
-    get angle() { return this.offset.angle }
-    set angle(angle: number) {
-        this.offset.angle = angle;
-    }
+    @delegate solid!: visual.Solid;
+    @delegate faces!: visual.Face[];
+    @delegate.default(0) distance!: number;
+    @delegate.default(0) angle!: number;
 
     private thickened?: { solid: c3d.Solid, sign: boolean, faces: c3d.Face[] };
 
     async calculate() {
-        const { newBody, solid, offset, distance, faces } = this;
+        const { newBody, distance } = this;
         if (newBody) {
             await this.computeThickener();
             const { solid: thickenedSolid, faces: thickenedFaces } = this.thickened!;
@@ -145,7 +126,7 @@ export class OffsetOrThickFaceFactory extends GeometryFactory implements OffsetO
     }
 
     get originalItem() {
-        if (!this.newBody) return this.offset.originalItem
+        if (!this.newBody) return this.offset.originalItem;
     }
 
     get phantoms() { return super.phantoms }

@@ -2,6 +2,7 @@ import { Disposable } from 'event-kit';
 import { render } from 'preact';
 import Command from '../../command/Command';
 import * as cmd from '../../commands/GeometryCommands';
+import * as ModifyFaceCommand from "../../commands/modifyface/ModifyFaceCommand";
 import * as ExtrudeCommand from "../../commands/extrude/ExtrudeCommand";
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
@@ -70,7 +71,7 @@ export class Model {
             result.add(cmd.DuplicateCommand);
         }
         if (selection.faces.size > 0) {
-            result.add(cmd.OffsetFaceCommand);
+            result.add(ModifyFaceCommand.OffsetFaceCommand);
         }
         return [...result];
     }

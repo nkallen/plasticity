@@ -3,11 +3,12 @@ import * as visual from '../visual_model/VisualModel';
 import c3d from '../../build/Release/c3d.node';
 
 export function delegate<T extends GeometryFactory>(target: GeometryFactory & { factories: T[] }, propertyKey: keyof T) {
-    let value: any;
+    const privatePropertyKey = '_' + propertyKey;
+    Object.defineProperty(target, privatePropertyKey, { value: undefined, writable: true })
     Object.defineProperty(target, propertyKey, {
-        get() { return value },
+        get() { return this[privatePropertyKey] },
         set(t: any) {
-            value = t;
+            this[privatePropertyKey] = t;
             const that = this as GeometryFactory & { factories: T[] };
             const factories = that['factories'] as T[];
             factories.forEach(i => i[propertyKey] = t);

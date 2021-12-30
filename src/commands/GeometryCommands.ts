@@ -53,12 +53,9 @@ import { MirrorFactory, MirrorFactoryLike, MultiSymmetryFactory, SymmetryFactory
 import { MirrorGizmo } from "./mirror/MirrorGizmo";
 import { MirrorKeyboardGizmo } from "./mirror/MirrorKeyboardGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
+import { ModifyFaceCommand, OffsetFaceCommand, RefilletFaceCommand } from "./modifyface/ModifyFaceCommand";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
-import { OffsetFaceDialog } from "./modifyface/OffsetFaceDialog";
-import { MultiOffsetFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
-import { OffsetFaceKeyboardGizmo } from "./modifyface/OffsetFaceKeyboardGizmo";
-import { RefilletGizmo } from "./modifyface/RefilletGizmo";
 import { ModifyContourFactory } from "./modify_contour/ModifyContourFactory";
 import { ModifyContourGizmo } from "./modify_contour/ModifyContourGizmo";
 import { FreestyleScaleContourPointFactory, MoveContourPointFactory, RemoveContourPointFactory, RotateContourPointFactory, ScaleContourPointFactory } from "./modify_contour/ModifyContourPointFactory";
@@ -1297,79 +1294,6 @@ export class CharacterCurveCommand extends Command {
     }
 }
 
-export class ModifyFaceCommand extends Command {
-    point?: THREE.Vector3
-
-    async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selected.faces];
-        const fillet = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const shouldRefillet = fillet.areFilletFaces(faces);
-        const command = shouldRefillet ? new RefilletFaceCommand(this.editor) : new OffsetFaceCommand(this.editor);
-        command.point = this.point;
-        this.editor.enqueue(command, true);
-    }
-}
-
-export class OffsetFaceCommand extends Command {
-    point?: THREE.Vector3
-
-    async execute(): Promise<void> {
-        const offset = new MultiOffsetFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        const faces = [...this.editor.selection.selected.faces];
-        offset.faces = faces;
-
-        const gizmo = new OffsetFaceGizmo(offset, this.editor, this.point);
-        const dialog = new OffsetFaceDialog(offset, this.editor.signals);
-        const keyboard = new OffsetFaceKeyboardGizmo(this.editor);
-
-        gizmo.execute(async params => {
-            await offset.update();
-            dialog.render();
-        }).resource(this);
-
-        dialog.execute(async params => {
-            await offset.update();
-        }).resource(this).then(() => this.finish(), () => this.cancel());
-
-        keyboard.execute(s => {
-            switch (s) {
-                case 'toggle':
-                    offset.toggle();
-                    offset.update();
-            }
-        }).resource(this);
-
-        await this.finished;
-
-        const results = await offset.commit() as visual.Solid[];
-        this.editor.selection.selected.add(results);
-    }
-}
-
-export class RefilletFaceCommand extends Command {
-    point?: THREE.Vector3
-
-    async execute(): Promise<void> {
-        const faces = [...this.editor.selection.selected.faces];
-        const parent = faces[0].parentItem as visual.Solid;
-
-        const factory = new FilletFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        factory.solid = parent;
-        factory.faces = faces;
-
-        const gizmo = new RefilletGizmo(factory, this.editor, this.point);
-
-        gizmo.execute(async params => {
-            await factory.update();
-        }).resource(this);
-
-        await this.finished;
-
-        const result = await factory.commit() as visual.Solid;
-        this.editor.selection.selected.addSolid(result);
-    }
-}
-
 export class DraftSolidCommand extends Command {
     async execute(): Promise<void> {
         const faces = [...this.editor.selection.selected.faces];
@@ -1519,7 +1443,7 @@ export class MirrorCommand extends Command {
     }
 }
 
-export { ExtrudeCommand };
+export { ExtrudeCommand, ModifyFaceCommand, OffsetFaceCommand, RefilletFaceCommand };
 
 abstract class AbstractMirrorCommand extends Command {
     async execute(): Promise<void> {
