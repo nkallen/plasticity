@@ -14,7 +14,7 @@ export class ExtrudeCommand extends Command {
     async execute(): Promise<void> {
         const { selection: { selected } } = this.editor;
 
-        const extrude = ExtrudeFactory(this.editor);
+        const extrude = ExtrudeFactory(this.editor).resource(this);
 
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
         const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
@@ -62,7 +62,6 @@ function ExtrudeFactory(editor: EditorLike) {
         factory.face = phantom.face = face;
         const bool = new PossiblyBooleanExtrudeFactory(factory, phantom);
         bool.solid = face.parentItem;
-        console.log(factory.solid);
         factories.push(bool);
     }
     if (selected.curves.size > 0) {
