@@ -42,7 +42,6 @@ import { ExtensionShellDialog } from "./extend/ExtensionShellDialog";
 import ExtensionShellFactory from "./extend/ExtensionShellFactory";
 import { ExtensionShellGizmo } from "./extend/ExtensionShellGizmo";
 import { ExtrudeCommand } from "./extrude/ExtrudeCommand";
-import { PossiblyBooleanExtrudeFactory } from "./extrude/ExtrudeFactory";
 import { FilletDialog } from "./fillet/FilletDialog";
 import { MaxFilletFactory } from './fillet/FilletFactory';
 import { FilletMagnitudeGizmo, FilletSolidGizmo } from './fillet/FilletGizmo';
@@ -56,7 +55,7 @@ import { MirrorKeyboardGizmo } from "./mirror/MirrorKeyboardGizmo";
 import { DraftSolidFactory } from "./modifyface/DraftSolidFactory";
 import { ActionFaceFactory, CreateFaceFactory, FilletFaceFactory, ModifyEdgeFactory, PurifyFaceFactory, RemoveFaceFactory } from "./modifyface/ModifyFaceFactory";
 import { OffsetFaceDialog } from "./modifyface/OffsetFaceDialog";
-import { MultiOffsetFactory, OffsetOrThickFaceFactory } from "./modifyface/OffsetFaceFactory";
+import { MultiOffsetFactory } from "./modifyface/OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./modifyface/OffsetFaceGizmo";
 import { OffsetFaceKeyboardGizmo } from "./modifyface/OffsetFaceKeyboardGizmo";
 import { RefilletGizmo } from "./modifyface/RefilletGizmo";
@@ -1520,7 +1519,7 @@ export class MirrorCommand extends Command {
     }
 }
 
-export { ExtrudeCommand }
+export { ExtrudeCommand };
 
 abstract class AbstractMirrorCommand extends Command {
     async execute(): Promise<void> {

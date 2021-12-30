@@ -252,7 +252,7 @@ export abstract class PossiblyBooleanFactory<GF extends GeometryFactory> extends
         }
     }
 
-    protected get phantoms(): PhantomInfo[] {
+    get phantoms(): PhantomInfo[] {
         if (this.solid === undefined) return [];
         if (this.newBody) return [];
         if (this.operationType === c3d.OperationType.Union) return [];

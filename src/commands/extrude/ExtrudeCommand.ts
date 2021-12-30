@@ -1,37 +1,21 @@
 import * as THREE from "three";
-import Command from "../../command/Command";
+import Command, { EditorLike } from "../../command/Command";
 import * as visual from "../../visual_model/VisualModel";
 import { BooleanKeyboardGizmo } from "../boolean/BooleanKeyboardGizmo";
 import { ExtrudeDialog } from "./ExtrudeDialog";
-import { MultiExtrudeFactory } from "./ExtrudeFactory";
+import { CurveExtrudeFactory, FaceExtrudeFactory, MultiExtrudeFactory, PossiblyBooleanExtrudeFactory, RegionExtrudeFactory } from "./ExtrudeFactory";
 import { ExtrudeGizmo } from "./ExtrudeGizmo";
 
-const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
-
-export class ExtrudeRegionCommand {
-
-}
-
-export class ExtrudeFaceCommand {
-
-}
-
-export class ExtrudeCurveCommand {
-
-}
 
 export class ExtrudeCommand extends Command {
     point?: THREE.Vector3;
 
     async execute(): Promise<void> {
-        const selected = this.editor.selection.selected;
-        const extrude = new MultiExtrudeFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
-        extrude.regions = [...selected.regions];
-        extrude.solid = selected.solids.first;
-        // extrude.curves = [...selected.curves];
-        // if (selected.faces.size > 0) extrude.face = selected.faces.first;
+        const { selection: { selected } } = this.editor;
+
+        const extrude = ExtrudeFactory(this.editor);
+
         const gizmo = new ExtrudeGizmo(extrude, this.editor);
         const keyboard = new BooleanKeyboardGizmo("extrude", this.editor);
         const dialog = new ExtrudeDialog(extrude, this.editor.signals);
@@ -55,7 +39,39 @@ export class ExtrudeCommand extends Command {
 
         const results = await extrude.commit() as visual.Solid[];
         selected.add(results);
-        const extruded = extrude.extruded;
-        if (!(extruded instanceof visual.Face)) selected.remove(extruded);
+
+        for (const face of selected.faces) { selected.removeFace(face) }
+        for (const region of selected.regions) { selected.removeRegion(region) }
     }
+}
+
+
+function ExtrudeFactory(editor: EditorLike) {
+    const { db, materials, signals, selection: { selected } } = editor;
+
+    const factories = [];
+    for (const region of selected.regions) {
+        const factory = new RegionExtrudeFactory(db, materials, signals);
+        const phantom = new RegionExtrudeFactory(db, materials, signals);
+        factory.region = phantom.region = region;
+        factories.push(new PossiblyBooleanExtrudeFactory(factory, phantom));
+    }
+    for (const face of selected.faces) {
+        const factory = new FaceExtrudeFactory(db, materials, signals);
+        const phantom = new FaceExtrudeFactory(db, materials, signals);
+        factory.face = phantom.face = face;
+        const bool = new PossiblyBooleanExtrudeFactory(factory, phantom);
+        bool.solid = face.parentItem;
+        console.log(factory.solid);
+        factories.push(bool);
+    }
+    if (selected.curves.size > 0) {
+        const factory = new CurveExtrudeFactory(db, materials, signals);
+        const phantom = new CurveExtrudeFactory(db, materials, signals);
+        factory.curves = phantom.curves = [...selected.curves];
+        factories.push(new PossiblyBooleanExtrudeFactory(factory, phantom));
+    }
+    const extrude = new MultiExtrudeFactory(factories)
+    if (selected.solids.size > 0) extrude.solid = selected.solids.first;
+    return extrude;
 }

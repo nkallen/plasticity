@@ -3,6 +3,10 @@ import c3d from '../../../build/Release/c3d.node';
 import { delegate } from "../../command/FactoryBuilder";
 import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
 import { MultiGeometryFactory, MultiplyableFactory } from "../../command/MultiFactory";
+import { EditorSignals } from "../../editor/EditorSignals";
+import { DatabaseLike } from "../../editor/GeometryDatabase";
+import MaterialDatabase from "../../editor/MaterialDatabase";
+import { HasSelection } from "../../selection/SelectionDatabase";
 import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
 import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
@@ -28,6 +32,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     isSurface = false;
 
     abstract direction: THREE.Vector3;
+    abstract center: THREE.Vector3;
 
     protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveExtrusionSolid, this.db.version), c3d.ESides.SideNone, 0);
 
@@ -38,14 +43,16 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     protected _operationType?: c3d.OperationType;
     get operationType() { return this._operationType ?? this.defaultOperationType }
     set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
-    protected get defaultOperationType() { return c3d.OperationType.Difference }
+    get defaultOperationType() { return c3d.OperationType.Difference }
 
     private _solid?: visual.Solid;
     protected model?: c3d.Solid;
     get solid() { return this._solid }
     set solid(solid: visual.Solid | undefined) {
-        this._solid = solid;
-        if (solid !== undefined) this.model = this.db.lookup(solid);
+        if (solid !== undefined) {
+            this._solid = solid;
+            this.model = this.db.lookup(solid);
+        }
     }
 
     async calculate() {
@@ -92,8 +99,7 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
     protected contours2d!: c3d.Contour[];
     protected curves3d!: c3d.Curve3D[];
     protected surface!: c3d.Surface;
-    private _normal!: THREE.Vector3;
-    private _center!: THREE.Vector3;
+
     get curves() { return this._curves }
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
         this._curves = curves;
@@ -150,7 +156,10 @@ export class CurveExtrudeFactory extends AbstractExtrudeFactory {
         this._normal = vec2vec(placement.GetAxisZ(), 1)
     }
 
+    private _normal!: THREE.Vector3;
     get direction(): THREE.Vector3 { return this._normal }
+
+    private _center!: THREE.Vector3;
     get center(): THREE.Vector3 { return this._center }
 }
 
@@ -230,139 +239,28 @@ export class RegionExtrudeFactory extends AbstractExtrudeFactory {
     }
 }
 
-export class ExtrudeFactory extends GeometryFactory implements ExtrudeParams {
-    private readonly regionExtrude = new RegionExtrudeFactory(this.db, this.materials, this.signals);
-    private readonly faceExtrude = new FaceExtrudeFactory(this.db, this.materials, this.signals);
-    private readonly curveExtrude = new CurveExtrudeFactory(this.db, this.materials, this.signals);
-    private readonly factories = [this.regionExtrude, this.faceExtrude, this.curveExtrude];
+export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<AbstractExtrudeFactory> implements ExtrudeParams, MultiplyableFactory {
+    readonly factories = [this.fantom, this.bool];
 
-    set region(region: visual.PlaneInstance<visual.Region> | undefined) {
-        if (region === undefined) return;
-        this.regionExtrude.region = region;
+    constructor(readonly bool: AbstractExtrudeFactory, readonly fantom: AbstractExtrudeFactory) {
+        super(bool['db'], bool['materials'], bool['signals']);
     }
 
-    set face(face: visual.Face | undefined) {
-        if (face === undefined) return;
-        this.faceExtrude.face = face;
-    }
+    @delegate.default(0) distance1!: number;
+    @delegate.default(0) distance2!: number;
+    @delegate.default(0) race1!: number;
+    @delegate.default(0) race2!: number;
+    @delegate.default(0) thickness1!: number;
+    @delegate.default(0) thickness2!: number;
 
-    set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
-        if (curves.length === 0) return;
-        this.curveExtrude.curves = curves;
-    }
-
-    calculate(): Promise<c3d.Solid> {
-        if (this.regionExtrude.region !== undefined) return this.regionExtrude.calculate();
-        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.calculate();
-        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.calculate();
-        else throw new ValidationError("need region, face, or curves");
-    }
-
-    get extruded() {
-        if (this.regionExtrude.region !== undefined) return this.regionExtrude.region;
-        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.face;
-        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.curves;
-        else throw new ValidationError();
-    }
-
-    set solid(solid: visual.Solid | undefined) { for (const f of this.factories) f.solid = solid }
-    get solid() {
-        if (this.regionExtrude.region !== undefined) return this.regionExtrude.solid;
-        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.solid;
-        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.solid;
-        else throw new ValidationError("need region, face, or curves");
-    }
-
-    get operationType() {
-        if (this.regionExtrude.region !== undefined) return this.regionExtrude.operationType;
-        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.operationType;
-        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.operationType;
-        else throw new ValidationError("need region, face, or curves");
-    }
-    set operationType(operationType: c3d.OperationType) { for (const f of this.factories) f.operationType = operationType }
-
-    set distance1(distance1: number) { for (const f of this.factories) f.distance1 = distance1 }
-    set distance2(distance2: number) { for (const f of this.factories) f.distance2 = distance2 }
-    set race1(race1: number) { for (const f of this.factories) f.race1 = race1 }
-    set race2(race2: number) { for (const f of this.factories) f.race2 = race2 }
-    set thickness1(thickness1: number) { for (const f of this.factories) f.thickness1 = thickness1 }
-    set thickness2(thickness2: number) { for (const f of this.factories) f.thickness2 = thickness2 }
-
-    get distance1() { return this.factories[0].distance1 }
-    get distance2() { return this.factories[0].distance2 }
-    get race1() { return this.factories[0].race1 }
-    get race2() { return this.factories[0].race2 }
-    get thickness1() { return this.factories[0].thickness1 }
-    get thickness2() { return this.factories[0].thickness2 }
-
-    set isOverlapping(isOverlapping: boolean) { for (const f of this.factories) f.isOverlapping = isOverlapping }
-    set isSurface(isSurface: boolean) { for (const f of this.factories) f.isSurface = isSurface }
-
-    get direction() {
-        if (this.regionExtrude.region !== undefined) return this.regionExtrude.direction;
-        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.direction;
-        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.direction;
-        else throw new ValidationError("need region, face, or curves");
-    }
-
-    get center() {
-        if (this.regionExtrude.region !== undefined) return this.regionExtrude.center;
-        else if (this.faceExtrude.face !== undefined) return this.faceExtrude.center;
-        else if (this.curveExtrude.curves !== undefined) return this.curveExtrude.center;
-        else throw new ValidationError("need region, face, or curves");
-    }
-
-    get originalItem() {
-        return this.solid;
-    }
-}
-
-export class PossiblyBooleanExtrudeFactory extends PossiblyBooleanFactory<ExtrudeFactory> implements ExtrudeParams, MultiplyableFactory {
-    protected bool = new ExtrudeFactory(this.db, this.materials, this.signals);
-    protected fantom = new ExtrudeFactory(this.db, this.materials, this.signals);
-
-    get extruded() { return this.bool.extruded }
-
-    get distance1() { return this.bool.distance1 }
-    get distance2() { return this.bool.distance2 }
-    get race1() { return this.bool.race1 }
-    get race2() { return this.bool.race2 }
-    get thickness1() { return this.bool.thickness1 }
-    get thickness2() { return this.bool.thickness2 }
-    get direction() { return this.bool.direction }
-    get center() { return this.bool.center }
-
-    set distance1(distance1: number) { this.bool.distance1 = distance1; this.fantom.distance1 = distance1 }
-    set distance2(distance2: number) { this.bool.distance2 = distance2; this.fantom.distance2 = distance2 }
-    set race1(race1: number) { this.bool.race1 = race1; this.fantom.race1 = race1 }
-    set race2(race2: number) { this.bool.race2 = race2; this.fantom.race2 = race2 }
-    set thickness1(thickness1: number) { this.bool.thickness1 = thickness1; this.fantom.thickness1 = thickness1 }
-    set thickness2(thickness2: number) { this.bool.thickness2 = thickness2; this.fantom.thickness2 = thickness2 }
-
-    // NOTE: Face differes from region and curves in that we infer the solid
-    set face(face: visual.Face) {
-        this.bool.face = face;
-        this.fantom.face = face;
-
-        const solid = face.parentItem;
-        this.solid = solid;
-    }
-
-    set region(region: visual.PlaneInstance<visual.Region>) { this.bool.region = region; this.fantom.region = region }
-    set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) { this.bool.curves = curves; this.fantom.curves = curves }
-
-    get phantoms() { return super.phantoms }
+    @delegate.get center!: THREE.Vector3;
+    @delegate.get direction!: THREE.Vector3;
 }
 
 export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExtrudeFactory> implements ExtrudeParams {
-    set regions(regions: visual.PlaneInstance<visual.Region>[]) {
-        const factories = [];
-        for (const region of regions) {
-            const factory = new PossiblyBooleanExtrudeFactory(this.db, this.materials, this.signals);
-            factory.region = region;
-            factories.push(factory);
-        }
-        this.factories = factories;
+    constructor(readonly factories: PossiblyBooleanExtrudeFactory[]) {
+        super(factories[0]['db'], factories[0]['materials'], factories[0]['signals']);
+        if (factories.length === 0) throw new Error('invalid precondition');
     }
 
     @delegate solid!: visual.Solid;
@@ -380,5 +278,4 @@ export class MultiExtrudeFactory extends MultiGeometryFactory<PossiblyBooleanExt
 
     @delegate.get center!: THREE.Vector3;
     @delegate.get direction!: THREE.Vector3;
-    @delegate extruded!: visual.Face
 }
