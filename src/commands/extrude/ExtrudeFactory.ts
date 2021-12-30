@@ -1,12 +1,8 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { delegate } from "../../command/FactoryBuilder";
-import { GeometryFactory, NoOpError, ValidationError } from '../../command/GeometryFactory';
+import { delegate, derive } from "../../command/FactoryBuilder";
+import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
 import { MultiGeometryFactory, MultiplyableFactory } from "../../command/MultiFactory";
-import { EditorSignals } from "../../editor/EditorSignals";
-import { DatabaseLike } from "../../editor/GeometryDatabase";
-import MaterialDatabase from "../../editor/MaterialDatabase";
-import { HasSelection } from "../../selection/SelectionDatabase";
 import { composeMainName, point2point, unit, vec2vec } from "../../util/Conversion";
 import * as visual from '../../visual_model/VisualModel';
 import { PossiblyBooleanFactory } from "../boolean/BooleanFactory";
@@ -45,15 +41,9 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     set operationType(operationType: c3d.OperationType) { this._operationType = operationType }
     get defaultOperationType() { return c3d.OperationType.Difference }
 
-    private _solid?: visual.Solid;
-    protected model?: c3d.Solid;
-    get solid() { return this._solid }
-    set solid(solid: visual.Solid | undefined) {
-        if (solid !== undefined) {
-            this._solid = solid;
-            this.model = this.db.lookup(solid);
-        }
-    }
+    private _solid!: { view?: visual.Solid, model?: c3d.Solid };
+    @derive(visual.Solid) get solid(): visual.Solid { throw '' }
+    set solid(solid: visual.Solid | c3d.Solid) { }
 
     async calculate() {
         const { contours2d, curves3d, surface, direction, distance1, thickness1, thickness2 } = this;
@@ -80,7 +70,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     }
 
     protected async performAction(sweptData: c3d.SweptData, direction: c3d.Vector3D, params: c3d.ExtrusionValues, ns: c3d.SNameMaker[]): Promise<c3d.Solid> {
-        const { names, model: solid, operationType } = this;
+        const { names, _solid: { model: solid }, operationType } = this;
 
         if (solid === undefined) {
             return c3d.ActionSolid.ExtrusionSolid_async(sweptData, direction, null, null, false, params, names, ns);
@@ -90,7 +80,7 @@ abstract class AbstractExtrudeFactory extends GeometryFactory implements Extrude
     }
 
     get originalItem() {
-        return this.solid;
+        return this._solid.view;
     }
 }
 
