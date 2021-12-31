@@ -2,14 +2,14 @@
  * @jest-environment jsdom
  */
 
+import * as THREE from "three";
+import { CenterCircleCommand } from "../src/commands/circle/CircleCommand";
 import SphereFactory from '../src/commands/sphere/SphereFactory';
 import { Editor } from '../src/editor/Editor';
-import { MakeViewport } from '../__mocks__/FakeViewport';
-import * as THREE from "three";
-import * as visual from '../src/visual_model/VisualModel';
-import './matchers';
-import { CenterCircleCommand } from '../src/commands/GeometryCommands';
 import { Cancel } from '../src/util/Cancellable';
+import * as visual from '../src/visual_model/VisualModel';
+import { MakeViewport } from '../__mocks__/FakeViewport';
+import './matchers';
 
 let editor: Editor;
 

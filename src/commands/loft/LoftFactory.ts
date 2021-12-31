@@ -4,14 +4,12 @@ import { point2point, curve3d2curve2d, vec2vec, composeMainName, unit, inst2curv
 import { GeometryFactory, ValidationError } from '../../command/GeometryFactory';
 
 export default class LoftFactory extends GeometryFactory {
-    private _curves!: visual.SpaceInstance<visual.Curve3D>[];
     private models!: { contour: c3d.Contour, placement: c3d.Placement3D }[];
     thickness = 0;
 
     private readonly names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CurveLoftedSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     set curves(curves: visual.SpaceInstance<visual.Curve3D>[]) {
-        this._curves = curves;
         const models = [];
 
         for (const curve of curves) {

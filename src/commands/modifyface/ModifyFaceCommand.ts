@@ -1,12 +1,16 @@
 import * as THREE from "three";
 import Command from "../../command/Command";
+import { point2point } from "../../util/Conversion";
 import * as visual from "../../visual_model/VisualModel";
+import { MoveGizmo } from "../translate/MoveGizmo";
+import { ActionFaceFactory, PurifyFaceFactory } from "./ModifyFaceFactory";
 import { FilletFaceFactory } from "./ModifyFaceFactory";
 import { OffsetFaceDialog } from "./OffsetFaceDialog";
 import { MultiOffsetFactory } from "./OffsetFaceFactory";
 import { OffsetFaceGizmo } from "./OffsetFaceGizmo";
 import { OffsetFaceKeyboardGizmo } from "./OffsetFaceKeyboardGizmo";
 import { RefilletGizmo } from "./RefilletGizmo";
+
 
 
 export class ModifyFaceCommand extends Command {
@@ -85,3 +89,44 @@ export class RefilletFaceCommand extends Command {
         this.editor.selection.selected.addSolid(result);
     }
 }
+
+
+export class PurifyFaceCommand extends Command {
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selected.faces];
+        const parent = faces[0].parentItem as visual.Solid;
+
+        const removeFace = new PurifyFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        removeFace.solid = parent;
+        removeFace.faces = faces;
+
+        await removeFace.commit();
+    }
+}
+
+export class ActionFaceCommand extends Command {
+    async execute(): Promise<void> {
+        const faces = [...this.editor.selection.selected.faces];
+        const parent = faces[0].parentItem as visual.Solid;
+        const face = faces[0];
+
+        const actionFace = new ActionFaceFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
+        actionFace.solid = parent;
+        actionFace.faces = faces;
+
+        const faceModel = this.editor.db.lookupTopologyItem(face);
+        const point = point2point(faceModel.Point(0.5, 0.5));
+        const gizmo = new MoveGizmo(actionFace, this.editor);
+        gizmo.position.copy(point);
+
+        await gizmo.execute(async (delta) => {
+            await actionFace.update();
+        }).resource(this);
+
+        await actionFace.commit();
+    }
+}
+
+export class SuppleFaceCommand extends Command { async execute(): Promise<void> { } }
+
+export class MergerFaceCommand extends Command { async execute(): Promise<void> { } }

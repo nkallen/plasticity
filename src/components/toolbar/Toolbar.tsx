@@ -2,8 +2,6 @@ import { Disposable } from 'event-kit';
 import { render } from 'preact';
 import Command from '../../command/Command';
 import * as cmd from '../../commands/GeometryCommands';
-import * as ModifyFaceCommand from "../../commands/modifyface/ModifyFaceCommand";
-import * as ExtrudeCommand from "../../commands/extrude/ExtrudeCommand";
 import { Editor } from '../../editor/Editor';
 import { DatabaseLike } from '../../editor/GeometryDatabase';
 import { HasSelection } from '../../selection/SelectionDatabase';
@@ -36,7 +34,7 @@ export class Model {
             result.add(cmd.MirrorCommand);
         }
         if (selection.regions.size > 0) {
-            result.add(ExtrudeCommand.ExtrudeCommand);
+            result.add(cmd.ExtrudeCommand);
         }
         if (selection.solids.size > 0) {
             result.add(cmd.RadialArrayCommand);
@@ -48,14 +46,14 @@ export class Model {
         }
         if (selection.faces.size > 0) {
             result.add(cmd.OffsetCurveCommand);
-            result.add(ExtrudeCommand.ExtrudeCommand);
+            result.add(cmd.ExtrudeCommand);
             result.add(cmd.ExtensionShellCommand);
         }
         if (selection.faces.size > 0 || selection.solids.size > 0) {
             result.add(cmd.CutCommand);
         }
         if (selection.curves.size > 0) {
-            result.add(ExtrudeCommand.ExtrudeCommand);
+            result.add(cmd.ExtrudeCommand);
             result.add(cmd.RevolutionCommand);
             result.add(cmd.OffsetCurveCommand);
         }
@@ -71,7 +69,7 @@ export class Model {
             result.add(cmd.DuplicateCommand);
         }
         if (selection.faces.size > 0) {
-            result.add(ModifyFaceCommand.OffsetFaceCommand);
+            result.add(cmd.OffsetFaceCommand);
         }
         return [...result];
     }
