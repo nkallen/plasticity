@@ -1,8 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../build/Release/c3d.node';
 import { ThreePointBoxFactory } from "../../src/commands/box/BoxFactory";
-import FilletFactory, { Max, MaxFilletFactory } from "../../src/commands/fillet/FilletFactory";
-import { FilletKeyboardGizmo } from "../../src/commands/fillet/FilletKeyboardGizmo";
+import FilletFactory, { Max, MaxFilletFactory, MultiFilletFactory } from "../../src/commands/fillet/FilletFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -28,7 +27,7 @@ describe(FilletFactory, () => {
     beforeEach(() => {
         makeFillet = new FilletFactory(db, materials, signals);
     })
-    
+
     test('positive distance', async () => {
         makeBox.p1 = new THREE.Vector3();
         makeBox.p2 = new THREE.Vector3(1, 0, 0);
@@ -153,6 +152,36 @@ describe(Max, () => {
 
         // recomputes since we have a new valid value
         await max.exec(1000, fn);
-        expect(fn).toBeCalledTimes(4);        
+        expect(fn).toBeCalledTimes(4);
+    })
+})
+
+describe(MultiFilletFactory, () => {
+    let box1: visual.Solid;
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3();
+        makeBox.p2 = new THREE.Vector3(1, 0, 0);
+        makeBox.p3 = new THREE.Vector3(1, 1, 0);
+        makeBox.p4 = new THREE.Vector3(1, 1, 1);
+        box1 = await makeBox.commit() as visual.Solid;
+    })
+
+    let box2: visual.Solid;
+    beforeEach(async () => {
+        const makeBox = new ThreePointBoxFactory(db, materials, signals);
+        makeBox.p1 = new THREE.Vector3(10, 10, 0);
+        makeBox.p2 = new THREE.Vector3(11, 0, 0);
+        makeBox.p3 = new THREE.Vector3(11, 11, 0);
+        makeBox.p4 = new THREE.Vector3(11, 11, 1);
+        box2 = await makeBox.commit() as visual.Solid;
+    })
+
+    it('works', async () => {
+        const multi = new MultiFilletFactory(db, materials, signals);
+        multi.edges = [box1.edges.get(0), box2.edges.get(0)];
+        multi.distance = 1;
+        const result = await multi.commit() as visual.Solid[];
+        expect(result.length).toBe(2);
     })
 })

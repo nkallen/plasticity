@@ -11,8 +11,6 @@ import { OffsetFaceGizmo } from "./OffsetFaceGizmo";
 import { OffsetFaceKeyboardGizmo } from "./OffsetFaceKeyboardGizmo";
 import { RefilletGizmo } from "./RefilletGizmo";
 
-
-
 export class ModifyFaceCommand extends Command {
     point?: THREE.Vector3;
 
