@@ -4,10 +4,9 @@ import Command from "../../command/Command";
 import { PointPicker } from "../../command/PointPicker";
 import * as visual from "../../visual_model/VisualModel";
 import { FilletDialog } from "./FilletDialog";
-import { MaxFilletFactory, MultiFilletFactory } from './FilletFactory';
+import FilletFactory, { MaxFilletFactory, MultiFilletFactory } from './FilletFactory';
 import { FilletSolidGizmo } from './FilletGizmo';
 import { ChamferAndFilletKeyboardGizmo } from "./FilletKeyboardGizmo";
-
 
 export class FilletSolidCommand extends Command {
     point?: THREE.Vector3;
@@ -20,7 +19,7 @@ export class FilletSolidCommand extends Command {
         const fillet = new MultiFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         // fillet.solid = item;
         fillet.edges = edges;
-        fillet.start();
+        // fillet.start();
 
         const gizmo = new FilletSolidGizmo(fillet, this.editor, this.point);
         gizmo.showEdges();

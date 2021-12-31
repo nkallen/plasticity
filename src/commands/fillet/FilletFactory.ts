@@ -149,7 +149,9 @@ export class MaxFilletFactory extends GeometryFactory implements FilletParams {
         })
     }
 
-    start() { return this.max.start() }
+    start() { 
+        return this.max.start() 
+    }
 
     @delegate solid!: visual.Solid;
     @delegate edges!: visual.CurveEdge[];
@@ -179,19 +181,22 @@ export class MaxFilletFactory extends GeometryFactory implements FilletParams {
 }
 
 export class MultiFilletFactory extends MultiGeometryFactory<MaxFilletFactory> implements FilletParams {
-    @delegate.default(0) distance2!: number;
     @delegate.default(c3d.SmoothForm.Fillet) form!: c3d.SmoothForm;
     @delegate.default(0) conic!: number;
     @delegate.default(true) prolong!: boolean;
     @delegate.default(c3d.CornerForm.uniform) smoothCorner!: c3d.CornerForm;
     @delegate.default(c3d.ThreeStates.neutral) keepCant!: c3d.ThreeStates;
     @delegate.default(false) strict!: boolean;
-    @delegate.default(unit(FilletFactory.LengthSentinel)) begLength!: number;
-    @delegate.default(unit(FilletFactory.LengthSentinel)) endLength!: number;
+    @delegate.default(FilletFactory.LengthSentinel) begLength!: number;
+    @delegate.default(FilletFactory.LengthSentinel) endLength!: number;
     @delegate.default(false) equable!: boolean;
-
-    @delegate.default(0) distance!: number;
+    
     @delegate.default(0) distance1!: number;
+    @delegate.default(0) distance2!: number;
+
+    set distance(d: number) {
+        this.distance1 = this.distance2 = d;
+    }
 
     private _edges!: visual.CurveEdge[];
     get edges() { return this._edges }
