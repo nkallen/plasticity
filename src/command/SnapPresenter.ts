@@ -30,9 +30,10 @@ export class SnapPresentation {
         const nearby = picker.nearby(pointPicker, snapCache, db);
         const intersections = picker.intersect(pointPicker, snapCache, db);
         const actualConstructionPlaneGiven = pointPicker.actualConstructionPlaneGiven(constructionPlane, isOrthoMode);
-        const indicators = new SnapIndicator(gizmos);
+        const indicator = new SnapIndicator(gizmos);
+        const activatedHelpers = [...pointPicker.activatedHelpers].map(s => s.helper!).filter(h => h !== undefined);
 
-        const presentation = new SnapPresentation(nearby, intersections, actualConstructionPlaneGiven, isOrthoMode, indicators);
+        const presentation = new SnapPresentation(nearby, intersections, actualConstructionPlaneGiven, isOrthoMode, indicator, activatedHelpers);
         return { presentation, intersections, nearby };
     }
 
@@ -43,7 +44,7 @@ export class SnapPresentation {
         const intersections = picker.intersect(snapCache, db);
         const indicators = new SnapIndicator(gizmos);
 
-        const presentation = new SnapPresentation(nearby, intersections, constructionPlane, isOrthoMode, indicators);
+        const presentation = new SnapPresentation(nearby, intersections, constructionPlane, isOrthoMode, indicators, []);
         return { presentation, intersections, nearby };
     }
 
@@ -52,7 +53,7 @@ export class SnapPresentation {
     readonly names: readonly string[];
     readonly nearby: Helper[];
 
-    constructor(nearby: PointSnap[], intersections: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapIndicator) {
+    constructor(nearby: PointSnap[], intersections: SnapResult[], constructionPlane: PlaneSnap, isOrtho: boolean, presenter: SnapIndicator, activatedHelpers: THREE.Object3D[]) {
         this.nearby = nearby.map(n => presenter.nearbyIndicatorFor(n));
 
         if (intersections.length === 0) {
@@ -68,7 +69,7 @@ export class SnapPresentation {
         const indicator = presenter.snapIndicatorFor(first);
 
         // Collect indicators, etc. as feedback for the user
-        const helpers = [];
+        const helpers = activatedHelpers;
         helpers.push(indicator);
 
         // And add additional helpers associated with all matching snaps; include names too

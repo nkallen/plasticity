@@ -139,9 +139,7 @@ export class CurvePointSnap extends PointSnap {
         super(name, position);
     }
 
-    t(_: any) {
-        return this._t;
-    }
+    t(_: any) { return this._t }
 
     get view() { return this.curveSnap.view }
     get model() { return this.curveSnap.model }
@@ -447,7 +445,7 @@ const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const origin = new THREE.Vector3();
-const lineBasicMaterial = new THREE.LineBasicMaterial();
+const lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.8 });
 
 export class AxisSnap extends Snap implements ChoosableSnap {
     readonly snapper = new THREE.Line(axisGeometry, lineBasicMaterial);

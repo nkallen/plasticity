@@ -100,11 +100,12 @@ export class Model {
             results = results.concat(last.info.snap.additionalSnapsFor(last.point));
             for (const result of results) {
                 if (result instanceof PointAxisSnap) { // Such as normal/binormal/tangent
-                    this.addAxis(result, this.snapsForLastPickedPoint);
+                    this.addAxis(result, this.snapsForLastPickedPoint, []);
                 }
             }
         }
         this.snapsForLastPickedPoint = results;
+        this._activatedHelpers = [];
         this.alreadyActivatedSnaps.clear();
         this.choice = undefined;
         this.mutualSnaps.clear();
@@ -164,8 +165,8 @@ export class Model {
         return crosses;
     }
 
-    private addAxis(axis: PointAxisSnap, into: Snap[]) {
-        into.push(axis);
+    private addAxis(axis: PointAxisSnap, into: Snap[], other: Snap[]) {
+        into.push(axis); other.push(axis);
         const crosses = this.addAxisCrosses(axis);
         for (const cross of crosses) {
             if (cross.position.manhattanDistanceTo(axis.o) < 10e-3) continue;
@@ -181,11 +182,11 @@ export class Model {
         }
     }
 
-    addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion(), into: Snap[] = this.otherAddedSnaps) {
+    addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion(), into: Snap[] = this.otherAddedSnaps, other: Snap[] = []) {
         const rotated = [];
         for (const snap of this.straightSnaps) rotated.push(snap.rotate(orientation));
         const axes = new PointSnap(undefined, point).axes(rotated);
-        for (const axis of axes) this.addAxis(axis, into);
+        for (const axis of axes) this.addAxis(axis, into, other);
     }
 
     get snaps() {
@@ -246,7 +247,12 @@ export class Model {
         this.makeSnapsForLastPickedPoint();
     }
 
-    // Sometimes additional snaps are "activated" when the user mouses over an existing snap
+    // Sometimes additional snaps are "activated" when the user mouses over an existing snap and hits shift
+    private _activatedHelpers: Snap[] = [];
+    get activatedHelpers(): readonly Snap[] { return this._activatedHelpers }
+    
+    // FIXME: get rid of intos as array; make helpers a separate param
+
     private readonly alreadyActivatedSnaps = new Set<Snap>();
     activateSnapped(snaps: Snap[]) {
         for (const snap of snaps) {
@@ -254,13 +260,13 @@ export class Model {
             this.alreadyActivatedSnaps.add(snap); // idempotent
 
             if (snap instanceof CurveEndPointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
-                this.addAxis(snap.tangentSnap, this.snapsForLastPickedPoint)
+                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxis(snap.tangentSnap, this.snapsForLastPickedPoint, this._activatedHelpers);
             } else if (snap instanceof FaceCenterPointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
-                this.addAxis(snap.normalSnap, this.snapsForLastPickedPoint);
+                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxis(snap.normalSnap, this.snapsForLastPickedPoint, this._activatedHelpers);
             } else if (snap instanceof PointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint);
+                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint, this._activatedHelpers);
             }
         }
     }
@@ -382,7 +388,7 @@ export class PointPicker {
                         this.model.choice = undefined;
                         // FIXME: need to pass all last snap results
                         if (info !== undefined) model.activateSnapped([info.snap]);
-                        if (oldChoice !== undefined) onPointerMove(lastMoveEvent);
+                        if (info !== undefined || oldChoice !== undefined) onPointerMove(lastMoveEvent);
                     }
                 }
 

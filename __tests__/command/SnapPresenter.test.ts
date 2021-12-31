@@ -2,7 +2,6 @@
  * @jest-environment jsdom
  */
 import * as THREE from "three";
-import { GizmoMaterialDatabase } from "../../src/command/GizmoMaterials";
 import { SnapIndicator } from "../../src/command/SnapIndicator";
 import { SnapPresentation, SnapPresenter } from "../../src/command/SnapPresenter";
 import { Viewport } from "../../src/components/viewport/Viewport";
@@ -35,7 +34,7 @@ describe(SnapPresentation, () => {
             { snap: endPoint, position: hitPosition, cursorPosition: hitPosition, orientation, cursorOrientation: orientation },
             { snap: startPoint, position: hitPosition, cursorPosition: hitPosition, orientation, cursorOrientation: orientation }
         ];
-        const presentation = new SnapPresentation([], snapResults, new PlaneSnap(), false, indicator);
+        const presentation = new SnapPresentation([], snapResults, new PlaneSnap(), false, indicator, []);
 
         expect(presentation.names).toEqual(["endpoint", "startpoint"]);
         expect(presentation.info!.position).toBe(hitPosition);
