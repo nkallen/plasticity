@@ -85,8 +85,8 @@ abstract class AbstractCutFactory extends GeometryFactory {
 
                     const parallelToY = Math.abs(limit1.y - limit2.y) < 10e-6;
                     const parallelToX = Math.abs(limit1.x - limit2.x) < 10e-6;
-                    const outsideBBwrtY = (limit1.y <= inout_min.y + 10e-6 && limit1.y <= inout_max.y + 10e-6) || (limit1.y >= inout_min.y + 10e-6 && limit1.y >= inout_max.y + 10e-6);
-                    const outsideBBwrtX = (limit1.x <= inout_min.x + 10e-6 && limit1.x <= inout_max.x + 10e-6) || (limit1.x >= inout_min.x + 10e-6 && limit1.x >= inout_max.x + 10e-6);
+                    const outsideBBwrtY = (limit1.y <= inout_min.y + 10e-6 && limit1.y <= inout_max.y + 10e-6) || (limit1.y >= inout_min.y - 10e-6 && limit1.y >= inout_max.y - 10e-6);
+                    const outsideBBwrtX = (limit1.x <= inout_min.x + 10e-6 && limit1.x <= inout_max.x + 10e-6) || (limit1.x >= inout_min.x - 10e-6 && limit1.x >= inout_max.x - 10e-6);
 
                     if (parallelToX && outsideBBwrtX) {
                         const curve3d = new c3d.PlaneCurve(placement, contour, true)
