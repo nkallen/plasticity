@@ -1653,7 +1653,7 @@ export default {
         },
         Action: {
             rawHeader: "action.h",
-            dependencies: ["Solid.h", "Matrix3D.h", "ShellsIntersectionData.h", "Face.h"],
+            dependencies: ["Solid.h", "Matrix3D.h", "ShellsIntersectionData.h", "Face.h", "Cube.h"],
             functions: [
                 {
                     signature: "bool IsSolidsIntersection(const MbSolid & solid1, const MbMatrix3D & matr1, const MbSolid & solid2, const MbMatrix3D & matr2, bool checkTangent, bool getIntersectionSolids, bool checkTouchPoints, RPArray<MbShellsIntersectionData> & intData)",
@@ -1667,7 +1667,10 @@ export default {
                 {
                     signature: "void FindFilletFaces(const RPArray<MbFace> & faces, double accuracy, RPArray<MbFace> & filletFaces)",
                     filletFaces: isReturn,
-                }
+                },
+                // "void GetDistanceToSurface(const MbPlacement3D & pl, const MbCurve * curve, const MbSurface * surf, double & lPlus, double & lMinus)",
+                { signature: "bool GetDistanceToCube(const MbPlacement3D & pl, const MbFaceShell * shell, double & dPlus, double & dMinus, bool findMax = true)", dPlus: isReturn, dMinus: isReturn, return: { name: 'isFound' } }
+                // { signature: "void GetDistanceToCube(const MbSurface & surface, const MbVector3D & direction, const MbCurve & curve, const MbCube & cube, double & lPlus, double & lMinus, MbResultType & resType)", lPlus: isReturn, lMinus: isReturn, resType: isReturn }
             ],
         },
         ActionSurface: {

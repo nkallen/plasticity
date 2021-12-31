@@ -99,7 +99,7 @@ export function curve3d2curve2d(curve3d: c3d.Curve3D, hint: c3d.Placement3D = ne
         Z.multiplyScalar(Z.dot(inout));
 
         hint.Move(vec2vec(Z));
-
+        
         for (const point of [curve3d.GetLimitPoint(1), curve3d.GetLimitPoint(2)]) {
             const location = hint.PointRelative(point, 10e-3);
             if (location !== c3d.ItemLocation.OnItem) return;

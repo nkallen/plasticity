@@ -13,7 +13,7 @@ export interface CutParams {
     axes: ('X' | 'Y' | 'Z')[];
 }
 
-type CutMode = { tag: 'contour', contour: c3d.Contour, placement: c3d.Placement3D } | { tag: 'surface', surface: c3d.Surface }
+type CutMode = { tag: 'contour', contour: c3d.Contour, placement: c3d.Placement3D, info?: { Z: THREE.Vector3 } } | { tag: 'surface', surface: c3d.Surface } | { tag: 'axis', contour: c3d.Contour, placement: c3d.Placement3D, info?: { Z: THREE.Vector3 } }
 
 abstract class AbstractCutFactory extends GeometryFactory {
     constructionPlane?: PlaneSnap;
@@ -37,11 +37,11 @@ abstract class AbstractCutFactory extends GeometryFactory {
     }
 
     set curve(inst: visual.SpaceInstance<visual.Curve3D> | ContourAndPlacement) {
-        let curve2d, placement;
+        let curve2d, placement, curve3d;
         if (inst instanceof visual.SpaceInstance) {
             const instance = this.db.lookup(inst);
             const item = instance.GetSpaceItem()!;
-            const curve3d = item.Cast<c3d.Curve3D>(item.IsA());
+            curve3d = item.Cast<c3d.Curve3D>(item.IsA());
             const planar = curve3d2curve2d(curve3d, this.constructionPlane?.placement ?? new c3d.Placement3D());
             if (planar === undefined) throw new ValidationError("Curve cannot be converted to planar");
             curve2d = planar.curve;
@@ -68,20 +68,57 @@ abstract class AbstractCutFactory extends GeometryFactory {
         this.mode = { tag: 'contour', contour, placement }
     }
 
-    protected async computePhantom() {
-        const { mode, fantom, model: solid } = this;
-
-        switch (mode.tag) {
+    protected computeInfo() {
+        switch (this.mode.tag) {
+            case 'axis':
             case 'contour':
-                const { placement, contour } = mode;
-                const Z = vec2vec(placement.GetAxisZ(), 1);
+                let { placement, contour } = this.mode;
                 const bbox = new c3d.Cube();
-                solid.AddYourGabaritTo(bbox);
+                this.model.AddYourGabaritTo(bbox);
                 const inout_max = bbox.pmax;
                 const inout_min = bbox.pmin;
                 placement.GetPointInto(inout_max);
                 placement.GetPointInto(inout_min);
-                Z.multiplyScalar(deunit(inout_max.z) - deunit(inout_min.z));
+
+                if (contour.IsStraight() && this.mode.tag != 'axis') {
+                    const limit1 = contour.GetLimitPoint(1), limit2 = contour.GetLimitPoint(2);
+
+                    const parallelToY = Math.abs(limit1.y - limit2.y) < 10e-6;
+                    const parallelToX = Math.abs(limit1.x - limit2.x) < 10e-6;
+                    const outsideBBwrtY = (limit1.y <= inout_min.y + 10e-6 && limit1.y <= inout_max.y + 10e-6) || (limit1.y >= inout_min.y + 10e-6 && limit1.y >= inout_max.y + 10e-6);
+                    const outsideBBwrtX = (limit1.x <= inout_min.x + 10e-6 && limit1.x <= inout_max.x + 10e-6) || (limit1.x >= inout_min.x + 10e-6 && limit1.x >= inout_max.x + 10e-6);
+
+                    if (parallelToX && outsideBBwrtX) {
+                        const curve3d = new c3d.PlaneCurve(placement, contour, true)
+                        const { curve, placement: newPlacement } = curve3d2curve2d(curve3d, y_placement)!;
+                        this.mode.contour = new c3d.Contour([curve], true);
+                        this.mode.placement = newPlacement;
+                    } else if (parallelToY && outsideBBwrtY) {
+                        const curve3d = new c3d.PlaneCurve(placement, contour, true)
+                        const { curve, placement: newPlacement } = curve3d2curve2d(curve3d, x_placement)!;
+                        this.mode.contour = new c3d.Contour([curve], true);
+                        this.mode.placement = newPlacement;
+                    }
+                }
+
+                placement = this.mode.placement;
+                const Z = vec2vec(placement.GetAxisZ(), 1);
+                const { dPlus, dMinus } = c3d.Action.GetDistanceToCube(placement, this.model.GetShell()!);
+                const d = Math.abs(dPlus) > Math.abs(dMinus) ? dPlus : dMinus;
+                Z.multiplyScalar(deunit(d));
+                this.mode.info = { Z };
+        }
+    }
+
+    protected async computePhantom() {
+        const { mode, fantom } = this;
+
+        switch (mode.tag) {
+            case 'axis':
+            case 'contour':
+                const { placement, contour } = mode;
+                if (mode.info === undefined) this.computeInfo();
+                const { Z } = mode.info!;
 
                 fantom.model = new c3d.PlaneCurve(placement, contour, true);
                 fantom.direction = Z;
@@ -120,8 +157,12 @@ export class CutFactory extends AbstractCutFactory {
         const direction = new c3d.Vector3D(0, 0, 0);
 
         switch (mode.tag) {
+            case 'axis':
             case 'contour':
-                return new c3d.ShellCuttingParams(mode.placement, mode.contour, false, direction, flags, true, names);;
+                if (mode.info === undefined) this.computeInfo();
+                const result = new c3d.ShellCuttingParams(mode.placement, mode.contour, false, direction, flags, true, names);
+                result.AddSurfaceProlongType(c3d.SurfaceProlongType.Contour);
+                return result;
             case 'surface':
                 const params = new c3d.ShellCuttingParams(mode.surface, false, flags, true, names);
                 params.AddSurfaceProlongType(c3d.SurfaceProlongType.Extrusion);
@@ -147,13 +188,14 @@ export class SplitFactory extends AbstractCutFactory {
     protected names = new c3d.SNameMaker(composeMainName(c3d.CreatorType.CuttingSolid, this.db.version), c3d.ESides.SideNone, 0);
 
     async calculate() {
-        const { db, mode, names, models: faces, model: solid } = this;
+        const { mode, names, models: faces, model: solid } = this;
 
         const flags = new c3d.MergingFlags(true, true);
 
         this.computePhantom();
 
         switch (mode.tag) {
+            case 'axis':
             case 'contour':
                 return c3d.ActionSolid.SplitSolid_async(solid, c3d.CopyMode.Copy, mode.placement, c3d.SenseValue.BOTH, [mode.contour], false, faces, flags, names);
             case 'surface':
@@ -283,21 +325,23 @@ mesh_red.polygonOffsetUnits = 1;
 const surface_red = mesh_red.clone();
 surface_red.side = THREE.DoubleSide;
 
-const X = new THREE.Vector3(1, 0, 0);
-const Z = new THREE.Vector3(0, 0, 1);
-
-const axis2contour_placement: Record<'X' | 'Y' | 'Z', { contour: c3d.Contour, placement: c3d.Placement3D }> = (() => {
+const { x_placement, y_placement, z_placement } = (() => {
     const org = new c3d.CartPoint3D(0, 0, 0);
     const X = new c3d.Vector3D(1, 0, 0);
     const Y = new c3d.Vector3D(0, 1, 0);
     const Z = new c3d.Vector3D(0, 0, 1);
+
+    const x_placement = new c3d.Placement3D(org, X, false);
+    const y_placement = new c3d.Placement3D(org, Y, false);
+    const z_placement = new c3d.Placement3D(org, Z, false);
+    return { x_placement, y_placement, z_placement, };
+})();
+
+const axis2contour_placement: Record<'X' | 'Y' | 'Z', { contour: c3d.Contour, placement: c3d.Placement3D }> = (() => {
     const line_x = new c3d.Line(new c3d.CartPoint(-1, 0), new c3d.CartPoint(1, 0));
     const contour_x = new c3d.Contour([line_x], false);
     const line_y = new c3d.Line(new c3d.CartPoint(0, -1), new c3d.CartPoint(0, 1));
     const contour_y = new c3d.Contour([line_y], false);
-
-    const z_placement = new c3d.Placement3D(org, Z, false);
-    const x_placement = new c3d.Placement3D(org, X, false);
 
     return {
         'X': { contour: contour_y, placement: z_placement },

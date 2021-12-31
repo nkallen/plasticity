@@ -99,5 +99,3 @@ export {
     RadialArrayCommand,
 };
 
-
-module.hot?.accept();

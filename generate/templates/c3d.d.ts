@@ -435,14 +435,18 @@ declare module "*c3d.node" {
       };
 
       declare enum SurfaceProlongType {
-        None                = 0x00,  // 00000  ///< \ru Не продлевать. \en Don't prolong. 
-        Planar              = 0x01,  // 00001  ///< \ru Плоские поверхности. \en Planar surfaces. 
-        RevolutionAxis      = 0x02,  // 00010  ///< \ru Поверхности вращения (вдоль оси). \en Revolution surfaces (along axis). 
-        RevolutionAngle     = 0x04,  // 00100  ///< \ru Поверхности вращения (по углу). \en Revolution surfaces (by angle). 
-        Revolution          = 0x06,  // 00110  ///< \ru Поверхности вращения. \en Revolution surfaces. 
-        ExtrusionGeneratrix = 0x08,  // 01000  ///< \ru Поверхности выдавливания (по образующей). \en Extrusion surfaces (by generatrix).
-        ExtrusionDistance   = 0x10,  // 10000  ///< \ru Поверхности выдавливания (по расстоянию). \en Extrusion surfaces (by distance).
-        Extrusion           = 0x18,  // 11000  ///< \ru Поверхности выдавливания. \en Extrusion surfaces.
+        None                  = 0x00,  // 00000000  ///< \ru Не продлевать. \en Don't prolong. 
+        Planar                = 0x01,  // 00000001  ///< \ru Плоские поверхности. \en Planar surfaces. 
+        RevolutionAxis        = 0x02,  // 00000010  ///< \ru Поверхности вращения (вдоль оси). \en Revolution surfaces (along axis). 
+        RevolutionAngle       = 0x04,  // 00000100  ///< \ru Поверхности вращения (по углу). \en Revolution surfaces (by angle). 
+        Revolution            = 0x06,  // 00000110  ///< \ru Поверхности вращения. \en Revolution surfaces. 
+        ExtrusionGeneratrix   = 0x08,  // 00001000  ///< \ru Поверхности выдавливания (по образующей). \en Extrusion surfaces (by generatrix).
+        ExtrusionDistance     = 0x10,  // 00010000  ///< \ru Поверхности выдавливания (по расстоянию). \en Extrusion surfaces (by distance).
+        Extrusion             = 0x18,  // 00011000  ///< \ru Поверхности выдавливания. \en Extrusion surfaces.
+        Contour               = 0x20,  // 00100000  ///< \ru Продление секущего контура. \en Extension of the cutter contour.
+        RuledAlongGeneratrix  = 0x40,  // 01000000  ///< \ru Линейчатая поверхность (вдоль образующей). \en Ruled Surface (along generatrix).
+        RuledAcrossGeneratrix = 0x80,  // 10000000  ///< \ru Линейчатая поверхность (поперек образующей). \en Ruled Surface (across generatrix).
+        Ruled                 = 0xC0,  // 11000000  ///< \ru Линейчатая поверхность. \en Ruled Surface.
       };
 
       declare enum SenseValue {

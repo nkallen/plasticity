@@ -6,6 +6,7 @@
 
 - cut body: select edge after starting command  
 - upper-left box select of straight lines is too eager  
+- another mirror bug  
 - focus topology  
 - move snapmanagergeometrycache to editor  
 - when you shift a helper leave it visible  
@@ -74,11 +75,11 @@
 
 ### In Progress
 
-- another mirror bug  
 - set pivot of rotate gizmo  
 
 ### Done ✓
 
+- shift-added "additional helpers" are now persistently visible  
 - extrude multiple regions at once  
 - offset multiple at once  
 - extrude performance bug params post  

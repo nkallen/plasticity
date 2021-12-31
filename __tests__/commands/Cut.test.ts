@@ -63,6 +63,67 @@ describe(CutFactory, () => {
         expect(result.length).toBe(2);
     });
 
+    test('works with lines parallel to Y axis (negative)', async () => {
+        const makeLine = new CurveFactory(db, materials, signals);
+        makeLine.points.push(new THREE.Vector3(-2, -2, 0));
+        makeLine.points.push(new THREE.Vector3(2, -2, 0));
+        const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const cut = new CutFactory(db, materials, signals);
+        cut.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+        cut.solid = sphere;
+        cut.curve = line;
+        const result = await cut.commit() as visual.SpaceItem[];
+
+        expect(result.length).toBe(2);
+    });
+
+    test('works with lines parallel to Y axis (positive)', async () => {
+        const makeLine = new CurveFactory(db, materials, signals);
+        makeLine.points.push(new THREE.Vector3(-2, 2, 0));
+        makeLine.points.push(new THREE.Vector3(2, 2, 0));
+        const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const cut = new CutFactory(db, materials, signals);
+        cut.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+        cut.solid = sphere;
+        cut.curve = line;
+        const result = await cut.commit() as visual.SpaceItem[];
+
+        expect(result.length).toBe(2);
+    });
+
+
+    test('works with lines parallel to X axis (negative)', async () => {
+        const makeLine = new CurveFactory(db, materials, signals);
+        makeLine.points.push(new THREE.Vector3(-2, -2, 0));
+        makeLine.points.push(new THREE.Vector3(-2, 2, 0));
+        const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const cut = new CutFactory(db, materials, signals);
+        cut.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+        cut.solid = sphere;
+        cut.curve = line;
+        const result = await cut.commit() as visual.SpaceItem[];
+
+        expect(result.length).toBe(2);
+    });
+
+    test('works with lines parallel to X axis (positive)', async () => {
+        const makeLine = new CurveFactory(db, materials, signals);
+        makeLine.points.push(new THREE.Vector3(2, -2, 0));
+        makeLine.points.push(new THREE.Vector3(2, 2, 0));
+        const line = await makeLine.commit() as visual.SpaceInstance<visual.Curve3D>;
+
+        const cut = new CutFactory(db, materials, signals);
+        cut.constructionPlane = new PlaneSnap(new THREE.Vector3(0, 0, 1));
+        cut.solid = sphere;
+        cut.curve = line;
+        const result = await cut.commit() as visual.SpaceItem[];
+
+        expect(result.length).toBe(2);
+    });
+
     test('works with faces', async () => {
         const makeBox = new ThreePointBoxFactory(db, materials, signals);
         makeBox.p1 = new THREE.Vector3();

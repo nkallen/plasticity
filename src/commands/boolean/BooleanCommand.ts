@@ -9,8 +9,6 @@ import { MultiCutFactory } from "./CutFactory";
 import { CutGizmo } from "./CutGizmo";
 import { MoveGizmo } from '../translate/MoveGizmo';
 
-
-
 abstract class BooleanCommand extends Command {
     protected abstract factory: MovingBooleanFactory;
 
