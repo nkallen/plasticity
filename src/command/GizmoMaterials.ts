@@ -2,12 +2,15 @@ import { EditorSignals } from "../editor/EditorSignals";
 import * as THREE from 'three';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
-const depthInfo = {
+const depthInfo: THREE.MaterialParameters = {
     depthTest: true,
     depthWrite: true,
     fog: false,
     toneMapped: false,
     transparent: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
 };
 
 export interface ActiveGizmoMaterial {
