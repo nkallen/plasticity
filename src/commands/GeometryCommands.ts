@@ -13,6 +13,7 @@ import { RevolutionCommand } from "./evolution/RevolutionCommand";
 import { ExtensionShellCommand } from "./extend/ExtensionCommand";
 import { ExtrudeCommand } from "./extrude/ExtrudeCommand";
 import { FilletSolidCommand } from "./fillet/FilletCommand";
+import { SlotCommand } from "./hole/SlotCommand";
 import { LoftCommand } from "./loft/LoftCommand";
 import { FreestyleMirrorCommand, MirrorCommand, MirrorItemCommand, MirrorSolidCommand } from "./mirror/MirrorCommand";
 import { ActionFaceCommand, ModifyFaceCommand, OffsetFaceCommand, PurifyFaceCommand, RefilletFaceCommand } from "./modifyface/ModifyFaceCommand";
@@ -97,5 +98,6 @@ export {
     RevolutionCommand,
     DuplicateCommand,
     RadialArrayCommand,
+    SlotCommand,
 };
 

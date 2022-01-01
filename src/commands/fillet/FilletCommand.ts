@@ -64,7 +64,7 @@ export class FilletSolidCommand extends Command {
 
         await this.finished;
 
-        const result = await fillet.commit() as visual.Solid;
-        this.editor.selection.selected.addSolid(result);
+        const results = await fillet.commit() as visual.Solid[];
+        this.editor.selection.selected.add(results);
     }
 }

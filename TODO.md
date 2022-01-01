@@ -4,6 +4,7 @@
 
 ### Backlog
 
+- draw curve to offset flow  
 - cut body: select edge after starting command  
 - upper-left box select of straight lines is too eager  
 - another mirror bug  
@@ -68,6 +69,7 @@
 
 ### Todo
 
+- fillet gizmo handle is not scaling  
 - trim should allow deleting a line  
 - start fillet a priori  
 - ortho cube goes to ortho mode  
@@ -79,6 +81,7 @@
 
 ### Done ✓
 
+- fillet multiple at once  
 - shift-added "additional helpers" are now persistently visible  
 - extrude multiple regions at once  
 - offset multiple at once  

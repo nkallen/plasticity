@@ -250,7 +250,7 @@ export class Model {
     // Sometimes additional snaps are "activated" when the user mouses over an existing snap and hits shift
     private _activatedHelpers: Snap[] = [];
     get activatedHelpers(): readonly Snap[] { return this._activatedHelpers }
-    
+
     // FIXME: get rid of intos as array; make helpers a separate param
 
     private readonly alreadyActivatedSnaps = new Set<Snap>();
@@ -294,8 +294,6 @@ export class Model {
         }
     }
 }
-
-
 
 export class PointPicker {
     private readonly model = new Model(this.editor.db, this.editor.crosses, this.editor.registry, this.editor.signals);

@@ -410,6 +410,7 @@ export class DistanceGizmo extends AbstractAxisGizmo {
 
     scaleIndependentOfZoom(camera: THREE.Camera) {
         this.tip.scale.copy(this.relativeScale);
+        this.knob.scale.copy(this.relativeScale);
         Helper.scaleIndependentOfZoom(this.tip, camera);
     }
 }

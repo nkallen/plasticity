@@ -85,6 +85,7 @@ icons.set(cmd.ShellCommand, changePoint);
 icons.set(cmd.RadialArrayCommand, radialArray);
 icons.set(cmd.ExtensionShellCommand, radialArray);
 icons.set(cmd.DuplicateCommand, characterCurve);
+icons.set(cmd.SlotCommand, characterCurve);
 
 icons.set(c3d.ElementarySolid, box);
 icons.set(c3d.FilletSolid, fillet);
@@ -143,6 +144,7 @@ tooltips.set(cmd.ShellCommand, "Shell (thicken) solid or stroke (thicken) curve"
 tooltips.set(cmd.RadialArrayCommand, "Radial array");
 tooltips.set(cmd.ExtensionShellCommand, "Extend face");
 tooltips.set(cmd.DuplicateCommand, "Duplicate object");
+tooltips.set(cmd.SlotCommand, "Create a hole");
 
 export const keybindings = new Map<string, string>();
 keybindings.set("gizmo:move:x", "X axis");

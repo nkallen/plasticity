@@ -131,7 +131,7 @@ abstract class AbstractSnapPicker {
     private intersectable2snap(intersectable: intersectable.Intersectable, db: DatabaseLike): Snap {
         if (intersectable instanceof visual.Face) {
             const model = db.lookupTopologyItem(intersectable);
-            return new FaceSnap(model);
+            return new FaceSnap(intersectable, model);
         } else if (intersectable instanceof visual.CurveEdge) {
             const model = db.lookupTopologyItem(intersectable);
             return new CurveEdgeSnap(intersectable, model);

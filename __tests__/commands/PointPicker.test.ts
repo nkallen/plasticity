@@ -91,7 +91,7 @@ describe('restrictToPlaneThroughPoint(with snap)', () => {
     beforeEach(() => {
         expect(pointPicker.restrictionSnapsFor(constructionPlane).length).toBe(0);
         const face = box.faces.get(0);
-        const snap = new FaceSnap(db.lookupTopologyItem(face));
+        const snap = new FaceSnap(face, db.lookupTopologyItem(face));
         pointPicker.restrictToPlaneThroughPoint(new THREE.Vector3(1, 1, 1), snap);
     })
 

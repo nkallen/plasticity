@@ -8,7 +8,6 @@ import { CenterCircleFactory, EditCircleFactory, ThreePointCircleFactory, TwoPoi
 import { CircleKeyboardGizmo } from "./CircleKeyboardGizmo";
 import LineFactory from '../line/LineFactory';
 
-
 export class CenterCircleCommand extends Command {
     async execute(): Promise<void> {
         const circle = new CenterCircleFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
@@ -42,6 +41,7 @@ export class CenterCircleCommand extends Command {
         this.editor.enqueue(next, false);
     }
 }
+
 export class EditCircleCommand extends Command {
     circle!: visual.SpaceInstance<visual.Curve3D>;
     remember = false;

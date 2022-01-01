@@ -343,7 +343,7 @@ describe(FaceSnap, () => {
         box = await makeBox.commit() as visual.Solid;
         const face = box.faces.get(0); // bottom face
         const model = db.lookupTopologyItem(face);
-        snap = new FaceSnap(model);
+        snap = new FaceSnap(face, model);
     })
 
     test("project", () => {

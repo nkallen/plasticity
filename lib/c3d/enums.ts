@@ -633,18 +633,18 @@ enum TopologyType {
 };
 
 enum SurfaceProlongType {
-    None                  = 0x00,  // 00000000  ///< \ru Не продлевать. \en Don't prolong. 
-    Planar                = 0x01,  // 00000001  ///< \ru Плоские поверхности. \en Planar surfaces. 
-    RevolutionAxis        = 0x02,  // 00000010  ///< \ru Поверхности вращения (вдоль оси). \en Revolution surfaces (along axis). 
-    RevolutionAngle       = 0x04,  // 00000100  ///< \ru Поверхности вращения (по углу). \en Revolution surfaces (by angle). 
-    Revolution            = 0x06,  // 00000110  ///< \ru Поверхности вращения. \en Revolution surfaces. 
-    ExtrusionGeneratrix   = 0x08,  // 00001000  ///< \ru Поверхности выдавливания (по образующей). \en Extrusion surfaces (by generatrix).
-    ExtrusionDistance     = 0x10,  // 00010000  ///< \ru Поверхности выдавливания (по расстоянию). \en Extrusion surfaces (by distance).
-    Extrusion             = 0x18,  // 00011000  ///< \ru Поверхности выдавливания. \en Extrusion surfaces.
-    Contour               = 0x20,  // 00100000  ///< \ru Продление секущего контура. \en Extension of the cutter contour.
-    RuledAlongGeneratrix  = 0x40,  // 01000000  ///< \ru Линейчатая поверхность (вдоль образующей). \en Ruled Surface (along generatrix).
+    None = 0x00,  // 00000000  ///< \ru Не продлевать. \en Don't prolong. 
+    Planar = 0x01,  // 00000001  ///< \ru Плоские поверхности. \en Planar surfaces. 
+    RevolutionAxis = 0x02,  // 00000010  ///< \ru Поверхности вращения (вдоль оси). \en Revolution surfaces (along axis). 
+    RevolutionAngle = 0x04,  // 00000100  ///< \ru Поверхности вращения (по углу). \en Revolution surfaces (by angle). 
+    Revolution = 0x06,  // 00000110  ///< \ru Поверхности вращения. \en Revolution surfaces. 
+    ExtrusionGeneratrix = 0x08,  // 00001000  ///< \ru Поверхности выдавливания (по образующей). \en Extrusion surfaces (by generatrix).
+    ExtrusionDistance = 0x10,  // 00010000  ///< \ru Поверхности выдавливания (по расстоянию). \en Extrusion surfaces (by distance).
+    Extrusion = 0x18,  // 00011000  ///< \ru Поверхности выдавливания. \en Extrusion surfaces.
+    Contour = 0x20,  // 00100000  ///< \ru Продление секущего контура. \en Extension of the cutter contour.
+    RuledAlongGeneratrix = 0x40,  // 01000000  ///< \ru Линейчатая поверхность (вдоль образующей). \en Ruled Surface (along generatrix).
     RuledAcrossGeneratrix = 0x80,  // 10000000  ///< \ru Линейчатая поверхность (поперек образующей). \en Ruled Surface (across generatrix).
-    Ruled                 = 0xC0,  // 11000000  ///< \ru Линейчатая поверхность. \en Ruled Surface.
+    Ruled = 0xC0,  // 11000000  ///< \ru Линейчатая поверхность. \en Ruled Surface.
 };
 
 enum SenseValue {
@@ -721,6 +721,39 @@ enum LateralKind {
     prolong,            ///< \ru Продлить исходные рёбра. \en Extend the initial edges.
 };
 
+enum HoleType {
+    BorerValues = 0, ///< \ru Отверстие. \en Hole.
+    PocketValues = 1, ///< \ru Карман. \en Pocket.
+    SlotValues = 2, ///< \ru Паз. \en Slot.
+}
+
+enum SlotType {
+    //       ________         *
+    //       |      |         *
+    //       +------+         *
+    //        \    /          *
+    //          --            *
+    BallEnd = 0,  ///< \ru Цилиндрический в донной части. \en Cylindrical in the bottom part.
+    //       ________         *
+    //       |      |         *
+    //       |      |         *
+    //       |      |         *
+    //       +------+         *
+    Rectangular = 1,  ///< \ru Прямоугольный. \en Rectangular.
+    //       ________         *
+    //       |      |         *
+    //    +--+------+--+      *
+    //    |            |      *
+    //    +------------+      *
+    TShaped = 2,  ///< \ru T-образный. \en T-shaped.
+    //       ________         *
+    //      /        \        *
+    //     /          \       *
+    //    /            \      *
+    //   +--------------+     *
+    DoveTail = 3,  ///< \ru Ласточкин хвост. \en Dovetail
+};
+
 Object.assign(c3d, {
     ESides,
     StepType,
@@ -752,5 +785,7 @@ Object.assign(c3d, {
     SurfaceProlongType,
     ExtensionType,
     ExtensionWay,
-    LateralKind
+    LateralKind,
+    HoleType,
+    SlotType
 });

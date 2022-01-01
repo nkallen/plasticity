@@ -366,7 +366,7 @@ export class FaceSnap extends Snap implements ChoosableSnap {
     readonly name = "Face";
     readonly snapper = new THREE.Object3D(); // FIXME: FaceSnap and other geometry doesn't actually have a snapper ... disentangle interfaces
 
-    constructor(private readonly model: c3d.Face) {
+    constructor(readonly view: visual.Face, private readonly model: c3d.Face) {
         super();
         this.init();
     }
@@ -568,6 +568,11 @@ export class PlaneSnap extends Snap {
     readonly n: THREE.Vector3;
     readonly p: THREE.Vector3;
     private readonly orientation = new THREE.Quaternion();
+
+    static from(origin: THREE.Vector3, quaternion: THREE.Quaternion) {
+        const n = new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion);
+        return new PlaneSnap(n, origin);
+    }
 
     constructor(n: THREE.Vector3 = new THREE.Vector3(0, 0, 1), p: THREE.Vector3 = new THREE.Vector3()) {
         super();

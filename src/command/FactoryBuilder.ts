@@ -47,21 +47,39 @@ delegate.get = function <T extends GeometryFactory>(target: GeometryFactory & { 
     })
 }
 
-export function derive(type: typeof visual.Solid) {
+type Derivable = typeof visual.Solid | typeof visual.Face;
+
+export function derive<T extends Derivable>(type: T) {
     return function <T extends GeometryFactory>(target: T, propertyKey: keyof T, descriptor: PropertyDescriptor) {
         descriptor.get = function (this: GeometryFactory) {
             // @ts-ignore
-            return this['_' + propertyKey] = value;
+            return this['_' + propertyKey].view;
         }
-        descriptor.set = function (this: GeometryFactory, t: any) {
-            const value: { view?: visual.Solid, model?: c3d.Solid } = {};
-            if (t instanceof c3d.Solid) value.model = t;
-            else {
-                value.view = t;
-                value.model = this.db.lookup(t);
-            }
-            // @ts-ignore
-            this['_' + propertyKey] = value;
+        switch (type) {
+            case visual.Solid:
+                descriptor.set = function (this: GeometryFactory, t: any) {
+                    const value: { view?: visual.Solid, model?: c3d.Solid } = {};
+                    if (t instanceof c3d.Solid) value.model = t;
+                    else {
+                        value.view = t;
+                        value.model = this.db.lookup(t);
+                    }
+                    // @ts-ignore
+                    this['_' + propertyKey] = value;
+                }
+                break;
+            case visual.Face:
+                descriptor.set = function (this: GeometryFactory, t: any) {
+                    const value: { view?: visual.Face, model?: c3d.Face } = {};
+                    if (t instanceof c3d.Face) value.model = t;
+                    else {
+                        value.view = t;
+                        value.model = this.db.lookupTopologyItem(t);
+                    }
+                    // @ts-ignore
+                    this['_' + propertyKey] = value;
+                }
+                break;
         }
         Object.defineProperty(target, '_' + propertyKey, { value: {}, writable: true });
     }

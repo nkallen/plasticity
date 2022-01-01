@@ -522,4 +522,39 @@ declare module "*c3d.node" {
         normal = 0,         ///< \ru По нормали к кромке. \en Along the normal to boundary.
         prolong,            ///< \ru Продлить исходные рёбра. \en Extend the initial edges.
     };
+
+
+    declare enum HoleType {
+        BorerValues = 0, ///< \ru Отверстие. \en Hole.
+        PocketValues = 1, ///< \ru Карман. \en Pocket.
+        SlotValues = 2, ///< \ru Паз. \en Slot.
+    }
+
+    declare enum SlotType {
+        //       ________         *
+        //       |      |         *
+        //       +------+         *
+        //        \    /          *
+        //          --            *
+        BallEnd = 0,  ///< \ru Цилиндрический в донной части. \en Cylindrical in the bottom part.
+        //       ________         *
+        //       |      |         *
+        //       |      |         *
+        //       |      |         *
+        //       +------+         *
+        Rectangular = 1,  ///< \ru Прямоугольный. \en Rectangular.
+        //       ________         *
+        //       |      |         *
+        //    +--+------+--+      *
+        //    |            |      *
+        //    +------------+      *
+        TShaped = 2,  ///< \ru T-образный. \en T-shaped.
+        //       ________         *
+        //      /        \        *
+        //     /          \       *
+        //    /            \      *
+        //   +--------------+     *
+        DoveTail = 3,  ///< \ru Ласточкин хвост. \en Dovetail
+    };
+
 }

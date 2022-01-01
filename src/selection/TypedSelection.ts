@@ -18,6 +18,7 @@ abstract class AbstractTypedSelection<T extends visual.Item | visual.TopologyIte
         }
     }
 
+    // FIXME: : T | undefined
     get first() { return this[Symbol.iterator]().next().value as T }
     get last(): T | undefined {
         if (this.ids.size < 1) return;

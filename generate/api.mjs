@@ -187,7 +187,7 @@ export default {
         Surface: {
             rawHeader: "surface.h",
             extends: "SpaceItem",
-            dependencies: ["SpaceItem.h", "Placement3D.h", "CartPoint.h"],
+            dependencies: ["SpaceItem.h", "Placement3D.h", "CartPoint.h", "Rect2D.h"],
             functions: [
                 { signature: "MbSurface * Cast()", isManual: true },
                 { signature: "const MbSurface & GetSurface()", return: isOnHeap },
@@ -203,6 +203,7 @@ export default {
                 { signature: "void PointOn(MbCartPoint & uv, MbCartPoint3D & p)", p: isReturn, isUninheritable: true },
                 { signature: "void Normal(double &u, double &v, MbVector3D & result)", result: isReturn },
                 { signature: "bool GetPlacement(MbPlacement3D * place, bool exact = false)", place: isReturn, return: isErrorBool, isUninheritable: true },
+                { signature: "bool NearDirectPointProjection(const MbCartPoint3D & pnt, const MbVector3D & vect, double & u, double & v, bool ext, MbRect2D * uvRange = nullptr, bool onlyPositiveDirection = false)", return: isErrorBool, u: isReturn, v: isReturn }
             ]
         },
         Solid: {
@@ -363,6 +364,9 @@ export default {
                 "void Inverse()",
                 "MbCurve * GetProjection(const MbPlacement3D &place, VERSION version = Math::DefaultMathVersion())",
             ]
+        },
+        Rect2D: {
+            rawHeader: "mb_rect2d.h"
         },
         TrimmedCurve3D: {
             rawHeader: "cur_trimmed_curve3d.h",
@@ -634,6 +638,7 @@ export default {
                 "const MbPlacement3D & place",
             ],
             functions: [
+                "MbPlacement3D & InitYZ(const MbCartPoint3D &p, const MbVector3D &axisY, const MbVector3D &axisZ)",
                 "MbPlacement3D & Move(const MbVector3D & to)",
                 "MbPlacement3D & Rotate(const MbAxis3D & axis, double angle)",
                 "MbPlacement3D & Scale(double sx, double sy, double sz)",
@@ -942,6 +947,7 @@ export default {
                 { signature: "void Normal(double u, double v, MbVector3D & result)", result: isReturn },
                 { signature: "void Point(double faceU, double faceV, MbCartPoint3D & point)", point: isReturn },
                 { signature: "bool GetPlacement(MbPlacement3D * result)", result: isReturn, return: isErrorBool },
+                { signature: "bool GetPlanePlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
                 { signature: "bool GetControlPlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
                 { signature: "bool GetSurfacePlacement(MbPlacement3D & result)", result: isReturn, return: isErrorBool },
                 { signature: "bool OrientPlacement(MbPlacement3D & result)", return: isErrorBool },
@@ -1642,6 +1648,40 @@ export default {
                 "bool prolong",
                 "bool combine"
             ]
+        },
+        HoleValues: {
+            rawHeader: "op_shell_parameter.h",
+            dependencies: ["CartPoint3D.h", "Vector3D.h", "FaceShell.h", "Face.h", "Solid.h", "Surface.h"],
+            cppClassName: "_HoleValues",
+            rawClassName: "HoleValues",
+            jsClassName: "HoleValues",
+            fields: [
+                "double placeAngle",
+                "double azimuthAngle",
+            ],
+            "functions": [
+                "void SetSurface(MbSurface *s)",
+                "void SetPhantom(bool s)",
+            ]
+        },
+        SlotValues: {
+            rawHeader: "op_shell_parameter.h",
+            extends: "HoleValues",
+            dependencies: ["_HoleValues.h"],
+            cppClassName: "_SlotValues",
+            rawClassName: "SlotValues",
+            jsClassName: "SlotValues",
+            initializers: [""],
+            fields: [
+                "double length",
+                "double width",
+                "double depth",
+                "double bottomWidth",
+                "double bottomDepth",
+                "double floorRadius",
+                "double tailAngle",
+                "SlotValues::SlotType type",
+            ]
         }
     },
     modules: {
@@ -1709,7 +1749,7 @@ export default {
         },
         ActionSolid: {
             rawHeader: "action_solid.h",
-            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h", "ShellCuttingParams.h", "_SweptValues.h", "_RevolutionValues.h", "_EvolutionValues.h", "_DuplicationValues.h"],
+            dependencies: ["CartPoint3D.h", "Surface.h", "SNameMaker.h", "Solid.h", "_SmoothValues.h", "Face.h", "CurveEdge.h", "BooleanFlags.h", "Placement3D.h", "Contour.h", "MergingFlags.h", "_LoftedValues.h", "SweptData.h", "_ExtrusionValues.h", "EdgeFunction.h", "ShellCuttingParams.h", "_SweptValues.h", "_RevolutionValues.h", "_EvolutionValues.h", "_DuplicationValues.h", "_HoleValues.h"],
             functions: [
                 "MbResultType ElementarySolid(const SArray<MbCartPoint3D> & points, ElementaryShellType solidType, const MbSNameMaker & names, MbSolid *& result)",
                 // "MbResultType ElementarySolid(const MbSurface & surface, const MbSNameMaker & names, MbSolid *& result)",
@@ -1734,6 +1774,7 @@ export default {
                 "MbResultType RevolutionSolid(const MbSweptData & sweptData, const MbAxis3D & axis, const RevolutionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, MbSolid *& result)",
                 "MbResultType EvolutionSolid(const MbSweptData & sweptData, const MbCurve3D & spine, const EvolutionValues & params, const MbSNameMaker & operNames, const RPArray<MbSNameMaker> & contoursNames, const MbSNameMaker & spineNames, MbSolid *& result)",
                 "MbResultType DuplicationSolid(const MbSolid & solid, const DuplicationValues & params, const MbSNameMaker & names, MbSolid *& result)",
+                "MbResultType HoleSolid(MbSolid * solid, MbeCopyMode sameShell, const MbPlacement3D & place, const HoleValues & params, const MbSNameMaker & names, MbSolid *& result)"
             ]
 
         },
@@ -1971,5 +2012,6 @@ export default {
         "ExtensionValues::ExtensionType",
         "ExtensionValues::ExtensionWay",
         "ExtensionValues::LateralKind",
+        "SlotValues::SlotType",
     ]
 }
