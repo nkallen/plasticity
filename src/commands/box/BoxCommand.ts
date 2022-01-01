@@ -8,8 +8,6 @@ import { PossiblyBooleanCenterBoxFactory, PossiblyBooleanCornerBoxFactory, Possi
 import LineFactory from '../line/LineFactory';
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from '../rect/RectangleFactory';
 
-
-
 export class ThreePointBoxCommand extends Command {
     async execute(): Promise<void> {
         const box = new PossiblyBooleanThreePointBoxFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);

@@ -4,7 +4,8 @@ import { SnapInfo } from "../command/SnapPresenter";
 import { Viewport } from "../components/viewport/Viewport";
 import { DatabaseLike } from "../editor/GeometryDatabase";
 import LayerManager from "../editor/LayerManager";
-import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, ChoosableSnap, PlaneSnap, PointSnap, Snap } from "../editor/snaps/Snap";
+import { AxisSnap, ConstructionPlaneSnap, CurveEdgeSnap, CurveSnap, FaceCenterPointSnap, FaceSnap, ChoosableSnap, PlaneSnap, PointSnap, Snap, axisSnapMaterial } from "../editor/snaps/Snap";
+import { originSnap, xAxisSnap, yAxisSnap, zAxisSnap } from "../editor/snaps/SnapManager";
 import { inst2curve } from "../util/Conversion";
 import * as intersectable from "./Intersectable";
 import { SnapManagerGeometryCache } from "./SnapManagerGeometryCache";
@@ -78,6 +79,8 @@ abstract class AbstractSnapPicker {
         let intersections: THREE.Intersection[];
 
         snaps.resolution.set(viewport.renderer.domElement.offsetWidth, viewport.renderer.domElement.offsetHeight);
+        axisSnapMaterial.resolution.copy(snaps.resolution);
+
         const snappers = snaps.snappers;
         let geometry = db.visibleObjects;
         // FIXME: I dislike this approach; make TranslateFact generate real TemporaryObjects rather than reusing the actual Items
@@ -299,3 +302,8 @@ CurveEdgeSnap.prototype.priority = 2;
 FaceSnap.prototype.priority = 3;
 PlaneSnap.prototype.priority = 4;
 ConstructionPlaneSnap.prototype.priority = 5;
+
+originSnap.priority = 3;
+xAxisSnap.priority = 4;
+yAxisSnap.priority = 4;
+zAxisSnap.priority = 4;

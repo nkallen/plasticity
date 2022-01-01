@@ -125,27 +125,27 @@ export class SymmetryFactory extends GeometryFactory {
         let cutAndMirrored = model
         if (shouldCut) {
             try {
-                const results = c3d.ActionSolid.SolidCutting(cutAndMirrored, c3d.CopyMode.Copy, params);
+                const results = await c3d.ActionSolid.SolidCutting_async(cutAndMirrored, c3d.CopyMode.Copy, params);
                 cutAndMirrored = results[1] ?? results[0];
                 original = cutAndMirrored;
             } catch { }
         }
-        cutAndMirrored = c3d.ActionSolid.MirrorSolid(cutAndMirrored, placement, names);
+        cutAndMirrored = await c3d.ActionSolid.MirrorSolid_async(cutAndMirrored, placement, names);
         this._phantom = cutAndMirrored;
 
         if (shouldCut && shouldUnion) {
             try {
-                return [c3d.ActionSolid.SymmetrySolid(model, c3d.CopyMode.Copy, placement, names)];
+                return [await c3d.ActionSolid.SymmetrySolid_async(model, c3d.CopyMode.Copy, placement, names)];
             } catch (e) {
-                const mirrored = c3d.ActionSolid.MirrorSolid(model, placement, names);
-                const { result } = c3d.ActionSolid.UnionResult(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
+                const mirrored = await c3d.ActionSolid.MirrorSolid_async(model, placement, names);
+                const { result } = await c3d.ActionSolid.UnionResult_async(mirrored, c3d.CopyMode.Copy, [model], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
                 return [result];
             }
         } else {
             if (!shouldCut && !shouldUnion) return [cutAndMirrored]; // actually, its just mirrored in this case
             else if (shouldCut && !shouldUnion) return [original, cutAndMirrored];
             else if (!shouldCut && shouldUnion) {
-                const { result: unioned } = c3d.ActionSolid.UnionResult(cutAndMirrored, c3d.CopyMode.Copy, [original], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
+                const { result: unioned } = await c3d.ActionSolid.UnionResult_async(cutAndMirrored, c3d.CopyMode.Copy, [original], c3d.CopyMode.Copy, c3d.OperationType.Union, false, mergeFlags, names, false);
                 return [unioned];
             }
             throw new Error("unreachable");
@@ -178,7 +178,7 @@ export class SymmetryFactory extends GeometryFactory {
             try {
                 let result = model;
                 if (this.shouldCut) {
-                    const results = c3d.ActionSolid.SolidCutting(model, c3d.CopyMode.Copy, params);
+                    const results = await c3d.ActionSolid.SolidCutting_async(model, c3d.CopyMode.Copy, params);
                     result = results[1] ?? results[0];
                 }
 

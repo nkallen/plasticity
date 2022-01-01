@@ -1,12 +1,11 @@
 import { EditorSignals } from '../editor/EditorSignals';
 import { DatabaseLike } from '../editor/GeometryDatabase';
-import MaterialDatabase from '../editor/MaterialDatabase';
 import { Intersectable, Intersection } from "../visual_model/Intersectable";
 import * as visual from '../visual_model/VisualModel';
 import { ControlPoint, Curve3D, CurveEdge, Face, Region } from '../visual_model/VisualModel';
 import { ClickStrategy, HoverStrategy } from './Click';
-import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
 import { SelectionConversionStrategy } from './SelectionConversion';
+import { HasSelectedAndHovered, Selectable } from './SelectionDatabase';
 
 export enum SelectionMode {
     CurveEdge, Face, Solid, Curve, ControlPoint

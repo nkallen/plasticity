@@ -8,7 +8,7 @@ import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
 import { Intersection } from '../../src/visual_model/Intersectable';
 import * as visual from '../../src/visual_model/VisualModel';
-import { ChangeSelectionExecutor, ChangeSelectionModifier } from '../../src/selection/ChangeSelectionExecutor';
+import { ChangeSelectionExecutor, ChangeSelectionModifier, ChangeSelectionOption } from '../../src/selection/ChangeSelectionExecutor';
 import { SelectionDatabase } from '../../src/selection/SelectionDatabase';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -24,7 +24,7 @@ beforeEach(() => {
     signals = new EditorSignals();
     db = new GeometryDatabase(materials, signals);
     selectionDb = new SelectionDatabase(db, materials, signals);
-    changeSelection = new ChangeSelectionExecutor(selectionDb, materials, signals);
+    changeSelection = new ChangeSelectionExecutor(selectionDb, db, signals);
 });
 
 let solid: visual.Solid;
@@ -67,7 +67,7 @@ describe('onClick', () => {
 
         expect(selectionDb.selected.curves.size).toBe(0);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
     });
 
@@ -77,7 +77,7 @@ describe('onClick', () => {
             object: curve.underlying
         }] as Intersection[];
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
 
         intersections = [{
@@ -85,11 +85,11 @@ describe('onClick', () => {
             object: curve.underlying.points.get(0)
         }];
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
 
-        changeSelection.onClick([], ChangeSelectionModifier.Add);
+        changeSelection.onClick([], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(0);
     });
@@ -100,7 +100,7 @@ describe('onClick', () => {
             object: curve.underlying
         }] as Intersection[];
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
 
         const boxed = new Set([curve.underlying.points.get(0)]);
@@ -109,7 +109,7 @@ describe('onClick', () => {
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
 
-        changeSelection.onClick([], ChangeSelectionModifier.Add);
+        changeSelection.onClick([], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(0);
     });
@@ -120,7 +120,7 @@ describe('onClick', () => {
             object: curve.underlying
         }] as Intersection[];
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
 
         intersections = [{
@@ -128,7 +128,7 @@ describe('onClick', () => {
             object: curve.underlying.points.get(0)
         }];
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
 
@@ -143,7 +143,7 @@ describe('onClick', () => {
             object: curve.underlying
         }];
 
-        changeSelection.onClick(intersectCurve, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersectCurve, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
 
         const intersectControlPoint = [{
@@ -151,11 +151,11 @@ describe('onClick', () => {
             object: curve.underlying.points.get(0)
         }];
 
-        changeSelection.onClick(intersectControlPoint, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersectControlPoint, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
 
-        changeSelection.onClick(intersectCurve, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersectCurve, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
         expect(selectionDb.selected.controlPoints.size).toBe(0);
     });
@@ -169,7 +169,7 @@ describe('onClick', () => {
 
         expect(selectionDb.selected.regions.size).toBe(0);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.regions.size).toBe(1);
     });
 
@@ -182,12 +182,12 @@ describe('onClick', () => {
 
         expect(selectionDb.selected.curves.size).toBe(0);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
 
         const memento = selectionDb.selected.saveToMemento();
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Remove);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Remove, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
 
         selectionDb.selected.restoreFromMemento(memento);
@@ -205,10 +205,10 @@ describe('onClick', () => {
         });
 
         expect(selectionDb.selected.solids.size).toBe(0);
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
 
-        changeSelection.onClick([], ChangeSelectionModifier.Add);
+        changeSelection.onClick([], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(0);
     });
@@ -222,14 +222,14 @@ describe('onClick', () => {
         });
 
         expect(selectionDb.selected.solids.size).toBe(0);
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(1);
 
-        changeSelection.onClick([], ChangeSelectionModifier.Add);
+        changeSelection.onClick([], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(0);
     });
@@ -245,15 +245,15 @@ describe('onClick', () => {
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.edges.size).toBe(0);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(1);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(1);
     });
@@ -268,8 +268,8 @@ describe('onClick', () => {
 
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.edges.size).toBe(1);
 
         selectionDb.selected.delete(solid);
@@ -287,8 +287,8 @@ describe('onClick', () => {
 
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.edges.size).toBe(1);
 
         const before = selectionDb.selected.saveToMemento();
@@ -317,13 +317,13 @@ describe('onClick', () => {
             object: solid.faces.get(0)
         });
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(sel).toHaveBeenCalledWith(solid);
         expect(desel).not.toHaveBeenCalled();
 
         sel.mockReset();
 
-        changeSelection.onClick([], ChangeSelectionModifier.Add);
+        changeSelection.onClick([], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(sel).not.toHaveBeenCalled();
         expect(desel).toHaveBeenCalledWith(solid);
     })
@@ -342,14 +342,14 @@ describe('onPointerMove', () => {
         const unhov = jest.fn();
         signals.objectUnhovered.add(unhov);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(hov).toHaveBeenCalledWith(solid);
         expect(unhov).not.toHaveBeenCalled();
 
         hov.mockReset();
         unhov.mockReset();
 
-        changeSelection.onHover([], ChangeSelectionModifier.Add);
+        changeSelection.onHover([], ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(hov).not.toHaveBeenCalled();
         expect(unhov).toHaveBeenCalledWith(solid);
     });
@@ -364,11 +364,11 @@ describe('onPointerMove', () => {
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.hovered.curves.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.hovered.curves.size).toBe(1);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
         expect(selectionDb.hovered.curves.size).toBe(0);
     })
@@ -379,7 +379,7 @@ describe('onPointerMove', () => {
             object: curve.underlying
         }] as Intersection[];
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
 
         intersections = [{
@@ -387,12 +387,12 @@ describe('onPointerMove', () => {
             object: curve.underlying.points.get(0)
         }];
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
         expect(selectionDb.selected.controlPoints.size).toBe(0);
         expect(selectionDb.hovered.controlPoints.size).toBe(1);
 
-        changeSelection.onHover([], ChangeSelectionModifier.Add);
+        changeSelection.onHover([], ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.curves.size).toBe(1);
         expect(selectionDb.selected.controlPoints.size).toBe(0);
         expect(selectionDb.hovered.controlPoints.size).toBe(0);
@@ -408,16 +408,16 @@ describe('onPointerMove', () => {
         expect(selectionDb.selected.regions.size).toBe(0);
         expect(selectionDb.hovered.regions.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.regions.size).toBe(0);
         expect(selectionDb.hovered.regions.size).toBe(1);
 
         // and we don't unhover once it's hovered.
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.regions.size).toBe(0);
         expect(selectionDb.hovered.regions.size).toBe(1);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.regions.size).toBe(1);
         expect(selectionDb.hovered.regions.size).toBe(0);
     });
@@ -435,30 +435,30 @@ describe('onPointerMove', () => {
         expect(selectionDb.selected.faces.size).toBe(0);
         expect(selectionDb.hovered.faces.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(1);
         expect(selectionDb.hovered.faces.size).toBe(0);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.hovered.solids.size).toBe(0);
         expect(selectionDb.hovered.faces.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.faces.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(0);
         expect(selectionDb.hovered.faces.size).toBe(1);
 
         // hovering again should be a no-op
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.faces.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(0);
         expect(selectionDb.hovered.faces.size).toBe(1);
 
-        changeSelection.onClick([], ChangeSelectionModifier.Add);
+        changeSelection.onClick([], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.faces.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(0);
@@ -478,23 +478,23 @@ describe('onPointerMove', () => {
         expect(selectionDb.selected.edges.size).toBe(0);
         expect(selectionDb.hovered.edges.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(1);
         expect(selectionDb.hovered.edges.size).toBe(0);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.hovered.solids.size).toBe(0);
         expect(selectionDb.hovered.edges.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.edges.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(0);
         expect(selectionDb.hovered.edges.size).toBe(1);
 
-        changeSelection.onClick([], ChangeSelectionModifier.Add);
+        changeSelection.onClick([], ChangeSelectionModifier.Replace, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.selected.edges.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(0);
@@ -509,12 +509,12 @@ describe('onPointerMove', () => {
             object: edge
         }];
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.hovered.solids.size).toBe(0);
         expect(selectionDb.hovered.edges.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.edges.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(0);
@@ -526,7 +526,7 @@ describe('onPointerMove', () => {
             object: edge
         }];
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.edges.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(0);
@@ -546,17 +546,17 @@ describe('onPointerMove', () => {
         expect(selectionDb.selected.edges.size).toBe(0);
         expect(selectionDb.hovered.edges.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(1);
         expect(selectionDb.hovered.edges.size).toBe(0);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.hovered.solids.size).toBe(0);
         expect(selectionDb.hovered.edges.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.solids.size).toBe(1);
         expect(selectionDb.selected.edges.size).toBe(0);
         expect(selectionDb.hovered.solids.size).toBe(0);
@@ -581,10 +581,10 @@ describe(SelectionDatabase, () => {
 
         expect(selectionDb.hovered.curves.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.hovered.curves.size).toBe(1);
 
-        changeSelection.onHover([], ChangeSelectionModifier.Add);
+        changeSelection.onHover([], ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.hovered.curves.size).toBe(0);
     });
 
@@ -597,7 +597,7 @@ describe(SelectionDatabase, () => {
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.hovered.curves.size).toBe(0);
 
-        changeSelection.onHover(intersectionsCircle, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersectionsCircle, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.hovered.curves.size).toBe(1);
 
         const intersectionsControlPoint = [{
@@ -605,7 +605,7 @@ describe(SelectionDatabase, () => {
             object: curve.underlying.points.get(0)
         }];
 
-        changeSelection.onHover(intersectionsControlPoint, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersectionsControlPoint, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.hovered.curves.size).toBe(0);
     });
 
@@ -618,15 +618,15 @@ describe(SelectionDatabase, () => {
 
         expect(selectionDb.selected.regions.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.regions.size).toBe(0);
         expect(selectionDb.hovered.regions.size).toBe(1);
 
-        changeSelection.onClick(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onClick(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.regions.size).toBe(1);
         expect(selectionDb.hovered.regions.size).toBe(0);
 
-        changeSelection.onHover(intersections, ChangeSelectionModifier.Add);
+        changeSelection.onHover(intersections, ChangeSelectionModifier.Add, ChangeSelectionOption.None);
         expect(selectionDb.selected.regions.size).toBe(1);
         expect(selectionDb.hovered.regions.size).toBe(1);
     })

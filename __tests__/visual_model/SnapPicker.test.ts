@@ -175,8 +175,8 @@ describe('intersect', () => {
 
             test('it returns snap points for the geometry', () => {
                 const actual = picker.intersect(pointPicker, snaps, db);
-                expect(actual.length).toBe(5);
-                expect(actual.map(s => s.snap.name)).toEqual(['Origin', 'End', 'Y', 'Curve', 'X']);
+                expect(actual.length).toBe(1);
+                expect(actual.map(s => s.snap.name)).toEqual(['End']);
             })
         })
 

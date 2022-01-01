@@ -20,9 +20,9 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
         signals: EditorSignals
     ) {
         this.basicSnaps.add(originSnap);
-        this.basicSnaps.add(new AxisSnap("X", new THREE.Vector3(1, 0, 0)));
-        this.basicSnaps.add(new AxisSnap("Y", new THREE.Vector3(0, 1, 0)));
-        this.basicSnaps.add(new AxisSnap("Z", new THREE.Vector3(0, 0, 1)));
+        this.basicSnaps.add(xAxisSnap);
+        this.basicSnaps.add(yAxisSnap);
+        this.basicSnaps.add(zAxisSnap);
         Object.freeze(this.basicSnaps);
 
         signals.objectAdded.add(([item, agent]) => {
@@ -240,3 +240,6 @@ export class SnapManager implements MementoOriginator<SnapMemento> {
 }
 
 export const originSnap = new PointSnap("Origin");
+export const xAxisSnap = new AxisSnap("X", new THREE.Vector3(1, 0, 0));
+export const yAxisSnap = new AxisSnap("Y", new THREE.Vector3(0, 1, 0));
+export const zAxisSnap = new AxisSnap("Z", new THREE.Vector3(0, 0, 1));

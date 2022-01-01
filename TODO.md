@@ -80,6 +80,7 @@
 
 ### Done ✓
 
+- holding cmd/window turns on all selection modes  
 - fillet gizmo handle is not scaling  
 - fillet multiple at once  
 - shift-added "additional helpers" are now persistently visible  

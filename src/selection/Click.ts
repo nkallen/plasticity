@@ -224,6 +224,11 @@ export class ClickStrategy {
 }
 
 export class HoverStrategy extends ClickStrategy {
+    emptyIntersection(modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
+        this.writeable.removeAll();
+        this.hovered.removeAll();
+    }
+
     protected modify<T>(modifier: ChangeSelectionModifier, add: () => T, remove: () => T): T {
         this.hovered.removeAll();
         if (modifier === ChangeSelectionModifier.Remove) {

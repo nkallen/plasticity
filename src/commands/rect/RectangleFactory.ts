@@ -1,8 +1,7 @@
 import * as THREE from "three";
 import c3d from '../../../build/Release/c3d.node';
-import { PlaneSnap } from "../../editor/snaps/Snap";
-import { point2point } from "../../util/Conversion";
 import { GeometryFactory, NoOpError } from '../../command/GeometryFactory';
+import { point2point } from "../../util/Conversion";
 
 type FourCorners = { p1: THREE.Vector3, p2: THREE.Vector3, p3: THREE.Vector3, p4: THREE.Vector3 };
 
@@ -58,14 +57,20 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     orientation = new THREE.Quaternion();
 
     private static readonly quat = new THREE.Quaternion();
+    private static readonly toX = new THREE.Quaternion();
     private static readonly inv = new THREE.Quaternion();
     private static readonly c1 = new THREE.Vector3();
     private static readonly c2 = new THREE.Vector3();
 
-    static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, constructionPlane: THREE.Vector3): FourCorners {
-        const { quat, inv, c1, c2 } = this;
+    static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, normal: THREE.Vector3): FourCorners {
+        const { quat, toX, inv, c1, c2 } = this;
 
-        quat.setFromUnitVectors(constructionPlane, new THREE.Vector3(0, 0, 1));
+        quat.setFromUnitVectors(normal, Z);
+        toX.setFromUnitVectors(normal, X);
+        const perpendicularToX = Math.abs(normal.dot(X)) < 10e-6;
+        const parallelToZ = Math.abs(normal.dot(Z)) > 1 - 10e-6;
+        if (!perpendicularToX && !parallelToZ) quat.premultiply(toX);
+
         inv.copy(quat).invert();
 
         c1.copy(corner1).applyQuaternion(quat);
@@ -80,7 +85,7 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     }
 
     protected orthogonal(): FourCorners {
-        const { corner1, p2, normal } = this;
+        const { corner1, p2, normal, orientation } = this;
         if (corner1.manhattanDistanceTo(p2) < 10e-5) throw new NoOpError();
         return DiagonalRectangleFactory.orthogonal(corner1, p2, normal);
     }
@@ -94,6 +99,7 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
 }
 
 const Z = new THREE.Vector3(0, 0, 1);
+const X = new THREE.Vector3(1, 0, 0);
 
 export class CornerRectangleFactory extends DiagonalRectangleFactory {
     get corner1() { return this.p1 }

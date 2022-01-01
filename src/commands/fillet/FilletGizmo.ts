@@ -154,6 +154,7 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
         this.tip.scale.copy(this.relativeScale);
         this.knob.scale.copy(this.relativeScale);
         Helper.scaleIndependentOfZoom(this.tip, camera);
+        Helper.scaleIndependentOfZoom(this.knob, camera);
     }
 }
 

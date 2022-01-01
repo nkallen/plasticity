@@ -1,4 +1,7 @@
 import * as THREE from "three";
+import { Line2 } from "three/examples/jsm/lines/Line2";
+import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import c3d from '../../../build/Release/c3d.node';
 import { SnapInfo } from "../../command/SnapPresenter";
 import { curve3d2curve2d, isSamePlacement, normalizePlacement, point2point, vec2vec } from "../../util/Conversion";
@@ -435,21 +438,26 @@ export class OrRestriction<R extends Restriction> implements Restriction {
     }
 }
 
-const axisGeometry = new THREE.BufferGeometry();
+const axisGeometry_line = new THREE.BufferGeometry();
 const points = [];
-points.push(new THREE.Vector3(0, -100000, 0));
-points.push(new THREE.Vector3(0, 100000, 0));
-axisGeometry.setFromPoints(points);
+points.push(new THREE.Vector3(0, -100_000, 0));
+points.push(new THREE.Vector3(0, 100_000, 0));
+axisGeometry_line.setFromPoints(points);
+
+const axisGeometry_line2 = new LineGeometry();
+axisGeometry_line2.setPositions([0, -100_000, 0, 0, 100_000, 0]);
+
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const origin = new THREE.Vector3();
 const lineBasicMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.8 });
+export const axisSnapMaterial = new LineMaterial();
 
 export class AxisSnap extends Snap implements ChoosableSnap {
-    readonly snapper = new THREE.Line(axisGeometry, lineBasicMaterial);
-    readonly helper: THREE.Object3D = this.snapper.clone();
+    readonly snapper = new Line2(axisGeometry_line2, axisSnapMaterial);
+    readonly helper: THREE.Object3D = new THREE.Line(axisGeometry_line, lineBasicMaterial);
 
     static X = new AxisSnap("X", new THREE.Vector3(1, 0, 0));
     static Y = new AxisSnap("Y", new THREE.Vector3(0, 1, 0));
