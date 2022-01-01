@@ -234,6 +234,9 @@ export default {
         "mouse0": "selection:replace",
         "shift-mouse0": "selection:add",
         "ctrl-mouse0": "selection:remove",
+
+        "cmd": "selection:option:ignore-mode",
+        "alt": "selection:option:extend",
     },
 
     "body[gizmo=point-picker]": {

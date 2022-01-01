@@ -40,7 +40,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     // Normally a viewport selector enqueues a ChangeSelectionCommand; however,
     // This class is used in commands to modify a "temporary" selection
     processClick(intersections: Intersection[], upEvent: MouseEvent) {
-        this.changeSelection.onClick(intersections, this.event2modifier(upEvent));
+        this.changeSelection.onClick(intersections, this.event2modifier(upEvent), this.event2option(upEvent));
         if (intersections.length === 0) this.onEmptyIntersection();
     }
 
@@ -56,7 +56,7 @@ export class ObjectPickerViewportSelector extends AbstractViewportSelector {
     // NOTE: while the selection.selected is a temporary collection just for this class,
     // typically it will use the real selection.hovered to provide user feedback.
     processHover(intersects: Intersection[], moveEvent?: MouseEvent) {
-        this.changeSelection.onHover(intersects, this.event2modifier(moveEvent));
+        this.changeSelection.onHover(intersects, this.event2modifier(moveEvent), this.event2option(moveEvent));
     }
 
     processBoxHover(selected: Set<Intersectable>, moveEvent: MouseEvent): void {

@@ -18,6 +18,12 @@ export enum ChangeSelectionModifier {
     Replace, Add, Remove
 }
 
+export enum ChangeSelectionOption {
+    None = 0,
+    IgnoreMode = 1 << 0,
+    Extend = 1 << 2,
+}
+
 export class ChangeSelectionExecutor {
     private readonly clickStrategy: ClickStrategy;
     private readonly hoverStrategy: ClickStrategy;
@@ -40,35 +46,35 @@ export class ChangeSelectionExecutor {
         this.onConvert = this.wrapFunction(this.onConvert);
     }
 
-    private onIntersection(intersections: Intersection[], strategy: ClickStrategy, modifier: ChangeSelectionModifier): Intersection | undefined {
+    private onIntersection(intersections: Intersection[], strategy: ClickStrategy, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): Intersection | undefined {
         if (intersections.length == 0) {
-            strategy.emptyIntersection(modifier);
+            strategy.emptyIntersection(modifier, option);
             return;
         }
 
         for (const intersection of intersections) {
             const object = intersection.object;
             if (object instanceof Face || object instanceof CurveEdge) {
-                if (strategy.solid(object, modifier)) return intersection;
-                if (strategy.topologicalItem(object, modifier)) return intersection;
+                if (strategy.solid(object, modifier, option)) return intersection;
+                if (strategy.topologicalItem(object, modifier, option)) return intersection;
             } else if (object instanceof Curve3D) {
-                if (strategy.curve3D(object, modifier)) return intersection;
+                if (strategy.curve3D(object, modifier, option)) return intersection;
             } else if (object instanceof Region) {
-                if (strategy.region(object, modifier)) return intersection;
+                if (strategy.region(object, modifier, option)) return intersection;
             } else if (object instanceof ControlPoint) {
-                if (strategy.controlPoint(object, modifier)) return intersection;
+                if (strategy.controlPoint(object, modifier, option)) return intersection;
             } else {
                 console.error(object);
                 throw new Error("Invalid precondition");
             }
         }
 
-        strategy.emptyIntersection(modifier);
+        strategy.emptyIntersection(modifier, option);
         return;
     }
 
-    onClick(intersections: Intersection[], modifier: ChangeSelectionModifier): Intersection | undefined {
-        return this.onIntersection(intersections, this.clickStrategy, modifier);
+    onClick(intersections: Intersection[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption): Intersection | undefined {
+        return this.onIntersection(intersections, this.clickStrategy, modifier, option);
     }
 
     onDblClick(intersections: Intersection[], modifier: ChangeSelectionModifier): Intersection | undefined {
@@ -77,8 +83,8 @@ export class ChangeSelectionExecutor {
         if (this.clickStrategy.dblClick(first.object, modifier)) return first;
     }
 
-    onHover(intersections: Intersection[], modifier: ChangeSelectionModifier): void {
-        this.onIntersection(intersections, this.hoverStrategy, modifier);
+    onHover(intersections: Intersection[], modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
+        this.onIntersection(intersections, this.hoverStrategy, modifier, option);
     }
 
     onBoxHover(hover: Set<Intersectable | visual.Solid>, modifier: ChangeSelectionModifier) {

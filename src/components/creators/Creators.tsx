@@ -18,7 +18,7 @@ export class Model {
     constructor(
         private readonly editor: EditorLike,
     ) { 
-        this.mouseButtons = AbstractViewportSelector.getMouseButtons(editor.keymaps);
+        this.mouseButtons = AbstractViewportSelector.getMouseButtons(editor.keymaps).keystroke2modifier;
     }
 
     get creators() {

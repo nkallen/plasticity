@@ -1,6 +1,6 @@
 import { Intersectable } from "../visual_model/Intersectable";
 import { ControlPoint, Curve3D, CurveEdge, Face, PlaneInstance, Region, Solid, SpaceInstance, TopologyItem } from "../visual_model/VisualModel";
-import { ChangeSelectionModifier, SelectionMode } from "./ChangeSelectionExecutor";
+import { ChangeSelectionModifier, ChangeSelectionOption, SelectionMode } from "./ChangeSelectionExecutor";
 import { ModifiesSelection, ToggleableSet } from "./SelectionDatabase";
 
 export class ClickStrategy {
@@ -11,13 +11,13 @@ export class ClickStrategy {
         protected readonly writeable: ModifiesSelection
     ) { }
 
-    emptyIntersection(modifier: ChangeSelectionModifier): void {
+    emptyIntersection(modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
         this.writeable.removeAll();
         this.hovered.removeAll();
     }
 
-    curve3D(object: Curve3D, modifier: ChangeSelectionModifier): boolean {
-        if (!this.mode.has(SelectionMode.Curve)) return false;
+    curve3D(object: Curve3D, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
+        if (!this.mode.has(SelectionMode.Curve) && !(ChangeSelectionOption.IgnoreMode & option)) return false;
         const parentItem = object.parentItem;
         if (this.selected.hasSelectedChildren(parentItem)) return false;
 
@@ -32,8 +32,8 @@ export class ClickStrategy {
             });
     }
 
-    controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier): boolean {
-        if (!this.mode.has(SelectionMode.ControlPoint)) return false;
+    controlPoint(object: ControlPoint, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
+        if (!this.mode.has(SelectionMode.ControlPoint) && !(ChangeSelectionOption.IgnoreMode & option)) return false;
 
         return this.modify(modifier,
             () => {
@@ -51,14 +51,14 @@ export class ClickStrategy {
     }
 
 
-    solid(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
-        if (!this.mode.has(SelectionMode.Solid)) return false;
+    solid(object: TopologyItem, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
+        if (!this.mode.has(SelectionMode.Solid) && !(ChangeSelectionOption.IgnoreMode & option)) return false;
         const parentItem = object.parentItem;
 
         if (this.selected.solids.has(parentItem)) {
             return this.modify(modifier,
                 () => {
-                    if (this.topologicalItem(object, modifier)) {
+                    if (this.topologicalItem(object, modifier, option)) {
                         this.writeable.removeSolid(parentItem);
                         return true;
                     }
@@ -81,13 +81,13 @@ export class ClickStrategy {
         return false;
     }
 
-    topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier): boolean {
-        if (this.mode.has(SelectionMode.Face) && object instanceof Face) {
+    topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
+        if (object instanceof Face && (this.mode.has(SelectionMode.Face) || (ChangeSelectionOption.IgnoreMode & option))) {
             this.modify(modifier,
                 () => this.writeable.addFace(object),
                 () => this.writeable.removeFace(object));
             return true;
-        } else if (this.mode.has(SelectionMode.CurveEdge) && object instanceof CurveEdge) {
+        } else if (object instanceof CurveEdge && (this.mode.has(SelectionMode.CurveEdge) || (ChangeSelectionOption.IgnoreMode & option))) {
             this.modify(modifier,
                 () => this.writeable.addEdge(object),
                 () => this.writeable.removeEdge(object));
@@ -108,8 +108,8 @@ export class ClickStrategy {
         }
     }
 
-    region(object: Region, modifier: ChangeSelectionModifier): boolean {
-        if (!this.mode.has(SelectionMode.Face)) return false;
+    region(object: Region, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
+        if (!this.mode.has(SelectionMode.Face) && !(ChangeSelectionOption.IgnoreMode & option)) return false;
         const parentItem = object.parentItem;
 
         return this.modify(modifier,
