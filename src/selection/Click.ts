@@ -12,6 +12,7 @@ export class ClickStrategy {
     ) { }
 
     emptyIntersection(modifier: ChangeSelectionModifier, option: ChangeSelectionOption): void {
+        if (modifier !== ChangeSelectionModifier.Replace) return;
         this.writeable.removeAll();
         this.hovered.removeAll();
     }
