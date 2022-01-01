@@ -162,7 +162,5 @@ class FilletAngleGizmo extends AngleGizmo {
         this.state.push();
     }
 
-    get shouldRescaleOnZoom(): boolean {
-        return true
-    }
+    get shouldRescaleOnZoom() { return true }
 }

@@ -210,6 +210,7 @@ export class ClickStrategy {
         if (intersection instanceof TopologyItem) {
             return this.modify(modifier,
                 () => {
+                    this.selected.deselectChildren(intersection.parentItem);
                     this.writeable.addSolid(intersection.parentItem);
                     return true;
                 },

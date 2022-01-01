@@ -10,7 +10,6 @@ import MaterialDatabase from "../../src/editor/MaterialDatabase";
 import { ChangeSelectionModifier, SelectionMode, SelectionModeAll } from "../../src/selection/ChangeSelectionExecutor";
 import { ClickStrategy, HoverStrategy } from "../../src/selection/Click";
 import { SelectionDatabase, ToggleableSet } from "../../src/selection/SelectionDatabase";
-import { Intersection } from '../../src/visual_model/Intersectable';
 import * as visual from '../../src/visual_model/VisualModel';
 import { FakeMaterials } from "../../__mocks__/FakeMaterials";
 import '../matchers';
@@ -415,6 +414,26 @@ describe('box', () => {
         click.box(new Set([curve.underlying.points.get(0)]), ChangeSelectionModifier.Add);
         expect(selectionDb.selected.curves.size).toBe(0);
         expect(selectionDb.selected.controlPoints.size).toBe(1);
+    })
+})
+
+describe('dblClick', () => {
+    it('selects a solid regardless of mode', () => {
+        modes.clear();
+        expect(selectionDb.selected.solids.size).toBe(0);
+        click.dblClick(solid1.faces.get(0), ChangeSelectionModifier.Replace);
+        expect(selectionDb.selected.solids.size).toBe(1);
+    })
+
+    it('selects a solid and removes selected children', () => {
+        const face = solid1.faces.get(0);
+        expect(selectionDb.selected.faces.size).toBe(0);
+        click.topologicalItem(face, ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.faces.size).toBe(1);
+        
+        click.dblClick(face, ChangeSelectionModifier.Add);
+        expect(selectionDb.selected.solids.size).toBe(1);
+        expect(selectionDb.selected.faces.size).toBe(0);
     })
 })
 

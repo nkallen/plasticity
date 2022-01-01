@@ -69,7 +69,6 @@
 
 ### Todo
 
-- fillet gizmo handle is not scaling  
 - trim should allow deleting a line  
 - start fillet a priori  
 - ortho cube goes to ortho mode  
@@ -81,6 +80,7 @@
 
 ### Done ✓
 
+- fillet gizmo handle is not scaling  
 - fillet multiple at once  
 - shift-added "additional helpers" are now persistently visible  
 - extrude multiple regions at once  

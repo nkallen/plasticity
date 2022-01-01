@@ -9,13 +9,13 @@ const changeEvent = { type: 'change' };
 const startEvent = { type: 'start' };
 const endEvent = { type: 'end' };
 
-type State = 'none' | 'rotate' | 'dolly' | 'pan' | 'touch-rotate' | 'touch-dolly-pan' | 'touch-pan' | 'touch-dolly-rotate';
+type State = { tag: 'none' } | { tag: 'rotate', started: boolean } | { tag: 'dolly', started: boolean } | { tag: 'pan', started: boolean } | { tag: 'touch-rotate', started: boolean } | { tag: 'touch-dolly-pan', started: boolean } | { tag: 'touch-pan', started: boolean } | { tag: 'touch-dolly-rotate', started: boolean }
 
 export class OrbitControls extends THREE.EventDispatcher {
     private readonly disposable = new CompositeDisposable();
     dispose() { this.disposable.dispose() }
 
-    private state: State = 'none';
+    private state: State = { tag: 'none' };
 
     // current position in spherical coordinates
     private readonly spherical = new THREE.Spherical();
@@ -120,7 +120,7 @@ export class OrbitControls extends THREE.EventDispatcher {
         this.dispatchEvent(changeEvent);
 
         this.update();
-        this.state = 'none';
+        this.state = { tag: 'none' };
     }
 
     private readonly box = new THREE.Box3();
@@ -360,34 +360,33 @@ export class OrbitControls extends THREE.EventDispatcher {
                 if (this.enableZoom === false) return;
 
                 this.dollyStart.set(event.clientX, event.clientY);
-                this.state = 'dolly';
+                this.state = { tag: 'dolly', started: false };
                 break;
             case "orbit:rotate":
                 if (this.enableRotate === false) return;
 
                 this.rotateStart.set(event.clientX, event.clientY);
-                this.state = 'rotate';
+                this.state = { tag: 'rotate', started: false };
                 break;
             case "orbit:pan":
                 if (this.enablePan === false) return;
 
                 this.panStart.set(event.clientX, event.clientY, 0);
-                this.state = 'pan';
+                this.state = { tag: 'pan', started: false };
                 break;
             default:
-                this.state = 'none';
+                this.state = { tag: 'none' };
         }
 
-        if (this.state !== 'none') {
+        if (this.state.tag !== 'none') {
             event.preventDefault();
-            this.dispatchEvent(startEvent);
         }
     }
 
     onMouseMove(event: PointerEvent) {
         if (this.enabled === false) return;
 
-        switch (this.state) {
+        switch (this.state.tag) {
             case 'rotate':
                 if (this.enableRotate === false) return;
                 this.handleMouseMoveRotate(event);
@@ -401,21 +400,25 @@ export class OrbitControls extends THREE.EventDispatcher {
                 this.handleMouseMovePan(event);
                 break;
         }
+        if (this.state.tag != 'none' && !this.state.started) {
+            this.dispatchEvent(startEvent);
+            this.state.started = true;
+        }
     }
 
     onMouseUp(event: PointerEvent) {
         this.dispatchEvent(endEvent);
-        this.state = 'none';
+        this.state = { tag: 'none' };
     }
 
     onMouseWheel(event: WheelEvent) {
         const { state, enabled, enableZoom, zoomScale } = this;
-        if (!enabled || !enableZoom || state !== 'none') return;
+        if (!enabled || !enableZoom || state.tag !== 'none') return;
 
 
         let deltaY = event.deltaY;
         if (deltaY === 0 && event.shiftKey && event.deltaX !== 0) deltaY = event.deltaX;
-        
+
         event.preventDefault();
         this.dispatchEvent(startEvent);
         this.dolly(Math.sign(deltaY) > 0 ? 1 / zoomScale : zoomScale);
@@ -429,23 +432,21 @@ export class OrbitControls extends THREE.EventDispatcher {
             case 'orbit:rotate':
                 if (!this.enableRotate) return;
                 this.handleTouchStartRotate();
-                this.state = 'touch-rotate';
+                this.state = { tag: 'touch-rotate', started: false };
                 break;
             case 'orbit:dolly-pan':
                 if (!this.enableZoom && !this.enablePan) return;
                 this.handleTouchStartDollyPan();
-                this.state = 'touch-dolly-pan';
+                this.state = { tag: 'touch-dolly-pan', started: false };
                 break;
             default:
-                this.state = 'none';
+                this.state = { tag: 'none' };
         }
-
-        if (this.state !== 'none') this.dispatchEvent(startEvent);
     }
 
     onTouchMove(event: PointerEvent) {
         this.trackTouch(event);
-        switch (this.state) {
+        switch (this.state.tag) {
             case 'touch-rotate':
                 if (this.enableRotate === false) return;
                 this.handleTouchMoveRotate(event);
@@ -467,14 +468,18 @@ export class OrbitControls extends THREE.EventDispatcher {
                 this.update();
                 break;
             default:
-                this.state = 'none';
+                this.state = { tag: 'none' };
+        }
+        if (this.state.tag != 'none' && !this.state.started) {
+            this.dispatchEvent(startEvent);
+            this.state.started = true;
         }
     }
 
     onTouchEnd(event: PointerEvent) {
         // this.handleTouchEnd(event);
         this.dispatchEvent(endEvent);
-        this.state = 'none';
+        this.state = { tag: 'none' };
     }
 
     private readonly pointerPosition = new Map<number, THREE.Vector2>();
