@@ -57,13 +57,7 @@ export class ClickStrategy {
 
         if (this.selected.solids.has(parentItem)) {
             return this.modify(modifier,
-                () => {
-                    if (this.topologicalItem(object, modifier, option)) {
-                        this.writeable.removeSolid(parentItem);
-                        return true;
-                    }
-                    return true;
-                },
+                () => false,
                 () => {
                     this.writeable.removeSolid(parentItem);
                     return true;
@@ -74,9 +68,8 @@ export class ClickStrategy {
                     this.writeable.addSolid(parentItem);
                     return true;
                 },
-                () => {
-                    return true;
-                });
+                () => true
+            );
         }
         return false;
     }
@@ -84,12 +77,18 @@ export class ClickStrategy {
     topologicalItem(object: TopologyItem, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
         if (object instanceof Face && (this.mode.has(SelectionMode.Face) || (ChangeSelectionOption.IgnoreMode & option))) {
             this.modify(modifier,
-                () => this.writeable.addFace(object),
+                () => {
+                    this.writeable.addFace(object);
+                    this.writeable.removeSolid(object.parentItem);
+                },
                 () => this.writeable.removeFace(object));
             return true;
         } else if (object instanceof CurveEdge && (this.mode.has(SelectionMode.CurveEdge) || (ChangeSelectionOption.IgnoreMode & option))) {
             this.modify(modifier,
-                () => this.writeable.addEdge(object),
+                () => {
+                    this.writeable.addEdge(object);
+                    this.writeable.removeSolid(object.parentItem);
+                },
                 () => this.writeable.removeEdge(object));
             return true;
         }
