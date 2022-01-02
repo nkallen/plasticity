@@ -182,6 +182,8 @@ keybindings.set("gizmo:curve:undo", "Undo");
 keybindings.set("gizmo:line:undo", "Undo");
 keybindings.set("gizmo:fillet-solid:add", "Add variable fillet point");
 keybindings.set("gizmo:fillet-solid:distance", "Distance");
+keybindings.set("gizmo:fillet-solid:fillet", "Fillet distance");
+keybindings.set("gizmo:fillet-solid:chamfer", "Chamfer distance");
 keybindings.set("gizmo:fillet-solid:angle", "Chamfer angle");
 keybindings.set("gizmo:circle:mode", "Toggle vertical/horizontal");
 keybindings.set("gizmo:polygon:add-vertex", "Add a vertex");

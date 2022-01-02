@@ -14,7 +14,7 @@ export class FilletSolidCommand extends Command {
     async execute(): Promise<void> {
         const edges = [...this.editor.selection.selected.edges];
         const edge = edges[edges.length - 1];
-        const item = edge.parentItem as visual.Solid;
+        // const item = edge.parentItem as visual.Solid;
 
         const fillet = new MultiFilletFactory(this.editor.db, this.editor.materials, this.editor.signals).resource(this);
         // fillet.solid = item;

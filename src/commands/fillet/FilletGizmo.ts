@@ -3,7 +3,7 @@ import { Line2 } from "three/examples/jsm/lines/Line2";
 import c3d from '../../../build/Release/c3d.node';
 import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { AbstractAxisGizmo, AngleGizmo, AxisHelper, DistanceGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
+import { AbstractAxialScaleGizmo, AbstractAxisGizmo, AngleGizmo, AxisHelper, DistanceGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { point2point, vec2vec } from "../../util/Conversion";
 import { Helper } from "../../util/Helpers";
@@ -14,6 +14,8 @@ const Y = new THREE.Vector3(0, 1, 0);
 
 export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     private readonly main = new FilletMagnitudeGizmo("fillet-solid:distance", this.editor);
+    private readonly stretchFillet = new FilletStretchGizmo("fillet-solid:fillet", this.editor);
+    private readonly stretchChamfer = new ChamferStretchGizmo("fillet-solid:chamfer", this.editor);
     private readonly angle = new FilletAngleGizmo("fillet-solid:angle", this.editor, this.editor.gizmos.white);
     private readonly variables: FilletMagnitudeGizmo[] = [];
 
@@ -23,17 +25,25 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         super(params, editor);
     }
 
-    execute(cb: (params: FilletParams) => void): CancellablePromise<void> {
-        const { main, params, angle } = this;
-
+    prepare() {
+        const { main,  angle, stretchFillet: stretchFillet, stretchChamfer } = this;
         const { point, normal } = this.placement(this.hint);
+
         main.quaternion.setFromUnitVectors(Y, normal);
         main.position.copy(point);
         angle.position.copy(point);
+        stretchFillet.position.copy(point);
+        stretchChamfer.position.copy(point);
         angle.visible = false;
+        
+        main.relativeScale.setScalar(0.8);
+        angle.relativeScale.setScalar(0.3);
 
-        this.add(main);
-        this.add(angle);
+        this.add(main, angle, stretchFillet, stretchChamfer);
+    }
+
+    execute(cb: (params: FilletParams) => void): CancellablePromise<void> {
+        const { main, angle, stretchFillet: stretchFillet, stretchChamfer, params } = this;
 
         angle.value = Math.PI / 4;
 
@@ -43,7 +53,20 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
                 params.distance2 = params.distance1 * Math.tan(angle.value);
             } else {
                 params.distance = length;
+                stretchFillet.value = length;
             }
+        });
+
+        this.addGizmo(stretchFillet, length => {
+            params.distance = length;
+            main.value = length;
+            stretchChamfer.value = -length;;
+        });
+
+        this.addGizmo(stretchChamfer, length => {
+            params.distance = length;
+            main.value = length;
+            stretchFillet.value = -length;
         });
 
         this.addGizmo(angle, angle => {
@@ -70,11 +93,6 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
             angle.visible = false;
             angle.stateMachine!.isEnabled = false
         }
-    }
-
-    prepare() {
-        this.main.relativeScale.setScalar(0.8);
-        this.angle.relativeScale.setScalar(0.3);
     }
 
     private placement(point?: THREE.Vector3): { point: THREE.Vector3, normal: THREE.Vector3 } {
@@ -164,4 +182,33 @@ class FilletAngleGizmo extends AngleGizmo {
     }
 
     get shouldRescaleOnZoom() { return true }
+}
+
+class FilletStretchGizmo extends AbstractAxialScaleGizmo {
+    readonly state = new MagnitudeStateMachine(0);
+    readonly tip = new THREE.Mesh();
+    protected readonly shaft = new THREE.Mesh();
+    protected readonly knob = new THREE.Mesh();
+
+    constructor(name: string, editor: EditorLike) {
+        super(name, editor, editor.gizmos.default);
+        this.setup();
+    }
+
+    get shouldRescaleOnZoom() { return true }
+
+    onInterrupt(cb: (radius: number) => void) {
+        this.state.push();
+    }
+
+    protected accumulate(original: number, dist: number, denom: number, _: number = 1): number {
+        if (original === 0) return Math.max(0, dist - denom);
+        else return (original + ((dist - denom) * original) / denom);
+    }
+}
+
+class ChamferStretchGizmo extends FilletStretchGizmo {
+    protected accumulate(original: number, dist: number, denom: number, sign: number = 1): number {
+        return -Math.abs(super.accumulate(original, dist, denom, sign));
+    }
 }
