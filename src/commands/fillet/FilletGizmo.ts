@@ -4,6 +4,7 @@ import c3d from '../../../build/Release/c3d.node';
 import { EditorLike, Mode } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
 import { AbstractAxialScaleGizmo, AbstractAxisGizmo, AngleGizmo, AxisHelper, DistanceGizmo, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
+import { groupBy } from "../../command/MultiFactory";
 import { CancellablePromise } from "../../util/CancellablePromise";
 import { point2point, vec2vec } from "../../util/Conversion";
 import { Helper } from "../../util/Helpers";
@@ -26,7 +27,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
     }
 
     prepare() {
-        const { main,  angle, stretchFillet: stretchFillet, stretchChamfer } = this;
+        const { main, angle, stretchFillet: stretchFillet, stretchChamfer } = this;
         const { point, normal } = this.placement(this.hint);
 
         main.quaternion.setFromUnitVectors(Y, normal);
@@ -35,7 +36,7 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
         stretchFillet.position.copy(point);
         stretchChamfer.position.copy(point);
         angle.visible = false;
-        
+
         main.relativeScale.setScalar(0.8);
         angle.relativeScale.setScalar(0.3);
 
@@ -130,11 +131,16 @@ export class FilletSolidGizmo extends CompositeGizmo<FilletParams> {
 
     showEdges() {
         const solid = this.params.edges[0].parentItem;
-        const view = solid.edges.slice(this.params.edges);
-        view.material = this.editor.materials.lineDashed();
-        view.computeLineDistances();
-        this.editor.db.temporaryObjects.add(view);
-        return view;
+        const map = groupBy('parentItem', this.params.edges);
+        const views = [];
+        for (const [solid, edges] of map.entries()) {
+            const view = solid.edges.slice(edges);
+            view.material = this.editor.materials.lineDashed();
+            view.computeLineDistances();
+            this.editor.db.temporaryObjects.add(view);
+            views.push(view);
+        }
+        return views;
     }
 
     get shouldRescaleOnZoom() { return false }

@@ -4,6 +4,9 @@
 
 ### Backlog
 
+- grenade case foot but, can't fillet all sides  
+- drawing on negative x side of crate is wrong  
+- boolean keep tool  
 - draw curve to offset flow  
 - cut body: select edge after starting command  
 - upper-left box select of straight lines is too eager  
