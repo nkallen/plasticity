@@ -410,7 +410,10 @@ export class PointPicker {
             }
 
             const finish = () => {
-                if (info === undefined) throw new Error("invalid state");
+                if (info === undefined) {
+                    reject(new Error("invalid state"));
+                    return;
+                }
                 const point = info.position.clone();
                 const pointResult = { point, info };
                 model.addPickedPoint(pointResult);

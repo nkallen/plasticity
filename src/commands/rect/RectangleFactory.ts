@@ -65,11 +65,14 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     static orthogonal(corner1: THREE.Vector3, corner2: THREE.Vector3, normal: THREE.Vector3): FourCorners {
         const { quat, toX, inv, c1, c2 } = this;
 
+        // Reorient our points onto an XY plane that is axis aligned.
+        // If we're already axis aligned though, be careful about floating point issues!!
         quat.setFromUnitVectors(normal, Z);
         toX.setFromUnitVectors(normal, X);
         const perpendicularToX = Math.abs(normal.dot(X)) < 10e-6;
+        const parallelToX = Math.abs(Math.abs(normal.dot(X)) - 1) < 10e-6;
         const parallelToZ = Math.abs(normal.dot(Z)) > 1 - 10e-6;
-        if (!perpendicularToX && !parallelToZ) quat.premultiply(toX);
+        if (!perpendicularToX && !parallelToX && !parallelToZ) quat.premultiply(toX);
 
         inv.copy(quat).invert();
 
@@ -85,7 +88,7 @@ export abstract class DiagonalRectangleFactory extends RectangleFactory {
     }
 
     protected orthogonal(): FourCorners {
-        const { corner1, p2, normal, orientation } = this;
+        const { corner1, p2, normal } = this;
         if (corner1.manhattanDistanceTo(p2) < 10e-5) throw new NoOpError();
         return DiagonalRectangleFactory.orthogonal(corner1, p2, normal);
     }

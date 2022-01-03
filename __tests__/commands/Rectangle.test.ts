@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from "../../src/commands/rect/RectangleFactory";
+import { CenterRectangleFactory, CornerRectangleFactory, DiagonalRectangleFactory, ThreePointRectangleFactory } from "../../src/commands/rect/RectangleFactory";
 import { EditorSignals } from '../../src/editor/EditorSignals';
 import { GeometryDatabase } from '../../src/editor/GeometryDatabase';
 import MaterialDatabase from '../../src/editor/MaterialDatabase';
@@ -84,3 +84,17 @@ describe(CenterRectangleFactory, () => {
         })
     })
 });
+
+describe(DiagonalRectangleFactory, () => {
+    test('#orthogonal -- weird numerical precision edge case', () => {
+        const { p1, p2, p3, p4 } = DiagonalRectangleFactory.orthogonal(
+            new THREE.Vector3(-1, -1, 1),
+            new THREE.Vector3(-1, 1, 2),
+            new THREE.Vector3(-0.9999999999999998, 6.123233995736e-17, 0),
+        )
+        expect(p1).toApproximatelyEqual(new THREE.Vector3(-1, -1, 1));
+        expect(p2).toApproximatelyEqual(new THREE.Vector3(-1, 1, 1));
+        expect(p3).toApproximatelyEqual(new THREE.Vector3(-1, 1, 2));
+        expect(p4).toApproximatelyEqual(new THREE.Vector3(-1, -1, 2));
+    })
+})

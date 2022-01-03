@@ -6,8 +6,6 @@ import * as visual from "../../visual_model/VisualModel";
 import LineFactory from '../line/LineFactory';
 import { CenterRectangleFactory, CornerRectangleFactory, ThreePointRectangleFactory } from './RectangleFactory';
 
-
-
 export class ThreePointRectangleCommand extends Command {
     async execute(): Promise<void> {
         const pointPicker = new PointPicker(this.editor);
