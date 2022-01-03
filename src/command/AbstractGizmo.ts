@@ -67,7 +67,7 @@ export abstract class AbstractGizmo<CB> extends Helper {
     readonly picker = new THREE.Group();
     readonly helper?: GizmoHelper;
 
-    constructor(protected readonly title: string, protected readonly editor: EditorLike) {
+    constructor(readonly title: string, protected readonly editor: EditorLike) {
         super();
 
         this.picker.visible = false; // The picker is only a mouse target; should never be rendered
@@ -499,6 +499,7 @@ export class GizmoStateMachine<T> implements MovementInfo {
                 this.gizmo.onInterrupt(this.cb);
                 this.gizmo.helper?.onEnd();
             case 'hover':
+                this.gizmo.onPointerLeave(this.intersector);
                 this.state = { tag: 'none' };
             default: break;
         }

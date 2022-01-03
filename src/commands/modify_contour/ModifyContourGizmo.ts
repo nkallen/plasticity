@@ -15,8 +15,8 @@ export class ModifyContourGizmo extends CompositeGizmo<ModifyContourParams> {
     private readonly segments: PushCurveGizmo[] = [];
     private readonly corners: FilletCornerGizmo[] = [];
 
-    private readonly segmentTrigger = new AdvancedGizmoTriggerStrategy("modify-contour:segment", this.editor);
-    private readonly filletTrigger = new AdvancedGizmoTriggerStrategy("modify-contour:fillet", this.editor);
+    private readonly segmentTrigger = new AdvancedGizmoTriggerStrategy(this.editor);
+    private readonly filletTrigger = new AdvancedGizmoTriggerStrategy(this.editor);
 
     constructor(params: ModifyContourParams, editor: EditorLike) {
         super(params, editor);
@@ -182,11 +182,11 @@ interface GizmoInfo<T> {
     addEventHandlers: () => Disposable;
 }
 
-class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
-    private readonly map: GizmoInfo<T>[] = [];
+export class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
+    private readonly allGizmos: GizmoInfo<T>[] = [];
     private readonly raycaster = new THREE.Raycaster();
 
-    constructor(private readonly title: string, private readonly editor: EditorLike) { }
+    constructor(private readonly editor: EditorLike) { }
 
     execute(): Disposable {
         const disposable = new CompositeDisposable();
@@ -198,7 +198,7 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
                 if (winner === undefined) return;
                 winner.gizmo.stateMachine!.update(viewport, event);
                 winner.gizmo.stateMachine!.pointerDown(() => {
-                    domElement.ownerDocument.body.setAttribute("gizmo", this.title);
+                    domElement.ownerDocument.body.setAttribute("gizmo", winner!.gizmo.title);
 
                     event.preventDefault();
                     event.stopPropagation();
@@ -209,24 +209,24 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
             }
 
             const onPointerHover = (event: PointerEvent) => {
+                if (winner !== undefined) {
+                    const tag = winner.gizmo.stateMachine!.state.tag;
+                    if (tag != 'none' && tag != 'hover') return;
+                }
                 const camera = viewport.camera;
                 const pointer = AbstractGizmo.getPointer(domElement, event);
                 this.raycaster.setFromCamera(pointer, camera);
-                if (winner !== undefined) {
-                    winner.gizmo.stateMachine!.update(viewport, event);
-                    winner.gizmo.stateMachine!.pointerHover();
+                const intersections = [];
+                for (const info of this.allGizmos) {
+                    const hits = this.raycaster.intersectObject(info.gizmo.picker);
+                    if (hits.length === 0) continue;
+                    const first = hits[0];
+                    intersections.push({ distance: first.distance, info });
                 }
-                let newWinner = undefined;
-                for (const info of this.map) {
-                    const { gizmo } = info;
-                    const intersection = GizmoStateMachine.intersectObjectWithRay([gizmo.picker], this.raycaster);
-                    if (intersection !== undefined) {
-                        newWinner = info;
-                        break;
-                    }
-                }
-                if (newWinner === undefined) return;
-                if (newWinner === winner) return;
+                if (intersections.length === 0) return;
+                intersections.sort((a, b) => a.distance - b.distance);
+                const newWinner = intersections[0].info;
+                if (newWinner !== winner) winner?.gizmo.stateMachine!.interrupt();
                 winner = newWinner;
                 winner.gizmo.stateMachine!.update(viewport, event);
                 winner.gizmo.stateMachine!.pointerHover();
@@ -244,7 +244,7 @@ class AdvancedGizmoTriggerStrategy<T> implements GizmoTriggerStrategy<T> {
     }
 
     register(gizmo: AbstractGizmo<T>, viewport: Viewport, addEventHandlers: () => Disposable): Disposable {
-        this.map.push({ gizmo, addEventHandlers });
+        this.allGizmos.push({ gizmo, addEventHandlers });
         return new Disposable();
     }
 }

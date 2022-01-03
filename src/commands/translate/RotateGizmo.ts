@@ -1,10 +1,12 @@
 import * as THREE from "three";
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { EditorLike, Intersector, Mode, MovementInfo } from "../../command/AbstractGizmo";
+import { AbstractGizmo, EditorLike, Intersector, Mode, MovementInfo } from "../../command/AbstractGizmo";
 import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { GizmoMaterial } from "../../command/GizmoMaterials";
+import { GizmoMaterial, GizmoMaterialDatabase } from "../../command/GizmoMaterials";
 import { AngleGizmo, AxisHelper, CompositeHelper, DashedLineMagnitudeHelper, QuaternionStateMachine } from "../../command/MiniGizmos";
 import { RotateParams } from "./TranslateFactory";
+import { AdvancedGizmoTriggerStrategy } from "../modify_contour/ModifyContourGizmo";
+import { CompositeDisposable } from "event-kit";
 
 const planeGeometry = new THREE.PlaneGeometry(100_000, 100_000, 2, 2);
 const X = new THREE.Vector3(1, 0, 0);
@@ -21,15 +23,15 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
     private readonly y = new AxisAngleGizmo("rotate:y", this.editor, this.green);
     private readonly z = new AxisAngleGizmo("rotate:z", this.editor, this.blue);
     private readonly screen = new AngleGizmo("rotate:screen", this.editor, this.white);
-    private readonly occludeBackHalf: THREE.Mesh;
+    private readonly occluder = new OccluderGizmo("rotate:occluder", this.editor, this.materials.occlude);
+
+    private readonly trigger = new AdvancedGizmoTriggerStrategy(this.editor);
 
     constructor(params: RotateParams, editor: EditorLike) {
         super(params, editor);
 
-        const occludeBackHalf = new THREE.Mesh(planeGeometry, this.materials.occlude);
-        occludeBackHalf.renderOrder = -1;
-        this.add(occludeBackHalf);
-        this.occludeBackHalf = occludeBackHalf;
+        const { x, y, z, screen, occluder } = this;
+        for (const g of [x, y, z, screen, occluder]) g.trigger = this.trigger;
     }
 
     prepare() {
@@ -40,13 +42,16 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
         x.quaternion.setFromUnitVectors(Z, X);
         y.quaternion.setFromUnitVectors(Z, Y);
         z.quaternion.setFromUnitVectors(Z, Z);
-        this.add(x, y, z, screen);
+        this.add(x, y, z, screen, this.occluder);
     }
 
     private readonly cameraZ = new THREE.Vector3();
 
     execute(cb: (params: RotateParams) => void, finishFast: Mode = Mode.Persistent): CancellablePromise<void> {
-        const { x, y, z, screen, params, cameraZ } = this;
+        const { x, y, z, screen, params, cameraZ, trigger, occluder } = this;
+
+        const disposable = new CompositeDisposable();
+        disposable.add(trigger.execute());
 
         const state = new QuaternionStateMachine(new THREE.Quaternion());
         state.start();
@@ -81,7 +86,9 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
             rotate(axis)(angle);
         });
 
-        return super.execute(cb, finishFast);
+        this.addGizmo(occluder, () => { });
+
+        return super.execute(cb, finishFast, disposable);
     }
 
     render(params: RotateParams) {
@@ -94,11 +101,6 @@ export class RotateGizmo extends CompositeGizmo<RotateParams> {
 
         const eye = new THREE.Vector3();
         eye.copy(camera.position).sub(this.position).normalize();
-
-        this.occludeBackHalf.quaternion.multiplyQuaternions(this.worldQuaternionInv, camera.quaternion);
-        this.occludeBackHalf.position.copy(this.screen.position);
-        this.occludeBackHalf.position.add(eye.clone().multiplyScalar(-0.01))
-        this.occludeBackHalf.updateMatrixWorld();
     }
 }
 
@@ -127,4 +129,31 @@ export class AxisAngleGizmo extends AngleGizmo {
     }
 
     get shouldLookAtCamera() { return false }
+}
+
+export class OccluderGizmo extends AbstractGizmo<(t: void) => void> {
+    private readonly occludeBackHalf = new THREE.Mesh(planeGeometry, this.material);
+    private readonly occludeBackHalfPicker = new THREE.Mesh(planeGeometry, this.material);
+
+    constructor(private readonly longName: string, editor: EditorLike, private readonly material: THREE.MeshBasicMaterial) {
+        super(longName.split(':')[0], editor);
+        this.occludeBackHalf.renderOrder = -1;
+        this.add(this.occludeBackHalf);
+        this.picker.add(this.occludeBackHalfPicker);
+    }
+
+    onPointerMove(cb: () => void, intersector: Intersector, info: MovementInfo): void { }
+    onPointerDown(cb: () => void, intersect: Intersector, info: MovementInfo): void { }
+    onPointerUp(cb: () => void, intersect: Intersector, info: MovementInfo): void { }
+    onInterrupt(cb: () => void): void { }
+
+    update(camera: THREE.Camera): void {
+        this.quaternion.identity();
+        super.update(camera);
+        this.quaternion.multiplyQuaternions(this.worldQuaternionInv, camera.quaternion);
+    }
+
+    onDeactivate() { this.visible = false }
+
+    onActivate() { this.visible = true }
 }

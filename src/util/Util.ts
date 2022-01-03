@@ -75,10 +75,11 @@ export class Redisposable implements DisposableLike {
     dispose() { this.d() }
 }
 
-export function CircleGeometry(radius: number, segmentCount: number, arc = 1.0): Float32Array {
-    const vertices = new Float32Array((segmentCount * arc + 1) * 3);
-    for (let i = 0; i <= segmentCount * arc; i++) {
-        const theta = (i / segmentCount) * Math.PI * 2;
+export function CircleGeometry(radius: number, segmentsPerCircle: number, arc = 1.0): Float32Array {
+    const segments = Math.floor(segmentsPerCircle * arc);
+    const vertices = new Float32Array((segments + 1) * 3);
+    for (let i = 0; i <= segments; i++) {
+        const theta = (i / segmentsPerCircle) * Math.PI * 2;
         vertices[i * 3] = Math.cos(theta) * radius;
         vertices[i * 3 + 1] = Math.sin(theta) * radius;
         vertices[i * 3 + 2] = 0;
