@@ -53,7 +53,7 @@ export class ClickStrategy {
 
 
     solid(object: TopologyItem, modifier: ChangeSelectionModifier, option: ChangeSelectionOption): boolean {
-        if (!this.mode.has(SelectionMode.Solid)) return false;
+        if (!this.mode.has(SelectionMode.Solid) || (ChangeSelectionOption.IgnoreMode & option)) return false;
         const parentItem = object.parentItem;
 
         if (this.selected.solids.has(parentItem)) {
