@@ -6,19 +6,40 @@
 {
     // Probably the keybindings you want to change the most are case 1., when no command or gizmo is active.
     "body:not([gizmo]) ispace-workspace": {
-        "escape": "command:deselect-all",
+        // "c": "command:cut",
+        // "g": "command:move",
+        // "r": "command:rotate",
+        // "s": "command:scale",
+        // "b": "command:fillet-solid",
+        // "e": "command:extrude",
+        // "t": "command:trim",
+        // "o": "command:offset-curve",
+        // "alt-x": "command:mirror",
+        // "tab": "command:mode",
+        // "x": "command:delete",
+        // "delete": "command:delete",
+        // "backspace": "command:delete",
+        // "shift-q": "command:rebuild",
 
-        // bind offset to the letter 'o':
-        "o": "command:offset",
+        // "q q": "command:union",
+        // "q w": "command:difference",
+        // "q e": "command:intersect",
 
-        // bind capital Q to union:
-        "shift-Q": "command:union",
+        // "h": "command:hide-selected",
+        // "shift-h": "command:hide-unselected",
+        // "alt-h": "command:unhide-all",
 
-        // bind double-tap q to difference
-        "q q": "command:difference",
+        // "shift-d": "command:duplicate",
 
-        // bind ctrl-z to undo:
-        "ctrl-z": "undo",
+        // "shift-r": "repeat-last-command",
+        // "cmd-z": "undo",
+        // "cmd-shift-z": "redo",
+        // "ctrl-z": "undo",
+        // "ctrl-shift-z": "redo",
+
+        // "shift-A": "command:deselect-all",
+        // "alt-A": "command:deselect-all",
+        // "escape": "command:deselect-all",
     },
 
     // Uncomment to get maya-style orbit/pan.
