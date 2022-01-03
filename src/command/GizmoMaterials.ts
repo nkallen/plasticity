@@ -40,18 +40,16 @@ export class GizmoMaterialDatabase {
 
     static make(num: number, side = THREE.FrontSide): GizmoMaterial {
         const color = new THREE.Color(num);
-        const normalColor = color.offsetHSL(0, -0.2, 0);
+        const normalColor = color.clone().offsetHSL(0, -0.3, 0);
         const hoverColor = color.offsetHSL(0, 0, 0);
-        const a = normalColor.getHex();
-        const b = hoverColor.getHex();
         return {
-            mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.75, color: a }, depthInfo, { side })),
-            line2: new LineMaterial(Object.assign({ color: a, opacity: 1, linewidth: 3, }, depthInfo, { side })),
-            line: new THREE.LineBasicMaterial({ opacity: 0.75, color: a, }),
+            mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 0.75, color: normalColor }, depthInfo, { side })),
+            line2: new LineMaterial({ ...depthInfo, color: normalColor.getHex(), opacity: 1, linewidth: 2, side}),
+            line: new THREE.LineBasicMaterial({ opacity: 0.75, color: normalColor }),
             hover: {
-                mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 1, color: b }, depthInfo, { side })),
-                line2: new LineMaterial(Object.assign({ color: b, opacity: 1, linewidth: 3, }, depthInfo, { side })),
-                line: new THREE.LineBasicMaterial({ opacity: 1, color: b, }),
+                mesh: new THREE.MeshBasicMaterial(Object.assign({ opacity: 1, color: hoverColor }, depthInfo, { side })),
+                line2: new LineMaterial(Object.assign({ color: hoverColor.getHex(), opacity: 1, linewidth: 3, }, depthInfo, { side })),
+                line: new THREE.LineBasicMaterial({ opacity: 1, color: hoverColor }),
             }
         }
     }

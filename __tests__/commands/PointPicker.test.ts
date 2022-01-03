@@ -330,10 +330,7 @@ describe('activateSnapped', () => {
         const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
         pointPicker.activateSnapped([snap]);
         const snaps = pointPicker.snaps;
-        expect(snaps.length).toBe(3);
-        expect(snaps[0]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[1]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[2]).toBeInstanceOf(PointAxisSnap);
+        expect(snaps.map(s=>s.name)).toEqual(['x', 'y', 'z']);
     });
 
     test("for endpoints on polycurves, activateSnapped adds axes as well as tangent/etc", async () => {
@@ -346,12 +343,7 @@ describe('activateSnapped', () => {
         pointPicker.activateSnapped([snap]);
 
         const snaps = pointPicker.snaps;
-        expect(snaps.length).toBe(4);
-        expect(snaps[0]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[1]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[2]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[3]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[3].name).toEqual("Tangent")
+        expect(snaps.map(s=>s.name)).toEqual(['x', 'y', 'z', 'Tangent']);
     });
 
     test("activateSnapped respects undo", async () => {
@@ -364,17 +356,20 @@ describe('activateSnapped', () => {
         pointPicker.activateSnapped([snap]);
 
         let snaps = pointPicker.snaps;
-        expect(snaps.length).toBe(4);
-        expect(snaps[0]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[1]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[2]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[3]).toBeInstanceOf(PointAxisSnap);
-        expect(snaps[3].name).toEqual("Tangent");
+        expect(snaps.map(s=>s.name)).toEqual(['x', 'y', 'z', 'Tangent']);
 
         pointPicker.undo();
         snaps = pointPicker.snaps;
         expect(snaps.length).toBe(0);
     });
+
+    test('regardless of the current straightsnaps, adds XYZ axes', () => {
+        pointPicker.straightSnaps.clear();
+        const snap = new PointSnap("Closed", new THREE.Vector3(1, 2, 3));
+        pointPicker.activateSnapped([snap]);
+        const snaps = pointPicker.snaps;
+        expect(snaps.map(s=>s.name)).toEqual(['x', 'y', 'z']);
+    })
 });
 
 describe('for curves', () => {

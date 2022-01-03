@@ -38,9 +38,11 @@ export type PointResult = { point: THREE.Vector3, info: PointInfo };
 
 type Choices = 'Normal' | 'Binormal' | 'Tangent' | 'x' | 'y' | 'z';
 
+const XYZ = [AxisSnap.X, AxisSnap.Y, AxisSnap.Z];
+
 export class Model {
     private readonly pickedPointSnaps = new Array<PointResult>(); // Snaps inferred from points the user actually picked
-    straightSnaps = new Set([AxisSnap.X, AxisSnap.Y, AxisSnap.Z]); // Snaps going straight off the last picked point
+    readonly straightSnaps = new Set(XYZ); // Snaps going straight off the last picked point
     private readonly otherAddedSnaps = new Array<Snap>();
 
     private _restriction?: Restriction;
@@ -182,9 +184,9 @@ export class Model {
         }
     }
 
-    addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion(), into: Snap[] = this.otherAddedSnaps, other: Snap[] = []) {
+    addAxesAt(point: THREE.Vector3, orientation = new THREE.Quaternion(), axisSnaps: Iterable<AxisSnap> = this.straightSnaps, into: Snap[] = this.otherAddedSnaps, other: Snap[] = []) {
         const rotated = [];
-        for (const snap of this.straightSnaps) rotated.push(snap.rotate(orientation));
+        for (const snap of axisSnaps) rotated.push(snap.rotate(orientation));
         const axes = new PointSnap(undefined, point).axes(rotated);
         for (const axis of axes) this.addAxis(axis, into, other);
     }
@@ -251,8 +253,6 @@ export class Model {
     private _activatedHelpers: Snap[] = [];
     get activatedHelpers(): readonly Snap[] { return this._activatedHelpers }
 
-    // FIXME: get rid of intos as array; make helpers a separate param
-
     private readonly alreadyActivatedSnaps = new Set<Snap>();
     activateSnapped(snaps: Snap[]) {
         for (const snap of snaps) {
@@ -260,18 +260,17 @@ export class Model {
             this.alreadyActivatedSnaps.add(snap); // idempotent
 
             if (snap instanceof CurveEndPointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxesAt(snap.position, new THREE.Quaternion(), XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
                 this.addAxis(snap.tangentSnap, this.snapsForLastPickedPoint, this._activatedHelpers);
             } else if (snap instanceof FaceCenterPointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxesAt(snap.position, new THREE.Quaternion(), XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
                 this.addAxis(snap.normalSnap, this.snapsForLastPickedPoint, this._activatedHelpers);
             } else if (snap instanceof PointSnap) {
-                this.addAxesAt(snap.position, new THREE.Quaternion(), this.snapsForLastPickedPoint, this._activatedHelpers);
+                this.addAxesAt(snap.position, new THREE.Quaternion(), XYZ, this.snapsForLastPickedPoint, this._activatedHelpers);
             }
         }
     }
 
-    // FIXME: verify this is working
     // Activate snaps like tan/tan and perp/perp which only make sense when the previously selected point and the
     // current nearby snaps match certain conditions.
     private readonly mutualSnaps = new Set<Snap>();
