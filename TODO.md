@@ -75,7 +75,6 @@
 - trim should allow deleting a line  
 - start fillet a priori  
 - ortho cube goes to ortho mode  
-- disable fillet dialog while in gizmo  
 
 ### In Progress
 
@@ -83,6 +82,7 @@
 
 ### Done ✓
 
+- disable fillet dialog while in gizmo  
 - holding cmd/window turns on all selection modes  
 - fillet gizmo handle is not scaling  
 - fillet multiple at once  
