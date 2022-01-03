@@ -165,7 +165,7 @@ export class FilletMagnitudeGizmo extends AbstractAxisGizmo {
     }
 
     render(length: number) {
-        this.shaft.scale.y = length;
+        this.shaft.position.set(0, length - 0.5, 0);
         this.tip.position.set(0, length, 0);
         this.knob.position.copy(this.tip.position);
     }

@@ -4,10 +4,17 @@
 
 ### Backlog
 
-- grenade case foot but, can't fillet all sides  
-- drawing on negative x side of crate is wrong  
+- ctrl to add to selection whilst in command (a la fusion)  
+- autodelete coplanar faces  
+- redo fillet gizmo  
+- redo rotate gizmo  
+- angle snaps (5deg)  
+- gizmos for elementary solids  
+- drawing on face -- boundary edges need to be extendable as snaps  
+- cutting contour needs to extend to infinitiy  
+- autojoin curves at same endpoint  
 - boolean keep tool  
-- draw curve to offset flow  
+- draw curve to offset (multiline) flow  
 - cut body: select edge after starting command  
 - upper-left box select of straight lines is too eager  
 - another mirror bug  
@@ -72,6 +79,7 @@
 
 ### Todo
 
+- drawing on negative x side of crate is wrong  
 - trim should allow deleting a line  
 - start fillet a priori  
 - ortho cube goes to ortho mode  
@@ -82,6 +90,7 @@
 
 ### Done ✓
 
+- grenade case foot but, can't fillet all sides  
 - disable fillet dialog while in gizmo  
 - holding cmd/window turns on all selection modes  
 - fillet gizmo handle is not scaling  
