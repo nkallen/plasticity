@@ -4,6 +4,14 @@
 
 ### Backlog
 
+- matcap shinier  
+- escape out of fillet command to restart  
+- redo max fillet  
+- bug: dialogs sometimes incorrectly cache previous value (e.g., mirror checkbox for union) - run mirror twice changing value  
+- fillet: span keybinding  
+- fillet: prolong keybinding  
+- fillet two corners of a curve, not all  
+- turn on/off visual display of edges  
 - ctrl to add to selection whilst in command (a la fusion)  
 - autodelete coplanar faces  
 - redo fillet gizmo  

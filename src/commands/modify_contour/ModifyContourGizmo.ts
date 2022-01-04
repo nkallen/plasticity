@@ -1,11 +1,11 @@
 import { CompositeDisposable, Disposable } from "event-kit";
 import * as THREE from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2";
+import { AbstractGizmo, EditorLike, GizmoTriggerStrategy, Mode } from "../../command/AbstractGizmo";
+import { CompositeGizmo } from "../../command/CompositeGizmo";
+import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { Viewport } from "../../components/viewport/Viewport";
 import { CancellablePromise } from "../../util/CancellablePromise";
-import { AbstractGizmo, EditorLike, GizmoStateMachine, GizmoTriggerStrategy, Intersector, Mode, MovementInfo } from "../../command/AbstractGizmo";
-import { CompositeGizmo } from "../../command/CompositeGizmo";
-import { AbstractAxialScaleGizmo, AbstractAxisGizmo, arrowGeometry, AxisHelper, DashedLineMagnitudeHelper, lineGeometry, MagnitudeStateMachine, sphereGeometry } from "../../command/MiniGizmos";
 import { ModifyContourParams } from "./ModifyContourFactory";
 
 const Y = new THREE.Vector3(0, 1, 0);
